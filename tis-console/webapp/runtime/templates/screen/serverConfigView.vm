@@ -1,0 +1,15 @@
+<h2>服务器配置文件查看</h2>
+<table width="100%" border="1">
+#foreach($item in $rundata.request.getAttribute("querySelectServerCandiate").entrySet())
+    <tr> 
+      <td width="80px">第$item.key组</td>
+      <td>
+         #foreach($s in $item.value)
+            <lable for="lab${s.hashCode()}">$s.ipAddress</lable>
+($manageTool.noescape($manageTool.getServerConfigViewLink($manageModule,$manageTool.appDomain.appName,$item.key,$s.ipAddress,$s.port)))<br/>
+         #end
+      </td>
+    </tr>
+#end
+</table>
+<div class="note2">注：如果打开内容出错，说明服务器不能连接或者哈勃agent（hubagent）启动</div>

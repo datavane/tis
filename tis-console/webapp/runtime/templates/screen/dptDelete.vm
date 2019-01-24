@@ -1,0 +1,15 @@
+<h2>删除部门($dpt)</h2>
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("dptDelete")">
+<input type="hidden" name="action" value="department_action" />
+<input type="hidden" name="dptid" value="#p('dptid')" />
+
+<div class="note2">
+注意：<br/>
+ 该部门下不能有子部门<br/>
+ 不能有成员关联在该部门中<br/>
+</div>
+
+
+<input type="submit" name="event_submit_do_delete_department" value="提   交" />
+</form>

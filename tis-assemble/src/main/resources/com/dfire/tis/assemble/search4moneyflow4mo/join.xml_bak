@@ -1,0 +1,32 @@
+<execute partitionSaveCount="1">
+<!-- 
+	<delhistorypartition tableName="card4mo"/>
+	<delhistorypartition tableName="customer4mo" />
+	<delhistorypartition tableName="moneyflow4mo" />
+	<delhistorypartition tableName="shop4mo" />
+
+	<delhistorypartition tableName="money_flow_wide"
+		  bindtable="false" />
+ -->
+
+	<joinTask name="import_money_flow_wide">
+	 <![CDATA[	
+	INSERT OVERWRITE TABLE money_flow_wide PARTITION (pt,pmod)
+  SELECT
+       mf.id,mf.consume_date,mf.action,mf.card_id,mf.customer_id,mf.pay,mf.fee,mf.pay_id,mf.relation_id,mf.shop_entity_id,mf.status,mf.entity_id,mf.is_valid,mf.create_time,
+       mf.operator_id,mf.op_time,mf.active_id,mf.pay_mode,mf.balance,mf.seller_id,mf.op_type,mf.dispose_name,
+       cd.code as card_code,cd.inner_code as card_inner_code,
+       cm.name as customer_name,cm.spell as customer_spell,cm.mobile as customer_mobile,cm.phone as customer_phone,
+       sp.name as shop_name,
+       mf.pt,mf.pmod
+    FROM moneyflow4mo mf LEFT OUTER JOIN customer4mo cm ON (mf.customer_id = cm.id AND cm.pt='${context.date}' )
+                     LEFT OUTER JOIN card4mo cd ON (mf.card_id = cd.id AND cd.pt='${context.date}' )
+                     LEFT OUTER JOIN shop4mo sp ON( mf.shop_entity_id = sp.entity_id AND sp.pt='${context.date}' )
+   WHERE mf.pt='${context.date}'
+   ]]>
+	</joinTask>
+
+</execute>
+
+
+

@@ -1,0 +1,101 @@
+<!--com.taobao.terminator.cloud.protocol.CoreNodeInfo -->
+<span id="extendProps$item.hashCode()" style="display:none;">
+ <table width="100%" border="1">
+ <tr>
+<td><strong> transCount:                  </strong>   $item.transCount                                          </td>
+<td><strong>  osName:                     </strong>   $item.osName                                               </td>
+<td><strong>  osVersion:                  </strong>   $item.osVersion                                            </td>
+</tr>
+<tr>
+<td><strong>    arch:                     </strong>  $item.arch                                              </td>
+<td><strong> systemLoadAverage           </strong>   $item.systemLoadAverage                                     </td>
+<td><strong> openFileDescriptorCount     </strong>   $item.openFileDescriptorCount                               </td>
+</tr>
+<tr>
+<td><strong> maxFileDescriptorCount      </strong>  $item.maxFileDescriptorCount                                 </td>
+<td><strong> committedVirtualMemorySize  </strong>  $manageTool.formatVolume( $item.committedVirtualMemorySize)  </td>
+<td><strong> totalPhysicalMemorySize     </strong>  $manageTool.formatVolume( $item.totalPhysicalMemorySize )    </td>
+</tr>
+<tr>
+<td><strong> totalSwapSpaceSize          </strong>  $manageTool.formatVolume( $item.totalSwapSpaceSize )         </td>
+<td><strong> processCpuTime              </strong> $item.processCpuTime                                          </td>
+<td><strong> availableProcessors         </strong> $item.availableProcessors                                     </td>
+</tr>
+<tr>
+<td><strong> solrImplVersion             </strong> $item.solrImplVersion                                         </td>
+<td><strong> solrSpecVersion             </strong> $item.solrSpecVersion                                         </td>
+<td><strong> luceneImplVersion           </strong> $item.luceneImplVersion                                       </td>
+</tr>
+<tr>
+<td><strong> luceneSpecVersion           </strong> $item.luceneSpecVersion                                       </td>
+<td><strong> jvmVersion                  </strong> $item.jvmVersion                                              </td>
+<td><strong> jvmName                     </strong> $item.jvmName                                                 </td>
+</tr>
+<tr>
+<td><strong> processors                  </strong> $item.processors                                              </td>
+<td><strong> jvmFreeMem                  </strong> $manageTool.formatVolume($item.jvmFreeMem)                    </td>
+<td><strong> jvmTotalMem                 </strong> $manageTool.formatVolume($item.jvmTotalMem)                   </td>
+</tr>
+<tr>
+<td><strong> jvmMaxMem                   </strong> $manageTool.formatVolume($item.jvmMaxMem)                     </td>
+<td><strong> jvmUsedMem                  </strong> $manageTool.formatVolume($item.jvmUsedMem)                    </td>
+<td><strong> percentJvmUsedMem           </strong> ${item.percentJvmUsedMem}                                     </td>
+
+</tr>
+  <tr>
+   #if($jmx.containsKey('branch'))
+   <td><strong> branch           </strong> $!jmx.get('branch')                                   </td>
+   #end
+
+   #if($jmx.containsKey('scmVersion'))
+   <td><strong> scmVersion           </strong> $!jmx.get('scmVersion')                                    </td>
+   #end
+
+   #if($jmx.containsKey('timestamp'))
+   <td><strong> timestamp           </strong>$!jmx.get('timestamp')                                    </td>
+   #end
+
+   #if($jmx.containsKey('hsfVersion'))
+   <td><strong> hsfVersion           </strong> $!jmx.get('hsfVersion')                                     </td>
+   #end
+  </tr>
+</table>
+ </span>
+#*
+<div id="solrcore$item.hashCode()" style="display:none" >
+ #foreach($s in $item.solrCoreInfo.entrySet())
+  #if($manageTool.isShowServerRelateInfo($showServerRelateProp, $s.key,$core.c.coreNums))
+  <h5 style="margin:10px;padding:3px;background-color:green;color:white;">$s.key</h5>
+  <table width="100%" border="1">
+    <tr>
+     <td>索引容量</td><td>$manageTool.formatVolume($s.value.IndexSize)</td>
+   </tr>       <tr>
+     <td>commitLog</td><td>${s.value.commitLog} byte </td>
+   </tr>   
+   <tr>       
+     <td>更新时间</td><td>  $manageTool.formatDateYYYYMMdd($s.value.uptime)</td>
+   </tr>
+   <tr>
+     <td>实例目录</td><td> $s.value.instanceDir</td>
+   </tr>
+   #foreach($e in $s.value.jmx.entrySet())
+   <tr>  <td>
+    $e.key</td><td>
+      $e.value
+     </td>
+   </tr>
+   #end
+  </table>
+ #end
+#end
+</div>
+*#
+<a href="#" onclick="open_dialog('查看其它属性$item.hostName',$('#extendProps$item.hashCode()').html(),1000)" >其它属性</a>
+#*
+<a href="#" onclick="open_dialog('SolrCore$item.hostName',$('#solrcore$item.hashCode()').html(),800)" >SolrCore属性</a>
+*#
+#*
+#if($isRealtime)
+ <button onclick="abortBuildjobByServer($core.c.coreNums,'$item.name');return false;">暂停/恢复BuildJob</button>
+#end
+*#

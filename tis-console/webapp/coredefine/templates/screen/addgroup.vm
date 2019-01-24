@@ -1,0 +1,66 @@
+<div id="msgblock">
+</div>
+<form id="formaddgroup">
+<fieldset>
+  <legend>请填写 ${addtype.literia}表单(组内${selectCoreinfo.replication}副本) 第二步</legend>
+    <p style="text-align:right">
+    <button  onclick="addGroup();return false;"
+           style="width:140px;height:30px;background-color:#666666;color:yellow" 
+            >提 交</button>
+     </p>
+  <p> 
+#foreach($index in $selectCoreinfo.groupArray)
+ <div id="group${index}"><h3 style="background-color:#7DE6FF;padding:3px">第${index}组</h3>
+  #*
+  $control.setTemplate("selectableServer.vm")
+  .setParameter("contextid",${index})
+  .setParameter("service",$manageTool.appDomain.appName)
+  .setParameter("canidateServerNameAware",true)
+  .setParameter("excludeHaveAppServers",$selectCoreinfo.excludeHaveAppServers)
+  *#
+   #taction("name=selectable_server" "namespace=/coredefine#control" "executeResult=true")
+    #sparam("name=contextid","value=${index}")
+    #sparam("name=service","value='${manageTool.appDomain.appName}'")
+    #sparam("name=canidateServerNameAware","value=true")
+    #sparam("name=excludeHaveAppServers","value='${selectCoreinfo.excludeHaveAppServers}'") 
+   #end
+  
+ </div>
+#end
+ 
+  </p> 
+</fieldset>
+</form>
+<script>
+  function addGroup(){
+     var serial = "";
+  
+   #foreach($index in $selectCoreinfo.groupArray)
+     var opts = $("#selectedServer${index}>option");
+    //if(opts.length < ${selectCoreinfo.replication}){
+   if(opts.length < 1){
+         
+     // alert("第${index}组,选择的机器不能少于${selectCoreinfo.replication}台");
+      alert("第${index}组,选择的机器不能少于1台");
+      $("#selectedServer${index}").focus();
+      return;
+    }else{
+       for(var i =0;i<opts.length;i++){
+         serial+="&selectedServer${index}="+opts[i].value;
+       }
+    }
+   #end
+   
+   
+   jQuery.ajax({url:'$coredefine.setTarget('coredefine.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_update_group_count=y&action=core_action&group=${selectCoreinfo.groupNum}&assigngroup=${selectCoreinfo.assignGroupCount}&replica=${selectCoreinfo.replication}"+serial,                  
+			    success:function(data){	
+				  	showMessageDialog(data);
+	      	    }				   
+	}); 
+   
+    
+  }
+</script>

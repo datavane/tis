@@ -1,0 +1,57 @@
+<style type="text/css">
+<!--
+td {
+ padding:10px;
+}
+-->
+</style>
+
+<h2>添加Solr字段</h2>
+<p style="text-align:right">
+ <button style="width:150px;height:30px;">提交</button>
+</p>
+
+<table width="100%" border="1">
+  <tr>
+    <td width="100px">字段名称</td>
+    <td > <input name="" type="text" /></td>
+  </tr>
+  <tr>
+    <td>类型</td>
+    <td> <select>
+	<option>请选择</option>
+<optgroup label="long">
+<option>slong</option>
+	<option>tlong</option>
+	<option>long</option>
+</optgroup>	
+	
+<optgroup label="int">
+	<option>sint</option>
+	<option>int</option>
+	<option>tint</option>
+</optgroup>	
+<optgroup label="字符">
+	<option>String</option>
+	<option>string_pd</option>
+	</optgroup>	
+	</select><img border="0" src="aide.jpg" />
+	</td>
+  </tr>
+  <tr>
+    <td>索引</td>
+    <td>  <input name="radio" type="radio" id="radio1"  /> <label for="radio1">是</label> <input name="radio" type="radio"  id="radio2"   /><label for="radio2">否</label> </td>
+  </tr>
+  <tr>
+    <td>存储</td>
+    <td><input name="radioa" type="radio" id="radioa1"  /> <label for="radioa1">是</label> <input name="radioa" type="radio"  id="radioa2"   /><label for="radioa2">否</label></td>
+  </tr>
+  <tr>
+    <td>多值</td>
+    <td><input name="radiob" type="radio" id="radiob1"  /> <label for="radiob1">是</label> <input name="radiob" type="radio"  id="radiob2"   /><label for="radib2">否</label></td>
+  </tr>
+  <tr>
+    <td>必须</td>
+    <td><input name="radioc" type="radio" id="radioc1"  /> <label for="radioc1">是</label> <input name="radioc" type="radio"  id="radioc2"   /><label for="radic2">否</label></td>
+  </tr>
+</table>

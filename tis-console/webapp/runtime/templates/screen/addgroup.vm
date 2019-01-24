@@ -1,0 +1,48 @@
+<h2>添加组</h2>
+<style type="text/css"><!--
+  #addserver p span{
+    width:8em;
+    display:inline-block;
+  }
+-->
+</style>
+<script>
+  function changeEnvironment(value){
+    ajax_fire_event(
+       '$manageModule.setTarget("addgroup.do")'
+       ,"change_environment"
+       ,{action:"group_action"
+         ,'appid':$rundata.request.getParameter('appid')
+         ,'runtime':value}
+       ,function( msg ) {
+         $("#groupIndex").attr("value",parseInt(msg));
+       });
+  }
+</script>
+#showFormErrors("addgroup")
+<form method="post" action="$manageModule.setTarget("addgroup")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="group_action"/>
+<input type="hidden" name="appid" value="#p('appid')" />
+<fieldset id="addserver">
+<legend>设置表单</legend>
+<p>
+  <span>环境:</span>
+  <select name="runtime" onchange="changeEnvironment(this.value)">
+    <option value="">请选择</option>
+  #foreach($item in $environlist)   
+    <option value="$item.id">$item.describe</option>
+  #end
+  </select>
+</p>
+<p>
+  <span>服务器组号:</span> 
+  <input type="text" id="groupIndex" name="groupIndex" />
+</p>
+<p>
+<input type="submit" id="btndouploadjar" name="event_submit_do_add_group" />
+</p>
+</fieldset>
+</form>

@@ -1,0 +1,21 @@
+#showFormErrors("searchconfirm")
+<form method="post" action="$manageModule.setTarget("test/searchconfirm")">
+ <input type="hidden" name="action" value="test/confirm_search_action"/>
+ <input type="hidden" name="$group.pid.key" value="$group.pid.value"/>
+ <input type="hidden" name="$group.snapshotid.key" value="$group.snapshotid.value"/>
+<h2>
+  #if($testDomain.isWaitConfirmIndex())
+          确认索引的正确性  <input type="submit" style="background-color:pink; width:300px;height:30px" name="event_submit_do_confirm" onclick="return window.confirm('您确定本次测试成功？可以将最新上传的代码包发布到DAILY环境');" value="索引正确无误可以发布到日常环境" /> 
+  #elseif($testDomain.isConfirmIndex())
+        您已经确认索引结果，稍后终搜的同学会将它发布到Daily环境中
+  #end
+</h2>
+ $control.setTemplate("package_test_state.vm")
+ 
+</form>
+
+<iframe frameborder="0" width="100%" height="900px" src="$manageTool.getDailyHost()/build/indexquery?pid=$group.pid.value"></iframe>
+
+
+
+

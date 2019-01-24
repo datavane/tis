@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee  
+          http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	version="3.0" metadata-complete="true">
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:application.context.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher</listener-class>
+	</listener>
+
+	<servlet>
+		<servlet-name>tisServlet</servlet-name>
+		<servlet-class>com.qlangtech.tis.fullbuild.servlet.TisServlet</servlet-class>
+	</servlet>
+
+
+
+
+
+
+
+
+	<!-- ===================================== -->
+	<!-- Define Velocity template handler -->
+	<servlet>
+		<servlet-name>velocity</servlet-name>
+		<servlet-class>org.apache.velocity.tools.view.VelocityViewServlet</servlet-class> <!-- Unless you plan to put your tools.xml and velocity.properties under 
+			different folders or give them different names, then these two init-params 
+			are unnecessary. The VelocityViewServlet will automatically look for these 
+			files in the following locations. -->
+		<init-param>
+			<param-name>org.apache.velocity.toolbox</param-name>
+			<param-value>/WEB-INF/tools.xml</param-value>
+		</init-param>
+		<init-param>
+			<param-name>org.apache.velocity.properties</param-name>
+			<param-value>/WEB-INF/velocity.properties</param-value>
+		</init-param>
+	</servlet> <!-- Map *.vm files to Velocity -->
+	<servlet-mapping>
+		<servlet-name>velocity</servlet-name>
+		<url-pattern>*.vm</url-pattern>
+	</servlet-mapping>
+	<!-- ===================================== -->
+
+	<servlet>
+		<servlet-name>buildTriggerServlet</servlet-name>
+		<servlet-class>com.qlangtech.tis.fullbuild.servlet.BuildTriggerServlet</servlet-class>
+	</servlet>
+	
+		<url-pattern>/realtime-status</url-pattern> </servlet-mapping> -->
+	<servlet>
+		<servlet-name>realtimeStatePage</servlet-name>
+		<servlet-class>com.qlangtech.tis.realtime.servlet.RealtimeStatePageServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>incrControlServlet</servlet-name>
+		<servlet-class>com.qlangtech.tis.realtime.servlet.IncrControlServlet</servlet-class>
+	</servlet>
+
+
+
+	<!-- baisui add 20160612 -->
+	<filter>
+		<filter-name>monitorFilter</filter-name>
+		<filter-class>com.qlangtech.tis.checkhealth.TisMonitorFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>monitorFilter</filter-name>
+		<url-pattern>/check_health</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>monitorFilter</filter-name>
+		<url-pattern>/full-dump-assemble/check_health</url-pattern>
+	</filter-mapping>
+	<!-- baisui add end -->
+
+
+
+	<servlet-mapping>
+		<servlet-name>tisServlet</servlet-name>
+		<url-pattern>/trigger</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>buildTriggerServlet</servlet-name>
+		<url-pattern>/hdfs_build</url-pattern>
+	</servlet-mapping>
+
+
+
+	<servlet-mapping>
+		<servlet-name>realtimeStatePage</servlet-name>
+		<url-pattern>/state</url-pattern>
+	</servlet-mapping>
+	<!-- <servlet-mapping> <servlet-name>histogramServlet</servlet-name> <url-pattern>/histogram-state</url-pattern> 
+		</servlet-mapping> -->
+	<servlet-mapping>
+		<servlet-name>incrControlServlet</servlet-name>
+		<url-pattern>/incr-control</url-pattern>
+	</servlet-mapping>
+
+</web-app>

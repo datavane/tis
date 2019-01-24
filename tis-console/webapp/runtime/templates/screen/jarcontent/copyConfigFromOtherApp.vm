@@ -1,0 +1,15 @@
+#showFormErrors("addapp")
+<form id="configfrom" method="post" role="form" >
+<input type="hidden" name="action" value="add_app_action" />
+<input type="hidden" name="event_submit_do_copy_config_from_other_app" value="y"  />
+<input type="hidden" name="toAppId" value="$manageTool.appDomain.appid" />
+<h3>请选择配置部门</h3>
+<div class="form-group">
+    #saction("name=appselect" "namespace=/runtime#control","executeResult=true")
+</div>
+
+
+
+<button type="submit" class="btn btn-default">执行拷贝</button>
+
+</form>

@@ -1,0 +1,4 @@
+<h2>全局配置参数一览</h2>
+<ol>#foreach($item in $resourceParameters)
+  <li>$item.keyName</li>#end
+</ol>

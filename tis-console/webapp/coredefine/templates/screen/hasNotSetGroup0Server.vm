@@ -1,0 +1,1 @@
+<div class="note">还没有设置服务器 <a href="$manageModule.setTarget("app")?appid=${manageTool.appDomain.appid}  ">设置</a>    </div>

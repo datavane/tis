@@ -1,0 +1,3 @@
+<div class="note">
+ 亲，您还没有设置您所在的部门 <a href="$manageModule.setTarget("setDepartment")">设置</a>
+</div>

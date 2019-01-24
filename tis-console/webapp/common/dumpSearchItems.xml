@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rows>
+	<head>
+		<column width="*" type="tree" valign="bottom" align="left" sort="str">Model</column>
+		<column width="90" type="txt" align="center" sort="int">总数</column>
+		<column width="30" type="txt" align="center" sort="int">分组</column>
+	</head>
+	<row id="item" open= "1">
+		<cell>业务线</cell>
+		<row id="bus1">
+			<cell>淘江湖SNS</cell> 
+			<row id="sns01">			
+				<cell>search4realwidget</cell>
+				<cell></cell>
+				<cell></cell>				
+		    </row>
+			<row id="sns02">			
+				<cell>search4Friend</cell>				
+		    </row>		
+			<row id="sns03">			
+				<cell>search4Company</cell>				
+		    </row>	
+			<row id="sns04">			
+				<cell>search4addressFriend</cell>
+		    </row>	
+			<row id="sns05">			
+				<cell>search4newIpFriend</cell>								
+		    </row>	
+			<row id="sns06">			
+				<cell>search4phone</cell>									
+		    </row>	
+			<row id="sns07">			
+				<cell>search4ipfriend</cell>										
+		    </row>	
+			<row id="sns08">			
+				<cell>search4group</cell>								
+		    </row>	
+			<row id="sns09">			
+				<cell>search4bbs</cell>										
+		    </row>	
+			<row id="sns10">			
+				<cell>search4grouplus</cell>						
+		    </row>	
+			<row id="sns11">			
+				<cell>search4album</cell>										
+		    </row>	
+			<row id="sns12">			
+				<cell>search4diary</cell>										
+		    </row>	
+			<row id="sns13">			
+				<cell>search4blog</cell>											
+		    </row>	
+			<row id="sns14">			
+				<cell>search4galaxy</cell>							
+		    </row>	
+			<row id="sns15">			
+				<cell>search4tag</cell>									
+		    </row>	
+			<row id="sns16">			
+				<cell>search4comment</cell>									
+		    </row>	
+			<row id="sns17">			
+				<cell>search4cms</cell>			   					
+		    </row>							
+		</row>
+		 
+		 <row id="bus2">
+			<cell>聚划算</cell>		
+			<row id="ju01">			
+				<cell>search4snsjuDepositItem</cell>											
+		    </row>
+			<row id="ju02">			
+				<cell>search4snsjuSellerauth</cell>										
+		    </row>	
+			<row id="ju03">			
+				<cell>search4snsjuCheckItem</cell>							
+		    </row>	
+			<row id="ju04">			
+				<cell>search4snsjuItemOnline</cell>			  							
+		    </row>	
+			<row id="ju05">			
+				<cell>search4snsjuke</cell>										
+		    </row>	
+			<row id="ju06">			
+				<cell>search4snsjukeseller</cell>										
+		    </row>		
+		</row>
+		
+		<row id="bus3">
+			<cell>资讯社区</cell>			
+			<row id="zixun01">			
+				<cell>search4matrixtry</cell>										
+		    </row>
+			<row id="zixun02">			
+				<cell>search4magicroom</cell>										
+		    </row>
+			<row id="zixun03">			
+				<cell>search4magicroom2</cell>									
+		    </row>
+			<row id="zixun04">			
+				<cell>search4tstart</cell>									
+		    </row>
+			<row id="zixun05">			
+				<cell>search4cms</cell>										
+		    </row>	
+		</row>
+		
+		
+		<row id="bus4">
+			<cell>技术大学</cell>			
+			<row id="tec01">			
+				<cell>search4realwidget</cell>									
+		    </row>	
+		</row>
+		
+		<row id="bus5">
+			<cell>新业务</cell>			
+			<row id="job01">			
+				<cell>search4jobOnline</cell>									
+		    </row>	
+			<row id="job02">			
+				<cell>search4jobOnline</cell>											
+		    </row>	
+		</row>
+		
+		<row id="bus6">
+			<cell>服务平台</cell>
+			<row id="top01">			
+				<cell>search4ark</cell>										
+		    </row>
+			<row id="top02">			
+				<cell>search4arkisv</cell>									
+		    </row>	
+		</row>
+		<row id="bus7">
+			<cell>导购</cell>			
+			<row id="tms01">			
+				<cell>search4realwidget</cell>									
+		    </row>
+			<row id="tms02">			
+				<cell>search4realwidget</cell>									
+		    </row>	
+		</row>
+		
+		<row id="bus8">
+			<cell>商户平台</cell>			
+			<row id="shanghu01">			
+				<cell>search4bbcproduct</cell>										
+		    </row>			
+			<row id="shanghu02">			
+				<cell>search4bbcsupplier</cell>						
+		    </row>						
+			<row id="shanghu03">			
+				<cell>search4bbcsupplier</cell>									
+		    </row>		
+		</row>				
+	</row> 					    
+</rows>
+
+		
+		

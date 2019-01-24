@@ -1,0 +1,1 @@
+mvn compile -Dmaven.test.skip=true

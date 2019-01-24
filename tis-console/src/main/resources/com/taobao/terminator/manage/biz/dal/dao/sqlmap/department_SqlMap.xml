@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="department">
+	<resultMap id="ibatorgenerated_BaseResultMap"
+		class="com.taobao.terminator.manage.biz.dal.pojo.Department">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		<result column="dpt_id" property="dptId" jdbcType="INTEGER" />
+		<result column="parent_id" property="parentId" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP" />
+		<result column="gmt_modified" property="gmtModified" jdbcType="TIMESTAMP" />
+		<result column="full_name" property="fullName" jdbcType="VARCHAR" />
+		<result column="leaf" property="leaf"
+			typeHandler="com.taobao.terminator.manage.common.ibatis.BooleanYorNConvertCallback" />
+
+		<result column="alibaba_dpt_id" property="alibabaDptId"
+			jdbcType="INTEGER" />
+			
+		<result column="indexset_snapshot" property="indexsetSnapshot"
+			jdbcType="INTEGER" />
+			
+	</resultMap>
+	<sql id="ibatorgenerated_Example_Where_Clause">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		<iterate property="oredCriteria" conjunction="or" prepend="where"
+			removeFirstPrepend="iterate">
+			<isEqual property="oredCriteria[].valid" compareValue="true">
+				(
+				<iterate prepend="and" property="oredCriteria[].criteriaWithoutValue"
+					conjunction="and">
+					$oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+				<iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue"
+					conjunction="and">
+					$oredCriteria[].criteriaWithSingleValue[].condition$
+					#oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+				<iterate prepend="and" property="oredCriteria[].criteriaWithListValue"
+					conjunction="and">
+					$oredCriteria[].criteriaWithListValue[].condition$
+					<iterate property="oredCriteria[].criteriaWithListValue[].values"
+						open="(" close=")" conjunction=",">
+						#oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+				</iterate>
+				<iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue"
+					conjunction="and">
+					$oredCriteria[].criteriaWithBetweenValue[].condition$
+					#oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+					#oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+				)
+			</isEqual>
+		</iterate>
+	</sql>
+	<select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap"
+		parameterClass="com.taobao.terminator.manage.biz.dal.pojo.DepartmentCriteria">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		select aa.dpt_id, parent_id, name, gmt_create, gmt_modified,
+		full_name, leaf, alibaba_dpt_id,indexset_snapshot
+		from ( select dpt_id from department
+		<isParameterPresent>
+			<include refid="department.ibatorgenerated_Example_Where_Clause" />
+			<isNotNull property="orderByClause">
+				order by $orderByClause$
+      </isNotNull>
+			limit #skip#,#pageSize#
+		</isParameterPresent>
+		) bb inner join department aa on aa.dpt_id=bb.dpt_id
+	</select>
+	
+	<select id="ibatorgenerated_join_with_extra_dpt_usr_relation" 
+	resultMap="ibatorgenerated_BaseResultMap"
+		parameterClass="String">
+				
+SELECT d.dpt_id, d.parent_id, d.name, d.gmt_create, d.gmt_modified, d.full_name,
+		d.leaf, d.alibaba_dpt_id ,indexset_snapshot
+  FROM  department d inner join  usr_dpt_extra_relation u on(d.dpt_id = u.dpt_id)
+where u.usr_id = #value#
+		
+	</select>
+	
+	<select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap"
+		parameterClass="com.taobao.terminator.manage.biz.dal.pojo.Department">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		select dpt_id, parent_id, name, gmt_create, gmt_modified, full_name,
+		leaf, alibaba_dpt_id,indexset_snapshot
+		from department
+		where dpt_id = #dptId:INTEGER#
+	</select>
+	<delete id="ibatorgenerated_deleteByPrimaryKey"
+		parameterClass="com.taobao.terminator.manage.biz.dal.pojo.Department">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		delete from department
+		where dpt_id = #dptId:INTEGER#
+	</delete>
+	<delete id="ibatorgenerated_deleteByExample"
+		parameterClass="com.taobao.terminator.manage.biz.dal.pojo.DepartmentCriteria">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		delete from department
+		<include refid="department.ibatorgenerated_Example_Where_Clause" />
+	</delete>
+	
+	
+	
+	
+	<insert id="ibatorgenerated_insert"
+		parameterClass="com.taobao.terminator.manage.biz.dal.pojo.Department">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		insert into department (dpt_id, parent_id, name, gmt_create,
+		gmt_modified, full_name, leaf,
+		alibaba_dpt_id)
+		values (#dptId:INTEGER#, #parentId:INTEGER#, #name:VARCHAR#,
+		#gmtCreate:TIMESTAMP#,
+		#gmtModified:TIMESTAMP#, #fullName:VARCHAR#, #leaf,handler=com.taobao.terminator.manage.common.ibatis.BooleanYorNConvertCallback#, #alibabaDptId:INTEGER#)
+		<selectKey resultClass="INTEGER">
+			SELECT LAST_INSERT_ID();
+    </selectKey>
+	</insert>
+	<insert id="ibatorgenerated_insertSelective"
+		parameterClass="com.taobao.terminator.manage.biz.dal.pojo.Department">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		insert into department
+		<dynamic prepend="(">
+			<isNotNull prepend="," property="dptId">
+				dpt_id
+      </isNotNull>
+			<isNotNull prepend="," property="parentId">
+				parent_id
+      </isNotNull>
+			<isNotNull prepend="," property="name">
+				name
+      </isNotNull>
+			<isNotNull prepend="," property="gmtCreate">
+				gmt_create
+      </isNotNull>
+			<isNotNull prepend="," property="gmtModified">
+				gmt_modified
+      </isNotNull>
+			<isNotNull prepend="," property="fullName">
+				full_name
+      </isNotNull>
+			<isNotNull prepend="," property="leaf">
+				leaf
+      </isNotNull>
+			<isNotNull prepend="," property="alibabaDptId">
+				alibaba_dpt_id
+      </isNotNull>
+			)
+		</dynamic>
+		values
+		<dynamic prepend="(">
+			<isNotNull prepend="," property="dptId">
+				#dptId:INTEGER#
+      </isNotNull>
+			<isNotNull prepend="," property="parentId">
+				#parentId:INTEGER#
+      </isNotNull>
+			<isNotNull prepend="," property="name">
+				#name:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="gmtCreate">
+				#gmtCreate:TIMESTAMP#
+      </isNotNull>
+			<isNotNull prepend="," property="gmtModified">
+				#gmtModified:TIMESTAMP#
+      </isNotNull>
+			<isNotNull prepend="," property="fullName">
+				#fullName:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="leaf">
+				#leaf,handler=com.taobao.terminator.manage.common.ibatis.BooleanYorNConvertCallback#
+      </isNotNull>
+			<isNotNull prepend="," property="alibabaDptId">
+				#alibabaDptId:INTEGER#
+      </isNotNull>
+			)
+		</dynamic>
+		<selectKey resultClass="INTEGER">
+			SELECT LAST_INSERT_ID();
+    </selectKey>
+	</insert>
+	<select id="ibatorgenerated_countByExample"
+		parameterClass="com.taobao.terminator.manage.biz.dal.pojo.DepartmentCriteria"
+		resultClass="java.lang.Integer">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		select count(*) from department
+		<include refid="department.ibatorgenerated_Example_Where_Clause" />
+	</select>
+	<update id="ibatorgenerated_updateByExampleSelective">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		update department
+		<dynamic prepend="set">
+			<isNotNull prepend="," property="record.dptId">
+				dpt_id = #record.dptId:INTEGER#
+      </isNotNull>
+			<isNotNull prepend="," property="record.parentId">
+				parent_id = #record.parentId:INTEGER#
+      </isNotNull>
+			<isNotNull prepend="," property="record.name">
+				name = #record.name:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="record.gmtCreate">
+				gmt_create = #record.gmtCreate:TIMESTAMP#
+      </isNotNull>
+			<isNotNull prepend="," property="record.gmtModified">
+				gmt_modified = #record.gmtModified:TIMESTAMP#
+      </isNotNull>
+			<isNotNull prepend="," property="record.fullName">
+				full_name = #record.fullName:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="record.leaf">
+				leaf = #record.leaf,handler=com.taobao.terminator.manage.common.ibatis.BooleanYorNConvertCallback#
+      </isNotNull>
+			<isNotNull prepend="," property="record.alibabaDptId">
+				alibaba_dpt_id = #record.alibabaDptId:INTEGER#
+      </isNotNull>
+      
+      <isNotNull prepend="," property="record.indexsetSnapshot">
+				indexset_snapshot = #record.indexsetSnapshot:INTEGER#
+      </isNotNull>
+      
+      
+		</dynamic>
+		<isParameterPresent>
+			<include refid="department.ibatorgenerated_Example_Where_Clause" />
+		</isParameterPresent>
+	</update>
+	<update id="ibatorgenerated_updateByExample">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		update department
+		set dpt_id = #record.dptId:INTEGER#,
+		parent_id = #record.parentId:INTEGER#,
+		name = #record.name:VARCHAR#,
+		gmt_create = #record.gmtCreate:TIMESTAMP#,
+		gmt_modified = #record.gmtModified:TIMESTAMP#,
+		full_name = #record.fullName:VARCHAR#,
+		leaf = #record.leaf,handler=com.taobao.terminator.manage.common.ibatis.BooleanYorNConvertCallback#,
+		alibaba_dpt_id = #record.alibabaDptId:INTEGER#
+		<isParameterPresent>
+			<include refid="department.ibatorgenerated_Example_Where_Clause" />
+		</isParameterPresent>
+	</update>
+</sqlMap>

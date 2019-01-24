@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false">
+	<!-- <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter"> <level>ERROR</level> 
+		</filter> <target>System.out</target> <encoding>${loggingCharset}</encoding> 
+		<layout class="ch.qos.logback.classic.PatternLayout"> <pattern><![CDATA[%d{yyyy-MM-dd 
+		HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern> </layout> </appender> -->
+
+
+	<appender name="STDOUT"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+		<File>${log.dir}/stdout.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/bak/stdout.%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<maxHistory>10</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{MM-dd HH:mm}%X{host} %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+
+
+	<appender name="dump" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator>
+			<Key>app</Key>
+			<DefaultValue>unknown</DefaultValue>
+		</discriminator>
+		<sift>
+			<appender name="FILE-${app}"
+				class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>${log.dir}/assemble/full-${app}.log</File>
+				<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+					<fileNamePattern>${log.dir}/assemble/bak/full-${app}.%d{yyyy-MM-dd}.log
+					</fileNamePattern>
+					<maxHistory>10</maxHistory>
+				</rollingPolicy>
+				<encoder>
+					<pattern><![CDATA[%d{MM-dd HH:mm}%X{host} %msg%n]]></pattern>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+
+
+	<!-- ===============tis incr cluster logger(start)=================== -->
+
+	<appender name="slow-query-appender" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator>
+			<Key>app</Key>
+			<DefaultValue>unknown</DefaultValue>
+		</discriminator>
+		<sift>
+			<appender name="FILE-${app}"
+				class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>${log.dir}/slow/slow-query-${app}.log</File>
+				<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+					<fileNamePattern>${log.dir}/slow/bak/slow-query-${app}.%d{yyyy-MM-dd}.log
+					</fileNamePattern>
+					<maxHistory>5</maxHistory>
+				</rollingPolicy>
+				<encoder>
+					<pattern><![CDATA[%X{host} %msg%n]]></pattern>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+
+	<appender name="statis-appender" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator>
+			<Key>app</Key>
+			<DefaultValue>unknown</DefaultValue>
+		</discriminator>
+		<sift>
+			<appender name="FILE-${app}"
+				class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>${log.dir}/incr/incr-${app}.log</File>
+				<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+					<fileNamePattern>${log.dir}/incr/bak/zincr-${app}.%d{yyyy-MM-dd}.log
+					</fileNamePattern>
+					<maxHistory>3</maxHistory>
+				</rollingPolicy>
+
+				<encoder>
+					<pattern><![CDATA[%X{host} %msg%n]]></pattern>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+
+	<appender name="sendinfo-appender" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator>
+			<Key>app</Key>
+			<DefaultValue>unknown</DefaultValue>
+		</discriminator>
+		<sift>
+			<appender name="FILE-${app}"
+				class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>${log.dir}/incr/send-${app}.log</File>
+				<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+					<fileNamePattern>${log.dir}/incr/bak/zsend-${app}.%d{yyyy-MM-dd}.log
+					</fileNamePattern>
+					<maxHistory>3</maxHistory>
+				</rollingPolicy>
+				<encoder>
+					<pattern><![CDATA[%X{host} %X{group} %msg%n]]></pattern>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+
+
+
+	<appender name="rmcount-appender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/incr/rmcount.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/incr/bak/%d{yyyy-MM-dd}-rmcount.log
+			</fileNamePattern>
+			<maxHistory>3</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%X{host} %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+	<appender name="receive-appender" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator>
+			<Key>app</Key>
+			<DefaultValue>unknown</DefaultValue>
+		</discriminator>
+		<sift>
+			<appender name="FILE-${app}"
+				class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>${log.dir}/incr/rmq-${app}.log</File>
+				<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+					<fileNamePattern>${log.dir}/incr/bak/rmq-${app}.%d{yyyy-MM-dd}.log
+					</fileNamePattern>
+					<maxHistory>3</maxHistory>
+				</rollingPolicy>
+				<encoder>
+					<pattern><![CDATA[%X{host} %X{group} %msg%n]]></pattern>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+
+
+
+    <appender name="syslog"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <File>${log.dir}/syslog.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-syslog.log
+            </fileNamePattern>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{32}:%L- %msg%n]]></pattern>
+        </encoder>
+    </appender>
+
+	<appender name="console"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/console.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-console.log
+			</fileNamePattern>
+			<maxHistory>15</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{32}:%L- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+	<appender name="incrDeployAppender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/incrDeploy/${app}.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/incrDeploy/bak/%d{yyyy-MM-dd}-${app}.log
+			</fileNamePattern>
+			<maxHistory>15</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{32}:%L- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+	<appender name="check-health-appender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/checkhealth.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-checkhealth.log
+			</fileNamePattern>
+			<maxHistory>8</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+
+	<!-- 慢查詢 -->
+	<logger name="slow-query">
+		<level value="INFO" />
+		<appender-ref ref="slow-query-appender" />
+	</logger>
+
+	<logger name="receive">
+		<level value="DEBUG" />
+		<appender-ref ref="receive-appender" />
+	</logger>
+
+	<logger name="rmcount">
+		<level value="INFO" />
+		<appender-ref ref="rmcount-appender" />
+	</logger>
+
+	<logger name="statis">
+		<level value="INFO" />
+		<appender-ref ref="statis-appender" />
+	</logger>
+
+	<logger name="sendinfo">
+		<level value="DEBUG" />
+		<appender-ref ref="sendinfo-appender" />
+	</logger>
+
+
+	<logger name="buildinfo">
+		<level value="INFO" />
+		<appender-ref ref="dump" />
+	</logger>
+
+	<logger name="incr_deploy">
+		<level value="INFO" />
+		<appender-ref ref="incrDeployAppender" />
+	</logger>
+
+
+
+	<!-- ===============tis incr cluster logger(end)=================== -->
+
+
+	<logger name="com.dfire" level="INFO">
+		<appender-ref ref="dump" />
+	</logger>
+
+
+	<logger name="com.dfire.tis" level="INFO">
+		<appender-ref ref="console" />
+	</logger>
+
+	<logger name="com.taobao.terminator.trigger">
+	 	 <level value="DEBUG" />
+		<appender-ref ref="console" />
+	</logger>
+
+	<logger name="check_health">
+		<level value="INFO" />
+		<appender-ref ref="check-health-appender" />
+	</logger>
+
+	<root>
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="syslog" />
+	</root>
+
+</configuration>

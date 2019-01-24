@@ -1,0 +1,80 @@
+
+
+<h2>创建新索引</h2>
+#saction("name=resource_config" "namespace=/coredefine#control","executeResult=true" "ignoreContextParams=false")
+#showFormErrors("setreplica")
+<form name="form1" method="post" action="">
+<input type="hidden" name="action" value="core_action" />
+<fieldset style="padding:50px">
+<legend>
+ 定义索引-第一步</legend> 
+<center>
+<table width="60%">
+ <tr>
+  <td>
+ <p> 
+  组数：<select id="group" name="group">
+  <option value="-1">请选择</option>
+  #foreach($i   in   [1..200]   ) 
+      <option value="$i">$i</option>
+  #end 
+ 
+  </select> 
+  组内副本数：<select id="replica" name="replica"><option value="-1">请选择</option>
+#foreach($i   in   [1..20]   ) 
+  <option value="$i">$i</option>
+#end
+  </select>
+ </p>
+  <p>
+ <span>指定组内节点:</span><input type="checkbox" name="shardSpecificNode" id="shardSpecificNode" value="y"/>
+  <label for="shardSpecificNode">是</label>
+   <em style="color:#999999">该功能在组内节点多机房部署的情况下使用</em> 
+ </p>  
+  
+  </td>
+ </tr>
+ <tr>
+ <td align="right">
+	<input type="submit" 
+           style="width:140px;height:30px;background-color:#666666;color:yellow" 
+           name="event_submit_do_create_core_setp1" value="选机器" />
+ </td>
+ </tr>
+ </table>
+</center>
+
+</fieldset>
+ </form>
+ <script>
+  
+ 
+ var afterSynConfig = function(loaddialog,execcount){
+      jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_checking_core_completion=y&action=core_action",
+			    success:function(data){
+				  	if(data.errormsg && data.errormsg.length<1){
+				  	 //  alert(loaddialog);
+				  	  loaddialog.dialog("close");
+				  	  showMessageDialog(data);
+				  	  
+				  	  
+				  	}else if(execcount < 60 && data.errormsg && "processing" == data.errormsg[0]){
+				  	  setTimeout(function(){
+				  	    afterSynConfig(loaddialog,++execcount);
+				  	  },2000);
+				  	}else{
+				  	  loaddialog.dialog("close");
+					  if(data.errormsg && data.errormsg.length>=1 && "processing" == data.errormsg[0]) {
+					  	data.errormsg[0] = "中心节点返回状态有误";
+					  }
+				  	  showMessageDialog(data);
+				  	}
+	      	    }				   
+	        }); 
+  }
+   </script>
+ 
+

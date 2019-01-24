@@ -1,0 +1,67 @@
+<link rel="stylesheet" type="text/css" href="/runtime/css/pagination-1-0-1.css">
+<h2> ${appDomainDesc}Maven Dependency一览</h2>
+<script>
+   function deleteApp(appid){
+     if(!window.confirm("你确定要删除ID:"+ appid+"的记录吗？")){
+        return ;
+     }
+        TIS.ajax({url:'$mvnPlugins.setTarget('mvn_dependency_list.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_delete=y&action=mvn_dependency_action&id="+appid,
+			    success:function(data){			  	
+				  	if(data.errormsg.length<1){
+				  	  $('#row'+appid).remove();
+				  	}
+				  	showMessageDialog(data);			  	
+	      	    }, 
+			   error:function(){   
+			   }				   
+	        });
+	  return false;
+     
+    }
+</script>
+#if($tisAppDependency)
+ <fieldset>
+  <legend>Noble应用依赖</legend>
+  <table width="100%">
+  <tr>
+   <td><h2 style="margin:0px;padding:0px">${tisApp.nobleAppName}</h2></td>
+   <td align="right"><a href="$mvnPlugins.setTarget('tisAppNobleBind')?appid=#p('appid')">修改</a></td>
+  </tr>
+  </table>
+  
+  
+ </fieldset>
+#end
+<p>
+#popup("$mvnPlugins.setTarget('mvnDependencyAdd')?id=#p('appid')&target=#p('list_target')","添加",'800*600')
+</p>
+<table border="1" width="100%">
+<tr>
+ <th width="5%">ID</th>
+ <th>DependencyXML</th>
+ <th width="20%">创建时间</th>
+ <th width="8%">操作</th>
+</tr>
+#foreach($item in $mvnDependencies)
+<tr id="row${item.id}"> 
+<td align="center">$item.id</td>
+<td>
+ <pre style="margin:0px;padding:0px;color:#333333">
+   &lt;dependency>
+	 &lt;groupId>${item.groupId}&lt;/groupId&gt;
+	 &lt;artifactId>${item.artifactId}&lt;/artifactId&gt;
+	 &lt;version>${item.version}&lt;/version&gt;
+   &lt;/dependency>
+ </pre>
+</td>
+<td align="right">$manageTool.formatDateYYYYMMdd($item.createTime)</td>
+<td>
+  <button onclick="deleteApp($item.id)">删除</button>
+  #popup("$manageModule.setTarget('appupdate')?appid=$item.appId","更新",'800*500')
+</td>
+</tr>
+#end
+</table>

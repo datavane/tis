@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans>
+	<bean id="dsTableDAO"
+		class="com.dfire.tis.dataplatform.dao.impl.DsTableDAOImpl"
+		parent="comDfireTisDataplatformDAO" />
+		
+	<bean id="dsDatasourceDAO"
+		class="com.dfire.tis.dataplatform.dao.impl.DsDatasourceDAOImpl"
+		parent="comDfireTisDataplatformDAO" />
+
+	<bean id="mvnDependencyDAO"
+		class="com.dfire.tis.dataplatform.dao.impl.MvnDependencyDAOImpl"
+		parent="comDfireTisDataplatformDAO" />
+
+	<bean id="nobelAppDAO" class="com.dfire.tis.dataplatform.dao.impl.NobelAppDAOImpl"
+		parent="comDfireTisDataplatformDAO" />
+
+	<bean id="comDfireTisDataplatformDAO"
+		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
+		abstract="true">
+		<property name="dataSource" ref="clusterStatusDatasource" />
+		<property name="sqlMapClient">
+			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+				<property name="configLocation"
+					value="classpath:/conf/comDfireTisDataplatform-sqlmap-config.xml" />
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="comDfireTisDataplatformDaoFacade"
+		class="com.dfire.tis.dataplatform.dao.impl.ComDfireTisDataplatformDAOFacadeImpl">
+		<constructor-arg index="0" ref="dsTableDAO" />
+		<constructor-arg index="1" ref="dsDatasourceDAO" />
+		<constructor-arg index="2" ref="mvnDependencyDAO" />
+		<constructor-arg index="3" ref="nobelAppDAO" />
+	</bean>
+	
+</beans>

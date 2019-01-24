@@ -1,0 +1,12 @@
+<h2>部门（$dpt）绑定会员</h2>
+#showFormErrors("addapp")
+<fieldset>
+<legend> 填写表单 </legend>
+<form method="post" action="$manageModule.setTarget("dptBindMember")">
+ <input type="hidden" name="action" value="department_action" />
+ <input type="hidden" name="dptid" value="#p('dptid')" />
+ <p><span>会员id：</span>
+   <input type="text" name="userid" value="#p('userid')"  /> </p>
+ <p><input type="submit" name="event_submit_do_bind_user" value="提交" /> </p>
+</form>
+</fieldset>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false">
+	<jmxConfigurator />
+	<property name="PATTERN"
+		value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{32}.%M:%L %msg%n%xException%n" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<target>System.out</target>
+		<encoder>
+			<pattern>${PATTERN}</pattern>
+			<charset>utf8</charset>
+		</encoder>
+		<!-- <filter class="com.alibaba.citrus.logconfig.logback.LevelRangeFilter"> 
+			<levelMax>INFO</levelMax> </filter> -->
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern>
+		</layout>
+	</appender>
+
+	<appender name="solr-appender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="com.qlangtech.tis.logback.LoggingInfoStreamLoggerFilter" />
+		<file>${log.dir}/solr.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-solr.log
+			</fileNamePattern>
+			<maxHistory>5</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{HH:mm:ss} [%X{core}] %level %logger{35}- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+	<appender name="solr-request-appender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="com.qlangtech.tis.logback.RequestFilter">
+			<justIgnoreGet>true</justIgnoreGet>
+		</filter>
+		<File>${log.dir}/solr-request.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-solr-request.log
+			</fileNamePattern>
+			<maxHistory>5</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{HH:mm:ss} [%X{core}] %level %logger{35}- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+	<!-- <logger name="com.taobao"> <level value="INFO" /> <appender-ref ref="console" 
+		/> </logger> -->
+
+	<appender name="check-health-appender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/checkhealth.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-checkhealth.log
+			</fileNamePattern>
+			<maxHistory>8</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+	
+	<appender name="slow-request-appender"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="com.qlangtech.tis.logback.SlowRequestFilter" />
+        <File>${log.dir}/slow-request.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-slow-request.log
+            </fileNamePattern>
+            <maxHistory>8</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern><![CDATA[%d{MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="slow-request-remote-appender"
+        class="com.qlangtech.tis.logback.TisFlumeLogstashV1Appender">
+        <filter class="com.qlangtech.tis.logback.SlowRequestFilter" />
+        <flumeProperties>
+            connect-timeout=4000;
+            request-timeout=8000
+        </flumeProperties>
+        <batchSize>100</batchSize>
+        <reportingWindow>1000</reportingWindow>
+        <additionalAvroHeaders>
+            logtype=slow-query
+        </additionalAvroHeaders>
+        <application>tis-engine</application>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[%d{HH:mm:ss.SSS} %-5level %logger{36}-%message%n%ex]]></pattern>
+        </layout>
+    </appender>
+
+	<logger name="org.apache.solr.core.SolrCore.Request">
+		<level value="INFO" />
+		<appender-ref ref="solr-request-appender" />
+	</logger>
+	
+	<logger name="org.apache.solr.core.SolrCore" level="WARN">
+        <appender-ref ref="slow-request-appender" />
+        <appender-ref ref="slow-request-remote-appender" />
+    </logger>
+
+	<logger name="com.dfire.tis">
+		<level value="INFO" />
+		<appender-ref ref="solr-appender" />
+	</logger>
+
+	<logger name="org.apache.solr" level="INFO">
+		<appender-ref ref="solr-appender" />
+	</logger>
+
+	<appender name="ALERT_MONITOR"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- -->
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+
+		<file>${log.dir}/alert_monitor.log</file>
+		<Append>true</Append>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>/opt/logs/jetty/bak/alert_monitor.%d{yyyy-MM-dd}.log.zip
+			</fileNamePattern>
+			<maxHistory>15</maxHistory>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>utf-8</charset>
+			<!-- <ImmediateFlush>false</ImmediateFlush> -->
+			<pattern>%d{MM-dd HH:mm:ss.SSS} %-5level %logger{32}.%M:%L %msg%n%xException%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="check_health">
+		<level value="INFO" />
+		<appender-ref ref="check-health-appender" />
+	</logger>
+
+	<root>
+		<level value="ERROR" />
+		<appender-ref ref="solr-appender" />
+	</root>
+
+</configuration>

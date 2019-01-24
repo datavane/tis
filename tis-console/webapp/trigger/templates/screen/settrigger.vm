@@ -1,0 +1,42 @@
+#showFormErrors("settrigger")
+<form method="post" action="$trigger.setTarget("settrigger")">
+  <input type="hidden" name="action" value="trigger_action" />
+  <input type="hidden" name="appid" value="#p('appid')" />
+  <input type="hidden" name="jobid" value="#p('jobid')" />
+  <input type="hidden" name="dumptype" value="#p('dumptype')" />
+  <input type="hidden" name="execute" value="$execute" />
+  
+ <fieldset>
+ #set( $inputtype = $rundata.request.getParameter("inputtype") )
+  <legend>请设置任务触发时间 </legend>
+  <p>
+   <input type="radio" name="inputtype" id="inputtype1" #if($inputtype == '1') checked #end value="1" /> 
+   <label for="inputtype1">
+    <input type="text" name="crontab" size="30" value="$!updateTrigger.crontab" /> <em style="color:#333333">exp:“0 0 5 * * ?”</em>
+   </label>
+  </p>
+ #if($rundata.request.getParameter('dumptype') == '1')
+  <p>
+    <input type="radio" name="inputtype" id="inputtype2" #if($inputtype == '2') checked #end value="2" /> 
+    <label for="inputtype2">
+    每天  <select name="hours"><option value="-1">请选择</option>
+   #foreach( $item in [0..23] ) <option value="$item" #if($rundata.request.getParameter('hours') == $item ) selected #end>$item:00</option> #end 
+   </select> 点执行一次
+   </label>
+  </p> 
+ #end
+  #if($rundata.request.getParameter('dumptype') == '2')
+  <p>
+   <input type="radio" name="inputtype" id="inputtype3" #if($inputtype == '3') checked #end value="3" />
+   <label for="inputtype3">
+       每 <select name="minute"><option value="-1">请选择</option>
+   #foreach( $item in [0..59] ) <option value="$item" #if($rundata.request.getParameter('minute') == $item ) selected #end >$item</option> #end </select> 分钟执行一次
+  <label>
+  </p> 
+  #end
+  <p>
+    <input type="submit" style="width:6em;height:30px;" 
+       name="event_submit_do_${execute}_${executeLiteria}_dump_crontab"  value=" 提   交  "/> 
+  </p>
+ </fieldset>
+</form>

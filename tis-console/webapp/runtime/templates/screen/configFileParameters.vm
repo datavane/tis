@@ -1,0 +1,34 @@
+<h2>全局配置参数一览</h2>
+<p>
+#popup("$manageModule.setTarget('config_file_parameters_add')","添加参数","600*500")
+</p>
+<table width="100%" border="1">
+<tr>
+  <th>键  </th>
+  <th>值</th>
+</tr>
+#foreach($item in $resourceParameters)
+<tr>
+ <td width="200px;" rowspan="3">
+   $item.keyName
+ </td>
+  <td>
+   #popup("$manageModule.setTarget('config_file_parameters_set')?rpid=$item.rpId&runtime=daily","设置","800*400")
+   <strong style="display:inline-block;width:4em">DAILY:</strong>$!item.dailyValue  &nbsp; 
+ </td>
+</tr>
+
+<tr>
+ <td>#popup("$manageModule.setTarget('config_file_parameters_set')?rpid=$item.rpId&runtime=ready","设置","800*400")<strong style="display:inline-block;width:4em">READY:</strong>
+ $!item.readyValue  &nbsp; 
+ </td>
+</tr>
+
+<tr>
+ <td>#popup("$manageModule.setTarget('config_file_parameters_set')?rpid=$item.rpId&runtime=online","设置","800*400")<strong style="display:inline-block;width:4em">ONLINE:</strong>
+ $!item.onlineValue &nbsp; 
+ </td>
+</tr>
+
+#end
+</table>

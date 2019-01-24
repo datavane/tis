@@ -1,0 +1,56 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.qlangtech.tis</groupId>
+	    <artifactId>tis-pom</artifactId>
+		<version>3.7.47</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>tis-hdfs-extends</artifactId>
+	<packaging>jar</packaging>
+
+	<name>tis-hdfs-extends</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<build>
+
+		<plugins>
+
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- <dependency> <groupId>org.apache.hadoop</groupId> <artifactId>hadoop-hdfs</artifactId> 
+			<version>2.6.0</version> </dependency> -->
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+		</dependency>
+	       <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-global-config</artifactId>
+        </dependency>
+
+<!-- 20180628 hadoop xml parse start -->
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.9.1</version>
+		</dependency>
+		<dependency>
+			<groupId>xalan</groupId>
+			<artifactId>xalan</artifactId>
+			<version>2.7.1</version>
+		</dependency>
+<!-- hadoop xml parse end -->
+	</dependencies>
+
+
+
+</project>

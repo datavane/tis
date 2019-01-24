@@ -1,0 +1,28 @@
+<h1>应用添加副本扩容</h1>
+<style type="text/css"><!--
+  .appselectboxcontrol{
+    display:none;
+  }
+-->
+</style>
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("addreplica")">
+<input type="hidden" name="action" value="add_app_action" />
+<p>
+ <input type="submit" style="width:300px;height:40px;" name="event_submit_do_batch_add_replica" value="执行添加副本" />
+</p>
+ <div style=" border-style:solid;">
+#taction ("name=appselect" "namespace=/runtime#control","executeResult=true")
+ #sparam("name=maxMatch","value=true")
+#end
+ </div>
+<p> 
+<label>添加副本数:</label><select name="replica">#foreach( $i in [0..10] ) <option> $i</option> #end</select>
+&nbsp; <input type="checkbox" name="shallvalidateIP" value="true" id="shallvalidateIP" checked /> 
+       <label for="shallvalidateIP">校验服务是否有效</label>
+</p>
+<p>
+ <h2 style="margin:0px">ip地址:</h2> <br/>
+  <textarea name="ips" cols="100" rows="30" ></textarea>
+</p>
+</form>

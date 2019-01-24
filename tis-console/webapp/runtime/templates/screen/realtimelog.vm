@@ -1,0 +1,97 @@
+
+#if(!$disableframeset)
+<form action="$manageModule.setTarget("realtimelog")" method="post">
+<p style="margin:3px;height:60px;">
+<span style="display:inline-block;height:50px;width:55px;">
+<img id="loading" style="display:none;" src="$manageModule.setTarget("imgs/loading.gif")" />
+</span>
+<span>服务器选择：</span>
+ <select id="serverid" name="serverid">
+     <option value="0">请选择</option>
+#foreach($adapter in $groupAdapterList)
+  <optgroup label="第$adapter.group.groupIndex组">
+   #foreach($server in $adapter.serverList)
+    <option value="${server.sid}">${server.ipAddress}(${server.serverName})</option>
+    #end
+  </optgroup>
+#end
+ </select>
+ 
+  <input type="button"
+       id="event_submit_do_get_log" 
+       name="event_submit_do_get_log"  value="确  定" />
+ 
+</p>
+</form>
+#end
+
+<div id="logcontent" style="width:100%;height:500px;background-color:black;color:white;overflow-y:auto"></div>
+
+<script>
+
+var showLogServerId = null;
+
+function dw(){}
+dw.ajax=function(s){
+    jQuery.ajax(s);
+}
+
+$("#event_submit_do_get_log").click( function(){
+
+  var serverid = parseInt($("#serverid").val());
+  if(serverid <1 ){
+    alert("请选择一个服务器");
+    $("#serverid")[0].focus();
+    return ;
+  }
+  
+  if(serverid == showLogServerId){
+    alert("正在执行查询，不能重复查询");
+   return;
+  }
+ // $('#logcontent').attr("value","");
+  showLogServerId = serverid;
+  one_cycle_fetch(serverid);
+  
+ 
+} );
+
+function one_cycle_fetch(oneCycleServerId){
+
+#if(!$disableframeset)
+ if(showLogServerId && oneCycleServerId != showLogServerId){
+   return ;
+ }
+#end 
+
+    dw.ajax({
+      url:"$manageModule.setTarget("realtimelog.do")?"+Math.random(),
+      data:"serverid="+oneCycleServerId+"&event_submit_do_get_log=y&action=realtimelog_action" ,
+      async:true,
+      complete:function(jqH,status )
+         {  if(parseInt(jqH.status) == 200){
+              $('#logcontent').append(jqH.responseText); 
+              $('#logcontent').scrollTop($('#logcontent').attr("scrollHeight"));
+            }
+           // alert($("#loading"));
+            $("#loading").hide();
+            window.setTimeout(function(){
+            one_cycle_fetch(oneCycleServerId);
+            },2000);
+            
+         },
+      beforeSend:function(){
+       $("#loading").show();//hide()
+      }
+   });
+  
+}
+
+#if($disableframeset)
+#foreach($adapter in $groupAdapterList)  
+   #foreach($server in $adapter.serverList)
+   one_cycle_fetch(${server.sid});
+   #end
+#end
+#end
+</script>

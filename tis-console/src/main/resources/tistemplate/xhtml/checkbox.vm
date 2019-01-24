@@ -1,0 +1,39 @@
+#*
+ * $Id$
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *#
+#if( $fieldErrors.get($parameters.name) )
+  #set ($hasFieldErrors = $fieldErrors.get($parameters.name))
+  #foreach ($error in $fieldErrors.get($parameters.name))
+    <tr>
+        <td align="left" valign="top" colspan="2"><span class="errorMessage">$!error</span></td>
+    </tr>
+  #end
+#end
+
+<tr>
+    <td valign="top" colspan="2">
+#* Use an extra table so that the checkbox doesn't align with the other columns. *#
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td valign="middle">#parse("$!{tag.templateDir}/simple/checkbox.vm")</td>
+        <td width="100%" valign="middle"><label #if ($parameters.id) for="$!struts.htmlEncode($parameters.id)"#end#if ($hasFieldErrors) class="checkboxErrorLabel"#else class="checkboxLabel"#end>$!struts.htmlEncode($parameters.label)</label></td>
+    </tr>
+</table>
+#parse("/$parameters.templateDir/xhtml/controlfooter.vm")

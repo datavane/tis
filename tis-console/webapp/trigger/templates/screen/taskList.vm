@@ -1,0 +1,19 @@
+<link rel="stylesheet" type="text/css" href="$manageModule.setTarget("/css/pagination-1-0-1.css")">
+<h2>应用 $triggerjob.projectName, crontab:[$triggerjob.crontab ] ,类型:#if($triggerjob.jobType == 1)全量 #else 增量 #end
+</h2>
+$manageTool.noescape($pager.link)
+<table width="100%" border="1">
+<tr>
+<th>taskid</th><th>触发时间</th> <th>触发服务ip</th><th>来自于</th> <th>详细</th>
+</tr>
+#foreach($item in $tasklist)
+<tr>
+<td>$item.taskId</td> <td>$manageTool.formatDateYYYYMMdd( $item.gmtCreate)</td> 
+<td> $item.triggerFrom </td> 
+<td>$!item.fromIp</td>
+<td><a href="$trigger.setTarget('taskExecLog')?taskid=$item.taskId&jobid=$item.jobId">执行日志</a></td>
+</tr>
+#end
+</table>
+
+$manageTool.noescape($pager.link)

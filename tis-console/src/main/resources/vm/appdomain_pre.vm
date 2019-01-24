@@ -1,0 +1,53 @@
+<!--===============================================================-->
+<style>
+#if($appdomainiframeShallNotMove)
+   .tabnav ul{margin:0 0 0 0;padding:0;list-style:none;}
+#else
+   .tabnav ul{margin:-15px 0 0 0;padding:0;list-style:none;}
+#end
+
+  .tabnav li.caption{float:right; margin-right:5px;padding:3px;
+  background-color:#0099FF;
+  border:8px outset blue;
+  width:90px;
+  height:25px;
+  color:white;
+  }
+  
+  .tabnav li.caption a{
+    color:white;
+    display:inline-block;
+    width:90px;
+    text-align:center;
+  }
+  
+  .tabnav li.current{
+  border-style:inset ;
+    background-color:#ACDEFF;
+  }
+  
+ .tabnav li.current a{
+    color:blue;
+    font-weight: bold;
+    font-size:20px;
+  }
+  
+  .block-border{
+     border:3px inset blue;
+     padding:8px;
+     width:800px;
+     display:none;
+     position:absolute;
+     background-color:#E6E6E6
+  }
+  
+  .cursor-hand{
+    cursor:pointer
+  }
+  
+  </style>
+<table width="100%">
+<tr>
+ <td >#set ($group = $form.get("changedomain").defaultInstance)
+<h2 id="currentappblock">
+<!--===============================================================-->

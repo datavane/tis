@@ -1,0 +1,6 @@
+#set ($group = $form.get("changedomain").defaultInstance)
+<span style="background-color:pink;">[$selectAppDomain]</span>
+
+<a target="_self" href="$manageModule.setTarget("changedomain")?_fm.r._0.r=$runid&justenvironment=true">切换</a>
+
+

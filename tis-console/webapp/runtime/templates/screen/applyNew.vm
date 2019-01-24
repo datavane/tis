@@ -1,0 +1,62 @@
+<style type="text/css">
+<!--
+ #formfieldset  span{
+   display:inline-block;
+   width:7em;
+ }
+  #formfieldset  p{
+   padding:8px;
+ }
+ 
+  #formfieldset legend{
+    font-size:30px;
+  }
+ -->
+</style>
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("apply_new")" >
+<input type="hidden" name="action" value="apply_action"  />
+<fieldset id="formfieldset" style="margin: 15px;">
+ <legend>终搜新应用申请</legend>
+  <div style="text-align:right">
+  <input type="submit" style="width:10em;height:40px;margin-right:4em;" name="event_submit_do_create_new_apply" value="提交申请" />
+ </div>
+ <p style="margin-top:0px;"><span>申请人：</span> $usr.userName </p>
+ <p><span>隶属部门：</span> $usr.dptName </p>
+ 
+ <p><span>应用名称：</span><input type="text" name="appname" 
+         value="$manageTool.defotVal( $!rundata.request.getParameter("appname"),"search4")" size="40" maxlength="30" /> 
+ <em style="color:red">必选</em><br/>
+ <em style="margin-left:6em;color:#999999;font-size:20px">应用名称必用小写字母或大写字母或数字组成</em> </p>
+ 
+ <p>   <span>增量模式：</span> 
+            <input type="radio" name="incrmodel" id="incrmodel1" #if($rundata.request.getParameter("incrmodel") ==  '2') checked #end value="2" />
+              <label for="incrmodel1">实时模式</label>
+            <input type="radio" name="incrmodel" id="incrmodel2" value="1" #if($rundata.request.getParameter("incrmodel") ==  '1') checked #end   />
+              <label for="incrmodel2">普通模式</label>
+            <em style="color:red">必选</em>
+  <br/> <em style="margin-left:6em;color:#999999;font-size:20px">若为实时模式，应用名称要以search4real作为前缀</em>          
+            </p>
+            
+ <p><span>全量数据源：</span> <input type="radio" name="fullsource" id="fullsource1" value="2" #if($rundata.request.getParameter("fullsource") ==  '2') checked #end/><label for="fullsource1">数据库</label>
+            <input type="radio" name="fullsource" id="fullsource2" value="1" #if($rundata.request.getParameter("fullsource") ==  '1') checked #end /><label for="fullsource2">云梯</label>(<a target="_blank" href="http://10.232.136.79:8080/doc/yunti_data_prepare.htm">云梯接入准备工作</a>) <em style="color:red">必选</em></p>
+            
+ <p><span>预估PV：</span><input style="text-align:right" size="10" type="text" name="pv" value="#p('pv')" />万 </p>
+ <p><span>预估UV：</span><input style="text-align:right"  size="10" type="text" name="uv" value="#p('uv')" />万 </p>
+ <p><span style="display:inline;">备注：</span><br/><textarea style="margin-left:9em;" name="memo" cols="60" rows="10">#p("memo")</textarea> </p>
+ 
+
+</fieldset>
+<script>
+#if($successapply)
+  $(document).ready(function(){
+   $("#formfieldset span").css("color","#999999");
+   $("#formfieldset input").css("color","#999999");
+   $("#formfieldset textarea").css("color","#999999");  
+   $("#formfieldset label").css("color","#999999");
+   
+   $("#formfieldset input").attr("disabled","disabled");
+   $("#formfieldset textarea").css("disabled","disabled");
+  });
+#end
+</script>

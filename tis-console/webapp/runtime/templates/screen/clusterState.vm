@@ -1,0 +1,137 @@
+<script src="/runtime/js/chartjs/Chart.bundle.2.7.2.js"></script>
+<p>
+<button onclick="reload_cluster_state(60,this)">最近１小时</button>
+<button onclick="reload_cluster_state(1440,this)">今天</button>
+<button onclick="reload_cluster_state(300,this)">最近５小时</button>
+<button onclick="reload_cluster_state(7200,this)">最近１５天</button>
+<button onclick="reload_cluster_state(43200,this)">最近１个月</button>
+</p>
+<h3>查询<small class="range-desc"></small></h3>
+ <div class="chart-container" style="width:100%; height:250px;position:relative;">
+      <canvas id="qps-chart" ></canvas>
+ </div>       
+
+<h3>更新<small class="range-desc"></small></h3>       
+<div class="chart-container" style="width:100%; height:250px;position:relative;">
+    <canvas id="update-chart" ></canvas>  
+ </div> 
+
+
+
+
+<script>  
+     var  barChart = {
+      
+         initialize : function(bizresult) {
+            
+            var qpsChart    = document.getElementById('qps-chart').getContext('2d');
+            var updateChart = document.getElementById('update-chart').getContext('2d');
+            
+         var qpsData    =  barChart.createChartData(bizresult,'requestCount');
+         var updateData =  barChart.createChartData(bizresult,'updateCount')
+           var qps = barChart.createChart(qpsChart      , qpsData);
+           var update = barChart.createChart(updateChart, updateData);
+            
+           
+            
+            return function(rows){
+             
+              
+               barChart.createChartData(rows,'requestCount',qpsData);
+               barChart.createChartData(rows,'updateCount',updateData);
+            
+              qps.update();
+              update.update();
+            }
+         }
+     , createChartData : function(bizresult,getProp,origin){
+       
+        var labels =  bizresult.map(function(row){
+             return row.label;
+         });
+        var dataArray = bizresult.map(function(row){
+             return row[getProp];
+         });
+         
+         if(origin){
+          origin.labels = labels;
+          origin.datasets[0].data = dataArray;
+          return origin;
+         }else{
+           return {
+            labels: labels,
+            datasets: [{
+                label: 'send',
+                backgroundColor: "blue",
+                borderColor: "blue",
+                fill: false,
+                borderWidth: 1,
+                data: dataArray
+            }
+            //, {
+            //    fill: false,
+            //    label: 'receive',
+            //    backgroundColor: "green",
+            //    borderColor: "blue",
+            //    borderWidth: 1,
+            //    data: [8,10,15]
+            //}
+            ]
+        };
+         }
+        
+     }
+     , createChart: function(ctx,chartData){
+       return  new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio:false,
+                    hover: {
+                      mode: 'nearest',
+                      intersect: true
+                    },
+                    legend: {
+                        display: false,
+                        position: 'top'
+                    }
+                    //,title: {
+                    //    display: false,
+                    //    text: title
+                    //}
+                }
+            });
+     }
+    };
+    
+    
+    function reload_cluster_state(range,f){
+   
+     $(".range-desc").html(f.innerHTML);
+        TIS.ajax({url:'$manageModule.setTarget("/cluster_status.ajax")', 
+                type:'POST',
+                dataType:"json",
+                data:'action=cluster_state_collect_action&event_submit_do_collect=y'
+                  +"&m="+range,
+                success:function(data){               
+                  var rows = data.bizresult;
+                  if(barChart.initialized){
+                   if(window.updateView){
+                     window.updateView(rows);
+                   }
+                  }else {
+                  window.updateView = barChart.initialize(rows);
+                    barChart.initialized = true;
+                  }              
+                }
+            });
+    }
+    
+    // 加载今天的视图
+    reload_cluster_state(60,{innerHTML:'最近１小时'});
+   
+    
+</script>
+
+

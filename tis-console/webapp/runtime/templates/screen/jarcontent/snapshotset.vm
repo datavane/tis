@@ -1,0 +1,241 @@
+<link rel="stylesheet" type="text/css" href="$manageModule.setTarget("/css/pagination-1-0-1.css")">
+<style>
+ .checked{
+   border:4px solid blue;
+ }
+</style>
+<ul class="nav nav-tabs" role="tablist">
+  <li role="presentation">
+   #popupp("$manageModule.setTarget('config_file_parameters')","全局参数配置","max")
+  </li>
+  <li role="presentation">#popupp("$manageModule.setTarget('operationLogSpecialApp')?tab=server_group&opt=updateByExampleSelective&runtime=$manageTool.appDomain.runEnvironment.keyName&appname=$manageTool.appDomain.appName","版本切换历史","1200*900")</li>
+  <li role="presentation">#popupp("$manageModule.setTarget('view_pojo')","POJO","max")</li>
+  #set($imageurl="<img src='$manageModule.setTarget('imgs/btn_upload.gif')' />")
+#set($linkurll="$manageModule.setTarget('uploadjar')")
+#if($hasselectdomain)
+ <li role="presentation">#opencallbackdialog($linkurll,'上传配置资源','600*500','fetchLatestSnapshot();')</li>
+
+
+
+  #if($manageTool.daily)
+  <li role="presentation">#opencallbackdialog("$manageModule.setTarget('jarcontent/sys_daily_resources')",'将配置同步到线上','800*400','fetchLatestSnapshot();')</li>
+ #end
+ 
+  <li role="presentation">#opencallbackdialog("$manageModule.setTarget('jarcontent/copy_config_from_other_app')",'从其他应用拷贝配置','900*500','fetchLatestSnapshot();')</li>
+ 
+  
+#end
+ 
+  
+</ul>
+
+#showFormErrors("selectRevsion")
+<div id="msgbox"></div>
+<form method="post" id="contentform" action="$manageModule.setTarget("jarcontent/snapshotset")">
+#*
+$csrfToken.hiddenField
+*#
+
+<input type="hidden" name="appname" value="${manageTool.appDomain.appName}" />
+<input type="hidden" name="groupid" value="#p('groupid')" />
+<input type="hidden" name="action" value="snapshot_revsion_action"/>
+<input type="hidden" name="event_submit_do_select_revsion" value="y"/>
+
+<p style="text-align:right">
+<button type="button" class="btn btn-primary" id="submitdoselectrevsion" >切换版本</button>
+</p>
+<div>
+$manageTool.noescape($pager.link)
+</div>
+<table id="snapshottable"  class="table table-condensed table-hover table-bordered table-striped" width="100%">
+<thead> 
+ <tr>
+  <th width="60px">版本</th> 
+  <th width="80px">选择</th> 
+  <th width="50px"><button id="btnCompare" class="btn btn-primary btn-xs">比较</button></th> 
+  <th width="100px">时间</th>
+  <th>日志</th>
+  <th>详细</th>
+  <th>parent</th>
+ </tr> 
+</thead>
+<tbody id="snapshottablebody">
+#foreach( $item in $snapshotlist ) 
+ <tr id="sn$item.snId" class="#if($selectgroup.publishSnapshotId == $item.snId) checked #end">
+ <td align="right" class="snapshotid"><span>$item.snId</span></td>
+  <td align="center"> 
+ 
+    <input type="radio" name="selectedSnapshotid" #if($selectgroup.publishSnapshotId == $item.snId) checked #end value="$item.snId" /> 
+  </td> 
+ 
+  <td align="center"> <input id="chk${item.snId}" class="compare" type="checkbox" name="comparesnapshotid" value="$item.snId" /></td> 
+  <td style="font-size:10px">$manageTool.formatDateYYYYMMdd($item.createTime)</td>
+  <td><strong>$item.createUserName</strong> $!item.memo</td>
+  <td>$manageTool.getConfigViewLink($manageModule,$item,true,true)</td>
+  <td>$item.preSnId</td>
+ </tr>
+#end
+</tbody>
+</table>
+<div>
+$manageTool.noescape($pager.link)
+</div>
+<div id="memobox"></div>
+</form>
+<script>
+var chkroll = 0;
+var chktemp = [];
+$(document).ready(function() { 
+    $("#submitdoselectrevsion").click(function(){
+    
+       var selectedSnapshotid = parseInt($("input[name=selectedSnapshotid]:checked").val());
+    
+     if(isNaN(selectedSnapshotid)){
+        alert("请选择SNAPSHOT版本");
+        return false;
+     }
+     
+     
+     #if($selectgroup.publishSnapshotId)
+    //  if( $selectgroup.publishSnapshotId == selectedSnapshotid){
+    //     alert("请选择SNAPSHOT版本");
+    //     return false;
+    //  }
+     #end
+     
+     opendialog("提交：切换SNAPSHOT版本理由是什么？"
+       ,{content:"<textarea name='memo' id='memo' class='form-control'></textarea>"}
+       ,500,300,{
+         onClose:function(){
+        
+          $("#modal").modal('hide');
+         },
+         onSuccess:function(){
+           submitForm($("#modal").find("#memo").val(),selectedSnapshotid);
+         }
+       });
+      
+       return false; 
+     
+    
+    });
+    
+  function submitForm(memo,selectedSnapshotid){
+    $("#msgbox").html("");
+  
+    TIS.ajax({url:'$manageModule.setTarget("jarcontent/snapshotset.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:$('#contentform').serialize()+"&memo="+memo,
+			    success:function(data){
+			      if(data.errormsg.length<1){
+			        $("#snapshottable  tr.checked").removeClass("checked");
+			        $("#sn"+selectedSnapshotid).addClass("checked");
+			         //$("#modal").modal('hide');
+			        continue2sendConfigFile(data);
+			      }else{
+			        appendMessage(data, $("#msgbox"));
+			        $("#modal").modal('hide');
+			      }
+				  	
+	      	    }
+	        }); 
+  }
+  
+ //▼▼▼ start continue2sendConfigFile
+  function continue2sendConfigFile(data){
+       var msgul = $("<ul class='actionMessage'></ul>");
+       if(data.msg.length >0){
+		  for(var i =0;i<data.msg.length;i++){
+			 msgul.append($("<li>"+data.msg[i]+"</li>")); 
+		  }
+	   }
+	  msgul.append("</ul><br/><ul class='errorMessage'><li>您是否要将新切换的配置文件推送到目标服务器上?</li></ul>");
+	  
+	  opendialog("确认"
+       ,{content:msgul.html()}
+       ,500,300,{
+         onClose:function(){
+          $("#modal").modal('hide');
+         },
+         onSuccess:function(){   
+           window.self.location.href="/coredefine/corenodemanage.htm";
+           return false;
+         }
+       });
+  }
+  //▲▲▲ end continue2sendConfigFile 
+ 
+ 
+  $("#snapshottable input:checkbox").click(function(){
+   
+   if(!this.checked){
+    return false;
+   }
+      
+  $("#chk"+ chktemp[chkroll%2]).attr("checked",false);
+   chktemp[chkroll++%2] = this.value;
+  });
+    
+    $("#btnCompare").click(function(){
+       
+       var dailyhref='/runtime/jarcontent/file_compare_result.htm?k';
+      var selectCount = 0;
+      $("#snapshottable .compare ").each(function(ch){
+        if(this.checked){
+         selectCount++;
+         dailyhref +="&comparesnapshotid="+this.value;
+        }
+      });
+      if(selectCount<2){
+        alert("selectCount small than 2");
+        return false;
+      }
+          
+      //alert(dailyhref);    
+      $manageTool.noescape($manageTool.openMaximizeDialog("dailyhref"))
+      return false;
+   });
+})
+
+function fetchLatestSnapshot(){
+  var maxSnId = 0
+  $(".snapshotid").each(function(){
+     if( parseInt( $(this).html()) > maxSnId){
+       maxSnId = parseInt( $(this).html());
+     }
+  });
+  
+   jQuery.ajax({url:'$manageModule.setTarget("jarcontent/snapshotset.ajax")', 
+         type:'POST',
+		 dataType:"json",
+         data:"action=snapshot_revsion_action&event_submit_do_get_latest_snapshot=y&resulthandler=advance_query_result&maxsnapshotid="+maxSnId,
+		 success:function(data){
+	$( "#snapshotTemplate" ).tmpl( data )
+		.prependTo( "#snapshottablebody" );	 
+	      	    }
+	        });
+}
+
+
+</script>
+
+<script id="snapshotTemplate" type="text/x-jquery-tmpl">
+	<tr id="sn${snid}">
+ <td align="right" class="snapshotid">${snid}</td>
+  <td align="center"> 
+    <input type="radio" name="selectedSnapshotid" value="${snid}"></td> 
+  <td align="center"> 
+    <input id="chk${snid}" type="checkbox" name="comparesnapshotid" value="${snid}"></td> 
+  <td style="font-size:10px">${createtime}</td>
+  <td><strong>${creator}</strong>${memo}</td>
+  <td><strong>snapshot:</strong>${snid}
+    <a href="#" title="${creator}:${memo}"><img src="/runtime/imgs/note.jpg" border="0"></a>
+    <a target="_blank" href="/runtime/jarcontent/application_context.htm?snapshot=${snid}" onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()&gt;$(window).height()?$(document).height():$(window).height())-15,function(){fetchLatestSnapshot();}); return false;">[applicationContext.xml]</a>
+    <a target="_blank" href="/runtime/jarcontent/schema.htm?snapshot=${snid}" onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()&gt;$(window).height()?$(document).height():$(window).height())-15,function(){fetchLatestSnapshot();}); return false;">[schema.xml]</a>
+    <a target="_blank" href="/runtime/jarcontent/solrconfig.htm?snapshot=${snid}" onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()&gt;$(window).height()?$(document).height():$(window).height())-15,function(){fetchLatestSnapshot();}); return false;">[solr.xml]</a>
+    <a target="_blank" href="/runtime/jarcontent/core.htm?snapshot=${snid}" onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()&gt;$(window).height()?$(document).height():$(window).height())-15,function(){fetchLatestSnapshot();}); return false;">[core.properties]</a>
+    <a href="/runtime/jarcontent/uploadjar.htm?snapshot=${snid}" onclick="opendialog('上传Jar文件',this.href,400,300);return false;">uploadjar</a></td>
+  <td>${parent}</td>
+ </tr>
+</script>

@@ -1,0 +1,26 @@
+﻿#if(!$configGroup0.currentSnapshotEqual2Neweast)
+<div class="note" style="margin-bottom:0">注意：此SNAPSHOT版本不是最新版本</div>
+#end
+<div class="note3" style="margin-top:0">
+当前配置资源 <a href="$manageModule.setTarget('jarcontent/snapshotset')">更改</a>
+$manageTool.getConfigViewLink($manageModule ,$configGroup0.snapshot,true,false) 
+<a style="font-size:8px" href="#" onclick="check_synchronize()" >同步?</a>
+</div>
+
+<script>
+  function check_synchronize(){
+  
+     var dialog = open_dialog("Loading.....",
+				  	  $("<div>正在判断，请稍等</div> <p> <img width='400' src='/runtime/imgs/gadget-loading.gif'></p>"),500);	
+  
+     jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_get_core_config_is_consist=y&action=core_action&snapshotid=$configGroup0.snapshot.snId",
+			    success:function(data){
+			        dialog.dialog("close");
+				  	showMessageDialog(data);
+	      	    }				   
+	        });
+  }
+</script>

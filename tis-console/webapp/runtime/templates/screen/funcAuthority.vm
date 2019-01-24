@@ -1,0 +1,104 @@
+<link rel="stylesheet" href="$manageModule.setTarget('zTreeStyle/ztreestyle.css')" type="text/css">
+<script type="text/javascript" src="$manageModule.setTarget('js/jquery.ztree.core-3.1.js')"></script>
+<script type="text/javascript" src="$manageModule.setTarget('js/jquery.ztree.excheck-3.1.js')"></script>
+
+
+<h2>添加功能($rundata.request.getParameter('func'))授权</h2>
+<div class="note2">将应用功能授权给部门，这样只有那个部门的用户才能操作该业务的功能</div>
+
+<button id="btnexecute" style="width:200px;height:30px;">执行授权</button>
+<p>
+$control.setTemplate("appselect.vm")
+</p>
+
+
+
+$control.setTemplate("department.vm")
+<script type="text/javascript">
+        function executeClick(){
+	       //if(isNaN( parseInt($('#appid').val()))){
+	       //  alert("请选择应用");
+	       //  return ;
+	      // }
+	   
+	       var orgadd = '';
+		  
+		  var hassetorg = false;
+		 
+		  $("#selectorg").children().each(
+		     function(){
+		        var child = $(this);
+		       
+		        if(!this.getAttribute('change')){ 
+			       return;
+			     }
+		         orgadd = orgadd + ',' + this.getAttribute('dataid');
+		         hassetorg = true;
+		     }
+		  );
+		  
+		 // if(!hassetorg){
+		  //  alert("请选择部门信息");
+		  //  return ;
+		 // }
+		 
+		 
+		// alert($('#appidsmain').val());
+		 
+		 jQuery.ajax({url:'$manageModule.setTarget("func_authority.action")', 
+         		type:'POST',
+				dataType:"json",
+          		data:{
+				   'event_submit_do_org_authority':'y',
+				   'action':'org_authority_action',
+				   'appid': $('#appidsmain').val(),
+				   'sappid': $('#hidappname').val(),
+				   'orgadd':orgadd,
+				   'func':'$rundata.request.getParameter('func')'
+          		},
+			   success:function(data){		
+				  //open_dialog(titlee,content,width){
+				  	var error = data.result.error;
+				  	var msg = data.result.msg;
+				
+				  	var content = $('<div></div>');		  	
+					if(error.length>0){
+				 
+				  	  var ulerror = $("<ul class='errorMessage'></ul>");
+				  	  for(var x in error){
+				  	  
+				  	   ulerror.append("<li> "+ error[x]+" </li>");
+				  	  }
+				  	  content.append(ulerror);
+				  	}
+				  	
+				  	if(msg.length>0){
+				  	   var ulmsg = $("<ul class='actionMessage'></ul>");
+				  	  for(var x in msg){
+				  	    ulmsg.append("<li> "+ msg[x]+" </li>");
+				  	  }
+				  	  content.append(ulmsg);
+				 	}	  	
+				  	
+				  	 var $dialog = content.dialog({
+			            autoOpen: false,
+			            title: "授权结果",
+			            width: 900,
+			            modal:true
+		            });
+    
+                     $dialog.dialog('open');
+				  	
+	      	   }, 
+			   error:function(data){
+			     alert(data);
+			   }				   
+	        }); 
+          
+       }  
+       
+       $(document).ready(function(){		
+			$('#btnexecute').click(executeClick);
+		});
+		
+</script>

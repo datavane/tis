@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans>
+	<!-- cluster status -->
+	<bean id="clusterSnapshotDAO"
+		class="com.taobao.terminator.manage.biz.dal.dao.impl.ClusterSnapshotDAOImpl"
+		parent="clusterDAO" />
+
+
+
+	<!-- <bean id="clusterStatusDatasource" class="org.apache.commons.dbcp.BasicDataSource" 
+		destroy-method="close"> <property name="driverClassName" value="com.mysql.jdbc.Driver" 
+		/> <property name="url" value="jdbc:mysql://10.232.31.148:3306/terminator_stat?useUnicode=yes&amp;characterEncoding=utf8" 
+		/> <property name="username" value="term_stat_app" /> <property name="password" 
+		value="app_123" /> <property name="validationQuery" value="select 1" /> </bean> -->
+	<bean id="clusterDAO"
+		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
+		abstract="true">
+		<property name="dataSource" ref="endSearchDatasource" />
+		<property name="sqlMapClient">
+			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+				<property name="configLocation" value="classpath:/conf/cluster-sqlmap-config.xml" />
+			</bean>
+		</property>
+	</bean>
+</beans>

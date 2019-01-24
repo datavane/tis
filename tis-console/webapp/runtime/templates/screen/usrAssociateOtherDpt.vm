@@ -1,0 +1,186 @@
+<style type="text/css"><!--
+  #seldptcaption{
+   color:blue;
+   font-size:20px;
+  font-weight: bold;
+  }
+  
+  #dptblock{
+    display:inline-block;
+    margin-left:4em;
+    margin-top:10px;
+  }
+  -->
+</style>
+<h3 style="margin:5px;font-size:20px;font-weight:bold">关联其他部门</h3>
+
+#showFormErrors("addapp")
+
+<div style="color:#666666;margin-bottom:5px;">关联成功之后，就能操作其他部门的应用了</div>
+<fieldset>
+ <legend>已经关联的部门</legend>
+ <ol id="dptlist">
+#if($extraDptAssociate.size()>0)
+ #foreach($item in $extraDptAssociate)
+ <li id="relation$item.id"> $item.dptName  <a href="#" onclick="deleteDepartmentAssociate($item.id,'$item.usrName','$item.dptName');return false;"><img border="0" src='$manageModule.setTarget('imgs/delte_icon.jpg')'/></a> </li>
+ #end
+#else
+  <li>  <font color="blue" style="font-weight:bold"> 还未关联其他部门</font></li>
+#end
+</ol>
+</fieldset>
+
+
+<form id="usrAssociateOtherDptForm" method="post" action="$manageModule.setTarget("usrAssociateOtherDpt")">
+<input type="hidden" name="action" value="user_action"  />
+<input type="hidden" name="usrid" value="#p('usrid')" />
+<input type="hidden" name="event_submit_do_associate_other_department" value="y"  />
+
+
+<fieldset>
+ <legend>表单设置</legend>
+ <p><span>用户名：</span> $usr.userName </p>
+ <p><span>用户所在部门：</span> $usr.dptName </p>
+ <p><span>需要关联的部门：</span>
+ <span id="seldptcaption"></span>
+ <input type="hidden" name="selecteddptid" id="selecteddptid" /> <br/> 
+ <span id="dptblock">
+ <select id="rootdpt" name="dptid">
+  <option value="-1" selected>请选择</option>
+  #foreach($item in $rootdpts)  
+   <option value="$item.dptId">$item.name</option>
+  #end</select>
+  </span>
+  </p>
+  <div style="padding-left:80px;"><font color="#666666">
+  (添加的部门必须是叶子部门)</font>
+  </div>
+ <p><button style="width:100px;height:35px;" onclick="addDepartmentAssociate();return false;">提交</button>  </p> 
+</fieldset>
+</form>
+<script>
+ //▼▼▼start deleteDepartmentAssociate 
+// 删除用户和部门的关联关系
+ function deleteDepartmentAssociate(usrDptRelationId,usrname,dptname){
+ 
+ //alert("usrDptRelationId:"+ usrDptRelationId);
+  if(!window.confirm("是否要取消用户“"+usrname+"”与部门“"+dptname+"”的关联？")){
+      return false;
+  }
+ 
+ jQuery.ajax({url:'$manageModule.setTarget("usrUpdate.ajax")', 
+         		type:'POST',
+				dataType:"json",
+				data:"event_submit_do_delete_usr_dpt_relation=y&action=user_action&usrDptRelationId="+usrDptRelationId,
+				success:function(data){
+				   showMessageDialog(data);
+				   if(data.errormsg.length < 1){
+				     $("#relation"+usrDptRelationId).remove();
+				   }
+				}
+				});
+ }
+
+//▲▲▲end of function deleteDepartmentAssociate
+ 
+  //▼▼▼start 关联用户和部门的绑定关系 
+  function addDepartmentAssociate(){
+  
+     jQuery.ajax({url:'$manageModule.setTarget("usrUpdate.ajax")', 
+         		type:'POST',
+				dataType:"json",
+				data: $("#usrAssociateOtherDptForm").serialize(),
+				success:function(data){
+				   showMessageDialog(data);
+				   
+				   if(data.errormsg.length>0){
+				    return;
+				   }
+				   
+				   var dptName = '';
+				  $("#dptblock select").each(function(index, element){
+                      dptName += $(element).find("option:selected").text()+"-";
+                   });
+				   
+				   $("#dptlist").append("<li>"+dptName+"</li>");
+				}
+				});
+				
+    return false;
+  
+  }
+//▲▲▲end of function addDepartmentAssociate
+ 
+ var selectChange = function(){
+        var selectid = parseInt($(this).val());
+      
+        var selbox = $(this);
+        
+        var selectcation = $("#rootdpt").find("option:selected").text();
+        var lastselbox = $("#rootdpt");
+        $("#rootdpt").nextAll().each(function(index, element){
+               if(parseInt( element.value) >-1){
+                 lastselbox = $(element);
+                 selectcation += "-" ; 
+                 selectcation += $(element).find("option:selected").text();           
+               }
+            });
+            
+       //alert(selectcation);
+       
+       $("#seldptcaption").html(selectcation);
+       if(lastselbox){
+        $("#selecteddptid").val(lastselbox.val());
+       }
+        
+        jQuery.ajax({url:'$manageModule.setTarget("usrUpdate.ajax")', 
+         		type:'POST',
+				dataType:"json",
+				success:function(data){
+                   
+                    if(data.errormsg){
+                      showMessageDialog(data);
+                      return;
+                    }
+                     
+                     if(selectid<0){
+                      return ;
+                     }
+                     
+                     selbox.nextAll().each(function(index, element){
+                       $(element).remove();
+                     });
+                     
+                     
+                     
+                     var nxtsel = $("<select><option value='-1'>请设置</option></select>");
+                      var i=0;
+                     for(;i<data.list.length;i++  ){
+                       nxtsel.append($("<option value='"+data.list[i].value+"'>"+data.list[i].name+"</option>"));
+                     }
+                     nxtsel.click(selectChange);
+                      
+                     if(i>0){
+                       $("#dptblock").append(nxtsel); 
+                    
+                     }
+                    
+	      	    },
+          		data:"event_submit_do_get_child_dpt=y&resulthandler=y&action=user_action&pid="+selectid
+			    
+	        });           
+        
+      }
+  
+  
+  
+
+  $(document).ready(function(){
+     $("#rootdpt").val(-1);
+      $("#rootdpt").change(selectChange);
+  });
+  
+ // function (){
+  
+ // }
+</script>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans>
+	<bean id="clusterSnapshotDAO"
+		class="com.qlangtech.tis.dataplatform.dao.impl.ClusterSnapshotDAOImpl"
+		parent="comDfireTisDataplatformDAO" />
+	<bean id="clusterSnapshotPreDayDAO"
+		class="com.qlangtech.tis.dataplatform.dao.impl.ClusterSnapshotPreDayDAOImpl"
+		parent="comDfireTisDataplatformDAO" />
+
+	<bean id="comDfireTisDataplatformDAO"
+		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
+		abstract="true">
+		<property name="dataSource" ref="tisDatasource" />
+		<property name="sqlMapClient">
+			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+				<property name="configLocation"
+					value="classpath:/conf/cluster-snapshot-sqlmap-config.xml" />
+			</bean>
+		</property>
+	</bean>
+
+</beans>

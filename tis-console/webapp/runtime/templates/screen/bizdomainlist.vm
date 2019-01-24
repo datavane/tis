@@ -1,0 +1,152 @@
+<h2>业务线（IndexSet）一览</h2>
+
+<style type="text/css"><!--
+ #appquicklink{
+  
+  margin:2px;
+  width: 900px;
+  background-color:#EAEAEA;
+  border: 4px solid #0000FF;
+  padding:2px;
+ # display:none;
+ # position: absolute;
+ }
+ #appquicklink p {
+  margin:2px;
+ }
+ -->
+</style>
+
+<script>
+   function deleteBizDomain(bizid){
+     if(!window.confirm("你确定要删除ID:"+ bizid+"的记录吗？")){
+        return ;
+     }
+     //ajax_fire_event(
+     //"$manageModule.setTarget("bizdomainlist.ajax")"
+     //  ,"delete_biz_domain"
+     //  ,{action:"biz_domain_list"
+     //    ,'bizid':bizid}
+     //  ,function( msg ) {
+     //     window.location.reload();
+     //  });
+       
+        jQuery.ajax({url:'$manageModule.setTarget("bizdomainlist.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_delete_biz_domain=y&action=biz_domain_list&bizid="+bizid,
+			    success:function(data){
+				  	showMessageDialog(data);
+	      	    }				   
+	        }); 
+    }
+    
+     function recovery_bizdomain(sid,content){
+     call_2_server(sid,'你确定要恢复['+ content+']这条记录吗？','recovery');
+   }
+   
+   function call_2_server(sid,content,event){
+     $('<div></div>').html(content).dialog({
+			width:400,
+			height:200,
+			modal:true,
+			buttons: { "确定": function() { 	
+	   ajax_fire_event(
+       '$manageModule.setTarget("bizdomainlist.do")'
+       ,event
+       ,{action:"biz_domain_list"
+         ,'bizid':sid}
+       ,function( msg ) {
+          window.location.reload();
+       });  }
+       ,"取消": function() { $(this).dialog("close"); } }}); 
+   }
+</script>
+<p>
+#*
+#popup("$manageModule.setTarget('addbizdomain')","添加业务线",'')
+<a id="btnserverSelect" href="#" onclick="return btnserverSelectClick();">应用快速查询</a>
+*#
+</p>
+
+#*
+<fieldset id="appquicklink">
+ <legend>应用查找</legend>
+$control.setTemplate("appselect.vm")
+<p>
+ <a id="appserverview" href="#" >查看服务器</a>
+</p>
+</fieldset>
+*#
+
+
+<br/>
+<table border="1" width="100%">
+<tr>
+ <th width="5%">ID</th>
+  <th width="5%">SysId</th>
+ <th>部门全称</th>
+  
+ <th  width="13%">部门名称</th>
+
+ <th width="12%">创建时间</th>
+
+#*  <th width="7%">状态</th>
+ <th>操作</th>
+*#
+</tr>
+#foreach($item in $bizlist)
+<tr> 
+<td align="center">$item.dptId</td>
+<td align="center">$!item.alibabaDptId</td>
+<td> #popupp("$manageModule.setTarget('applist')?dptid=$item.dptId","$item.fullName","max")
+</td>
+#*
+<td>
+ #if($item.indexsetSnapshot)
+   #popupp("$manageModule.setTarget('biz_domain_update')?bizid=$item.dptId","更新IndexSet","700*400")
+   #popupp("$manageModule.setTarget('biz_domain_update')?bizid=$item.dptId","添加Index","700*400")
+ #else 
+    #popupp("$manageModule.setTarget('create_index_set')?bizid=$item.dptId","创建IndexSet","max")
+ #end 
+</td>
+*#
+<td>$item.name</td>
+
+
+<td align="right" style="font-size:12px">$manageTool.formatDateYYYYMMdd($item.gmtCreate)</td>
+
+
+</tr>
+#end
+</table>
+<script>
+
+function btnserverSelectClick(){
+        $("#appquicklink").show('slow', function(){});
+        return false;
+}
+
+ function btnHideServerSelectClick(){
+        $("#appquicklink").hide('slow', function(){});
+        return false;
+  }
+
+
+ $("#appserverview").click(function(){
+ //app.htm?appid=100
+  var selectAppid = $("#hidappname").val();
+
+if(!(selectAppid>0)){
+ selectAppid = parseInt($("#appidsmain").val());
+}
+
+if(!(selectAppid>0)){
+ alert("请选择应用");
+ $("#query").select();
+ return ;
+}
+  var href= "$manageModule.setTarget('app')?appid="+ selectAppid;
+  $(this).attr("href",href);
+ });
+</script>

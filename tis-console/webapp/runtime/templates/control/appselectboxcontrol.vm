@@ -1,0 +1,46 @@
+<script>
+  function onSelectChange${contextid}(form){ 
+   TIS.ajax({url:'$manageModule.setTarget("changedomain.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:{
+				   'event_submit_do_select_change':'y',
+				   'action':'change_domain_action',
+				   'bizid': $('#bizid${contextid}').val()				 
+          		},
+			   success:function(data){
+				    $('#appids${contextid}').html("<option value='' >请选择</option>");
+				  	for(var i =0;i< data.bizresult.length;i++){
+				  	 $('#appids${contextid}').append("<option value='" + data.bizresult[i].value +"' >"+ data.bizresult[i].name+"</option>");
+				  	}
+	      	   }, 
+			   error:function(){
+			   
+			   },				   
+	        });
+  }
+</script>
+<span style="width:4em;">业务线：</span>
+<select id="bizid${contextid}"  onchange="onSelectChange${contextid}(document.forms[0])" name="combDptid">
+ <option value="">请选择</option>
+     #foreach ($option in $bizlinelist ) 
+      <option
+       #if( ($option.value == $manageTool.appDomain.dptid && !$onlySelectDpt) || ($onlySelectDpt && $option.value == $selectDptId)) 
+         selected
+       #end
+       value="$option.value">$option.name</option>
+     #end
+</select>
+#if(!$onlySelectDpt)
+    <span >应用：</span>
+    <select id="appids${contextid}" name="combAppid">
+    <option value="">请选择</option>
+     #foreach ($option in $applist) ) 
+      <option
+       #if( $option.value == $manageTool.appDomain.appid) 
+         selected
+       #end
+       value="$option.value">$option.name</option>
+     #end
+    </select>
+#end

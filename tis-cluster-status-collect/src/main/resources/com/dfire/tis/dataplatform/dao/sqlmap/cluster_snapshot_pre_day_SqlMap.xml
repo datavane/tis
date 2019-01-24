@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="cluster_snapshot_pre_day" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDay" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="gmt_create" property="gmtCreate" jdbcType="DATE" />
+    <result column="data_type" property="dataType" jdbcType="VARCHAR" />
+    <result column="incr_number" property="incrNumber" jdbcType="INTEGER" />
+    <result column="app_id" property="appId" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDayCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select aa.id, gmt_create, data_type, incr_number, app_id
+     from ( select id from cluster_snapshot_pre_day 
+    <isParameterPresent >
+      <include refid="cluster_snapshot_pre_day.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join cluster_snapshot_pre_day aa on aa.id=bb.id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDay" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select id, gmt_create, data_type, incr_number, app_id
+    from cluster_snapshot_pre_day
+    where id = #id:INTEGER#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDay" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from cluster_snapshot_pre_day
+    where id = #id:INTEGER#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDayCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from cluster_snapshot_pre_day
+    <include refid="cluster_snapshot_pre_day.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDay" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into cluster_snapshot_pre_day (id, gmt_create, data_type, incr_number, app_id)
+    values (#id:INTEGER#, #gmtCreate:DATE#, #dataType:VARCHAR#, #incrNumber:INTEGER#,
+      #appId:BIGINT#)
+    <selectKey resultClass="INTEGER" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDay" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into cluster_snapshot_pre_day
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="gmtCreate" >
+        gmt_create
+      </isNotNull>
+      <isNotNull prepend="," property="dataType" >
+        data_type
+      </isNotNull>
+      <isNotNull prepend="," property="incrNumber" >
+        incr_number
+      </isNotNull>
+      <isNotNull prepend="," property="appId" >
+        app_id
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="gmtCreate" >
+        #gmtCreate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="dataType" >
+        #dataType:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="incrNumber" >
+        #incrNumber:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="appId" >
+        #appId:BIGINT#
+      </isNotNull>
+      )
+    </dynamic>
+    <selectKey resultClass="INTEGER" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDayCriteria" resultClass="java.lang.Integer" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select count(*) from cluster_snapshot_pre_day
+    <include refid="cluster_snapshot_pre_day.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update cluster_snapshot_pre_day
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.id" >
+        id = #record.id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.gmtCreate" >
+        gmt_create = #record.gmtCreate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="record.dataType" >
+        data_type = #record.dataType:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.incrNumber" >
+        incr_number = #record.incrNumber:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.appId" >
+        app_id = #record.appId:BIGINT#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="cluster_snapshot_pre_day.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update cluster_snapshot_pre_day
+    set id = #record.id:INTEGER#,
+      gmt_create = #record.gmtCreate:DATE#,
+      data_type = #record.dataType:VARCHAR#,
+      incr_number = #record.incrNumber:INTEGER#,
+      app_id = #record.appId:BIGINT#
+    <isParameterPresent >
+      <include refid="cluster_snapshot_pre_day.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

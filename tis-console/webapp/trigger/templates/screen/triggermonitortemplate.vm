@@ -1,0 +1,12 @@
+<h1>JOB触发中心 TRIGGER一览 </h1>
+<table border="1" width="100%" >
+<tr>
+ <th>JobId</th> <th>Group</th> <th>key</th><th>最近执触发时间</th> <th>CrontabExpression</th>
+</tr>
+#foreach($item in $joblist)
+<tr>
+<td>$item.jobid</td><td>$item.triggerKey.group</td> <td>$item.triggerKey.name</td>
+<td> $manageTool.formatDateYYYYMMdd($item.previousFireTime) </td> <td>$!item.crontabExpression</td>
+</tr>
+#end
+</table>

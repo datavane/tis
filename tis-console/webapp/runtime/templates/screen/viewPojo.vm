@@ -1,0 +1,18 @@
+<script src="$manageModule.setTarget('/js/codemirror/codemirror.js')"></script>
+<link rel="stylesheet" href="$manageModule.setTarget('/js/codemirror/codemirror.css')">
+<link rel="stylesheet" href="$manageModule.setTarget('/js/codemirror/eclipse.css')">
+<script src="$manageModule.setTarget('/js/codemirror/clike.js')"></script>
+<p>
+  <a href="$manageModule.setTarget('view_pojo.htm?action=index_query_action&event_submit_do_download_pojo=y')">下载</a>
+</p>
+<textarea id="code" name="content">$pojoContent</textarea>
+
+<script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        height: "650px",
+        lineNumbers: true,
+        theme:'eclipse',
+         matchBrackets: true,
+        mode: "text/x-java"
+      });
+</script>

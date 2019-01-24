@@ -1,0 +1,50 @@
+<fieldset>
+  <legend> 参数设置 </legend>
+  <p style="margin:3px"><span style="display:inline-block;width:6em;">时间：</span> 
+   <INPUT id="datepicker" type="text" value="$manageTool.formatTodayYYYYMMdd(-1)"></p>
+<p style="margin:3px"><span style="display:inline-block;width:6em;">服务器选择：</span>  
+ <select id="serverSelect">
+     <option value="0">请选择</option>
+#foreach($adapter in $groupAdapterList)
+  <optgroup label="第$adapter.group.groupIndex组">
+   #foreach($server in $adapter.serverList)
+    <option value="[$adapter.group.groupIndex,'${server.ipAddress}']">${server.ipAddress}(${server.serverName})</option>
+    #end
+  </optgroup>
+#end
+ </select>
+  </p>
+</fieldset>
+<SCRIPT>
+	$(function() {
+		$( "#datepicker" ).datepicker({ 
+		  dateFormat: 'yy-mm-dd',
+		  onClose: function(dateText, inst) { 
+		   var par = (eval($("#serverSelect").attr("value")));
+		   if(par instanceof Array){
+		    changeSrc(dateText,par[0],par[1]);
+		   }else{
+		    changeSrc(dateText,null,null);
+		   }
+		   }
+		 });
+	});
+	
+	$("#serverSelect").change(function(){
+	
+	 var par = (eval(this.value));
+	 changeSrc($("#datepicker").attr("value"),par[0],par[1]);
+	})
+	
+	function changeSrc(date,groupIndex,ipaddress){
+	 var href= "http://$responseTimeHost/terminator-report/run?__report=average-time.rptdesign&&__parameterpage=false&datsources=/home/admin/terminator-report/"+date+"/$appdomain.appName";
+	 if(groupIndex != null && ipaddress != null){
+	  href = href+ "/"+groupIndex+"/"+ ipaddress;
+	 }
+	 $("#staticView").attr("src",href);
+	}
+	
+</SCRIPT>
+<br/>
+<iframe id="staticView" height="1200px" frameborder="0" src="http://$responseTimeHost/terminator-report/run?__report=average-time.rptdesign&&__parameterpage=false&datsources=/home/admin/terminator-report/$manageTool.formatTodayYYYYMMdd(-1)/$appdomain.appName/" width="100%">
+</iframe>

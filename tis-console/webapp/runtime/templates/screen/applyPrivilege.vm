@@ -1,0 +1,87 @@
+<style type="text/css">
+
+</style>
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("apply_privilege")" >
+<!--<form method="post">-->
+
+ <input type="hidden" name="action" value="apply_action"  />
+
+ <fieldset id="formfieldset" style="margin: 15px;">
+ <legend>应用权限申请</legend>
+ <div style="text-align:right">
+  <input type="submit" style="width:10em;height:40px;margin-right:4em;" name="event_submit_do_create_apply_privilege" value="提交申请" />
+ </div>
+
+ <p style="margin-top:0px;"><span>申请人：</span> $usr.userName </p>
+ <p><span>隶属部门：</span> $usr.dptName </p>
+ 
+
+ <p>
+#taction ("name=appselect" "namespace=/runtime#control","executeResult=true")
+ #sparam("name=maxMatch","value=true")
+#end
+ <em style="margin-left:6em;color:#999999;font-size:20px">优先接收业务线提交的表单。在应用名栏填写应用名时，请确保业务线名为空</em>
+ </p>
+ 
+ 
+ <!--
+ <p>
+ <span style="width:4em;">应用：</span>
+ <input type="text" name="appnamesuggest" id="query" size="40" value="search4" />
+ <em style="margin-left:6em;color:#999999;font-size:20px">请在应用一栏输入需要申请权限的应用名</em>
+ </p>
+-->
+ 
+ <!--
+ <button onclick="getDpt();" >应用查询</button>
+ <p><span id="appdpt">应用所属部门：</span></p>
+ -->
+
+ <p><span style="display:inline;">备注：</span><br/><textarea style="margin-left:9em;" name="memo" cols="60" rows="10">#p("memo")</textarea> </p>
+ 
+
+ </fieldset>
+ 
+ 
+<script>
+#if($successapply)
+  $(document).ready(function(){
+   $("#formfieldset span").css("color","#999999");
+   $("#formfieldset input").css("color","#999999");
+   $("#formfieldset textarea").css("color","#999999");  
+   $("#formfieldset label").css("color","#999999");
+   
+   $("#formfieldset input").attr("disabled","disabled");
+   $("#formfieldset textarea").css("disabled","disabled");
+  });
+#end
+
+
+function getDpt(){
+     
+     
+	jQuery.ajax({url:'$manageModule.setTarget("applyaction.action")', 
+		type:'GET',
+		dataType:"json",
+		//data:"resulthandler=advance_query_result&event_submit_do_get_user=y&action=user_action&userid="+$("#userid").val(),
+		/*data:{
+			'event_submit_do_query_app_dpt':'y',
+			'action':'apply_action',
+			'appnamesuggest': $('#appnamesuggest').val()				 
+        },*/
+		data:"resulthandler=advance_query_result&event_submit_do_query_app_dpt=y&action=apply_action&appnamesuggest="+$("#appnamesuggest").val()+"&combAppid="+$("#appnamesuggest").val(),
+		
+		success:function(data){	
+		        
+			$("#appdpt").html(data.string);
+				 
+		}, 
+		error:function(){   
+			alert("error")
+		}				   
+	}); 
+}    
+
+
+</script>

@@ -1,0 +1,53 @@
+<style type="text/css">
+table {width:${tableWidth}px;table-layout:fixed;border-collapse:collapse;margin-left:10px;}
+.hdfs_cell {width:${cellWidth}px;}
+th strong {display:block;width:100%;}
+tr strong,tr td {white-space:nowrap;overflow:hidden;}
+
+.bg_yellow{
+background-color:#B0FFAA;
+}
+
+ .celldetail{
+  position: absolute;
+  left: 30px;
+  top: 40px;
+  width: 600px;
+  background-color:#EAEAEA;
+  border: 3px solid #0000FF;
+  padding:7px;
+  display:none;
+ }
+
+
+
+</style>
+<div class="note2" style="margin:0px;">最多显示300条记录，如果TABLE格式不正确 说明DUMP数据有问题</div>
+<br/>
+$manageTool.noescape($hdfscontent.toString()) 
+<script>
+ $("td").mouseover(function(){
+   
+  var detail = $(this).children(":first-child").children(":first-child");
+  detail.html("hello");
+  
+  //alert( detail.html());
+  
+  detail.show("slow",function(){});
+ 
+   // :nth-child(n) 
+   $("."+this.getAttribute("cellcol")).addClass("bg_yellow");
+   $(this).parent().addClass("bg_yellow");
+ })
+ 
+ $("td").mouseout(function(){
+  $("."+this.getAttribute("cellcol")).removeClass("bg_yellow");
+   $(this).parent().removeClass("bg_yellow");
+ })
+ 
+ $("td").click(function(){
+ open_dialog('单元格详细',$(this).children(":nth-child(2)").html(),400);
+ });
+ 
+ 
+</script>

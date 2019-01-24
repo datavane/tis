@@ -1,0 +1,55 @@
+<tr id="tr_${id}">
+	<td>
+		<span id="row-id-${id}">${id}</span>
+    </td>
+    <td>
+        <input id="name_${id}" 
+            disabled="disabled" type="text" onfocus="editName(${id});" 
+            placeholder="请输入字段名称" value='${name}' />
+        <input id="namehidden_${id}" type="hidden" name="name_${id}" value='${name}' />
+    </td>
+    <td>
+        <select class="select-type" 
+           onchange="changeSelectType('${id}');" name="type_${id}" id="type_${id}">
+            {{each fieldtypes}}
+               <option ${$item.isSelect(fieldtype, $value.name)} range="${$value.rangeAware}" split="${$value.split}"
+                  value="${$value.name}">${$value.name}</option>
+            {{/each}}
+        </select>
+       
+        <select id="analy_${id}" {{if !split}} style="display:none" {{/if}} 
+           onchange="changeSelectAnaly('${id}');" 
+          style="${$item.shallShow(fieldtype)}" name="analy_${id}" >
+			<option value="">选择分词</option>
+			{{each tokenerTypes}}
+               <option  ${$item.isSelect(tokenizerType, key)}  value="${key}">${value}</option>
+            {{/each}}
+        </select>
+            
+        <span id="rage_${id}" {{if !rangequery}} style="display:none" {{/if}}>
+         <input name="sort_${id}" 
+           id="sort_${id}" type="checkbox" ${$item.checked(rangequery)}/>区间查询
+        </span>
+         
+    </td>
+  
+	#*
+	<td id="td_default_${id}">
+		<input name="default_${id}" onfocus="editDefaultVal(${id});" id="default_${id}"
+		   type="input" placeholder="请输入默认值" value="${defaultVal}"/>
+		   <a id='del-default'  href='#' onclick='deldefault(this);'>x</a>
+    </td>
+    *#
+    <td id="td_search_${id}">
+        <input name="search_${id}" onchange="searchChange(this,${id});" 
+         id="search_${id}" type="checkbox"  ${$item.checked(indexed)} />
+    </td>
+    <td id="td_return_${id}">
+        <input name="return_${id}" onfocus="focusCheckbox(${id});" 
+        id="return_${id}" type="checkbox" ${$item.checked(stored)}  />
+    </td>
+    
+    <td>
+        <a id="del_${id}" href="#DEL" onclick="deleteColumn('tr_${id}');" ><span class="glyphicon glyphicon-trash"></span></a>
+    </td>
+</tr>

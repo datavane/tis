@@ -1,0 +1,105 @@
+<script src="$manageModule.setTarget('/js/codemirror/codemirror.js')"></script>
+<link rel="stylesheet" href="$manageModule.setTarget('/js/codemirror/codemirror.css')">
+<script src="$manageModule.setTarget('/js/codemirror/xml.js')"></script>
+
+#showFormErrors("savefilecontent")
+<style type="text/css"><!--
+#res_param{
+  position: absolute;
+  left: 30px;
+  top: 40px;
+  width: 600px;
+  background-color:#FBFECF;
+  border: 4px solid #0000FF;
+  padding:7px;
+  display:none;
+  z-index:99999;
+ }
+
+ -->
+</style>
+#*
+<form id="contentform" method="post" action="$manageModule.setTarget("jarcontent/$manageTool.getfileEditName($rundata.request.servletPath)")">
+*#
+
+<form id="contentform" method="post" 
+ action="$manageModule.setTarget("jarcontent/${resourceName}.htm")">
+
+<div id="res_param"></div>
+<textarea name="memo" id="memo" style="display:none;" cols="16"></textarea>
+<input type="hidden" name="event_submit_do_save_content" value="y" />
+<table width="100%" >
+<tr>
+<td width="50%"><h3>$fileName编辑
+<button style="width:120px;height:28px;" 
+    name="event_submit_do_save_content"  onclick="onSubmitForm();return false;"  >保   存</button></h3></td>
+   <td align="right"> <a class="help" href="#" onclick="return showParams()">查看绑定参数</a>  </td>
+</tr>
+</table>
+<div >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="save_file_content_action"/>
+<input type="hidden" name="snapshot" value="${snap.snId}"/>
+#*
+<input type="hidden" name="appid" value="#p('appid')"/>
+<input type="hidden" name="gid" value="$group.gid.value"/>
+*#
+<input type="hidden" name="filename" value="$manageTool.getfileEditName($rundata.request.servletPath)"/>
+
+<textarea id="code"  name="content">$filecontent</textarea>
+
+</form>
+
+</div>
+
+<script>
+  function showParams(){
+
+  
+    $("#res_param").html("<button onclick='return hiddenParams()'>关闭</button><br/><iframe id='wdialog' frameborder='0' height='380' width='480' src='$manageModule.setTarget("config_file_parameters_key_list")' ></iframe>")
+    
+    $("#res_param").show('slow', function(){});
+     
+    return false;
+  }
+  
+  
+  function onSubmitForm(){
+  
+     $("#memo").dialog({
+			autoOpen: false,
+			title: "提交：写点日志",
+			modal:true,
+			width:400,
+			height:300,
+			resizable:false,
+			 buttons: {
+                "提交": function() {
+                    $( this ).dialog( "close" );  
+                    $("#contentform").append($(this)); 
+                    $("#contentform")[0].submit();                  
+                },
+                "取消": function() {
+                    $( this ).dialog( "close" );
+                }
+            }
+		}).dialog('open');
+		
+	 $("#memo").css("width","90%");
+	 $("#memo").css("border","2px solid #cccccc");
+    
+  }
+  
+  
+  function hiddenParams(){
+    $("#res_param").hide('slow', function(){});
+    return false;
+  }
+  
+    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        mode: {name: "xml", alignCDATA: true},
+        lineNumbers: true
+      });
+</script>

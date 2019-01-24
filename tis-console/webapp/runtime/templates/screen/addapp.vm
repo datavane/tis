@@ -1,0 +1,55 @@
+<h2>添加应用</h2>
+<style type="text/css"><!--
+  #uploaddialog p span{
+    width:8em;
+    display:inline-block;
+  }
+  #btndouploadjar {
+    width:200px;
+    height:30px;
+  }
+-->
+</style>
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("addapp")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="add_app_action"/>
+
+<fieldset id="uploaddialog">
+<legend>设置表单</legend>
+<p>
+ <span>名称:</span> 
+  <input type="text" name="projectName" value="$!projectName"/>
+    <em style="color:red">必选</em>
+</p>
+<p>
+ <span>所属部门:</span>    
+ #if($dpt)
+   <input type="hidden" name="dptId" value="$!dptId"/> $dpt.fullName
+ #else  
+   <select name="dptId">
+     #foreach($item in $dptlist)  
+       <option #if($item.value == $dptId) selected #end value="$item.value">$item.name</option>
+     #end  
+   </select>
+   <em style="color:red">必选</em>
+  #end
+</p>
+<p>
+ <span>接口人:</span> 
+  <input type="text" name="recept" value="$!recept"/> 
+    <em style="color:red">必选</em>
+</p>
+#*
+<p>
+ <span>是否自动部署:</span> 
+  <input type="checkbox" name="isautodeploy" id="isautodeploy" value="true"/><label for="isautodeploy">是</label>
+</p>
+*#
+<p>
+<input type="submit" id="btnaddapp" name="event_submit_do_add_app" value="提     交" />
+</p>
+</fieldset>
+</form>

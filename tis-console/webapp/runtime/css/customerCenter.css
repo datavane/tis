@@ -1,0 +1,85 @@
+#CustomerCenterMenu {
+	width: 10%;
+	float: left;
+	font-size:12px;
+}
+
+#CustomerCenterMenu div,form,ul, li,img,h4,h3{
+  	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-family: inherit;
+	text-align: left;
+	vertical-align: baseline;
+	list-style-type: none;
+}
+
+#CustomerCenterMenu h3 {
+	height: 33px;
+	background: url(http://static.www.net.cn/style/images/bg_customer_icon01.gif) no-repeat 0px 0px;
+}
+#CustomerCenterMenu ul.menuBody {
+	border: 1px solid #C4D5E7;
+	border-top: 0;
+	background: #fff;
+}
+#CustomerCenterMenu ul li h4 {
+	padding: 0px 0px 0px 30px;
+	line-height: 33px;
+	height: 32px;
+	overflow: hidden;
+	color: #000;
+	background: url(http://static.www.net.cn/style/images/bg_customer_icon01.jpg) no-repeat 0px 0px;
+	cursor: pointer;
+}
+#CustomerCenterMenu ul li h4.se {
+	background: url(http://static.www.net.cn/style/images/bg_customer_icon01.jpg) no-repeat 0px -32px;
+}
+#CustomerCenterMenu ul li ul {
+	zoom:1;
+}
+#CustomerCenterMenu ul li ul li {
+	line-height: 27px;
+}
+#CustomerCenterMenu ul li ul li a {
+	display: block;
+	background: url(http://static.www.net.cn/style/images/bg_customer_icon02.gif) no-repeat 20px 10px;
+	padding-left: 30px;
+	height: 27px;
+}
+
+#CustomerCenterMenu ul li ul li a:link {
+	color: #000;
+}
+#CustomerCenterMenu ul li ul li a:visited {
+	color: #000;
+}
+#CustomerCenterMenu ul li ul li a:hover,#CustomerCenterMenu ul li ul li a.se{
+	color: #D44C00;
+	background: #fffae2 url(http://static.www.net.cn/style/images/bg_customer_icon02.gif) no-repeat 20px
+		10px;
+	font-weight: bold;
+}
+
+#CustomerCenterMenu ul li ul li span {
+	display: block;
+	height: 27px;
+}
+#CustomerCenterMenu ul li ul li span a {
+	background: none;
+	padding-left: 43px;
+}
+#CustomerCenterMenu ul li ul li span a:hover {
+	background: #fffae2;
+	font-weight: bold;
+}
+
+#CustomerCenterMenu ul li ul li a.cc{
+	color: #D44C00;
+	background: #fffae2 url(http://static.www.net.cn/style/images/bg_customer_icon02.gif) no-repeat 20px
+		10px;
+	font-weight: bold;
+}

@@ -1,0 +1,51 @@
+#showFormErrors("jarcontent")
+$control.setTemplate("package_test_state_report.vm")
+<script>
+  function onSelectChange(form){
+   //var inptHidden = document.createElement("input");
+   //inptHidden.type="hidden";
+   //inptHidden.name="event_submit_do_select_snapshot_change";
+   //inptHidden.value="1";
+   //form.appendChild(inptHidden);
+   form.submit(); 
+  }
+  
+  function open_message_box(){
+      var  $dialog = $('<div id="messagebox" style="height:600px;overflow:hidden;overflow-y:auto;background-color:black;color:white;"></div>');  
+		$dialog.dialog({
+			autoOpen: false,
+			title: "索引生成状态",
+			maxHeight:600,
+			height:600
+		});
+		 
+    $dialog.dialog("option" , "width" , 900);
+    $dialog.dialog('open');
+   }
+   
+   function appendMessage(msg){
+      $('#messagebox').append("<div style='color:white'>"+msg+"</div>");
+      $('#messagebox').attr("scrollTop",$('#messagebox').attr("scrollHeight"));
+   } 
+</script>
+<form method="get" action="$manageModule.setTarget("/test/begintest")" >
+ $control.setTemplate("package_test_state.vm")
+
+ <input type="hidden" name="$group.pid.key" value="$group.pid.value" />
+#*
+$csrfToken.hiddenField
+*#
+ #*
+ <input type="hidden" name="action" value="test/test_jar_action"/>
+ *#
+ <input type="hidden" name="username" value="$login_user_name" />
+ <p style="border:2pt dashed #333333;background-color: #E1E1E1;padding:10px;">
+ <span>注意：</span>
+     为了保证生成的索引的及时性，dump过程最多会生成100条数据
+</p>
+</form>
+<form method="post" action="$manageTool.getDailyHost()/build/buildIndex" >
+#if($testDomain.shallStartTestProcess())
+<input type="submit" name="event_submit_do_start_build_index" value="开始生成索引" />
+#end
+</form>

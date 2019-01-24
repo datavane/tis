@@ -1,0 +1,22 @@
+logging:
+  config: classpath:webapp-logback.xml
+  path: /opt/logs/spring-boot
+  level:
+    root: DEBUG
+    com.dfire.spring.boot.example.mapper: DEBUG
+
+
+server:
+  context-path: /solr
+
+spring:
+  data:
+    solr:
+      host: http://127.0.0.1:8080/solr
+
+management:
+  health:
+    solr:
+      enabled: false
+
+

@@ -1,0 +1,75 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.qlangtech.tis</groupId>
+	    <artifactId>tis-pom</artifactId>
+		<version>3.7.47</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>tis-taskflow</artifactId>
+	<packaging>jar</packaging>
+
+	<name>tis-taskflow</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<build>
+
+		<plugins>
+
+		</plugins>
+	</build>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-solrj-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			 <artifactId>tis-common</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-jdbc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-exec</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.6.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>velocity-tools</groupId>
+			<artifactId>velocity-tools-view</artifactId>
+			<version>2.0-beta1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+		</dependency>
+	    <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-global-config</artifactId>
+        </dependency>
+	</dependencies>
+
+
+
+</project>

@@ -1,0 +1,111 @@
+<style type="text/css">
+
+</style>
+<h3>
+<a target="_self" href="$manageModule.setTarget('/my_apply.htm')">新应用审批</a>
+<a target="_self" style="display:inline-block;background-color:pink;" href="$manageModule.setTarget('/waited_privilege.htm')">权限审批</a>
+<a target="_self" href="$manageModule.setTarget('/apply_privilege_record.htm')">权限申请记录</a>
+
+</h3>
+<p>
+
+#popupp("$manageModule.setTarget('/apply_new.htm')","应用申请","1200*800")
+#popupp("$manageModule.setTarget('/apply_privilege.htm')","权限申请","1200*800")
+
+
+
+</p>
+
+<p id="error"></p>
+
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("agree_privilege")" >
+
+ <input type="hidden" name="action" value="apply_action"  />
+
+<p>
+ 有以下同学申请部门“ $current_usr.dptName ”应用的权限，请审批
+</p>
+ <p>
+ 注：一旦同意权限申请，申请人可以操作您所在部门下所有应用。同意前请确认！
+ </p>
+ <table border="1" width="100%">
+
+		<thead>
+			<tr align="center">
+			<th width="10%">申请人</th>
+			<th width="30%">申请时间</th>
+			<th width="20%">审批人</th>
+			<th width="30%">审批时间</th>
+			<th>操作</th>
+			</tr>
+		</thead>
+
+	<tbody>
+	#foreach ($record in $records)
+		<tr align="center">
+			<td>$record.usrName</td>
+			<td>$manageTool.formatDateYYYYMMdd($record.gmtCreate)</td>
+			
+			#if($record.granted == "N")
+			<td id="usr$record.id"></td>
+			<td id="time$record.id"></td>
+			<td id="tr$record.id" >
+				<a id ="$record.id" onclick="agree(id)" href="#">同意</a>
+			</td>
+			#else
+			<td>$record.agreedUsrName</td>
+			<td>$manageTool.formatDateYYYYMMdd($record.agreedTime)</td>			
+			<td>已确认</td>
+			#end
+			
+		</tr>
+	#end
+	</tbody>
+</table>
+
+<script>
+#if($successapply)
+  $(document).ready(function(){
+   $("#formfieldset span").css("color","#999999");
+   $("#formfieldset input").css("color","#999999");
+   $("#formfieldset textarea").css("color","#999999");  
+   $("#formfieldset label").css("color","#999999");
+   
+   $("#formfieldset input").attr("disabled","disabled");
+   $("#formfieldset textarea").css("disabled","disabled");
+  });
+#end
+
+function agree(id){
+     
+    // alert(id);
+     
+	jQuery.ajax({url:'$manageModule.setTarget("applyaction.ajax")', 
+		type:'POST',
+		dataType:"json",
+		data:"resulthandler=advance_query_result&event_submit_do_agree_apply_dpt=y&action=apply_action&recordId="+id,
+		/*data:{
+			'event_submit_do_agree_apply_dpt':'y',
+			'action':'apply_action',
+			'recordId': id				 
+        },*/
+		
+		success:function(data){	
+		    //alert("success")
+		    if(data.success == true){
+		    	$("#usr"+id).html(data.content.agreeName)
+		   		$("#time"+id).html(data.content.agreeTime)
+		    	$("#tr"+id).html("<a>已确认</a>")
+		    }else{
+		    	$("#error").html(data.error);		    	
+			}
+				 
+		}, 
+		error:function(){   
+			alert("error")
+		}				   
+	}); 
+} 
+
+</script>

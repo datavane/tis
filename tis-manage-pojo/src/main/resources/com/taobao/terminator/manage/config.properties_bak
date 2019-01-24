@@ -1,0 +1,26 @@
+#local.repository=D:\\Temp
+
+#hecla authorization related		
+hecla.url=http://auth.admin.taobao.org/console/login.htm
+hecla.cookietKey=heclatest
+
+
+local.repository=/home/admin/terminator_local_repository
+
+user.baisui=123456
+user.yinyuan=123456
+user.admin=123456
+
+publish.hook.host.daily=http://10.232.136.79:8080/test
+publish.hook.host.ready=http://110.75.127.33:9999/pubhook
+publish.hook.host.online=http://110.75.127.33:9999/pubhook
+
+query.response.time.host.daily=10.232.21.117:8080
+query.response.time.host.ready=10.232.21.117:8080
+query.response.time.host.online=110.75.127.33:9999
+
+
+#terminator.repository=http://110.75.127.33:9999
+terminator.repository=http://10.232.136.79:8080
+
+

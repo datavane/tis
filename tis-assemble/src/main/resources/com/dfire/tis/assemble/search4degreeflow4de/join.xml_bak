@@ -1,0 +1,32 @@
+<execute partitionSaveCount="1">
+
+<!-- 
+	<delhistorypartition tableName="degreeflow4de"/>
+	<delhistorypartition tableName="card4de" />
+	<delhistorypartition tableName="customer4de" />
+	<delhistorypartition tableName="shop4de" />
+
+	<delhistorypartition tableName="degreee_flow_wide"
+						 bindtable="false" />
+ -->
+
+	<joinTask name="import_degree_flow_wide">
+		<![CDATA[
+	INSERT OVERWRITE TABLE degreee_flow_wide PARTITION (pt,pmod)
+  SELECT
+  dg.id,dg.consume_date,dg.action,dg.card_id,dg.customer_id,dg.num,dg.status,dg.relation_id,dg.quantity,dg.gift_name,dg.dispose_name,dg.operator_id,dg.entity_id,dg.is_valid,dg.create_time,
+  dg.op_time,dg.active_id,dg.degree,dg.pay_id,dg.shop_entity_id,
+  cd.code as card_code,cd.inner_code as card_inner_code
+  ,cm.name as customer_name,cm.spell as customer_spell,cm.mobile as customer_mobile
+  ,cm.phone as customer_phone,sp.name as shop_name
+  ,dg.pt,dg.pmod
+  FROM
+
+  		degreeflow4de dg LEFT OUTER JOIN card4de cd on( dg.card_id = cd.id   AND cd.pt='${context.date}')
+  						 LEFT OUTER JOIN customer4de cm on( dg.customer_id = cm.id  AND cm.pt='${context.date}')
+  						 LEFT OUTER JOIN shop4de sp on( dg.shop_entity_id = sp.entity_id AND sp.pt='${context.date}' )
+   WHERE dg.pt='${context.date}'
+   ]]>
+	</joinTask>
+
+</execute>

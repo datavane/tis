@@ -1,0 +1,108 @@
+#*
+ * $Id$
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *#
+`#parse("/$parameters.templateDir/simple/select.vm")
+#set ( $startCount = 0)
+#if ($parameters.headerKey && $parameters.headerValue)
+    #set ( $startCount = $startCount + 1)
+#end
+#if ($parameters.emptyOption)
+    #set ( $startCount = $startCount + 1)
+#end
+
+<br />
+<select name="$!struts.htmlEncode($parameters.doubleName)"
+    #if ($parameters.disabled)         disabled="disabled"                                         #end
+    #if ($parameters.doubleTabindex)   tabindex="$!struts.htmlEncode($parameters.doubleTabindex)" #end
+    #if ($parameters.doubleId)         id="$!struts.htmlEncode($parameters.doubleId)"             #end
+    #if ($parameters.multiple)         multiple="multiple"                                         #end
+    #if ($parameters.cssClass)         class="$!struts.htmlEncode($parameters.cssClass)"          #end
+    #if ($parameters.cssStyle)         style="$!struts.htmlEncode($parameters.cssStyle)"          #end
+>
+</select>
+<script type="text/javascript">
+#set( $itemCount = $startCount )
+var $!struts.htmlEncode($parameters.name)Group = new Array($!{parameters.listSize} + $startCount);
+for (i = 0; i < ($!{parameters.listSize} + $startCount); i++)
+$!struts.htmlEncode($parameters.name)Group[i] = new Array();
+#foreach( $item in $items )
+    $stack.push($item)
+    #if( $parameters.listKey )
+        #set( $itemKey = $stack.findValue($parameters.listKey) )
+    #else
+        #set( $itemKey = $item )
+    #end
+    #if( $parameters.listValue )
+        #set( $itemValue  = $stack.findValue($parameters.listValue) )
+    #else
+        #set( $itemValue = $item )
+    #end
+    #set( $doubleItems = $stack.findValue($parameters.doubleList) )
+    #set( $doubleItemCount = 0 )
+    #if( $doubleItems )
+        #foreach( $doubleItem in $doubleItems )
+            $stack.push($doubleItem)
+            #if( $parameters.doubleListKey )
+                #set( $doubleItemKey = $stack.findValue($parameters.doubleListKey) )
+            #else
+                #set( $doubleItemKey = $doubleItem )
+            #end
+            #if( $parameters.doubleListValue )
+                #set( $doubleItemValue  = $stack.findValue($parameters.doubleListValue) )
+            #else
+                #set( $doubleItemValue = $doubleItem )
+            #end
+            $!struts.htmlEncode($parameters.name)Group[$itemCount][$doubleItemCount] = new Option("$doubleItemKey", "$doubleItemValue");
+            #set( $doubleItemCount = $doubleItemCount + 1 )
+            #set ($trash = $stack.pop())
+        #end
+        #set( $itemCount = $itemCount + 1 )
+    #end
+    #set ($trash = $stack.pop())
+#end
+var $!struts.htmlEncode($parameters.name)Temp = document.$!struts.htmlEncode(${parameters.formName}).$!struts.htmlEncode(${parameters.doubleName});
+#set( $itemCount = $startCount )
+#set( $redirectTo = 0 )
+#foreach( $item in $items )
+    $stack.push($item)
+    #if( $parameters.listValue )
+        #set( $itemValue  = $stack.findValue($parameters.listValue) )
+    #else
+        #set( $itemValue = $item )
+    #end
+    #if( $tag.contains($parameters.nameValue, $itemKey) )
+        #set( $redirectTo = $itemCount )
+    #end
+    #set( $itemCount = $itemCount + 1 )
+    #set ($trash = $stack.pop())
+#end
+$!{struts.htmlEncode($parameters.name)}Redirect($redirectTo);
+function $!{struts.htmlEncode($parameters.name)}Redirect(x) {
+    for (m = $!{struts.htmlEncode($parameters.name)}Temp.options.length - 1; m >= 0; m--)
+        $!{struts.htmlEncode($parameters.name)}Temp.remove(m);
+
+    for (i = 0; i < $!{parameters.name}Group[x].length; i++) {
+        $!{struts.htmlEncode($parameters.name)}Temp.options[i] = new Option($!{struts.htmlEncode($parameters.name)}Group[x][i].text, $!{struts.htmlEncode($parameters.name)}Group[x][i].value);
+    }
+
+    if ($!{parameters.name}Temp.options.length > 0)
+        $!{struts.htmlEncode($parameters.name)}Temp.options[0].selected = true;
+}
+</script>

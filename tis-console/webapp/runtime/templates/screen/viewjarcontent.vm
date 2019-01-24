@@ -1,0 +1,25 @@
+<h2>查看上传代码包</h2>
+<h6>
+查看代码包内容( $manageTool.formatDateYYYYMMdd( $apppackage.createTime )  $apppackage.uploadUser 上传的 代码包)  <a href="#">返回</a>
+</h6>
+<fieldset>
+<legend>可下载的内容</legend>
+<p>
+<a href="">下载代码包</a>
+</p>
+
+<p>
+<a href="">schema.xml</a>
+</p>
+
+<p>
+<a href="">applicationContext.xml</a>
+</p>
+
+<p>
+<a href="">solor.xml</a>
+</p>
+
+</fieldset>
+
+

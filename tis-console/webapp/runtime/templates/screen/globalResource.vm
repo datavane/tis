@@ -1,0 +1,7 @@
+<div class="note2">
+        资源全全部是封装在JAR包中的
+</div>
+<p> 
+   #popup("$manageModule.setTarget('globalResourceUpload')","上传",'600*500')
+</p>
+$control.setTemplate("global_resource_list.vm")

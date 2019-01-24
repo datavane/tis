@@ -1,0 +1,35 @@
+<h2>更新业务线</h2>
+<style type="text/css"><!--
+  #uploaddialog p span{
+    width:4em;
+    display:inline-block;
+  }
+
+-->
+</style>
+#showFormErrors("csrfCheck")
+<form method="post" action="$manageModule.setTarget("biz_domain_update")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action"  value="biz_domain_list"/>
+<input type="hidden" name="bizid" value="$biz.bizId"/>
+<fieldset id="uploaddialog">
+<legend>设置表单</legend>
+<p>
+  <span>名称:</span> 
+  <input type="text" name="bizname" size="50" value="$!biz.name"/>
+  <em style="color:red">必选</em>
+</p>
+
+<p>
+ <span>业务线:</span>    
+  <input type="text" name="bizline" value="$!biz.bizLine"/>
+    <em style="color:red">必选</em>
+</p>
+
+<p>
+<input type="submit" id="btnaddapp" name="event_submit_do_update" value="提     交" />
+</p>
+</fieldset>
+</form>

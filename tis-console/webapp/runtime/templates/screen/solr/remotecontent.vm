@@ -1,0 +1,11 @@
+<link href="$manageModule.setTarget("/css/prettify.css")" rel="stylesheet" type="text/css"/>
+<script src="$manageModule.setTarget("/js/prettify.js")"></script>
+<h3>$rundata.request.getParameter("resname") ($rundata.request.getParameter("group")) $rundata.request.getParameter("ip")  内容 </h3>
+<div >
+<pre class="prettyprint lang-xml" style="border:#000066 solid 3px;background-color:#E6E6E6;padding:5px;width:1000px;">
+$filecontent
+</pre>
+</div>
+<script>
+ prettyPrint();
+</script>

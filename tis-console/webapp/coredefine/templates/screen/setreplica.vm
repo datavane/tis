@@ -1,0 +1,12 @@
+#showFormErrors("setreplica")
+<form method="post" action="$coredefine.setTarget('setreplica')">
+<fieldset>
+<legend>设置组内副本数</legend>
+<input type="hidden" name="action" value="core_action"/>
+<p><span>副本数:</span> 
+   <input type="text" name="replica"  /> </p>
+   
+<p> <input type="submit" name="event_submit_do_update_replica_count" value="提交" /></p>  
+
+</fieldset>
+</form>

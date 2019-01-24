@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf8"?>
+<project>
+	<parent>
+		<groupId>com.qlangtech.tis</groupId>
+	    <artifactId>tis-pom</artifactId>
+		<version>3.7.47</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	
+	<artifactId>tsearcher-cloud-common</artifactId>
+	<name>tsearcher-cloud-common</name>
+	<properties>
+		
+	</properties>
+	<dependencies>
+		<!-- <dependency> <groupId>com.taobao.tsearcher</groupId> <artifactId>tsearcher-hdfs</artifactId> 
+			</dependency> <dependency> <groupId>javax.servlet</groupId> <artifactId>servlet-api</artifactId> 
+			</dependency> -->
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-core</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
+
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.9</version>
+		</dependency>
+
+	</dependencies>
+</project>

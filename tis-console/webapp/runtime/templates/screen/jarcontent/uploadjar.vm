@@ -1,0 +1,17 @@
+<h2>上传Jar包</h2>
+#showFormErrors("uploadjar")
+<form method="post" enctype="multipart/form-data" action="$manageModule.setTarget("jarcontent/uploadjar")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="single_jar_action"/>
+<input type="hidden" name="snapshot" value="$rundata.request.getParameter('snapshot')"/>
+<div>
+<p>
+ <span>代码包</span> <input type="file" name="uploadfile"/>
+</p>
+<p>
+<input type="submit" name="event_submit_do_upload_single_jar" value="上传" />
+</p>
+</div>
+</form>

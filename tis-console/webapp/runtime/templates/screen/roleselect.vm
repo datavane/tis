@@ -1,0 +1,22 @@
+<h2>角色选择</h2>
+#showFormErrors("addapp")
+<form method="post"  action="$manageModule.setTarget("roleselect")">
+<p style="text-align:right"><input type="submit" id="btnaddapp" name="event_submit_do_select_role" value="提     交" /></p>
+<input type="hidden" name="usrid" value="$usr.usrId"/>
+<input type="hidden" name="action" value="role_action"/>
+<fieldset>
+<legend> 设置表单</legend>
+
+<p><span>用户名称:</span> $usr.userName </p>
+<p><span>角色:</span> 
+<select name="roleid">
+<option value="-1">请选择</option>
+ #foreach($item in $rolelist)
+    <option #if($usr.rId == $item.rId) selected #end value="$item.rId">$item.roleName</option>
+ #end
+</select>
+</p>
+
+
+</fieldset>
+</form>

@@ -1,0 +1,6 @@
+#if(!$currenttarget)
+ #set($currenttarget="dptManage")
+#end
+<h5  >
+ 部门：<a href="$manageModule.setTarget($currenttarget)">/</a> #foreach($item in $parentlist)<a href="$manageModule.setTarget($currenttarget)?dptid=$item.dptId">$item.name/</a>#end
+</h5>

@@ -1,0 +1,142 @@
+<script type="text/javascript" 
+ src="$manageModule.setTarget('js/spin.min.js')"></script>
+<style type="text/css"><!--
+ #crontabtab th , #crontabtab td{
+   
+  }
+ .bg_yellow{
+background-color:#B0FFAA;
+}
+
+td.pause{
+  background:url($manageModule.setTarget('imgs/stop.jpg')) no-repeat;background-position:20px 0px;
+}
+
+td.running{
+  background:url($manageModule.setTarget('imgs/processing.gif')) no-repeat;background-position:20px 0px;
+}
+ 
+-->
+</style>
+
+
+<h1>设置应用定时DUMP</h1>
+<div style="text-align:right">
+  <strong>触发服务器地址:</strong> $triggerserver &nbsp;&nbsp;||  #popupp("$trigger.setTarget('triggermonitor')","服务器端触发器监控","800*600")
+</div><br/>
+
+<table id="crontabtab" width="100%" border="1">
+<tr>
+<th>AppID</th>
+<th width="250">应用名称</th>
+<th colspan="2">全量Dump</th>
+
+<th colspan="2">增量Dump</th>
+
+</tr>
+#foreach($item in $triggerlist)
+#set($isInPauseStatus = $manageTool.isInPauseState($item))
+<tr id="row${item.appId}">
+<td id="picstat${item.appId}" class="#if($isInPauseStatus) pause #else running #end">
+$item.appId
+</td>
+<td>
+
+#if(!$readonly)
+<strong>
+#if($isInPauseStatus)
+ #set($linkLiteria="启动")
+#else
+ #set($linkLiteria="暂停")
+#end</strong>
+
+<span id="btn${item.appId}" class="jobstat$isInPauseStatus"> #opencallbackdialog("$trigger.setTarget('setappstatus')?app=$item.appName"
+   , "$linkLiteria","500*400","refesh(${item.appId})") </span>
+#end
+ $item.appName </td>
+<td>  
+#if($item.fjobId)
+<span>#popupp("$trigger.setTarget('triggermonitor_by_id')?jobid=$item.fjobId","jobid:$item.fjobId",'1000*600') </span>
+  <strong id="crontab$item.fjobId" style="background-color:yellow">“$item.fcrontab”</strong> 
+#if(!$readonly)  
+  #opencallbackdialog("$trigger.setTarget('settrigger')?appid=$item.appId&dumptype=1&execute=update&jobid=$item.fjobId",'更新','600*350',"refesh(${item.appId})")
+
+#end  
+  #popupp("$trigger.setTarget('taskList')?jobid=$item.fjobId","查看执行日志",'1200*1100')  
+#else
+  #popup("$trigger.setTarget('settrigger')?appid=$item.appId&dumptype=1&execute=set",'设置','600*350')
+#end 
+
+</td>
+<td width="100" class="time" id="job${item.fjobId}">&nbsp;</td>
+<td> 
+#if($item.ijobId)
+<span> #popupp("$trigger.setTarget('triggermonitor_by_id')?jobid=$item.ijobId","jobid:$item.ijobId",'1000*600')  </span>
+  <strong id="crontab$item.ijobId" style="background-color:yellow">“$item.icrontab”</strong>
+ #if(!$readonly)
+  #opencallbackdialog("$trigger.setTarget('settrigger')?appid=$item.appId&dumptype=2&execute=update&jobid=$item.ijobId",'更新','600*350',"refesh(${item.appId})")
+ #end
+#popupp("$trigger.setTarget('taskList')?jobid=$item.ijobId","查看执行日志",'1200*1100')  
+
+#else
+ #popup("$trigger.setTarget('settrigger')?appid=$item.appId&dumptype=2&execute=set",'设置','600*350')
+#end 
+ </td>
+<td width="100" class="time" id="job${item.ijobId}">&nbsp;</td>
+</tr>
+#end
+</table>
+<br/><br/><br/>
+<script>
+ $(document).ready(function(){
+   jQuery.ajax({url:'$trigger.setTarget('triggermonitor.action')', 
+         		type:'GET',
+				dataType:"json",
+          		data:"event_submit_do_task_schedule=y&action=triggermonitor_ajax",
+			    success:function(data){
+				  	for(var i =0; i< data.result.length;i++){
+				  	var item = data.result[i];
+				  	 $("#job"+ item.jobid).html(item.triggerdate);
+				  	}
+	      	   }, 
+			   error:function(){   
+			   }				   
+	        });
+	
+	
+	$("#crontabtab td").mouseover(function(){
+	   $(this).parent().addClass("bg_yellow");
+	});
+	
+	 $("#crontabtab td").mouseout(function(){       
+         $(this).parent().removeClass("bg_yellow");
+      })
+	
+   
+ });
+ 
+ function refesh(appid){
+   jQuery.ajax({url:'$trigger.setTarget('triggermonitor.action')', 
+         		type:'GET',
+				dataType:"json",
+          		data:"event_submit_do_get_app_trigger=y&action=trigger_action&appid="+appid ,
+			    success:function(data){
+				  
+				  $("#crontab"+ data.ijobId).html("“"+data.inccron+"”");
+				  $("#crontab"+ data.fjobId).html("“"+data.fullcron+"”");
+				  
+				  $("#picstat"+appid).removeClass("pause running");
+				  $("#picstat"+appid).addClass(data.ispause?"pause":"running");
+				  $("#btn"+appid+" a").html(data.ispause?"启动":"暂停");
+				  
+				  
+				  $("#btn"+appid ).removeClass( "jobstatfalse jobstattrue" );
+				 
+				  $("#btn"+appid ).addClass("jobstat"+ data.ispause);
+	      	   }, 
+			   error:function(){   
+			   }				   
+	        });
+ }
+ 
+</script>

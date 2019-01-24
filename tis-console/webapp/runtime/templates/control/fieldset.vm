@@ -1,0 +1,69 @@
+#macro (radio $name $value)   
+   <input name="$name${domain}" class="$name" type="radio" id="${name}a${domain}" #if("Y" == $value) checked='true' #end value="true" /> <label for="${name}a${domain}">是</label> 
+   <input name="$name${domain}" class="$name" type="radio" id="${name}b${domain}" #if("N" == $value) checked='true' #end value="false"/> <label for="${name}b${domain}">否</label> 
+#end    
+<!--▼▼▼field set start===============================================================-->
+<div id="addfielddialog${domain}" class="fieldset">
+<input type="hidden" name="fieldid" value="$!field.schResId" />
+<table width="100%">
+<tr>
+<td>
+<h2>${procliterial}Solr字段</h2> 
+<td>
+<td align="right">
+ <button style="width:150px;height:30px;" id="btnDoAddField${domain}">${procliterial}</button>
+ <button style="width:90px;height:30px;" id="btnclosedialog${domain}">关闭</button>
+</td>
+</tr>
+</table>
+<div id="addfielddialogmsgblock${domain}" class="dialogmsg"></div>
+<table width="100%" border="1">
+  <tr>
+    <td width="100px">字段名称</td>
+    <td > 
+    
+     #if($mode == 'update')
+      <strong>$!field.fieldName</strong>
+      <input id="typename${domain}" name="typename" type="hidden" size="40" maxLength="40" value="$!field.fieldName" />
+     #else
+      <input id="typename${domain}" name="typename" type="text" size="40" maxLength="40" value="$!field.fieldName" />
+     #end
+    
+    </td>
+  </tr>
+  <tr>
+    <td>类型</td>
+    <td> <select id="fieldtype${domain}">
+	<option>请选择</option>
+#foreach($item in $fieldtypes)
+  <option #if($item.ssId == $field.fieldTypeId) selected #end value="$item.ssId">$item.typeName</option>
+#end</select><img border="0" src="aide.jpg" />
+	</td>
+  </tr>
+  <tr>
+    <td>索引</td>
+    <td>
+      #radio('indexd',$field.indexed)
+    </td>
+  </tr>
+  <tr>
+    <td>存储</td>
+    <td>#radio('store',$field.stored)</td>
+  </tr>
+  <tr>
+    <td>多值</td>
+    <td>#radio('multivalue',$field.multivalue)</td>
+  </tr>
+  <tr>
+    <td>必须</td>
+    <td>#radio('required',$field.required)</td>
+  </tr>
+</table>
+</div>
+<!--▲▲▲field set end===============================================================-->
+<script>
+    $("#btnclosedialog${domain}").click(function(){
+      $('#addfielddialogmsgblock${domain}').empty();
+      $("#addfielddialog${domain}").hide("fast",function(){});
+   });
+</script>

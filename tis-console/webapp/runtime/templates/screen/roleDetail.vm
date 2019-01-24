@@ -1,0 +1,8 @@
+<h2>角色详细</h2>
+<fieldset>
+<legend> 角色权限</legend>
+<p><span>角色名称:</span> $!role.roleName
+ #saction("name=func_list" "namespace=/runtime#control","executeResult=true")
+ #* $control.setTemplate("funcList.htm") *#
+</fieldset>
+</form>

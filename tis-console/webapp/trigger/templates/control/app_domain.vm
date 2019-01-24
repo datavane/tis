@@ -1,0 +1,152 @@
+#*
+#parse("classpath:/vm/appdomain_pre.vm")
+*#
+<!--===============================================================-->
+<style>
+#if($appdomainiframeShallNotMove)
+   .tabnav ul{margin:0 0 0 0;padding:0;list-style:none;}
+#else
+   .tabnav ul{margin:-15px 0 0 0;padding:0;list-style:none;}
+#end
+
+  .tabnav li.caption{float:right; margin-right:5px;padding:3px;
+  background-color:#0099FF;
+  border:8px outset blue;
+  width:90px;
+  height:25px;
+  color:white;
+  }
+  
+  .tabnav li.caption a{
+    color:white;
+    display:inline-block;
+    width:90px;
+    text-align:center;
+  }
+  
+  .tabnav li.current{
+  border-style:inset ;
+    background-color:#ACDEFF;
+  }
+  
+ .tabnav li.current a{
+    color:blue;
+    font-weight: bold;
+    font-size:20px;
+  }
+  
+  .block-border{
+     border:3px inset blue;
+     padding:8px;
+     width:800px;
+     display:none;
+     position:absolute;
+     background-color:#E6E6E6
+  }
+  
+  .cursor-hand{
+    cursor:pointer
+  }
+  
+  </style>
+<table width="100%">
+<tr>
+ <td >#set ($group = $form.get("changedomain").defaultInstance)
+<h2 id="currentappblock">
+<!--===============================================================-->
+#*
+#parse("classpath:/vm/appdomain_tail.vm")
+*#
+<!--===============================================================-->
+<a id="aselect_app_domain" href="#" style="text-decoration: none;" onclick="chageAppLinkClick();return false;">$selectAppDomain</a> 
+</h2>
+<div id="appselectblock"  class="block-border" >
+<div id="btn_close" style="right:0px; position:absolute; top:0px;width:20px;" class="cursor-hand">
+ <img border="0" src="$manageModule.setTarget('imgs/close.jpg')" style="" />
+</div>
+
+$control.setTemplate("appselect.vm")
+<button style="width:6em" onclick="change_app();return false;">切换</button>
+</div>
+</td>
+ 
+ <td width="380px" valign="top"> <div class='tabnav'>
+ <ul>
+ #if($manageTool.developMode)
+  <li class="caption #if( $manageTool.isRuntimeEqual('daily'))current#end" ><a href="#" onclick="return change_runtime(this,'daily')">日常</a></li>
+ #else 
+  <li class="caption #if( $manageTool.isRuntimeEqual('ready'))current#end"><a href="#" onclick="return change_runtime(this,'ready')">预发</a></li>
+  <li class="caption #if( $manageTool.isRuntimeEqual('online'))current#end"><a href="#" onclick="return change_runtime(this,'online')">线上</a></li>
+ #end
+ </ul>
+  </div></td>
+</tr>
+</table>
+<script>
+ //▼▼▼ 提交切换环境的请求
+  function change_runtime(anode,runtime){
+    jQuery.ajax({url:'$manageModule.setTarget("changedomain.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_change_runtime_ajax=y&action=change_domain_action&runtime="+runtime,
+			    success:function(data){	
+			    
+			      $('.current').removeClass('current')
+				  	//showMessageDialog(data);
+				    var li = $(anode).parent();
+				    //alert(li);
+                    li.addClass('current');
+                    
+                    if($("#appselectblock").css('display')!="block"){
+                     window.location.reload();
+                    }
+                    
+	      	    }				   
+	        }); 
+	        
+	return false;
+  }
+  //▲▲▲ end of 提交切换环境的请求
+  
+  //▼▼▼ 提交应用切换请求
+   function change_app(){
+      jQuery.ajax({url:'$manageModule.setTarget("changedomain.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_change_app_ajax=y&action=change_domain_action&appid="+$("#hidappname").val()+"&selappid="+$("#appidsmain").val(),
+			    success:function(data){
+			   // alert();
+			     if(data.errormsg.length>0){
+			       showMessageDialog(data);
+			     }else{      
+                    window.location.reload();
+	      	    }}				   
+	        }); 
+   }
+  //▲▲▲ end of 提交应用切换请求
+  
+  $(document).ready(function(){
+  
+ // $("#currentappblock").mouseover(function(){
+ //    $(this).addClass('block-border cursor-hand');
+ // })
+  
+  //$("#currentappblock").mouseout(function(){
+  //   $(this).removeClass('block-border cursor-hand');
+  //})
+  
+  
+  
+   $("#btn_close").click(function(){
+     $("#appselectblock").css('display','none');
+     $("#currentappblock").css('display','block');
+   })
+   
+  });
+  
+  function chageAppLinkClick(){   
+   $("#appselectblock").show('fast', function(){});
+  }
+  
+</script>
+<!--===============================================================-->

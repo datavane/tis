@@ -1,0 +1,19 @@
+
+<script>
+setTimeout("self.location.reload();",2000);
+</script>
+
+<table border="1" width="100%">
+<tr>
+<th width="20%" align="left">StartTime</th> <td>$manageTool.formatDateYYYYMMdd( $jobStatus.startTime) </td>
+</tr>
+<tr>
+<th align="left">EndTime</th> <td> $manageTool.formatDateYYYYMMdd( $jobStatus.endTime)</td>
+</tr>
+<tr>
+<th align="left">DumpProgressPercent</th><td>$!jobStatus.dumpProgressPercent</td>
+</tr>
+<tr>
+<th align="left">FailureInfo</th> <td> $!jobStatus.failureInfo</td>
+</tr>
+</table>

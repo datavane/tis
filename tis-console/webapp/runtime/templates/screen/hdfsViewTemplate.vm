@@ -1,0 +1,42 @@
+<h3>HDFS浏览,当前路径： </h3>
+<h4>$manageTool.noescape( $currentpath) </h4>
+
+<table width="100%" border="1">
+<tr>
+<th>名称</th><th> 修改时间</th><th>size</th><th>备注</th>
+</tr>
+
+#foreach($item in $childnodes)
+<tr>
+<td >
+#if($item.parent)
+<a target="_self" href="$pageName?parent=$item.id">$item.name</a>
+#else
+$item.name
+#end
+</td>
+<td>
+$item.modifyTime
+</td>
+
+<td>
+$item.formatSize
+</td>
+
+<td>
+
+#if($item.downloadable)
+ #popupp("$manageModule.setTarget('hdfsDetail')?path=$manageTool.urlencode($item.path)","查看","1200*1000")
+ 
+ <a target="_blank" href="$manageModule.setTarget('hdfsDetail')?path=$manageTool.urlencode($item.path)">全屏查看</a>
+<a href="$manageModule.setTarget('hdfsDetail.action')?path=$manageTool.urlencode($item.path)&action=hdfs_action&event_submit_do_download=y">下载</a>
+#end
+$!item.memo
+
+
+</td>
+
+</tr>
+#end
+
+</table>

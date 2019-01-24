@@ -1,0 +1,16 @@
+<form method="post" action="${publishhookhost}/publish/launchdump" >
+
+ 
+<input type="hidden" name="processToken" value="" />
+#if($groupAdapterList.empty)
+  <div class="note">该应用下还没有设置组  <a target="_top" href="$manageModule.setTarget('jarcontent/grouplist')" >设置</a></div>
+#else
+<h3><input style="width:10em" type="submit" onclick="return true" value="启  动" /></h3>
+
+#parse("screen/pubserver.vm")
+
+#end
+
+
+</form>
+

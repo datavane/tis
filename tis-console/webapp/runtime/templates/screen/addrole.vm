@@ -1,0 +1,16 @@
+<h2>添加角色</h2>
+#showFormErrors("addapp")
+<form method="post"  action="$manageModule.setTarget("addrole")">
+<p style="text-align:right"><input type="submit" id="btnaddapp" name="event_submit_do_add_role" value="提     交" /></p>
+
+<input type="hidden" name="action" value="role_action"/>
+<fieldset>
+<legend> 设置表单</legend>
+<p><span>角色名称</span> 
+<input type="text" name="rolename" value="#p('rolename')"  /><em style="color:red">必选</em></p>
+#*
+ $control.setTemplate("funcList.htm")
+*#
+  #saction("name=func_list" "namespace=/runtime#control","executeResult=true")
+</fieldset>
+</form>

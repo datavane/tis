@@ -1,0 +1,21 @@
+#showFormErrors("setreplica")
+<form id="formaddgroup" method="post">
+<input type="hidden" name="action" value="core_action" />
+<fieldset>
+  <legend>请填写 ${addtype.literia}表单</legend>
+  <p>
+  <span> ${addtype.literia}:</sapn> 
+  <select id="addgroup" name="addgroup">
+    <option value="-1">请设置</option> 
+  #foreach($item in [1..10])
+   <option value="$item">$item</option>
+  #end
+  </select> <em>增量数目</em>
+  </p>
+  <p style="text-align:right;">
+   <input type="submit" 
+           style="width:140px;height:30px;background-color:#666666;color:yellow" 
+           name="event_submit_do_update_group_count_setp1" value="下一步" />
+  </p>
+</fieldset>
+</form>

@@ -1,0 +1,48 @@
+﻿<table id="blkServers${controlContextId}">
+ <tr>
+ <td width="300px" align="left">
+   <select id="candidateServer${controlContextId}" class="selectableIps" name="candidateServer" style="width:500px;height:200px" multiple>  
+ #foreach($item in $candidateServer )  
+ <option value="${item.name}" #if(!${item.canDelete} && $showselect) style="background-color:pink" #end candelete="$!{item.canDelete}">${item.hostName}(${item.solrCoreCount})(v:${item.luceneSpecVersion})</option>   
+ #end   
+   </select>
+ </td>
+ <td  valign="middle" align="left">
+    <button style="width:100px" id="selectserver"  onClick="selectserver_click${controlContextId}();return false;" >选择 &gt;&gt;</button><br/><br/>
+	 <button style="width:100px" id="removeserver" onClick="removeserver_click${controlContextId}();return false;" >&lt;&lt;删除</button>
+ </td>
+ <td width="45%">
+   <select id="selectedServer${controlContextId}" name="selectedServer" style="width:500px;height:200px" multiple></select>
+ </td>
+ </tr>
+ 
+ </table>
+ <script>
+ //$("#setserver").click(function(){
+ 
+ //$("#selectserver").attr("disabled",!this.checked);
+ //$("#removeserver").attr("disabled",!this.checked);
+ //$("#candidateServer").attr("disabled",!this.checked);
+ //$("#selectedServer").attr("disabled",!this.checked);
+ 
+ // });
+  
+  function selectserver_click${controlContextId}(){
+    
+    var sldserver 
+       = $("#candidateServer${controlContextId}").find("option:selected");
+    
+    for(var i =0;i< sldserver.length;i++ ){
+       $("#selectedServer${controlContextId}").prepend(sldserver[i]);
+    }
+    
+  }
+  
+ function removeserver_click${controlContextId}(){
+    var sldserver = $("#selectedServer${controlContextId}").find("option:selected");
+    for(var i =0;i< sldserver.length;i++ ){
+       $("#candidateServer${controlContextId}").prepend(sldserver[i]);
+    }
+ }
+
+</script>

@@ -1,0 +1,42 @@
+
+<execute partitionSaveCount="1">
+
+
+
+	<joinTask name="opinfo_userinfo">
+	 <![CDATA[	
+	INSERT OVERWRITE TABLE op_info_user PARTITION (pt,pmod)
+	SELECT op.op_info_id,
+	op.kind,
+	op.action,
+	op.source_id,
+	op.memo,
+	op.old_value,
+	op.new_value,
+	op.op_user_id,
+	op.entity_id,
+	op.is_valid,
+	op.create_time,
+	op.op_time,
+	usr.card_no,
+    usr.create_time as user_create_time,
+    usr.email,
+    usr.employee_id,
+    usr.finger_print,
+    usr.is_all_branch,
+    usr.is_all_plate,
+    usr.is_all_shop,
+    usr.is_card_seller,
+    usr.is_supper,
+    usr.is_valid as user_is_valid,
+    usr.name,
+    usr.op_time as user_op_time,
+    usr.user_name
+	FROM opinfo op LEFT JOIN userinfo usr ON (op.op_user_id = usr.id)
+   ]]>
+	</joinTask>
+
+</execute>
+
+
+

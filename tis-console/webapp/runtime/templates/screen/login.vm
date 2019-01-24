@@ -1,0 +1,51 @@
+#showFormErrors("loginform")
+
+	<style type="text/css">
+<!--
+#loginform{ margin: 0 auto; width: 300px; margin-top:200px; background-color: #B3CAD5;border:1px solid #000066; padding:10px;}
+.nolabel {
+	text-align: right;  
+}
+.nolabel input {
+	width: 6em;
+	height:30px;
+}
+label {
+float:left;
+	width: 4em;
+	height:20px;
+}
+
+#backgroundText{
+  font-size:4200%;font-family:Arial Black,黑体;color:rgba(0, 0, 0, 0.18);
+  position:relative;
+  top:-400px;
+  z-index:-1;
+  padding:0px;
+  margin:0px;
+}
+
+body{
+ overflow:hidden;
+}
+
+-->
+    </style>
+  
+
+<form id="login" name="login" action="$manageModule.setTarget("login")" method="post">
+  <input type="hidden" name="action" value="login_action"/>
+  <div id="loginform" >
+  <input type="hidden" name="redirectUrl" value="" id="login_redirectUrl"/> <p>
+      <label for="username">用户名：</label> 
+       <input type="text" name="username" value="" id="login_username"/></p>
+     <p><label for="password">密码：</label> 
+        <input type="password" id="password" name="password" /></p>
+     <p class="nolabel">
+        <input type="submit" name="event_submit_do_login" value="确定" />
+     </p>
+     
+    </div>
+ <div id="backgroundText">TIS</div>
+</form>
+

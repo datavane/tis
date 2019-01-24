@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+	<!-- <include file="/struts/runtime.struts.xml" /> -->
+	<bean type="org.apache.struts2.convention.ActionConfigBuilder"
+		name="terminator_convention"
+		class="com.taobao.terminator.manage.common.TerminatorPackageBasedActionConfigBuilder" />
+	<constant name="struts.convention.actionConfigBuilder" value="terminator_convention" />
+
+	<!---->
+	<constant name="struts.ui.templateDir" value="tistemplate" />
+	<constant name="struts.ui.theme" value="xhtml" />
+	<constant name="struts.ui.templateSuffix" value="vm" />
+
+	<constant name="struts.mapper.alwaysSelectFullNamespace"
+		value="true" />
+	<!-- com.taobao.terminator.jst.module.screen,com.taobao.terminator.jst.module.control,com.taobao.terminator.jst.module.action -->
+	<constant name="struts.convention.action.packages"
+		value="com.taobao.terminator.runtime.module.screen,com.taobao.terminator.runtime.module.control,com.taobao.terminator.coredefine.module.control,com.taobao.terminator.trigger.module.control,com.taobao.terminator.runtime.module.action,com.taobao.terminator.trigger.module.action,com.taobao.terminator.trigger.module.screen,com.taobao.terminator.coredefine.module.screen,com.taobao.terminator.coredefine.module.action,com.taobao.terminator.config.module.action,com.taobao.terminator.config.module.screen,com.baisui.tis.engineplugins.module.screen,com.baisui.tis.engineplugins.module.action" />
+
+	<constant name="struts.convention.action.name.separator"
+		value="_" />
+
+
+	<bean type="org.apache.struts2.convention.ResultMapBuilder" name="terminator_convention"
+		class="com.taobao.terminator.manage.common.TerminatorResultMapBuilder" />
+	<constant name="struts.convention.resultMapBuilder" value="terminator_convention" />
+
+
+	<bean type="org.apache.struts2.dispatcher.mapper.ActionMapper"
+		name="terminator" class="com.taobao.terminator.manage.common.TerminatorActionMapper" />
+	<constant name="struts.mapper.class" value="terminator" />
+
+	<bean type="org.apache.struts2.dispatcher.mapper.ActionMapper"
+		name="default_terminator" class="org.apache.struts2.dispatcher.mapper.DefaultActionMapper" />
+
+	<bean type="org.apache.struts2.convention.ActionNameBuilder" name="terminator"
+		class="com.taobao.terminator.manage.common.TerminatorActionNameBuilder" />
+	<constant name="struts.convention.actionNameBuilder" value="terminator" />
+
+
+	<package name="default" extends="struts-default">
+		<interceptors>
+
+			<interceptor name="serverGroupExist"
+				class="com.taobao.terminator.manage.common.valve.ServerGroupExistInterceptor" />
+			<interceptor name="domainSelected"
+				class="com.taobao.terminator.manage.common.valve.AppDomainSelectedCheckValve" />
+			<interceptor name="authority"
+				class="com.taobao.terminator.manage.spring.aop.AuthorityCheckAdvice" />
+
+			<interceptor name="tisException"
+				class="com.taobao.terminator.manage.common.valve.TisExceptionInterceptor" />
+			<!-- <interceptor name="setRequestParameter" class="com.taobao.terminator.manage.common.valve.SetRequestParameterInterceptor" 
+				/> -->
+			<interceptor-stack name="terminatorStack">
+				<interceptor-ref name="params">
+					<param name="excludeParams">^class\..*,^dojo\..*,^struts\..*,^session\..*,^request\..*,^application\..*,^servlet(Request|Response)\..*,^parameters\..*,^action:.*,^method:.*</param>
+				</interceptor-ref>
+				<interceptor-ref name="domainSelected" />
+				<interceptor-ref name="authority" />
+				<interceptor-ref name="tisException" />
+
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+
+		</interceptors>
+
+		<default-interceptor-ref name="terminatorStack" />
+	</package>
+
+</struts>

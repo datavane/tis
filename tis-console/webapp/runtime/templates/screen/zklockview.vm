@@ -1,0 +1,29 @@
+
+<table border="1" width="100%">
+<tr>
+ <th width="15%">节点描述</th>
+ <th>path</th>
+ <th>content</th>
+ <th>创建时间</th>
+ <th>更新时间</th>
+</tr>
+#foreach($item in $locklist)
+<tr> 
+<td align="left">$item.desc</td>
+<td>$item.path </td>
+<td>$item.content  #if($item.editable)<br/>
+   #if($manageTool.developMode) 
+        #popup("$manageModule.setTarget('zklockEdit')?path=$manageTool.urlencode($item.path)","编辑",'600*400') 
+   #end #end
+ </td>
+ <td>
+ $!item.createTime
+ </td>
+ <td>
+ $!item.updateTime
+ </td>
+#end
+
+</tr>
+
+</table>

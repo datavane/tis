@@ -1,0 +1,93 @@
+<link rel="stylesheet" type="text/css" href="$manageModule.setTarget("/css/pagination-1-0-1.css")">
+<h3>组快照一览</h3>
+<p>
+#set($imageurl="<img src='$manageModule.setTarget('imgs/btn_upload.gif')' />")
+#set($linkurll="$manageModule.setTarget('uploadjar')")
+#if($hasselectdomain)
+#popup($linkurll,'上传配置资源','600*500')
+<a href="$manageModule.setTarget('config_file_parameters')">全局参数配置</a>
+ #if(!$manageTool.daily)
+  #popup("$manageModule.setTarget('jarcontent/sys_daily_resources')",'同步DAILY配置','600*500')
+ #else
+  #popup("$manageModule.setTarget('jarcontent/copy_config_from_other_app')",'从其他应用拷贝配置','900*500')
+ #end
+#end
+
+<a target='_blank' href="$manageModule.setTarget('schema_create')"  onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()>$(window).height()?$(document).height():$(window).height())-15,true);return false;">创建SCHEMA</a>
+</p>
+#showFormErrors("selectRevsion")
+<form method="post" action="$manageModule.setTarget("jarcontent/snapshotlist")">
+#*
+$csrfToken.hiddenField
+*#
+
+<input type="hidden" name="$group.groupid.key" value="$group.groupid.value" />
+
+<input type="hidden" name="action" value="jarcontent/snapshot_revsion_action"/>
+#*
+<p>
+<input type="submit" name="event_submit_do_select_revsion" value="确  定"/>
+</p>
+*#
+<div>
+$manageTool.noescape($pager.link)
+</div>
+<table id="snapshottable" border="1" width="100%">
+ <tr>
+  <th width="50px">id<button id="btnCompare">比较</button></th> 
+  <th width="100px">时间</th>
+  <th>日志</th>
+  <th>详细</th>
+  <th>parent</th>
+ </tr> 
+#foreach( $item in $snapshotlist ) 
+ <tr>
+  <td align="center">$item.snId <input id="chk${item.snId}" type="checkbox" name="comparesnapshotid" value="$item.snId" /></td> 
+  <td style="font-size:10px">$manageTool.formatDateYYYYMMdd($item.createTime)</td>
+  <td><strong>$item.createUserName</strong> $!item.memo</td>
+  <td>$manageTool.getConfigViewLink($manageModule,$item,false)</td>
+  <td>$item.preSnId</td>
+ </tr>
+#end
+</table>
+<div>
+$manageTool.noescape($pager.link)
+</div>
+
+#*
+<p>
+<input type="submit" name="event_submit_do_select_revsion" value="确  定" />
+</p>
+*#
+</form>
+<script>
+var chkroll = 0;
+var chktemp = [];
+$(document).ready(function() {
+    
+  $("#snapshottable input:checkbox").click(function(){
+   
+   if(!this.checked){
+    return false;
+   }
+      
+  $("#chk"+ chktemp[chkroll%2]).attr("checked",false);
+   chktemp[chkroll++%2] = this.value;
+  });
+    
+    $("#btnCompare").click(function(){
+       
+       var dailyhref='/runtime/jarcontent/file_compare_result.htm?k';
+      
+      $("#snapshottable input:checked").each(function(ch){
+        dailyhref +="&comparesnapshotid="+this.value;
+      });
+          
+        //  alert(dailyhref);    
+       $manageTool.noescape($manageTool.openMaximizeDialog("dailyhref"))
+       return false;
+    });
+})
+
+
+</script>

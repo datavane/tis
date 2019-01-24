@@ -1,0 +1,17 @@
+<!--
+<h2>成员部门绑定列表</h2>
+-->
+<table border="1" width="100%">
+<tr>
+ <th>成员信息</th><th>部门信息</th> <th>创建时间</th>
+</tr>
+
+#foreach($item in $bindlist)
+<tr>
+<td>[$item.usrId] $item.userName</td>
+<td>[$item.dptId] $item.dptName</td>
+<td>$manageTool.formatDateYYYYMMdd( $item.createTime)</td>
+
+</tr>
+#end
+</table>

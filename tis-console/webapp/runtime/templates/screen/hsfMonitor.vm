@@ -1,0 +1,11 @@
+
+<a target="hsfIframe" 
+  href="$manageTool.noescape(${manageTool.hsfMonitorHost})*com.taobao.terminator.common.protocol.SearchService%3A${manageTool.appDomain.appName}*">
+  SearchService</a>
+&nbsp;&nbsp;
+<a target="hsfIframe" 
+  href="$manageTool.noescape(${manageTool.hsfMonitorHost})*${manageTool.appDomain.appName}*">
+  AllService</a>
+
+<iframe name="hsfIframe" frameborder='0' height='1000' width='100%' 
+ src="$manageTool.noescape($manageTool.hsfMonitorHost)*${manageTool.appDomain.appName}-*"></iframe>

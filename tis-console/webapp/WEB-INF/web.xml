@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee  
+          http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	version="3.0">
+	<!-- <context-param> <param-name>log4jConfigLocation</param-name> <param-value>WEB-INF/classes/log4j.xml</param-value> 
+		</context-param> -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:application.context.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<context-param>
+		<param-name>contextClass</param-name>
+		<param-value>org.springframework.web.context.support.XmlWebApplicationContext</param-value>
+	</context-param>
+
+	<filter>
+		<filter-name>setResponseLocal</filter-name>
+		<filter-class>com.taobao.terminator.manage.common.DefaultFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>setResponseLocal</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+<servlet>
+        <servlet-name>struts2</servlet-name>
+        <servlet-class>org.apache.struts2.dispatcher.servlet.StrutsServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>struts2</servlet-name>
+        <url-pattern>*.htm</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>struts2</servlet-name>
+        <url-pattern>*.ajax</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>struts2</servlet-name>
+        <url-pattern>*.action</url-pattern>
+    </servlet-mapping>
+
+<!-- 
+	<filter>
+		<filter-name>struts2</filter-name>
+		<filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
+		<init-param> <param-name>actionPackages</param-name> <param-value>com/taobao/terminator/runtime/module/screen</param-value> 
+			</init-param> 
+	</filter>
+-->
+<!-- 
+
+	<filter-mapping>
+		<filter-name>struts2</filter-name>
+		<url-pattern>*.htm</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>struts2</filter-name>
+		<url-pattern>*.ajax</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>struts2</filter-name>
+		<url-pattern>*.action</url-pattern>
+	</filter-mapping>
+ -->
+
+
+	<servlet>
+		<servlet-name>monitorServlet</servlet-name>
+		<servlet-class>com.dihuo.app.common.monitor.MonitorServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>monitorServlet</servlet-name>
+		<url-pattern>/tis/check_health</url-pattern>
+	</servlet-mapping>
+
+
+
+	<!-- 下载资源，最后设定好发布资源之后 依赖于组的 -->
+	<!-- 判断云梯文件是否准备好 <servlet> <servlet-name>checkYuntiSuccessFileIsReady</servlet-name> 
+		<servlet-class>com.taobao.terminator.manage.servlet.CheckYuntiSuccessFileIsReadyServlet</servlet-class> 
+		</servlet> <servlet> <servlet-name>download</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.DownloadServlet</servlet-class> 
+		</servlet> -->
+
+	<!-- websocket推送服务集群 中的日志 -->
+	<servlet>
+		<servlet-name>logfeedback</servlet-name>
+		<servlet-class>com.taobao.terminator.manage.servlet.LogFeedbackServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>logfeedback</servlet-name>
+		<url-pattern>/download/logfeedback</url-pattern>
+	</servlet-mapping>
+
+	<!-- download global config parameters <servlet> <servlet-name>globalConfigServlet</servlet-name> 
+		<servlet-class>com.taobao.terminator.manage.servlet.GlobalConfigServlet</servlet-class> 
+		</servlet> <servlet-mapping> <servlet-name>globalConfigServlet</servlet-name> 
+		<url-pattern>/download/globalconfig</url-pattern> </servlet-mapping> <servlet> 
+		<servlet-name>serverPublishInfo</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.ServerPublishInfoServlet</servlet-class> 
+		</servlet> <servlet> <servlet-name>testDomain</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.TestDomainServlet</servlet-class> 
+		</servlet> <servlet> <servlet-name>getConfigbyIp</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.ServerConfigInfoServlet</servlet-class> 
+		</servlet> <servlet> <servlet-name>downloadByPid</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.DownloadByPidServlet</servlet-class> 
+		</servlet> -->
+	<!-- 在索引更新完成之后 更新package表中的信息 <servlet> <servlet-name>indexbuild-callback</servlet-name> 
+		<servlet-class>com.taobao.terminator.manage.servlet.UpdatePackageServlet</servlet-class> 
+		</servlet> <servlet-mapping> <servlet-name>indexbuild-callback</servlet-name> 
+		<url-pattern>/indexbuild/callback</url-pattern> </servlet-mapping> -->
+
+	<!-- 广播式查询索引 baisui add 20120413 -->
+	<servlet>
+		<servlet-name>query-index</servlet-name>
+		<servlet-class>com.taobao.terminator.manage.servlet.QueryIndexServlet</servlet-class>
+	</servlet>
+
+	<!-- 通过 appname runtime groupindex 查找solr core的配置信息 -->
+	<servlet>
+		<servlet-name>getappconfig</servlet-name>
+		<servlet-class>com.taobao.terminator.manage.servlet.LoadSolrCoreConfigByAppNameServlet</servlet-class>
+	</servlet>
+
+	<!-- 通过snid查找配置资源 <servlet> <servlet-name>getappbysnid</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.LoadSolrCoreConfigBySnidServlet</servlet-class> 
+		</servlet> -->
+	<!-- <servlet-mapping> <servlet-name>checkYuntiSuccessFileIsReady</servlet-name> 
+		<url-pattern>/checkYuntiSuccessFileIsReady</url-pattern> </servlet-mapping> -->
+	<!-- <servlet> <servlet-name>jstservice</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.JstServiceServlet</servlet-class> 
+		</servlet> <servlet-mapping> <servlet-name>jstservice</servlet-name> <url-pattern>/jstservice</url-pattern> 
+		</servlet-mapping> -->
+	<!-- 通过 appname runtime groupindex 查找solr core的配置信息 -->
+	<servlet-mapping>
+		<servlet-name>getappconfig</servlet-name>
+		<url-pattern>/download/appconfig/*</url-pattern>
+	</servlet-mapping>
+
+	<!-- <servlet-mapping> <servlet-name>getappbysnid</servlet-name> <url-pattern>/download/appconfigbysnid/*</url-pattern> 
+		</servlet-mapping> <servlet-mapping> <servlet-name>downloadByPid</servlet-name> 
+		<url-pattern>/download/snid/*</url-pattern> </servlet-mapping> -->
+	<!-- 通过package信息找生成索引之后的 snapshot等信息 <servlet-mapping> <servlet-name>testDomain</servlet-name> 
+		<url-pattern>/download/testdomain</url-pattern> </servlet-mapping> -->
+	<!-- 应用端开始自测 需要发送pid和snapshotid -->
+	<!-- 服务器发布信息,更具serverid找到他的发布信息资源 <servlet-mapping> <servlet-name>serverPublishInfo</servlet-name> 
+		<url-pattern>/download/server/*</url-pattern> </servlet-mapping> -->
+	<!-- 创建索引过程中根据 group信息找到资源文件 application solrconfig 等 <servlet-mapping> 
+		<servlet-name>download</servlet-name> <url-pattern>/download/publish/*</url-pattern> 
+		</servlet-mapping> -->
+	<!-- 业务方服务器启动，需要加载 服务器端的 <servlet-mapping> <servlet-name>getConfigbyIp</servlet-name> 
+		<url-pattern>/download/getconfigbyip/*</url-pattern> </servlet-mapping> -->
+	<servlet-mapping>
+		<servlet-name>query-index</servlet-name>
+		<url-pattern>/query-index</url-pattern>
+	</servlet-mapping>
+
+
+
+
+	<servlet>
+		<servlet-name>query_005findex_jsp</servlet-name>
+		<servlet-class>com.taobao.terminator.manage.servlet.Query_005findex_jsp</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>query_005findex_jsp</servlet-name>
+		<url-pattern>/query_005findex_jsp</url-pattern>
+	</servlet-mapping>
+
+
+	<welcome-file-list>
+		<welcome-file>/runtime/ext.htm</welcome-file>
+		<!-- 
+		<welcome-file>ext.htm</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+	 -->
+	</welcome-file-list>
+
+</web-app>

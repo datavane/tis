@@ -1,0 +1,2 @@
+
+<iframe frameborder="0" height="800" width="100%" src="http://10.232.36.132:50075/browseDirectory.jsp?dir=%2Fuser%2Fadmin%2F${manageTool.appDomain.appName}%2Fall&namenodeInfoPort=50070&delegation=null" ></iframe>

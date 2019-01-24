@@ -1,0 +1,5 @@
+<div class="note3">
+当前配置资源 <a href="$manageModule.setTarget('jarcontent/grouplist')">更改</a>
+$manageTool.getConfigViewLink($manageModule , $configGroup0.snapshot,true)
+<a href="#">是否同步</a>
+</div>

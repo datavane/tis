@@ -1,0 +1,95 @@
+
+<table width="100%" border="1">
+
+<td style="width:500px">
+<ul id="treeDemo" class="ztree" style="width:500px;height:800px;overflow-y:auto;"></ul>
+</td>
+<td>
+<ul id="selectorg" class="log" style="height:800px;overflow-y:auto;"></ul>
+</td>
+</tr>
+</table>
+<SCRIPT type="text/javascript">
+<!--
+var setting = {
+	check: {
+		enable: true
+#if($isradio)
+		,
+		chkStyle:'radio',
+		radioType:'all'
+#end	
+	},
+	data: {
+		simpleData: {
+		enable: true
+		}
+	},
+	callback: {
+		onCheck: onCheck
+	},
+	 view:{
+	   selectedMulti : true
+	 }
+	};
+		
+		function onCheck(e, treeId, treeNode) {
+			
+			var chage = [];
+			
+			if(treeId == 'applist' ){
+			  addSelectNode('selectapps',treeNode,chage); 
+			  return ;
+			}
+			
+			if(treeId == 'treeDemo' ){
+			 #if($isradio) 
+			  $("#selectorg").html('');
+			 #end
+			  addSelectNode('selectorg',treeNode,chage);
+			  return ;
+			}
+		}
+		
+	  function addSelectNode(ulid,node,chage){
+	  
+		    if(!node['children']){
+		      if(node.checked){
+		        var item = $("<li id='"+ulid+node.id+"'>"+ node.name +"</li>");
+		        item.attr('dataid',node.id);
+		        item.attr('change',true);
+		        $("#"+ulid).append(item);
+		      }else{
+		       var n = $('#'+ulid+ node.id);
+		        if(n[0].getAttribute('indb')){
+		           n.css('display','none');
+		        }else{
+		           n.remove();
+		        } 
+		      }
+		      
+		       chage.push(node);
+			}else{
+			   for(var i in node['children']){
+			       addSelectNode(ulid,node['children'][i],chage);
+			   }
+			}
+	   }
+	   
+	  
+		  
+		
+    // alert(" orgadd:"+ orgadd);    
+     
+      
+
+       var zNodes = $manageTool.writeOrglist($rundata.response,$orglist);
+        
+       
+
+		$(document).ready(function(){
+			jQuery.fn.zTree.init($("#treeDemo"), setting, zNodes.list);
+			
+		});
+		//-->
+	</SCRIPT>

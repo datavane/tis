@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="hdfs_index" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <result column="id" property="id" jdbcType="BIGINT" />
+    <result column="task_id" property="taskId" jdbcType="BIGINT" />
+    <result column="year" property="year" jdbcType="SMALLINT" />
+    <result column="distr_worker_id" property="distrWorkerId" jdbcType="SMALLINT" />
+    <result column="offset" property="offset" jdbcType="INTEGER" />
+    <result column="length" property="length" jdbcType="INTEGER" />
+     <result column="type" property="type" jdbcType="TINYINT" />
+     <result column="week_of_year" property="weekOfYear" jdbcType="SMALLINT" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndexCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select aa.id, task_id, year, distr_worker_id, offset, length,type,week_of_year
+     from ( select id from hdfs_index 
+    <isParameterPresent >
+      <include refid="hdfs_index.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join hdfs_index aa on aa.id=bb.id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select id, task_id, year, distr_worker_id, offset, length,type,week_of_year
+    from hdfs_index
+    where id = #id:BIGINT#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from hdfs_index
+    where id = #id:BIGINT#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndexCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from hdfs_index
+    <include refid="hdfs_index.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into hdfs_index (id, task_id, year, distr_worker_id, offset, length,week_of_year)
+    values (#id:BIGINT#, #taskId:SMALLINT#, #year:SMALLINT#, #distrWorkerId:SMALLINT#,
+      #offset:INTEGER#, #length:INTEGER#,#weekOfYear:SMALLINT#)
+    <selectKey resultClass="INTEGER" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into hdfs_index
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="taskId" >
+        task_id
+      </isNotNull>
+      <isNotNull prepend="," property="year" >
+        year
+      </isNotNull>
+      <isNotNull prepend="," property="distrWorkerId" >
+        distr_worker_id
+      </isNotNull>
+      <isNotNull prepend="," property="offset" >
+        offset
+      </isNotNull>
+      <isNotNull prepend="," property="length" >
+        length
+      </isNotNull>
+        <isNotNull prepend="," property="length" >
+        type
+      </isNotNull>
+        <isNotNull prepend="," property="weekOfYear" >
+        week_of_year
+      </isNotNull>
+      
+     
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="taskId" >
+        #taskId:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="year" >
+        #year:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="distrWorkerId" >
+        #distrWorkerId:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="offset" >
+        #offset:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="length" >
+        #length:INTEGER#
+      </isNotNull>
+       <isNotNull prepend="," property="length" >
+        #type:TINYINT#
+      </isNotNull>
+      
+      <isNotNull prepend="," property="weekOfYear" >
+        #weekOfYear:TINYINT#
+      </isNotNull>
+      
+      )
+    </dynamic>
+    <selectKey resultClass="LONG" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndexCriteria" resultClass="java.lang.Integer" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select count(*) from hdfs_index
+    <include refid="hdfs_index.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update hdfs_index
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.id" >
+        id = #record.id:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.taskId" >
+        task_id = #record.taskId:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.year" >
+        year = #record.year:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.distrWorkerId" >
+        distr_worker_id = #record.distrWorkerId:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.offset" >
+        offset = #record.offset:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.length" >
+        length = #record.length:INTEGER#
+      </isNotNull>
+       <isNotNull prepend="," property="record.weekOfYear" >
+        week_of_year = #record.weekOfYear:INTEGER#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="hdfs_index.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update hdfs_index
+    set id = #record.id:BIGINT#,
+      task_id = #record.taskId:BIGINT#,
+      year = #record.year:SMALLINT#,
+      distr_worker_id = #record.distrWorkerId:SMALLINT#,
+      offset = #record.offset:INTEGER#,
+      length = #record.length:INTEGER#
+    <isParameterPresent >
+      <include refid="hdfs_index.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

@@ -1,0 +1,85 @@
+<link rel="stylesheet" type="text/css" href="/runtime/css/pagination-1-0-1.css">
+<h2>应用一览</h2>
+<script>
+   function deleteApp(appid){
+     if(!window.confirm("你确定要删除ID:"+ appid+"的记录吗？")){
+        return ;
+     }
+        TIS.ajax({url:'$manageModule.setTarget('applist.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_delete=y&action=add_app_action&appid="+appid,
+			    success:function(data){			  	
+				  	if(data.errormsg.length<1){
+				  	  $('#row'+appid).remove();
+				  	}
+				  	showMessageDialog(data);			  	
+	      	    }, 
+			   error:function(){   
+			   }				   
+	        });
+	  return false;
+     
+    }
+</script>
+
+<p>
+#popup("$manageModule.setTarget('addapp')?dptid=$!bizdomain.dptId","添加",'800*500')
+&nbsp;
+#*
+	#if(!$manageTool.daily)
+	 #popup("$manageModule.setTarget('synDailyApp')?dptid=$!bizdomain.dptId","同步Daily应用",'600*300')
+	#end
+*#
+</p>
+#showFormErrors("selectRevsion")
+<form method="post" id="contentform" action="$manageModule.setTarget("applist")">
+	<fieldset id="uploaddialog">
+	 #taction ("name=appselect" "namespace=/runtime#control","executeResult=true")
+     #sparam("name=maxMatch","value=true")
+     #sparam("name=fromDaily","value=true")
+	 #end
+     <input type="hidden" name="action" value="app_view_action"/>
+     
+     <p style="display:inline-block;margin-left: 50px;">
+    	<span style="width:4em;">接口人：</span>
+    	<input type="text" name="recept" id="query" size="40" value="$!recept" />
+     </p>
+    	#taction ("name=appselectboxcontrol" "namespace=/runtime#control","executeResult=true")
+        #sparam("name=contextid","value='main'")
+        #sparam("name=maxMatch","value=true")	
+    	#sparam("name=onlySelectDpt","value=true")
+		#sparam("name=selectDptId","value=$dptId")
+    	#end
+     <input type="submit" style="width:8em;height:30px;display:inline-block;margin-left:50px;" name="event_submit_do_query" value="查询" />
+	 </fieldset>
+</form>
+<div>
+$manageTool.noescape($pager.link)
+</div>
+<table border="1" width="100%">
+<tr>
+ <th width="5%">ID</th>
+ <th>名称</th>
+ <th width="8%">接口人</th>
+ <th width="12%">归属部门</th>
+ <th width="13%">创建时间</th>
+ <th width="8%">操作</th>
+</tr>
+#foreach($item in $applist)
+<tr id="row${item.appId}"> 
+<td align="center">$item.appId</td>
+<td><a href="$manageModule.setTarget('app')?appid=$item.appId">$item.projectName</a> <span>#if($item.isAutoDeploy)自动部署 #end<span> </td>
+<td> $item.recept</td>
+<td> #if(${item.dptId}>0)  $manageTool.getShortDepartmentName(${item.dptName}) #else 未设置 #end    </td>
+<td align="right">$manageTool.formatDateYYYYMMdd($item.createTime)</td>
+<td>
+  <button onclick="deleteApp($item.appId)">删除</button>
+  #popup("$manageModule.setTarget('appupdate')?appid=$item.appId","更新",'800*500')
+</td>
+</tr>
+#end
+</table>
+<div>
+$manageTool.noescape($pager.link)
+</div>

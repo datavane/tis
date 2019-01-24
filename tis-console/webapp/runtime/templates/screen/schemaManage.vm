@@ -1,0 +1,176 @@
+
+<script src="/runtime/js/codemirror/codemirror.js"></script>
+<link rel="stylesheet" href="/runtime/js/codemirror/codemirror.css">
+<script src="/runtime/js/codemirror/xml.js"></script>
+<script src="/runtime/js/edit-schema.js"></script>
+
+
+<script id="SchemaTemplate" type="text/x-jquery-tmpl">
+
+<table id="fieldlist" class="table table-hover">
+   <thead>
+    <th></th>
+    <th>
+	<span data-placement="top" data-original-title="对应数据源中的列名" data-toggle="tooltip">字段名称</span>
+   </th>
+   <th><span data-placement="top" data-original-title="转换后的数据类型，可能与数据库原始字段类型不一致" 
+      data-toggle="tooltip">字段类型</span></th>
+		#* <th>
+				<span>分词方法</span>
+				<i class="icon-question" data-placement="top" 
+				data-original-title="字段类型为string的字段支持分词，其它类型不支持分词，选择所需要的分词方法" data-toggle="tooltip"></i>
+			</th> *#
+	#*		
+			<th><span data-placement="top" data-original-title="数据库内容为空的字段必须设置默认值" data-toggle="tooltip">默认值</span></th>
+    *#       
+            <th>
+				<span class="glyphicon glyphicon-zoom-in" 
+				 data-placement="top" data-original-title="勾选后此列数据可以被单独搜索,'可搜索'与'可展示'至少勾选一个" data-toggle="tooltip">可搜索</span>
+				
+			</th>
+                        <th>
+				<span>展示</span>
+				<i class="icon-question" data-placement="top" data-original-title="勾选后搜索结果集将包含此列，同时索引数据量会急剧增加。建议：查询中不需要返回的字段取消勾选此项。'可搜索'与'可展示'至少勾选一个" data-toggle="tooltip"></i>
+			</th>
+                        <th>操作</th>
+ </thead>
+ <tbody id="fieldlistbody">
+<!--▼▼▼▼▼▼▼▼▼ iterator start===================-->
+{{each fields}}
+ #parse( "/runtime/templates/screen/fields_include.vm")
+{{/each}}
+<!--▲▲▲▲▲▲▲▲▲▲ iterator end==================-->		
+<div id ="schemaError"></div>
+                    </tbody>
+         <tfoot>
+            <tr>
+               <th colspan="12" class="clearfix">
+                 <a class="btn btn-success pull-left add-schema-btn" onclick="addRow();">添加</a>
+               </th>
+            </tr>
+         </tfoot>
+</table>
+            
+<div class="col-md-12">
+		<span id="uniqueKey-label">数据分组键:</span>
+	    <select class="combobox-sharekey" name="shareKey" id="select_shareKey">
+			<option value="">选择数据分组键</option>
+           {{each fields}}
+             <option ${$item.isSelect(shareKey, name)} value="${name}">${name}</option>
+           {{/each}}
+        </select>
+		<span id="uniqueKey-label" style="margin-left:40px;">uniqueKey:</span>
+	    <select class="combobox-uniquekey" name="uniqueKey" id="select_uniqueKey">
+			<option value="">选择uniqueKey</option>
+		     {{each fields}}
+             <option ${$item.isSelect(uniqueKey, name)} value="${name}">${name}</option>
+           {{/each}}
+        </select>
+		<span style=" margin-left:35px;">修改备注：</span>
+		<input name="memo" id="memo" placeholder="修改索引备注" style="width:40%;"/>
+		<input name="aid" type="hidden" id="aid" value="$aid"></input>
+</div>   
+   
+<!--======================================================================-->
+</script>
+<script id="SchemaRowTemplate" type="text/x-jquery-tmpl">
+   #parse( "/runtime/templates/screen/fields_include.vm")
+</script>
+<script id="SchemaRowTemplateIterator" type="text/x-jquery-tmpl">
+<!--▼▼▼▼▼▼▼▼▼ iterator start===================-->
+{{each fields}}
+ #parse( "/runtime/templates/screen/fields_include.vm")
+{{/each}}
+<!--▲▲▲▲▲▲▲▲▲▲ iterator end==================-->
+</script>
+<script>
+$(document).ready(function(){
+  loadCommonView('update');
+  initSchemaEditTabClick();
+  $("[data-toggle='tooltip']").tooltip();
+  $(".tooltip fade top in").removeAttr("style");
+});
+</script>
+<style type="text/css">
+.collapseOne{
+	margin-left:10px;
+	//border:1px solid #000;
+}
+.custom-combobox {
+    position: relative;
+    display: inline-block;
+  }
+  .custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+	background:#F0F1F6;
+	border:1px solid #D3D3D3;
+  }
+  .custom-combobox-input {
+    margin: 0;
+    padding: 5px 10px;
+	width:120px;
+	//background:#F0F1F6;
+	background:#FFFFFF;
+  }
+  .triangle-down {
+    width: 0;
+    height: 0;
+	position: absolute;
+	top: 50%;
+	margin-left:8px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid #000000;
+	}
+  .CodeMirror-lines{
+   max-width: 800px;
+  }
+</style>
+
+
+    <div class="row" style="margin-left:30px;margin-right:30px;">	
+        <div class="col-md-12 info-panel-box" style="width:100%;">
+			
+				
+			<div id="collapseOne" class="panel-collapse collapse in collapseOne">
+                <div class="info-panel" data-nav="create-index-2">				
+    					
+                    <div class="row select-db-source">
+						
+
+<div class="col-md-12">
+   <div style="float:left;">
+    <ul id="xmleditnav" class="nav nav-tabs">
+    <li id="xmleditcommon" class="active">
+      <a href="#" >小白模式</a>
+    </li>
+    <li id="xmleditadvance">
+      <a href="/runtime/schemaXml.ajax?aid=$aid&event_submit_do_get_xml_content=y&action=schema_action" >专家模式</a>
+    </li>
+   </ul>
+  </div>
+  
+     <div style="float:right;">
+            <a id="edit-btn" class="btn btn-primary" style="width:6em;" onclick='editSchema($aid);'>更新</a> 
+     </div>
+  
+ </div>
+    					
+<div class="col-md-12">			
+    <form id="schemaForm">        
+         <div id="formplate"></div>         
+    </form>
+                    <div class="row create-action">
+                        <div class="col-md-6 col-md-offset-4">
+                            
+                        </div>
+                    </div>
+                </div>
+			</div>			
+			
+        </div>
+    </div>

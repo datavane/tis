@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<bean id="operationlogAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
+		<constructor-arg>
+			<bean class="com.taobao.terminator.manage.spring.aop.OperationLogAdvice">
+				<property name="operationLogDAO" ref="operationLogDAO" />
+			</bean>
+		</constructor-arg>
+		<!--
+			<constructor-arg> <bean
+			class="org.springframework.aop.support.NameMatchMethodPointcut">
+			<property name="mappedNames"> <list> <value>delete*</value>
+			<value>insert*</value> <value>update*</value> </list> </property>
+			</bean> </constructor-arg>
+		-->
+		<constructor-arg>
+			<bean
+				class="com.taobao.terminator.manage.spring.aop.TerminatorNameMatchMethodPointcut" />
+		</constructor-arg> 
+
+	</bean>
+
+	<bean class="com.taobao.terminator.manage.spring.aop.DAOTypeAutoProxyCreator">
+		<property name="interceptorNames">
+			<list>
+				<value>operationlogAdvisor</value>
+			</list>
+		</property>
+		<!-- 
+		<property name="proxyTargetClass" value="true" />
+	     -->
+	</bean>
+
+
+
+</beans>

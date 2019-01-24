@@ -1,0 +1,94 @@
+ <form id="incrInitForm" class="form-horizontal">
+  <input type="hidden" name="event_submit_do_${actionMethod}_incr_instance" value="y" />
+  <input type="hidden" name="action" value="incr_init_spe_action" />
+  <div class="msg" id="incrInitDialog"></div>
+  <div class="form-group">
+    <label for="inputGitUrl" class="col-sm-1 control-label">GIT_URI</label>
+    <div class="col-sm-11">
+      <input type="text" class="form-control" name="giturl"
+       id="inputGitUrl" placeholder="git@git.2dfire-inc.com:tis-incr/tis-incr-xxx.git"
+       value="$!{spec.gitAddress}">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputGitRef" class="col-sm-1 control-label">GIT_REF</label>
+    <div class="col-sm-11">
+      <input type="text" class="form-control" id="inputGitRef" name="gitref" placeholder="master"
+         value="$!{spec.gitRef}"
+      />
+    </div>
+  </div>
+  <div class="form-group">
+    <label  class="col-sm-1 control-label">CPU</label>
+    <div class="col-sm-11" >
+     <div class="input-group">
+      <div class="input-group-addon">Request</div>
+      <input type="text" class="form-control" value="$!{spec.cpuRequest.val}" name="cuprequest" placeholder="Amount">
+      <div class="input-group-addon"> 
+ <select name="cuprequestunit" >
+  <option value="m" #if($spec.cpuRequest.unit == 'm') selected #end >millicores</option>
+  <option value="cores" #if($spec.cpuRequest.unitEmpty) selected #end>cores</option>
+</select>  </div>
+      
+      <div  class="input-group-addon">Limit</div>
+      <input type="text" class="form-control" value="$!{spec.cpuLimit.val}" name="cuplimit"  placeholder="Amount">
+      <div class="input-group-addon"> 
+<select name="cuplimitunit" >
+  <option value="m" #if($spec.cpuLimit.unit == 'm') selected #end>millicores</option>
+  <option value="cores" #if($spec.cpuLimit.unitEmpty) selected #end>cores</option>
+</select>  </div>
+
+    </div> <!--end input-group -->
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <label  class="col-sm-1 control-label">Memory</label>
+    <div class="col-sm-11" >
+     <div class="input-group">
+      <div class="input-group-addon">Request</div>
+      <input type="text" class="form-control" value="$!{spec.memoryRequest.val}" name="memoryrequest" placeholder="Amount">
+      <div class="input-group-addon"> 
+ <select name="memoryrequestUnit" >
+  <option value="M" #if($spec.memoryRequest.unit == 'M') selected #end>MB</option>
+  <option value="G" #if($spec.memoryRequest.unit == 'G') selected #end>GB</option>
+</select>  </div>
+      
+      <div  class="input-group-addon">Limit</div>
+      <input type="text" class="form-control" value="$!{spec.memoryLimit.val}" name="memorylimit"  placeholder="Amount">
+      <div class="input-group-addon"> 
+ <select name="memorylimitunit" >
+  <option value="M" #if($spec.memoryLimit.unit == 'M') selected #end>MB</option>
+  <option value="G" #if($spec.memoryLimit.unit == 'G') selected #end>GB</option>
+</select>  </div>
+
+    </div> <!--end input-group -->
+    </div>
+  </div>
+     <div class="form-group">
+    <div class="col-sm-offset-10 col-sm-2">
+      <button class="btn btn-primary" onclick="saveIncrInstance();return false;">保存</button>
+    </div>
+  </div>
+</form>
+
+<script>
+  
+  function saveIncrInstance(){
+      $("#incrInitDialog").html('');
+      TIS.ajax({url:'$manageModule.setTarget('incrInitSpec.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:$("#incrInitForm").serialize(),                  
+                success:function(data){ 
+                    appendMessage(data,$("#incrInitDialog")); 
+                    var biz = data.bizresult ||{};
+                    
+                    if(biz.type=='build'){
+                      Chat.register('$appDomain.appName','incrbuild:'+ data.bizresult.buildName);
+                    }else if(biz.type='deploy'){
+                       
+                    }   
+                }})
+  }
+</script>

@@ -1,0 +1,9 @@
+<root xmlns="http://localhost">
+    <element1>
+        <element11/>
+    </element1>
+    <element2 attr="1">
+        <element21 attr="21"/>
+    </element2>
+    <element3>TEXT</element3>
+</root>

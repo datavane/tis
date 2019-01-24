@@ -1,0 +1,109 @@
+<style type="text/css"><!--
+  #seldptcaption{
+   color:blue;
+   font-size:20px;
+  font-weight: bold;
+  }
+  
+  #dptblock{
+    display:inline-block;
+    margin-left:4em;
+    margin-top:10px;
+  }
+  -->
+</style>
+<h2>用户部门更新</h2>
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("usrUpdate")">
+<input type="hidden" name="action" value="user_action"  />
+<input type="hidden" name="usrid" value="#p('usrid')" />
+<fieldset>
+ <legend>表单设置</legend>
+ <p><span>用户名：</span> $usr.userName </p>
+ <p><span>部门：</span> $usr.dptName </p>
+ <p><span>新部门：</span>
+ <span id="seldptcaption"></span>
+ <input type="hidden" name="selecteddptid" id="selecteddptid" /> <br/> 
+ <span id="dptblock">
+ <select id="rootdpt" name="dptid">
+  <option value="-1" selected>请选择</option>
+  #foreach($item in $rootdpts)  
+   <option value="$item.dptId">$item.name</option>
+  #end</select>
+  </span>
+  </p>
+  
+ <p><input type="submit" name="event_submit_do_change_department" value="提交" style="width:100px;height:35px;" /> </p> 
+</fieldset>
+</form>
+<script>
+ var selectChange = function(){
+        var selectid = parseInt($(this).val());
+        var selbox = $(this);
+        
+        var selectcation = $("#rootdpt").find("option:selected").text();
+        var lastselbox = $("#rootdpt");
+        $("#rootdpt").nextAll().each(function(index, element){
+               if(parseInt( element.value) >-1){
+                 lastselbox = $(element);
+                 selectcation += "-" ; 
+                 selectcation += $(element).find("option:selected").text();
+                           
+               }
+            });
+            
+       //alert(selectcation);
+       
+       $("#seldptcaption").html(selectcation);
+       if(lastselbox){
+        $("#selecteddptid").val(lastselbox.val());
+       }
+        
+        jQuery.ajax({url:'$manageModule.setTarget("usrUpdate.ajax")', 
+         		type:'POST',
+				dataType:"json",
+				success:function(data){
+                    
+                    if(data.errormsg){
+                      showMessageDialog(data);
+                      return;
+                    }
+                    
+                     if(selectid<0){
+                      return ;
+                     }
+                     
+                     selbox.nextAll().each(function(index, element){
+                   
+                       $(element).remove();
+                     });
+                     
+                     var nxtsel = $("<select><option value='-1'>请设置</option></select>");
+                      var i=0;
+                     for(;i<data.list.length;i++  ){
+                       nxtsel.append($("<option value='"+data.list[i].value+"'>"+data.list[i].name+"</option>"));
+                     }
+                     nxtsel.click(selectChange);
+                     if(i>0){
+                       $("#dptblock").append(nxtsel); 
+                     }
+                    
+	      	    },
+          		data:"event_submit_do_get_child_dpt=y&resulthandler=y&action=user_action&pid="+selectid
+			    
+	        });           
+        
+      }
+  
+  
+  
+
+  $(document).ready(function(){
+     $("#rootdpt").val(-1);
+      $("#rootdpt").change(selectChange);
+  });
+  
+ // function (){
+  
+ // }
+</script>

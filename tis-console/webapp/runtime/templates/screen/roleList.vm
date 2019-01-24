@@ -1,0 +1,21 @@
+<h2>角色一览</h2>
+<p>
+ $manageTool.noescape( $manageTool.dialog("$manageModule.setTarget('addrole')","添加角色",false,true))
+</p>
+<table border="1" width="100%">
+ <tr>
+  <th width="8%">ID</th><th>角色名称</th><th width="14%">创建时间</th><th>操作</th>
+ </tr>
+ #foreach($item in $rolelist)
+ <tr>
+  <td>$item.rId</td> <td>$item.roleName</td><td> $manageTool.formatDateYYYYMMdd($item.gmtCreate)</td><td>
+  
+  $manageTool.noescape( $manageTool.dialog("$manageModule.setTarget('roleDetail')?roleid=$item.rId","详细",true,true))
+  
+   $manageTool.noescape( $manageTool.dialog("$manageModule.setTarget('roleUpdate')?roleid=$item.rId","更新角色",true,true))
+  </td>
+ </tr>
+ #end
+</table>
+
+

@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="schema_config_resource_field" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.taobao.terminator.manage.biz.dal.pojo.SchemaConfigResourceField" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <result column="sch_res_id" property="schResId" jdbcType="BIGINT" />
+    <result column="field_name" property="fieldName" jdbcType="VARCHAR" />
+    <result column="app_id" property="appId" jdbcType="INTEGER" />
+    <result column="field_type_name" property="fieldTypeName" jdbcType="VARCHAR" />
+    <result column="field_type_content" property="fieldTypeContent" jdbcType="VARCHAR" />
+    <result column="field_type_id" property="fieldTypeId" jdbcType="BIGINT" />
+    <result column="custom_modify" property="customModify" jdbcType="CHAR" />
+    <result column="stored" property="stored" jdbcType="CHAR" />
+    <result column="indexed" property="indexed" jdbcType="CHAR" />
+    <result column="required" property="required" jdbcType="CHAR" />
+    <result column="multivalue" property="multivalue" jdbcType="CHAR" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="shm_id" property="shmId" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  
+  <select id="ibatorgenerated_selectBy_shmid_and_appid" 
+  resultMap="ibatorgenerated_BaseResultMap" 
+  parameterClass="com.taobao.terminator.manage.biz.dal.pojo.SchemaFieldRelationQuery" >
+     SELECT bb.sch_res_id, bb.field_name, bb.app_id, bb.field_type_name, bb.field_type_content, bb.field_type_id,
+      bb.custom_modify, bb.stored, bb.indexed, bb.required, bb.multivalue, bb.update_time, bb.create_time, bb.shm_id
+     FROM schema_field_relation aa inner join schema_config_resource_field bb on (aa.sch_res_id = bb.sch_res_id)
+     WHERE aa.shm_id = #shmId:BIGINT# and aa.app_id =  #appId:INTEGER#
+     <isGreaterThan property="schResIdNotInSize" compareValue="0">
+      and aa.sch_res_id not in
+       <iterate property="schResIdNotIn" open="(" close=")" conjunction="," >
+            #schResIdNotIn[]#
+       </iterate>
+     </isGreaterThan>    
+     ORDER BY bb.sch_res_id asc
+  </select>
+  
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.SchemaConfigResourceFieldCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select aa.sch_res_id, field_name, app_id, field_type_name, field_type_content, field_type_id,
+      custom_modify, stored, indexed, required, multivalue, update_time, create_time, shm_id
+     from ( select sch_res_id from schema_config_resource_field 
+    <isParameterPresent >
+      <include refid="schema_config_resource_field.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join schema_config_resource_field aa on aa.sch_res_id=bb.sch_res_id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.SchemaConfigResourceField" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select sch_res_id, field_name, app_id, field_type_name, field_type_content, field_type_id,
+      custom_modify, stored, indexed, required, multivalue, update_time, create_time, shm_id
+    from schema_config_resource_field
+    where sch_res_id = #schResId:BIGINT#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.SchemaConfigResourceField" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from schema_config_resource_field
+    where sch_res_id = #schResId:BIGINT#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.SchemaConfigResourceFieldCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from schema_config_resource_field
+    <include refid="schema_config_resource_field.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.SchemaConfigResourceField" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into schema_config_resource_field (sch_res_id, field_name, app_id, field_type_name,
+      field_type_content, field_type_id, custom_modify, stored, indexed, required, multivalue,
+      update_time, create_time, shm_id)
+    values (#schResId:BIGINT#, #fieldName:VARCHAR#, #appId:INTEGER#, #fieldTypeName:VARCHAR#,
+      #fieldTypeContent:VARCHAR#, #fieldTypeId:BIGINT#, #customModify:CHAR#, #stored:CHAR#,
+      #indexed:CHAR#, #required:CHAR#, #multivalue:CHAR#, #updateTime:TIMESTAMP#,
+      #createTime:TIMESTAMP#, #shmId:BIGINT#)
+    <selectKey resultClass="LONG" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.SchemaConfigResourceField" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into schema_config_resource_field
+    <dynamic prepend="(" >
+    <!-- --> 
+      <isNotNull prepend="," property="schResId" >
+        sch_res_id
+      </isNotNull>
+     
+      <isNotNull prepend="," property="fieldName" >
+        field_name
+      </isNotNull>
+      <isNotNull prepend="," property="appId" >
+        app_id
+      </isNotNull>
+      <isNotNull prepend="," property="fieldTypeName" >
+        field_type_name
+      </isNotNull>
+      <isNotNull prepend="," property="fieldTypeContent" >
+        field_type_content
+      </isNotNull>
+      <isNotNull prepend="," property="fieldTypeId" >
+        field_type_id
+      </isNotNull>
+      <isNotNull prepend="," property="customModify" >
+        custom_modify
+      </isNotNull>
+      <isNotNull prepend="," property="stored" >
+        stored
+      </isNotNull>
+      <isNotNull prepend="," property="indexed" >
+        indexed
+      </isNotNull>
+      <isNotNull prepend="," property="required" >
+        required
+      </isNotNull>
+      <isNotNull prepend="," property="multivalue" >
+        multivalue
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="shmId" >
+        shm_id
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <!--  -->
+      <isNotNull prepend="," property="schResId" >
+        #schResId:BIGINT#
+      </isNotNull>
+     
+      <isNotNull prepend="," property="fieldName" >
+        #fieldName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="appId" >
+        #appId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="fieldTypeName" >
+        #fieldTypeName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="fieldTypeContent" >
+        #fieldTypeContent:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="fieldTypeId" >
+        #fieldTypeId:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="customModify" >
+        #customModify:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="stored" >
+        #stored:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="indexed" >
+        #indexed:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="required" >
+        #required:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="multivalue" >
+        #multivalue:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="shmId" >
+        #shmId:BIGINT#
+      </isNotNull>
+      )
+    </dynamic>
+    <selectKey resultClass="LONG" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.SchemaConfigResourceFieldCriteria" resultClass="java.lang.Integer" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select count(*) from schema_config_resource_field
+    <include refid="schema_config_resource_field.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update schema_config_resource_field
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.schResId" >
+        sch_res_id = #record.schResId:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.fieldName" >
+        field_name = #record.fieldName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.appId" >
+        app_id = #record.appId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.fieldTypeName" >
+        field_type_name = #record.fieldTypeName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.fieldTypeContent" >
+        field_type_content = #record.fieldTypeContent:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.fieldTypeId" >
+        field_type_id = #record.fieldTypeId:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.customModify" >
+        custom_modify = #record.customModify:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.stored" >
+        stored = #record.stored:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.indexed" >
+        indexed = #record.indexed:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.required" >
+        required = #record.required:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.multivalue" >
+        multivalue = #record.multivalue:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.updateTime" >
+        update_time = #record.updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="record.createTime" >
+        create_time = #record.createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="record.shmId" >
+        shm_id = #record.shmId:BIGINT#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="schema_config_resource_field.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update schema_config_resource_field
+    set sch_res_id = #record.schResId:BIGINT#,
+      field_name = #record.fieldName:VARCHAR#,
+      app_id = #record.appId:INTEGER#,
+      field_type_name = #record.fieldTypeName:VARCHAR#,
+      field_type_content = #record.fieldTypeContent:VARCHAR#,
+      field_type_id = #record.fieldTypeId:BIGINT#,
+      custom_modify = #record.customModify:CHAR#,
+      stored = #record.stored:CHAR#,
+      indexed = #record.indexed:CHAR#,
+      required = #record.required:CHAR#,
+      multivalue = #record.multivalue:CHAR#,
+      update_time = #record.updateTime:TIMESTAMP#,
+      create_time = #record.createTime:TIMESTAMP#,
+      shm_id = #record.shmId:BIGINT#
+    <isParameterPresent >
+      <include refid="schema_config_resource_field.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

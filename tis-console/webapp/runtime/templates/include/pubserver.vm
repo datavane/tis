@@ -1,0 +1,26 @@
+<fieldset>
+<legend>服务器信息</legend>
+<ul>
+#foreach($adapter in $groupAdapterList)
+<li>
+<p>
+第$adapter.group.groupIndex组 $manageTool.getConfigViewLink($manageModule,$adapter.snapshot)
+</p> 
+  <ol>
+   #foreach($server in $adapter.serverList)
+   <li>
+      #*
+       <input type="checkbox" class="selector" name="pubserverid" value="$server.sid" /> 
+      *#
+       ${server.serverName}  ${server.ipAddress} $!server.role   
+       <input type="hidden" name="server" value="$servermap.get(${server.sid})" />
+   </li>
+   #end
+  </ol>
+</li>
+#end
+</ul>
+</filedset>
+
+<input name="md5" type="hidden" value="$md5" />
+<input name="current" type="hidden" value="$current" />

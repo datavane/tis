@@ -1,0 +1,64 @@
+<script src="$manageModule.setTarget("/js/jquery.autocomplete.js")"></script>
+<style type="text/css"><!--
+  #addserver p span{
+    width:9em;
+    display:inline-block;
+  }
+ .autocomplete-w1 { background:url($manageModule.setTarget("/imgs/shadow.png")) no-repeat bottom right; position:absolute; top:0px; left:0px; margin:6px 0 0 6px; /* IE6 fix: */ _background:none; _margin:1px 0 0 0; }
+.autocomplete { border:1px solid #999; background:#FFF; cursor:default; text-align:left; max-height:350px; overflow:auto; margin:-6px 6px 6px -6px; /* IE6 specific: */ _height:350px;  _margin:0; _overflow-x:hidden; }
+.autocomplete .selected { background:#F0F0F0; }
+.autocomplete div { padding:2px 5px; white-space:nowrap; overflow:hidden; }
+.autocomplete strong { font-weight:normal; color:#3399FF; }
+
+-->
+</style>
+#*
+<script>
+  function onSelectChange(form){
+   jQuery.ajax({url:'$manageModule.setTarget("changedomain.action")', 
+         		type:'POST',
+				dataType:"json",
+          		data:{
+				   'event_submit_do_select_change':'y',
+				   'action':'change_domain_action',
+				   '_fm.ch._0.b': $('#bizid').val()				 
+          		},
+			   success:function(data){
+				    $('#appid').html("<option value='' >请选择</option>");
+				  	for(var i =0;i< data.list.length;i++){
+				  	 $('#appids').append("<option value='" + data.list[i].value +"' >"+ data.list[i].name+"</option>");
+				  	}
+	      	   }, 
+			   error:function(){
+			   
+			   },				   
+	        }); 
+   
+   
+  }
+</script>
+*#
+<p> 
+$control.setTemplate("appselectboxcontrol.vm").setParameter("contextid",'main')
+ <br/>
+<p>
+<p>
+ <span style="width:4em;">应用：</span>
+ <input type="text" name="appnamesuggest" id="query" size="40" value="search4" />
+ <input type="hidden" id="hidappname" name="hiddenAppnamesuggest" />
+</p>
+
+<script>
+ var options, a;
+jQuery(function(){
+  
+  options = {minChars:2,
+     onSelect: function(value,data){$('#hidappname').attr('value',data);},
+     zIndex: 9999,
+   serviceUrl:'/config/app_suggest_action.action?action=change_domain_action&event_submit_do_app_name_suggest=y' };
+  a = $('#query').autocomplete(options);
+  
+  $("#"+a.mainContainerId).find(".autocomplete").css("width","auto");
+
+});
+</script>

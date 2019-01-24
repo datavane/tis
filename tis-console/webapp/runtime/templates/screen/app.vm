@@ -1,0 +1,99 @@
+<style type="text/css"><!--
+  ul li{
+   	list-style-type: none;
+  }
+  ol li{
+  	list-style-type: decimal;
+  }
+  h1{
+   margin-left:-20px;
+  }
+-->
+</style>
+<script>
+ function delete_confirm(sid){
+  $('#dialog').dialog({
+			width:400,
+			height:200,
+			modal:true,
+			buttons: { "确定": function() { 	
+	ajax_fire_event(
+       '$manageModule.setTarget("app.do")'
+       ,"delete_server"
+       ,{action:"group_action"
+         ,'serverid':sid
+         ,'appid':#p("appid")}
+       ,function( msg ) {
+          window.location.reload();
+       });
+			 }
+   ,"取消": function() { $(this).dialog("close"); } }});
+ }
+ 
+ 
+ function delete_group(gid,content){
+
+   $('<div></div>').html('你确定要删除['+ content+']的吗？').dialog({
+			width:400,
+			height:200,
+			modal:true,
+			buttons: {"确定": function() { 
+	   var thisDialog =$(this);	
+	   ajax_fire_event(
+       '$manageModule.setTarget("app.ajax")'
+       ,"delete_group"
+       ,{action:"group_action"
+         ,'groupid':gid
+         ,'appid':#p('appid')}
+       ,function( msg ) {
+            thisDialog.dialog("close");
+          	showMessageDialog(msg);
+          //window.location.reload();
+       });  }
+       ,"取消": function() { $(this).dialog("close"); } }}); 
+   }
+</script>
+<h2 style="background-color:blue;color:white;padding:6px;">[$app.dptName]  $app.projectName</h2>
+<fieldset>
+<legend>服务器信息</legend>
+#if($hasdatamanageperminssion)
+<p>
+ #popup("$manageModule.setTarget('addgroup')?appid=$rundata.request.getParameter('appid')","添加组",'')
+</p>
+#end
+<ul class="level1">
+#set($delete_icon = "<img src='$manageModule.setTarget('imgs/delte_icon.jpg')'/>")
+
+#foreach($group in $grouplist)
+<li>
+
+#if($group.environment != $tmpGroup.environment)
+ <h1>$group.environment.describe</h1>
+#end
+#set($tmpGroup = $group )
+<p>
+第$group.group.groupIndex组   
+#if($hasdatamanageperminssion)
+ #popup("$manageModule.setTarget('addserver')?gid=$group.gid","添加服务器",'')
+ <a href="#" onclick="delete_group($group.group.gid,'确定要删除$group.environment.describe的第$group.group.groupIndex组')">删除</a>
+#end
+</p> 
+  <ol>
+   #foreach($server in $group.serverList)
+   <li>
+       ${server.serverName}  ${server.ipAddress} 
+      
+    #if($hasdatamanageperminssion)  
+       <a href="#" onclick="delete_confirm($server.sid)">$manageTool.noescape($delete_icon)</a>
+    #end
+   </li>
+   #end
+  </ol>
+</li>
+#end
+</ul>
+</filedset>
+
+<div id="dialog" style="display:none;" title="删除服务器">
+  <p>你确定要删除该服务器吗？</p>
+</div>

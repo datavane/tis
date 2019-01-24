@@ -1,0 +1,26 @@
+<link rel="stylesheet" type="text/css" href="$manageModule.setTarget("/css/pagination-1-0-1.css")">
+<h2>操作日志</h2>
+<div>
+$manageTool.noescape($pager.link)
+</div>
+<table border="1" width="100%">
+<tr>
+ <th>用户名</th>
+ <th>操作对象</th>
+ <th>创建时间</th>
+ <th>操作</th>
+ </tr>
+#foreach($item in $oplist)
+<tr>
+ <td>$item.usrName</td>
+ <td>${item.tabName}.$item.opType</td>
+ <td>$manageTool.formatDateYYYYMMdd($item.createTime)</td>
+ <td> #popupp("$manageModule.setTarget('operation_detail')?opid=$item.opId",'详细','1000*800') </td>
+</tr> 
+#end
+</table>
+<div>
+$manageTool.noescape($pager.link)
+</div>
+<div>
+</div>

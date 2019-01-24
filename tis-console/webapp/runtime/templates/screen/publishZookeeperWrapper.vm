@@ -1,0 +1,83 @@
+<style>
+ #process  td,th{
+  padding:20px;
+ }
+</style>
+#if(!$manageTool.daily)
+  <div class="note">该功能只能在日常环境下使用 </div>
+#else
+
+#if($groupAdapterList.empty)
+  <div class="note">该应用下还没有设置组  <a target="_top" href="$manageModule.setTarget('jarcontent/grouplist')" >设置</a></div>
+#else
+
+
+<script>
+
+ function openConsole(title,src,width,height){
+//<!--
+ // <iframe id='wdialog' frameborder='0' height='600' width='100%' src='$manageModule.setTarget('realtimelog')?disableframeset=true' ></iframe> 
+//-->
+    opendialog(title
+      ,"<iframe id='wdialog' frameborder='0' height='750' width='100%' src='"+src+"' ></iframe>"
+      ,width,height);
+  }
+  
+  function opendialog(title,innerHtml,width,height){
+     var $dialog = $("<div style='height:"+(height)+"'> "+innerHtml+"</div>")
+		.dialog({
+			autoOpen: false,
+			width:width,
+			height:height,
+			title: title,
+			modal: true,
+			autoResize:false
+		});
+	
+    $dialog.dialog('open');
+  }
+  
+  function opensolrconfig_dialog(){
+    opendialog("验证配置文件发布到目标服务器"
+      ,"<iframe  frameborder='0' height='510' width='100%' src='$manageModule.setTarget('checkconfigvalid')' ></iframe>"
+      ,1000,600);
+  }
+  
+  function opensolr_launch_dump_dialog(){
+    opendialog("启动服务全量dump并生成索引"
+      ,"<iframe  frameborder='0' height='510' width='100%' src='$manageModule.setTarget('launchdumpandbuildindex')' ></iframe>"
+      ,1000,600);
+  }
+  
+  function opensolr_hdfs_view_dialog(){
+    opendialog("查看hdfs dump文件"
+      ,"<iframe  frameborder='0' height='510' width='100%' src='$manageModule.setTarget('hdfs_view_popup')' ></iframe>"
+      ,1000,800);
+  }
+
+</script>
+
+<table id="process" width="100%" border="1" cellspacing='0'>
+ <tr>
+  <th width='25%'>第一步</th><th width='25%'>第二步</th><th width='25%'>第三步</th> <th>第四步</th>
+ </tr>
+  <tr>
+  <td><a href="#" onclick='openConsole("Daily环境发布ZK","$manageModule.setTarget('publish_zookeeper')",1000,800)'>配置发布ZK</a>
+  </td><td><a href="#" onclick='opensolrconfig_dialog()'>验证配置文件发布到目标服务器</a></td>
+  <td><a href="#" onclick='opensolr_launch_dump_dialog()'>启动服务全量Dump并生成索引</a></td>
+  
+  <td>
+
+  <a href="#" onclick="opensolr_hdfs_view_dialog();return false;">查看hdfs dump文件</a>
+  </td>
+ </tr>
+</table>
+
+<div class="note2">
+  此发布流程适合走hdfs的索引存储机制
+</div>
+
+#end
+#end
+
+

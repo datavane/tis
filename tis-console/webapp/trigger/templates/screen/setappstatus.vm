@@ -1,0 +1,12 @@
+
+<div class="note2">$notice</div>
+#showFormErrors("csrfCheck")
+<form method="post" action="$trigger.setTarget('setappstatus')">
+<input type="hidden" name="action" value="trigger_action" />
+<input type="hidden" name="appset2stop" value="$appset2stop" />
+<input type="hidden" name="app" value="$rundata.request.getParameter('app')" />
+#set($resume='resume')
+<input type="submit" style="width:200px;height:40px" 
+ name="event_submit_do_#if($appset2stop)pause#else${resume}#end" value="执行" />
+
+</form>

@@ -1,0 +1,15 @@
+<h2>更新dump锁</h2>
+#showFormErrors("addapp")
+<fieldset>
+<legend>设置表单</legend>
+<form method="post" action="$manageModule.setTarget("zklockEdit")">
+ <input type="hidden" name="action" value="zk_action"/>
+ <input type="hidden" name="path" value="#p('path')"/>
+ <p>路径：#p('path') </p>
+ <p>value: <input type="text" size="30" name="zkvalue" value="$!pathvalue" /> 
+    <input type="submit" name="event_submit_do_delete" value="删除"/></p>
+ <p>
+   <input type="submit" name="event_submit_do_update" value="更新"/>
+ </p>
+</form>
+</fieldset>

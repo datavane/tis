@@ -1,0 +1,23 @@
+<execute partitionSaveCount="1">
+
+
+
+
+	<joinTask name="import_wait_order_instance">
+	 <![CDATA[	
+	INSERT OVERWRITE TABLE wait_order_instance PARTITION (pt,pmod)
+  SELECT i.waitinginstance_id, i.waitingorder_id, i.kind, i.kindmenu_id, i.kindmenu_name, i.name, i.menu_id, i.make_id, i.makename, i.make_price, i.make_pricemode, 
+	i.spec_detail_name, i.spec_detail_id, i.spec_pricemode, i.spec_detail_price, i.num, i.account_num, i.unit, i.account_unit,i.original_price, 
+	i.price, i.member_price, i.fee, i.is_ratio, i.taste, i.ratio, i.ratio_fee, i.is_backauth, i.parent_id, i.price_mode, i.child_id, i.service_feemode, i.service_fee, 
+	i.instance_status , i.entity_id, i.is_valid,i.create_time,i.op_time
+	,o.customerregister_id,o.kind as order_kind,o.status as order_status
+	,i.pt,i.pmod
+  FROM  waitInstance i LEFT OUTER JOIN waitingorder2 o on( i.waitingorder_id = o.waitingorder_id AND o.pt='${context.date}' ) 
+   WHERE i.pt='${context.date}' 
+   ]]>
+	</joinTask>
+
+</execute>
+
+
+

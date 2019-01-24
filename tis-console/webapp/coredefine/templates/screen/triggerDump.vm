@@ -1,0 +1,101 @@
+#showFormErrors("setreplica")
+<style type="text/css"><!--
+  #dumpcontrolblock em{
+    background-color:yellow;
+    padding:3px;
+    color:red;
+  }
+-->
+</style>
+<div id="dumpcontrolblock">
+<p>
+
+<div class="msg" id="triggerform"></div>
+<input type="hidden" name="action" value="core_action"/>
+<fieldset >
+<legend>触发从客户端导入的全量</legend>
+<p>
+<button  name="event_submit_do_trigger_dump" 
+  style="width:300px;height:30px;" onclick="btnTriggerFullClick()"   >开始执行</button>
+</p>
+</fieldset>
+
+</p>
+<p>
+
+<input type="hidden" name="action" value="core_action"/>
+<fieldset >
+<legend>同步某个时间点的全量索引数据</legend>
+<p>
+ <span>userPoint:</span> <input type="text" id="iptUserPoint1" name="userpoint" /><br/><em>必填，格式admin#yyyyMMddHHmmss</em>
+</p>
+<p>                                                    
+<button
+  name="event_submit_do_trigger_syn_index_file" 
+  onclick="btnTriggerLoadHistoryIndex()"
+  style="width:300px;height:30px;" >开始执行</button>
+</p>
+</fieldset>
+
+</p>
+<p>
+<input type="hidden" name="action" value="core_action"/>
+<fieldset >
+<legend>提交HDFS某个时间点的文件到Dump层进行DUMP</legend>
+<p>
+ <span>userPoint:</span> <input type="text" id="iptUserPoint2"  name="userpoint" /><br/><em>必填，格式admin#yyyyMMddHHmmss</em>
+</p>
+<p>
+<button  
+  name="event_submit_do_trigger_full_dump_file" 
+  style="width:300px;height:30px;" 
+  onclick="btnTriggerLoadHistoryDumpFile()" >开始执行</button>
+</p>
+</fieldset>
+
+</p>
+</div>
+<script>
+ function btnTriggerFullClick(){
+     $("#triggerform").html('');
+     
+     TIS.ajax({
+       url:'$coredefine.setTarget('corenodemanage.ajax')',
+       data:"event_submit_do_trigger_dump=y&action=core_action",
+       success:function(data){
+			      	appendMessage(data,$("#triggerform"));				  	
+	      	   } 
+     });
+     
+     
+  }
+  
+  function btnTriggerLoadHistoryIndex(){
+    $("#triggerform").html('');
+     jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_trigger_syn_index_file=y&action=core_action&userpoint="+$("#iptUserPoint1").val(),
+			    success:function(data){
+			      	appendMessage(data,$("#triggerform"));				  	
+	      	   }, 
+			   error:function(){   
+			   }				   
+	        });
+  }
+  
+  function btnTriggerLoadHistoryDumpFile(){
+     $("#triggerform").html('');
+     jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_trigger_full_dump_file=y&action=core_action&userpoint="+$("#iptUserPoint2").val(),
+			    success:function(data){
+			      	appendMessage(data,$("#triggerform"));				  	
+	      	   }, 
+			   error:function(){   
+			   }				   
+	        });
+  }
+  
+</script>

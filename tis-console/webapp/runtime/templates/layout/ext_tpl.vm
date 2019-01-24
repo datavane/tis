@@ -1,0 +1,44 @@
+$screen_placeholder
+
+<script>
+   function appendMessage(data,container){
+	   if(data.errormsg.length>0){
+		  var errorul = $("<ul class='errorMessage'></ul>");				  	
+		  for(var i =0;i<data.errormsg.length;i++){
+			errorul.append($("<li>"+data.errormsg[i]+"</li>"));
+		  }
+		  container.append(errorul);
+	    }
+				  	
+		if(data.msg.length >0){
+		  var msgul = $("<ul class='actionMessage'></ul>");
+		  for(var i =0;i<data.msg.length;i++){
+			 msgul.append($("<li>"+data.msg[i]+"</li>")); 
+		  }
+		  container.append(msgul);
+		}
+	}
+	
+  //▼▼▼ 提交应用切换请求
+   function change_app_top(){
+  
+      jQuery.ajax({url:'$manageModule.setTarget("changedomain.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_change_app_ajax=y&action=change_domain_action&selappid="+$("#appidstop").val(),
+			    success:function(data){			  
+			     if(data.errormsg.length<1){
+			       $("#aselect_app_domain").html(data.msg[0].split(":")[1]);
+	      	     }
+	      	     var container = $("<div></div>");
+			       appendMessage(data,container);
+			       MsgTip.msg('消息', container.html(),true); 
+			      //
+			      // alert( mainxxPanel);
+			      mainxxPanel.refreshAllTab();
+	      	     }				   
+	        }); 
+   }
+  //▲▲▲ end of 提交应用切换请求
+	
+</script>

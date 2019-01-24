@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans>
+
+
+	<bean id="tisDatasource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url"
+			value="jdbc:mysql://${tis.datasource.url}:3306/${tis.datasource.dbname}?useUnicode=yes&amp;characterEncoding=utf8" />
+		<property name="username" value="${tis.datasource.username}" />
+		<property name="password" value="${tis.datasource.password}" />
+		<property name="validationQuery" value="select 1" />
+	</bean>
+
+	<alias name="tisDatasource" alias="endSearchDatasource" />
+	<alias name="tisDatasource" alias="terminatorTriggerBizDalDatasource" />
+	<alias name="tisDatasource" alias="clusterStatDatasource" />
+
+
+
+	<import resource="classpath:/conf/terminatorTriggerBizDal-dao-context.xml" />
+	<import resource="classpath:/conf/terminator-job-trigger-relation-context.xml" />
+	<!-- 
+	<bean id="clusterSnapshotDAO"
+		class="com.taobao.terminator.manage.biz.dal.dao.impl.ClusterSnapshotDAOImpl"
+		parent="terminatorManageBizDalDAO" />
+
+	<bean id="clusterSnapshotPerDayDAO"
+		class="com.taobao.terminator.manage.biz.dal.dao.impl.ClusterSnapshotPerDayDAOImpl"
+		parent="terminatorManageBizDalDAO" />
+
+
+	<bean id="terminatorManageBizDalDAO"
+		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
+		abstract="true">
+		<property name="dataSource" ref="clusterStatDatasource" />
+		<property name="sqlMapClient">
+			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+				<property name="configLocation" value="classpath:/conf/cluster-sqlmap-config.xml" />
+			</bean>
+		</property>
+	</bean>
+ -->
+	<bean id="terminatorManageBizDalDaoFacade"
+		class="com.taobao.terminator.manage.biz.dal.dao.impl.TerminatorManageBizDalDAOFacadeImpl">
+		<constructor-arg index="0" ref="clusterSnapshotDAO" />
+		<constructor-arg index="1" ref="clusterSnapshotPreDayDAO" />
+		<constructor-arg index="2" ref="jobMetaDataDAO" />
+		<constructor-arg index="3" ref="triggerJobDAO" />
+
+	</bean>
+</beans>

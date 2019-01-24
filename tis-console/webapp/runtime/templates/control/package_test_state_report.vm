@@ -1,0 +1,9 @@
+<h2>
+#if($testDomain.shallStartTestProcess())
+您确定要对 $manageTool.formatDateYYYYMMdd($testDomain.pack.createTime) $testDomain.pack.uploadUser 上传的 代码包进行测试? 
+#elseif($testDomain.isWaitConfirmIndex())
+确认索引的正确性  <input type="submit" style="background-color:pink; width:300px;height:30px" name="event_submit_do_confirm" onclick="return window.confirm('您确定本次测试成功？可以将最新上传的代码包发布到DAILY环境');" value="索引正确无误可以发布到日常环境" /> 
+#elseif($testDomain.isConfirmIndex())
+您已经确认索引结果，稍后终搜的同学会将它发布到Daily环境中
+#end
+</h2>

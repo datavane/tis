@@ -1,0 +1,37 @@
+<style type="text/css"><!--
+  #uploaddialog p span{
+    width:8em;
+    display:inline-block;
+  }
+  #btndouploadjar {
+    width:200px;
+    height:30px;
+  }
+-->
+</style>
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("addDepartment")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="department_action"/>
+<input type="hidden" name="parentid" value="#p("parentid")"/>
+<fieldset id="uploaddialog">
+<legend>设置表单</legend>
+#if($parent)
+<p>
+  <span>隶属部门:</span> 
+  [$parent.dptId]$parent.name
+</p>
+#end
+<p>
+ <span>名称:</span> 
+  <input type="text" name="dptName" value="#p('dptName')"/>
+    <em style="color:red">必选</em>
+</p>
+
+<p>
+<input type="submit" id="btnaddapp" name="event_submit_do_add_department" value="提     交" />
+</p>
+</fieldset>
+</form>

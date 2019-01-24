@@ -1,0 +1,75 @@
+<script src="$manageModule.setTarget("/js/jquery.autocomplete.js")"></script>
+<style type="text/css"><!--
+  #addserver p span{
+    width:9em;
+    display:inline-block;
+  }
+.autocomplete-w1 { background:url($manageModule.setTarget("/imgs/shadow.png")) no-repeat bottom right; position:absolute; top:0px; left:0px; margin:6px 0 0 6px; /* IE6 fix: */ _background:none; _margin:1px 0 0 0; }
+.autocomplete { border:1px solid #999; background:#FFF; cursor:default; text-align:left; max-height:350px; overflow:auto; margin:-6px 6px 6px -6px; /* IE6 specific: */ _height:350px;  _margin:0; _overflow-x:hidden; }
+.autocomplete .selected { background:#F0F0F0; }
+.autocomplete div { padding:2px 5px; white-space:nowrap; overflow:hidden; }
+.autocomplete strong { font-weight:normal; color:#3399FF; }
+
+-->
+</style>
+#*
+<script>
+  function onSelectChange(form){
+  
+  
+   TIS.ajax({url:'$manageModule.setTarget("changedomain.action")', 
+         		type:'POST',
+				dataType:"json",
+          		data:{
+				   'event_submit_do_select_change':'y',
+				   'action':'change_domain_action',
+				   '_fm.ch._0.b': $('#bizid').val()
+          		},
+			   success:function(data){
+				    $('#appid').html("<option value='' >请选择</option>");
+				  	for(var i =0;i< data.list.length;i++){
+				  	 $('#appids').append("<option value='" + data.list[i].value +"' >"+ data.list[i].name+"</option>");
+				  	}
+	      	   }, 
+			   error:function(){
+			   
+			   },				   
+	        }); 
+   
+   
+  }
+</script>
+*#
+#if(!$fromDaily)
+    <p class="appselectboxcontrol">
+        #taction ("name=appselectboxcontrol" "namespace=/runtime#control","executeResult=true")
+         #sparam("name=contextid","value='main'")
+         #sparam("name=maxMatch","value=$maxMatch")
+        #end
+    	<br/>
+    </p>
+#end
+
+
+
+<div class="form-group">
+ <label for="query">应用</label> 
+ <input type="text" class="form-control" name="appnamesuggest" id="query" size="40" placeholder="search4" />
+ <input type="hidden" id="hidappname" name="hiddenAppnamesuggest" /> 
+</div>
+
+
+<script>
+ var options, a;
+jQuery(function(){
+  
+  options = {minChars:2,
+     onSelect: function(value,data){$('#hidappname').attr('value',data);},
+     zIndex: 9999,
+   serviceUrl:'/config/app_suggest_action.action?action=app_suggest_action&event_submit_do_app_name_suggest=y&maxmatch=${maxMatch}' };
+  a = $('#query').autocomplete(options);
+  
+  $("#"+a.mainContainerId).find(".autocomplete").css("width","auto");
+
+});
+</script>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans>
+
+	<bean id="clusterStatusDatasource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url"
+			value="jdbc:mysql://${tis.datasource.url}:3306/${tis.datasource.dbname}?useUnicode=yes&amp;characterEncoding=utf8" />
+		<property name="username" value="${tis.datasource.username}" />
+		<property name="password" value="${tis.datasource.password}" />
+		<property name="validationQuery" value="select 1" />
+	</bean>
+
+	<alias name="clusterStatusDatasource" alias="endSearchDatasource" />
+	<alias name="clusterStatusDatasource" alias="terminatorTriggerBizDalDatasource" />
+	<alias name="clusterStatusDatasource" alias="tisDatasource" />
+
+
+
+</beans>

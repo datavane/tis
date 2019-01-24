@@ -1,0 +1,11 @@
+
+<form method="post" action="$manageModule.setTarget("globalResourceBind")" >
+<input type="hidden" name="action" value="upload_jar_action"/>
+<p>
+ <input type="submit" name="event_submit_do_bind_global_resource" value="绑  定" />
+</p>
+$control.setTemplate("global_resource_list.vm").setParameter("showappbind",false)
+<p>
+ <input type="submit" name="event_submit_do_bind_global_resource" value="绑  定" />
+</p>
+</form>

@@ -1,0 +1,912 @@
+
+D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars>mvn versions:set -DnewVersion=3.0.0 -X -DprocessDependencies=true -DgenerateBackupPoms=false -DnextSnapshot=true -o 
+Apache Maven 3.3.3 (7994120775791599e205a5524ec3e0dfe41d4a06; 2015-04-22T19:57:37+08:00)
+Maven home: D:\j2ee_solution\apache-maven-3.3.3\bin\..
+Java version: 1.8.0_40, vendor: Oracle Corporation
+Java home: D:\j2ee_solution\jdk1.8.0_25\jre
+Default locale: zh_CN, platform encoding: GBK
+OS name: "windows 7", version: "6.1", arch: "amd64", family: "dos"
+[DEBUG] Created new class realm maven.api
+[DEBUG] Importing foreign packages into class realm maven.api
+[DEBUG]   Imported: javax.enterprise.inject.* < plexus.core
+[DEBUG]   Imported: javax.enterprise.util.* < plexus.core
+[DEBUG]   Imported: javax.inject.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.artifact < plexus.core
+[DEBUG]   Imported: org.apache.maven.classrealm < plexus.core
+[DEBUG]   Imported: org.apache.maven.cli < plexus.core
+[DEBUG]   Imported: org.apache.maven.configuration < plexus.core
+[DEBUG]   Imported: org.apache.maven.exception < plexus.core
+[DEBUG]   Imported: org.apache.maven.execution < plexus.core
+[DEBUG]   Imported: org.apache.maven.execution.scope < plexus.core
+[DEBUG]   Imported: org.apache.maven.lifecycle < plexus.core
+[DEBUG]   Imported: org.apache.maven.model < plexus.core
+[DEBUG]   Imported: org.apache.maven.monitor < plexus.core
+[DEBUG]   Imported: org.apache.maven.plugin < plexus.core
+[DEBUG]   Imported: org.apache.maven.profiles < plexus.core
+[DEBUG]   Imported: org.apache.maven.project < plexus.core
+[DEBUG]   Imported: org.apache.maven.reporting < plexus.core
+[DEBUG]   Imported: org.apache.maven.repository < plexus.core
+[DEBUG]   Imported: org.apache.maven.rtinfo < plexus.core
+[DEBUG]   Imported: org.apache.maven.settings < plexus.core
+[DEBUG]   Imported: org.apache.maven.toolchain < plexus.core
+[DEBUG]   Imported: org.apache.maven.usability < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.authentication < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.authorization < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.events < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.observers < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.proxy < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.repository < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.resource < plexus.core
+[DEBUG]   Imported: org.codehaus.classworlds < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.* < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.classworlds < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.component < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.configuration < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.container < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.context < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.lifecycle < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.logging < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.personality < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.Xpp3Dom < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlPullParser < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlPullParserException < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlSerializer < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.* < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.artifact < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.collection < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.deployment < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.graph < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.impl < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.installation < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.internal.impl < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.metadata < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.repository < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.resolution < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.spi < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.transfer < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.version < plexus.core
+[DEBUG]   Imported: org.slf4j.* < plexus.core
+[DEBUG]   Imported: org.slf4j.spi.* < plexus.core
+[DEBUG] Populating class realm maven.api
+[INFO] Error stacktraces are turned on.
+[DEBUG] Reading global settings from D:\j2ee_solution\apache-maven-3.3.3\bin\..\conf\settings.xml
+[DEBUG] Reading user settings from C:\Users\baisui\.m2\settings.xml
+[DEBUG] Reading global toolchains from D:\j2ee_solution\apache-maven-3.3.3\bin\..\conf\toolchains.xml
+[DEBUG] Reading user toolchains from C:\Users\baisui\.m2\toolchains.xml
+[DEBUG] Using local repository at D:\j2ee_solution\mvn_repository
+[DEBUG] Using manager EnhancedLocalRepositoryManager with priority 10.0 for D:\j2ee_solution\mvn_repository
+[INFO] Scanning for projects...
+[DEBUG] Extension realms for project com.dfire.tis:terminator-job-trigger-parent:pom:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging pom from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-parent:pom:1.0.6: (none)
+[DEBUG] Looking up lifecyle mappings for packaging pom from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:terminator-manage-pojo:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:global-diamond-config:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-hdfs-extends:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:solrdao:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-solrj-client:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tsearcher-cloud-common:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-incr-deploy:war:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging war from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:batchpubservice:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:terminator-tags:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:terminator-pubhook-common:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:terminator-job-trigger-common:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:terminator-indexbuilder6.0:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:terminator-job-trigger-dal:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:terminator-job-trigger-client:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tsearcher-builder-api:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tsearcher-builder-adapter-impl:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-client-standalone:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:dfire-order-full-dump:war:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging war from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-solrcore-extend:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:terminator-job-trigger-server:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-realtime-base:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-realtime-transfer:jar:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-collection-info-collect:war:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging war from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:tis-console:war:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging war from ClassRealm[plexus.core, parent: null]
+[DEBUG] Extension realms for project com.dfire.tis:solr-webapp:war:3.0.0: (none)
+[DEBUG] Looking up lifecyle mappings for packaging war from ClassRealm[plexus.core, parent: null]
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] terminator-job-trigger-parent
+[INFO] terminator-manage-pojo
+[INFO] global-diamond-config
+[INFO] tis-hdfs-extends
+[INFO] solrdao
+[INFO] tis-solrj-client
+[INFO] terminator-pubhook-common
+[INFO] tsearcher-cloud-common
+[INFO] tis-incr-deploy Maven Webapp
+[INFO] batchpubservice
+[INFO] terminator-tags
+[INFO] terminator-job-trigger-common
+[INFO] tis-solrcore-extend
+[INFO] terminator-indexbuilder6.0
+[INFO] terminator-job-trigger-dal
+[INFO] terminator-job-trigger-client
+[INFO] tsearcher-builder-api
+[INFO] terminator-job-trigger-server
+[INFO] tsearcher-builder-adapter-impl
+[INFO] tis-client-standalone
+[INFO] dfire-order-full-dump
+[INFO] tis-realtime-base
+[INFO] tis-realtime-transfer
+[INFO] tis-collection-info-collect
+[INFO] tis-console
+[INFO] solr-webapp Maven Webapp
+[DEBUG] Resolving plugin prefix versions from [org.apache.maven.plugins, org.codehaus.mojo]
+[DEBUG] Could not find metadata org.apache.maven.plugins/maven-metadata.xml in local (D:\j2ee_solution\mvn_repository)
+[DEBUG] Could not find metadata org.codehaus.mojo/maven-metadata.xml in local (D:\j2ee_solution\mvn_repository)
+[DEBUG] Resolved plugin prefix versions to org.codehaus.mojo:versions-maven-plugin from repository releases
+[DEBUG] Resolving plugin version for org.codehaus.mojo:versions-maven-plugin
+[DEBUG] Could not find metadata org.codehaus.mojo:versions-maven-plugin/maven-metadata.xml in local (D:\j2ee_solution\mvn_repository)
+[DEBUG] Cannot access snapshots (http://nexus.2dfire-dev.com/content/groups/public-snapshots) in offline mode and the metadata org.codehaus.mojo:versions-maven-plugin/maven-metadata.xml has not been downloaded from it before
+[DEBUG] Ignoring unresolvable plugin version 2.3
+org.apache.maven.plugin.PluginResolutionException: Plugin org.codehaus.mojo:versions-maven-plugin:2.3 or one of its dependencies could not be resolved: Cannot access releases (http://nexus.2dfire-dev.com/content/groups/public) in offline mode and the artifact org.codehaus.mojo:versions-maven-plugin:jar:2.3 has not been downloaded from it before.
+	at org.apache.maven.plugin.internal.DefaultPluginDependenciesResolver.resolve(DefaultPluginDependenciesResolver.java:128)
+	at org.apache.maven.plugin.internal.DefaultMavenPluginManager.getPluginDescriptor(DefaultMavenPluginManager.java:179)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at com.google.inject.internal.DelegatingInvocationHandler.invoke(DelegatingInvocationHandler.java:40)
+	at com.sun.proxy.$Proxy22.getPluginDescriptor(Unknown Source)
+	at org.apache.maven.plugin.version.internal.DefaultPluginVersionResolver.isCompatible(DefaultPluginVersionResolver.java:254)
+	at org.apache.maven.plugin.version.internal.DefaultPluginVersionResolver.selectVersion(DefaultPluginVersionResolver.java:169)
+	at org.apache.maven.plugin.version.internal.DefaultPluginVersionResolver.resolveFromRepository(DefaultPluginVersionResolver.java:148)
+	at org.apache.maven.plugin.version.internal.DefaultPluginVersionResolver.resolve(DefaultPluginVersionResolver.java:96)
+	at org.apache.maven.lifecycle.internal.MojoDescriptorCreator.resolvePluginVersion(MojoDescriptorCreator.java:281)
+	at org.apache.maven.lifecycle.internal.MojoDescriptorCreator.getMojoDescriptor(MojoDescriptorCreator.java:236)
+	at org.apache.maven.lifecycle.internal.DefaultLifecycleTaskSegmentCalculator.calculateTaskSegments(DefaultLifecycleTaskSegmentCalculator.java:103)
+	at org.apache.maven.lifecycle.internal.DefaultLifecycleTaskSegmentCalculator.calculateTaskSegments(DefaultLifecycleTaskSegmentCalculator.java:83)
+	at org.apache.maven.lifecycle.internal.LifecycleStarter.execute(LifecycleStarter.java:89)
+	at org.apache.maven.DefaultMaven.doExecute(DefaultMaven.java:307)
+	at org.apache.maven.DefaultMaven.doExecute(DefaultMaven.java:193)
+	at org.apache.maven.DefaultMaven.execute(DefaultMaven.java:106)
+	at org.apache.maven.cli.MavenCli.execute(MavenCli.java:862)
+	at org.apache.maven.cli.MavenCli.doMain(MavenCli.java:286)
+	at org.apache.maven.cli.MavenCli.main(MavenCli.java:197)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced(Launcher.java:289)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.launch(Launcher.java:229)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode(Launcher.java:415)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.main(Launcher.java:356)
+Caused by: org.eclipse.aether.resolution.ArtifactResolutionException: Cannot access releases (http://nexus.2dfire-dev.com/content/groups/public) in offline mode and the artifact org.codehaus.mojo:versions-maven-plugin:jar:2.3 has not been downloaded from it before.
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve(DefaultArtifactResolver.java:444)
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts(DefaultArtifactResolver.java:246)
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact(DefaultArtifactResolver.java:223)
+	at org.eclipse.aether.internal.impl.DefaultRepositorySystem.resolveArtifact(DefaultRepositorySystem.java:294)
+	at org.apache.maven.plugin.internal.DefaultPluginDependenciesResolver.resolve(DefaultPluginDependenciesResolver.java:124)
+	... 30 more
+Caused by: org.eclipse.aether.transfer.ArtifactNotFoundException: Cannot access releases (http://nexus.2dfire-dev.com/content/groups/public) in offline mode and the artifact org.codehaus.mojo:versions-maven-plugin:jar:2.3 has not been downloaded from it before.
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve(DefaultArtifactResolver.java:391)
+	... 34 more
+Caused by: org.eclipse.aether.transfer.RepositoryOfflineException: Cannot access releases (http://nexus.2dfire-dev.com/content/groups/public) in offline mode
+	at org.eclipse.aether.internal.impl.DefaultOfflineController.checkOffline(DefaultOfflineController.java:72)
+	at org.eclipse.aether.internal.impl.Utils.checkOffline(Utils.java:115)
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve(DefaultArtifactResolver.java:387)
+	... 34 more
+[DEBUG] Resolved plugin version for org.codehaus.mojo:versions-maven-plugin to 2.2 from repository releases (http://nexus.2dfire-dev.com/content/groups/public, default, releases)
+[DEBUG] === REACTOR BUILD PLAN ================================================
+[DEBUG] Project: com.dfire.tis:terminator-job-trigger-parent:pom:3.0.0
+[DEBUG] Tasks:   [versions:set]
+[DEBUG] Style:   Aggregating
+[DEBUG] =======================================================================
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building terminator-job-trigger-parent 3.0.0
+[INFO] ------------------------------------------------------------------------
+[DEBUG] Resolving plugin prefix versions from [org.apache.maven.plugins, org.codehaus.mojo]
+[DEBUG] Could not find metadata org.apache.maven.plugins/maven-metadata.xml in local (D:\j2ee_solution\mvn_repository)
+[DEBUG] Could not find metadata org.codehaus.mojo/maven-metadata.xml in local (D:\j2ee_solution\mvn_repository)
+[DEBUG] Resolved plugin prefix versions to org.codehaus.mojo:versions-maven-plugin from repository releases
+[DEBUG] Resolving plugin version for org.codehaus.mojo:versions-maven-plugin
+[DEBUG] Could not find metadata org.codehaus.mojo:versions-maven-plugin/maven-metadata.xml in local (D:\j2ee_solution\mvn_repository)
+[DEBUG] Cannot access snapshots (http://nexus.2dfire-dev.com/content/groups/public-snapshots) in offline mode and the metadata org.codehaus.mojo:versions-maven-plugin/maven-metadata.xml has not been downloaded from it before
+[DEBUG] Ignoring unresolvable plugin version 2.3
+org.apache.maven.plugin.PluginResolutionException: Plugin org.codehaus.mojo:versions-maven-plugin:2.3 or one of its dependencies could not be resolved: Cannot access releases (http://nexus.2dfire-dev.com/content/groups/public) in offline mode and the artifact org.codehaus.mojo:versions-maven-plugin:jar:2.3 has not been downloaded from it before.
+	at org.apache.maven.plugin.internal.DefaultPluginDependenciesResolver.resolve(DefaultPluginDependenciesResolver.java:128)
+	at org.apache.maven.plugin.internal.DefaultMavenPluginManager.getPluginDescriptor(DefaultMavenPluginManager.java:179)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at com.google.inject.internal.DelegatingInvocationHandler.invoke(DelegatingInvocationHandler.java:40)
+	at com.sun.proxy.$Proxy22.getPluginDescriptor(Unknown Source)
+	at org.apache.maven.plugin.version.internal.DefaultPluginVersionResolver.isCompatible(DefaultPluginVersionResolver.java:254)
+	at org.apache.maven.plugin.version.internal.DefaultPluginVersionResolver.selectVersion(DefaultPluginVersionResolver.java:169)
+	at org.apache.maven.plugin.version.internal.DefaultPluginVersionResolver.resolveFromRepository(DefaultPluginVersionResolver.java:148)
+	at org.apache.maven.plugin.version.internal.DefaultPluginVersionResolver.resolve(DefaultPluginVersionResolver.java:96)
+	at org.apache.maven.lifecycle.internal.MojoDescriptorCreator.resolvePluginVersion(MojoDescriptorCreator.java:281)
+	at org.apache.maven.lifecycle.internal.MojoDescriptorCreator.getMojoDescriptor(MojoDescriptorCreator.java:236)
+	at org.apache.maven.lifecycle.internal.DefaultLifecycleExecutionPlanCalculator.calculateMojoExecutions(DefaultLifecycleExecutionPlanCalculator.java:206)
+	at org.apache.maven.lifecycle.internal.DefaultLifecycleExecutionPlanCalculator.calculateExecutionPlan(DefaultLifecycleExecutionPlanCalculator.java:127)
+	at org.apache.maven.lifecycle.internal.DefaultLifecycleExecutionPlanCalculator.calculateExecutionPlan(DefaultLifecycleExecutionPlanCalculator.java:145)
+	at org.apache.maven.lifecycle.internal.builder.BuilderCommon.resolveBuildPlan(BuilderCommon.java:96)
+	at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject(LifecycleModuleBuilder.java:109)
+	at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject(LifecycleModuleBuilder.java:80)
+	at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build(SingleThreadedBuilder.java:51)
+	at org.apache.maven.lifecycle.internal.LifecycleStarter.execute(LifecycleStarter.java:128)
+	at org.apache.maven.DefaultMaven.doExecute(DefaultMaven.java:307)
+	at org.apache.maven.DefaultMaven.doExecute(DefaultMaven.java:193)
+	at org.apache.maven.DefaultMaven.execute(DefaultMaven.java:106)
+	at org.apache.maven.cli.MavenCli.execute(MavenCli.java:862)
+	at org.apache.maven.cli.MavenCli.doMain(MavenCli.java:286)
+	at org.apache.maven.cli.MavenCli.main(MavenCli.java:197)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced(Launcher.java:289)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.launch(Launcher.java:229)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode(Launcher.java:415)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.main(Launcher.java:356)
+Caused by: org.eclipse.aether.resolution.ArtifactResolutionException: Cannot access releases (http://nexus.2dfire-dev.com/content/groups/public) in offline mode and the artifact org.codehaus.mojo:versions-maven-plugin:jar:2.3 has not been downloaded from it before.
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve(DefaultArtifactResolver.java:444)
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts(DefaultArtifactResolver.java:246)
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact(DefaultArtifactResolver.java:223)
+	at org.eclipse.aether.internal.impl.DefaultRepositorySystem.resolveArtifact(DefaultRepositorySystem.java:294)
+	at org.apache.maven.plugin.internal.DefaultPluginDependenciesResolver.resolve(DefaultPluginDependenciesResolver.java:124)
+	... 35 more
+Caused by: org.eclipse.aether.transfer.ArtifactNotFoundException: Cannot access releases (http://nexus.2dfire-dev.com/content/groups/public) in offline mode and the artifact org.codehaus.mojo:versions-maven-plugin:jar:2.3 has not been downloaded from it before.
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve(DefaultArtifactResolver.java:391)
+	... 39 more
+Caused by: org.eclipse.aether.transfer.RepositoryOfflineException: Cannot access releases (http://nexus.2dfire-dev.com/content/groups/public) in offline mode
+	at org.eclipse.aether.internal.impl.DefaultOfflineController.checkOffline(DefaultOfflineController.java:72)
+	at org.eclipse.aether.internal.impl.Utils.checkOffline(Utils.java:115)
+	at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve(DefaultArtifactResolver.java:387)
+	... 39 more
+[DEBUG] Resolved plugin version for org.codehaus.mojo:versions-maven-plugin to 2.2 from repository releases (http://nexus.2dfire-dev.com/content/groups/public, default, releases)
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] === PROJECT BUILD PLAN ================================================
+[DEBUG] Project:       com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG] Dependencies (collect): []
+[DEBUG] Dependencies (resolve): []
+[DEBUG] Repositories (dependencies): [releases (http://nexus.2dfire-dev.com/content/groups/public, default, releases), snapshots (http://nexus.2dfire-dev.com/content/groups/public-snapshots, default, snapshots), central (https://repo.maven.apache.org/maven2, default, releases)]
+[DEBUG] Repositories (plugins)     : [releases (http://nexus.2dfire-dev.com/content/groups/public, default, releases), snapshots (http://nexus.2dfire-dev.com/content/groups/public-snapshots, default, snapshots), central (https://repo.maven.apache.org/maven2, default, releases)]
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.codehaus.mojo:versions-maven-plugin:2.2:set (default-cli)
+[DEBUG] Style:         Aggregating
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <allowSnapshots default-value="false">${allowSnapshots}</allowSnapshots>
+  <artifactId default-value="${project.artifactId}">${artifactId}</artifactId>
+  <generateBackupPoms>${generateBackupPoms}</generateBackupPoms>
+  <groupId default-value="${project.groupId}">${groupId}</groupId>
+  <localRepository>${localRepository}</localRepository>
+  <newVersion>${newVersion}</newVersion>
+  <oldVersion default-value="${project.version}">${oldVersion}</oldVersion>
+  <processDependencies default-value="true">${processDependencies}</processDependencies>
+  <processParent default-value="true">${processParent}</processParent>
+  <processPlugins default-value="true">${processPlugins}</processPlugins>
+  <processProject default-value="true">${processProject}</processProject>
+  <project>${project}</project>
+  <reactorProjects>${reactorProjects}</reactorProjects>
+  <remoteArtifactRepositories>${project.remoteArtifactRepositories}</remoteArtifactRepositories>
+  <remotePluginRepositories>${project.pluginArtifactRepositories}</remotePluginRepositories>
+  <rulesUri>${maven.version.rules}</rulesUri>
+  <serverId default-value="serverId">${maven.version.rules.serverId}</serverId>
+  <session>${session}</session>
+  <settings>${settings}</settings>
+  <updateMatchingVersions default-value="true">${updateMatchingVersions}</updateMatchingVersions>
+</configuration>
+[DEBUG] =======================================================================
+[INFO] 
+[INFO] --- versions-maven-plugin:2.2:set (default-cli) @ terminator-job-trigger-parent ---
+[DEBUG] Dependency collection stats: {ConflictMarker.analyzeTime=2, ConflictMarker.markTime=1, ConflictMarker.nodeCount=317, ConflictIdSorter.graphTime=1, ConflictIdSorter.topsortTime=1, ConflictIdSorter.conflictIdCount=76, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=11, ConflictResolver.conflictItemCount=185, DefaultDependencyCollector.collectTime=379, DefaultDependencyCollector.transformTime=18}
+[DEBUG] org.codehaus.mojo:versions-maven-plugin:jar:2.2:
+[DEBUG]    org.apache.maven:maven-artifact:jar:2.2.1:compile
+[DEBUG]    org.apache.maven:maven-artifact-manager:jar:2.2.1:compile
+[DEBUG]       org.apache.maven:maven-repository-metadata:jar:2.2.1:compile
+[DEBUG]       backport-util-concurrent:backport-util-concurrent:jar:3.1:compile
+[DEBUG]    org.apache.maven:maven-core:jar:2.2.1:compile
+[DEBUG]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.2.1:compile
+[DEBUG]       org.slf4j:slf4j-jdk14:jar:1.5.6:runtime
+[DEBUG]          org.slf4j:slf4j-api:jar:1.5.6:runtime
+[DEBUG]       org.slf4j:jcl-over-slf4j:jar:1.5.6:runtime
+[DEBUG]       org.apache.maven:maven-profile:jar:2.2.1:compile
+[DEBUG]       org.apache.maven:maven-error-diagnostics:jar:2.2.1:compile
+[DEBUG]       commons-cli:commons-cli:jar:1.2:compile
+[DEBUG]       org.apache.maven:maven-monitor:jar:2.2.1:compile
+[DEBUG]       classworlds:classworlds:jar:1.1:compile
+[DEBUG]       org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3:compile
+[DEBUG]          org.sonatype.plexus:plexus-cipher:jar:1.4:compile
+[DEBUG]    org.apache.maven:maven-model:jar:2.2.1:compile
+[DEBUG]    org.apache.maven:maven-plugin-api:jar:2.2.1:compile
+[DEBUG]    org.apache.maven:maven-plugin-descriptor:jar:2.2.1:compile
+[DEBUG]    org.apache.maven:maven-settings:jar:2.2.1:compile
+[DEBUG]       org.codehaus.plexus:plexus-interpolation:jar:1.11:compile
+[DEBUG]    org.apache.maven:maven-project:jar:2.2.1:compile
+[DEBUG]       org.apache.maven:maven-plugin-registry:jar:2.2.1:compile
+[DEBUG]    org.apache.maven.reporting:maven-reporting-api:jar:3.0:compile
+[DEBUG]    org.apache.maven.reporting:maven-reporting-impl:jar:2.2:compile
+[DEBUG]       commons-validator:commons-validator:jar:1.3.1:compile
+[DEBUG]          commons-beanutils:commons-beanutils:jar:1.7.0:compile
+[DEBUG]          commons-digester:commons-digester:jar:1.6:compile
+[DEBUG]          commons-logging:commons-logging:jar:1.0.4:compile
+[DEBUG]    org.apache.maven.shared:maven-common-artifact-filters:jar:1.4:compile
+[DEBUG]    org.apache.maven.wagon:wagon-provider-api:jar:2.5:compile
+[DEBUG]    org.apache.maven.wagon:wagon-file:jar:2.5:compile
+[DEBUG]    org.apache.maven.doxia:doxia-core:jar:1.4:compile
+[DEBUG]       org.apache.maven.doxia:doxia-logging-api:jar:1.4:compile
+[DEBUG]       org.codehaus.plexus:plexus-component-annotations:jar:1.5.5:compile
+[DEBUG]       xerces:xercesImpl:jar:2.9.1:compile
+[DEBUG]          xml-apis:xml-apis:jar:1.3.04:compile
+[DEBUG]       org.apache.httpcomponents:httpclient:jar:4.0.2:compile
+[DEBUG]          commons-codec:commons-codec:jar:1.3:compile
+[DEBUG]       org.apache.httpcomponents:httpcore:jar:4.0.1:compile
+[DEBUG]    org.apache.maven.doxia:doxia-sink-api:jar:1.4:compile
+[DEBUG]    org.apache.maven.doxia:doxia-site-renderer:jar:1.4:compile
+[DEBUG]       org.apache.maven.doxia:doxia-decoration-model:jar:1.4:compile
+[DEBUG]       org.apache.maven.doxia:doxia-module-xhtml:jar:1.4:compile
+[DEBUG]       org.apache.maven.doxia:doxia-module-fml:jar:1.4:compile
+[DEBUG]       org.codehaus.plexus:plexus-velocity:jar:1.1.7:compile
+[DEBUG]       org.apache.velocity:velocity:jar:1.5:compile
+[DEBUG]          oro:oro:jar:2.0.8:compile
+[DEBUG]       org.apache.velocity:velocity-tools:jar:2.0:compile
+[DEBUG]          commons-chain:commons-chain:jar:1.1:compile
+[DEBUG]          dom4j:dom4j:jar:1.1:compile
+[DEBUG]          sslext:sslext:jar:1.2-0:compile
+[DEBUG]          org.apache.struts:struts-core:jar:1.3.8:compile
+[DEBUG]             antlr:antlr:jar:2.7.2:compile
+[DEBUG]          org.apache.struts:struts-taglib:jar:1.3.8:compile
+[DEBUG]          org.apache.struts:struts-tiles:jar:1.3.8:compile
+[DEBUG]       commons-collections:commons-collections:jar:3.2.1:compile
+[DEBUG]    org.codehaus.plexus:plexus-utils:jar:3.0.20:compile
+[DEBUG]    org.codehaus.plexus:plexus-container-default:jar:1.5.5:compile
+[DEBUG]       org.codehaus.plexus:plexus-classworlds:jar:2.2.2:compile
+[DEBUG]       org.apache.xbean:xbean-reflect:jar:3.4:compile
+[DEBUG]          log4j:log4j:jar:1.2.12:compile
+[DEBUG]          commons-logging:commons-logging-api:jar:1.1:compile
+[DEBUG]       com.google.collections:google-collections:jar:1.0:compile
+[DEBUG]       junit:junit:jar:4.11:test
+[DEBUG]          org.hamcrest:hamcrest-core:jar:1.3:test
+[DEBUG]    org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-6:compile
+[DEBUG]    org.codehaus.plexus:plexus-i18n:jar:1.0-beta-10:compile
+[DEBUG]    org.codehaus.woodstox:woodstox-core-asl:jar:4.2.0:compile
+[DEBUG]       javax.xml.stream:stax-api:jar:1.0-2:compile
+[DEBUG]       org.codehaus.woodstox:stax2-api:jar:3.1.1:compile
+[DEBUG]    commons-lang:commons-lang:jar:2.6:compile
+[DEBUG] Created new class realm plugin>org.codehaus.mojo:versions-maven-plugin:2.2
+[DEBUG] Importing foreign packages into class realm plugin>org.codehaus.mojo:versions-maven-plugin:2.2
+[DEBUG]   Imported:  < maven.api
+[DEBUG] Populating class realm plugin>org.codehaus.mojo:versions-maven-plugin:2.2
+[DEBUG]   Included: org.codehaus.mojo:versions-maven-plugin:jar:2.2
+[DEBUG]   Included: backport-util-concurrent:backport-util-concurrent:jar:3.1
+[DEBUG]   Included: org.slf4j:slf4j-jdk14:jar:1.5.6
+[DEBUG]   Included: org.slf4j:jcl-over-slf4j:jar:1.5.6
+[DEBUG]   Included: commons-cli:commons-cli:jar:1.2
+[DEBUG]   Included: org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3
+[DEBUG]   Included: org.sonatype.plexus:plexus-cipher:jar:1.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-interpolation:jar:1.11
+[DEBUG]   Included: org.apache.maven.reporting:maven-reporting-api:jar:3.0
+[DEBUG]   Included: org.apache.maven.reporting:maven-reporting-impl:jar:2.2
+[DEBUG]   Included: commons-validator:commons-validator:jar:1.3.1
+[DEBUG]   Included: commons-beanutils:commons-beanutils:jar:1.7.0
+[DEBUG]   Included: commons-digester:commons-digester:jar:1.6
+[DEBUG]   Included: commons-logging:commons-logging:jar:1.0.4
+[DEBUG]   Included: org.apache.maven.shared:maven-common-artifact-filters:jar:1.4
+[DEBUG]   Included: org.apache.maven.wagon:wagon-file:jar:2.5
+[DEBUG]   Included: org.apache.maven.doxia:doxia-core:jar:1.4
+[DEBUG]   Included: org.apache.maven.doxia:doxia-logging-api:jar:1.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-component-annotations:jar:1.5.5
+[DEBUG]   Included: xerces:xercesImpl:jar:2.9.1
+[DEBUG]   Included: xml-apis:xml-apis:jar:1.3.04
+[DEBUG]   Included: org.apache.httpcomponents:httpclient:jar:4.0.2
+[DEBUG]   Included: commons-codec:commons-codec:jar:1.3
+[DEBUG]   Included: org.apache.httpcomponents:httpcore:jar:4.0.1
+[DEBUG]   Included: org.apache.maven.doxia:doxia-sink-api:jar:1.4
+[DEBUG]   Included: org.apache.maven.doxia:doxia-site-renderer:jar:1.4
+[DEBUG]   Included: org.apache.maven.doxia:doxia-decoration-model:jar:1.4
+[DEBUG]   Included: org.apache.maven.doxia:doxia-module-xhtml:jar:1.4
+[DEBUG]   Included: org.apache.maven.doxia:doxia-module-fml:jar:1.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-velocity:jar:1.1.7
+[DEBUG]   Included: org.apache.velocity:velocity:jar:1.5
+[DEBUG]   Included: oro:oro:jar:2.0.8
+[DEBUG]   Included: org.apache.velocity:velocity-tools:jar:2.0
+[DEBUG]   Included: commons-chain:commons-chain:jar:1.1
+[DEBUG]   Included: dom4j:dom4j:jar:1.1
+[DEBUG]   Included: sslext:sslext:jar:1.2-0
+[DEBUG]   Included: org.apache.struts:struts-core:jar:1.3.8
+[DEBUG]   Included: antlr:antlr:jar:2.7.2
+[DEBUG]   Included: org.apache.struts:struts-taglib:jar:1.3.8
+[DEBUG]   Included: org.apache.struts:struts-tiles:jar:1.3.8
+[DEBUG]   Included: commons-collections:commons-collections:jar:3.2.1
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:3.0.20
+[DEBUG]   Included: org.apache.xbean:xbean-reflect:jar:3.4
+[DEBUG]   Included: log4j:log4j:jar:1.2.12
+[DEBUG]   Included: commons-logging:commons-logging-api:jar:1.1
+[DEBUG]   Included: com.google.collections:google-collections:jar:1.0
+[DEBUG]   Included: org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-6
+[DEBUG]   Included: org.codehaus.plexus:plexus-i18n:jar:1.0-beta-10
+[DEBUG]   Included: org.codehaus.woodstox:woodstox-core-asl:jar:4.2.0
+[DEBUG]   Included: javax.xml.stream:stax-api:jar:1.0-2
+[DEBUG]   Included: org.codehaus.woodstox:stax2-api:jar:3.1.1
+[DEBUG]   Included: commons-lang:commons-lang:jar:2.6
+[DEBUG] Configuring mojo org.codehaus.mojo:versions-maven-plugin:2.2:set from plugin realm ClassRealm[plugin>org.codehaus.mojo:versions-maven-plugin:2.2, parent: sun.misc.Launcher$AppClassLoader@4e25154f]
+[DEBUG] Configuring mojo 'org.codehaus.mojo:versions-maven-plugin:2.2:set' with basic configurator -->
+[DEBUG]   (f) allowSnapshots = false
+[DEBUG]   (f) artifactId = terminator-job-trigger-parent
+[DEBUG]   (f) generateBackupPoms = false
+[DEBUG]   (f) groupId = com.dfire.tis
+[DEBUG]   (f) localRepository =       id: local
+      url: file:///D:/j2ee_solution/mvn_repository/
+   layout: default
+snapshots: [enabled => true, update => always]
+ releases: [enabled => true, update => always]
+
+[DEBUG]   (f) newVersion = 3.0.0
+[DEBUG]   (f) oldVersion = 3.0.0
+[DEBUG]   (f) processDependencies = true
+[DEBUG]   (f) processParent = true
+[DEBUG]   (f) processPlugins = true
+[DEBUG]   (f) processProject = true
+[DEBUG]   (s) project = MavenProject: com.dfire.tis:terminator-job-trigger-parent:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\pom.xml
+[DEBUG]   (f) reactorProjects = [MavenProject: com.dfire.tis:terminator-job-trigger-parent:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\pom.xml, MavenProject: com.dfire.tis:terminator-manage-pojo:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\terminator-manage-pojo\pom.xml, MavenProject: com.dfire.tis:global-diamond-config:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\global-diamond-config\pom.xml, MavenProject: com.dfire.tis:tis-hdfs-extends:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-hdfs-extends\pom.xml, MavenProject: com.dfire.tis:solrdao:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\solrdao\pom.xml, MavenProject: com.dfire.tis:tis-solrj-client:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-solrj-client\pom.xml, MavenProject: com.dfire.tis:terminator-pubhook-common:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\terminator-pubhook-common\pom.xml, MavenProject: com.dfire.tis:tsearcher-cloud-common:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tsearcher-cloud-common\pom.xml, MavenProject: com.dfire.tis:tis-incr-deploy:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-incr-deploy\pom.xml, MavenProject: com.dfire.tis:batchpubservice:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\batchpubservice\pom.xml, MavenProject: com.dfire.tis:terminator-tags:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\terminator-tags\pom.xml, MavenProject: com.dfire.tis:terminator-job-trigger-common:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\terminator-job-trigger-common\pom.xml, MavenProject: com.dfire.tis:tis-solrcore-extend:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-solrcore-extend\pom.xml, MavenProject: com.dfire.tis:terminator-indexbuilder6.0:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\terminator-indexbuilder6.0\pom.xml, MavenProject: com.dfire.tis:terminator-job-trigger-dal:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\terminator-job-trigger-dal\pom.xml, MavenProject: com.dfire.tis:terminator-job-trigger-client:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\terminator-job-trigger-client\pom.xml, MavenProject: com.dfire.tis:tsearcher-builder-api:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tsearcher-builder-api\pom.xml, MavenProject: com.dfire.tis:terminator-job-trigger-server:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\terminator-job-trigger-server\pom.xml, MavenProject: com.dfire.tis:tsearcher-builder-adapter-impl:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tsearcher-builder-adapter-impl\pom.xml, MavenProject: com.dfire.tis:tis-client-standalone:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-client-standalone\pom.xml, MavenProject: com.dfire.tis:dfire-order-full-dump:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\dfire-order-full-dump\pom.xml, MavenProject: com.dfire.tis:tis-realtime-base:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-realtime-base\pom.xml, MavenProject: com.dfire.tis:tis-realtime-transfer:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-realtime-transfer\pom.xml, MavenProject: com.dfire.tis:tis-collection-info-collect:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-collection-info-collect\pom.xml, MavenProject: com.dfire.tis:tis-console:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\tis-console\pom.xml, MavenProject: com.dfire.tis:solr-webapp:3.0.0 @ D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars\solr-webapp\pom.xml]
+[DEBUG]   (f) remoteArtifactRepositories = [      id: releases
+      url: http://nexus.2dfire-dev.com/content/groups/public
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => daily]
+,       id: snapshots
+      url: http://nexus.2dfire-dev.com/content/groups/public-snapshots
+   layout: default
+snapshots: [enabled => true, update => daily]
+ releases: [enabled => false, update => daily]
+,       id: central
+      url: https://repo.maven.apache.org/maven2
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => daily]
+]
+[DEBUG]   (f) remotePluginRepositories = [      id: releases
+      url: http://nexus.2dfire-dev.com/content/groups/public
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => daily]
+,       id: snapshots
+      url: http://nexus.2dfire-dev.com/content/groups/public-snapshots
+   layout: default
+snapshots: [enabled => true, update => daily]
+ releases: [enabled => false, update => daily]
+,       id: central
+      url: https://repo.maven.apache.org/maven2
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => never]
+]
+[DEBUG]   (f) serverId = serverId
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@6813a331
+[DEBUG]   (f) settings = org.apache.maven.execution.SettingsAdapter@39ab59f8
+[DEBUG]   (f) updateMatchingVersions = true
+[DEBUG] -- end configuration --
+[INFO] Searching for local aggregator root...
+[DEBUG] Checking to see if D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace is an aggregator parent
+[DEBUG] Local aggregation root is D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars
+[INFO] Local aggregation root: D:\j2ee_solution\eclipse-standard-kepler-SR2-win32-x86_64\workspace\tis-mars
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG]   batchpubservice
+[DEBUG]   dfire-order-full-dump
+[DEBUG]   global-diamond-config
+[DEBUG]   solr-webapp
+[DEBUG]   solrdao
+[DEBUG]   terminator-indexbuilder6.0
+[DEBUG]   terminator-job-trigger-client
+[DEBUG]   terminator-job-trigger-common
+[DEBUG]   terminator-job-trigger-dal
+[DEBUG]   terminator-job-trigger-server
+[DEBUG]   terminator-manage-pojo
+[DEBUG]   terminator-pubhook-common
+[DEBUG]   terminator-tags
+[DEBUG]   tis-client-standalone
+[DEBUG]   tis-collection-info-collect
+[DEBUG]   tis-console
+[DEBUG]   tis-hdfs-extends
+[DEBUG]   tis-incr-deploy
+[DEBUG]   tis-realtime-base
+[DEBUG]   tis-realtime-transfer
+[DEBUG]   tis-solrcore-extend
+[DEBUG]   tis-solrj-client
+[DEBUG]   tsearcher-builder-adapter-impl
+[DEBUG]   tsearcher-builder-api
+[DEBUG]   tsearcher-cloud-common
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG]   batchpubservice
+[DEBUG]   dfire-order-full-dump
+[DEBUG]   global-diamond-config
+[DEBUG]   solr-webapp
+[DEBUG]   solrdao
+[DEBUG]   terminator-indexbuilder6.0
+[DEBUG]   terminator-job-trigger-client
+[DEBUG]   terminator-job-trigger-common
+[DEBUG]   terminator-job-trigger-dal
+[DEBUG]   terminator-job-trigger-server
+[DEBUG]   terminator-manage-pojo
+[DEBUG]   terminator-pubhook-common
+[DEBUG]   terminator-tags
+[DEBUG]   tis-client-standalone
+[DEBUG]   tis-collection-info-collect
+[DEBUG]   tis-console
+[DEBUG]   tis-hdfs-extends
+[DEBUG]   tis-incr-deploy
+[DEBUG]   tis-realtime-base
+[DEBUG]   tis-realtime-transfer
+[DEBUG]   tis-solrcore-extend
+[DEBUG]   tis-solrj-client
+[DEBUG]   tsearcher-builder-adapter-impl
+[DEBUG]   tsearcher-builder-api
+[DEBUG]   tsearcher-cloud-common
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[DEBUG] Finding child modules...
+[DEBUG] Child modules:
+[DEBUG] None.
+[DEBUG] Removing child modules which are missing...
+[DEBUG] After removing missing
+[DEBUG] None.
+[INFO] Processing change of com.dfire.tis:terminator-job-trigger-parent:3.0.0 -> 3.0.0
+[DEBUG] Applying change com.dfire.tis:terminator-job-trigger-parent:3.0.0 -> 3.0.0
+[DEBUG] Processing root module as parent
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-job-trigger-parent as their parent
+[DEBUG] Module: batchpubservice
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:batchpubservice:3.0.0
+[DEBUG]     will become com.dfire.tis:batchpubservice:3.0.0
+[DEBUG] Module: dfire-order-full-dump
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:dfire-order-full-dump:3.0.0
+[DEBUG]     will become com.dfire.tis:dfire-order-full-dump:3.0.0
+[DEBUG] Module: global-diamond-config
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:global-diamond-config:3.0.0
+[DEBUG]     will become com.dfire.tis:global-diamond-config:3.0.0
+[DEBUG] Module: solr-webapp
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:solr-webapp:3.0.0
+[DEBUG]     will become com.dfire.tis:solr-webapp:3.0.0
+[DEBUG] Module: solrdao
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:solrdao:3.0.0
+[DEBUG]     will become com.dfire.tis:solrdao:3.0.0
+[DEBUG] Module: terminator-indexbuilder6.0
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:terminator-indexbuilder6.0:3.0.0
+[DEBUG]     will become com.dfire.tis:terminator-indexbuilder6.0:3.0.0
+[DEBUG] Module: terminator-job-trigger-client
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:terminator-job-trigger-client:3.0.0
+[DEBUG]     will become com.dfire.tis:terminator-job-trigger-client:3.0.0
+[DEBUG] Module: terminator-job-trigger-common
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:terminator-job-trigger-common:3.0.0
+[DEBUG]     will become com.dfire.tis:terminator-job-trigger-common:3.0.0
+[DEBUG] Module: terminator-job-trigger-dal
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:terminator-job-trigger-dal:3.0.0
+[DEBUG]     will become com.dfire.tis:terminator-job-trigger-dal:3.0.0
+[DEBUG] Module: terminator-job-trigger-server
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:terminator-job-trigger-server:3.0.0
+[DEBUG]     will become com.dfire.tis:terminator-job-trigger-server:3.0.0
+[DEBUG] Module: terminator-manage-pojo
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:terminator-manage-pojo:3.0.0
+[DEBUG]     will become com.dfire.tis:terminator-manage-pojo:3.0.0
+[DEBUG] Module: terminator-pubhook-common
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:terminator-pubhook-common:3.0.0
+[DEBUG]     will become com.dfire.tis:terminator-pubhook-common:3.0.0
+[DEBUG] Module: terminator-tags
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:terminator-tags:3.0.0
+[DEBUG]     will become com.dfire.tis:terminator-tags:3.0.0
+[DEBUG] Module: tis-client-standalone
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-client-standalone:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-client-standalone:3.0.0
+[DEBUG] Module: tis-collection-info-collect
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-collection-info-collect:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-collection-info-collect:3.0.0
+[DEBUG] Module: tis-console
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-console:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-console:3.0.0
+[DEBUG] Module: tis-hdfs-extends
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-hdfs-extends:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-hdfs-extends:3.0.0
+[DEBUG] Module: tis-incr-deploy
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-incr-deploy:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-incr-deploy:3.0.0
+[DEBUG] Module: tis-realtime-base
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-realtime-base:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-realtime-base:3.0.0
+[DEBUG] Module: tis-realtime-transfer
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-realtime-transfer:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-realtime-transfer:3.0.0
+[DEBUG] Module: tis-solrcore-extend
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-solrcore-extend:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-solrcore-extend:3.0.0
+[DEBUG] Module: tis-solrj-client
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tis-solrj-client:3.0.0
+[DEBUG]     will become com.dfire.tis:tis-solrj-client:3.0.0
+[DEBUG] Module: tsearcher-builder-adapter-impl
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tsearcher-builder-adapter-impl:3.0.0
+[DEBUG]     will become com.dfire.tis:tsearcher-builder-adapter-impl:3.0.0
+[DEBUG] Module: tsearcher-builder-api
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tsearcher-builder-api:3.0.0
+[DEBUG]     will become com.dfire.tis:tsearcher-builder-api:3.0.0
+[DEBUG] Module: tsearcher-cloud-common
+[DEBUG]     parent already is com.dfire.tis:terminator-job-trigger-parent:3.0.0
+[DEBUG]     module is com.dfire.tis:tsearcher-cloud-common:3.0.0
+[DEBUG]     will become com.dfire.tis:tsearcher-cloud-common:3.0.0
+[DEBUG] Processing batchpubservice as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:batchpubservice as their parent
+[DEBUG] Processing dfire-order-full-dump as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:dfire-order-full-dump as their parent
+[DEBUG] Processing global-diamond-config as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:global-diamond-config as their parent
+[DEBUG] Processing solr-webapp as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:solr-webapp as their parent
+[DEBUG] Processing solrdao as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:solrdao as their parent
+[DEBUG] Processing terminator-indexbuilder6.0 as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-indexbuilder6.0 as their parent
+[DEBUG] Processing terminator-job-trigger-client as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-job-trigger-client as their parent
+[DEBUG] Processing terminator-job-trigger-common as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-job-trigger-common as their parent
+[DEBUG] Processing terminator-job-trigger-dal as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-job-trigger-dal as their parent
+[DEBUG] Processing terminator-job-trigger-server as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-job-trigger-server as their parent
+[DEBUG] Processing terminator-manage-pojo as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-manage-pojo as their parent
+[DEBUG] Processing terminator-pubhook-common as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-pubhook-common as their parent
+[DEBUG] Processing terminator-tags as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:terminator-tags as their parent
+[DEBUG] Processing tis-client-standalone as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-client-standalone as their parent
+[DEBUG] Processing tis-collection-info-collect as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-collection-info-collect as their parent
+[DEBUG] Processing tis-console as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-console as their parent
+[DEBUG] Processing tis-hdfs-extends as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-hdfs-extends as their parent
+[DEBUG] Processing tis-incr-deploy as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-incr-deploy as their parent
+[DEBUG] Processing tis-realtime-base as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-realtime-base as their parent
+[DEBUG] Processing tis-realtime-transfer as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-realtime-transfer as their parent
+[DEBUG] Processing tis-solrcore-extend as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-solrcore-extend as their parent
+[DEBUG] Processing tis-solrj-client as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tis-solrj-client as their parent
+[DEBUG] Processing tsearcher-builder-adapter-impl as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tsearcher-builder-adapter-impl as their parent
+[DEBUG] Processing tsearcher-builder-api as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tsearcher-builder-api as their parent
+[DEBUG] Processing tsearcher-cloud-common as a parent.
+[DEBUG] Looking for modules which use com.dfire.tis:tsearcher-cloud-common as their parent
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] terminator-job-trigger-parent ...................... SUCCESS [  0.731 s]
+[INFO] terminator-manage-pojo ............................. SKIPPED
+[INFO] global-diamond-config .............................. SKIPPED
+[INFO] tis-hdfs-extends ................................... SKIPPED
+[INFO] solrdao ............................................ SKIPPED
+[INFO] tis-solrj-client ................................... SKIPPED
+[INFO] terminator-pubhook-common .......................... SKIPPED
+[INFO] tsearcher-cloud-common ............................. SKIPPED
+[INFO] tis-incr-deploy Maven Webapp ....................... SKIPPED
+[INFO] batchpubservice .................................... SKIPPED
+[INFO] terminator-tags .................................... SKIPPED
+[INFO] terminator-job-trigger-common ...................... SKIPPED
+[INFO] tis-solrcore-extend ................................ SKIPPED
+[INFO] terminator-indexbuilder6.0 ......................... SKIPPED
+[INFO] terminator-job-trigger-dal ......................... SKIPPED
+[INFO] terminator-job-trigger-client ...................... SKIPPED
+[INFO] tsearcher-builder-api .............................. SKIPPED
+[INFO] terminator-job-trigger-server ...................... SKIPPED
+[INFO] tsearcher-builder-adapter-impl ..................... SKIPPED
+[INFO] tis-client-standalone .............................. SKIPPED
+[INFO] dfire-order-full-dump .............................. SKIPPED
+[INFO] tis-realtime-base .................................. SKIPPED
+[INFO] tis-realtime-transfer .............................. SKIPPED
+[INFO] tis-collection-info-collect ........................ SKIPPED
+[INFO] tis-console ........................................ SKIPPED
+[INFO] solr-webapp Maven Webapp ........................... SKIPPED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 1.422 s
+[INFO] Finished at: 2016-09-27T11:33:36+08:00
+[INFO] Final Memory: 21M/208M
+[INFO] ------------------------------------------------------------------------

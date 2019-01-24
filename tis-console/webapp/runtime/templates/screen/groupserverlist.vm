@@ -1,0 +1,15 @@
+<h3>服务器列表</h3>
+<table border="1" width="100%">
+ <tr>
+  <th width="10%">id</th>
+  <th>host名称</th>
+  <th>IP</th>
+ </tr> 
+#foreach( $item in $serverlist ) 
+ <tr>
+  <td>$item.sid</td>
+  <td>$item.serverName</td>
+  <td>$item.ipAddress</td>
+ </tr>
+#end
+</table>

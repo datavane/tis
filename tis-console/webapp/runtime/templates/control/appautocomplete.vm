@@ -1,0 +1,29 @@
+<script src="$manageModule.setTarget("/js/jquery.autocomplete.js")"></script>
+<style type="text/css">
+
+</style>
+
+#if(!$fromDaily)
+
+#end
+<p>
+ <span style="width:4em;">应用：</span>
+ <input type="text" name="appnamesuggest" id="query" size="40" value="search4" />
+ <input type="hidden" id="hidappname" name="hiddenAppnamesuggest" />
+</p>
+
+<script>
+ var options, a;
+jQuery(function(){
+  
+  options = {minChars:2,
+     onSelect: function(value,data){$('#hidappname').attr('value',data);},
+     zIndex: 9999,
+   serviceUrl:'$manageModule.setTarget("changedomain.action")?action=${fromSymbol}&event_submit_do_app_name_suggest=y' };
+  a = $('#query').autocomplete(options);
+    <!--id为query的字段，调用autocomplete方法，参数为options-->
+    
+  $("#"+a.mainContainerId).find(".autocomplete").css("width","auto");
+
+});
+</script>

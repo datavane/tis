@@ -1,0 +1,44 @@
+<h2>Solr Core 依赖资源一览</h2>
+#if(!$manageTool.isValidAppDomain($rundata.request))
+<div>
+<a href="$manageModule.setTarget("uploadjar")"><img src="$manageModule.setTarget("imgs/btn_upload.gif")"/></a>
+&nbsp;&nbsp;<a href="$manageModule.setTarget("jarcontent/grouplist")"><img src="$manageModule.setTarget("imgs/btn_view_group.gif")"/></a>
+</div>
+#end
+<br/>
+<table border="1" width="100%">
+<tr>
+<th width="5%">ID</th> <th width="13%">上传时间</th><th width="12%">上传人</th><th>测试状态</th>
+#*
+<th>操作</th>
+*#
+</tr>
+#set ($g = $form.get("jarcontent").defaultInstance)
+#foreach($item in $packageList)
+<tr> 
+<td align="center">$item.pid</td>
+ <td>$manageTool.formatDateYYYYMMdd($item.createTime)</td>
+  <td align="right">$item.uploadUser</td>
+<td style="background-color:#if($item.testStatus==3)#00FF00#elseif($item.testStatus==2)yellow#elseif($item.testStatus==0)pink#end;">
+#*
+0:等待测试 1 未通过测试 2：通过测试等待确认 3：已经确认且已经向终搜同学发出请求
+*#
+ #if($item.testStatus == 0 )
+ 等待测试 <a href="$manageModule.setTarget("test/begintest")?$g.pid.key=$item.pid">开始测试</a>
+ #elseif($item.testStatus==1)
+ 未通过测试 <a href="#">重新测试</a>（上次测试时间：$manageTool.formatDateYYYYMMdd( $item.lastTestTime) 测试人：$item.lastTestUser）
+ #elseif($item.testStatus==2)
+ 通过测试等待确认 <a href="$item.confirmLink">确认测试结果</a>
+ #elseif($item.testStatus==3)
+ <span >已经确认测试结果</span> $manageTool.getConfigViewLink($manageModule,$item.successSnapshotId)
+ #end
+
+</td>
+#*
+ <td>
+   <a href="$manageModule.setTarget("viewjarcontent")?$g.pid.key=$item.pid">查看内容</a>
+ </td>
+*#
+</tr>
+#end
+</table>

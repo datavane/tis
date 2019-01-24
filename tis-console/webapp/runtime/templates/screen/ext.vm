@@ -1,0 +1,541 @@
+<html>
+<head>
+    <title>TIS台操作系统</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <link rel="stylesheet" type="text/css" href="/ext-3.4.1/resources/css/ext-all.css"/>
+
+    <script type="text/javascript" src="/ext-3.4.1/adapter/ext/ext-base-debug.js"></script>
+    <script type="text/javascript" src="/ext-3.4.1/ext-all-debug.js"></script>
+  
+   
+ 
+    <script type="text/javascript" src="/runtime/js/page_tool.js"></script>
+    <link href="$rundata.request.contextPath/runtime/css/jquery-ui-1.9.1.custom.min.css" rel="stylesheet" type="text/css"/> 
+    <script src="$rundata.request.contextPath/runtime/js/jquery-1.8.2.js"></script>
+    <script src="$rundata.request.contextPath/runtime/js/jquery-ui-1.9.1.custom.min.js"></script>
+    <style type="text/css"><!--
+  .help{
+     background: url($manageModule.setTarget("/imgs/help.png"))  no-repeat scroll left center transparent;
+     padding-left:20px;
+   } 
+.actionMessage{
+border:4px solid blue;
+padding:6px;
+}
+.actionMessage li{list-style-type: none;}
+
+.actionMessage li{
+color:blue;
+font-weight:bold;
+font-size:18px;}
+
+.errorMessage{
+border:4px solid red;
+padding:6px;
+}
+
+.errorMessage li {
+color:red;
+font-weight:bold;
+list-style-type: none;
+font-size:18px;}
+body{
+ padding:0px;
+ margin:0px;
+}
+
+-->
+.txtdel{
+ background-color:#999999;
+}
+#left{
+ float:left;
+
+}
+#right{
+ float:left;
+ margin:4px;
+ width:88%;
+}
+.welcome{
+   font-size:11px;
+   background-color:#337CB9;
+   color:white;
+   	border-bottom-style: inset;
+	border-bottom-color: #333333;
+	border-bottom-width: 2px;
+	padding:2px;
+}
+
+.note {
+	background-color: #F7F79F;
+	border: medium solid #FF5959;
+	padding:10px;
+	color:#E8822F;
+	font-weight:bold;
+	letter-spacing: 5px;
+	font-size:18px;
+	margin:20px;
+}
+
+
+
+.note2 {
+	background-color: #C6CAF4;
+	border: medium solid  #A4A9F0;
+	padding:10px;
+	color: #7C79E6;
+	font-weight:bold;
+	letter-spacing: 5px;
+	font-size:18px;
+	margin:20px;
+}
+.jobstatfalse a {
+  background-color:red;
+  color:yellow;
+  padding:2px;
+  margin:4px;
+  border: 2px inset #333333;
+}
+
+.jobstattrue a {
+  background-color:green;
+  color:white;
+  padding:2px;
+  margin:4px;
+  border: 2px inset #333333;
+}
+
+#current a {
+ background-color:#337CB9;
+ color:white;
+}
+
+</style>
+    <style type="text/css">
+        .x-selectable, .x-selectable * {
+            -webkit-user-select:auto;
+            -moz-user-select: text !important;
+            -khtml-user-select: text !important;
+        }
+    </style>
+    <script type="text/javascript">
+        //ExtJS settings
+        Ext.BLANK_IMAGE_URL = '/ext-3.4.1/resources/images/default/s.gif';
+        Ext.QuickTips.init();
+        Ext.Ajax.timeout = 75000; //75 ms
+        var user_login_name =  'baisui';
+        
+        var TIS = {
+  ajax:function(spec){
+   
+    jQuery.ajax({
+		type:"POST",
+		dataType:"json",
+		url:spec.url,
+	    async:!(spec.async === false),
+		data:spec.data,
+		success:function(data,textStatus)
+		{
+	
+			if(data.errormsg && data.errormsg.length>0){     
+               var errhtml = "<ul style='color:red;'>";
+               for(var i =0;i<data.errormsg.length;i++){
+                      errhtml+="<li>"+ data.errormsg[i]+"</li>";
+               }
+               errhtml+="</ul>";
+               layer.msg(errhtml, {icon: 5});
+            }else{
+                if(!data.success){
+    		      return ;
+			    }
+                spec.success(data);                 
+            }  	
+	   },
+	   error:function(XMLHttpRequest,textStatus,errorThrown){
+		},
+	   complete:function(XMLHttpRequest, textStatus){
+					
+				}
+			});
+  }
+}
+        
+        
+    </script>
+</head>
+<body>
+
+<script type="text/javascript" charset="utf8"  src="/runtime/ext3_4/workspace.js"></script>
+<script type="text/javascript" charset="utf8"   src="/runtime/ext3_4/search.js"></script>
+<script type="text/javascript" charset="utf8"   src="/runtime/ext3_4/biztree.js"></script>
+
+<script type="text/javascript" charset="utf8"  src="/runtime/js/msgtip.js"></script>
+
+<style>
+  .ext-ie .x-tree .x-panel-body {position: relative;}
+  .ext-ie .x-tree .x-tree-root-ct {position: absolute;}
+  .input_alt1 {
+      font-weight: bold;
+      color:green;
+      text-decoration: underline
+  }
+</style>
+
+
+
+<script type="text/javascript">
+
+ Ext.QuickTips.init();
+ var mainxxPanel = null;
+    var user_nick = '百岁';
+    var user_role = 1;
+    var downloadbaseUrl = 'http://dbtask.corp.taobao.com:9999/services/listAsynDowns?query.jobName=';
+    var isFirstLogin = '0';
+    var isTestEnv = false;
+    var static_path = 'http://10.232.31.53:8080';
+    var beidou_path = 'http://beidou.corp.taobao.com/';
+    var searchKey = 'terminatorhome@m110.77';
+    var searchType = '2';
+    var tabEmpty = 'query table' , emptyText2 = 'table name';
+    if(searchKey.charAt(0) == '$') searchKey = '';
+      Ext.onReady(function() {
+      
+        var console = new Dbmis.SearchConsoleManager(searchType , searchKey);
+        
+        console.activate("welcomePanel");
+        mainxxPanel = console;
+  //  Ext.get("testbtn").on("click",function(){
+   //  console.refreshAllTab();
+   // });
+        
+        var searchFields = new Ext.form.TextField({emptyText:tabEmpty , width:340 , height:30 , border:false , x:120 , y:8 , id:'sendername'});
+        searchFields.setValue(searchKey);
+        var button = new Ext.Button({text:'try search', iconCls:'tableIndexStructure', name:'key' , height:30, border:false,handler:function() {
+           // console.resetTypeKey(radioVal , filerString(searchFields.getValue()));
+           alert("hello");
+        }});
+       
+        var isTableCheck = true;
+        var radioVal = 1;
+        if(searchType == 2 || searchType == 3 || searchType == 4) {
+            isTableCheck = false;
+            radioVal = 2;
+            searchFields.emptyText = emptyText2;
+        }
+      
+        var radio1 = new Ext.form.Radio({name:'search', checked:isTableCheck, inputValue:"1", x:10, y:10, listeners:{check:function (checkbox, checked) {
+            convrtNum(checkbox.getGroupValue());
+        }}});
+         
+        var radio2 = new Ext.form.Radio({name:'search', checked:(!isTableCheck), inputValue:"2", x:55, y:10, listeners:{check:function (checkbox, checked) {
+            convrtNum(checkbox.getGroupValue());
+        }}});
+       
+              
+        
+      //  var mainPanel = new Ext.Panel({region:'center',layout:'border',items:[searchPanel,console]});
+        
+   var mainPanel = new Ext.Panel({region:'center',layout:'border'
+            ,items:[console]});
+   var searchFields = new Ext.form.TextField({value:"search4",width:"100%" , border:false , id:'applicationname',enableKeyEvents:true});
+ 
+ Ext.apply(searchFields,{
+   keyupcount:0
+ });
+ 
+  var fuzzyloader =  new Ext.taobao.AppsLoader({
+	        dataUrl:'/runtime/app_view.ajax?resulthandler=anodes&action=app_view_action&event_submit_do_query_app=y',
+             listeners:{
+                "beforeload":function(treeLoader, node) {
+               
+                 this.baseParams.query = searchFields.getValue();
+               }
+             }
+	       });
+ 
+  
+         
+        var leftPanel = new Ext.Panel({ id:"menu_panel",
+               title:"菜单栏", 
+               region:"west",    //左边菜单项，有按钮可控制伸缩的 
+               width:200, 
+               collapsible:true,
+               items:[]
+        });
+
+ // 打开一个新的panel
+ function addPanel2RightFrame(title,url){
+    jQuery.ajax({url: url, 
+         		type:'GET',
+				dataType:"html",
+			    success:function(data){	
+                     
+                  var idval = $(data).attr("id");
+                           
+                  if(document.getElementById(idval)){
+                    $("#"+idval).replaceWith(data);
+                  }else{
+                    $("#appendblock").append(data);
+				  	 dialog = new Ext.Panel({title:title,id:'wrap'+idval, contentEl:idval,closable:true});
+                     console.add(dialog);  
+                      dialog.show(); 
+                  }      
+	      	    }				   
+	        }); 
+ }
+        
+        var viewport 
+          = new Ext.Viewport(
+        {   listeners:{
+        
+    afterrender:function(viewp){ 
+       var opendDialog ={};
+       
+       function addTestPanel(){
+           var rootNode = new Ext.tree.TreeNode();
+       
+           var childNode = new Ext.tree.TreeNode({
+                      leaf:true,
+                      text:"test",
+                      listeners:{
+                       click:function(n,e){
+                        
+             addPanel2RightFrame(n.text,'/zklockview.jsp');
+                         
+                        }
+                      }
+                    });
+                    
+             childNode.attributes.linkhref= "http://www.baidu.com";
+             
+           rootNode.appendChild(childNode);
+       
+           var menugroup =  new Ext.tree.TreePanel({
+                     title:"menu group",
+                     collapsible:true,
+                     xtype: 'treepanel',
+                     rootVisible: false,
+                     root : rootNode
+                   });
+           leftPanel.add(menugroup);
+           leftPanel.doLayout();
+       }    
+       
+       //addTestPanel();
+           
+       Ext.Ajax.request({
+            url: "/runtime/zklockview.ajax?action=menu_action&event_submit_do_load_all_menu=y&resulthandler=advance_query_result",
+            success: function (h, f) {
+            // for test
+           // if(1==1)return ;
+                var g = Ext.util.JSON.decode(h.responseText);
+                
+               // alert(g.results.length);
+               for(var i =0;i<g.results.length;i++){
+                   var group = g.results[i];
+                  
+                  var rootNode = new Ext.tree.TreeNode();
+                  
+                  for(var j =0;j< group.items.length;j++){
+                    
+                   var childNode = new Ext.tree.TreeNode({
+                      leaf:true,
+                      text:group.items[j].text,
+                      listeners:{
+                        click:function(n,e){
+                        
+                       // addPanel2RightFrame(n.text,n.attributes.linkhref);
+                        
+                        // open an new dialog
+                         var dialog = opendDialog[n.text];
+                         
+                        if(!dialog || (dialog && !console.findById( dialog.id ))){
+                           dialog = new Ext.Panel({title:n.text,id:n.text,html:"<iframe src='"+n.attributes.linkhref+"' width='99%' height='99%'></iframe>",closable:true});
+                           console.add(dialog);  
+                           opendDialog[n.text] = dialog;
+                        }else{
+                            mainxxPanel.refreshAllTab();
+                        }
+                          
+                        dialog.show();
+
+                         
+                        }
+                      }
+                    });
+                    
+                    childNode.attributes.linkhref= group.items[j].href;
+                    
+                    rootNode.appendChild(childNode);
+                  }
+                  
+                   var menugroup =  new Ext.tree.TreePanel({
+                     title:group.groupname,
+                     collapsible:true,
+                     xtype: 'treepanel',
+                     rootVisible: false,
+                     root : rootNode
+                   });
+                   
+                   leftPanel.add(menugroup);
+               }
+               
+               leftPanel.doLayout();
+            },
+            failure: function (g, f) {
+                alert("错误信息", g.responseText)
+            }
+        });    
+             
+            }},
+            layout:'border', 
+            items:[ 
+            { 
+      region:"north",
+      collapsible:false,
+      //html:"<iframe width='100%' height='50' src='/trigger/appdomainiframe.htm'/>"
+      contentEl:"header",
+      margins: "5 5 5 5",
+      bodyStyle: "background-color:#D4E4F9;",
+      border: false,
+      autoHeight: true
+      },
+             leftPanel,
+             mainPanel]
+        });
+    
+    
+    
+    
+    
+    searchFields.on("keyup",function(field){
+      var T = this;
+      T.keyupcount++;
+      window.setTimeout(function(){
+          --T.keyupcount;
+         if(T.keyupcount<1){
+           apptree.reloadtree();
+         }
+      },900); 
+     
+   })    
+        
+        var convrtNum = function (v) {
+            if (v == null) return;
+            radioVal = v;
+            if (v == '1') {
+                searchFields.emptyText = tabEmpty;
+            } else {
+                searchFields.emptyText = emptyText2;
+            }
+            if(searchFields.getValue() == tabEmpty || searchFields.getValue() == emptyText2) searchFields.setValue(null);
+        };
+        searchFields.on('specialkey' , function(thiz , e) {
+            if(e.keyCode == 13)  {console.resetTypeKey(radioVal , filerString(searchFields.getValue()));}
+        });
+    });
+    
+    
+    
+   
+    
+</script>
+
+<div id="header">
+#saction ("name=app_domain" "namespace=/runtime#control","executeResult=true")
+<table width="100%"><tr>
+<td>
+##$control.setTemplate("appselectboxcontrol.vm").setParameter("contextid",'top')
+#taction ("name=appselectboxcontrol" "namespace=/runtime#control","executeResult=true")
+ #sparam("name=contextid","value='top'")
+#end
+<button onclick="change_app_top();return false;">切换</button>  
+</td><td align="right">
+欢迎 <a target="_blank"  href="#">${manageTool.loginUser.name}</a> <a  href='$rundata.request.contextPath/runtime/login.htm?action=login_action&event_submit_do_logout=y'>退出</a>
+<td>
+</tr></table>
+</div>
+<div id="bodycontent">
+<center style="margin-top:100px;">
+<table>
+<tr>
+<td>
+#*
+<ul style="margin:10px;padding:0px">
+<li>
+<a style="display:inline-block;" target="_blank" 
+ href="http://baike.corp.taobao.com/index.php/%E7%BB%88%E6%90%9C%E7%94%A8%E6%88%B7%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%B0%83%E7%94%A8%E6%96%87%E6%A1%A3">终搜WIKI</a>
+</li>
+
+<li>
+<a target="_blank" href="/doc/tsearcher_cleint_tutorial3_1_5.html">TSearcher客户端配置说明3_1_9(最新20130808)</a>
+</li>
+
+<li>
+<a target="_blank" href="/doc/yunti_data_prepare.htm">云梯源数据准备工作</a>
+</li>
+
+</ul>
+*#
+</td>
+</tr>
+<tr>
+<td align="center"><h1 style="font-size:1200%;font-family:Arial Black,黑体;color:#999999">TIS</h1></td>
+</tr>
+</table>
+</center>
+</div>
+
+<div id="appendblock">
+</div>
+</body>
+</html>
+<script>
+
+   function showJson(){
+    console.debug(document.cookie);
+   }
+
+   function appendMessage(data,container){
+	   if(data.errormsg.length>0){
+		  var errorul = $("<ul class='errorMessage'></ul>");				  	
+		  for(var i =0;i<data.errormsg.length;i++){
+			errorul.append($("<li>"+data.errormsg[i]+"</li>"));
+		  }
+		  container.append(errorul);
+	    }
+				  	
+		if(data.msg.length >0){
+		  var msgul = $("<ul class='actionMessage'></ul>");
+		  for(var i =0;i<data.msg.length;i++){
+			 msgul.append($("<li>"+data.msg[i]+"</li>")); 
+		  }
+		  container.append(msgul);
+		}
+	}
+	
+  //▼▼▼ 提交应用切换请求
+   function change_app_top(){
+  
+      jQuery.ajax({url:'$manageModule.setTarget("changedomain.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_change_app_ajax=y&action=change_domain_action&selappid="+$("#appidstop").val(),
+			    success:function(data){			  
+			     if(data.errormsg.length<1){
+			       $("#aselect_app_domain").html(data.msg[0].split(":")[1]);
+	      	     }
+	      	     var container = $("<div></div>");
+			       appendMessage(data,container);
+			       MsgTip.msg('消息', container.html(),true); 
+			      //
+			      // alert( mainxxPanel);
+			      mainxxPanel.refreshAllTab();
+	      	     }				   
+	        }); 
+   }
+  //▲▲▲ end of 提交应用切换请求
+	
+</script>

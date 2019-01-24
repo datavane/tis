@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+
+	<package name="runtime" namespace="/runtime" extends="default">
+
+		<action name="ext" class="com.taobao.terminator.runtime.module.screen.Ext">
+			<result name="Ext" type="velocity">
+				<param name="location">/runtime/templates/screen/ext.vm</param>
+			</result>
+		</action>
+
+	</package>
+</struts>

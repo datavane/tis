@@ -1,0 +1,22 @@
+<p><em>应用id:</em> $testDomain.application.appId  <br/> 
+   <em>应用名称:</em> $testDomain.application.projectName  <br/>
+   <br/>
+   <em>包(package)id:</em> $testDomain.pack.pid  <br/>
+   <em>包上传者:</em> $testDomain.pack.uploadUser  <br/>
+   <em>包上传时间:</em> $manageTool.formatDateYYYYMMdd($testDomain.pack.createTime)  <br/>
+   <br/>
+
+#if($testDomain.shallStartTestProcess())
+#set( $testsnap=   $testDomain.getTestSnapshot($group.snapshotid.value) )
+   <em>配置信息源id:</em><strong>snapshot </strong> 
+                             
+<select name="$group.snapshotid.key" onchange="onSelectChange(document.forms[0])">
+ #foreach ($option in $testDomain.candidateSnapshot ) 
+  <option
+   #if( $option.snId == $testsnap.snId)selected#end
+   value="$option.snId">$option.snId</option>
+ #end
+</select> <br/>
+<em>查看内容:</em>$manageTool.getConfigViewLink($manageModule,$testsnap)<br/>
+#end
+</p>

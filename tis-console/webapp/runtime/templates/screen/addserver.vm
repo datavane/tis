@@ -1,0 +1,68 @@
+<script src="$manageModule.setTarget("/js/jquery.autocomplete.js")"></script>
+<h2>添加服务</h2>
+<style type="text/css"><!--
+
+  #addserver p span{
+    width:9em;
+    display:inline-block;
+  }
+  
+  .autocomplete-w1 { background:url($manageModule.setTarget("/imgs/shadow.png")) no-repeat bottom right; position:absolute; top:0px; left:0px; margin:6px 0 0 6px; /* IE6 fix: */ _background:none; _margin:1px 0 0 0; }
+.autocomplete { border:1px solid #999; background:#FFF; cursor:default; text-align:left; max-height:350px; overflow:auto; margin:-6px 6px 6px -6px; /* IE6 specific: */ _height:350px;  _margin:0; _overflow-x:hidden; }
+.autocomplete .selected { background:#F0F0F0; }
+.autocomplete div { padding:2px 5px; white-space:nowrap; overflow:hidden; }
+.autocomplete strong { font-weight:normal; color:#3399FF; }
+
+-->
+</style>
+
+#showFormErrors("addbizdomain")
+<form method="post" action="$manageModule.setTarget("addserver")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="group_action"/>
+<input type="hidden" name="gid" value="#p('gid')"/>
+
+<fieldset id="addserver">
+<legend>设置表单</legend>
+<p>
+  <span>环境</span> $runtime.describe
+</p>
+<p>
+  <span>服务器组:</span> 第$servergroup.groupIndex组
+</p>
+<p>
+  <div style="display:inline;float:left;">服务器列表:</div> 
+ #*
+  <select name="server">
+    <option value="">请选择</option>
+  #foreach($item in $serverlist)   
+    <option value="$item.spId">$item.serverName[$item.ipAddress]</option>
+  #end
+  </select>
+ *# 
+ <div style="display:inline;float:left;">
+ <span id="labserverslect"></span><br/>
+ <input type="hidden" name="server" id="hidserver" />
+ <input type="text" name="q" id="query" size="40" style="color:#cccccc;" />
+ </div>
+  
+</p>
+<p style="clear:both;">
+
+<input type="submit" id="btndouploadjar" 
+   name="event_submit_do_add_server" value="提   交"/>
+</p>
+</fieldset>
+</form>
+<script>
+ var options, a;
+jQuery(function(){
+  options = {minChars:2,
+    params: { envir: '$runtime.keyName' },
+    onSelect: function(value, data){ $('#hidserver').attr('value',data);$('#labserverslect').text(value);  },
+   serviceUrl:'$manageModule.setTarget("addserver.action")?action=group_action&event_submit_do_add_server_suggest=y' };
+  a = $('#query').autocomplete(options);
+});
+</script>

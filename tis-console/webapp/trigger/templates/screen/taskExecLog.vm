@@ -1,0 +1,20 @@
+#*
+<h2>任务执行详细</h2>
+<p>
+<a href="$trigger.setTarget("taskList")?jobid=$rundata.request.getParameter("jobid")">返回</a>
+</p>
+*#
+<table width="100%" border="1">
+<tr>
+<th width="60px">logid</th><th width="170px">时间</th><th width="100px">来自于</th> <th width="60px">类型</th> <th>内容</th> 
+</tr>
+#foreach($item in $loglist)
+<tr>
+<td align="right">$item.execLogId</td> 
+<td>$manageTool.formatDateYYYYMMdd( $item.gmtCreate)</td> 
+<td> $item.fromIp </td>
+<td> $item.infoType </td>
+<td><a href="#" onclick="showDetailLog($item.taskId,$item.execLogId);return false;">详细</a>  #popupp("$trigger.setTarget('taskLogDetail')?logid=$item.execLogId","详细","800*600")ddd $item.logContent  </td>
+</tr>
+#end
+</table>

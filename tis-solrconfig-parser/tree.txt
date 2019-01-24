@@ -1,0 +1,101 @@
+[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for com.dfire.tis:solrdao:jar:tis-1.0.1-SNAPSHOT
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-jar-plugin is missing. @ line 73, column 12
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building solrdao tis-1.0.1-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ solrdao ---
+[INFO] com.dfire.tis:solrdao:jar:tis-1.0.1-SNAPSHOT
+[INFO] +- com.dfire.tis:global-diamond-config:jar:tis-1.0.1-SNAPSHOT:compile
+[INFO] |  +- commons-logging:commons-logging-api:jar:1.0.4:compile
+[INFO] |  +- org.json:json:jar:20151123:compile
+[INFO] |  \- commons-lang:commons-lang:jar:2.4:compile
+[INFO] +- com.dfire.tis:terminator-manage-pojo:jar:tis-1.0.1-SNAPSHOT:compile
+[INFO] |  +- commons-codec:commons-codec:jar:1.5:compile
+[INFO] |  +- com.thoughtworks.xstream:xstream:jar:1.2.2:compile
+[INFO] |  |  \- xpp3:xpp3_min:jar:1.1.3.4.O:compile
+[INFO] |  +- org.springframework:spring-core:jar:3.0.6.RELEASE:compile
+[INFO] |  |  \- org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
+[INFO] |  +- commons-io:commons-io:jar:2.3:compile
+[INFO] |  \- com.alibaba:fastjson:jar:1.1.43:compile
+[INFO] +- junit:junit:jar:3.8.1:test
+[INFO] +- org.apache.solr:solr-core:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-analyzers-common:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-analyzers-kuromoji:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-analyzers-phonetic:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-backward-codecs:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-codecs:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-core:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-expressions:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-grouping:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-highlighter:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-join:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-memory:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-misc:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-queries:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-queryparser:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-sandbox:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-spatial:jar:5.3.0:provided
+[INFO] |  +- org.apache.lucene:lucene-suggest:jar:5.3.0:provided
+[INFO] |  +- com.carrotsearch:hppc:jar:0.5.2:provided
+[INFO] |  +- com.fasterxml.jackson.core:jackson-core:jar:2.5.4:provided
+[INFO] |  +- com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.5.4:provided
+[INFO] |  +- com.google.guava:guava:jar:14.0.1:provided
+[INFO] |  +- com.google.protobuf:protobuf-java:jar:2.5.0:provided
+[INFO] |  +- com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:jar:1.2:provided
+[INFO] |  +- com.spatial4j:spatial4j:jar:0.4.1:provided
+[INFO] |  +- commons-cli:commons-cli:jar:1.2:provided
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO] |  +- commons-configuration:commons-configuration:jar:1.6:provided
+[INFO] |  +- commons-fileupload:commons-fileupload:jar:1.2.1:provided
+[INFO] |  +- dom4j:dom4j:jar:1.6.1:provided
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.1.0:provided
+[INFO] |  +- joda-time:joda-time:jar:2.2:provided
+[INFO] |  +- log4j:log4j:jar:1.2.17:provided
+[INFO] |  +- org.antlr:antlr-runtime:jar:3.5:provided
+[INFO] |  +- org.apache.commons:commons-exec:jar:1.3:provided
+[INFO] |  +- org.apache.hadoop:hadoop-annotations:jar:2.6.0:provided
+[INFO] |  |  \- jdk.tools:jdk.tools:jar:1.7:system
+[INFO] |  +- org.apache.httpcomponents:httpcore:jar:4.4.1:provided
+[INFO] |  +- org.apache.zookeeper:zookeeper:jar:3.4.5:provided
+[INFO] |  +- org.codehaus.woodstox:stax2-api:jar:3.1.4:provided
+[INFO] |  +- org.codehaus.woodstox:woodstox-core-asl:jar:4.4.1:provided
+[INFO] |  +- org.eclipse.jetty:jetty-continuation:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-deploy:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-http:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-io:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-jmx:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-rewrite:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-security:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-server:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-servlet:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-servlets:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-util:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-webapp:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.eclipse.jetty:jetty-xml:jar:9.2.11.v20150529:provided
+[INFO] |  +- org.htrace:htrace-core:jar:3.0.4:provided
+[INFO] |  +- org.noggit:noggit:jar:0.6:provided
+[INFO] |  +- org.ow2.asm:asm:jar:4.1:provided
+[INFO] |  +- org.ow2.asm:asm-commons:jar:4.1:provided
+[INFO] |  +- org.restlet.jee:org.restlet:jar:2.3.0:provided
+[INFO] |  +- org.restlet.jee:org.restlet.ext.servlet:jar:2.3.0:provided
+[INFO] |  \- org.slf4j:slf4j-api:jar:1.7.7:provided
+[INFO] +- org.apache.solr:solr-solrj:jar:5.3.0:provided
+[INFO] +- org.apache.httpcomponents:httpclient:jar:4.2.3:provided
+[INFO] |  \- commons-logging:commons-logging:jar:1.2:compile
+[INFO] \- org.apache.httpcomponents:httpmime:jar:4.1.3:provided
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 2.539 s
+[INFO] Finished at: 2015-12-24T13:41:46+08:00
+[INFO] Final Memory: 23M/210M
+[INFO] ------------------------------------------------------------------------

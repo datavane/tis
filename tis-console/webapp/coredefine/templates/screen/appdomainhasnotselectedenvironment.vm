@@ -1,0 +1,2 @@
+<h1> $control.setTemplate("app_domain_jst_environment.vm")</h1>
+<div class="note">请选择当前的运行环境</div>

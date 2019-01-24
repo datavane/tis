@@ -1,0 +1,313 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.qlangtech.tis</groupId>
+		<artifactId>tis-pom</artifactId>
+		<version>3.7.47</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>tis-assemble</artifactId>
+	<packaging>war</packaging>
+
+	<name>tis-assemble</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<spring-version>3.0.6.RELEASE</spring-version>
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-rpc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-hdfs-extends</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-digester</groupId>
+			<artifactId>commons-digester</artifactId>
+			<version>2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-yarn-client</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-servlet-monitor</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-manage-pojo</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flume</groupId>
+			<artifactId>flume-ng-node</artifactId>
+			<version>1.6.0-cdh5.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-solr-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-mapreduce-client-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-jdbc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-exec</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-global-config</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tsearcher-builder-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+
+
+		<dependency>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<artifactId>websocket-servlet</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-taskflow</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-solrj-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-solrj</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-daemon</groupId>
+			<artifactId>commons-daemon</artifactId>
+			<version>1.0.15</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
+		<finalName>full-dump-assemble</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<filters>
+			<filter>src/main/filters/${env}.properties</filter>
+		</filters>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.2</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+
+
+			<plugin>
+				<groupId>com.qlangtech.tis</groupId>
+				<artifactId>tiswar-maven-plugin</artifactId>
+				<configuration>
+					<appnamePattern>full-dump-assemble</appnamePattern>
+				</configuration>
+			</plugin>
+
+
+			<plugin>
+				<groupId>com.qlangtech.tis</groupId>
+				<artifactId>tisasm-maven-plugin</artifactId>
+				<configuration>
+					<descriptor>./assembly.xml</descriptor>
+					<outputDirectory>../</outputDirectory>
+					<finalName>full-dump-assemble</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+					<tarLongFileMode>gnu</tarLongFileMode>
+					<!-- <appnamePattern>full-dump-assemble</appnamePattern> -->
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<env>test</env>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<id>daily</id>
+			<properties>
+				<env>test</env>
+			</properties>
+		</profile>
+		<profile>
+			<id>pre</id>
+			<properties>
+				<env>online</env>
+			</properties>
+		</profile>
+		<profile>
+			<id>publish</id>
+			<properties>
+				<env>online</env>
+			</properties>
+		</profile>
+		<profile>
+			<id>online2</id>
+			<properties>
+				<env>onlineReplica</env>
+			</properties>
+		</profile>
+		<profile>
+			<id>tha</id>
+			<properties>
+				<env>tha</env>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>kr</id>
+			<properties>
+				<env>kr</env>
+			</properties>
+		</profile>
+
+	</profiles>
+</project>

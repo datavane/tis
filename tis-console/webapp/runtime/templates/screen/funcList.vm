@@ -1,0 +1,103 @@
+<h2>功能一览</h2>
+<p> <a target="_top" href="$manageModule.setTarget('roleList')">角色一览</a>
+
+#popup("$manageModule.setTarget('funcadd')","添加Func",'600*500')
+</p>
+ 
+#saction ("name=func_list" "namespace=/runtime#control","executeResult=true")
+#* $control.setTemplate("funcList.vm").setParameter("shallnotshowcheckbox",true)
+<table width="100%" border="1">
+<tr>
+  <th width="15%"> 功能</th> <th>已授权的部门</th>
+</tr>
+
+#foreach($item in $funclist)
+<tr>
+  <td>$item.item.name <br/> $item.item.permissionCode</td>
+  <td>
+   #popup("func_authority.htm?func=$item.item.permissionCode","部门授权",'1000*900')
+   <br/>
+   
+      #foreach($department in $item.authorityDepartmentment)
+       <strong style="background-color:pink;">$department.appName:</strong><br/>
+       <div>   
+   $manageTool.noescape($manageTool.formatAuthortityScript($department.dptName,$item.item.permissionCode,$department.appId))  
+       </div>
+      #end
+    
+  </td>
+</tr>
+
+#end
+
+</table>
+
+<script>
+    function deltClick(func_code,appid ,orgid){
+      
+      if(!window.confirm("你确定要删除 部门："+ orgid+"的操作授权？")){
+        return false;
+      }
+      
+      jQuery.ajax({url:'$manageModule.setTarget("func_authority.action")', 
+         		type:'POST',
+				dataType:"json",
+          		data:{
+				   'event_submit_do_delete_org_authority':'y',
+				   'action':'org_authority_action',
+				   'appid': appid,
+				   'orgid':orgid,
+				   'func':func_code
+          		},
+			   success:function(data){		
+				 
+				   var msg = data.result.msg;
+				   var error = data.result.error;
+				   
+				   
+				   var content = $('<div></div>');
+				  	
+				 //  alert("error.length:"+ error.length+" msg.length:"+ msg.length);
+				  	
+					if(error.length>0){
+				 
+				  	  var ulerror = $("<ul class='errorMessage'></ul>");
+				  	  for(var x in error){
+				  	  
+				  	   ulerror.append("<li> "+ error[x]+" </li>");
+				  	  }
+				  	  content.append(ulerror);
+				  	}
+				  	
+				  	if(msg.length>0){
+				  		 // alert(msg.length);
+				  	   var ulmsg = $("<ul class='actionMessage'></ul>");
+				  	  for(var x in msg){
+				  	 
+				  	    ulmsg.append("<li> "+ msg[x]+" </li>");
+				  	  }
+				  	  content.append(ulmsg);
+				 	}	  	
+				  	
+				  	
+				  	
+				  	 var $dialog = content.dialog({
+			            autoOpen: false,
+			            title: "授权结果",
+			            width: 900,
+			            modal:true
+		            });
+    
+                     $dialog.dialog('open');  
+				   for(var d in data.result.deleteids){
+				    $('#'+data.result.deleteids[d]).remove();
+				   }
+	      	   }, 
+			   error:function(data){
+			     alert(data);
+			   }				   
+	        }); 
+    
+    }
+</script>
+*#

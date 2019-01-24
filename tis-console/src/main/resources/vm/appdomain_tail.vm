@@ -1,0 +1,96 @@
+<!--===============================================================-->
+<a id="aselect_app_domain" href="#" style="text-decoration: none;" onclick="chageAppLinkClick();return false;">$selectAppDomain</a> 
+</h2>
+<div id="appselectblock"  class="block-border" >
+<div id="btn_close" style="right:0px; position:absolute; top:0px;width:20px;" class="cursor-hand">
+ <img border="0" src="$manageModule.setTarget('imgs/close.jpg')" style="" />
+</div>
+
+$control.setTemplate("appselect.vm")
+<button style="width:6em" onclick="change_app();return false;">切换</button>
+</div>
+</td>
+ 
+ <td width="380px" valign="top"> <div class='tabnav'>
+ <ul>
+ #*
+ #if($manageTool.developMode)
+  <li class="caption #if( $manageTool.isRuntimeEqual('daily'))current#end" ><a href="#" onclick="return change_runtime(this,'daily')">日常</a></li>
+ #else 
+  <li class="caption #if( $manageTool.isRuntimeEqual('ready'))current#end"><a href="#" onclick="return change_runtime(this,'ready')">预发</a></li>
+  <li class="caption #if( $manageTool.isRuntimeEqual('online'))current#end"><a href="#" onclick="return change_runtime(this,'online')">线上</a></li>
+ #end
+ *#
+ <li class="caption current"><a href="#">$manageTool.runtime.describe</a></li>
+ </ul>
+  </div></td>
+</tr>
+</table>
+<script>
+ //▼▼▼ 提交切换环境的请求
+  function change_runtime(anode,runtime){
+    jQuery.ajax({url:'$manageModule.setTarget("changedomain.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_change_runtime_ajax=y&action=change_domain_action&runtime="+runtime,
+			    success:function(data){	
+			    
+			      $('.current').removeClass('current')
+				  	//showMessageDialog(data);
+				    var li = $(anode).parent();
+				    //alert(li);
+                    li.addClass('current');
+                    
+                    if($("#appselectblock").css('display')!="block"){
+                     window.location.reload();
+                    }
+                    
+	      	    }				   
+	        }); 
+	        
+	return false;
+  }
+  //▲▲▲ end of 提交切换环境的请求
+  
+  //▼▼▼ 提交应用切换请求
+   function change_app(){
+      jQuery.ajax({url:'$manageModule.setTarget("changedomain.ajax")', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_change_app_ajax=y&action=change_domain_action&appid="+$("#hidappname").val()+"&selappid="+$("#appidsmain").val(),
+			    success:function(data){
+			   // alert();
+			     if(data.errormsg.length>0){
+			       showMessageDialog(data);
+			     }else{      
+                    window.location.reload();
+	      	    }}				   
+	        }); 
+   }
+  //▲▲▲ end of 提交应用切换请求
+  
+  $(document).ready(function(){
+  
+ // $("#currentappblock").mouseover(function(){
+ //    $(this).addClass('block-border cursor-hand');
+ // })
+  
+  //$("#currentappblock").mouseout(function(){
+  //   $(this).removeClass('block-border cursor-hand');
+  //})
+  
+  
+  
+   $("#btn_close").click(function(){
+     $("#appselectblock").css('display','none');
+     $("#currentappblock").css('display','block');
+   })
+   
+  });
+  
+  function chageAppLinkClick(){   
+   $("#appselectblock").show('fast', function(){});
+  }
+  
+</script>
+<!--===============================================================-->

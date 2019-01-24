@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<bean id="hdfsIndexDAO"
+		class="com.taobao.terminator.trigger.biz.dal.dao.impl.HdfsIndexDAOImpl"
+		parent="terminatorTriggerBizDalDAO" />
+
+	<bean
+		class="com.taobao.terminator.trigger.biz.dal.dao.impl.TriggerJobDAOImpl"
+		id="triggerJobDAO" parent="terminatorTriggerBizDalDAO" />
+	<bean
+		class="com.taobao.terminator.trigger.biz.dal.dao.impl.TaskExecLogDAOImpl"
+		id="taskExecLogDAO" parent="terminatorTriggerBizDalDAO" />
+	<bean class="com.taobao.terminator.trigger.biz.dal.dao.impl.TaskDAOImpl"
+		id="taskDAO" parent="terminatorTriggerBizDalDAO" />
+
+	<bean abstract="true"
+		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
+		id="terminatorTriggerBizDalDAO">
+		<property name="dataSource" ref="terminatorTriggerBizDalDatasource" />
+		<property name="sqlMapClient">
+			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+				<property name="configLocation"
+					value="classpath:/conf/terminatorTriggerBizDal-sqlmap-config.xml" />
+			</bean>
+		</property>
+	</bean>
+	<bean
+		class="com.taobao.terminator.trigger.biz.dal.dao.impl.TerminatorTriggerBizDalDAOFacadeImpl"
+		id="terminatorTriggerBizDalDaoFacade">
+		<constructor-arg index="0" ref="triggerJobDAO" />
+		<constructor-arg index="1" ref="taskExecLogDAO" />
+		<constructor-arg index="2" ref="taskDAO" />
+	</bean>
+
+
+
+</beans>

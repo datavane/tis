@@ -1,0 +1,55 @@
+<h2>查看业务授权</h2>
+<style>
+  .orgdesc div span{
+   display:inline-block;
+   width:6em;
+  }
+  
+  .orgdesc {
+   background-color:#EBEBEB;
+   margin:10px;
+  }
+  
+  .orgdesc legend {
+     font-size:16px;
+  border: 1px solid #000000  ;
+ 
+   background-color:#EBEBEB;
+   padding: 8px;
+  }
+</style>
+
+<fieldset class="orgdesc">
+ <legend>我的个人信息</legend>
+  <div><span>id:</span>  $manageTool.loginUser.id</div>
+ <div><span>name:</span>  $manageTool.loginUser.name</div>
+</fieldset>
+
+<br/>
+<fieldset class="orgdesc">
+                            
+ <legend >我所在部门信息</legend>
+ <div><span>id:</span>  $userprofile.dptId</div>
+ <div><span>name:</span>  $userprofile.dptName</div>
+</fieldset>
+<br/>
+
+<fieldset class="orgdesc">
+ <legend>我的角色</legend>
+ <div><span>id:</span>$userprofile.rId</div>
+ <div>
+	<span>name:</span>
+	$userprofile.roleName
+	
+	#if(!$hasRole)
+		 <a style="color:blue;margin-left: 40px;" target="_blank" 
+		  href="http://acl.alibaba-inc.com/apply/cart/detail.htm?roleIds=100004446&expireDateMode=0&expireDate=forever">申请管理员权限</a>
+	#end
+ </div>
+ 
+ <p>
+ 
+  #saction ("name=func_list" "namespace=/runtime#control","executeResult=true")
+ </p>
+</fieldset>
+

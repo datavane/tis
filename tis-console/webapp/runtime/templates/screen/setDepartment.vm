@@ -1,0 +1,57 @@
+<link rel="stylesheet" href="$manageModule.setTarget('zTreeStyle/ztreestyle.css')" type="text/css">
+<script type="text/javascript" src="$manageModule.setTarget('js/jquery.ztree.core-3.1.js')"></script>
+<script type="text/javascript" src="$manageModule.setTarget('js/jquery.ztree.excheck-3.1.js')"></script>
+
+<h2>初始化我的部门信息</h2>
+<div class="note2">如果这里没有你要设置的部门，请通知 
+<a target="_blank" href="http://amos1.taobao.com/msg.ww?v=2&uid=百岁&site=cntaobao&s=1" ><img border="0" src="http://amos1.taobao.com/online.ww?v=2&uid=百岁&site=cntaobao&s=1" alt="百岁" /></a>
+</div>
+<fieldset>
+<legend>请设置我所在的部门</legend>
+
+  <p><button id="btnupload">提  交</button> </p>
+  <div>
+  $control.setTemplate("department.vm").setParameter("isradio",true);
+  </div>
+</fieldset>
+<script>
+      function executeClick(){
+	     var orgadd = '';	  
+		 
+		  $("#selectorg").children().each(
+		     function(){
+		         var child = $(this);
+		         orgadd =  this.getAttribute('dataid');
+		         return ;
+		     }
+		  );
+		  
+		  if(isNaN(parseInt(orgadd))){
+		    open_dialog('错误','您还没有选择部门',400);
+		    return ;
+		  }   
+		  
+		  jQuery.ajax({url:'$manageModule.setTarget("func_authority.action")', 
+         		type:'POST',
+				dataType:"json",
+          		data:{
+				   'event_submit_do_set_department':'y',
+				   'action':'org_authority_action',
+				   'orgadd':orgadd
+          		},
+			   success:function(data){	 
+				  	 open_dialog('信  息',data.result,400);  	
+	      	   }, 
+			   error:function(data){
+			     open_dialog('信  息','有错误发生',400);  	
+			   }				   
+	        }); 
+		  
+       }// end of executeClick
+
+
+         $(document).ready(function(){		
+			$('#btnupload').click(executeClick);
+		});
+
+</script>

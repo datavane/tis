@@ -1,0 +1,28 @@
+#showFormErrors("addapp")
+<fieldset>
+ <legend>注册DRC</legend>
+<form action="/config/register_drc.htm" method="post">
+  <input type="hidden" name="action" value="drc_action" />
+ 
+  <p><span>source type:</span> <input type="text"  name="sourcetype" value="rds" /> </p>
+  <p><span>region:</span> <input type="text"  name="region" value="hz" /> </p>
+  <p><span>domain:</span> <input type="text"  name="domain" value="aliyun" /> </p>
+  <p><span>rds instance:</span> <input type="text"  name="instance" /> </p>
+  
+  <p> <input type="submit" name="event_submit_do_regist" value="提交" /> </p>
+</form>
+</fieldset>
+
+
+<fieldset>
+ <legend>task id status</legend>
+<form action="/config/register_drc.htm" method="post">
+  <input type="hidden" name="action" value="drc_action" />
+ 
+  <p><span>taskid:</span> <input type="text"  name="taskid"  /> </p>
+ 
+  
+  <p> <input type="submit" name="event_submit_do_get_task_status" value="提交" /> </p>
+</form>
+</fieldset>
+

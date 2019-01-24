@@ -1,0 +1,7 @@
+<h2>添加HDFS会员</h2>
+<div class="note2">
+  该功能只支持日常环境
+</div>
+<iframe id="hdfsuser" height="1000px" frameborder="0" 
+ src="$manageTool.getPublishHook('daily')/tt/hdfsuserlist.action" width="100%">
+</iframe>

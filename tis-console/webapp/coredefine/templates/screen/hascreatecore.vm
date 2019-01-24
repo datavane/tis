@@ -1,0 +1,22 @@
+<h2>Core节点创建状态</h2>
+#showFormErrors("setreplica")
+<table width="100%" border="1">
+<tr>
+ <th>组</th><th>Ip</th><th>Lucene版本</th><th>状态</th>
+</tr>
+#foreach($item in $locatecore.cores)
+#foreach($o in $item.coreNodeInfo)
+<tr>
+ <td>$item.c.coreNums</td><td>$o.info.hostName  </td> <td>$o.info.luceneSpecVersion</td> <td>$manageTool.getCoreStatus($item.c)</td>
+</tr>
+#end
+#end
+</table>
+#*
+<form method="post" action="$coredefine.setTarget('coredefine')">
+<input type="hidden" name="action" value="core_action" />
+<p>
+<input style="width:200px;height:30px" type="submit" name="event_submit_do_delete_service" value="删除" />
+</p>
+</form>
+*#

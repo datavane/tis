@@ -1,0 +1,21 @@
+<h2>部门管理</h2>
+$control.setTemplate("dptnavigatebar.vm")
+<p>
+#popup("$manageModule.setTarget('addDepartment')?parentid=#p('dptid')","添加部门",'500*300')
+#popup("$manageModule.setTarget('dptAllbind')","成员部门绑定列表",'800*600')
+</p>
+<table width="100%" border="1">
+<tr>
+  <th>部门名称</th> <th>创建时间</th> <th>操作</th>
+</tr>
+#foreach($item in $dptlist)
+<tr>
+ <td>[$item.dptId] <a href="$manageModule.setTarget("dptManage")?dptid=$item.dptId">$item.name</a> </td>
+ <td> $manageTool.formatDateYYYYMMdd( $item.createTime)</td>
+ <td> 
+ #popup("$manageModule.setTarget('dptDelete')?dptid=$item.dptId","删除",'')
+ <a href="$manageModule.setTarget('dptMemberList')?dptid=$item.dptId">成员列表</a>
+  </td>
+</tr>
+#end
+</table>

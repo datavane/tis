@@ -1,0 +1,3 @@
+<h2>索引BUILD监控(<a target="_blank" href="$IndexBuildCenterUrl">$IndexBuildCenterUrl</a>)</h2>
+
+<iframe frameborder="0" height="800" width="100%" src="$IndexBuildCenterUrl" ></iframe>

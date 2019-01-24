@@ -1,0 +1,48 @@
+<script src="/runtime/js/codemirror/codemirror.js"></script>
+<link rel="stylesheet" href="/runtime/js/codemirror/codemirror.css">
+<script src="/runtime/js/codemirror/xml.js"></script>
+#showFormErrors("addapp")
+<h2>创建IndexSet</h2>
+<form method="post">
+<input type="hidden" name="action" value="index_set_action" />
+<input type="hidden" name="dptid" value="#p('bizid')" />
+<p style="text-align:right;padding-bottom:0px">
+ <input type="submit" style="width:200px;height:50px" name="event_submit_do_create" value="创 建" /></p>
+<fieldset>
+<legend>填写表单</legend>
+
+
+<p style="padding-top:0px;maring-top:0px"><span>模板选择:</span> 
+   <input type="checkbox" id="realtiModel" name="realtime" value="1"/><label for="realtiModel">实时模式</label> 
+   <input type="checkbox" id="commonModel" name="common" value="1"/><label for="commonModel">普通模式</label>  </p>
+<p><span>配置文件:</span>  #popupp("#","从已创建的文件选择","200*200") <button id="opendialog">设置配置文件</button> </p>
+<p id="indexsetBlock" style="display:none;padding-left:30px">
+<textarea id="xmlcode" name="indexsetConfigContent">
+</textarea>
+</p>
+
+
+</field>
+</fieldset>
+</form>
+<script>
+  $("#opendialog").click(function(){
+    var editblock =  $("#indexsetBlock");
+    if(editblock.css("display")== 'none'){
+       $("#indexsetBlock").show('fast');
+       $(this).html("隐藏配置文件")
+    }else{
+       $("#indexsetBlock").hide('fast');
+       $(this).html("设置配置文件")
+    }
+  
+    return false;
+  })
+  
+   var editor = CodeMirror.fromTextArea(document.getElementById("xmlcode"), {
+        mode: {name: "xml", alignCDATA: true},
+        lineNumbers: true,
+        smartIndent:true
+   });
+  
+</script>

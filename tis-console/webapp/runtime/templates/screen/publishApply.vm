@@ -1,0 +1,130 @@
+ <link href="$rundata.request.contextPath/runtime/css/app_apply_form.css" rel="stylesheet" type="text/css"/>
+ <style type="text/css">
+ <!--
+ 
+ 
+ -->
+ </style>
+<form id="publishapply" method="post">
+<input type="hidden" name="event_submit_do_apply_publish_set_server" value="y" />
+ <input type="hidden" name="action" value="apply_action" />
+ <input type="hidden" name="appid" value="#p('appid')" />
+ <div id="msgbox"></div>
+ <h2>申请发布</h2>
+ <p style="text-align:right">
+   <button style="width:150px;height:25px;" onclick="applyPublish();return false;" >提交</button></p>
+ <p><span>发布时间：</span>
+   <input id="datepicker" name="publishdate" type="text" size="10" value="$manageTool.formatTodayYYYYMMdd(1)"/>
+ </p>
+ <p>
+   
+ </p>
+ <div class="ip-tab">
+    <div class="data-tab">
+        <h3 class="data-title">设置线上服务器</h3>
+        <div class="data-hd clear">	
+            <div class="radio-list">
+            	输入类型：<span class="validate" id="searche_span" style="color:Red;"></span>                                  
+                <input type="radio" value="ip" name="search_type" id="btn_node_ip" checked="checked" class="radio" style="vertical-align:middle;"><label style="width:5px;vertical-align:middle;padding-top:5px" for="btn_node_ip">IP</label>
+             
+            </div>
+            <div class="ip_textarea">
+                <textarea class="textarea" name="keywords" id="ip_textarea" placeholder="一行一条IP地址"></textarea>
+                <button type="button" id="add_device" class="ip_btn">添&nbsp;&nbsp;加</button>
+            </div>
+        </div>
+        <div class="tabmax">
+            <table cellspacing="0" cellpadding="0" id="devices_info" class="data-info">
+                <thead>
+                    <tr>
+                        <th width="100">IP地址</th>  
+                        <th width="50">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="select_servers">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</form>
+<script>
+$(function() {
+		$( "#datepicker" ).datepicker({ 
+		  dateFormat: 'yy-mm-dd',
+		  onClose: function(dateText, inst) { 
+		   var par = (eval($("#serverSelect").attr("value")));
+		   if(par instanceof Array){
+		    changeSrc(dateText,par[0],par[1]);
+		   }else{
+		    changeSrc(dateText,null,null);
+		   }
+		   }
+		 });
+	});
+	
+    function changeSrc(date,groupIndex,ipaddress){
+	// var href= "http://$responseTimeHost/terminator-report/run?__report=average-time.rptdesign&&__parameterpage=false&datsources=/home/admin/terminator-report/"+date+"/$appdomain.appName";
+	// if(groupIndex != null && ipaddress != null){
+	//  href = href+ "/"+groupIndex+"/"+ ipaddress;
+	// }
+	// $("#staticView").attr("src",href);
+	}
+	
+	var selectedServerCount = 0
+	
+	$(document).ready(function(){
+	   $("#add_device").click(function(){
+	        //alert($("#ip-textarea").val()); 
+	       var addservers =  $("#ip_textarea").val().split("\n");
+	      
+	      //alert(addservers.length);
+	      
+	       for(var i =0;i<addservers.length;i++){
+	        
+	             if(addservers[i].isEmpty()){
+	               continue;
+	             }
+	       
+	      
+                  $("#select_servers").append("<tr id='t"+ (++selectedServerCount)+"'>"
+                      + " <td>"+addservers[i]+"</td> "                       
+                      + " <td><button onclick='deleteServer("+selectedServerCount+");return false;'>删除</button></td>"
+                   + "</tr>");   
+                
+	       }
+	      $("#ip_textarea").val("");
+	      
+	   });
+	});
+	
+	function applyPublish(){
+  
+     if(!window.confirm("您确定在Daily环境中已经测试通过，申请上线吗？")){
+       return ;
+     }
+     var servers = "";
+     $("#select_servers tr").each(function(){
+      servers += "&server="+$(this).children(":first").html();
+     });
+     
+  
+     jQuery.ajax({url:'$manageModule.setTarget('myApply.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data: $("#publishapply").serialize()+servers,
+			    success:function(data){
+			        $("#msgbox").empty();
+			        appendMessage(data,$("#msgbox"));
+				  	//showMessageDialog(data);
+	      	    }, 
+			    error:function(){   
+			    }
+	        });
+  }
+  
+  function deleteServer(trid){
+    $("#t"+ trid).remove();
+  }
+	
+</script>

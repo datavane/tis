@@ -1,0 +1,81 @@
+<style type="text/css">
+<!--
+ #formfieldset  span{
+   display:inline-block;
+   width:7em;
+ }
+  #formfieldset  p{
+   padding:8px;
+ }
+ 
+  #formfieldset legend{
+    font-size:30px;
+  }
+ -->
+</style>
+
+<form method="post" action="$manageModule.setTarget("apply_new")" >
+<input type="hidden" name="action" value="apply_action"  />
+<fieldset id="formfieldset" style="margin: 15px;">
+ <legend>新应用当前申请状态<font color='red'>（$manageTool.getApplyState( $apply)）</font></legend>
+ <p><span>当前状态：</span>$manageTool.getApplyState( $apply) </p>
+ <p><span>归属部门：</span>$apply.dptName
+ </p> 
+ <p><span>应用名称：</span>$apply.projectName </p> 
+ <p>   <span>增量模式：</span> 
+ #*
+            <input type="radio" name="incrmodel" id="incrmodel1" #if($rundata.request.getParameter("incrmodel") ==  '2') checked #end value="2" />
+              <label for="incrmodel1">实时模式</label>
+            <input type="radio" name="incrmodel" id="incrmodel2" value="1" #if($rundata.request.getParameter("incrmodel") ==  '1') checked #end   />
+              <label for="incrmodel2">普通模式</label>
+            <em style="color:red">必选</em>
+  *#          
+         #if($apply.incrType == 2)
+         实时模式
+         #elseif($apply.incrType == 1)
+      普通模式   
+         #end   
+            </p>
+            
+ <p><span>全量数据源：</span> 
+ #*
+ <input type="radio" name="fullsource" id="fullsource1" value="2" #if($rundata.request.getParameter("fullsource") ==  '2') checked #end/><label for="fullsource1">数据库</label>
+ <input type="radio" name="fullsource" id="fullsource2" value="1" #if($rundata.request.getParameter("fullsource") ==  '1') checked #end /><label for="fullsource2">云梯</label> <em style="color:red">必选</em>
+ *#
+  #if($apply.fullSourceType == 2)
+         数据库
+  #elseif($apply.fullSourceType == 1)
+      云梯  
+   #end   
+ 
+ </p>
+  #if($apply.publishDate)
+    <p><span>预计上线日期：</span> $manageTool.formatDateYYYYMMdd(  $apply.publishDate) </p>
+  #end          
+ <p><span>预估PV：</span>$!apply.pv 万 </p>
+ <p><span>预估UV：</span>$!apply.uv 万 </p>
+ #if($apply.memo)
+ <p><span style="display:inline;">备注：</span><br/>
+  $!apply.memo
+ </p>
+ #end
+#if($apply.onlineServers)
+ <p>
+  <span>线上服务器： </span> $apply.onlineServers
+ </p>
+#end
+
+</fieldset>
+<script>
+#if($successapply)
+  $(document).ready(function(){
+   $("#formfieldset span").css("color","#999999");
+   $("#formfieldset input").css("color","#999999");
+   $("#formfieldset textarea").css("color","#999999");  
+   $("#formfieldset label").css("color","#999999");
+   
+   $("#formfieldset input").attr("disabled","disabled");
+   $("#formfieldset textarea").css("disabled","disabled");
+  });
+#end
+</script>

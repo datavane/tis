@@ -1,0 +1,9 @@
+<style type="text/css"><!--
+ body{
+   background-color:#D4E4F9;;
+ }
+-->
+</style>
+&nbsp; $control.setTemplate("appselectboxcontrol.vm").setParameter("contextid",'top')
+<button onclick="change_app_top();return false;">切换</button>
+$control.setTemplate("app_domain.vm")

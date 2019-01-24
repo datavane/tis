@@ -1,0 +1,31 @@
+<style type="text/css"><!--
+  .funclist td {
+   
+  }
+-->
+</style>
+
+<table class="funclist" width="100%" border="1">
+<tr>
+  <th width="20%">功能组</th> <th>已授权的部门 </th>
+</tr>
+
+#foreach($item in $funclist.entrySet())
+<tr>
+  <td> <strong>${item.key.name}</strong> </td>
+  <td>
+  <ul>
+    #foreach($func in $item.value)
+    <li>
+     #if(!$shallnotshowcheckbox)
+     <input type="checkbox" name="funcid" id="chk${func.funId}" value="$func.funId" #if($selfuncid.contains(${func.funId})) checked #end /> 
+     #end
+     <label for="chk${func.funId}">${func.funcName}(${func.funKey})</label>
+    </li>
+    #end
+  </ul>
+  </td>
+</tr>
+#end
+
+</table>

@@ -1,0 +1,72 @@
+
+<style type="text/css"><!--
+
+  #addserver p span{
+    width:8em;
+    display:inline-block;
+  }
+  
+  #addserver p em{
+   color:red;
+  }
+
+-->
+</style>
+<h2>添加服务器</h2>
+#showFormErrors("serverpooladd")
+<form method="post" action="$manageModule.setTarget("serverpooladd")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="server_pool_action"/>
+<fieldset id="addserver">
+  <legend>设置表单 </legend>
+  <p><span>IP ADDRESS:</span><input id="ipaddress" type="text" on
+      name="$group.ipAddress.key" 
+      value="$group.ipAddress.value" /><em>必选</em></p>
+  <p><span>服务器HOST:</span><input id="servername" type="text" 
+      name="$group.serverName.key" 
+      value="$group.serverName.value" /><em>必选</em></p>
+  <p>
+  <span>环境:</span>
+ <select name="$group.runtEnvironment.key">
+    <option value="">请选择</option>
+  #foreach($item in $environlist)
+    <option value="$item.id" #if($item.id == $group.runtEnvironment.value) selected #end  >$item.describe</option>
+  #end
+  </select>
+  <em>必选</em>
+</p>
+  <p>
+    <input type="submit" name="event_submit_do_add_pool_server" value="添  加" />
+  </p>
+</fieldset>
+</form>
+<script>
+  $('#ipaddress').blur(function() {
+      
+       ajax_fire_event(
+       '$manageModule.setTarget("serverpooladd.do")'
+       ,'fetch_address_info'
+       ,{action:"server_pool_action"
+         ,'ip': this.value }
+       ,function( msg ) {
+          if(msg== null || msg.length() < 1 ) return;
+          $('#servername').attr('value',msg);
+       });
+    }
+  );
+  
+  $('#servername').blur(function() {
+     ajax_fire_event(
+       '$manageModule.setTarget("serverpooladd.do")'
+       ,'fetch_address_info'
+       ,{action:"server_pool_action"
+         ,'host': this.value }
+       ,function( msg ) {
+           if(msg== null || msg.length < 1 ) return;
+          $('#ipaddress').attr('value',msg);
+       });
+  });
+  
+</script>

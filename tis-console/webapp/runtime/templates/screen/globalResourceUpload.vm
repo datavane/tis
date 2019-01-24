@@ -1,0 +1,36 @@
+<style type="text/css"><!--
+  #uploaddialog p span{
+    width:7em;
+    display:inline-block;
+   vertical-align:top;
+  }
+  #btndouploadjar {
+    width:200px;
+    height:30px;
+  }
+-->
+</style>
+
+#showFormErrors("globalres")
+<form method="post" enctype="multipart/form-data" action="$manageModule.setTarget("globalResourceUpload")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="upload_jar_action"/>
+<fieldset id="uploaddialog">
+<legend>设置表单</legend>
+<p>
+ <span>描述信息</span> 
+ <span style="width:100%">
+  <textarea cols="70" rows="4" name="$group.memo.key">$group.memo.value</textarea> 
+ <br/><em style="color:red">必选,不得少于20个字符</em>
+ </span>
+</p>
+<p>
+ <span>依赖jar包:</span> <input type="file" name="$group.resource.key"/> <em style="color:red">必选</em>
+</p>
+<p>
+<input type="submit" id="btndouploadjar" name="event_submit_do_upload_global_resource" value="上 传" />
+</p>
+</fieldset>
+</form>

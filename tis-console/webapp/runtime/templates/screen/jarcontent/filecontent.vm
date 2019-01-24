@@ -1,0 +1,18 @@
+#set ($g = $form.get("savefilecontent").defaultInstance)
+<link href="$manageModule.setTarget("/css/prettify.css")" rel="stylesheet" type="text/css"/>
+<script src="$manageModule.setTarget("/js/prettify.js")"></script>
+<div  style="margin-left:10px;">
+#showFormErrors("savefilecontent")
+<h3>$fileName 内容 
+#if(!$uneditable) 
+ <a target="_self" href="$manageModule.setTarget("jarcontent/edit_$manageTool.getfileEditName($rundata.request.servletPath)")?snapshot=${snapshot.snId}">编辑</a>
+#end 
+</h3>
+
+<pre class="prettyprint lang-xml" style="border:#000066 solid 3px;margin-left:30px;background-color:#E6E6E6;padding:5px;width:1000px;">
+$filecontent
+</pre>
+</div>
+<script>
+ prettyPrint();
+</script>

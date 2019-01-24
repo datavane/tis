@@ -1,0 +1,40 @@
+<select name="$parameters.name"
+    #if ($parameters.size)             size="$parameters.size"         #end
+    #if ($parameters.disabled)         disabled="disabled"                                   #end
+    #if ($parameters.tabindex)         tabindex="$parameters.tabindex" #end
+    #if ($parameters.id)               id="$parameters.id"             #end
+    #if ($parameters.multiple)         multiple="multiple"                                   #end
+    #if ($parameters.cssClass)         class="$parameters.cssClass"    #end
+    #if ($parameters.cssStyle)         style="$parameters.cssStyle"    #end
+    #parse("/$parameters.templateDir/simple/scripting-events.vm")
+>
+
+#if ($parameters.headerKey && $parameters.headerValue)
+    <option value="$parameters.headerKey">$parameters.headerValue</option>
+#end
+
+
+#set( $items = $parameters.list )
+#if( $items )
+    #foreach( $item in $items )
+        $stack.push($item)
+
+        #if( $parameters.listKey )
+            #set( $itemKey = $stack.findValue($parameters.listKey) )
+        #else
+            #set( $itemKey = $item )
+        #end
+
+        #if( $parameters.listValue )
+            #set( $itemValue = $stack.findValue($parameters.listValue) )
+        #else
+            #set( $itemValue = $item )
+        #end
+
+        <option value="$itemKey"#if( $tag.contains($parameters.nameValue, $itemKey) ) selected="selected"#end>$itemValue</option>
+
+        #set ($trash = $stack.pop())
+    #end
+#end
+
+</select>

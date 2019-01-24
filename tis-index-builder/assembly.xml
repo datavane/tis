@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	<!-- http://maven.apache.org/plugins/maven-assembly-plugin/assembly.html#class_fileSet -->
+	<id>tgz</id>
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+	<!-- 是否是将工程名称打入到包的根目录上去 -->
+	<includeBaseDirectory>true</includeBaseDirectory>
+
+	<fileSets>
+		<fileSet>
+			<directory>target/dependency</directory>
+			<outputDirectory>.</outputDirectory>
+			<includes>
+				<include>**/*.jar</include>
+			</includes>
+			<!-- <excludes> <exclude>WEB-INF/lib/solr-core-5.3.0.jar</exclude> <exclude>WEB-INF/weblogic.xml</exclude> 
+				</excludes> -->
+
+			<excludes>
+				<exclude>jcl-over-slf4j-*.jar</exclude>
+				<exclude>logback-*.jar</exclude>
+				<exclude>apache-log4j-*.jar</exclude>
+				<exclude>log4j-*.jar</exclude>
+				<exclude>slf4j-api-*.jar</exclude>
+				<exclude>slf4j-log4j12-*.jar</exclude>
+				<exclude>logback-*.jar</exclude>
+				<exclude>commons-logging-*.jar</exclude>
+				<exclude>commons-io-2.3.jar</exclude>
+				<exclude>jetty-*.jar</exclude>
+				<exclude>javax.servlet-*.jar</exclude>
+				<exclude>servlet-api-*.jar</exclude>
+			</excludes>
+
+		</fileSet>
+		<fileSet>
+			<directory>target</directory>
+			<outputDirectory>.</outputDirectory>
+			<includes>
+				<include>tsearcher-indexbuild6.0*.jar</include>
+			</includes>
+			<excludes>
+				<exclude>*-sources.jar</exclude>
+			</excludes>
+		</fileSet>
+	</fileSets>
+</assembly>

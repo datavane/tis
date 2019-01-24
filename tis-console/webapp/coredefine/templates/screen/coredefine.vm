@@ -1,0 +1,130 @@
+<h2>创建新索引（${selectCoreinfo.groupNum}组×${selectCoreinfo.replication}列）</h2>
+ #showFormErrors("setreplica")
+ #* $control.setTemplate("resourceConfig.vm") *#
+ #saction("name=resource_config" "namespace=/coredefine#control","executeResult=true")
+<form name="form1" method="post" action="">
+
+<fieldset style="padding-left:50px;padding-right:50px">
+<legend>
+ 定义索引-第二步(选择候选机器 )</legend> 
+ <table width="100%">
+ <tr>
+ <td align="right" >
+   <input type="submit" style="width:140px;height:30px;background-color:#666666;color:yellow" onclick="createNewAppCore();return false;" 
+     name="event_submit_do_create_core_setp1" value="提  交" />
+   <a style="width:100px;height:25px;background-color:#666666;color:yellow;display:inline-block;text-align:center;padding:3px;" 
+     href="$coredefine.setTarget('coredefineStep1')"> 取 消</a>
+   </td>
+ </tr>
+ <tr>
+ <td width="30%"> <button onclick="freshSelectableNode();return false;" >刷新</button> 
+   filter:<input type="text" oninput="filter_onchange(this)" name="filter"  />
+#*
+<span > core文件副本：</span>
+<select id="coreReplica" name="coreReplica">
+  <option value="-1">请选择</option>
+  #foreach($i   in   [1..10]   ) 
+      <option value="$i">$i</option>
+  #end 
+</select>
+ <input id="setserver" type="checkbox" name="setserver"   value="1" />
+   <label for="setserver">一台机器只能有一个组</label>
+*# 
+ 
+   </td>
+ 
+ 
+ </tr>
+ <tr>
+ <td colspan="2">
+ </td>
+ </tr>
+ </table>
+
+#if($selectCoreinfo.shardSpecificNode)
+  #foreach($index in $selectCoreinfo.groupArray)
+    <div id="group${index}"><h3 style="background-color:#7DE6FF;padding:3px">第${index}组</h3>
+      #taction("name=selectable_server" "namespace=/coredefine#control" "executeResult=true")
+       #sparam("name=service","value='${manageTool.appDomain.appName}'")
+       #sparam("name=contextid","value=${index}")
+       #sparam("name=excludeHaveAppServers","value=${selectCoreinfo.excludeHaveAppServers}")
+      #end
+   </div>
+  #end
+#else
+  <div id="group0">
+   #taction("name=selectable_server" "namespace=/coredefine#control" "executeResult=true")
+     #sparam("name=service","value='${manageTool.appDomain.appName}'")
+     #sparam("name=contextid","value=0")
+     #sparam("name=excludeHaveAppServers","value=${selectCoreinfo.excludeHaveAppServers}")
+   #end
+ </div>
+#end
+
+
+
+
+
+
+</fieldset>
+ </form>
+<script>
+
+  function freshSelectableNode(){
+  
+   
+  
+        TIS.ajax({url:'$coredefine.setTarget('coredefine.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:"event_submit_do_fresh_selectable_node=y&action=core_action",                  
+                success:function(data){ 
+                  
+                }});        
+  }
+
+ //▼▼▼ start updateHsfAllServer
+  function createNewAppCore(){
+   var serial = "";
+  #foreach($index in $selectCoreinfo.groupArray)
+    var opts = $("#selectedServer${index}>option");
+   
+    if(opts.length < 1){
+      alert("选择的机器不能少于1台");
+      $("#selectedServer${index}").focus();
+      return;
+    }else{
+       for(var i =0;i<opts.length;i++){
+         serial+="&selectedServer${index}="+opts[i].value;
+       }
+    }
+   #end
+   TIS.ajax({url:'$coredefine.setTarget('coredefine.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_create_core=y&action=core_action&group=${selectCoreinfo.groupNum}&replica=${selectCoreinfo.replication}&setserver="+($("#setserver").attr("checked")?'1':'0')+serial+"&coreReplica="+$("#coreReplica").val() + "&shardSpecificNode=${selectCoreinfo.shardSpecificNode}",                  
+			    success:function(data){	
+				  	showMessageDialog(data);
+	      	    }				   
+	}); 
+ 
+   
+  }
+  //▲▲▲ end of updateHsfAllServer
+  
+  function filter_onchange(filter){
+  var reg =new RegExp(filter.value);
+  //console.debug(filter.value);
+    $(".selectableIps option").each(function(o){
+
+     if(!(reg.exec($(this).val()) || reg.exec($(this).html()))){
+     // console.debug($(this).val());
+     // console.debug($(this).html());
+      $(this).hide();
+     }else{
+       $(this).show();
+     }
+    });
+  }
+</script>
+

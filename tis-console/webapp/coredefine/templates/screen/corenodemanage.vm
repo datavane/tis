@@ -1,0 +1,1011 @@
+<link rel="stylesheet" href="/runtime/css/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/runtime/xterm/xterm.css" />
+<script src="/runtime/xterm/xterm.js"></script>
+<script src="/runtime/xterm/addons/fit/fit.js"></script>
+<script src="/runtime/js/chartjs/Chart.bundle.2.7.2.js"></script>
+<style>
+    canvas {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+</style>
+<style>
+
+.stat-block {
+  font-size:18px;
+}
+
+.stat-block i {
+  color:#999191;
+}
+
+.my-arrow1
+{
+animation:mymove1 10s linear infinite;
+-webkit-animation:mymove1 2s linear infinite; /*Safari and Chrome*/
+}
+
+@keyframes mymove1
+{
+from {left:0px;}
+to {left:60px;}
+}
+
+@-webkit-keyframes mymove1 /*Safari and Chrome*/
+{
+from {left:0px;}
+to {left:60px;}
+}
+
+
+.my-arrow2
+{
+animation:mymove2 10s linear infinite;
+-webkit-animation:mymove2 2s linear infinite; /*Safari and Chrome*/
+}
+
+@keyframes mymove2
+{
+from {left:60px;}
+to {left:120px;}
+}
+
+@-webkit-keyframes mymove2 /*Safari and Chrome*/
+{
+from {left:60px;}
+to {left:120px;}
+}
+
+.my-arrow3
+{
+animation:mymove3 10s linear infinite;
+-webkit-animation:mymove3 2s linear infinite; /*Safari and Chrome*/
+}
+
+@keyframes mymove3
+{
+from {left:120px;}
+to {left:180px;}
+}
+
+@-webkit-keyframes mymove3 /*Safari and Chrome*/
+{
+from {left:120px;}
+to {left:180px;}
+}
+
+.my-arrow4
+{
+animation:mymove4 10s linear infinite;
+-webkit-animation:mymove4 2s linear infinite; /*Safari and Chrome*/
+}
+
+@keyframes mymove4
+{
+from {left:180px;}
+to {left:240px;}
+}
+
+@-webkit-keyframes mymove4 /*Safari and Chrome*/
+{
+from {left:180px;}
+to {left:240px;}
+}
+
+.my-arrow5
+{
+animation:mymove5 10s linear infinite;
+-webkit-animation:mymove5 2s linear infinite; /*Safari and Chrome*/
+}
+
+@keyframes mymove5
+{
+from {left:240px;}
+to {left:300px;}
+}
+
+@-webkit-keyframes mymove5 /*Safari and Chrome*/
+{
+from {left:240px;}
+to {left:300px;}
+}
+</style>
+  
+  <style type="text/css"><!--
+  #db-syn{
+  position:relative;
+  }
+  .arrow{
+   position:absolute;
+   top:-13px;
+   color:blue;
+  }
+  --></style>
+<div id="corenodemanage">
+<div id="msgblock"></div>
+<div style="margin-left:20px">
+<ul id="myTabs"  class="nav nav-tabs" role="tablist">
+  <li role="presentation" class="active">
+    <a href="#home">概览</a>
+  </li>
+
+  <li role="presentation"><a href="#metrics" id="tab-metrics">指标</a></li>
+  <li role="presentation"><a href="#incr" id="tab-incr-realtime">实时增量</a></li>
+  <li role="presentation"><a href="#full" id="tab-full-build">全量构建</a></li>
+</ul>
+
+
+<div class="tab-content" style="margin-top:10px;">
+   
+     <div role="tabpanel" class="tab-pane active" id="home">
+     <h3 style="border-bottom:thin dotted  #cccccc;">基本</h3>
+     <dl class="dl-horizontal left" >
+     <dt>副本信息</dt>
+      
+      <dd style="#if(!$instanceDirDesc.valid) background-color:pink;" #end">  $instanceDirDesc.desc  </dd>
+       <dt>集群结构</dt>
+      <dd >  1组×2副本  </dd>
+     </dl>
+     
+     <h3 style="border-bottom:thin dotted  #cccccc;">配置</h3>
+     #saction("name=resource_config" "namespace=/coredefine#control","executeResult=true" "ignoreContextParams=false")
+
+<div class="btn-group" style="margin-left:20px;">
+  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+    引擎配置 <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu">
+    <li><a href="#" onclick="updateSchemaAllServer(true);return false;">Push&Reload</a>  </li>
+    <li><a href="#" onclick="updateSchemaAllServer(false);return false;">Push</a></li>
+  </ul>
+</div>
+    </div> <!--end tabpanel home-->
+
+<div role="tabpanel" class="tab-pane" id="metrics">
+ 
+ <iframe frameborder='0' src="/runtime/cluster_state.htm" width="100%" height="600" ></iframe>
+
+</div>
+
+<div role="tabpanel" class="tab-pane" id="incr">
+
+<div style="margin-left:20px">
+ <ul id="myTabs-incr"  class="nav nav-tabs" role="tablist">
+  
+ 
+  <li role="presentation" class="active">
+    <a href="#incr-visual" id="incr-visual-tab"><i class="fa fa-bar-chart" aria-hidden="true"></i>
+    </a>
+  </li>
+  <li role="presentation">
+    <a href="#incr-statistical" id="incr-statistical-tab">
+     <i class="fa fa-eye" aria-hidden="true"></i></a>
+  </li>
+  <li role="presentation">
+    <a href="#incr-send" id="incr-send-tab" >
+     <i class="fa fa-paper-plane-o" aria-hidden="true"></i></a>
+  </li>
+   <li role="presentation">
+    <a href="#incr-build" id="incr-build-tab" >构建</a>
+  </li>
+ </ul>
+
+ <div class="tab-content" style="margin-top:10px;">
+    <div role="tabpanel" class="tab-pane active" id="incr-visual">
+
+<div>
+ <button id="redeployBtn"
+       class="btn btn-default" onclick="reDeployIncr();return false;">部署</button>
+ <span id="deploy-status" class="stat-block"></span>
+</div>
+
+    <table align="center">
+ <tr>
+   <td>
+    <i>DB</i><br/>
+    <i class="fa fa-database" style="font-size:7em" aria-hidden="true"></i>
+   </td>
+   <td align="center">
+   <b style="color:blue;font-size:40px" id="tis-incr-in-rate"></b>
+   <div id="db-syn" style="width:130px;height:5px;background-color:blue;">
+    <i class="fa fa-caret-right fa-2x arrow my-arrow1"  aria-hidden="true"></i>
+    <i class="fa fa-caret-right fa-2x arrow my-arrow2"  aria-hidden="true"></i>  
+   </div>
+   </td>
+   <td align="center" valign="center">
+     
+<div class="btn-group">
+  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+    启停 <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu">
+    <li><a onclick="return incrResumePause(true)"  href="#">暂停</a></li>
+    <li><a onclick="return incrResumePause(false)" href="#">启动</a></li>
+  </ul>
+</div><br/>
+<i class="fa fa-cog fa-spin" style="font-size:3em" aria-hidden="true"></i>
+   </td>
+   <td align="center"> <b style="color:blue;font-size:40px" id="tis-incr-out-rate"></b>
+       <div id="db-syn" style="width:130px;height:5px;background-color:blue;">
+    <i class="fa fa-caret-right fa-2x arrow my-arrow1"  aria-hidden="true"></i>
+    <i class="fa fa-caret-right fa-2x arrow my-arrow2"  aria-hidden="true"></i>  
+   </div>
+ </div>
+   </td>
+   <td>
+      <i>TIS</i><br/>
+      <i class="fa fa-database" style="font-size:7em" aria-hidden="true"></i>
+   </td>
+ </tr>
+</table>
+    <canvas id="tis-chart-canvas" width=800" height="600"></canvas>
+ 
+    </div> <!--end tabpanel incr-visual-tab-->
+    
+    <div role="tabpanel" class="tab-pane " id="incr-statistical">
+      <div id="incr-terminal" style="margin-top:10px;"></div>
+    </div> <!--end tabpanel incr-statistical-tab-->
+    <div role="tabpanel" class="tab-pane " id="incr-send">
+       <div id="incr-send-terminal" style="margin-top:10px;"></div>
+    </div> <!--end tabpanel incr-send-tab-->
+    
+    <div role="tabpanel" class="tab-pane " id="incr-build">
+  <table width="100%">
+   <tr>
+    <td width="5">
+     <button id="cancelBuildBtn" style="display:none;" 
+       class="btn btn-default" onclick="cancelBuild(this);return false;">终止执行</button></td>
+    <td width="150"><div class="dropdown">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" 
+     data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    增量通道
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+    <li><a href="#" onclick="triggerIndexBuild();return false;">触发构建</a></li>
+    <li><a href="/runtime/incr_init_spec.htm"
+        onclick="opendialog_no_iframe('增量实例配置',this.href,800,600,function(){ });return false;" >
+        <i class="fa fa-edit"></i>配置编辑</a></li>
+  </ul>
+</div><td><td> 
+<span id="build-stat-block" class="stat-block"></span> </td>
+   </tr>
+  </table>
+        
+       <div id="incr-build-terminal" style="margin-top:10px;"></div>
+    </div> <!--end tabpanel incr-build-tab-->
+    
+    
+ </div>
+</div> <!--end myTabs-incr-->
+<div class="row">
+  <div class="col-md-4">
+ 
+  </div>
+  <div class="col-md-8"> 
+  </div>
+</div>
+
+    
+
+    </div> <!--end tabpanel incr-->
+    <div role="tabpanel" class="tab-pane" id="full">
+     #popuppajax("$coredefine.setTarget('triggerDump')","触发","600*600")
+     #popupp("/trigger/buildindexmonitor.htm?serviceName=${manageTool.appDomain.appName}","构建日志","max")
+   
+     <div id="terminal" style="margin-top:10px;"></div>
+ 
+    </div>
+  </div>
+
+</div>
+</div>
+<script>
+
+    function setDeployStatus(biz){
+      var i = '';
+      if(biz.status == 'CREATED'){
+        i = "<i class='fa fa-refresh fa-spin' aria-hidden='true'  style='color:black'></i>";
+      }else if(biz.status == 'FAILD'){
+      
+      }else if(biz.status == 'SUCCESS'){
+        i = "<i class='fa fa-check' aria-hidden='true' style='color:green'></i>";
+      }
+      $("#deploy-status").html("status:"+ i
+            + "<i>"+ biz.statusLiterial+"</i>,deploy:<i>"
+               +biz.replicationControllerName 
+               +"</i>,replica:<i>"
+               +biz.replica+"</i>");
+    }
+
+    function setBuildStatus(biz){
+    
+    
+       if(biz.buildName){
+          var i = '';
+          if(biz.buildResult.phase == 'New' || biz.buildResult.phase == 'Pending' || biz.buildResult.phase == "Running"){
+             i  = "<i class='fa fa-refresh fa-spin' aria-hidden='true'  style='color:black'></i>";
+             $("#cancelBuildBtn").show();
+             $("#cancelBuildBtn").attr("buildname",biz.buildName);
+          }else if(biz.buildResult.phase == 'Complete'){
+            i = "<i class='fa fa-check' aria-hidden='true' style='color:green'></i>";
+            $("#cancelBuildBtn").hide();
+          }else{
+            $("#cancelBuildBtn").hide();
+          }
+          
+          //ban 
+          
+          $("#build-stat-block").html("status:"+i+"<i>"+biz.buildResult.phase
+           + "</i>,build:<i>"+biz.buildName
+           + "</i>,duration:<i>"+ biz.buildResult.duration
+           +"s</i>,start:<i>"+ biz.buildResult.startTime
+           +"</i>");
+       }
+    }
+   
+   // 重新部署容器
+   function reDeployIncr(){
+     TIS.ajax({url: '$manageModule.setTarget('incrInitSpec.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:"event_submit_do_re_deploy_incr=y&action=incr_init_spe_action",
+                success:function(data){  
+                  var biz =  data.bizresult ||{};
+                  console.info(biz);
+                  if( biz.version > 0 ){
+                    Chat.register('$appDomain.appName','incrdeploy-change:'+ biz.version);
+                  }
+                  setDeployStatus(biz);
+                  showMessageDialog(data);
+                }                  
+            });
+   }
+    
+   function cancelBuild(btn){
+    
+    TIS.ajax({url: '$manageModule.setTarget('incrInitSpec.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:"event_submit_do_cancel_incr_build=y&action=incr_init_spe_action&buildname=" + $(btn).attr("buildname"),
+                success:function(data){  
+                  var biz =  data.bizresult ||{};
+                  setBuildStatus(biz);
+                  showMessageDialog(data);
+                }                  
+            });
+   }
+
+
+Terminal.applyAddon(fit);
+var termConsole      = new Terminal({scrollback:40,fontSize:11,rows:35});
+var incrConsole      = new Terminal({scrollback:40,fontSize:11,rows:35});
+var incrSendConsole  = new Terminal({scrollback:40,fontSize:11,rows:35});
+var incrBuildConsole = new Terminal({scrollback:40,fontSize:11,rows:40});
+$(function() {
+
+
+ var collectionName = '$appDomain.appName';
+
+    $('#myTabs-incr a').click(function (e) { 
+       e.preventDefault();
+       $(this).tab('show');
+       var fromctl =  $(this).attr('id');
+       if( 'incr-visual-tab' === fromctl){
+         getIncrDeployStatus();
+       }else if( !incrConsole.hasInit && 'incr-statistical-tab' === fromctl){
+          incrConsole.hasInit = true;
+          Chat.register(collectionName,'incr');
+          incrConsole.open(document.getElementById('incr-terminal'));
+          incrConsole.fit();
+       }else if( !incrSendConsole.hasInit && 'incr-send-tab' === fromctl){
+          incrSendConsole.hasInit = true;
+          Chat.register(collectionName,'incrsend');
+          incrSendConsole.open(document.getElementById('incr-send-terminal'));
+          incrSendConsole.fit();
+       }else if( !incrBuildConsole.hasInit  && 'incr-build-tab' === fromctl ){
+          incrBuildConsole.hasInit = true;
+          Chat.register(collectionName,'incrbuild:build');
+          getIncrBuildStatus();
+          incrBuildConsole.open(document.getElementById('incr-build-terminal'));
+          incrBuildConsole.fit();
+       }  
+    });
+    
+    function getIncrDeployStatus(){
+      
+      TIS.ajax({url: '$manageModule.setTarget('incrInitSpec.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:"event_submit_do_get_deployment_status=y&action=incr_init_spe_action",
+                success:function(data){ 
+                  
+                  var biz =  data.bizresult ||{};
+                  if(biz.status == 'CREATED'){
+                    Chat.register(collectionName,'incrdeploy-change:'+ biz.version);
+                  }
+                  setDeployStatus(biz);                  
+                }                  
+            });
+    }
+    
+    
+    
+    function getIncrBuildStatus(){
+        TIS.ajax({url: '$manageModule.setTarget('incrInitSpec.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:"event_submit_do_get_build_status=y&action=incr_init_spe_action",
+                success:function(data){ 
+                  
+                  var biz =  data.bizresult ||{};
+               
+                  setBuildStatus(biz);
+                  
+                }                  
+            });
+    }
+    
+
+
+    $('#myTabs a').click(function (e) {
+     e.preventDefault()
+     // 打开
+     $(this).tab('show');
+     var fromctl =  $(this).attr('id');
+     if( !termConsole.hasInit && 'tab-full-build' === fromctl){
+        termConsole.hasInit = true;
+        barChart.initialize();
+        Chat.register(collectionName,'full');
+        termConsole.open(document.getElementById('terminal'));
+        termConsole.fit();
+       
+    
+     }else if( !barChart.hasInit && 'tab-incr-realtime' == fromctl ){
+        // 增量tab
+        barChart.hasInit = true;   
+        barChart.initialize();
+        Chat.register(collectionName,'mq_tags_status');
+        getIncrDeployStatus();
+                   
+     }else if( 'tab-metrics' === fromctl ){
+     
+     }
+   });
+    
+    $( "#dialog-confirm" ).dialog({
+      resizable: true,
+      autoOpen:false,
+      height:250,
+      width:600,
+      modal: true,
+      buttons: [{text:"确定",id:"confirmButton",click: function(){
+	  		var groupNum = $("#groupNum").val();
+			var numReplica = $("#number").val();
+    	  	jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+                type:'POST',
+            dataType:"json",
+                  data:"event_submit_set_core_replication=y&action=core_action&groupNum="+groupNum+"&numReplica="+numReplica,
+              success:function(data){ 
+                showMessageDialog(data);
+                 }, 
+             error:function(){   
+             }           
+              });
+	  	  
+          $( this ).dialog( "close" );
+      }},{text:"取消",click:function(){
+          $( this ).dialog( "close" );
+      }}]
+    });
+  });
+  function deleteServer( ip,group,id ){
+   
+   if(!window.confirm("是否要删除第"+group +"组服务器" + ip)){
+     return ;
+   }
+   
+   jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_delete_server_from_core=y&action=core_action&group="+group+"&ip="+ip,
+			    success:function(data){	
+				  	showMessageDialog(data);
+	      	   }, 
+			   error:function(){   
+			   }				   
+	        }); 
+  }
+  
+  function invertSelectRow(){ 
+   $("#tabcoreServer input[type='checkbox']").each(function(){
+     $(this).attr("checked",!$(this).attr("checked"));
+   }); 
+  }
+  
+  //▼▼▼ start 触发增量构建
+  function triggerIndexBuild(){
+        TIS.ajax({url: '$manageModule.setTarget('incrInitSpec.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:"event_submit_do_trigger_incr_build=y&action=incr_init_spe_action",
+                success:function(data){ 
+                  Chat.register('$appDomain.appName','incrbuild:'+ data.bizresult.buildName);
+                  //showMessageDialog(data);
+                  setBuildStatus(data.bizresult);
+                }                  
+            }); 
+  }
+  //▲▲▲ end 触发增量构建
+  
+  //▼▼▼ start 实时模式停止commitlog的执行
+  function abortBuildJob(){
+     
+     if(!window.confirm("是否要停止正在执行的BuildJob")){
+       return ;
+     }
+   
+     jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_abort_build_job=y&action=core_action",
+			    success:function(data){
+				  	showMessageDialog(data);
+	      	   }, 
+			   error:function(){   
+			   }				   
+	        }); 
+  }
+  //▲▲▲ end 实时模式停止commitlog的执行
+  
+
+  
+  var afterSynConfig = function(loaddialog,execcount){
+      jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_get_core_config_is_consist=y&action=core_action&snapshotid=${configGroup0.snapshot.snId}",
+			    success:function(data){
+			     
+				  	if(data.errormsg && data.errormsg.length<1){
+				  	 //  alert(loaddialog);
+				  	  loaddialog.dialog("close");
+				  	 
+				  	  //synchronize success
+				  	  var msgContent = $("<div class='synchronizeresult'></div>");
+				  	  appendMessage(data,msgContent);
+				  	  msgContent.append("<p><h3>是否还要触发应用全量构建索引?</h3></p>");
+				  	
+				  	 var isDumpDialog = open_dialog("配置文件同步结果",msgContent,500);
+				  	  
+				  	  var btntrigger = $("<button>是的,我要触发全量</button>")
+				  	  btntrigger.click(function(){
+				  	    isDumpDialog.dialog("close");
+				  	    $("#triggerfulldump a").trigger("click");
+				  	  });
+				  	  msgContent.append(btntrigger);
+				  	  
+				  	}else if(execcount<3){
+				  	  setTimeout(function(){
+				  	    afterSynConfig(loaddialog,++execcount);
+				  	  },2000);
+				  	}else{
+				  	  loaddialog.dialog("close");
+				  	  showMessageDialog(data);
+				  	}
+	      	    }				   
+	        }); 
+  }
+
+  function updateReplication(groupNum) {
+  	  $("#groupNum").val(groupNum);
+      $("#dialog-confirm").dialog("open"); 
+      return false;    
+   
+  } 
+
+  function check() {
+    var str = new String(document.getElementById("number").value);
+    if (str.length > 2 || str.length == 0 || isNaN(str) == true) {
+      $("#confirmButton").attr({"disabled" : "disabled"});
+    } else {
+      $("#confirmButton").removeAttr("disabled");
+    }
+    return false;
+  }
+  
+  function startMachine(groupNum, replicaNum) {
+    if(!window.confirm("您是否确定要开启该副本？")){
+      return ;
+    }
+
+      jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+            type:'POST',
+        dataType:"json",
+              data:"event_submit_do_start_one=y&action=core_action&groupNum="+groupNum+"&replicaNum="+replicaNum,
+          success:function(data){ 
+           		 showMessageDialog(data);
+             }, 
+         	error:function(){   
+         }           
+          });
+  }
+
+  function stopMachine(groupNum, replicaNum) {
+    if(!window.confirm("您是否确定要关闭该副本？")){
+      return ;
+    }
+    
+      jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+            type:'POST',
+        dataType:"json",
+              data:"event_submit_do_stop_one=y&action=core_action&groupNum="+groupNum+"&replicaNum="+replicaNum,
+          success:function(data){ 
+            showMessageDialog(data);
+             }, 
+         error:function(){   
+         }           
+          });
+  }
+
+  //▼▼▼ start updateSchemaAllServer
+  function updateSchemaAllServer(needreload){
+  
+    if(!window.confirm("您是否确定要触发更新全部Schema？")){
+      return ;
+    }
+  
+    TIS.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_update_schema_all_server=y&action=core_action&needReload="+needreload,
+			    success:function(data){ 
+			    showMessageDialog(data);
+	      	    }				   
+	        }); 
+  }
+  //▲▲▲ end of updateSchemaAllServer
+  
+  
+ 
+  
+  //▼▼▼ start repairGroupIndex
+  function repairGroupIndex(){
+	  updateResourceByServer("server");
+  }
+  //▲▲▲ end of repairGroupIndex
+  
+  
+  
+  
+  function abortBuildjobByServer(group,server){
+   if(!window.confirm("是否要执行暂停\恢复增量消费，第"+group+"组，IP地址:"+server)){
+      return ;
+   }
+   
+   jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+   		type:'POST',
+		dataType:"json",
+    	data:"event_submit_do_buildjob_by_server=y&action=core_action&group="+group+"&server="+server,
+	    success:function(data){	
+		  	showMessageDialog(data);
+	    }				   
+	 });
+  }
+   
+    //▼▼▼start resume/pause incr task
+    function incrResumePause(pause){
+          TIS.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:"event_submit_do_incr_resume_pause=y&action=core_action&pause="+pause,
+                success:function(data){ 
+                    showMessageDialog(data);
+                }                  
+            }); 
+          return false;
+    }
+ 
+    //▲▲▲end resume/pause incr task  
+  
+  // ▼▼▼start updateResourceByServer      
+  function updateResourceByServer(resName){
+    var updateParameters = arguments;
+    var updateServer ='';
+    var hasselect= false;
+   
+    $("#tabcoreServer input[type='checkbox']").each(function(){
+      if(!$(this).attr("checked")){
+         return;
+       }   
+      updateServer += "&updateServer="+ $(this).val();
+        hasselect=true;
+    });
+    
+    if(!hasselect){
+      open_dialog("信息","<h2 style='color:red'>请选择服务器</h2>",400);
+      return  ;
+    }
+    
+    if(!window.confirm("您是否确定要触发更新"+resName+"服务,"+updateServer)){
+      return ;
+    }
+    
+    jQuery.ajax({url:'$coredefine.setTarget('corenodemanage.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_update_"+resName+"_by_server=y&action=core_action"+updateServer,
+			    success:function(data){	
+				  	showMessageDialog(data);
+	      	    }				   
+	        }); 
+  }
+  //▲▲▲end of function updateResourceByServer
+  
+  
+  function opentriggerdialog(title,src,width,height,notRefeshWhenDialogClose){
+    #if(!$configGroup0.currentSnapshotEqual2Neweast)
+     if(!window.confirm("此SNAPSHOT版本不是最新版本,最新版本是:$configGroup0.maxSnapshotId,您要继续发布吗？")){
+       return ;
+     }
+    #end
+ 
+    opendialog(title,src,width,height,notRefeshWhenDialogClose);
+  }
+   
+</script>
+#macro (popuppp $target $caption $size  ) 
+<a href="$manageTool.noescape($target)" 
+ onclick="opentriggerdialog('$caption',this.href,$manageTool.getPopLength($size,true),$manageTool.getPopLength($size,false),true);return false;">$caption</a>
+#end
+
+<div  id="corereport" style="display:none;"  >
+ <table border="1" width="100%">
+  <tr><td width="20%">组数</td><td>$corereport.groupCount组</td>
+  </tr
+  <tr><td>访问次数</td><td>${corereport.formatRequests}次</td>
+  </tr>
+  <tr><td>错误数</td><td>${corereport.errors} ${corereport.errorSummary}</td>
+  </tr>
+   <tr><td>超时</td><td>${corereport.timeoutCount} ${corereport.timeoutSummary}</td>
+  </tr>
+   <tr><td>记录条数</td><td>${corereport.formatNumDocs}条</td>
+  </tr>
+  <tr><td>QPS(单节点)</td><td>${corereport.formatAvgRequestPerSecond}(条/秒)</td>
+  </tr>
+  <tr><td>平均处理时间</td><td>${corereport.avgTimePerRequest}ms</td>
+  </tr>
+ </table>
+</div>
+<script type="text/javascript">
+
+ function showDetailLog(taskId,execLogId)   {
+   alert(taskId);
+ }
+
+ function showTaskList(href,taskid){
+   
+ 
+   
+ }
+
+
+
+</script>
+
+
+<script>
+   
+     var  barChart = {
+      barChartData : {
+            labels: [],
+            datasets: [{
+                label: 'send',
+                backgroundColor: "pink",
+                borderColor: "blue",
+                borderWidth: 1,
+                data: []
+            }, {
+                label: 'receive',
+                backgroundColor: "green",
+                borderColor: "blue",
+                borderWidth: 1,
+                data: []
+            }]
+        }
+     ,initialize : function() {
+            if(this.initialized){
+              return ;
+            }
+            this.initialized = true;
+            
+            // Define a plugin to provide data labels
+        Chart.plugins.register({
+            afterDatasetsDraw: function(chart) {
+                var ctx = chart.ctx;
+
+                chart.data.datasets.forEach(function(dataset, i) {
+                    var meta = chart.getDatasetMeta(i);
+                    if (!meta.hidden) {
+                        meta.data.forEach(function(element, index) {
+                            // Draw the text in black, with the specified font
+                            ctx.fillStyle = 'rgb(0, 0, 0)';
+
+                            var fontSize = 16;
+                            var fontStyle = 'normal';
+                            var fontFamily = 'Helvetica Neue';
+                            ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+
+                            // Just naively convert to string for now
+                           var rate = dataset.data[index];
+                           if(rate < 1 ){
+                            return ;
+                           }
+                            var dataString = rate.toString();
+
+                            // Make sure alignment settings are correct
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+
+                            var padding = 5;
+                            var position = element.tooltipPosition();
+                            ctx.fillText(dataString, position.x -40, position.y - (fontSize / 2) - padding);
+                            
+                           //  ctx.fillText(dataString, 0,0);
+                        });
+                    }
+                });
+            }
+        });
+            
+            var ctx = document.getElementById('tis-chart-canvas').getContext('2d');
+            window.myBar = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: barChart.barChartData,
+                options: {
+                    responsive: false,
+                    legend: {
+                        display: false,
+                        position: 'top'
+                    },
+                    title: {
+                        display: false,
+                        text: 'binlog'
+                    }
+                }
+            });
+         }
+     ,updateView : function(data){
+         var barChartData = barChart.barChartData;
+          $("#tis-incr-in-rate").html(data.summary.tableConsumeCount );
+          $("#tis-incr-out-rate").html(data.summary.solrConsume);
+         //console.log(data);
+         //console.log("=================")
+         barChartData.labels  =  data.tags.map(function(row){
+             return row.tag + "(" + row.lastUpdate  + ")";
+         });
+     
+         var index = 0;
+           barChartData.datasets.forEach(function(dataset) {
+             if(index++ < 1){
+                dataset.data = data.tags.map(function(row){
+                     return row.binlogIncr;
+                });
+             }else{
+                dataset.data = data.tags.map(function(row){
+                   return row.trantransferIncr;
+                });
+             }
+            });
+            window.myBar.update();
+       }
+    };
+    
+       var Chat = {};
+        Chat.connecting = false;
+        Chat.connected = false;
+        Chat.socket = null;
+        Chat.isStop = false;
+    
+    
+        Chat.stop = function(){
+           Chat.isStop = true;
+        }
+        Chat.resume = function(){
+           Chat.isStop = false;
+        }
+        Chat.connect = (function(host) {
+            
+            if(Chat.connected || Chat.connecting){
+             return;
+            }        
+            Chat.connecting = true;
+            if ('WebSocket' in window) {
+                Chat.socket = new WebSocket(host);
+            } else if ('MozWebSocket' in window) {
+                Chat.socket = new MozWebSocket(host);
+            } else {
+                Console.log('Error: WebSocket is not supported by this browser.');
+                return;
+            }
+
+            Chat.socket.onopen = function () {
+                Chat.connecting = false;
+                Chat.connected =true;     
+                console.debug("onopen");    
+            };
+
+            Chat.socket.onclose = function () {
+                Chat.connecting = false;
+                Chat.connected = false;
+               // document.getElementById('chat').onkeydown = null;
+               // Console.log('Info: WebSocket closed.');
+            };
+
+            Chat.socket.onmessage = function (message) {
+                
+                var msg = jQuery.parseJSON(message.data);
+                 console.log(msg.logtype);
+                // addmessage(message.data);
+                // msg.logtype
+                if("mq_tags_status" === msg.logtype){
+                   barChart.updateView(msg.data);
+                }else if("incr" === msg.logtype){
+                  incrConsole.writeln(msg.data);
+                }else if("incrsend" === msg.logtype){
+                  incrSendConsole.writeln(msg.data);
+                }else if("incrbuild" === msg.logtype){
+                  incrBuildConsole.writeln(msg.data);
+                }else if("incrbuildstatus_change" === msg.logtype){
+                  //修改当前任务状态
+                  //console.log(msg);
+                  setBuildStatus(msg.data||{});
+                }else if("incrdeploy-change" === msg.logtype){
+                   setDeployStatus(msg.data||{});
+                }else if("full" === msg.logtype){
+                  termConsole.writeln(msg.data);
+                }
+               
+            };
+        });
+
+        Chat.register = function( collection , event ){
+          console.log(event);
+             if( ! Chat.connected ){
+               if(Chat.connecting){
+                 setTimeout(function(){
+                   Chat.register(collection , event);
+                 }, 1000);
+               }else{
+                 // 创建连接
+                 Chat.connect('ws://' 
+                 + window.location.host 
+                 + '/download/logfeedback?collection='+ collection +'&logtype='+ event);
+               }
+             }else{
+               // 已经连接上了
+               console.log("sendmsg:"+event);
+               Chat.sendMessage(event); 
+             }
+        };
+
+//        Chat.initialize = function() {
+//Chat.connect('ws://' + window.location.host 
+//   + '/download/logfeedback?collection=<%=appname%>&logtype=<%=logtype%>');
+//         };
+
+        Chat.sendMessage = (function(message) {
+            
+            if (message != '') {
+                Chat.socket.send(message);
+                console.log(message);
+            }
+        });
+
+    function addmessage(msg){
+       
+    }
+   
+</script>
+

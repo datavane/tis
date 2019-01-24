@@ -1,0 +1,67 @@
+#*
+<p>
+<h3>Daily SNAPSHOT版本：$dailyRes.snapshot.snId </h3>
+</p>                      
+*#
+#if($dailyRes && $onlineRes)
+<div id="messageblock"></div>
+<p>
+<h3>线上SNAPSHOT版本：$onlineRes.snapshot.snId</h3>
+</p>
+
+<p>
+<h3>比较结果:</h3>
+<table widht="100%" border="1">
+<tr>
+<th></th>
+#foreach($item in $rescompare)
+ <th>$item.name</th>
+#end
+</tr>
+
+<tr>
+<td>比较结果</td>
+#foreach($item in $rescompare)
+ <td> #if($item.same) 相同  #else 不同  #end</td>
+#end
+</tr>
+<tr>
+
+</tr>
+</table>
+
+</p>
+ 
+#end
+
+#if(!$dailyRes)
+ <div class="note">DAILY环境中还没有设置配置文件，不能同步</div>
+#end
+
+#if($dailyRes && !$onlineRes)
+  <div class="note2">线上生产环境还没有创建实例</div>
+#end
+
+
+<p>
+#if($synManager.shallSynchronize())
+  <button style="width:15em;height:30px;" onclick="synchronizeConfigRes()">开始同步</button>
+#else
+ <div class="note2">DAILY环境配置文件已经同步到线上，不需要再同步了</div>
+#end
+</p>
+
+<script>
+
+ function synchronizeConfigRes(){
+
+  TIS.ajax({url:'$manageModule.setTarget('jarcontent/snapshotlist.ajax')', 
+   		type:'POST',
+		dataType:"json",
+    	data:"event_submit_do_sync_daily_config=y&action=save_file_content_action&appid=$manageTool.appDomain.appid",
+	    success:function(data){	
+     	  appendMessage(data,$("#messageblock"))
+	    }				   
+	 });
+ }
+</script>

@@ -1,0 +1,46 @@
+#if("true" != $rundata.request.getParameter("justenvironment"))
+ #showFormErrors("changedomain")
+#else
+ #showFormErrors("runtimechangedomain")
+#end
+<br/>
+<fieldset>
+ <legend style="font-size:25px">请选择需要维护的应用</legend>
+<form method="post"  action="$manageModule.setTarget("changedomain")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="change_domain_action"/>
+<input type="hidden" name="$group.gobackurl.key" value="$group.gobackurl.value"/>
+<input type="hidden" name="justenvironment" value='$!rundata.request.getParameter("justenvironment")' />
+<div>
+#if("true" != $rundata.request.getParameter("justenvironment"))
+
+$control.setTemplate("appselect.vm")
+
+#end
+<p>
+<span>环境：</span>
+#foreach($item in $envirlist)
+  <input type="radio" name="$group.runEnviron.key" 
+  #if( $group.runEnviron.value == $item.id) checked #end
+   value="$item.id" id="runEnviron${item.id}" /> <label for="runEnviron${item.id}">${item.describe}</label>
+#end
+</p>
+<p>
+
+
+#if("true" != $rundata.request.getParameter("justenvironment"))
+<input type="submit" name="event_submit_do_change" value="确 定" />
+#else
+<input type="submit" name="event_submit_do_runtime_change" value="确 定" />
+#end
+</p>
+</div>
+</form>
+</fieldset>
+<p class="note2">
+<span class="help">
+ <a  target="_blank" href="http://baike.corp.taobao.com/index.php/%E7%BB%88%E6%90%9C%E7%94%A8%E6%88%B7%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%B0%83%E7%94%A8%E6%96%87%E6%A1%A3">终搜WIKI</a>
+</span>
+</p>

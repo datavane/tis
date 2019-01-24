@@ -1,0 +1,32 @@
+<h2>设置全局配置参数   ${param.keyName},${runtime.describe}</h2>
+<style type="text/css"><!--
+  #uploaddialog p span{
+    width:2em;
+    display:inline-block;
+  }
+  #btndouploadjar {
+    width:200px;
+    height:30px;
+  }
+-->
+</style>
+#showFormErrors("addapp")
+<form method="post" action="$manageModule.setTarget("config_file_parameters_set")"> 
+  <input type="hidden" name="runtime" value="${runtime.keyName}"/>
+  <input type="hidden" name="action" value="config_file_parameters_action"/>
+  <input type="hidden" name="rpid" value="${param.rpId}"/>
+  
+<fieldset id="uploaddialog">
+ <legend>设置表单</legend>
+<p>
+  <span>值：</span> <input size="40" type="text" name="keyvalue" value="$!{paramValue}" />
+  <em style="color:red">必填</em>
+</p>
+ 
+ 
+ <p style="text-align:right;">
+  <input type="submit" style="width:100px;height:28px;" 
+           name="event_submit_do_set_parameter" value="提 交" />
+ </p>
+ 
+</fieldset>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="task">
+	<resultMap class="com.taobao.terminator.trigger.biz.dal.pojo.Task"
+		id="ibatorgenerated_BaseResultMap">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		<result column="task_id" jdbcType="BIGINT" property="taskId" />
+		<result column="job_id" jdbcType="BIGINT" property="jobId" />
+		<result column="trigger_from" jdbcType="VARCHAR" property="triggerFrom" />
+		<result column="exec_state" jdbcType="VARCHAR" property="execState" />
+		<result column="domain" jdbcType="VARCHAR" property="domain" />
+		<result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate" />
+		<result column="gmt_modified" jdbcType="TIMESTAMP" property="gmtModified" />
+		<!--
+			<result column="from_ip" jdbcType="VARCHAR" property="fromIp" />
+		-->
+
+		<result column="runtime" property="runtime" jdbcType="VARCHAR" />
+		<result column="phrase" property="phrase" jdbcType="BIGINT" />
+		<result column="err_log_id" jdbcType="VARCHAR" property="errLogId" />
+	</resultMap>
+
+
+	<resultMap class="com.taobao.terminator.trigger.biz.dal.pojo.ErrorJob"
+		id="errorJob">
+		<result column="job_id" jdbcType="BIGINT" property="jobId" />
+		<!-- 
+		<result column="occur_time" jdbcType="TIMESTAMP" property="occurTime" />
+	     -->
+	</resultMap>
+
+
+	<sql id="ibatorgenerated_Example_Where_Clause">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		<iterate conjunction="or" prepend="where" property="oredCriteria"
+			removeFirstPrepend="iterate">
+			<isEqual compareValue="true" property="oredCriteria[].valid">
+				(
+
+				<iterate conjunction="and" prepend="and"
+					property="oredCriteria[].criteriaWithoutValue">
+					$oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+				<iterate conjunction="and" prepend="and"
+					property="oredCriteria[].criteriaWithSingleValue">
+					$oredCriteria[].criteriaWithSingleValue[].condition$
+					#oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+				<iterate conjunction="and" prepend="and"
+					property="oredCriteria[].criteriaWithListValue">
+					$oredCriteria[].criteriaWithListValue[].condition$
+					<iterate close=")" conjunction="," open="("
+						property="oredCriteria[].criteriaWithListValue[].values">
+						#oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+				</iterate>
+				<iterate conjunction="and" prepend="and"
+					property="oredCriteria[].criteriaWithBetweenValue">
+					$oredCriteria[].criteriaWithBetweenValue[].condition$
+					#oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+					#oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+
+				<isEqual compareValue="true" prepend="and"
+					property="oredCriteria[].gmtCreateInSameDaySet">
+					datediff(gmt_create, #oredCriteria[].gmtCreateInSameDay:DATETIME#)=0
+        </isEqual>
+				)
+			</isEqual>
+
+
+		</iterate>
+	</sql>
+
+	<!-- 统计24小时之内有错误的job  ,max(l.gmt_create) occur_time-->
+	<select id="executeJobsError" resultMap="errorJob" parameterClass="java.lang.String">
+		SELECT aa.job_id 
+		FROM
+		(
+			select j.job_id,max(t.task_id) task_id from trigger_job j inner join task t
+			  on j.job_id = t.job_id
+			where t.gmt_modified > DATE_SUB(NOW(),INTERVAL 2 DAY) and t.runtime = #value#
+			group by t.job_id
+		) as aa inner join task_exec_log l on aa.task_id = l.task_id
+		group by l.task_id
+		having LOCATE('ERROR', GROUP_CONCAT(l.info_type)) >0
+  </select>
+
+
+	<select id="ibatorgenerated_selectByExample"
+		parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskCriteria"
+		resultMap="ibatorgenerated_BaseResultMap">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		select aa.task_id, job_id, trigger_from, exec_state, domain,
+		gmt_create, gmt_modified,runtime, phrase, err_log_id
+		from ( select task_id from task
+		<isParameterPresent>
+			<include refid="task.ibatorgenerated_Example_Where_Clause" />
+			<isNotNull property="orderByClause">
+				order by $orderByClause$
+      </isNotNull>
+			limit #skip#,#pageSize#
+		</isParameterPresent>
+		) bb inner join task aa on (aa.task_id=bb.task_id)
+	</select>
+	<select id="ibatorgenerated_selectByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.Task"
+		resultMap="ibatorgenerated_BaseResultMap">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		select task_id, job_id, trigger_from, exec_state, domain, gmt_create,
+		gmt_modified,runtime, phrase, err_log_id
+		from task
+		where task_id = #taskId:BIGINT#
+	</select>
+	<delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.Task">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		delete from task
+		where task_id = #taskId:BIGINT#
+	</delete>
+	<delete id="ibatorgenerated_deleteByExample"
+		parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskCriteria">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		delete from task
+		<include refid="task.ibatorgenerated_Example_Where_Clause" />
+	</delete>
+	<insert id="ibatorgenerated_insert" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.Task">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		insert into task (task_id, job_id, trigger_from, exec_state, domain,
+		gmt_create, gmt_modified, phrase, err_log_id)
+		values (#taskId:BIGINT#, #jobId:BIGINT#, #triggerFrom:VARCHAR#,
+		#execState:VARCHAR#,
+		#domain:VARCHAR#, #gmtCreate:TIMESTAMP#, #gmtModified:TIMESTAMP#, #phrase:BIGINT#, #errLogId:VARCHAR#,)
+		<selectKey resultClass="LONG">
+			SELECT LAST_INSERT_ID();
+    </selectKey>
+	</insert>
+	<insert id="ibatorgenerated_insertSelective" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.Task">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		insert into task
+		<dynamic prepend="(">
+			<isNotNull prepend="," property="taskId">
+				task_id
+      </isNotNull>
+			<isNotNull prepend="," property="jobId">
+				job_id
+      </isNotNull>
+			<isNotNull prepend="," property="triggerFrom">
+				trigger_from
+      </isNotNull>
+			<isNotNull prepend="," property="execState">
+				exec_state
+      </isNotNull>
+			<isNotNull prepend="," property="domain">
+				domain
+      </isNotNull>
+			<isNotNull prepend="," property="gmtCreate">
+				gmt_create
+      </isNotNull>
+			<isNotNull prepend="," property="gmtModified">
+				gmt_modified
+      </isNotNull>
+		<isNotNull prepend="," property="runtime">
+				runtime
+      </isNotNull>
+      <isNotNull prepend="," property="phrase">
+				phrase
+      </isNotNull>
+      <isNotNull prepend="," property="errLogId">
+				err_log_id
+      </isNotNull>
+			)
+		</dynamic>
+		values
+		<dynamic prepend="(">
+			<isNotNull prepend="," property="taskId">
+				#taskId:BIGINT#
+      </isNotNull>
+			<isNotNull prepend="," property="jobId">
+				#jobId:BIGINT#
+      </isNotNull>
+			<isNotNull prepend="," property="triggerFrom">
+				#triggerFrom:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="execState">
+				#execState:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="domain">
+				#domain:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="gmtCreate">
+				#gmtCreate:TIMESTAMP#
+      </isNotNull>
+			<isNotNull prepend="," property="gmtModified">
+				#gmtModified:TIMESTAMP#
+      </isNotNull>
+			<isNotNull prepend="," property="runtime">
+				#runtime:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="phrase">
+				#phrase:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="errLogId">
+				#errLogId:VARCHAR#
+      </isNotNull>
+			)
+		</dynamic>
+		<selectKey resultClass="LONG">
+			SELECT LAST_INSERT_ID();
+    </selectKey>
+	</insert>
+	<select id="ibatorgenerated_countByExample"
+		parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskCriteria"
+		resultClass="java.lang.Integer">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		select count(*) from task
+		<include refid="task.ibatorgenerated_Example_Where_Clause" />
+	</select>
+	<update id="ibatorgenerated_updateByExampleSelective">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		update task
+		<dynamic prepend="set">
+			<isNotNull prepend="," property="record.taskId">
+				task_id = #record.taskId:BIGINT#
+      </isNotNull>
+			<isNotNull prepend="," property="record.jobId">
+				job_id = #record.jobId:BIGINT#
+      </isNotNull>
+			<isNotNull prepend="," property="record.triggerFrom">
+				trigger_from = #record.triggerFrom:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="record.execState">
+				exec_state = #record.execState:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="record.domain">
+				domain = #record.domain:VARCHAR#
+      </isNotNull>
+			<isNotNull prepend="," property="record.gmtCreate">
+				gmt_create = #record.gmtCreate:TIMESTAMP#
+      </isNotNull>
+			<isNotNull prepend="," property="record.gmtModified">
+				gmt_modified = #record.gmtModified:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="record.phrase">
+				phrase = #record.phrase:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.errLogId">
+				err_log_id = #record.errLogId:VARCHAR#
+      </isNotNull>
+		</dynamic>
+		<isParameterPresent>
+			<include refid="task.ibatorgenerated_Example_Where_Clause" />
+		</isParameterPresent>
+	</update>
+	<update id="ibatorgenerated_updateByExample">
+		<!--
+			WARNING - if you hava any question please contact to
+			baisui(baisui@taobao.com)
+		-->
+		update task
+		set task_id = #record.taskId:BIGINT#,
+		job_id = #record.jobId:BIGINT#,
+		trigger_from = #record.triggerFrom:VARCHAR#,
+		exec_state = #record.execState:VARCHAR#,
+		domain = #record.domain:VARCHAR#,
+		gmt_create = #record.gmtCreate:TIMESTAMP#,
+		gmt_modified = #record.gmtModified:TIMESTAMP#,
+		phrase = #record.phrase:BIGINT#,
+		err_log_id = #record.errLogId:VARCHAR#
+		
+		<isParameterPresent>
+			<include refid="task.ibatorgenerated_Example_Where_Clause" />
+		</isParameterPresent>
+	</update>
+</sqlMap>

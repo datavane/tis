@@ -1,0 +1,21 @@
+<h2>部门($dpt)成员列表</h2>
+$control.setTemplate("dptnavigatebar.vm")
+##.setParameter("currenttarget","dptMemberList")
+<p>
+#popup("$manageModule.setTarget('dptBindMember')?dptid=#p('dptid')","绑定成员",'')
+</p>
+<table width="100%" border="1">
+<tr>
+  <th>成员名称</th><th>角色</th> <th>创建时间</th> <th>操作</th>
+</tr>
+#foreach($item in $memberlist)
+<tr>
+ <td> $item.userName $item.usrId</td>
+ <td> $item.rId $item.roleName </td>
+ <td> $manageTool.formatDateYYYYMMdd( $item.createTime)</td>
+ <td>
+#popup("$manageModule.setTarget('dptUnbindUser')?duid=$item.udId","解除绑定",'')
+ </td>
+</tr>
+#end
+</table>

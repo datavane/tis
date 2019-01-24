@@ -1,0 +1,129 @@
+<style type="text/css"><!--
+  #seldptcaption{
+   color:blue;
+   font-size:20px;
+  font-weight: bold;
+  }
+  
+  #dptblock{
+    display:inline-block;
+    margin-left:0em;
+    margin-top:0px;
+  }
+  -->
+</style>
+#showFormErrors("usradd")
+<form class="form-horizontal" method="post" action="$manageModule.setTarget("usradd")">
+<input type="hidden" name="action" value="user_action"  />
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="user_account">登陆账户名</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" id="user_account" placeholder="xiaobai@126.com" name="userAccount">
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="real_name">用户名</label>
+    <div class="col-sm-10">
+      <input type="text" id="real_name"  class="form-control" placeholder="小白" name="realName">
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="inputPassword">密码</label>
+    <div class="col-sm-10">
+      <input type="password" id="inputPassword" class="form-control" placeholder="Password" name="password">
+    </div>
+  </div>
+  
+   <div class="form-group">
+    <label class="col-sm-2 control-label" for="real_name">设置部门</label>
+    <div class="col-sm-10">
+ <input type="hidden" name="selecteddptid" id="selecteddptid" /> 
+ <span id="dptblock">
+ <select id="rootdpt" class="form-control" name="dptid">
+  <option value="-1" selected>请选择</option>
+  #foreach($item in $rootdpts)  
+   <option value="$item.dptId">$item.name</option>
+  #end</select>
+  </span>
+  <span id="seldptcaption"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-10 col-sm-10">
+      <input type="submit" class="btn btn-default" name="event_submit_do_usr_add" value="创建账户" />
+    </div>
+  </div>
+</form>
+
+
+<script>
+ var selectChange = function(){
+        var selectid = parseInt($(this).val());
+        var selbox = $(this);
+        
+        var selectcation = $("#rootdpt").find("option:selected").text();
+        var lastselbox = $("#rootdpt");
+        $("#rootdpt").nextAll().each(function(index, element){
+               if(parseInt( element.value) >-1){
+                 lastselbox = $(element);
+                 selectcation += "-" ; 
+                 selectcation += $(element).find("option:selected").text();
+                           
+               }
+            });
+            
+       //alert(selectcation);
+       
+       $("#seldptcaption").html(selectcation);
+       if(lastselbox){
+        $("#selecteddptid").val(lastselbox.val());
+       }
+        
+        jQuery.ajax({url:'$manageModule.setTarget("usrUpdate.ajax")', 
+                type:'POST',
+                dataType:"json",
+                success:function(data){
+                    
+                    if(data.errormsg){
+                      showMessageDialog(data);
+                      return;
+                    }
+                    
+                     if(selectid<0){
+                      return ;
+                     }
+                     
+                     selbox.nextAll().each(function(index, element){
+                   
+                       $(element).remove();
+                     });
+                     
+                     var nxtsel = $("<select class='form-control'><option value='-1'>请设置</option></select>");
+                      var i=0;
+                     for(;i<data.list.length;i++  ){
+                       nxtsel.append($("<option value='"+data.list[i].value+"'>"+data.list[i].name+"</option>"));
+                     }
+                     nxtsel.click(selectChange);
+                     if(i>0){
+                       $("#dptblock").append(nxtsel); 
+                     }
+                    
+                },
+                data:"event_submit_do_get_child_dpt=y&resulthandler=y&action=user_action&pid="+selectid
+                
+            });           
+        
+      }
+  
+  
+  
+
+  $(document).ready(function(){
+     $("#rootdpt").val(-1);
+      $("#rootdpt").change(selectChange);
+  });
+  
+ // function (){
+  
+ // }
+</script>

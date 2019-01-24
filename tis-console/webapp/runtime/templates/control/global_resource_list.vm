@@ -1,0 +1,22 @@
+
+#if($globalresource)
+<table width="100%" border="1">
+<tr>
+#if($manageTool.isNotNull($showappbind))
+<th width="40">选择</th>
+#end
+ <th >编号</th><th>备注</th><th>上传时间</th><th>操作</th>
+</tr>
+#foreach($item in $globalresource)
+<tr>
+#if($manageTool.isNotNull($showappbind))
+ <td align="center"> <input type="checkbox" name="urId" value="$item.urId" /> </td>
+#end 
+ <td>$item.urId</td>
+ <td>$item.memo</td>
+ <td>$manageTool.formatDateYYYYMMdd( $item.createTime)</td>
+  <td><a href="$manageModule.setTarget('globalResourceUpload.action')?rid=$item.urId&action=upload_jar_action&event_submit_do_download_global_resource=y">下载</a></td>
+</tr>
+#end
+</table>
+#end

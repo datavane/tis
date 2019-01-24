@@ -1,0 +1,88 @@
+#*添加副本数*#
+<div id="msgblock"></div>
+<table width="100%">
+<tr>
+ <td width="50%"><span>最大减少副本数：</sapn> 
+  <select id="addreplica" name="addgroup">
+    <option value="-1">请设置</option> 
+  #foreach($item in [1..10])
+   <option value="$item">$item</option>
+  #end
+  </select> <em>减少数目</em></td>
+  <td align="right"> <button style="width:200px;height:30px" 
+    onclick="decreasereplica();return false;">执行减少</button> </td>
+</tr>
+<tr>
+ <td colspan="2" style="font-size:8px;"><strong>注:</strong> 背景色为<span style="background-color:pink;border:black solid 2px;margin:3px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>的服务器是Master节点，不能删除</td>
+</tr>
+</table>
+
+#foreach($item in $coreservers.cores)
+ <div id="group${item.c.coreNums}"><h3 style="background-color:#7DE6FF;padding:3px">第${item.c.coreNums}组</h3>
+   #*$control.setTemplate("selectableServer.vm").setParameter("ownservers",$item.locs).setParameter("contextid",${item.c.coreNums}).setParameter("showselect",true).setParameter("service",$manageTool.appDomain.appName)*#
+  #tpush(${item})
+   #taction("name=selectable_server" "namespace=/coredefine#control" "executeResult=true")
+    #sparam("name=showselect","value=true")
+    #sparam("name=ownserversKey","value='locs'")
+    #sparam("name=contextid","value=${item.c.coreNums}")
+    #sparam("name=service","value='${manageTool.appDomain.appName}'")
+   #end
+  #end
+ </div>
+#end
+
+<script>
+  function decreasereplica(){
+  
+   //validate the input 
+   var addreplica = parseInt( $("#addreplica").val());
+ if(addreplica < 1){
+       alert("请设置副本数");
+       $("#addreplica").focus();
+       return;
+ }
+   
+   var serial = "replica="+addreplica+"&groupcount=$coreservers.cores.size()";
+  
+   #foreach($item in $coreservers.cores)
+     var opts = $("#selectedServer${item.c.coreNums}>option");
+    if(opts.length > addreplica){
+      alert("第${item.c.coreNums}组,选择的机器不能多于"+ addreplica+"台");
+      $("#selectedServer${item.c.coreNums}").focus();
+      return;
+    }else{
+       for(var i =0;i<opts.length;i++){
+         if(!parseBool(opts[i].getAttribute('canDelete'))){
+           alert("第${item.c.coreNums}组,Master节点"+opts[i].value+"不能删除");
+           return ;
+         }
+         serial+="&selectedServer${item.c.coreNums}="+opts[i].value;
+       }
+    }
+   #end
+   
+   //start to send request 
+   jQuery.ajax({url:'$coredefine.setTarget('decreasereplica.ajax')', 
+         	type:'POST',
+			dataType:"json",
+          	data:"event_submit_do_decrease_replica=y&action=core_action&"+serial,
+			    success:function(data){  
+				  showMessage(data);  	
+	      	    }, 
+			    error:function(){
+			   
+			    },				   
+	        }); 
+   
+    
+  }
+  
+  
+  function parseBool(value) {
+    return (typeof value === "undefined") ? 
+           false : 
+           // trim using jQuery.trim()'s source 
+           value.replace(/^\s+|\s+$/g, "").toLowerCase() === "true";
+  }
+  
+</script>

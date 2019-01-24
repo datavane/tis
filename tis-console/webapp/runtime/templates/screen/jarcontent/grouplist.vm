@@ -1,0 +1,81 @@
+#showFormErrors("groupChangeSnapshotForm")
+<h4>
+
+组（group）一览
+#*
+ <a style="background-color:yellow;" href="$manageModule.setTarget("publish_zookeeper")">配置发布zookeeper</a>
+*#
+<a style="background-color:yellow;" href="$manageModule.setTarget("jarcontent/snapshotlist")">Snapshot一览</a>
+#*
+#popup("$manageModule.setTarget('globalResourceBind')","添加资源依赖","850*700")
+*#
+
+<a style="background-color:yellow;" href="$manageModule.setTarget("app")?appid=$manageTool.appDomain.appid">设置服务器</a>
+<a href="$manageModule.setTarget('config_file_parameters')">全局参数配置</a>
+#if(!$manageTool.daily) 
+ #popup("$manageModule.setTarget('jarcontent/sys_daily_resources')",'同步DAILY配置','600*500')
+#end
+#popupp("$manageModule.setTarget('operationLogSpecialApp')?tab=server_group&opt=updateByExampleSelective&runtime=$manageTool.appDomain.runEnvironment.keyName&appname=$manageTool.appDomain.appName","版本切换历史","1200*900")
+
+
+#popupp("$manageModule.setTarget('view_pojo')","POJO","max")
+
+
+</h4>
+
+#*
+<form method="post" action="$manageModule.setTarget("jarcontent/grouplist")">
+<fieldset>
+<input type="hidden" name="action" value="upload_jar_action"/>
+<legend>全局依赖资源</legend>
+<input type="submit" name="event_submit_do_unbind_global_resource" 
+  onclick="return window.confirm('您确定要删除这条资源绑定记录吗？')" value="删 除" />
+$control.setTemplate("global_resource_list.vm").setParameter("showappbind",true)
+</fieldset>
+</form>
+*#
+<br/>
+#set( $g= $form.get("selectRevsion").defaultInstance )
+<script>
+  function showDialog(groupid){      
+      window.showModalDialog('$manageModule.setTarget("jarcontent/snapshotlist")?$g.groupid.key='+groupid,"dialogWidth=400px;dialogHeight=300px;resizable=no;status=no;center=yes");
+      window.location.reload();}
+</script>
+<form  method="post" action="$manageModule.setTarget("jarcontent/grouplist")">
+<input type="hidden" name="action" value="jarcontent/group_change_snapshot_action"/>
+<table border="1" width="100%">
+ <tr>
+   <th width="5%">编号</th> 
+   <th width="3%">组序列</th><th>详细</th><th width="10%">更新时间</th><th width="5%">服务器</th>
+ </tr>
+#foreach($item in $groupList)
+ <tr>
+  <td align="center">$item.gid</td>
+  <td align="center">$item.groupIndex</td>
+  <td style="font-size:10px;"> 
+  #*
+    <select class="snapshot" name="$group.groupSnapshot.key">
+         <option  value="">更换</option>
+      #foreach($row in $candidatesnapshotlist)   
+         <option style="text-align:center;" #if($row.snId == $item.publishSnapshotId) selected #end value="${row.snId}-$item.gid">$row.snId</option>
+      #end
+    </select>
+  *#
+  $manageTool.noescape($manageTool.dialog("$manageModule.setTarget('jarcontent/snapshotset.htm')?groupid=${item.gid}","切换版本",false,true))
+  #if( !$item.publishSnapshotId  )
+  #*
+   <a href="javascript:showDialog($item.gid);">创建配置文件</a> 
+  *#
+  #else
+    $manageTool.getConfigViewLink($manageModule,$item.publishSnapshotId,false)
+  #end
+  </td>
+  <td style="font-size:10px;">  $manageTool.formatDateYYYYMMdd($item.updateTime)</td>
+  <td>$manageTool.noescape( $manageTool.dialog("$manageModule.setTarget('groupserverlist')?gid=$item.gid","列表"))</td>
+ </tr>
+#end
+</table>
+</form>
+
+<script>
+</script>

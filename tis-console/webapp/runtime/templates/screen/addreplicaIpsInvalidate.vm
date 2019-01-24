@@ -1,0 +1,41 @@
+<h1><a href="/runtime/addreplica.htm">【返回】</a>应用($report.appName)新添加服务器tgz版本不一致，或没有正常启动</h1>
+<style type="text/css"><!--
+  .ips{
+    background-color:yellow;
+    display:inline-block;
+    margin:10px;
+  }
+  .error{
+     background-color:pink;
+  }
+-->
+</style>
+<div style="width:80%">
+<form method="post" action="$manageModule.setTarget("addreplica")">
+<input type="hidden" name="action" value="add_app_action" />
+<input type="hidden" name="appname" value="$report.appName" />
+
+
+<table  width="100%" border="1">
+<tr>
+  <th>组号</th><th>添加的副本地址</th>
+</tr>
+#foreach($e in $addReplica.createPublishNewCoreParam().entrySet())
+<tr>
+<th>
+$e.key
+</th>
+<td>
+
+#foreach($ip in $e.value)
+                                     
+<span class="ips #if(!$validateResult.isValidate($ip)) error #end">$ip($validateResult.getMsg($ip))</span>
+
+#end
+</td>
+</tr>
+#end
+</table>
+
+</form>
+</div>

@@ -1,0 +1,37 @@
+<h2>添加业务线</h2>
+<style type="text/css"><!--
+
+  #uploaddialog p span{
+    width:8em;
+    display:inline-block;
+  }
+  #btndouploadjar {
+    width:200px;
+    height:30px;
+  }
+-->
+</style>
+
+#showFormErrors("addbizdomain")
+<form method="post" action="$manageModule.setTarget("addbizdomain")" >
+#*
+$csrfToken.hiddenField
+*#
+<input type="hidden" name="action" value="add_bizdomain_action"/>
+<fieldset id="uploaddialog">
+<legend>设置表单</legend>
+<p>
+ <span>名称:</span> 
+  <input type="text" name="$group.name.key" value="$group.name.value"/> <em style="color:red">必选</em>
+</p>
+
+<p>
+ <span>业务线:</span> 
+  <input type="text" name="$group.bizline.key" value="$group.bizline.value"/> <em style="color:red">必选</em>
+</p>
+
+<p>
+<input type="submit" id="btndouploadjar" name="event_submit_do_add_bizdomain" value="添加" />
+</p>
+</fieldset>
+</form>

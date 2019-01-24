@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+	<!-- 百岁添加 fordao -->
+	<import resource="classpath:/datasource-config-2dfire.xml" />
+
+	<!-- 集群状态监控，主要代码在tis-collection-info-collect工程中 -->
+	
+	<import resource="classpath:/conf/cluster-dao-context.xml" />
+
+	<import resource="classpath:/dal/dal-dao.xml" />
+
+	<import resource="classpath:/dal/runtime-application.xml" />
+
+	<import
+		resource="classpath:/com/taobao/terminator/coredefine/coredefine.context.xml" />
+
+	<import resource="classpath:/com/taobao/terminator/trigger/trigger.context.xml" />
+
+	<import resource="classpath:/conf/terminator-job-trigger-relation-context.xml" />
+	<import resource="classpath:/conf/terminatorTriggerBizDal-dao-context.xml" />
+	<!-- 
+	<import resource="classpath:/conf/comDfireTisDataplatform-dao-context.xml" />
+ -->
+
+
+	<import
+		resource="classpath:/conf/terminatorTriggerBizDal-datasource-context.xml" />
+
+
+	<!-- <import resource="classpath:/com/taobao/terminator/manage/operation-log-aop.xml" 
+		/> -->
+</beans>

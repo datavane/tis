@@ -1,0 +1,93 @@
+<h3>
+<a target="_self"  style="display:inline-block;background-color:pink;" href="$manageModule.setTarget('/my_apply.htm')">新应用审批</a>
+<a target="_self" href="$manageModule.setTarget('/waited_privilege.htm')">权限审批</a>
+<a target="_self" href="$manageModule.setTarget('/apply_privilege_record.htm')">权限申请记录</a>
+
+</h3>
+<p>
+
+#popupp("$manageModule.setTarget('/apply_new.htm')","应用申请","1200*800")
+#popupp("$manageModule.setTarget('/apply_privilege.htm')","权限申请","1200*800")
+
+</p>
+<table width="100%" border="1">
+  <tr>
+    <th>名称</th><th>申请人</th><th>状态</th><th>申请时间</th><th>操作</th>
+  </tr>
+ #foreach($item in $myapplies) 
+  <tr>
+    <td>  
+     #*
+     #popupp("$manageModule.setTarget('/apply_detail.htm')?appid=$item.appId","$item.projectName","1200*700")
+     *#
+     <a target="_blank" href="$manageModule.setTarget('/apply_detail.htm')?appid=$item.appId">$item.projectName</a>
+     #popupp("$manageModule.setTarget('operationLogSpecialApp')?tab=application_apply&opt=updateByExampleSelective&opt=insertSelective&appname=${item.projectName}&runtime=daily","变更历史","800*700")
+    </td>
+    <td>$item.recept</td>
+    <td id="state${item.appId}"> $manageTool.getApplyState($item) </td>
+    <td>$manageTool.formatDateYYYYMMdd($item.createTime)</td>
+    <td>#if($manageTool.showApplyButton($item,1))            
+           #popup("$manageModule.setTarget('/jarcontent/schema_apply.htm')?appid=$item.appId","Schema编辑","1200*800")
+       
+        <a href="#" onclick="createAppliaction($item.appId)">创建应用</a>
+         #end
+         #if($manageTool.showApplyButton($item,3))  
+        #popup("$manageModule.setTarget('/publish_apply.htm')?appid=$item.appId","申请上线","800*700")
+        #end
+         #if($manageTool.showApplyButton($item,4))  
+         <a href="#" onclick="publishConfirm($item.appId)">确认上线</a>
+         #end
+   
+        </td>
+  </tr>
+ #end
+</table>
+<script>
+  function createAppliaction(appid){
+  
+     if(!window.confirm("您是否要在Daily环境中创建该应用？")){
+       return ;
+     }
+  
+     jQuery.ajax({url:'$manageModule.setTarget('myApply.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_create_app_in_daily=y&action=apply_action&appid="+ appid,
+			    success:function(data){
+			        if(data.errormsg.length<1){
+			          $("#state"+appid).html("${manageTool.applyTestingState}");
+			        }
+				  	showMessageDialog(data);
+				  
+	      	    }, 
+			    error:function(){   
+			    }
+	        });
+  }
+  
+  function publishConfirm(appid){
+     if(!window.confirm("是否确认完成线上发布流程？")){
+       return ;
+     }
+  
+     jQuery.ajax({url:'$manageModule.setTarget('myApply.ajax')', 
+         		type:'POST',
+				dataType:"json",
+          		data:"event_submit_do_publish_confirm=y&action=apply_action&appid="+ appid,
+			    success:function(data){
+			        if(data.errormsg.length<1){
+			          $("#state"+appid).html("${manageTool.successPublishState}");
+			        }
+				  	showMessageDialog(data);
+	      	    }, 
+			    error:function(){   
+			    }
+	});
+  }
+  
+  
+</script>
+
+
+
+
