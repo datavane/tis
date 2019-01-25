@@ -12,7 +12,7 @@
 		<tsearcher:fulldump ref="instanceProvider"
 			waitQueueSize="30" maxPoolSize="15" />
 		<tsearcher:grouprouter
-			class="com.taobao.terminator.hdfs.client.router.Group32RandRouter" />
+			class="com.qlangtech.tis.hdfs.client.router.Group32RandRouter" />
 	</tsearcher:realtime>
 
 	<tsearcher:realtime id="search4totalpay">
@@ -26,7 +26,7 @@
 		<tsearcher:fulldump ref="payProvider"
 			waitQueueSize="30" maxPoolSize="15" />
 		<tsearcher:grouprouter
-			class="com.taobao.terminator.hdfs.client.router.Group32RandRouter" />
+			class="com.qlangtech.tis.hdfs.client.router.Group32RandRouter" />
 	</tsearcher:realtime>
 
 
@@ -36,7 +36,7 @@
 			waitQueueSize="30" maxPoolSize="15" />
 		<!-- <tsearcher:grouprouter sharedKey="entity_id" /> -->
 		<tsearcher:grouprouter
-			class="com.taobao.terminator.hdfs.client.router.Group32RandRouter" />
+			class="com.qlangtech.tis.hdfs.client.router.Group32RandRouter" />
 	</tsearcher:realtime>
 
 
@@ -44,12 +44,12 @@
 
 
 	<bean id="orderinfoProvider"
-		class="com.taobao.terminator.hdfs.client.data.MultiThreadSqlExcuteProvider">
+		class="com.qlangtech.tis.hdfs.client.data.MultiThreadSqlExcuteProvider">
 		<property name="subTablesDesc">
 			<map>
-				<!-- DATE_FORMAT(curr_date,'%Y%m%d%H%i%s') @param subTablesDesc 数据源描述信�?<br> 
+				<!-- DATE_FORMAT(curr_date,'%Y%m%d%H%i%s') @param subTablesDesc 数据源描述信�?<br> 
 					(1)ds1 单一数据库，单表 <br> (2)ds1:1,2,3,4-9 单一数据库，多表<br> (3)ds1:1,2,3,4-9;ds2:1,3,4,5-9 
-					多数据库，多�?<br> -->
+					多数据库，多�?<br> -->
 				<entry key="${datasource.enum}">
 					<value>
 						<![CDATA[ 	
@@ -73,7 +73,7 @@
 
 
 	<bean id="instanceProvider"
-		class="com.taobao.terminator.hdfs.client.data.MultiThreadSqlExcuteProvider">
+		class="com.qlangtech.tis.hdfs.client.data.MultiThreadSqlExcuteProvider">
 		<property name="subTablesDesc">
 			<map>
 				<entry key="${datasource.enum}">
@@ -99,7 +99,7 @@ FROM
 
 	<!-- ;orderds4;orderds5;orderds6;orderds7;orderds8;orderds9;orderds10;orderds11;orderds12;orderds13;orderds14;orderds15;orderds16;orderds17;orderds18 -->
 	<bean id="totalpayProvider"
-		class="com.taobao.terminator.hdfs.client.data.MultiThreadSqlExcuteProvider">
+		class="com.qlangtech.tis.hdfs.client.data.MultiThreadSqlExcuteProvider">
 		<property name="subTablesDesc">
 			<map>
 				<entry key="${datasource.enum}">
@@ -127,7 +127,7 @@ FROM
 	</bean>
 
 	<bean id="payProvider"
-		class="com.taobao.terminator.hdfs.client.data.MultiThreadSqlExcuteProvider">
+		class="com.qlangtech.tis.hdfs.client.data.MultiThreadSqlExcuteProvider">
 		<property name="subTablesDesc">
 			<map>
 				<entry key="${datasource.enum}">

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <config>
         <terminatorService name="terminatorService"
-                class="com.taobao.terminator.core.service.DefaultTerminatorService" />
+                class="com.qlangtech.tis.core.service.DefaultTerminatorService" />
 
         <terminatorService name="dumpService"
-                class="com.taobao.terminator.core.dump.DefaultDumpService">
+                class="com.qlangtech.tis.core.dump.DefaultDumpService">
                 <str name="springConfigs">applicationContext.xml</str>
                 <str name="fullCronExpression">0 0 2 * * ?</str>                  
                 <str name="incrCronExpression">0 0/5 * * * ?</str>
@@ -32,7 +32,7 @@
                 </deletionPolicy>
         </mainIndex>
 
-        <updateHandler class="com.taobao.terminator.core.realtime.TerminatorUpdateHandler" />
+        <updateHandler class="com.qlangtech.tis.core.realtime.TerminatorUpdateHandler" />
         <requestDispatcher handleSelect="true">
                 <requestParsers enableRemoteStreaming="false"
                         multipartUploadLimitInKB="2048" />

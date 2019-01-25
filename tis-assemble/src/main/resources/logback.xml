@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration debug="false">
-	<!-- <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter"> <level>ERROR</level> 
-		</filter> <target>System.out</target> <encoding>${loggingCharset}</encoding> 
-		<layout class="ch.qos.logback.classic.PatternLayout"> <pattern><![CDATA[%d{yyyy-MM-dd 
-		HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern> </layout> </appender> -->
+	
 
 
 	<appender name="STDOUT"
@@ -259,7 +255,7 @@
 		<appender-ref ref="console" />
 	</logger>
 
-	<logger name="com.taobao.terminator.trigger">
+	<logger name="com.qlangtech.tis.trigger">
 	 	 <level value="DEBUG" />
 		<appender-ref ref="console" />
 	</logger>

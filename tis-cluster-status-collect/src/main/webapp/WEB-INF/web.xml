@@ -18,9 +18,9 @@
 
 	<servlet>
 		<servlet-name>exportReport</servlet-name>
-		<servlet-class>com.taobao.terminator.collect.servlet.FullReportCreateServlet</servlet-class>
+		<servlet-class>com.qlangtech.tis.collect.servlet.FullReportCreateServlet</servlet-class>
 	</servlet>
-	<!-- <servlet> <servlet-name>dailyReport</servlet-name> <servlet-class>com.taobao.terminator.collect.servlet.DailyReportCreateServlet</servlet-class> 
+	<!-- <servlet> <servlet-name>dailyReport</servlet-name> <servlet-class>com.qlangtech.tis.collect.servlet.DailyReportCreateServlet</servlet-class> 
 		</servlet> <servlet-mapping> <servlet-name>dailyReport</servlet-name> <url-pattern>/dailyReport</url-pattern> 
 		</servlet-mapping> -->
 

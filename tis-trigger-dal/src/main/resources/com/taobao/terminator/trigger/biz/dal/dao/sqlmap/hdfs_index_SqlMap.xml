@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
 <sqlMap namespace="hdfs_index" >
-  <resultMap id="ibatorgenerated_BaseResultMap" class="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.trigger.biz.dal.pojo.HdfsIndex" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -43,7 +43,7 @@
       </isEqual>
     </iterate>
   </sql>
-  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndexCriteria" >
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.HdfsIndexCriteria" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -58,7 +58,7 @@
     </isParameterPresent>
        ) bb inner join hdfs_index aa on aa.id=bb.id
   </select>
-  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.HdfsIndex" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -66,21 +66,21 @@
     from hdfs_index
     where id = #id:BIGINT#
   </select>
-  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.HdfsIndex" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
     delete from hdfs_index
     where id = #id:BIGINT#
   </delete>
-  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndexCriteria" >
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.HdfsIndexCriteria" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
     delete from hdfs_index
     <include refid="hdfs_index.ibatorgenerated_Example_Where_Clause" />
   </delete>
-  <insert id="ibatorgenerated_insert" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.HdfsIndex" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -91,7 +91,7 @@
       SELECT LAST_INSERT_ID();
     </selectKey>
   </insert>
-  <insert id="ibatorgenerated_insertSelective" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndex" >
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.HdfsIndex" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -159,7 +159,7 @@
       SELECT LAST_INSERT_ID();
     </selectKey>
   </insert>
-  <select id="ibatorgenerated_countByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.HdfsIndexCriteria" resultClass="java.lang.Integer" >
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.HdfsIndexCriteria" resultClass="java.lang.Integer" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->

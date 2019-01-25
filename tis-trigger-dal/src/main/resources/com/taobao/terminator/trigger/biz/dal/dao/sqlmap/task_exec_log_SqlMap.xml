@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
 <sqlMap namespace="task_exec_log" >
-  <resultMap id="ibatorgenerated_BaseResultMap" class="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLog" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -13,7 +13,7 @@
     <result column="gmt_modified" property="gmtModified" jdbcType="TIMESTAMP" />
     <result column="info_type" property="infoType" jdbcType="VARCHAR" />
   </resultMap>
-  <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLog" extends="task_exec_log.ibatorgenerated_BaseResultMap" >
+  <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" extends="task_exec_log.ibatorgenerated_BaseResultMap" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -48,7 +48,7 @@
       </isEqual>
     </iterate>
   </sql>
-  <select id="ibatorgenerated_selectByExampleWithBLOBs" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLogCriteria" >
+  <select id="ibatorgenerated_selectByExampleWithBLOBs" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLogCriteria" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -61,7 +61,7 @@
       </isNotNull>
     </isParameterPresent>
   </select>
-  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLogCriteria" >
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLogCriteria" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -76,7 +76,7 @@
     </isParameterPresent>
        ) bb inner join task_exec_log aa on aa.exec_log_id=bb.exec_log_id
   </select>
-  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLog" >
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -84,21 +84,21 @@
     from task_exec_log
     where exec_log_id = #execLogId:BIGINT#
   </select>
-  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLog" >
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
     delete from task_exec_log
     where exec_log_id = #execLogId:BIGINT#
   </delete>
-  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLogCriteria" >
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLogCriteria" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
     delete from task_exec_log
     <include refid="task_exec_log.ibatorgenerated_Example_Where_Clause" />
   </delete>
-  <insert id="ibatorgenerated_insert" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLog" >
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -110,7 +110,7 @@
       SELECT LAST_INSERT_ID();
     </selectKey>
   </insert>
-  <insert id="ibatorgenerated_insertSelective" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLog" >
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -174,7 +174,7 @@
       SELECT LAST_INSERT_ID();
     </selectKey>
   </insert>
-  <select id="ibatorgenerated_countByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskExecLogCriteria" resultClass="java.lang.Integer" >
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLogCriteria" resultClass="java.lang.Integer" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->

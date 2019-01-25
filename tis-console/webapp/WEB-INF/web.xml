@@ -20,7 +20,7 @@
 
 	<filter>
 		<filter-name>setResponseLocal</filter-name>
-		<filter-class>com.taobao.terminator.manage.common.DefaultFilter</filter-class>
+		<filter-class>com.qlangtech.tis.manage.common.DefaultFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>setResponseLocal</filter-name>
@@ -84,14 +84,14 @@
 
 	<!-- 下载资源，最后设定好发布资源之后 依赖于组的 -->
 	<!-- 判断云梯文件是否准备好 <servlet> <servlet-name>checkYuntiSuccessFileIsReady</servlet-name> 
-		<servlet-class>com.taobao.terminator.manage.servlet.CheckYuntiSuccessFileIsReadyServlet</servlet-class> 
-		</servlet> <servlet> <servlet-name>download</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.DownloadServlet</servlet-class> 
+		<servlet-class>com.qlangtech.tis.manage.servlet.CheckYuntiSuccessFileIsReadyServlet</servlet-class> 
+		</servlet> <servlet> <servlet-name>download</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.DownloadServlet</servlet-class> 
 		</servlet> -->
 
 	<!-- websocket推送服务集群 中的日志 -->
 	<servlet>
 		<servlet-name>logfeedback</servlet-name>
-		<servlet-class>com.taobao.terminator.manage.servlet.LogFeedbackServlet</servlet-class>
+		<servlet-class>com.qlangtech.tis.manage.servlet.LogFeedbackServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>logfeedback</servlet-name>
@@ -99,36 +99,36 @@
 	</servlet-mapping>
 
 	<!-- download global config parameters <servlet> <servlet-name>globalConfigServlet</servlet-name> 
-		<servlet-class>com.taobao.terminator.manage.servlet.GlobalConfigServlet</servlet-class> 
+		<servlet-class>com.qlangtech.tis.manage.servlet.GlobalConfigServlet</servlet-class> 
 		</servlet> <servlet-mapping> <servlet-name>globalConfigServlet</servlet-name> 
 		<url-pattern>/download/globalconfig</url-pattern> </servlet-mapping> <servlet> 
-		<servlet-name>serverPublishInfo</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.ServerPublishInfoServlet</servlet-class> 
-		</servlet> <servlet> <servlet-name>testDomain</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.TestDomainServlet</servlet-class> 
-		</servlet> <servlet> <servlet-name>getConfigbyIp</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.ServerConfigInfoServlet</servlet-class> 
-		</servlet> <servlet> <servlet-name>downloadByPid</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.DownloadByPidServlet</servlet-class> 
+		<servlet-name>serverPublishInfo</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.ServerPublishInfoServlet</servlet-class> 
+		</servlet> <servlet> <servlet-name>testDomain</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.TestDomainServlet</servlet-class> 
+		</servlet> <servlet> <servlet-name>getConfigbyIp</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.ServerConfigInfoServlet</servlet-class> 
+		</servlet> <servlet> <servlet-name>downloadByPid</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.DownloadByPidServlet</servlet-class> 
 		</servlet> -->
 	<!-- 在索引更新完成之后 更新package表中的信息 <servlet> <servlet-name>indexbuild-callback</servlet-name> 
-		<servlet-class>com.taobao.terminator.manage.servlet.UpdatePackageServlet</servlet-class> 
+		<servlet-class>com.qlangtech.tis.manage.servlet.UpdatePackageServlet</servlet-class> 
 		</servlet> <servlet-mapping> <servlet-name>indexbuild-callback</servlet-name> 
 		<url-pattern>/indexbuild/callback</url-pattern> </servlet-mapping> -->
 
 	<!-- 广播式查询索引 baisui add 20120413 -->
 	<servlet>
 		<servlet-name>query-index</servlet-name>
-		<servlet-class>com.taobao.terminator.manage.servlet.QueryIndexServlet</servlet-class>
+		<servlet-class>com.qlangtech.tis.manage.servlet.QueryIndexServlet</servlet-class>
 	</servlet>
 
 	<!-- 通过 appname runtime groupindex 查找solr core的配置信息 -->
 	<servlet>
 		<servlet-name>getappconfig</servlet-name>
-		<servlet-class>com.taobao.terminator.manage.servlet.LoadSolrCoreConfigByAppNameServlet</servlet-class>
+		<servlet-class>com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet</servlet-class>
 	</servlet>
 
-	<!-- 通过snid查找配置资源 <servlet> <servlet-name>getappbysnid</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.LoadSolrCoreConfigBySnidServlet</servlet-class> 
+	<!-- 通过snid查找配置资源 <servlet> <servlet-name>getappbysnid</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigBySnidServlet</servlet-class> 
 		</servlet> -->
 	<!-- <servlet-mapping> <servlet-name>checkYuntiSuccessFileIsReady</servlet-name> 
 		<url-pattern>/checkYuntiSuccessFileIsReady</url-pattern> </servlet-mapping> -->
-	<!-- <servlet> <servlet-name>jstservice</servlet-name> <servlet-class>com.taobao.terminator.manage.servlet.JstServiceServlet</servlet-class> 
+	<!-- <servlet> <servlet-name>jstservice</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.JstServiceServlet</servlet-class> 
 		</servlet> <servlet-mapping> <servlet-name>jstservice</servlet-name> <url-pattern>/jstservice</url-pattern> 
 		</servlet-mapping> -->
 	<!-- 通过 appname runtime groupindex 查找solr core的配置信息 -->
@@ -160,7 +160,7 @@
 
 	<servlet>
 		<servlet-name>query_005findex_jsp</servlet-name>
-		<servlet-class>com.taobao.terminator.manage.servlet.Query_005findex_jsp</servlet-class>
+		<servlet-class>com.qlangtech.tis.manage.servlet.Query_005findex_jsp</servlet-class>
 	</servlet>
 
 	<servlet-mapping>

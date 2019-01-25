@@ -7,7 +7,7 @@
 		<property name="perDayDAO" ref="clusterSnapshotPreDayDAO" />
 	</bean>
 
-	<bean id="clusterInfoCollect" class="com.taobao.terminator.TSearcherClusterInfoCollect">
+	<bean id="clusterInfoCollect" class="com.qlangtech.tis.TSearcherClusterInfoCollect">
 		<property name="clusterSnapshotDAO" ref="clusterSnapshotDAO" />
 		<property name="applicationDAO" ref="applicationDAO" />
 		<property name="zkStateReader" ref="solrClient" />

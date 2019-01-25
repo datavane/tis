@@ -17,18 +17,6 @@
 			<includes>
 				<include>${project.build.finalName}.${project.packaging}</include>
 			</includes>
-			<!-- 
-			<excludes>
-				<exclude>WEB-INF/lib/solr-core-5.3.0.jar</exclude>
-				<exclude>WEB-INF/weblogic.xml</exclude>
-				<exclude>WEB-INF/lib/log4j-*.jar</exclude>
-				<exclude>WEB-INF/lib/slf4j-log4j12-*.jar</exclude>
-				<exclude>WEB-INF/lib/commons-logging-*.jar</exclude>
-				<exclude>WEB-INF/lib/jetty-*.jar</exclude>
-				<exclude>WEB-INF/lib/javax.servlet-*.jar</exclude>
-				<exclude>WEB-INF/lib/servlet-api-*.jar</exclude>
-			</excludes>
-			 -->
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
 

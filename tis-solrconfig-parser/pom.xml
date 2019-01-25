@@ -64,7 +64,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>com.taobao.terminator.solrdao.SolrPojoBuilder</mainClass>
+							<mainClass>com.qlangtech.tis.solrdao.SolrPojoBuilder</mainClass>
 							<classpathPrefix>./dependency</classpathPrefix>
 						</manifest>
 

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="usr_apply_dpt_record" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <result column="id" property="id" jdbcType="BIGINT" />
+    <result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP" />
+    <result column="agreed_time" property="agreedTime" jdbcType="TIMESTAMP" />
+    <result column="dpt_id" property="dptId" jdbcType="INTEGER" />
+    <result column="dpt_name" property="dptName" jdbcType="VARCHAR" />
+    <result column="usr_id" property="usrId" jdbcType="VARCHAR" />
+    <result column="usr_name" property="usrName" jdbcType="VARCHAR" />
+    <result column="agreed_usr_id" property="agreedUsrId" jdbcType="VARCHAR" />
+    <result column="agreed_usr_name" property="agreedUsrName" jdbcType="VARCHAR" />
+    <result column="granted" property="granted" jdbcType="CHAR" />
+    <result column="udr_id" property="udrId" jdbcType="BIGINT" />
+    <result column="dpt_usr_list" property="dptUsrList" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecordCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select aa.id, gmt_create, agreed_time, dpt_id, dpt_name, usr_id, usr_name, agreed_usr_id,
+      agreed_usr_name, granted, udr_id, dpt_usr_list
+     from ( select id from usr_apply_dpt_record 
+    <isParameterPresent >
+      <include refid="usr_apply_dpt_record.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join usr_apply_dpt_record aa on aa.id=bb.id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select id, gmt_create, agreed_time, dpt_id, dpt_name, usr_id, usr_name, agreed_usr_id,
+      agreed_usr_name, granted, udr_id, dpt_usr_list
+    from usr_apply_dpt_record
+    where id = #id:BIGINT#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from usr_apply_dpt_record
+    where id = #id:BIGINT#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecordCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from usr_apply_dpt_record
+    <include refid="usr_apply_dpt_record.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into usr_apply_dpt_record (id, gmt_create, agreed_time, dpt_id, dpt_name, usr_id,
+      usr_name, agreed_usr_id, agreed_usr_name, granted, udr_id, dpt_usr_list)
+    values (#id:BIGINT#, #gmtCreate:TIMESTAMP#, #agreedTime:TIMESTAMP#, #dptId:INTEGER#,
+      #dptName:VARCHAR#, #usrId:VARCHAR#, #usrName:VARCHAR#, #agreedUsrId:VARCHAR#,
+      #agreedUsrName:VARCHAR#, #granted:CHAR#, #udrId:BIGINT#, #dptUsrList:VARCHAR#)
+    <selectKey resultClass="INTEGER" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into usr_apply_dpt_record
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="gmtCreate" >
+        gmt_create
+      </isNotNull>
+      <isNotNull prepend="," property="agreedTime" >
+        agreed_time
+      </isNotNull>
+      <isNotNull prepend="," property="dptId" >
+        dpt_id
+      </isNotNull>
+      <isNotNull prepend="," property="dptName" >
+        dpt_name
+      </isNotNull>
+      <isNotNull prepend="," property="usrId" >
+        usr_id
+      </isNotNull>
+      <isNotNull prepend="," property="usrName" >
+        usr_name
+      </isNotNull>
+      <isNotNull prepend="," property="agreedUsrId" >
+        agreed_usr_id
+      </isNotNull>
+      <isNotNull prepend="," property="agreedUsrName" >
+        agreed_usr_name
+      </isNotNull>
+      <isNotNull prepend="," property="granted" >
+        granted
+      </isNotNull>
+      <isNotNull prepend="," property="udrId" >
+        udr_id
+      </isNotNull>
+      <isNotNull prepend="," property="dptUsrList" >
+        dpt_usr_list
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="gmtCreate" >
+        #gmtCreate:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="agreedTime" >
+        #agreedTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="dptId" >
+        #dptId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="dptName" >
+        #dptName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="usrId" >
+        #usrId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="usrName" >
+        #usrName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="agreedUsrId" >
+        #agreedUsrId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="agreedUsrName" >
+        #agreedUsrName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="granted" >
+        #granted:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="udrId" >
+        #udrId:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="dptUsrList" >
+        #dptUsrList:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+    <selectKey resultClass="INTEGER" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecordCriteria" resultClass="java.lang.Integer" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select count(*) from usr_apply_dpt_record
+    <include refid="usr_apply_dpt_record.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update usr_apply_dpt_record
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.id" >
+        id = #record.id:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.gmtCreate" >
+        gmt_create = #record.gmtCreate:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="record.agreedTime" >
+        agreed_time = #record.agreedTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="record.dptId" >
+        dpt_id = #record.dptId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.dptName" >
+        dpt_name = #record.dptName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.usrId" >
+        usr_id = #record.usrId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.usrName" >
+        usr_name = #record.usrName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.agreedUsrId" >
+        agreed_usr_id = #record.agreedUsrId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.agreedUsrName" >
+        agreed_usr_name = #record.agreedUsrName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.granted" >
+        granted = #record.granted:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.udrId" >
+        udr_id = #record.udrId:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.dptUsrList" >
+        dpt_usr_list = #record.dptUsrList:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="usr_apply_dpt_record.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update usr_apply_dpt_record
+    set id = #record.id:BIGINT#,
+      gmt_create = #record.gmtCreate:TIMESTAMP#,
+      agreed_time = #record.agreedTime:TIMESTAMP#,
+      dpt_id = #record.dptId:INTEGER#,
+      dpt_name = #record.dptName:VARCHAR#,
+      usr_id = #record.usrId:VARCHAR#,
+      usr_name = #record.usrName:VARCHAR#,
+      agreed_usr_id = #record.agreedUsrId:VARCHAR#,
+      agreed_usr_name = #record.agreedUsrName:VARCHAR#,
+      granted = #record.granted:CHAR#,
+      udr_id = #record.udrId:BIGINT#,
+      dpt_usr_list = #record.dptUsrList:VARCHAR#
+    <isParameterPresent >
+      <include refid="usr_apply_dpt_record.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

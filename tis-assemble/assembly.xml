@@ -11,6 +11,7 @@
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
 
+<!-- 
 	<fileSets>
 		<fileSet>
 			<directory>target/full-dump-assemble</directory>
@@ -30,4 +31,24 @@
 
 		</fileSet>
 	</fileSets>
+ -->	
+	
+	<dependencySets>
+        <dependencySet>
+            <scope>runtime</scope>
+            <excludes>
+                <exclude>*:log4j*</exclude>
+                <exclude>*:slf4j-log4j12*</exclude>
+                <exclude>*:commons-logging*</exclude>
+                <exclude>*:commons-io*</exclude>
+               <!-- 
+                <exclude>*:jetty*.jar</exclude>
+                <exclude>*:javax.servlet-*</exclude>
+                <exclude>*:servlet-api-*</exclude>
+                -->
+            </excludes>
+            <outputDirectory>/lib</outputDirectory>
+        </dependencySet>
+    </dependencySets>
+	
 </assembly>

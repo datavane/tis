@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
 <sqlMap namespace="task">
-	<resultMap class="com.taobao.terminator.trigger.biz.dal.pojo.Task"
+	<resultMap class="com.qlangtech.tis.trigger.biz.dal.pojo.Task"
 		id="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
@@ -24,7 +24,7 @@
 	</resultMap>
 
 
-	<resultMap class="com.taobao.terminator.trigger.biz.dal.pojo.ErrorJob"
+	<resultMap class="com.qlangtech.tis.trigger.biz.dal.pojo.ErrorJob"
 		id="errorJob">
 		<result column="job_id" jdbcType="BIGINT" property="jobId" />
 		<!-- 
@@ -94,7 +94,7 @@
 
 
 	<select id="ibatorgenerated_selectByExample"
-		parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskCriteria"
+		parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskCriteria"
 		resultMap="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
@@ -112,7 +112,7 @@
 		</isParameterPresent>
 		) bb inner join task aa on (aa.task_id=bb.task_id)
 	</select>
-	<select id="ibatorgenerated_selectByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.Task"
+	<select id="ibatorgenerated_selectByPrimaryKey" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.Task"
 		resultMap="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
@@ -123,7 +123,7 @@
 		from task
 		where task_id = #taskId:BIGINT#
 	</select>
-	<delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.Task">
+	<delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.Task">
 		<!--
 			WARNING - if you hava any question please contact to
 			baisui(baisui@taobao.com)
@@ -132,7 +132,7 @@
 		where task_id = #taskId:BIGINT#
 	</delete>
 	<delete id="ibatorgenerated_deleteByExample"
-		parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskCriteria">
+		parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
 			baisui(baisui@taobao.com)
@@ -140,7 +140,7 @@
 		delete from task
 		<include refid="task.ibatorgenerated_Example_Where_Clause" />
 	</delete>
-	<insert id="ibatorgenerated_insert" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.Task">
+	<insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.Task">
 		<!--
 			WARNING - if you hava any question please contact to
 			baisui(baisui@taobao.com)
@@ -154,7 +154,7 @@
 			SELECT LAST_INSERT_ID();
     </selectKey>
 	</insert>
-	<insert id="ibatorgenerated_insertSelective" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.Task">
+	<insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.Task">
 		<!--
 			WARNING - if you hava any question please contact to
 			baisui(baisui@taobao.com)
@@ -232,12 +232,8 @@
     </selectKey>
 	</insert>
 	<select id="ibatorgenerated_countByExample"
-		parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TaskCriteria"
+		parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskCriteria"
 		resultClass="java.lang.Integer">
-		<!--
-			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
-		-->
 		select count(*) from task
 		<include refid="task.ibatorgenerated_Example_Where_Clause" />
 	</select>

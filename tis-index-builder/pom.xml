@@ -15,7 +15,6 @@
 	<build>
 		<finalName>tis-index-builder</finalName>
 		<plugins>
-			
 			<plugin>
 				<groupId>com.qlangtech.tis</groupId>
 				<artifactId>tisasm-maven-plugin</artifactId>
@@ -73,13 +72,11 @@
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-global-config</artifactId>
-			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>ch.qos.logback</groupId>
 					<artifactId>logback-classic</artifactId>
 				</exclusion>
-
 				<exclusion>
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging-api</artifactId>

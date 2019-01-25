@@ -184,7 +184,6 @@
 				<configuration>
 					<descriptor>assembly.xml</descriptor>
 					<appnamePattern>solr.*</appnamePattern>
-					<finalName>${appname}</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
 					<outputDirectory>../</outputDirectory>
 					<tarLongFileMode>posix</tarLongFileMode>

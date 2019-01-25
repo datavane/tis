@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="schema_config_resource" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResource" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <result column="shm_id" property="shmId" jdbcType="BIGINT" />
+    <result column="app_id" property="appId" jdbcType="INTEGER" />
+    <result column="primary_key_name" property="primaryKeyName" jdbcType="VARCHAR" />
+    <result column="default_query_field_name" property="defaultQueryFieldName" jdbcType="VARCHAR" />
+    <result column="criteria_relation" property="criteriaRelation" jdbcType="CHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select aa.shm_id, app_id, primary_key_name, default_query_field_name, criteria_relation,
+      create_time, update_time
+     from ( select shm_id from schema_config_resource 
+    <isParameterPresent >
+      <include refid="schema_config_resource.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join schema_config_resource aa on aa.shm_id=bb.shm_id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResource" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select shm_id, app_id, primary_key_name, default_query_field_name, criteria_relation,
+      create_time, update_time
+    from schema_config_resource
+    where shm_id = #shmId:BIGINT#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResource" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from schema_config_resource
+    where shm_id = #shmId:BIGINT#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceCriteria" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    delete from schema_config_resource
+    <include refid="schema_config_resource.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResource" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into schema_config_resource (shm_id, app_id, primary_key_name, default_query_field_name,
+      criteria_relation, create_time, update_time)
+    values (#shmId:BIGINT#, #appId:INTEGER#, #primaryKeyName:VARCHAR#,
+      #defaultQueryFieldName:VARCHAR#, #criteriaRelation:CHAR#, #createTime:TIMESTAMP#,
+      #updateTime:TIMESTAMP#)
+    <selectKey resultClass="LONG" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResource" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    insert into schema_config_resource
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="shmId" >
+        shm_id
+      </isNotNull>
+      <isNotNull prepend="," property="appId" >
+        app_id
+      </isNotNull>
+      <isNotNull prepend="," property="primaryKeyName" >
+        primary_key_name
+      </isNotNull>
+      <isNotNull prepend="," property="defaultQueryFieldName" >
+        default_query_field_name
+      </isNotNull>
+      <isNotNull prepend="," property="criteriaRelation" >
+        criteria_relation
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="shmId" >
+        #shmId:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="appId" >
+        #appId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="primaryKeyName" >
+        #primaryKeyName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="defaultQueryFieldName" >
+        #defaultQueryFieldName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="criteriaRelation" >
+        #criteriaRelation:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        #updateTime:TIMESTAMP#
+      </isNotNull>
+      )
+    </dynamic>
+    <selectKey resultClass="LONG" >
+      SELECT LAST_INSERT_ID();
+    </selectKey>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceCriteria" resultClass="java.lang.Integer" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    select count(*) from schema_config_resource
+    <include refid="schema_config_resource.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update schema_config_resource
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.shmId" >
+        shm_id = #record.shmId:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.appId" >
+        app_id = #record.appId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.primaryKeyName" >
+        primary_key_name = #record.primaryKeyName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.defaultQueryFieldName" >
+        default_query_field_name = #record.defaultQueryFieldName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.criteriaRelation" >
+        criteria_relation = #record.criteriaRelation:CHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.createTime" >
+        create_time = #record.createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="record.updateTime" >
+        update_time = #record.updateTime:TIMESTAMP#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="schema_config_resource.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    <!--
+      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+    -->
+    update schema_config_resource
+    set shm_id = #record.shmId:BIGINT#,
+      app_id = #record.appId:INTEGER#,
+      primary_key_name = #record.primaryKeyName:VARCHAR#,
+      default_query_field_name = #record.defaultQueryFieldName:VARCHAR#,
+      criteria_relation = #record.criteriaRelation:CHAR#,
+      create_time = #record.createTime:TIMESTAMP#,
+      update_time = #record.updateTime:TIMESTAMP#
+    <isParameterPresent >
+      <include refid="schema_config_resource.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

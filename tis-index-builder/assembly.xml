@@ -12,40 +12,44 @@
 	<includeBaseDirectory>true</includeBaseDirectory>
 
 	<fileSets>
+<!-- 
 		<fileSet>
-			<directory>target/dependency</directory>
-			<outputDirectory>.</outputDirectory>
+			<directory>${basedir}/${project.build.directory}/</directory>
 			<includes>
-				<include>**/*.jar</include>
+				<include>${project.build.finalName}.${project.packaging}</include>
 			</includes>
-			<!-- <excludes> <exclude>WEB-INF/lib/solr-core-5.3.0.jar</exclude> <exclude>WEB-INF/weblogic.xml</exclude> 
-				</excludes> -->
-
-			<excludes>
-				<exclude>jcl-over-slf4j-*.jar</exclude>
-				<exclude>logback-*.jar</exclude>
-				<exclude>apache-log4j-*.jar</exclude>
-				<exclude>log4j-*.jar</exclude>
-				<exclude>slf4j-api-*.jar</exclude>
-				<exclude>slf4j-log4j12-*.jar</exclude>
-				<exclude>logback-*.jar</exclude>
-				<exclude>commons-logging-*.jar</exclude>
-				<exclude>commons-io-2.3.jar</exclude>
-				<exclude>jetty-*.jar</exclude>
-				<exclude>javax.servlet-*.jar</exclude>
-				<exclude>servlet-api-*.jar</exclude>
-			</excludes>
-
-		</fileSet>
-		<fileSet>
-			<directory>target</directory>
 			<outputDirectory>.</outputDirectory>
-			<includes>
-				<include>tsearcher-indexbuild6.0*.jar</include>
-			</includes>
-			<excludes>
-				<exclude>*-sources.jar</exclude>
-			</excludes>
 		</fileSet>
+ -->
 	</fileSets>
+
+
+	<dependencySets>
+		<dependencySet>
+			<scope>runtime</scope>
+			<excludes>
+				<exclude>log4j:log4j</exclude>
+				<!-- <exclude>org.apache.logging.log4j:log4j-api</exclude> -->
+				<exclude>org.slf4j:slf4j-log4j12</exclude>
+				<exclude>commons-logging:commons-logging</exclude>
+				<exclude>org.apache.tomcat:tomcat-catalina</exclude>
+
+				<exclude>*:jcl-over-slf4j-*</exclude>
+				<exclude>*:logback-*</exclude>
+				<exclude>*:apache-log4j-*</exclude>
+				<exclude>*:log4j-*</exclude>
+				<exclude>*:slf4j-api-*</exclude>
+				<exclude>*:slf4j-log4j12-*</exclude>
+				<exclude>*:logback-*</exclude>
+				<exclude>*:commons-logging-*</exclude>
+				<exclude>*:commons-io-2.3</exclude>
+				<exclude>*:jetty*</exclude>
+				<exclude>*:javax.servlet-*</exclude>
+				<exclude>*:servlet-api-*</exclude>
+
+			</excludes>
+			<outputDirectory>.</outputDirectory>
+		</dependencySet>
+	</dependencySets>
+
 </assembly>

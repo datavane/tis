@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>tis-assemble</artifactId>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 
 	<name>tis-assemble</name>
 	<url>http://maven.apache.org</url>
@@ -214,8 +214,10 @@
 	</dependencies>
 
 	<build>
+	<!-- 
 		<outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
-		<finalName>full-dump-assemble</finalName>
+		 -->
+		<finalName>tis-assemble</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -241,7 +243,7 @@
 				<groupId>com.qlangtech.tis</groupId>
 				<artifactId>tiswar-maven-plugin</artifactId>
 				<configuration>
-					<appnamePattern>full-dump-assemble</appnamePattern>
+					<appnamePattern>tis-assemble</appnamePattern>
 				</configuration>
 			</plugin>
 

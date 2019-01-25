@@ -5,12 +5,12 @@
 	default-autowire="byName">
 
 <!-- 
-	<bean id="actionTool" class="com.taobao.terminator.manage.common.ActionTool">
+	<bean id="actionTool" class="com.qlangtech.tis.manage.common.ActionTool">
 		<property name="runContext" ref="daoContext" />
 	</bean>
 	 -->
 	 
-	 <bean id="ocClient" class="com.taobao.terminator.manage.spring.OpenshiftClinetFactory">
+	 <bean id="ocClient" class="com.qlangtech.tis.manage.spring.OpenshiftClinetFactory">
         <property name="baseUrl" value="${ocClient.baseUrl}" />
         <property name="userName" value="${ocClient.userName}" />
         <property name="password" value="${ocClient.password}" />

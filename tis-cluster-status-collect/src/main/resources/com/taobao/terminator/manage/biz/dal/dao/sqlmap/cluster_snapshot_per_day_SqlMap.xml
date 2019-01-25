@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
 <sqlMap namespace="cluster_snapshot_per_day" >
-  <resultMap id="ibatorgenerated_BaseResultMap" class="com.taobao.terminator.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
 
     <result column="id" property="id" jdbcType="BIGINT" />
     <result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP" />
@@ -42,7 +42,7 @@
       </isEqual>
     </iterate>
   </sql>
-  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" >
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -58,7 +58,7 @@
     </isParameterPresent>
        ) bb inner join cluster_snapshot_per_day aa on aa.id=bb.id
   </select>
-  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -67,21 +67,21 @@
     from cluster_snapshot_per_day
     where id = #id:BIGINT#
   </select>
-  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
     delete from cluster_snapshot_per_day
     where id = #id:BIGINT#
   </delete>
-  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" >
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
     delete from cluster_snapshot_per_day
     <include refid="cluster_snapshot_per_day.ibatorgenerated_Example_Where_Clause" />
   </delete>
-  <insert id="ibatorgenerated_insert" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -94,7 +94,7 @@
       SELECT LAST_INSERT_ID();
     </selectKey>
   </insert>
-  <insert id="ibatorgenerated_insertSelective" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -164,7 +164,7 @@
       SELECT LAST_INSERT_ID();
     </selectKey>
   </insert>
-  <select id="ibatorgenerated_countByExample" parameterClass="com.taobao.terminator.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" resultClass="java.lang.Integer" >
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" resultClass="java.lang.Integer" >
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->

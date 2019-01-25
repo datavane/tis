@@ -5,41 +5,41 @@
 	default-autowire="byName">
 
 	<bean id="appPackageDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.AppPackageDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.AppPackageDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="applicationDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ApplicationDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="applicationApplyDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ApplicationApplyDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationApplyDAOImpl"
 		parent="basicEndSearchDao" />
-	<!-- <bean id="snapshotApplyDAO" class="com.taobao.terminator.manage.biz.dal.dao.impl.SnapshotApplyDAOImpl" 
-		parent="basicEndSearchDao" /> <bean id="bizDomainDAO" class="com.taobao.terminator.manage.biz.dal.dao.impl.BizDomainDAOImpl" 
+	<!-- <bean id="snapshotApplyDAO" class="com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotApplyDAOImpl" 
+		parent="basicEndSearchDao" /> <bean id="bizDomainDAO" class="com.qlangtech.tis.manage.biz.dal.dao.impl.BizDomainDAOImpl" 
 		parent="basicEndSearchDao" /> -->
 	<bean id="groupInfoDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.GroupInfoDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.GroupInfoDAOImpl"
 		parent="basicEndSearchDao" />
 	<bean id="serverDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ServerDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ServerDAOImpl"
 		parent="basicEndSearchDao" />
 	<bean id="serverGroupDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ServerGroupDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ServerGroupDAOImpl"
 		parent="basicEndSearchDao" />
 	<bean id="snapshotDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.SnapshotDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotDAOImpl"
 		parent="basicEndSearchDao" />
 
 
 	<bean id="serverPoolDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ServerPoolDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ServerPoolDAOImpl"
 		parent="basicEndSearchDao" />
 	<bean id="zookeeperServerDAOImpl"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ZookeeperServerDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ZookeeperServerDAOImpl"
 		parent="basicEndSearchDao" />
 	<bean id="snapshotViewDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.SnapshotViewImplDAO"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO"
 		parent="basicEndSearchDao">
 
 		<property name="resourceParametersDAO" ref="resourceParametersDAO" />
@@ -49,65 +49,65 @@
 
 	</bean>
 	<bean id="uploadResourceDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.UploadResourceDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.UploadResourceDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="serverJoinGroupDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ServerJoinGroupDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ServerJoinGroupDAOImpl"
 		parent="basicEndSearchDao" />
 
 
 	<bean id="bizFuncAuthorityDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.BizFuncAuthorityDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.BizFuncAuthorityDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="usrDptRelationDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.UsrDptRelationDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.UsrDptRelationDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="usrDptExtraRelationDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.UsrDptExtraRelationDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.UsrDptExtraRelationDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="departmentDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.DepartmentDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.DepartmentDAOImpl"
 		parent="basicEndSearchDao" />
 
 
 	<bean id="operationLogDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.OperationLogDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.OperationLogDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="usrApplyDptRecordDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.UsrApplyDptRecordDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.UsrApplyDptRecordDAOImpl"
 		parent="basicEndSearchDao" />
 
 
 	<!-- 全局扩展资源 -->
 	<bean id="globalAppResourceDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.GlobalAppResourceDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.GlobalAppResourceDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="appTriggerJobRelationDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.AppTriggerJobRelationDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.AppTriggerJobRelationDAOImpl"
 		parent="basicEndSearchDao" />
 
 
 	<bean id="resourceParametersDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ResourceParametersDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ResourceParametersDAOImpl"
 		parent="basicEndSearchDao" />
 
 
 	<!-- 添加权限管理2013/01/24 -->
 
 	<bean id="funcRoleRelationDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.FuncRoleRelationDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.FuncRoleRelationDAOImpl"
 		parent="basicEndSearchDao" />
 	<bean id="roleDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.RoleDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.RoleDAOImpl"
 		parent="basicEndSearchDao" />
 	<bean id="funcDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.FuncDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.FuncDAOImpl"
 		parent="basicEndSearchDao" />
 	<!-- 添加权限管理2013/01/24 end -->
 
@@ -115,20 +115,20 @@
 
 
 	<bean id="rdsDbDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.RdsDbDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.RdsDbDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="rdsTableDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.RdsTableDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.RdsTableDAOImpl"
 		parent="basicEndSearchDao" />
 
 	<bean id="applicationExtendDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ApplicationExtendDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationExtendDAOImpl"
 		parent="basicEndSearchDao" />
 
 
 
-	<bean id="daoContext" class="com.taobao.terminator.manage.common.RunContextImpl">
+	<bean id="daoContext" class="com.qlangtech.tis.manage.common.RunContextImpl">
 		<constructor-arg index="0" ref="appPackageDAO" />
 		<constructor-arg index="1" ref="applicationDAO" />
 		<!-- <constructor-arg index="2" ref="bizDomainDAO" /> -->
@@ -165,7 +165,7 @@
 
 	</bean>
 
-	<bean id="runContextGetter" class="com.taobao.terminator.manage.common.RunContextGetter">
+	<bean id="runContextGetter" class="com.qlangtech.tis.manage.common.RunContextGetter">
 		<constructor-arg index="0" ref="daoContext" />
 	</bean>
 

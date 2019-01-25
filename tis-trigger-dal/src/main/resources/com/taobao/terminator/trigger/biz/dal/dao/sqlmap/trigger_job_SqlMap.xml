@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
 <sqlMap namespace="trigger_job">
-  <resultMap class="com.taobao.terminator.trigger.biz.dal.pojo.TriggerJob" id="ibatorgenerated_BaseResultMap">
+  <resultMap class="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob" id="ibatorgenerated_BaseResultMap">
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -41,7 +41,7 @@
       </isEqual>
     </iterate>
   </sql>
-  <select id="ibatorgenerated_selectByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TriggerJobCriteria" resultMap="ibatorgenerated_BaseResultMap">
+  <select id="ibatorgenerated_selectByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJobCriteria" resultMap="ibatorgenerated_BaseResultMap">
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -56,7 +56,7 @@
     </isParameterPresent>
        ) bb inner join trigger_job aa on aa.job_id=bb.job_id
   </select>
-  <select id="ibatorgenerated_selectByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TriggerJob" resultMap="ibatorgenerated_BaseResultMap">
+  <select id="ibatorgenerated_selectByPrimaryKey" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob" resultMap="ibatorgenerated_BaseResultMap">
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -64,21 +64,21 @@
     from trigger_job
     where job_id = #jobId:BIGINT#
   </select>
-  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TriggerJob">
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob">
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
     delete from trigger_job
     where job_id = #jobId:BIGINT#
   </delete>
-  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TriggerJobCriteria">
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJobCriteria">
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
     delete from trigger_job
     <include refid="trigger_job.ibatorgenerated_Example_Where_Clause" />
   </delete>
-  <insert id="ibatorgenerated_insert" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TriggerJob">
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob">
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -89,7 +89,7 @@
       SELECT LAST_INSERT_ID();
     </selectKey>
   </insert>
-  <insert id="ibatorgenerated_insertSelective" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TriggerJob">
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob">
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->
@@ -141,7 +141,7 @@
       SELECT LAST_INSERT_ID();
     </selectKey>
   </insert>
-  <select id="ibatorgenerated_countByExample" parameterClass="com.taobao.terminator.trigger.biz.dal.pojo.TriggerJobCriteria" resultClass="java.lang.Integer">
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJobCriteria" resultClass="java.lang.Integer">
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
     -->

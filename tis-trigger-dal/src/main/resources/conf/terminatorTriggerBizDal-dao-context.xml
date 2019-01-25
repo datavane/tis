@@ -3,16 +3,16 @@
 <beans>
 
 	<bean id="hdfsIndexDAO"
-		class="com.taobao.terminator.trigger.biz.dal.dao.impl.HdfsIndexDAOImpl"
+		class="com.qlangtech.tis.trigger.biz.dal.dao.impl.HdfsIndexDAOImpl"
 		parent="terminatorTriggerBizDalDAO" />
 
 	<bean
-		class="com.taobao.terminator.trigger.biz.dal.dao.impl.TriggerJobDAOImpl"
+		class="com.qlangtech.tis.trigger.biz.dal.dao.impl.TriggerJobDAOImpl"
 		id="triggerJobDAO" parent="terminatorTriggerBizDalDAO" />
 	<bean
-		class="com.taobao.terminator.trigger.biz.dal.dao.impl.TaskExecLogDAOImpl"
+		class="com.qlangtech.tis.trigger.biz.dal.dao.impl.TaskExecLogDAOImpl"
 		id="taskExecLogDAO" parent="terminatorTriggerBizDalDAO" />
-	<bean class="com.taobao.terminator.trigger.biz.dal.dao.impl.TaskDAOImpl"
+	<bean class="com.qlangtech.tis.trigger.biz.dal.dao.impl.TaskDAOImpl"
 		id="taskDAO" parent="terminatorTriggerBizDalDAO" />
 
 	<bean abstract="true"
@@ -27,7 +27,7 @@
 		</property>
 	</bean>
 	<bean
-		class="com.taobao.terminator.trigger.biz.dal.dao.impl.TerminatorTriggerBizDalDAOFacadeImpl"
+		class="com.qlangtech.tis.trigger.biz.dal.dao.impl.TerminatorTriggerBizDalDAOFacadeImpl"
 		id="terminatorTriggerBizDalDaoFacade">
 		<constructor-arg index="0" ref="triggerJobDAO" />
 		<constructor-arg index="1" ref="taskExecLogDAO" />

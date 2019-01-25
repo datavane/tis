@@ -47,8 +47,7 @@
 			<artifactId>commons-lang</artifactId>
 			<version>2.4</version>
 		</dependency>
-		<!-- <dependency> <groupId>com.taobao.diamond</groupId> <artifactId>diamond-client</artifactId> 
-			<version>3.0.4</version> </dependency> -->
+		
 	</dependencies>
 	<build>
 

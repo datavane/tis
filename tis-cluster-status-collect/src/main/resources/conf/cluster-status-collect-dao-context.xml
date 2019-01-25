@@ -23,11 +23,11 @@
 	<import resource="classpath:/conf/terminator-job-trigger-relation-context.xml" />
 	<!-- 
 	<bean id="clusterSnapshotDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ClusterSnapshotDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ClusterSnapshotDAOImpl"
 		parent="terminatorManageBizDalDAO" />
 
 	<bean id="clusterSnapshotPerDayDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ClusterSnapshotPerDayDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ClusterSnapshotPerDayDAOImpl"
 		parent="terminatorManageBizDalDAO" />
 
 
@@ -43,7 +43,7 @@
 	</bean>
  -->
 	<bean id="terminatorManageBizDalDaoFacade"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.TerminatorManageBizDalDAOFacadeImpl">
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.TerminatorManageBizDalDAOFacadeImpl">
 		<constructor-arg index="0" ref="clusterSnapshotDAO" />
 		<constructor-arg index="1" ref="clusterSnapshotPreDayDAO" />
 		<constructor-arg index="2" ref="jobMetaDataDAO" />

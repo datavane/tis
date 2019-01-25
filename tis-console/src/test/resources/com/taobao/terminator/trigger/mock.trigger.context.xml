@@ -4,12 +4,12 @@
 
 
 	<bean id="triggerJobConsole"
-		class="com.taobao.terminator.manage.module.action.test.mock.TriggerJobConsoleImplMock">
+		class="com.qlangtech.tis.manage.module.action.test.mock.TriggerJobConsoleImplMock">
 		<property name="zooKeeperGetter" ref="zooKeeperGetter" />
 	</bean>
 
 
 	<bean id="zooKeeperGetter"
-		class="com.taobao.terminator.manage.module.action.test.mock.MockZooKeeperGetter" />
+		class="com.qlangtech.tis.manage.module.action.test.mock.MockZooKeeperGetter" />
 
 </beans>

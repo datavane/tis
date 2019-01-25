@@ -2,7 +2,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
 <beans>
 	<bean id="applicationDAO"
-		class="com.taobao.terminator.manage.biz.dal.dao.impl.ApplicationDAOImpl"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationDAOImpl"
 		parent="terminatorBizDalDAO" />
 
 
@@ -17,6 +17,6 @@
 			</bean>
 		</property>
 	</bean>
-	<!-- <bean id="terminatorBizDalDaoFacade" class="com.taobao.terminator.biz.dal.dao.impl.TerminatorBizDalDAOFacadeImpl"> 
+	<!-- <bean id="terminatorBizDalDaoFacade" class="com.qlangtech.tis.biz.dal.dao.impl.TerminatorBizDalDAOFacadeImpl"> 
 		<constructor-arg index="0" ref="applicationDAO" /> </bean> -->
 </beans>
