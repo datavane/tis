@@ -13,7 +13,7 @@
 	</bean>
 
 	<alias name="clusterStatusDatasource" alias="endSearchDatasource" />
-	<alias name="clusterStatusDatasource" alias="terminatorTriggerBizDalDatasource" />
+	<alias name="clusterStatusDatasource" alias="tisTriggerBizDalDatasource" />
 	<alias name="clusterStatusDatasource" alias="tisDatasource" />
 
 

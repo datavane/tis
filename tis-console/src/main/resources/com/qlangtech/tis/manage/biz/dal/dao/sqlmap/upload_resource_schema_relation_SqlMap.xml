@@ -3,7 +3,7 @@
 <sqlMap namespace="upload_resource_schema_relation" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceSchemaRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <result column="us_id" property="usId" jdbcType="INTEGER" />
     <result column="ur_id" property="urId" jdbcType="BIGINT" />
@@ -12,7 +12,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -41,7 +41,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceSchemaRelationCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select aa.us_id, ur_id, shm_id, gmt_create
      from ( select us_id from upload_resource_schema_relation 
@@ -56,7 +56,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceSchemaRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select us_id, ur_id, shm_id, gmt_create
     from upload_resource_schema_relation
@@ -64,28 +64,28 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceSchemaRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from upload_resource_schema_relation
     where us_id = #usId:INTEGER#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceSchemaRelationCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from upload_resource_schema_relation
     <include refid="upload_resource_schema_relation.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceSchemaRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into upload_resource_schema_relation (us_id, ur_id, shm_id, gmt_create)
     values (#usId:INTEGER#, #urId:BIGINT#, #shmId:BIGINT#, #gmtCreate:TIMESTAMP#)
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceSchemaRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into upload_resource_schema_relation
     <dynamic prepend="(" >
@@ -122,14 +122,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceSchemaRelationCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select count(*) from upload_resource_schema_relation
     <include refid="upload_resource_schema_relation.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update upload_resource_schema_relation
     <dynamic prepend="set" >
@@ -152,7 +152,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update upload_resource_schema_relation
     set us_id = #record.usId:INTEGER#,

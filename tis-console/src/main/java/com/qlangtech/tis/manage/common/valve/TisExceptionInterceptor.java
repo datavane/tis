@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
-import com.qlangtech.tis.manage.common.TerminatorActionMapper;
+import com.qlangtech.tis.manage.common.TisActionMapper;
 
 /*
  * 拦截系统异常，以控制页面友好
@@ -64,7 +64,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
         try {
             return invocation.invoke();
         } catch (Exception e) {
-            if (TerminatorActionMapper.REQUEST_EXTENDSION_AJAX.equals(mapping.getExtension())) {
+            if (TisActionMapper.REQUEST_EXTENDSION_AJAX.equals(mapping.getExtension())) {
                 logger.error(e.getMessage(), e);
                 List<String> empty = Collections.emptyList();
                 List<String> errors = new ArrayList<String>();

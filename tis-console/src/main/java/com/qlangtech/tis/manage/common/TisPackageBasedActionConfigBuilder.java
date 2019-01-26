@@ -54,14 +54,14 @@ import junit.framework.Assert;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorPackageBasedActionConfigBuilder extends PackageBasedActionConfigBuilder {
+public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfigBuilder {
 
     private final PackageConfig parentPkgConfig;
 
-    private static final Logger LOG = LoggerFactory.getLogger(TerminatorPackageBasedActionConfigBuilder.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TisPackageBasedActionConfigBuilder.class);
 
     @Inject
-    public TerminatorPackageBasedActionConfigBuilder(Configuration configuration, Container container, ObjectFactory objectFactory, @Inject("struts.convention.redirect.to.slash") String redirectToSlash, @Inject("struts.convention.default.parent.package") String defaultParentPackage) {
+    public TisPackageBasedActionConfigBuilder(Configuration configuration, Container container, ObjectFactory objectFactory, @Inject("struts.convention.redirect.to.slash") String redirectToSlash, @Inject("struts.convention.default.parent.package") String defaultParentPackage) {
         super(configuration, container, objectFactory, redirectToSlash, defaultParentPackage);
         this.parentPkgConfig = configuration.getPackageConfig("default");
         Assert.assertNotNull(this.parentPkgConfig);

@@ -53,7 +53,7 @@ public class UserUtils {
     public static final String USER_TOKEN_SESSION = UserUtils.class.getName() + "user";
 
     public static final IUser getUser(final HttpServletRequest r, RunContext runContext) {
-        final TerminatorHttpServletRequestWrapper request = (TerminatorHttpServletRequestWrapper) (((StrutsRequestWrapper) r).getRequest());
+        final TisHttpServletRequestWrapper request = (TisHttpServletRequestWrapper) (((StrutsRequestWrapper) r).getRequest());
         HttpSession session = request.getSession();
         TUser result = null;
         try {

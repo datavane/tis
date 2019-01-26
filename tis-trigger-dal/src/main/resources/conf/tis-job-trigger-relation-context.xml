@@ -2,7 +2,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 	<!-- 这个类没有使用ibatis要使用terminaotrhome 这个数据源就行了 -->
-	<bean class="com.taobao.terminator.trigger.biz.dal.dao.impl.JobMetaDataDAO"
+	<bean class="com.qlangtech.tis.trigger.biz.dal.dao.impl.JobMetaDataDAO"
 		id="jobMetaDataDAO">
 		<!-- 这个数据源要在客户端配置 -->
 		<property name="dataSource" ref="endSearchDatasource" />

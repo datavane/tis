@@ -63,7 +63,7 @@ public class LoadSolrCoreConfigByAppNameServlet extends BasicServlet {
 
     private static final Pattern resourcePattern = Pattern.compile(DownloadServlet.replace(ConfigConstant.FILE_APPLICATION + "|" + ConfigConstant.FILE_DATA_SOURCE + "|" + ConfigConstant.FILE_SCHEMA + "|" + ConfigConstant.FILE_SOLOR + "|" + ConfigConstant.FILE_CORE_PROPERTIES + "|" + ConfigConstant.FILE_JAR));
 
-    public static final String pattern_runtime = "/(" + RunEnvironment.DAILY.getKeyName() + "|" + RunEnvironment.ONLINE2.getKeyName() + "|" + RunEnvironment.ONLINE.getKeyName() + "|" + RunEnvironment.THA.getKeyName() + "|" + RunEnvironment.KR.getKeyName() + ")";
+    public static final String pattern_runtime = "/(" + RunEnvironment.DAILY.getKeyName()  + "|" + RunEnvironment.ONLINE.getKeyName()   + ")";
 
     private static final Pattern pattern = Pattern.compile(".+?/download/appconfig/(.+?)/(\\d{1,})" + pattern_runtime + "((/(" + resourcePattern.pattern() + "))+)");
 

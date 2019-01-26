@@ -12,13 +12,13 @@
 
 	<!-- 触发器定时任务manage,项目的启动的时候就要执行 -->
 	<bean id="triggerJobManage" class="com.qlangtech.tis.trigger.TisTriggerJobManage"
-		lazy-init="false">
+		lazy-init="true">
 		<property name="preTriggerProcess">
 			<bean class="com.qlangtech.tis.manage.util.TisPreTriggerProcess" />
 		</property>
 		<property name="zkClientGetter" ref="daoContext" />
 		<property name="jobMetaDataDAO" ref="jobMetaDataDAO" />
-		<property name="triggerBizDAO" ref="terminatorTriggerBizDalDaoFacade" />
+		<property name="triggerBizDAO" ref="tisTriggerBizDalDaoFacade" />
 		<property name="runContext" ref="daoContext" />
 	</bean>
 

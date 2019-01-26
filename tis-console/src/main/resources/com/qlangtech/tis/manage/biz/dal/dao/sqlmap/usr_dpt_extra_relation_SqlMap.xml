@@ -13,7 +13,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -42,7 +42,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptExtraRelationCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select aa.id, gmt_create, gmt_modified, usr_id, usr_name, dpt_name, dpt_id
      from ( select id from usr_dpt_extra_relation 
@@ -57,7 +57,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptExtraRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select id, gmt_create, gmt_modified, usr_id, usr_name, dpt_name, dpt_id
     from usr_dpt_extra_relation
@@ -65,21 +65,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptExtraRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from usr_dpt_extra_relation
     where id = #id:BIGINT#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptExtraRelationCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from usr_dpt_extra_relation
     <include refid="usr_dpt_extra_relation.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptExtraRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into usr_dpt_extra_relation (id, gmt_create, gmt_modified, usr_id, usr_name, dpt_name,
       dpt_id)
@@ -91,7 +91,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptExtraRelation" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into usr_dpt_extra_relation
     <dynamic prepend="(" >
@@ -155,14 +155,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptExtraRelationCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select count(*) from usr_dpt_extra_relation
     <include refid="usr_dpt_extra_relation.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update usr_dpt_extra_relation
     <dynamic prepend="set" >
@@ -194,7 +194,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update usr_dpt_extra_relation
     set id = #record.id:BIGINT#,

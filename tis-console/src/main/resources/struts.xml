@@ -6,9 +6,9 @@
 <struts>
 	<!-- <include file="/struts/runtime.struts.xml" /> -->
 	<bean type="org.apache.struts2.convention.ActionConfigBuilder"
-		name="terminator_convention"
-		class="com.qlangtech.tis.manage.common.TerminatorPackageBasedActionConfigBuilder" />
-	<constant name="struts.convention.actionConfigBuilder" value="terminator_convention" />
+		name="tis_convention"
+		class="com.qlangtech.tis.manage.common.TisPackageBasedActionConfigBuilder" />
+	<constant name="struts.convention.actionConfigBuilder" value="tis_convention" />
 
 	<!---->
 	<constant name="struts.ui.templateDir" value="tistemplate" />
@@ -25,21 +25,21 @@
 		value="_" />
 
 
-	<bean type="org.apache.struts2.convention.ResultMapBuilder" name="terminator_convention"
-		class="com.qlangtech.tis.manage.common.TerminatorResultMapBuilder" />
-	<constant name="struts.convention.resultMapBuilder" value="terminator_convention" />
+	<bean type="org.apache.struts2.convention.ResultMapBuilder" name="tis_convention"
+		class="com.qlangtech.tis.manage.common.TisResultMapBuilder" />
+	<constant name="struts.convention.resultMapBuilder" value="tis_convention" />
 
 
 	<bean type="org.apache.struts2.dispatcher.mapper.ActionMapper"
-		name="terminator" class="com.qlangtech.tis.manage.common.TerminatorActionMapper" />
-	<constant name="struts.mapper.class" value="terminator" />
+		name="tis" class="com.qlangtech.tis.manage.common.TisActionMapper" />
+	<constant name="struts.mapper.class" value="tis" />
 
 	<bean type="org.apache.struts2.dispatcher.mapper.ActionMapper"
-		name="default_terminator" class="org.apache.struts2.dispatcher.mapper.DefaultActionMapper" />
+		name="default_tis" class="org.apache.struts2.dispatcher.mapper.DefaultActionMapper" />
 
-	<bean type="org.apache.struts2.convention.ActionNameBuilder" name="terminator"
-		class="com.qlangtech.tis.manage.common.TerminatorActionNameBuilder" />
-	<constant name="struts.convention.actionNameBuilder" value="terminator" />
+	<bean type="org.apache.struts2.convention.ActionNameBuilder" name="tis"
+		class="com.qlangtech.tis.manage.common.TisActionNameBuilder" />
+	<constant name="struts.convention.actionNameBuilder" value="tis" />
 
 
 	<package name="default" extends="struts-default">
@@ -55,7 +55,7 @@
 			<interceptor name="tisException"
 				class="com.qlangtech.tis.manage.common.valve.TisExceptionInterceptor" />
 			
-			<interceptor-stack name="terminatorStack">
+			<interceptor-stack name="tisStack">
 				<interceptor-ref name="params">
 					<param name="excludeParams">^class\..*,^dojo\..*,^struts\..*,^session\..*,^request\..*,^application\..*,^servlet(Request|Response)\..*,^parameters\..*,^action:.*,^method:.*</param>
 				</interceptor-ref>
@@ -68,7 +68,7 @@
 
 		</interceptors>
 
-		<default-interceptor-ref name="terminatorStack" />
+		<default-interceptor-ref name="tisStack" />
 	</package>
 
 </struts>

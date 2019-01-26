@@ -164,15 +164,8 @@ public class TISHdfsUtils {
                         conf.set("fs.default.name", config.getHdfsAddress());
                         conf.set("hadoop.job.ugi", "admin");
                         logger.info("run environment:" + config.getRunEnvironment());
-                        if ("online-kr".equals(config.getRunEnvironment())) {
-                            URL url = TISHdfsUtils.class.getResource("/online-kr-hdfs-site.xml");
-                            conf.addResource(url);
-                            logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
-                        } else if (config.getRuntime() == RunEnvironment.THA) {
-                            URL url = TISHdfsUtils.class.getResource("/online-tha-hdfs-site.xml");
-                            conf.addResource(url);
-                            logger.info("tha add hdfs:" + config.getHdfsAddress() + " resource:" + url);
-                        } else if (config.getRuntime() == RunEnvironment.ONLINE || config.getRuntime() == RunEnvironment.ONLINE2) {
+                        
+                        if (config.getRuntime() == RunEnvironment.ONLINE ) {
                             URL url = TISHdfsUtils.class.getResource("/online-hdfs-site.xml");
                             conf.addResource(url);
                             logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
@@ -181,14 +174,7 @@ public class TISHdfsUtils {
                             conf.addResource(url);
                             logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
                         }
-                        // conf.set("dfs.nameservices", "cluster-cdh");
-                        // conf.set("dfs.client.failover.proxy.provider.cluster-cdh",
-                        // "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
-                        // //////////////
-                        // conf.set("dfs.ha.automatic-failover.enabled.cluster-cdh",
-                        // "true");
-                        // conf.set("dfs.ha.automatic-failover.enabled.cluster-cdh",
-                        // "true");
+                       
                         conf.setBoolean("fs.hdfs.impl.disable.cache", true);
                         fileSystem = new FilterFileSystem(FileSystem.get(conf)) {
 

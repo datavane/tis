@@ -18,17 +18,17 @@
 	<bean abstract="true"
 		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
 		id="terminatorTriggerBizDalDAO">
-		<property name="dataSource" ref="terminatorTriggerBizDalDatasource" />
+		<property name="dataSource" ref="tisTriggerBizDalDatasource" />
 		<property name="sqlMapClient">
 			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
 				<property name="configLocation"
-					value="classpath:/conf/terminatorTriggerBizDal-sqlmap-config.xml" />
+					value="classpath:/conf/tisTriggerBizDal-sqlmap-config.xml" />
 			</bean>
 		</property>
 	</bean>
 	<bean
 		class="com.qlangtech.tis.trigger.biz.dal.dao.impl.TerminatorTriggerBizDalDAOFacadeImpl"
-		id="terminatorTriggerBizDalDaoFacade">
+		id="tisTriggerBizDalDaoFacade">
 		<constructor-arg index="0" ref="triggerJobDAO" />
 		<constructor-arg index="1" ref="taskExecLogDAO" />
 		<constructor-arg index="2" ref="taskDAO" />

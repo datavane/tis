@@ -72,10 +72,6 @@ public class ConfigFileParametersAction extends BasicModule {
             case DAILY:
                 param.setDailyValue(keyvalue);
                 break;
-            // break;
-            case KR:
-            case ONLINE2:
-            case THA:
             case ONLINE:
                 param.setOnlineValue(keyvalue);
                 break;

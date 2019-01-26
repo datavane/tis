@@ -57,10 +57,9 @@ public class GlobalParametersConfigAction extends BasicModule {
                     result.add(new KeyPair(p.getKeyName(), p.getDailyValue()));
                 }
                 break;
-            case ONLINE2:
-            case KR:
+           
             case ONLINE:
-            case THA:
+     
                 for (ResourceParameters p : paramsList) {
                     result.add(new KeyPair(p.getKeyName(), p.getOnlineValue()));
                 }

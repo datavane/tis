@@ -3,7 +3,7 @@
 <sqlMap namespace="func" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.Func" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     <result column="fun_id" property="funId" jdbcType="INTEGER" />
     <result column="fun_key" property="funKey" jdbcType="VARCHAR" />
@@ -15,7 +15,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -44,7 +44,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select aa.fun_id, fun_key, func_name, gmt_create, gmt_modified, func_group_key, func_group_name
      from ( select fun_id from func 
@@ -59,7 +59,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Func" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select fun_id, fun_key, func_name, gmt_create, gmt_modified, func_group_key, func_group_name
     from func
@@ -67,21 +67,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Func" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     delete from func
     where fun_id = #funId:INTEGER#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     delete from func
     <include refid="func.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Func" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     insert into func (fun_id, fun_key, func_name, gmt_create, gmt_modified, func_group_key,
       func_group_name)
@@ -93,7 +93,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Func" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     insert into func
     <dynamic prepend="(" >
@@ -151,14 +151,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select count(*) from func
     <include refid="func.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     update func
     <dynamic prepend="set" >
@@ -190,7 +190,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     update func
     set fun_id = #record.funId:INTEGER#,

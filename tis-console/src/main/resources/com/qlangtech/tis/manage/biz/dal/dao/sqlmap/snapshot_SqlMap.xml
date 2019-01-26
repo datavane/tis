@@ -3,7 +3,7 @@
 <sqlMap namespace="snapshot">
   <resultMap class="com.qlangtech.tis.manage.biz.dal.pojo.Snapshot" id="ibatorgenerated_BaseResultMap">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <result column="sn_id" jdbcType="INTEGER" property="snId" />
     <result column="app_id" jdbcType="INTEGER" property="appId" />
@@ -30,7 +30,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <iterate conjunction="or" prepend="where" property="oredCriteria" removeFirstPrepend="iterate">
       <isEqual compareValue="true" property="oredCriteria[].valid">
@@ -118,7 +118,7 @@
    -->
   <select id="ibatorgenerated_selectByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Snapshot" resultMap="ibatorgenerated_BaseResultMap">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select sn_id, app_id,  res_schema_id, res_solr_id, res_jar_id, res_core_prop_id, res_ds_id,
       res_application_id, create_time, create_user_id, create_user_name, update_time, pre_sn_id,res_schema_virtual_id,memo,biz_id
@@ -127,21 +127,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Snapshot">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from snapshot
     where sn_id = #snId:INTEGER#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from snapshot
     <include refid="snapshot.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Snapshot">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into snapshot (sn_id, app_id, res_schema_id, res_solr_id, res_jar_id,
       res_core_prop_id, res_ds_id, res_application_id, create_time, create_user_id,
@@ -156,7 +156,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Snapshot">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into snapshot
     <dynamic prepend="(">
@@ -273,14 +273,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria" resultClass="java.lang.Integer">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select count(*) from snapshot
     <include refid="snapshot.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update snapshot
     <dynamic prepend="set">
@@ -335,7 +335,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update snapshot
     set sn_id = #record.snId:INTEGER#,

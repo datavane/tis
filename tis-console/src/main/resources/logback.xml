@@ -57,12 +57,12 @@
 		<appender-ref ref="executeactionappender" />
 	</logger>
 
-	<logger name="com.taobao">
+	<logger name="com.qlangtech">
 		<level value="INFO" />
 		<appender-ref ref="console" />
 	</logger>
 
-	<logger name="com.dfire.tis">
+	<logger name="com.qlangtech.tis">
 		<level value="INFO" />
 		<appender-ref ref="console" />
 	</logger>

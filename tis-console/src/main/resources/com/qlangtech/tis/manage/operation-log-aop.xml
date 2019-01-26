@@ -17,7 +17,7 @@
 		-->
 		<constructor-arg>
 			<bean
-				class="com.qlangtech.tis.manage.spring.aop.TerminatorNameMatchMethodPointcut" />
+				class="com.qlangtech.tis.manage.spring.aop.TisNameMatchMethodPointcut" />
 		</constructor-arg> 
 
 	</bean>

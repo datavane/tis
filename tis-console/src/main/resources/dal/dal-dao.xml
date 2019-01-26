@@ -146,22 +146,22 @@
 		<constructor-arg index="11" ref="departmentDAO" />
 		<constructor-arg index="12" ref="globalAppResourceDAO" />
 		<constructor-arg index="13" ref="appTriggerJobRelationDAO" />
-		<constructor-arg index="14" ref="rpcCoreManage" />
+		
 		<!-- add for implement the authorition 20130124 -->
-		<constructor-arg index="15" ref="funcDAO" />
-		<constructor-arg index="16" ref="funcRoleRelationDAO" />
-		<constructor-arg index="17" ref="roleDAO" />
-		<constructor-arg index="18" ref="resourceParametersDAO" />
-		<constructor-arg index="19" ref="usrDptExtraRelationDAO" />
-		<constructor-arg index="20" ref="usrApplyDptRecordDAO" />
+		<constructor-arg index="14" ref="funcDAO" />
+		<constructor-arg index="15" ref="funcRoleRelationDAO" />
+		<constructor-arg index="16" ref="roleDAO" />
+		<constructor-arg index="17" ref="resourceParametersDAO" />
+		<constructor-arg index="18" ref="usrDptExtraRelationDAO" />
+		<constructor-arg index="19" ref="usrApplyDptRecordDAO" />
 
 
-		<constructor-arg index="21" ref="rdsDbDAO" />
-		<constructor-arg index="22" ref="rdsTableDAO" />
-		<constructor-arg index="23" ref="applicationExtendDAO" />
+		<constructor-arg index="20" ref="rdsDbDAO" />
+		<constructor-arg index="21" ref="rdsTableDAO" />
+		<constructor-arg index="22" ref="applicationExtendDAO" />
 
-		<constructor-arg index="24" ref="zooKeeperGetter" />
-		<constructor-arg index="25" ref="clusterStateReader" />
+		<constructor-arg index="23" ref="zooKeeperGetter" />
+		<constructor-arg index="24" ref="clusterStateReader" />
 
 	</bean>
 

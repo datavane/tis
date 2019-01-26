@@ -46,29 +46,7 @@
         <url-pattern>*.action</url-pattern>
     </servlet-mapping>
 
-<!-- 
-	<filter>
-		<filter-name>struts2</filter-name>
-		<filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
-		<init-param> <param-name>actionPackages</param-name> <param-value>com/taobao/terminator/runtime/module/screen</param-value> 
-			</init-param> 
-	</filter>
--->
-<!-- 
 
-	<filter-mapping>
-		<filter-name>struts2</filter-name>
-		<url-pattern>*.htm</url-pattern>
-	</filter-mapping>
-	<filter-mapping>
-		<filter-name>struts2</filter-name>
-		<url-pattern>*.ajax</url-pattern>
-	</filter-mapping>
-	<filter-mapping>
-		<filter-name>struts2</filter-name>
-		<url-pattern>*.action</url-pattern>
-	</filter-mapping>
- -->
 
 
 	<servlet>
@@ -81,12 +59,6 @@
 	</servlet-mapping>
 
 
-
-	<!-- 下载资源，最后设定好发布资源之后 依赖于组的 -->
-	<!-- 判断云梯文件是否准备好 <servlet> <servlet-name>checkYuntiSuccessFileIsReady</servlet-name> 
-		<servlet-class>com.qlangtech.tis.manage.servlet.CheckYuntiSuccessFileIsReadyServlet</servlet-class> 
-		</servlet> <servlet> <servlet-name>download</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.DownloadServlet</servlet-class> 
-		</servlet> -->
 
 	<!-- websocket推送服务集群 中的日志 -->
 	<servlet>

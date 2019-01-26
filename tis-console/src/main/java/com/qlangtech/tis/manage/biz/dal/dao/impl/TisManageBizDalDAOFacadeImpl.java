@@ -31,7 +31,7 @@ import com.qlangtech.tis.manage.biz.dal.dao.IFuncRoleRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IRdsDbDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IRdsTableDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IRoleDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.ITerminatorManageBizDalDAOFacade;
+import com.qlangtech.tis.manage.biz.dal.dao.ITisManageBizDalDAOFacade;
 import com.qlangtech.tis.manage.biz.dal.dao.IUsrApplyDptRecordDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IUsrDptRelationDAO;
 
@@ -39,7 +39,7 @@ import com.qlangtech.tis.manage.biz.dal.dao.IUsrDptRelationDAO;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorManageBizDalDAOFacadeImpl implements ITerminatorManageBizDalDAOFacade {
+public class TisManageBizDalDAOFacadeImpl implements ITisManageBizDalDAOFacade {
 
     private final IUsrDptRelationDAO usrDptRelationDAO;
 
@@ -108,7 +108,7 @@ public class TerminatorManageBizDalDAOFacadeImpl implements ITerminatorManageBiz
         return this.applicationExtendDAO;
     }
 
-    public TerminatorManageBizDalDAOFacadeImpl(IUsrDptRelationDAO usrDptRelationDAO, IApplicationDAO applicationDAO, IDepartmentDAO departmentDAO, IFuncRoleRelationDAO funcRoleRelationDAO, IRoleDAO roleDAO, IFuncDAO funcDAO, IUsrApplyDptRecordDAO usrApplyDptRecordDAO, // IIsvDAO isvDAO,
+    public TisManageBizDalDAOFacadeImpl(IUsrDptRelationDAO usrDptRelationDAO, IApplicationDAO applicationDAO, IDepartmentDAO departmentDAO, IFuncRoleRelationDAO funcRoleRelationDAO, IRoleDAO roleDAO, IFuncDAO funcDAO, IUsrApplyDptRecordDAO usrApplyDptRecordDAO, // IIsvDAO isvDAO,
     IRdsDbDAO rdsDbDAO, IRdsTableDAO rdsTableDAO, IApplicationExtendDAO applicationExtendDAO) {
         this.usrDptRelationDAO = usrDptRelationDAO;
         this.applicationDAO = applicationDAO;

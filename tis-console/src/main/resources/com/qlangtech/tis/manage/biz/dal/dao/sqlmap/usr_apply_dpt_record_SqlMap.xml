@@ -3,7 +3,7 @@
 <sqlMap namespace="usr_apply_dpt_record" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <result column="id" property="id" jdbcType="BIGINT" />
     <result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP" />
@@ -20,7 +20,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -49,7 +49,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecordCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select aa.id, gmt_create, agreed_time, dpt_id, dpt_name, usr_id, usr_name, agreed_usr_id,
       agreed_usr_name, granted, udr_id, dpt_usr_list
@@ -65,7 +65,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select id, gmt_create, agreed_time, dpt_id, dpt_name, usr_id, usr_name, agreed_usr_id,
       agreed_usr_name, granted, udr_id, dpt_usr_list
@@ -74,21 +74,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from usr_apply_dpt_record
     where id = #id:BIGINT#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecordCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from usr_apply_dpt_record
     <include refid="usr_apply_dpt_record.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into usr_apply_dpt_record (id, gmt_create, agreed_time, dpt_id, dpt_name, usr_id,
       usr_name, agreed_usr_id, agreed_usr_name, granted, udr_id, dpt_usr_list)
@@ -101,7 +101,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecord" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into usr_apply_dpt_record
     <dynamic prepend="(" >
@@ -189,14 +189,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrApplyDptRecordCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select count(*) from usr_apply_dpt_record
     <include refid="usr_apply_dpt_record.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update usr_apply_dpt_record
     <dynamic prepend="set" >
@@ -243,7 +243,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update usr_apply_dpt_record
     set id = #record.id:BIGINT#,

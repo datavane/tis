@@ -3,20 +3,19 @@
 <beans>
 	<bean id="applicationDAO"
 		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationDAOImpl"
-		parent="terminatorBizDalDAO" />
+		parent="tisBizDalDAO" />
 
 
-	<bean id="terminatorBizDalDAO"
+	<bean id="tisBizDalDAO"
 		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
 		abstract="true">
 		<property name="dataSource" ref="tisDatasource" />
 		<property name="sqlMapClient">
 			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
 				<property name="configLocation"
-					value="classpath:/conf/terminatorBizDal-sqlmap-config.xml" />
+					value="classpath:/conf/tisBizDal-sqlmap-config.xml" />
 			</bean>
 		</property>
 	</bean>
-	<!-- <bean id="terminatorBizDalDaoFacade" class="com.qlangtech.tis.biz.dal.dao.impl.TerminatorBizDalDAOFacadeImpl"> 
-		<constructor-arg index="0" ref="applicationDAO" /> </bean> -->
+	
 </beans>

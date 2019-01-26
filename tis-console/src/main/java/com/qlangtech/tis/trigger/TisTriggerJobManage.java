@@ -26,14 +26,12 @@ package com.qlangtech.tis.trigger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import com.qlangtech.tis.config.module.action.CrontabListAction;
-import com.qlangtech.tis.manage.common.DefaultFilter;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TriggerCrontab;
-import com.qlangtech.tis.manage.common.DefaultFilter.AppAndRuntime;
 import com.qlangtech.tis.manage.common.trigger.ExecType;
 import com.qlangtech.tis.manage.common.trigger.TriggerTaskConfig;
-import com.qlangtech.tis.trigger.TriggerJobManage;
 import com.qlangtech.tis.trigger.httpserver.ITriggerContext;
 
 /*

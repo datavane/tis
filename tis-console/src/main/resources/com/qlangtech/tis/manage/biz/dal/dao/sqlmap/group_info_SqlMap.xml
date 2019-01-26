@@ -3,7 +3,7 @@
 <sqlMap namespace="group_info" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.GroupInfo" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     <result column="gid" property="gid" jdbcType="INTEGER" />
     <result column="app_id" property="appId" jdbcType="INTEGER" />
@@ -14,7 +14,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -43,7 +43,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GroupInfoCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select aa.gid, app_id, group_count, run_environment, create_time, update_time
      from ( select gid from group_info 
@@ -58,7 +58,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GroupInfo" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select gid, app_id, group_count, run_environment, create_time, update_time
     from group_info
@@ -66,21 +66,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GroupInfo" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     delete from group_info
     where gid = #gid:INTEGER#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GroupInfoCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     delete from group_info
     <include refid="group_info.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GroupInfo" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     insert into group_info (gid, app_id, group_count, run_environment, create_time, update_time)
     values (#gid:INTEGER#, #appId:INTEGER#, #groupCount:SMALLINT#, #runEnvironment:SMALLINT#,
@@ -88,7 +88,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GroupInfo" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     insert into group_info
     <dynamic prepend="(" >
@@ -137,14 +137,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GroupInfoCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select count(*) from group_info
     <include refid="group_info.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     update group_info
     <dynamic prepend="set" >
@@ -173,7 +173,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     update group_info
     set gid = #record.gid:INTEGER#,

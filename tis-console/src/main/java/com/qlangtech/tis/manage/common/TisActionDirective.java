@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.util.ValueStack;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorActionDirective extends ActionDirective {
+public class TisActionDirective extends ActionDirective {
 
     public String getName() {
         return "taction";

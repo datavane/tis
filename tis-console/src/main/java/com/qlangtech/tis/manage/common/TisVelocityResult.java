@@ -34,7 +34,7 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorVelocityResult extends VelocityResult {
+public class TisVelocityResult extends VelocityResult {
 
     private static final long serialVersionUID = 1L;
 

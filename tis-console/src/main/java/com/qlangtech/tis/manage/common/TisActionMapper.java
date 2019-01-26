@@ -33,7 +33,7 @@ import com.opensymphony.xwork2.config.ConfigurationManager;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorActionMapper extends DefaultActionMapper {
+public class TisActionMapper extends DefaultActionMapper {
 
     public static final String REQUEST_EXTENDSION_AJAX = "ajax";
 

@@ -42,20 +42,20 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorForwardResult extends StrutsResultSupport {
+public class TisForwardResult extends StrutsResultSupport {
 
     private static final long serialVersionUID = 1L;
 
-    private final TerminatorVelocityResult velocityResult;
+    private final TisVelocityResult velocityResult;
 
     private final ActionChainResult chainResult;
 
     private final DefaultActionMapper defaultActionMapper;
 
-    public TerminatorForwardResult() // @Inject("default_terminator") DefaultActionMapper defaultActionMapper
+    public TisForwardResult() // @Inject("default_terminator") DefaultActionMapper defaultActionMapper
     {
         super();
-        this.velocityResult = new TerminatorVelocityResult();
+        this.velocityResult = new TisVelocityResult();
         this.chainResult = new ActionChainResult();
         Container container = Dispatcher.getInstance().getContainer();
         container.inject(this.velocityResult);

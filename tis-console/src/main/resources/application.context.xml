@@ -12,23 +12,23 @@
 	<import resource="classpath:/dal/dal-dao.xml" />
 
 	<import resource="classpath:/dal/runtime-application.xml" />
-
+<!-- 
 	<import
-		resource="classpath:/com/taobao/terminator/coredefine/coredefine.context.xml" />
+		resource="classpath:/com/qlangtech/tis/coredefine/coredefine.context.xml" />
+ -->
+	<import resource="classpath:/com/qlangtech/tis/trigger/trigger.context.xml" />
 
-	<import resource="classpath:/com/taobao/terminator/trigger/trigger.context.xml" />
-
-	<import resource="classpath:/conf/terminator-job-trigger-relation-context.xml" />
-	<import resource="classpath:/conf/terminatorTriggerBizDal-dao-context.xml" />
+	<import resource="classpath:/conf/tis-job-trigger-relation-context.xml" />
+	<import resource="classpath:/conf/tisTriggerBizDal-dao-context.xml" />
 	<!-- 
 	<import resource="classpath:/conf/comDfireTisDataplatform-dao-context.xml" />
  -->
 
 
 	<import
-		resource="classpath:/conf/terminatorTriggerBizDal-datasource-context.xml" />
+		resource="classpath:/conf/tisTriggerBizDal-datasource-context.xml" />
 
 
-	<!-- <import resource="classpath:/com/taobao/terminator/manage/operation-log-aop.xml" 
+	<!-- <import resource="classpath:/com/qlangtech/tis/manage/operation-log-aop.xml" 
 		/> -->
 </beans>

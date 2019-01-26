@@ -73,7 +73,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select aa.usr_id, dpt_id, dpt_name, create_time, update_time,
 		user_name, r_id, role_name,extra_dpt_relation,real_name
@@ -98,7 +98,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelation">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from usr_dpt_relation
 		where usr_id = #usrId:VARCHAR#
@@ -128,7 +128,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from usr_dpt_relation
 		<include refid="usr_dpt_relation.ibatorgenerated_Example_Where_Clause" />
@@ -234,7 +234,7 @@
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select count(*) from usr_dpt_relation
 		<include refid="usr_dpt_relation.ibatorgenerated_Example_Where_Clause" />
@@ -242,7 +242,7 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update usr_dpt_relation
 		<dynamic prepend="set">
@@ -281,7 +281,7 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 	 update usr_dpt_relation
 		set usr_id = #record.usrId:VARCHAR#,

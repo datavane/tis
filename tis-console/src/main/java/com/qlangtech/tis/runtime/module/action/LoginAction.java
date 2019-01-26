@@ -31,7 +31,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.Secret;
-import com.qlangtech.tis.manage.common.TerminatorHttpServletRequestWrapper;
+import com.qlangtech.tis.manage.common.TisHttpServletRequestWrapper;
 import com.qlangtech.tis.manage.common.UserUtils;
 
 /*
@@ -94,7 +94,7 @@ public class LoginAction extends BasicModule {
         ServletActionContext.getRequest().getSession().removeAttribute(UserUtils.USER_TOKEN_SESSION);
         final String host = this.getRequest().getHeader("Host");
         ChangeDomainAction.addCookie(getResponse(), UserUtils.USER_TOKEN, "", StringUtils.substringBefore(host, ":"), 0);
-        final TerminatorHttpServletRequestWrapper request = (TerminatorHttpServletRequestWrapper) (((StrutsRequestWrapper) this.getRequest()).getRequest());
+        final TisHttpServletRequestWrapper request = (TisHttpServletRequestWrapper) (((StrutsRequestWrapper) this.getRequest()).getRequest());
         request.removeCookie(UserUtils.USER_TOKEN);
         // https://login.alibaba-inc.com/ssoLogout.htm?APP_NAME=taobaoterminator&BACK_URL=http%3A%2F%2Fdaily.terminator.admin.taobao.org%2Fruntime%2F&CONTEXT_PATH=%2F
         // BucSSOClientUtil.handleSSOLogout(this.getRequest(), getResponse());

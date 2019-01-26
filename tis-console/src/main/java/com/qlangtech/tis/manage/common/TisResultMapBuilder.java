@@ -39,9 +39,9 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorResultMapBuilder implements ResultMapBuilder {
+public class TisResultMapBuilder implements ResultMapBuilder {
 
-    private static final ResultConfig ACTION_RESULT_CONFIG = (new ResultConfig.Builder(BasicModule.key_FORWARD, TerminatorForwardResult.class.getName())).build();
+    private static final ResultConfig ACTION_RESULT_CONFIG = (new ResultConfig.Builder(BasicModule.key_FORWARD, TisForwardResult.class.getName())).build();
 
     @Override
     public Map<String, ResultConfig> build(Class<?> actionClass, Action annotation, String actionName, PackageConfig packageConfig) {
@@ -49,8 +49,8 @@ public class TerminatorResultMapBuilder implements ResultMapBuilder {
         final String resultName = actionClass.getSimpleName();
         Map<String, ResultConfig> resultsConfig = new HashMap<String, ResultConfig>();
         resultsConfig.put(BasicModule.key_FORWARD, ACTION_RESULT_CONFIG);
-        Matcher matcher = TerminatorPackageBasedActionConfigBuilder.NAMESPACE_PATTERN.matcher(actionClass.getName());
-        if (matcher.matches() || (matcher = TerminatorPackageBasedActionConfigBuilder.NAMESPACE_TIS_PATTERN.matcher(actionClass.getName())).matches()) {
+        Matcher matcher = TisPackageBasedActionConfigBuilder.NAMESPACE_PATTERN.matcher(actionClass.getName());
+        if (matcher.matches() || (matcher = TisPackageBasedActionConfigBuilder.NAMESPACE_TIS_PATTERN.matcher(actionClass.getName())).matches()) {
             if ("action".equals(matcher.group(2))) {
                 // process ajax
                 String resultCode = resultName.toString() + "_ajax";
@@ -60,11 +60,11 @@ public class TerminatorResultMapBuilder implements ResultMapBuilder {
                 resultCode = resultName.toString() + "_action";
                 // final String resultCode = resultName.toString() + "_ajax";
                 build = new ResultConfig.Builder(resultCode, ActionChainResult.class.getName());
-                build.addParam("actionName", TerminatorActionMapper.addUnderline(resultName).toString());
+                build.addParam("actionName", TisActionMapper.addUnderline(resultName).toString());
                 build.addParam("namespace", "/" + matcher.group(1) + StringUtils.replace(matcher.group(3), ".", "/") + "#screen");
                 resultsConfig.put(resultCode, build.build());
             } else {
-                build = new ResultConfig.Builder(resultName.toString(), TerminatorVelocityResult.class.getName());
+                build = new ResultConfig.Builder(resultName.toString(), TisVelocityResult.class.getName());
                 build.addParam("location", "/" + matcher.group(1) + "/templates/" + matcher.group(2) + StringUtils.replace(matcher.group(3), ".", "/") + '/' + getViewName(resultName) + ".vm");
                 resultsConfig.put(resultName, build.build());
             }

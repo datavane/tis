@@ -3,7 +3,7 @@
 <sqlMap namespace="schema_sys_field_types" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.SchemaSysFieldTypes" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <result column="ss_id" property="ssId" jdbcType="BIGINT" />
     <result column="type_name" property="typeName" jdbcType="VARCHAR" />
@@ -14,7 +14,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -43,7 +43,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaSysFieldTypesCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select aa.ss_id, type_name, type_content, gmt_create, gmt_modify, type_desc
      from ( select ss_id from schema_sys_field_types 
@@ -58,7 +58,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaSysFieldTypes" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select ss_id, type_name, type_content, gmt_create, gmt_modify, type_desc
     from schema_sys_field_types
@@ -66,21 +66,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaSysFieldTypes" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from schema_sys_field_types
     where ss_id = #ssId:BIGINT#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaSysFieldTypesCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from schema_sys_field_types
     <include refid="schema_sys_field_types.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaSysFieldTypes" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into schema_sys_field_types (ss_id, type_name, type_content, gmt_create, gmt_modify,
       type_desc)
@@ -92,7 +92,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaSysFieldTypes" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into schema_sys_field_types
     <dynamic prepend="(" >
@@ -144,14 +144,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaSysFieldTypesCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select count(*) from schema_sys_field_types
     <include refid="schema_sys_field_types.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update schema_sys_field_types
     <dynamic prepend="set" >
@@ -180,7 +180,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update schema_sys_field_types
     set ss_id = #record.ssId:BIGINT#,

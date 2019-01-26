@@ -97,7 +97,7 @@ import com.qlangtech.tis.manage.common.Module;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.RunContextGetter;
-import com.qlangtech.tis.manage.common.TerminatorActionMapper;
+import com.qlangtech.tis.manage.common.TisActionMapper;
 import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
@@ -548,7 +548,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, M
 	}
 
 	protected void forward(Class<? extends BasicScreen> to) {
-		getRundataInstance().forwardTo(TerminatorActionMapper.addUnderline(to.getSimpleName()).toString());
+		getRundataInstance().forwardTo(TisActionMapper.addUnderline(to.getSimpleName()).toString());
 	}
 
 	// private static final MockTurbineRunDataInternal rundata = new

@@ -27,7 +27,7 @@ package com.qlangtech.tis.manage.biz.dal.dao;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public interface ITerminatorManageBizDalDAOFacade {
+public interface ITisManageBizDalDAOFacade {
 
     IUsrDptRelationDAO getUsrDptRelationDAO();
 

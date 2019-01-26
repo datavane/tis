@@ -3,7 +3,7 @@
 <sqlMap namespace="cluster_snapshot">
 	<resultMap id="ibatorgenerated_BaseResultMap"
 		class="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshot">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		<result column="id" property="id" jdbcType="INTEGER" />
 		<result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP" />
 		<result column="data_type" property="dataType" jdbcType="VARCHAR" />
@@ -11,7 +11,7 @@
 		<result column="app_id" property="appId" jdbcType="BIGINT" />
 	</resultMap>
 	<sql id="ibatorgenerated_Example_Where_Clause">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		<iterate property="oredCriteria" conjunction="or" prepend="where"
 			removeFirstPrepend="iterate">
 			<isEqual property="oredCriteria[].valid" compareValue="true">
@@ -93,7 +93,7 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 
 	<select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotCriteria">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		select aa.id, gmt_create, data_type, incr_number, app_id
 		from ( select
 		id from cluster_snapshot
@@ -108,7 +108,7 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 	</select>
 	<select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshot">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		select id, gmt_create, data_type, incr_number, app_id
 		from
 		cluster_snapshot
@@ -116,19 +116,19 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 	</select>
 	<delete id="ibatorgenerated_deleteByPrimaryKey"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshot">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		delete from cluster_snapshot
 		where id = #id:INTEGER#
 	</delete>
 	<delete id="ibatorgenerated_deleteByExample"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotCriteria">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		delete from cluster_snapshot
 		<include refid="cluster_snapshot.ibatorgenerated_Example_Where_Clause" />
 	</delete>
 	<insert id="ibatorgenerated_insert"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshot">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		insert into cluster_snapshot (id, gmt_create, data_type, incr_number,
 		app_id)
 		values (#id:INTEGER#, #gmtCreate:TIMESTAMP#,
@@ -141,7 +141,7 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 	</insert>
 	<insert id="ibatorgenerated_insertSelective"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshot">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		insert into cluster_snapshot
 		<dynamic prepend="(">
 			<isNotNull prepend="," property="id">
@@ -187,12 +187,12 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 	<select id="ibatorgenerated_countByExample"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotCriteria"
 		resultClass="java.lang.Integer">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		select count(*) from cluster_snapshot
 		<include refid="cluster_snapshot.ibatorgenerated_Example_Where_Clause" />
 	</select>
 	<update id="ibatorgenerated_updateByExampleSelective">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		update cluster_snapshot
 		<dynamic prepend="set">
 			<isNotNull prepend="," property="record.id">
@@ -220,7 +220,7 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 		</isParameterPresent>
 	</update>
 	<update id="ibatorgenerated_updateByExample">
-		<!-- WARNING - if you hava any question please contact to baisui(baisui@taobao.com) -->
+		<!--  -->
 		update cluster_snapshot
 		set id = #record.id:INTEGER#,
 		gmt_create =

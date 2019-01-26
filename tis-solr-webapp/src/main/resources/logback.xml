@@ -48,8 +48,7 @@
 		</encoder>
 	</appender>
 
-	<!-- <logger name="com.taobao"> <level value="INFO" /> <appender-ref ref="console" 
-		/> </logger> -->
+	
 
 	<appender name="check-health-appender"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">

@@ -5,7 +5,7 @@
 		id="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		<result column="ur_id" jdbcType="BIGINT" property="urId" />
 		<result column="resource_type" jdbcType="VARCHAR" property="resourceType" />
@@ -24,7 +24,7 @@
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		<iterate conjunction="or" prepend="where" property="oredCriteria"
 			removeFirstPrepend="iterate">
@@ -62,7 +62,7 @@
 		resultMap="ibatorgenerated_ResultMapWithBLOBs">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select ur_id, resource_type, md5_code, create_time, update_time, memo,
 		content
@@ -79,7 +79,7 @@
 		resultMap="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select aa.ur_id, resource_type, md5_code, create_time, update_time,
 		memo
@@ -98,7 +98,7 @@
 		resultMap="ibatorgenerated_ResultMapWithBLOBs">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select ur_id, resource_type, md5_code, create_time, update_time, memo,
 		content
@@ -109,7 +109,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResource">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from upload_resource
 		where ur_id = #urId:BIGINT#
@@ -118,7 +118,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from upload_resource
 		<include refid="upload_resource.ibatorgenerated_Example_Where_Clause" />
@@ -127,7 +127,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResource">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into upload_resource (ur_id, resource_type, md5_code,
 		create_time, update_time, memo,
@@ -145,7 +145,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResource">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into upload_resource
 		<dynamic prepend="(">
@@ -206,7 +206,7 @@
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select count(*) from upload_resource
 		<include refid="upload_resource.ibatorgenerated_Example_Where_Clause" />
@@ -214,7 +214,7 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update upload_resource
 		<dynamic prepend="set">
@@ -247,7 +247,7 @@
 	<update id="ibatorgenerated_updateByExampleWithBLOBs">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update upload_resource
 		set ur_id = #record.urId:BIGINT#,
@@ -264,7 +264,7 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update upload_resource
 		set ur_id = #record.urId:BIGINT#,

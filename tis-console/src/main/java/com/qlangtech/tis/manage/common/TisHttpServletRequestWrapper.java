@@ -36,9 +36,9 @@ import org.apache.commons.lang3.StringUtils;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorHttpServletRequestWrapper extends HttpServletRequestWrapper {
+public class TisHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-    public TerminatorHttpServletRequestWrapper(HttpServletRequest request) {
+    public TisHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
     }
 

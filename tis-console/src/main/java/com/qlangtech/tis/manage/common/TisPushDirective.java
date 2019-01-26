@@ -38,7 +38,7 @@ import com.opensymphony.xwork2.util.ValueStack;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorPushDirective extends Directive {
+public class TisPushDirective extends Directive {
 
     @Override
     public String getName() {

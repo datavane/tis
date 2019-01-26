@@ -12,7 +12,7 @@
 
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>classpath:/conf/cluster-application-context.xml,classpath:/conf/cluster-snapshot-dao-context.xml,classpath:/conf/terminatorBizDal-dao-context.xml</param-value>
+		<param-value>classpath:/conf/cluster-application-context.xml,classpath:/conf/cluster-snapshot-dao-context.xml,classpath:/conf/tisBizDal-dao-context.xml</param-value>
 	</context-param>
 
 

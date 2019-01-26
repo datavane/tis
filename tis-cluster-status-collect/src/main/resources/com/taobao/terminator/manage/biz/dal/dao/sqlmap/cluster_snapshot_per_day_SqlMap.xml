@@ -15,7 +15,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -44,7 +44,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select aa.id, gmt_create, gmt_modified, service_name, qps, avg_consume_time_per_request,
       request_count, doc_number, time_stamp
@@ -60,7 +60,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select id, gmt_create, gmt_modified, service_name, qps, avg_consume_time_per_request,
       request_count, doc_number, time_stamp
@@ -69,21 +69,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     delete from cluster_snapshot_per_day
     where id = #id:BIGINT#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     delete from cluster_snapshot_per_day
     <include refid="cluster_snapshot_per_day.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     insert into cluster_snapshot_per_day (id, gmt_create, gmt_modified, service_name, qps,
       avg_consume_time_per_request, request_count, doc_number, time_stamp)
@@ -96,7 +96,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     insert into cluster_snapshot_per_day
     <dynamic prepend="(" >
@@ -166,14 +166,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select count(*) from cluster_snapshot_per_day
     <include refid="cluster_snapshot_per_day.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     update cluster_snapshot_per_day
     <dynamic prepend="set" >
@@ -211,7 +211,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     update cluster_snapshot_per_day
     set id = #record.id:BIGINT#,

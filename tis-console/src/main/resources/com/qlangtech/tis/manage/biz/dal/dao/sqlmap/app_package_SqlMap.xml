@@ -3,7 +3,7 @@
 <sqlMap namespace="app_package">
   <resultMap class="com.qlangtech.tis.manage.biz.dal.pojo.AppPackage" id="ibatorgenerated_BaseResultMap">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     <result column="pid" jdbcType="INTEGER" property="pid" />
     <result column="app_id" jdbcType="INTEGER" property="appId" />
@@ -19,7 +19,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     <iterate conjunction="or" prepend="where" property="oredCriteria" removeFirstPrepend="iterate">
       <isEqual compareValue="true" property="oredCriteria[].valid">
@@ -48,7 +48,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackageCriteria" resultMap="ibatorgenerated_BaseResultMap">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select aa.pid, app_id, upload_user, test_status, last_test_time, last_ter_user_id,
       last_test_user, success_snapshot_id, create_time, update_time, runt_environment
@@ -64,7 +64,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackage" resultMap="ibatorgenerated_BaseResultMap">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select pid, app_id, upload_user, test_status, last_test_time, last_ter_user_id, last_test_user,
       success_snapshot_id, create_time, update_time, runt_environment
@@ -73,21 +73,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackage">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     delete from app_package
     where pid = #pid:INTEGER#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackageCriteria">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     delete from app_package
     <include refid="app_package.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackage">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     insert into app_package (pid, app_id, upload_user, test_status, last_test_time,
       last_ter_user_id, last_test_user, success_snapshot_id, create_time, update_time,
@@ -102,7 +102,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackage">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     insert into app_package
     <dynamic prepend="(">
@@ -184,14 +184,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackageCriteria" resultClass="java.lang.Integer">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     select count(*) from app_package
     <include refid="app_package.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     update app_package
     <dynamic prepend="set">
@@ -235,7 +235,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      
     -->
     update app_package
     set pid = #record.pid:INTEGER#,

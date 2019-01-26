@@ -14,36 +14,16 @@
 	</bean>
 
 	<alias name="tisDatasource" alias="endSearchDatasource" />
-	<alias name="tisDatasource" alias="terminatorTriggerBizDalDatasource" />
+	<alias name="tisDatasource" alias="tisTriggerBizDalDatasource" />
 	<alias name="tisDatasource" alias="clusterStatDatasource" />
 
 
 
-	<import resource="classpath:/conf/terminatorTriggerBizDal-dao-context.xml" />
-	<import resource="classpath:/conf/terminator-job-trigger-relation-context.xml" />
-	<!-- 
-	<bean id="clusterSnapshotDAO"
-		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ClusterSnapshotDAOImpl"
-		parent="terminatorManageBizDalDAO" />
-
-	<bean id="clusterSnapshotPerDayDAO"
-		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ClusterSnapshotPerDayDAOImpl"
-		parent="terminatorManageBizDalDAO" />
-
-
-	<bean id="terminatorManageBizDalDAO"
-		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
-		abstract="true">
-		<property name="dataSource" ref="clusterStatDatasource" />
-		<property name="sqlMapClient">
-			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
-				<property name="configLocation" value="classpath:/conf/cluster-sqlmap-config.xml" />
-			</bean>
-		</property>
-	</bean>
- -->
-	<bean id="terminatorManageBizDalDaoFacade"
-		class="com.qlangtech.tis.manage.biz.dal.dao.impl.TerminatorManageBizDalDAOFacadeImpl">
+	<import resource="classpath:/conf/tisTriggerBizDal-dao-context.xml" />
+	<import resource="classpath:/conf/tis-job-trigger-relation-context.xml" />
+	
+	<bean id="tisManageBizDalDaoFacade"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.TisManageBizDalDAOFacadeImpl">
 		<constructor-arg index="0" ref="clusterSnapshotDAO" />
 		<constructor-arg index="1" ref="clusterSnapshotPreDayDAO" />
 		<constructor-arg index="2" ref="jobMetaDataDAO" />

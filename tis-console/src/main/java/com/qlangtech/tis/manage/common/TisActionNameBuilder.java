@@ -23,51 +23,26 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-import org.springframework.jndi.JndiObjectFactoryBean;
+import org.apache.struts2.convention.ActionNameBuilder;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorJndiObjectFactoryBean extends JndiObjectFactoryBean {
-
-    private DataSource datasource;
-
-    private TerminatorJndiObjectFactoryBean() {
-        super();
-    // System.out
-    // .println("TerminatorJndiObjectFactoryBean start==============================");
-    }
-
-    public DataSource getDatasource() {
-        return datasource;
-    }
-
-    public void setDatasource(DataSource datasource) {
-        this.datasource = datasource;
-    }
+public class TisActionNameBuilder implements ActionNameBuilder {
 
     @Override
-    public void afterPropertiesSet() throws IllegalArgumentException, NamingException {
-        try {
-            super.afterPropertiesSet();
-        } catch (Throwable e) {
-        // e.printStackTrace();
-        }
-    }
-
-    @Override
-    public Object getObject() {
-        Object o = super.getObject();
-        if (o == null) {
-            if (this.getDatasource() != null) {
-                return this.getDatasource();
+    public String build(String className) {
+        char[] ca = className.toCharArray();
+        StringBuilder build = new StringBuilder("" + Character.toLowerCase(ca[0]));
+        for (int i = 1; i < ca.length; i++) {
+            if (Character.isUpperCase(ca[i])) {
+                build.append('_').append(Character.toLowerCase(ca[i]));
             } else {
-                throw new IllegalStateException(" you have not set datasource propertly");
+                build.append(ca[i]);
             }
         }
-        return o;
+        return build.toString();
+    // return BasicModule.trimUnderline(className.toCharArray()).toString();
     }
 }

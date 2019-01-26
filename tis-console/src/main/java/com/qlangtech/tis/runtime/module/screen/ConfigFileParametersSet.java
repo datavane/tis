@@ -63,9 +63,6 @@ public class ConfigFileParametersSet extends BasicManageScreen {
                 paramValue = param.getDailyValue();
                 break;
             // break;
-            case KR:
-            case THA:
-            case ONLINE2:
             case ONLINE:
                 paramValue = param.getOnlineValue();
                 break;

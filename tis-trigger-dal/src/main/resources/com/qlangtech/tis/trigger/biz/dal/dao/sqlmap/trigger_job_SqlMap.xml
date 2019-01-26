@@ -2,9 +2,7 @@
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
 <sqlMap namespace="trigger_job">
   <resultMap class="com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob" id="ibatorgenerated_BaseResultMap">
-    <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
-    -->
+   
     <result column="job_id" jdbcType="BIGINT" property="jobId" />
     <result column="domain" jdbcType="VARCHAR" property="domain" />
     <result column="crontab" jdbcType="VARCHAR" property="crontab" />
