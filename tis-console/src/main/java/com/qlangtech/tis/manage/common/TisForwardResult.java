@@ -52,7 +52,7 @@ public class TisForwardResult extends StrutsResultSupport {
 
     private final DefaultActionMapper defaultActionMapper;
 
-    public TisForwardResult() // @Inject("default_terminator") DefaultActionMapper defaultActionMapper
+    public TisForwardResult() 
     {
         super();
         this.velocityResult = new TisVelocityResult();
@@ -60,7 +60,7 @@ public class TisForwardResult extends StrutsResultSupport {
         Container container = Dispatcher.getInstance().getContainer();
         container.inject(this.velocityResult);
         container.inject(this.chainResult);
-        this.defaultActionMapper = (DefaultActionMapper) container.getInstance(ActionMapper.class, "default_terminator");
+        this.defaultActionMapper = (DefaultActionMapper) container.getInstance(ActionMapper.class, "default_tis");
         this.defaultActionMapper.setAlwaysSelectFullNamespace("true");
     }
 

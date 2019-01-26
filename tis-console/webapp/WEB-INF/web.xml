@@ -70,19 +70,7 @@
 		<url-pattern>/download/logfeedback</url-pattern>
 	</servlet-mapping>
 
-	<!-- download global config parameters <servlet> <servlet-name>globalConfigServlet</servlet-name> 
-		<servlet-class>com.qlangtech.tis.manage.servlet.GlobalConfigServlet</servlet-class> 
-		</servlet> <servlet-mapping> <servlet-name>globalConfigServlet</servlet-name> 
-		<url-pattern>/download/globalconfig</url-pattern> </servlet-mapping> <servlet> 
-		<servlet-name>serverPublishInfo</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.ServerPublishInfoServlet</servlet-class> 
-		</servlet> <servlet> <servlet-name>testDomain</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.TestDomainServlet</servlet-class> 
-		</servlet> <servlet> <servlet-name>getConfigbyIp</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.ServerConfigInfoServlet</servlet-class> 
-		</servlet> <servlet> <servlet-name>downloadByPid</servlet-name> <servlet-class>com.qlangtech.tis.manage.servlet.DownloadByPidServlet</servlet-class> 
-		</servlet> -->
-	<!-- 在索引更新完成之后 更新package表中的信息 <servlet> <servlet-name>indexbuild-callback</servlet-name> 
-		<servlet-class>com.qlangtech.tis.manage.servlet.UpdatePackageServlet</servlet-class> 
-		</servlet> <servlet-mapping> <servlet-name>indexbuild-callback</servlet-name> 
-		<url-pattern>/indexbuild/callback</url-pattern> </servlet-mapping> -->
+
 
 	<!-- 广播式查询索引 baisui add 20120413 -->
 	<servlet>
@@ -109,25 +97,11 @@
 		<url-pattern>/download/appconfig/*</url-pattern>
 	</servlet-mapping>
 
-	<!-- <servlet-mapping> <servlet-name>getappbysnid</servlet-name> <url-pattern>/download/appconfigbysnid/*</url-pattern> 
-		</servlet-mapping> <servlet-mapping> <servlet-name>downloadByPid</servlet-name> 
-		<url-pattern>/download/snid/*</url-pattern> </servlet-mapping> -->
-	<!-- 通过package信息找生成索引之后的 snapshot等信息 <servlet-mapping> <servlet-name>testDomain</servlet-name> 
-		<url-pattern>/download/testdomain</url-pattern> </servlet-mapping> -->
-	<!-- 应用端开始自测 需要发送pid和snapshotid -->
-	<!-- 服务器发布信息,更具serverid找到他的发布信息资源 <servlet-mapping> <servlet-name>serverPublishInfo</servlet-name> 
-		<url-pattern>/download/server/*</url-pattern> </servlet-mapping> -->
-	<!-- 创建索引过程中根据 group信息找到资源文件 application solrconfig 等 <servlet-mapping> 
-		<servlet-name>download</servlet-name> <url-pattern>/download/publish/*</url-pattern> 
-		</servlet-mapping> -->
-	<!-- 业务方服务器启动，需要加载 服务器端的 <servlet-mapping> <servlet-name>getConfigbyIp</servlet-name> 
-		<url-pattern>/download/getconfigbyip/*</url-pattern> </servlet-mapping> -->
+
 	<servlet-mapping>
 		<servlet-name>query-index</servlet-name>
 		<url-pattern>/query-index</url-pattern>
 	</servlet-mapping>
-
-
 
 
 	<servlet>

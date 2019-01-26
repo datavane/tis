@@ -72,9 +72,9 @@ public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfig
         return super.getActionClassTest();
     }
 
-    public static final Pattern NAMESPACE_PATTERN = Pattern.compile("com\\.taobao\\.terminator\\.(\\w+)\\.module\\.(screen|action|control)(.*)(\\..*)$");
+    public static final Pattern NAMESPACE_PATTERN = Pattern.compile("com\\.qlangtech\\.tis\\.(\\w+)\\.module\\.(screen|action|control)(.*)(\\..*)$");
 
-    public static final Pattern NAMESPACE_TIS_PATTERN = Pattern.compile("com\\.baisui\\.tis\\.(\\w+)\\.module\\.(screen|action|control)(.*)(\\..*)$");
+    public static final Pattern NAMESPACE_TIS_PATTERN = Pattern.compile("com\\.qlangtech\\.tis\\.(\\w+)\\.module\\.(screen|action|control)(.*)(\\..*)$");
 
     public static void main(String[] arg) {
        
@@ -117,7 +117,7 @@ public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfig
         if (matcher.matches() || (matcher = NAMESPACE_TIS_PATTERN.matcher(actionClass.getName())).matches()) {
             name = '/' + matcher.group(1) + StringUtils.replace(matcher.group(3), ".", "/") + "#" + matcher.group(2);
         } else {
-            throw new IllegalStateException("actionPackage:" + actionPackage + " is not a valid actionPackage");
+            throw new IllegalStateException("actionPackage:" + actionPackage + " is not a valid actionPackage,not match pattern:"+ NAMESPACE_TIS_PATTERN);
         }
         PackageConfig.Builder pkgConfig = packageConfigs.get(name);
         if (pkgConfig == null) {

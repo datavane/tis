@@ -28,6 +28,7 @@ import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_CORE_PROPERT
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_DATA_SOURCE;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_SCHEMA;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_SOLOR;
+
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
@@ -38,18 +39,21 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
+
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply;
 import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+
 import junit.framework.Assert;
 
 /* *
@@ -210,7 +214,7 @@ public class ManageUtils {
     private static final MessageFormat openDialogScript = new MessageFormat("opendialog(null,{3},$(window).width()-150,($(document).height()>$(window).height()?$(document).height():$(window).height())-15,{2});");
 
     // opendialog('$caption',this.href,
-    private static final MessageFormat urlformat = new MessageFormat("<a target=''_blank'' href=''{0}'' {4}  onclick=\"" + openDialogScript.toPattern() + " return false;\">{1}</a>");
+    private static final MessageFormat urlformat = new MessageFormat("&nbsp;<a target=''_blank'' href=''{0}'' {4}  onclick=\"" + openDialogScript.toPattern() + " return false;\">{1}</a>");
 
     public String openMaximizeDialog(String href) {
         return openDialogScript.format(new Object[] { StringUtils.EMPTY, StringUtils.EMPTY, "function(){}", href });
@@ -256,15 +260,15 @@ public class ManageUtils {
     public String getConfigViewLink(com.qlangtech.tis.manage.common.Module broker, Snapshot snapshot, boolean refeshWhenDialogClose, boolean linkEditable) {
         StringBuilder url = new StringBuilder();
         Integer snapshotid = snapshot.getSnId();
-        url.append("<strong>snapshot:</strong>").append(snapshotid);
+        url.append("<strong>Ver:</strong>").append(snapshotid);
         url.append("<a href='#' title='" + snapshot.getCreateUserName() + ":" + StringUtils.trimToEmpty(snapshot.getMemo()) + "' ><img src='" + broker.setTarget("imgs/note.jpg") + "' border='0' /></a>");
         final String dialogCloseFunction = linkEditable ? "function(){fetchLatestSnapshot();}" : "function(){}";
-        if (snapshot.getResApplicationId() != null) {
-            url.append(dialog(broker.setTarget("jarcontent/application_context") + "?snapshot=" + snapshotid, "[applicationContext.xml]", refeshWhenDialogClose, linkEditable, dialogCloseFunction));
-        }
-        if (snapshot.getResDsId() != null) {
-            url.append(dialog(broker.setTarget("jarcontent/ds") + "?snapshot=" + snapshotid, "[ds.xml]", refeshWhenDialogClose, linkEditable));
-        }
+//        if (snapshot.getResApplicationId() != null) {
+//            url.append(dialog(broker.setTarget("jarcontent/application_context") + "?snapshot=" + snapshotid, "[applicationContext.xml]", refeshWhenDialogClose, linkEditable, dialogCloseFunction));
+//        }
+//        if (snapshot.getResDsId() != null) {
+//            url.append(dialog(broker.setTarget("jarcontent/ds") + "?snapshot=" + snapshotid, "[ds.xml]", refeshWhenDialogClose, linkEditable));
+//        }
         if (snapshot.getResSchemaId() != null) {
             // if (snapshot.getResSchemaVirtualId() == null) {
             url.append(dialog(broker.setTarget("jarcontent/schema") + "?snapshot=" + snapshotid, "[schema.xml]", refeshWhenDialogClose, linkEditable, dialogCloseFunction));
@@ -276,15 +280,15 @@ public class ManageUtils {
         if (snapshot.getResSolrId() != null) {
             url.append(dialog(broker.setTarget("jarcontent/solrconfig") + "?snapshot=" + snapshotid, "[solr.xml]", refeshWhenDialogClose, linkEditable, dialogCloseFunction));
         }
-        if (snapshot.getResCorePropId() != null) {
-            url.append(dialog(broker.setTarget("jarcontent/core") + "?snapshot=" + snapshotid, "[core.properties]", refeshWhenDialogClose, linkEditable, dialogCloseFunction));
-        }
-        final String uploadlink = "<a href='" + broker.setTarget("jarcontent/uploadjar") + "?snapshot=" + snapshotid + "' onclick=\"opendialog('上传Jar文件',this.href,400,300);return false;\" >uploadjar</a>";
-        if (snapshot.getResJarId() != null) {
-            url.append("[<a href=\"" + broker.setTarget("jarcontent/jar.action") + "?snapshot=" + snapshotid + "\" />jar</a>," + uploadlink + "]");
-        } else {
-            url.append(uploadlink);
-        }
+//        if (snapshot.getResCorePropId() != null) {
+//            url.append(dialog(broker.setTarget("jarcontent/core") + "?snapshot=" + snapshotid, "[core.properties]", refeshWhenDialogClose, linkEditable, dialogCloseFunction));
+//        }
+//        final String uploadlink = "<a href='" + broker.setTarget("jarcontent/uploadjar") + "?snapshot=" + snapshotid + "' onclick=\"opendialog('上传Jar文件',this.href,400,300);return false;\" >uploadjar</a>";
+//        if (snapshot.getResJarId() != null) {
+//            url.append("[<a href=\"" + broker.setTarget("jarcontent/jar.action") + "?snapshot=" + snapshotid + "\" />jar</a>," + uploadlink + "]");
+//        } else {
+//            url.append(uploadlink);
+//        }
         return url.toString();
     }
 

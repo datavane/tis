@@ -33,6 +33,7 @@
 *#
 </p>
 #showFormErrors("selectRevsion")
+#*
 <form method="post" id="contentform" action="$manageModule.setTarget("applist")">
 	<fieldset id="uploaddialog">
 	 #taction ("name=appselect" "namespace=/runtime#control","executeResult=true")
@@ -54,18 +55,21 @@
      <input type="submit" style="width:8em;height:30px;display:inline-block;margin-left:50px;" name="event_submit_do_query" value="查询" />
 	 </fieldset>
 </form>
+*#
 <div>
 $manageTool.noescape($pager.link)
 </div>
-<table border="1" width="100%">
+<table class="table table-bordered table-hover" width="100%">
+<thead>
 <tr>
  <th width="5%">ID</th>
  <th>名称</th>
  <th width="8%">接口人</th>
  <th width="12%">归属部门</th>
  <th width="13%">创建时间</th>
- <th width="8%">操作</th>
+ <th width="15%">操作</th>
 </tr>
+</thead>
 #foreach($item in $applist)
 <tr id="row${item.appId}"> 
 <td align="center">$item.appId</td>
@@ -74,7 +78,7 @@ $manageTool.noescape($pager.link)
 <td> #if(${item.dptId}>0)  $manageTool.getShortDepartmentName(${item.dptName}) #else 未设置 #end    </td>
 <td align="right">$manageTool.formatDateYYYYMMdd($item.createTime)</td>
 <td>
-  <button onclick="deleteApp($item.appId)">删除</button>
+  <button class="btn btn-default" onclick="deleteApp($item.appId)">删除</button>
   #popup("$manageModule.setTarget('appupdate')?appid=$item.appId","更新",'800*500')
 </td>
 </tr>

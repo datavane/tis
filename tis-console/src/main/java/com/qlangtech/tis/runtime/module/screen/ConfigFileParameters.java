@@ -24,11 +24,14 @@
 package com.qlangtech.tis.runtime.module.screen;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.dao.IResourceParametersDAO;
+import com.qlangtech.tis.manage.biz.dal.pojo.ResourceParameters;
 import com.qlangtech.tis.manage.biz.dal.pojo.ResourceParametersCriteria;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -36,29 +39,43 @@ import com.qlangtech.tis.manage.spring.aop.Func;
  */
 public class ConfigFileParameters extends BasicScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private IResourceParametersDAO resourceParametersDAO;
+	private IResourceParametersDAO resourceParametersDAO;
 
-    @Override
-    @Func(PermissionConstant.GLOBAL_PARAMETER_LIST)
-    public void execute(Context context) throws Exception {
-        ResourceParametersCriteria criteria = new ResourceParametersCriteria();
-        criteria.setOrderByClause("rp_id desc");
-        context.put("resourceParameters", resourceParametersDAO.selectByExample(criteria, 1, 100));
-    }
+	@Override
+	@Func(PermissionConstant.GLOBAL_PARAMETER_LIST)
+	public void execute(Context context) throws Exception {
+		ResourceParametersCriteria criteria = new ResourceParametersCriteria();
+		criteria.setOrderByClause("rp_id desc");
+		context.put("resourceParameters", resourceParametersDAO.selectByExample(criteria, 1, 100));
+	}
 
-    @Override
-    public boolean isEnableDomainView() {
-        return false;
-    }
+//	public String getConfigVal(ResourceParameters p) {
+//		RunEnvironment runtime = RunEnvironment.getSysEnvironment();
+//		if (runtime == RunEnvironment.DAILY) {
+//			return p.getDailyValue();
+//		} else if (runtime == RunEnvironment.ONLINE) {
+//			return p.getOnlineValue();
+//		}
+//		throw new IllegalStateException("runtime " + runtime + " is illegal");
+//	}
+	
+	public RunEnvironment getRuntime(){
+		return RunEnvironment.getSysEnvironment();
+	}
 
-    public IResourceParametersDAO getResourceParametersDAO() {
-        return resourceParametersDAO;
-    }
+	@Override
+	public boolean isEnableDomainView() {
+		return false;
+	}
 
-    @Autowired
-    public void setResourceParametersDAO(IResourceParametersDAO resourceParametersDAO) {
-        this.resourceParametersDAO = resourceParametersDAO;
-    }
+	public IResourceParametersDAO getResourceParametersDAO() {
+		return resourceParametersDAO;
+	}
+
+	@Autowired
+	public void setResourceParametersDAO(IResourceParametersDAO resourceParametersDAO) {
+		this.resourceParametersDAO = resourceParametersDAO;
+	}
 }

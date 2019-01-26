@@ -3,13 +3,16 @@
 <div>
 $manageTool.noescape($pager.link)
 </div>
-<table border="1" width="100%">
+<table class="table table-bordered table-hover" width="100%">
+<thead>
 <tr>
  <th>用户名</th>
  <th>操作对象</th>
  <th>创建时间</th>
  <th>操作</th>
- </tr>
+</tr>
+</thead>
+<tbody>
 #foreach($item in $oplist)
 <tr>
  <td>$item.usrName</td>
@@ -18,6 +21,7 @@ $manageTool.noescape($pager.link)
  <td> #popupp("$manageModule.setTarget('operation_detail')?opid=$item.opId",'详细','1000*800') </td>
 </tr> 
 #end
+</tbody>
 </table>
 <div>
 $manageTool.noescape($pager.link)

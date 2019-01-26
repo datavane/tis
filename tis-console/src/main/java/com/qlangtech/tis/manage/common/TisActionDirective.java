@@ -43,7 +43,7 @@ public class TisActionDirective extends ActionDirective {
 
     @Override
     protected Component getBean(ValueStack stack, HttpServletRequest req, HttpServletResponse res) {
-        return new TerminatorActionComponent(stack, req, res);
+        return new TisActionComponent(stack, req, res);
     }
 
     @Override
@@ -56,9 +56,9 @@ public class TisActionDirective extends ActionDirective {
         return DirectiveConstants.BLOCK;
     }
 
-    private class TerminatorActionComponent extends ActionComponent {
+    private class TisActionComponent extends ActionComponent {
 
-        public TerminatorActionComponent(ValueStack stack, HttpServletRequest req, HttpServletResponse res) {
+        public TisActionComponent(ValueStack stack, HttpServletRequest req, HttpServletResponse res) {
             super(stack, req, res);
         }
         // @Override

@@ -26,81 +26,94 @@ package com.qlangtech.tis.manage.biz.dal.pojo;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.qlangtech.tis.pubhook.common.RunEnvironment;
+
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class ResourceParameters implements Serializable {
 
-    private Long rpId;
+	private Long rpId;
 
-    private String keyName;
+	private String keyName;
 
-    private String dailyValue;
+	private String dailyValue;
 
-    private String readyValue;
+	private String readyValue;
 
-    private String onlineValue;
+	private String onlineValue;
 
-    private Date gmtCreate;
+	private Date gmtCreate;
 
-    private Date gmtUpdate;
+	private Date gmtUpdate;
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    public Long getRpId() {
-        return rpId;
-    }
+	public Long getRpId() {
+		return rpId;
+	}
 
-    public void setRpId(Long rpId) {
-        this.rpId = rpId;
-    }
+	public String getEnvVal() {
 
-    public String getKeyName() {
-        return keyName;
-    }
+		RunEnvironment runtime = RunEnvironment.getSysEnvironment();
+		if (runtime == RunEnvironment.DAILY) {
+			return this.getDailyValue();
+		} else if (runtime == RunEnvironment.ONLINE) {
+			return this.getOnlineValue();
+		}
+		throw new IllegalStateException("runtime " + runtime + " is illegal");
+	}
 
-    public void setKeyName(String keyName) {
-        this.keyName = keyName == null ? null : keyName.trim();
-    }
+	public void setRpId(Long rpId) {
+		this.rpId = rpId;
+	}
 
-    public String getDailyValue() {
-        return dailyValue;
-    }
+	public String getKeyName() {
+		return keyName;
+	}
 
-    public void setDailyValue(String dailyValue) {
-        this.dailyValue = dailyValue == null ? null : dailyValue.trim();
-    }
+	public void setKeyName(String keyName) {
+		this.keyName = keyName == null ? null : keyName.trim();
+	}
 
-    public String getReadyValue() {
-        return readyValue;
-    }
+	public String getDailyValue() {
+		return dailyValue;
+	}
 
-    public void setReadyValue(String readyValue) {
-        this.readyValue = readyValue == null ? null : readyValue.trim();
-    }
+	public void setDailyValue(String dailyValue) {
+		this.dailyValue = dailyValue == null ? null : dailyValue.trim();
+	}
 
-    public String getOnlineValue() {
-        return onlineValue;
-    }
+	public String getReadyValue() {
+		return readyValue;
+	}
 
-    public void setOnlineValue(String onlineValue) {
-        this.onlineValue = onlineValue == null ? null : onlineValue.trim();
-    }
+	public void setReadyValue(String readyValue) {
+		this.readyValue = readyValue == null ? null : readyValue.trim();
+	}
 
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
+	public String getOnlineValue() {
+		return onlineValue;
+	}
 
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
+	public void setOnlineValue(String onlineValue) {
+		this.onlineValue = onlineValue == null ? null : onlineValue.trim();
+	}
 
-    public Date getGmtUpdate() {
-        return gmtUpdate;
-    }
+	public Date getGmtCreate() {
+		return gmtCreate;
+	}
 
-    public void setGmtUpdate(Date gmtUpdate) {
-        this.gmtUpdate = gmtUpdate;
-    }
+	public void setGmtCreate(Date gmtCreate) {
+		this.gmtCreate = gmtCreate;
+	}
+
+	public Date getGmtUpdate() {
+		return gmtUpdate;
+	}
+
+	public void setGmtUpdate(Date gmtUpdate) {
+		this.gmtUpdate = gmtUpdate;
+	}
 }

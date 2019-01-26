@@ -43,7 +43,7 @@ import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-@InterceptorRefs({ @InterceptorRef("terminatorStack"), @InterceptorRef("serverGroupExist") })
+@InterceptorRefs({ @InterceptorRef("tisStack"), @InterceptorRef("serverGroupExist") })
 public abstract class CoreDefineScreen extends BasicScreen {
 
     // private static final CoreManagerClient clientProtocol;

@@ -2,7 +2,8 @@
 <p>
 #popup("$manageModule.setTarget('usradd')","添加",'800*500')
 </p>
-<table border="1" width="100%">
+<table class="table table-bordered table-hover" width="100%">
+<thead>
 <tr>
   <th width="5%">ID</th>
   <th width="5%">昵称</th>
@@ -11,6 +12,7 @@
   <th width="12%">创建时间</th>
   <th>操作</th>
 </tr>
+</thead>
 #foreach($item in $usrlist)
 <tr> 
 <td align="center">$item.usrId</td>

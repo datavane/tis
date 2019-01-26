@@ -79,109 +79,12 @@ public abstract class BuildNavData extends BasicModule {
         return ">";
     }
 
-    // private String getAppsDefault() {
-    // 
-    // String sns = "<item text=\"淘江湖SNS\" id=\"sns\">"
-    // + "<item text=\"search4realwidget\" id=\"sns1\"/>"
-    // + "<item text=\"search4friend\" id=\"sns2\"/>"
-    // + "<item text=\"search4company\" id=\"sns3\"/>"
-    // + "<item text=\"search4addressFriend\" id=\"sns4\"/>"
-    // + "<item text=\"search4newIpFriend\" id=\"sns5\"/>"
-    // + "<item text=\"search4phone\" id=\"sns6\"/>"
-    // + "<item text=\"search4ipfriend\" id=\"sns7\"/>"
-    // + "<item text=\"search4group\" id=\"sns8\"/>"
-    // + "<item text=\"search4bbs\" id=\"sns9\"/>"
-    // + "<item text=\"search4grouplus\" id=\"sns10\"/>"
-    // + "<item text=\"search4album\" id=\"sns11\"/>"
-    // + "<item text=\"search4diary\" id=\"sns12\"/>"
-    // + "<item text=\"search4blo\" id=\"sns13\"/>"
-    // + "<item text=\"search4galaxy\" id=\"sns14\"/>"
-    // + "<item text=\"search4tag\" id=\"sns15\"/>"
-    // + "<item text=\"search4comment\" id=\"sns16\"/>"
-    // + "<item text=\"search4cms\" id=\"sns17\"/>"
-    // + "</item>";
-    // 
-    // String ju = "<item text=\"聚划算\" id=\"ju\">"
-    // + "<item text=\"search4snsjuDepositItem\" id=\"ju01\"/>"
-    // + "<item text=\"search4snsjuSellerauth\" id=\"ju02\"/>"
-    // + "<item text=\"search4snsjuCheckItem\" id=\"ju03\"/>"
-    // + "<item text=\"search4snsjuItemOnline\" id=\"ju04\"/>"
-    // + "<item text=\"search4snsjuke\" id=\"ju05\"/>"
-    // + "<item text=\"search4snsjukeseller\" id=\"ju06\"/>"
-    // + "</item>";
-    // 
-    // String zixun = "<item text=\"资讯社区\" id=\"zixun\">"
-    // + "<item text=\"search4matrixtry\" id=\"zixun01\"/>"
-    // + "<item text=\"search4magicroom\" id=\"zixun02\"/>"
-    // + "<item text=\"search4magicroom2\" id=\"zixun03\"/>"
-    // + "<item text=\"search4tstart\" id=\"zixun04\"/>"
-    // + "<item text=\"search4cms\" id=\"zixun05\"/>"
-    // + "</item>";
-    // 
-    // String jishudaxue = "<item text=\"技术大学\" id=\"tec\">"
-    // + "<item text=\"search4techcollege\" id=\"tec01\"></item>"
-    // + "</item>";
-    // 
-    // String xinyewu = "<item text=\"新业务\" id=\"job\">"
-    // + "<item text=\"search4jobOnline\" id=\"job01\"/>"
-    // + "<item text=\"search4resumeOnline\" id=\"job02\"/>"
-    // + "</item>";
-    // 
-    // String fuwupingtai = "<item text=\"服务平台\" id=\"top\">"
-    // + "<item text=\"search4ark\" id=\"top01\"/>"
-    // + "<item text=\"search4arkisv\" id=\"top02\"/>" + "</item>";
-    // 
-    // String daogou = "<item text=\"导购\" id=\"tms\">"
-    // + "<item text=\"search4tmspage\" id=\"tms01\"/>"
-    // + "<item text=\"search4tmshistory\" id=\"tms02\"/>"
-    // + "</item>";
-    // 
-    // String shanghupingtai = "<item text=\"商户平台\" id=\"shanghu\">"
-    // + "<item text=\"search4bbcproduct\" id=\"shanghu01\"/>"
-    // + "<item text=\"search4bbcsupplier\" id=\"shanghu02\"/>"
-    // + "<item text=\"search4ecrmonline\" id=\"shanghu03\"/>"
-    // + "</item>";
-    // return sns + ju + zixun + jishudaxue + xinyewu + fuwupingtai + daogou
-    // + shanghupingtai;
-    // }
-    // public String loadMenuFromFile() throws FileNotFoundException {
-    // SAXBuilder builder = new SAXBuilder();
-    // String outPut = null;
-    // FileInputStream in = new FileInputStream("lib/navview.xml");
-    // try {
-    // doc = builder.build(in);
-    // 
-    // Format format = Format.getCompactFormat();
-    // format.setEncoding("UTF-8");
-    // 
-    // format.setIndent(" ");
-    // 
-    // XMLOutputter xmlOutputter = new XMLOutputter(format);
-    // 
-    // outPut = new String(xmlOutputter.outputString(doc)
-    // .getBytes("UTF-8"), "UTF-8");
-    // // System.out.println(outPut);
-    // } catch (Exception e) {
-    // System.out.println("Load xml exception" + e);
-    // }
-    // return outPut;
-    // }
+  
     /**
      * @return the queryAdmin
      */
     private String getQueryAdminLink() {
         return addGroups("部署信息查询", "deploy", items_base, false);
-    // StringBuffer l = new StringBuffer(createBooksItemStart("deploy",
-    // "部署信息查询"));
-    // 
-    // // for (Item item : items_base) {
-    // // addItemLink(l, item);
-    // // }
-    // for (int i = 0; i < items_base.length; i++) {
-    // addItemLink(l, items_base[i], (i + 1) == items_base.length);
-    // }
-    // 
-    // return l.append(createBooksItemEnd()).toString();
     }
 
     private String addGroups(String groupName, String groupKey, Item[] items, boolean isLast) {
@@ -280,8 +183,11 @@ public abstract class BuildNavData extends BasicModule {
     // new Item(PermissionConstant.PERMISSION_REALTIME_LOG_VIEW,
     // "query_log", "服务器日志", "/runtime/realtimelog.htm") };
     private static final Item[] items_base = new Item[] { new Item(PermissionConstant.UN_CHECK, "index_query", "索引查询", "/runtime/index_query.htm"), // new Item(PermissionConstant.UN_CHECK, "zklockview", "ZK锁查询", "/runtime/zklockview.htm"),
-    new Item(PermissionConstant.UN_CHECK, "hdfs_view", "HDFS VIEW", "/runtime/hdfs_view.htm"), new Item(PermissionConstant.UN_CHECK, "authority_func", "查看授权", "/runtime/query_authority_func.htm"), // new Item(PermissionConstant.UN_CHECK, "server_config_view", "远端配置一览", "/runtime/server_config_view.htm"),
-    new Item(PermissionConstant.UN_CHECK, "server_config_view", "应用申请", "/runtime/my_apply.htm"), new Item(PermissionConstant.UN_CHECK, "server_cluster_stat", "指标监控", "/runtime/cluster_state.htm") };
+    new Item(PermissionConstant.UN_CHECK, "hdfs_view", "HDFS VIEW", "/runtime/hdfs_view.htm")
+    , new Item(PermissionConstant.UN_CHECK, "authority_func", "查看授权", "/runtime/query_authority_func.htm") // new Item(PermissionConstant.UN_CHECK, "server_config_view", "远端配置一览", "/runtime/server_config_view.htm"),
+    //,new Item(PermissionConstant.UN_CHECK, "server_config_view", "应用申请", "/runtime/my_apply.htm")
+    //, new Item(PermissionConstant.UN_CHECK, "server_cluster_stat", "指标监控", "/runtime/cluster_state.htm") 
+    };
 
     public static final Item[] items_config = new Item[] { // "查看组", "/runtime/jarcontent/grouplist.htm"),
     new Item(PermissionConstant.CONFIG_SNAPSHOT_LIST, "conf_project", "配置资源一览", "/runtime/jarcontent/snapshotset.htm") // ,new Item(PermissionConstant.APP_SCHEMA_UPDATE, "conf_project", "高级schema",

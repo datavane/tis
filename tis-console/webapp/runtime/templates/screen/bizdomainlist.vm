@@ -1,8 +1,7 @@
-<h2>业务线（IndexSet）一览</h2>
+<h2>业务线列表</h2>
 
 <style type="text/css"><!--
  #appquicklink{
-  
   margin:2px;
   width: 900px;
   background-color:#EAEAEA;
@@ -22,14 +21,7 @@
      if(!window.confirm("你确定要删除ID:"+ bizid+"的记录吗？")){
         return ;
      }
-     //ajax_fire_event(
-     //"$manageModule.setTarget("bizdomainlist.ajax")"
-     //  ,"delete_biz_domain"
-     //  ,{action:"biz_domain_list"
-     //    ,'bizid':bizid}
-     //  ,function( msg ) {
-     //     window.location.reload();
-     //  });
+    
        
         jQuery.ajax({url:'$manageModule.setTarget("bizdomainlist.ajax")', 
          		type:'POST',
@@ -80,25 +72,23 @@ $control.setTemplate("appselect.vm")
 *#
 
 
-<br/>
-<table border="1" width="100%">
+<p>
+#popup("$manageModule.setTarget('config_file_parameters_add')","添加","600*500")
+</p>
+<table class="table table-bordered table-hover" width="100%">
+<thead>
 <tr>
  <th width="5%">ID</th>
-  <th width="5%">SysId</th>
- <th>部门全称</th>
+ <th>全称</th>
   
- <th  width="13%">部门名称</th>
+ <th width="13%">名称</th>
 
  <th width="12%">创建时间</th>
-
-#*  <th width="7%">状态</th>
- <th>操作</th>
-*#
 </tr>
+</thead>
 #foreach($item in $bizlist)
 <tr> 
 <td align="center">$item.dptId</td>
-<td align="center">$!item.alibabaDptId</td>
 <td> #popupp("$manageModule.setTarget('applist')?dptid=$item.dptId","$item.fullName","max")
 </td>
 #*
@@ -130,7 +120,7 @@ function btnserverSelectClick(){
  function btnHideServerSelectClick(){
         $("#appquicklink").hide('slow', function(){});
         return false;
-  }
+ }
 
 
  $("#appserverview").click(function(){

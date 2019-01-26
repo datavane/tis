@@ -8,18 +8,10 @@
 				<property name="operationLogDAO" ref="operationLogDAO" />
 			</bean>
 		</constructor-arg>
-		<!--
-			<constructor-arg> <bean
-			class="org.springframework.aop.support.NameMatchMethodPointcut">
-			<property name="mappedNames"> <list> <value>delete*</value>
-			<value>insert*</value> <value>update*</value> </list> </property>
-			</bean> </constructor-arg>
-		-->
 		<constructor-arg>
 			<bean
 				class="com.qlangtech.tis.manage.spring.aop.TisNameMatchMethodPointcut" />
 		</constructor-arg> 
-
 	</bean>
 
 	<bean class="com.qlangtech.tis.manage.spring.aop.DAOTypeAutoProxyCreator">

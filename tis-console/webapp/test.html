@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>TIS后台管理系统 </title>
+
+    <link href="/runtime/js/jquery-ui-1.9.2/css/base/jquery-ui-1.9.2.custom.css" rel="stylesheet">
+    <script src="/runtime/js/jquery-ui-1.9.2/js/jquery-1.8.3.js"></script>
+    <script src="/runtime/js/jquery-ui-1.9.2/js/jquery-ui-1.9.2.custom.js"></script>
+
+<style type="text/css">
+  
+</style>
+
+</head>
+
+<body >
+
+<div id="memo" style="display:none;">
+<textarea name="memo" cols="16"></textarea>
+</div>
+
+
+<button onclick="openDialog();return false;">打开</button>
+
+<script>
+ function openDialog(){
+   $("#memo").dialog({
+            autoOpen: false,
+            title: "提交：写点日志",
+            modal:true,
+            width:400,
+            height:300,
+            resizable:false,
+             buttons: {
+                submit: function() {
+                    //$( this ).dialog( "close" );  
+                    //$("#contentform").append($(this)); 
+                    //$("#contentform")[0].submit();                  
+                },
+                "取消": function() {
+                   // $( this ).dialog( "close" );
+                }
+            }
+        }).dialog('open');
+ }
+</script>
+
+
+</body>
+</html>
