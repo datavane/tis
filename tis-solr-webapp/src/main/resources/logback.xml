@@ -63,48 +63,12 @@
 		</encoder>
 	</appender>
 	
-	<appender name="slow-request-appender"
-        class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <filter class="com.qlangtech.tis.logback.SlowRequestFilter" />
-        <File>${log.dir}/slow-request.log</File>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-slow-request.log
-            </fileNamePattern>
-            <maxHistory>8</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern><![CDATA[%d{MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
-        </encoder>
-    </appender>
-    
-    <appender name="slow-request-remote-appender"
-        class="com.qlangtech.tis.logback.TisFlumeLogstashV1Appender">
-        <filter class="com.qlangtech.tis.logback.SlowRequestFilter" />
-        <flumeProperties>
-            connect-timeout=4000;
-            request-timeout=8000
-        </flumeProperties>
-        <batchSize>100</batchSize>
-        <reportingWindow>1000</reportingWindow>
-        <additionalAvroHeaders>
-            logtype=slow-query
-        </additionalAvroHeaders>
-        <application>tis-engine</application>
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern><![CDATA[%d{HH:mm:ss.SSS} %-5level %logger{36}-%message%n%ex]]></pattern>
-        </layout>
-    </appender>
-
+	
 	<logger name="org.apache.solr.core.SolrCore.Request">
 		<level value="INFO" />
 		<appender-ref ref="solr-request-appender" />
 	</logger>
 	
-	<logger name="org.apache.solr.core.SolrCore" level="WARN">
-        <appender-ref ref="slow-request-appender" />
-        <appender-ref ref="slow-request-remote-appender" />
-    </logger>
-
 	<logger name="com.dfire.tis">
 		<level value="INFO" />
 		<appender-ref ref="solr-appender" />

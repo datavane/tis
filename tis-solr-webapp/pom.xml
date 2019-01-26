@@ -3,30 +3,26 @@
 
 	<parent>
 		<groupId>com.qlangtech.tis</groupId>
-	    <artifactId>tis-pom</artifactId>
+		<artifactId>tis-pom</artifactId>
 		<version>3.7.47</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<artifactId>tis-solr-webapp</artifactId>
 	<packaging>jar</packaging>
-	
+
 	<url>http://maven.apache.org</url>
 	<properties>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
 		<assembly-include.base.directory>true</assembly-include.base.directory>
 		<springboot.version>1.4.0.RELEASE</springboot.version>
-		<dfire.springboot.version>1.1.9</dfire.springboot.version>	
+		<dfire.springboot.version>1.1.9</dfire.springboot.version>
 	</properties>
 	<dependencies>
-		
-	   <dependency>
-			<artifactId>logback-flume-appender</artifactId>
-			<groupId>com.gilt.logback</groupId>
-		</dependency>
+
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
@@ -121,25 +117,25 @@
 			</properties>
 		</profile>
 		<profile>
-            <id>online2</id>
-            <properties>
-                <env>online2</env>
-            </properties>
-        </profile> 
-        <profile>
-            <id>tha</id>
-            <properties>
-                <env>tha</env>
-            </properties>
-        </profile>
-        
-         <profile>
-             <id>kr</id>
-            <properties>
-                <env>kr</env>
-            </properties>
-        </profile>
-        
+			<id>online2</id>
+			<properties>
+				<env>online2</env>
+			</properties>
+		</profile>
+		<profile>
+			<id>tha</id>
+			<properties>
+				<env>tha</env>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>kr</id>
+			<properties>
+				<env>kr</env>
+			</properties>
+		</profile>
+
 	</profiles>
 
 
@@ -168,7 +164,7 @@
 			</resource>
 		</resources>
 		<plugins>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
