@@ -53,7 +53,7 @@
                 
                 <exclude>commons-logging:commons-logging</exclude>
                 <exclude>org.apache.tomcat:tomcat-catalina</exclude>
-           
+                <exclude>*:log4j*</exclude>
 				
 			</excludes>
 			<outputDirectory>/lib</outputDirectory>
