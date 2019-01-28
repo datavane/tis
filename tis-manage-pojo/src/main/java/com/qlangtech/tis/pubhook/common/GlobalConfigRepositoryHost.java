@@ -31,9 +31,7 @@ public class GlobalConfigRepositoryHost {
 
     public static final String ONLINE_GlobalConfigRepositoryHost = "http://tis.2dfire-inc.com";
 
-    public static final String ONLINE_2_GlobalConfigRepositoryHost = "http://tis-route-tis.app.2dfire.com";
-
-    public static final String DAILY_GlobalConfigRepositoryHost = "http://10.1.5.214:8080";
+    public static final String DAILY_GlobalConfigRepositoryHost = "http://10.1.29.227:8080";
 
     private GlobalConfigRepositoryHost() {
     }
