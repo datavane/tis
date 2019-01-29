@@ -24,21 +24,38 @@
 package com.qlangtech.tis.runtime.module.screen;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
+import com.qlangtech.tis.pubhook.common.Nullable;
+import com.qlangtech.tis.runtime.module.action.ConfigFileParametersAction;
+import com.qlangtech.tis.runtime.module.action.ConfigFileParametersAction.GlobalParam;
 
-/*
- * 首页欢迎页面
- *
+/* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class Index extends BasicManageScreen {
 
-    /**
-     */
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Override
-    public void execute(Context context) throws Exception {
-    // this.disableDomainView(context);
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.disableNavigationBar(context);
+
+		if (TSearcherConfigFetcher.get() instanceof Nullable) {
+			// 新安装全局参数还还没有设置
+			this.forward("globalParamSet.vm");
+			return;
+		}
+
+		getRundataInstance().setLayout("blank");
+	}
+
+	public GlobalParam[] getGlobalParams() {
+		return ConfigFileParametersAction.globalParams;
+	}
+
+	@Override
+	public boolean isShallPresentInFrame() {
+		return false;
+	}
 }

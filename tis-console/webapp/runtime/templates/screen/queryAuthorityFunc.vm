@@ -41,15 +41,13 @@
 	<span>name:</span>
 	$userprofile.roleName
 	
-	#if(!$hasRole)
-		 <a style="color:blue;margin-left: 40px;" target="_blank" 
-		  href="http://acl.alibaba-inc.com/apply/cart/detail.htm?roleIds=100004446&expireDateMode=0&expireDate=forever">申请管理员权限</a>
-	#end
+	
  </div>
  
  <p>
- 
+ #*
   #saction ("name=func_list" "namespace=/runtime#control","executeResult=true")
+ *#
  </p>
 </fieldset>
 

@@ -12,17 +12,9 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   
-	<result column="is_auto_deploy" property="isAutoDeploy"
-			typeHandler="com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback" />
-    <result column="dpt_id" property="dptId" jdbcType="INTEGER" />
+	<result column="dpt_id" property="dptId" jdbcType="INTEGER" />
     <result column="dpt_name" property="dptName" jdbcType="VARCHAR" />
-    
-    <result column="nobel_app_id"  property="nobleAppId" jdbcType="INTEGER" />
-    <result column="nobel_app_name" property="nobleAppName" jdbcType="VARCHAR" />
    
-    <!-- 
-     <result column="yunti_path" property="yuntiPath" jdbcType="VARCHAR" />
-     -->
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
@@ -58,7 +50,7 @@
       
     -->
     select aa.app_id, project_name, recept, manager, create_time, update_time, 
-      is_auto_deploy, dpt_id, dpt_name,nobel_app_id,nobel_app_name
+      dpt_id, dpt_name
      from ( select app_id from application 
     <isParameterPresent >
       <include refid="application.ibatorgenerated_Example_Where_Clause" />
@@ -74,7 +66,7 @@
       
     -->
     select app_id, project_name, recept, manager, create_time, update_time, 
-      is_auto_deploy, dpt_id, dpt_name,nobel_app_id,nobel_app_name
+       dpt_id, dpt_name
     from application
     where app_id = #appId:INTEGER#
   </select>
@@ -97,9 +89,9 @@
       
     -->
     insert into application (app_id, project_name, recept, manager, create_time, update_time,
-       is_auto_deploy, dpt_id, dpt_name)
+        dpt_id, dpt_name)
     values (#appId:INTEGER#, #projectName:VARCHAR#, #recept:VARCHAR#, #manager:VARCHAR#,
-      #createTime:TIMESTAMP#, #updateTime:TIMESTAMP#, #isAutoDeploy,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#,
+      #createTime:TIMESTAMP#, #updateTime:TIMESTAMP#,
       #dptId:INTEGER#, #dptName:VARCHAR#)
     <selectKey resultClass="INTEGER" >
       SELECT LAST_INSERT_ID();
@@ -130,23 +122,12 @@
         update_time
       </isNotNull>
   
-      <isNotNull prepend="," property="isAutoDeploy" >
-        is_auto_deploy
-      </isNotNull>
+     
       <isNotNull prepend="," property="dptId" >
         dpt_id
       </isNotNull>
       <isNotNull prepend="," property="dptName" >
         dpt_name
-      </isNotNull>
-      
-  
-      
-      <isNotNull prepend="," property="nobleAppId" >
-        nobel_app_id
-      </isNotNull>
-      <isNotNull prepend="," property="nobleAppName" >
-        nobel_app_name
       </isNotNull>
       )
     </dynamic>
@@ -171,21 +152,12 @@
         #updateTime:TIMESTAMP#
       </isNotNull>
      
-      <isNotNull prepend="," property="isAutoDeploy" >
-        #isAutoDeploy,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#
-      </isNotNull>
+    
       <isNotNull prepend="," property="dptId" >
         #dptId:INTEGER#
       </isNotNull>
       <isNotNull prepend="," property="dptName" >
         #dptName:VARCHAR#
-      </isNotNull>
-
-      <isNotNull prepend="," property="nobleAppId" >
-        #nobleAppId:INTEGER#
-      </isNotNull>
-      <isNotNull prepend="," property="nobleAppName" >
-        #nobleAppName:VARCHAR#
       </isNotNull>
       
       )
@@ -226,21 +198,11 @@
         update_time = #record.updateTime:TIMESTAMP#
       </isNotNull>
      
-      <isNotNull prepend="," property="record.isAutoDeploy" >
-        is_auto_deploy = #record.isAutoDeploy,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#
-      </isNotNull>
       <isNotNull prepend="," property="record.dptId" >
         dpt_id = #record.dptId:INTEGER#
       </isNotNull>
       <isNotNull prepend="," property="record.dptName" >
         dpt_name = #record.dptName:VARCHAR#
-      </isNotNull>
-      
-      <isNotNull prepend="," property="record.nobleAppId" >
-       nobel_app_id   = #record.nobleAppId:INTEGER#
-      </isNotNull>
-      <isNotNull prepend="," property="record.nobleAppName" >
-       nobel_app_name = #record.nobleAppName:VARCHAR#
       </isNotNull>
   
     </dynamic>

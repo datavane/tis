@@ -565,7 +565,7 @@ public class CoreAction extends CoreDefineModule {
         CoreRequest request = new CoreRequest();
         request.setIncludeIps(ips);
         request.setServiceName(appName);
-        // request.setTerminatorUrl(Config.getTerminatorRepository());
+       
         // 是否独占机器？ 百岁 add 2013/04/12 start
         // request.setMonopolized("true".equalsIgnoreCase(this.getString("excludeHaveAppsServer")));
         // 是否独占机器？ 百岁 add 2013/04/12 end

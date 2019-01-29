@@ -27,9 +27,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator;
@@ -60,6 +60,12 @@ public abstract class QueryResutStrategy {
 
     static final Collection<String> emptyStringCol = Collections.emptyList();
 
+    /**
+     * 索引是否存在
+     * @return
+     */
+    public abstract boolean collectionExist();
+    
     public final List<ServerJoinGroup> queryProcess() {
         List<ServerJoinGroup> result = new ArrayList<ServerJoinGroup>();
         Map<Short, List<ServerJoinGroup>> serverList = getSharedNodes();
@@ -101,37 +107,7 @@ public abstract class QueryResutStrategy {
     protected abstract Map<Short, List<ServerJoinGroup>> getSharedNodes();
 
     public interface GroupServerProcess {
-
         void add(short groupIndex, String server, int port);
     }
-    // private static List<ServerJoinGroup> traverseAllServer(
-    // LocatedCores locatedCores) {
-    // final List<ServerJoinGroup> serverlist = new
-    // ArrayList<ServerJoinGroup>();
-    // traverseAllServers(locatedCores, new GroupServerProcess() {
-    // @Override
-    // public void add(short groupIndex, String server, int port) {
-    // ServerJoinGroup s = new ServerJoinGroup();
-    // s.setGroupIndex(groupIndex);
-    // s.setIpAddress(server);
-    // s.setPort(port);
-    // serverlist.add(s);
-    // }
-    // });
-    // return serverlist;
-    // }
-    // public static void traverseAllServers(LocatedCores locatedCores,
-    // GroupServerProcess serverprocess) {
-    // if (locatedCores != null) {
-    // for (LocatedCore group : locatedCores.getCores()) {
-    // for (CoreNodeExcessMap server : group.getLocs()) {
-    // // ServerJoinGroup s = new ServerJoinGroup();
-    // serverprocess.add((short) group.getC().getCoreNums(),
-    // StringUtils.substringBefore(server.getInfo()
-    // .getName(), ":"), server.getInfo()
-    // .getInfoPort());
-    // }
-    // }
-    // }
-    // }
+   
 }

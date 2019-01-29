@@ -128,10 +128,10 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
             this.addErrorMessage(context, "请选择应用");
             return;
         }
-        if (this.getAppDomain() instanceof Nullable) {
-            this.addErrorMessage(context, "请先选择应用环境，日常？  预发？ 线上？");
-            return;
-        }
+//        if (this.getAppDomain() instanceof Nullable) {
+//            this.addErrorMessage(context, "请先选择应用环境，日常？  预发？ 线上？");
+//            return;
+//        }
         Application app = this.getApplicationDAO().loadFromWriteDB(appid);
         setAppdomainCookie(getResponse(), this.getRequest(), this.getAppDomain().getRunEnvironment(), app);
         this.addActionMessage(context, "已经将当前应用切换成:" + AppDomain.getAppDescribe(app));

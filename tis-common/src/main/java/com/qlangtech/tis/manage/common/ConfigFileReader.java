@@ -467,7 +467,7 @@ public class ConfigFileReader {
             // Snapshot snapshot = domain.getSnapshot();
             Snapshot colon = new Snapshot();
             if (snapshot != null) {
-                colon.setResSchemaVirtualId(snapshot.getResSchemaVirtualId());
+                
                 colon.setMemo(snapshot.getMemo());
                 colon.setSnId(snapshot.getSnId());
                 colon.setAppId(snapshot.getAppId());

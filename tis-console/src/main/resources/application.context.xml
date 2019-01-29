@@ -6,7 +6,7 @@
        ">
 
 	<context:property-placeholder
-		location="classpath:solr-web-config/config.properties" />
+		location="classpath:com/qlangtech/tis/manage/config.properties" />
 
 	<!-- 百岁添加 fordao -->
 	<import resource="classpath:/datasource-config-2dfire.xml" />

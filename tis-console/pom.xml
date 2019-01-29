@@ -473,9 +473,6 @@
 	</dependencyManagement>
 	<build>
 
-		<!-- Enabling the use of FTP <extensions> <extension> <groupId>org.apache.maven.wagon</groupId> 
-			<artifactId>wagon-ftp</artifactId> <version>1.0-beta-6</version> </extension> 
-			</extensions> <outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory> -->
 		<directory>target</directory>
 		<finalName>tis</finalName>
 		<resources>

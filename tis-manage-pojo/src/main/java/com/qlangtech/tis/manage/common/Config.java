@@ -32,7 +32,6 @@ import java.util.ResourceBundle;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.qlangtech.tis.manage.common.trigger.ODPSConfig;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 /* 
@@ -44,11 +43,8 @@ public class Config {
 
 	private static Config config;
 
-	// 本地文件存储系统
-	// private final String localRepository;
+	
 	private final String tisRepository;
-
-	// Daily环境的仓库地址,写死
 
 	private Map<String, String> userToken;
 
@@ -66,17 +62,11 @@ public class Config {
 
 	private final Map<RunEnvironment, String> hsfMonotorHost = new HashMap<RunEnvironment, String>();
 
-	// index.build.center.host.daily
-	// 云就开发的buid中心地址
-	// private final Map<RunEnvironment, String> indexBuildCenterUrl = new
-	// HashMap<RunEnvironment, String>();
-	// 终搜部门id
 	private Integer dptTerminatorId;
 
 	private static String bundlePath;
 
-	// // 南星查询： MQ中的状态 mq.statistics.host
-	// private List<String> mqStatisticsHost;
+
 	/**
 	 * 设置加载的路径config文件加载路径
 	 *
@@ -95,7 +85,7 @@ public class Config {
 		// localRepository = bundle.getString("local.repository");
 		P p = new P(bundle);
 
-		this.tisRepository = p.getString("terminator.repository");
+		this.tisRepository = p.getString("tis.repository");
 
 		this.projectName = p.getString("project.name");
 		if (StringUtils.isEmpty(this.projectName)) {
@@ -220,7 +210,7 @@ public class Config {
 		return getInstance().hsfMonotorHost.get(runtime);
 	}
 
-	public static String getTerminatorRepository() {
+	public static String getTisRepository() {
 		return getInstance().tisRepository;
 	}
 

@@ -18,13 +18,16 @@ $csrfToken.hiddenField
 *#
 <input type="hidden" name="action" value="upload_jar_action"/>
 <fieldset id="uploaddialog">
-<legend>设置表单</legend>
 <p>
- <span>solor schema:</span> <input type="file" name="schema"/> <em style="color:red">必选</em>
+<input type="submit" id="btndouploadjar" name="event_submit_do_upload_jar" value="上 传" />
 </p>
 <p>
- <span>solor config:</span> <input type="file" name="config"/> <em style="color:red">必选</em>
+ <span>solr schema:</span> <input type="file" name="schema"/> <em style="color:red">必选</em>
 </p>
+<p>
+ <span>solr config:</span> <input type="file" name="config"/> <em style="color:red">必选</em>
+</p>
+#*
 <p>
  <span>spring xml:</span> <input type="file" name="spring"/>  
 </p>
@@ -38,8 +41,6 @@ $csrfToken.hiddenField
 <p>
  <span>dump 包:</span> <input type="file" name="uploadfile"/>
 </p>
-<p>
-<input type="submit" id="btndouploadjar" name="event_submit_do_upload_jar" value="上 传" />
-</p>
+*#
 </fieldset>
 </form>

@@ -26,11 +26,12 @@ package com.qlangtech.tis.config.module.action;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.dao.IDepartmentDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -55,6 +56,7 @@ import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction;
 import com.qlangtech.tis.runtime.pojo.ConfigPush;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
 import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+
 import junit.framework.Assert;
 
 /*
@@ -181,7 +183,7 @@ public class AppSynAction extends BasicModule {
         app.setDptName(dpt.getFullName());
         app.setCreateTime(new Date());
         app.setUpdateTime(new Date());
-        app.setIsAutoDeploy(true);
+        //app.setIsAutoDeploy(true);
         app.setProjectName(configPush.getCollection());
         app.setRecept(configPush.getReception());
         app.setNobleAppId(0);
@@ -208,7 +210,7 @@ public class AppSynAction extends BasicModule {
                 department.setFullName(parentPath.toString());
                 department.setName(dptary[i]);
                 if ((i + 1) == dptary.length) {
-                    department.setAlibabaDptId(aliGroupDptId);
+                   
                 }
                 department.setGmtCreate(new Date());
                 department.setGmtModified(new Date());
@@ -220,7 +222,7 @@ public class AppSynAction extends BasicModule {
                 parentDptId = getParentId(dptDAO, parentPath.toString());
                 if ((i + 1) == dptary.length) {
                     department = new Department();
-                    department.setAlibabaDptId(aliGroupDptId);
+                   
                     DepartmentCriteria q = new DepartmentCriteria();
                     q.createCriteria().andDptIdEqualTo(parentDptId);
                     dptDAO.updateByExampleSelective(department, q);
@@ -251,7 +253,7 @@ public class AppSynAction extends BasicModule {
     }
 
     @Autowired
-    public void setTerminatorTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
+    public void setTisTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
         this.triggerContext = triggerDaoContext;
     }
 

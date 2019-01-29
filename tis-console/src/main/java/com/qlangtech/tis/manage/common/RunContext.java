@@ -36,8 +36,6 @@ import com.qlangtech.tis.manage.biz.dal.dao.IFuncDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncRoleRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IGlobalAppResourceDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IGroupInfoDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IRdsDbDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IRdsTableDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IResourceParametersDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IRoleDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
@@ -102,11 +100,6 @@ public interface RunContext extends ISolrZKClientGetter {
     // add for implement authority system20130124 end
     public IResourceParametersDAO getResourceParametersDAO();
 
-    // 聚石塔相关dao
-    // public IIsvDAO getIsvDAO();
-    public IRdsDbDAO getRdsDbDAO();
-
-    public IRdsTableDAO getRdsTableDAO();
 
     public IApplicationExtendDAO getApplicationExtendDAO();
 

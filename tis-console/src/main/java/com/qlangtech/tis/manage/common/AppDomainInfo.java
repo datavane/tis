@@ -45,15 +45,9 @@ public class AppDomainInfo {
 
     private String appName;
 
-    private boolean isAutoDeploy;
+ 
 
-    public boolean isAutoDeploy() {
-        return isAutoDeploy;
-    }
-
-    public void setAutoDeploy(boolean isAutoDeploy) {
-        this.isAutoDeploy = isAutoDeploy;
-    }
+   
 
     public AppDomainInfo(Integer bizid, Integer appid, RunEnvironment runEnvironment, RunContext context) {
         this(bizid, appid, runEnvironment, context.getApplicationDAO());

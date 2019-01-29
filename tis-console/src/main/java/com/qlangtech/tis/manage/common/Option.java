@@ -29,21 +29,21 @@ package com.qlangtech.tis.manage.common;
  */
 public class Option {
 
-    private final String name;
+	private final String name;
 
-    private final String value;
+	private final String value;
 
-    public Option(String name, String value) {
-        super();
-        this.name = name;
-        this.value = value;
-    }
+	public Option(String name, String value) {
+		super();
+		this.name = name;
+		this.value = value;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return this.name;
+	}
 
-    public String getValue() {
-        return value;
-    }
+	public String getValue() {
+		return this.value;
+	}
 }

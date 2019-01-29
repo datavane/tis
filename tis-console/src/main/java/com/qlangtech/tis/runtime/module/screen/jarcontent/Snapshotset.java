@@ -34,24 +34,25 @@ import com.qlangtech.tis.manage.common.AppDomainInfo;
  */
 public class Snapshotset extends Snapshotlist {
 
-    /**
-     */
-    private static final long serialVersionUID = 1L;
+	/**
+	 */
+	private static final long serialVersionUID = 1L;
 
-    @Override
-    public void execute(Context context) throws Exception {
-        super.execute(context);
-        this.disableNavigationBar(context);
-        AppDomainInfo appdomain = this.getAppDomain();
-        ServerGroup group = getAppServerGroup();
-        // ServerGroup group = this.getServerGroupDAO().loadFromWriteDB(
-        // this.getInt("groupid"));
-        Assert.assertNotNull("group can not be null,app:" + appdomain.getAppName() + ", runtime:" + appdomain.getRunEnvironment().getKeyName(), group);
-        context.put("selectgroup", group);
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		super.execute(context);
+		this.disableNavigationBar(context);
+		AppDomainInfo appdomain = this.getAppDomain();
+		ServerGroup group = getAppServerGroup();
+		// ServerGroup group = this.getServerGroupDAO().loadFromWriteDB(
+		// this.getInt("groupid"));
+		Assert.assertNotNull("group can not be null,app:" + appdomain.getAppName() + ", runtime:"
+				+ appdomain.getRunEnvironment().getKeyName(), group);
+		context.put("selectgroup", group);
+	}
 
-    @Override
-    public boolean isEnableDomainView() {
-        return false;
-    }
+	@Override
+	public boolean isEnableDomainView() {
+		return false;
+	}
 }

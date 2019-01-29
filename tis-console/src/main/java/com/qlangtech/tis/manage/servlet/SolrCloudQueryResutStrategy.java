@@ -48,72 +48,85 @@ import com.qlangtech.tis.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator
  */
 public class SolrCloudQueryResutStrategy extends QueryResutStrategy {
 
-    protected final RunContext runContext;
+	protected final RunContext runContext;
 
-    private static final String SHARD_PREIX = "shard";
+	private static final String SHARD_PREIX = "shard";
 
-    private static final Cache<String, Map<Short, List<ServerJoinGroup>>> /* collection name */
-    sharedNodesCache;
+	private static final Cache<String, Map<Short, List<ServerJoinGroup>>> /*
+																			 * collection
+																			 * name
+																			 */
+	sharedNodesCache;
 
-    static {
-        sharedNodesCache = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
-    }
+	static {
+		sharedNodesCache = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
+	}
 
-    SolrCloudQueryResutStrategy(AppDomainInfo domain, RunContext runContext, SolrQueryModuleCreator creator) {
-        super(domain, creator);
-        this.runContext = runContext;
-    }
+	SolrCloudQueryResutStrategy(AppDomainInfo domain, RunContext runContext, SolrQueryModuleCreator creator) {
+		super(domain, creator);
+		this.runContext = runContext;
+	}
 
-    // @Override
-    // public int getServicePort() {
-    // return 7001;
-    // }
-    @Override
-    public Map<Short, List<ServerJoinGroup>> getSharedNodes() {
-        Map<Short, List<ServerJoinGroup>> selectCandiate = null;
-        selectCandiate = sharedNodesCache.getIfPresent(domain.getAppName());
-        if (selectCandiate == null) {
-            try {
-                selectCandiate = sharedNodesCache.get(domain.getAppName(), new Callable<Map<Short, List<ServerJoinGroup>>>() {
+	@Override
+	public boolean collectionExist() {
+		TISZkStateReader clusterReader = runContext.getZkStateReader();
+		return clusterReader.getClusterState().getCollectionRef(domain.getAppName()) != null;
+	}
 
-                    @Override
-                    public Map<Short, List<ServerJoinGroup>> call() throws Exception {
-                        List<ServerJoinGroup> result = new ArrayList<ServerJoinGroup>();
-                        ServerJoinGroup groupServer = null;
-                        TISZkStateReader clusterReader = runContext.getZkStateReader();
-                        DocCollection docCollection = TISZkStateReader.getCollectionLive(clusterReader, domain.getAppName());
-                        Map<String, Slice> groups = docCollection.getSlicesMap();
-                        short shard;
-                        for (Map.Entry<String, Slice> entry : groups.entrySet()) {
-                            for (Replica replic : entry.getValue().getReplicas()) {
-                                groupServer = new ServerJoinGroup();
-                                groupServer.setLeader(replic.getBool("leader", false));
-                                groupServer.setIpAddress(replic.getCoreUrl());
-                                shard = (Short.parseShort(StringUtils.substringAfter(entry.getKey(), SHARD_PREIX)));
-                                groupServer.setGroupIndex(--shard);
-                                result.add(groupServer);
-                            }
-                        }
-                        Map<Short, List<ServerJoinGroup>> selectCandiate = new HashMap<Short, List<ServerJoinGroup>>();
-                        for (ServerJoinGroup server : result) {
-                            List<ServerJoinGroup> servers = selectCandiate.get(server.getGroupIndex());
-                            if (servers == null) {
-                                servers = new ArrayList<ServerJoinGroup>();
-                                selectCandiate.put(server.getGroupIndex(), servers);
-                            }
-                            servers.add(server);
-                        }
-                        return selectCandiate;
-                    }
-                });
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return selectCandiate;
-    }
+	// @Override
+	// public int getServicePort() {
+	// return 7001;
+	// }
+	@Override
+	public Map<Short, List<ServerJoinGroup>> getSharedNodes() {
+		Map<Short, List<ServerJoinGroup>> selectCandiate = null;
+		selectCandiate = sharedNodesCache.getIfPresent(domain.getAppName());
+		if (selectCandiate == null) {
+			try {
+				selectCandiate = sharedNodesCache.get(domain.getAppName(),
+						new Callable<Map<Short, List<ServerJoinGroup>>>() {
 
-    public static QueryResutStrategy create(final AppDomainInfo domain, SolrQueryModuleCreator creator, RunContext runContext) {
-        return new SolrCloudQueryResutStrategy(domain, runContext, creator);
-    }
+							@Override
+							public Map<Short, List<ServerJoinGroup>> call() throws Exception {
+								List<ServerJoinGroup> result = new ArrayList<ServerJoinGroup>();
+								ServerJoinGroup groupServer = null;
+								TISZkStateReader clusterReader = runContext.getZkStateReader();
+								DocCollection docCollection = TISZkStateReader.getCollectionLive(clusterReader,
+										domain.getAppName());
+								Map<String, Slice> groups = docCollection.getSlicesMap();
+								short shard;
+								for (Map.Entry<String, Slice> entry : groups.entrySet()) {
+									for (Replica replic : entry.getValue().getReplicas()) {
+										groupServer = new ServerJoinGroup();
+										groupServer.setLeader(replic.getBool("leader", false));
+										groupServer.setIpAddress(replic.getCoreUrl());
+										shard = (Short
+												.parseShort(StringUtils.substringAfter(entry.getKey(), SHARD_PREIX)));
+										groupServer.setGroupIndex(--shard);
+										result.add(groupServer);
+									}
+								}
+								Map<Short, List<ServerJoinGroup>> selectCandiate = new HashMap<Short, List<ServerJoinGroup>>();
+								for (ServerJoinGroup server : result) {
+									List<ServerJoinGroup> servers = selectCandiate.get(server.getGroupIndex());
+									if (servers == null) {
+										servers = new ArrayList<ServerJoinGroup>();
+										selectCandiate.put(server.getGroupIndex(), servers);
+									}
+									servers.add(server);
+								}
+								return selectCandiate;
+							}
+						});
+			} catch (ExecutionException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return selectCandiate;
+	}
+
+	public static QueryResutStrategy create(final AppDomainInfo domain, SolrQueryModuleCreator creator,
+			RunContext runContext) {
+		return new SolrCloudQueryResutStrategy(domain, runContext, creator);
+	}
 }

@@ -58,16 +58,13 @@ public class Snapshot {
 
     private Integer preSnId;
 
-    private Long resSchemaVirtualId;
+   
 
     private String memo;
 
     private Integer bizId;
 
-    public Long getResSchemaVirtualId() {
-        return resSchemaVirtualId;
-    }
-
+   
     public Integer getBizId() {
         return bizId;
     }
@@ -76,10 +73,7 @@ public class Snapshot {
         this.bizId = bizId;
     }
 
-    public void setResSchemaVirtualId(Long resSchemaVirtualId) {
-        this.resSchemaVirtualId = resSchemaVirtualId;
-    }
-
+   
     public String getMemo() {
         return memo;
     }

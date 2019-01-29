@@ -58,117 +58,130 @@ import com.qlangtech.tis.solrdao.pojo.PSchemaField;
  */
 public class IndexQuery extends BasicScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = LoggerFactory.getLogger(IndexQuery.class);
+	private static final Logger logger = LoggerFactory.getLogger(IndexQuery.class);
 
-    private static final Cache<String, SchemaFields> /* collection name */
-    schemaFieldsCache;
+	private static final Cache<String, SchemaFields> /* collection name */
+	schemaFieldsCache;
 
-    static {
-        schemaFieldsCache = CacheBuilder.newBuilder().expireAfterWrite(6, TimeUnit.MINUTES).build();
-    }
+	static {
+		schemaFieldsCache = CacheBuilder.newBuilder().expireAfterWrite(6, TimeUnit.MINUTES).build();
+	}
 
-    public IndexQuery() {
-        super();
-    }
+	public IndexQuery() {
+		super();
+	}
 
-    private List<PSchemaField> getSfields(QueryResutStrategy queryStrategy, List<ServerJoinGroup> nodes) throws Exception {
-        // return getRequest().getParameterValues("sfields");
-        final String collection = this.getAppDomain().getAppName();
-        List<PSchemaField> fieldList = null;
-        fieldList = schemaFieldsCache.getIfPresent(collection);
-        if (fieldList == null) {
-            fieldList = schemaFieldsCache.get(collection, new Callable<SchemaFields>() {
+	private List<PSchemaField> getSfields(QueryResutStrategy queryStrategy, List<ServerJoinGroup> nodes)
+			throws Exception {
+		// return getRequest().getParameterValues("sfields");
+		final String collection = this.getAppDomain().getAppName();
+		List<PSchemaField> fieldList = null;
+		fieldList = schemaFieldsCache.getIfPresent(collection);
+		if (fieldList == null) {
+			fieldList = schemaFieldsCache.get(collection, new Callable<SchemaFields>() {
 
-                @Override
-                public SchemaFields call() throws Exception {
-                    QueryRequestContext queryContext = new QueryRequestContext(getRequest());
-                    getSchemaFrom1Server(collection, queryContext, queryStrategy, nodes);
-                    return queryContext.schema.dFields;
-                }
-            });
-        }
-        return fieldList;
-    }
+				@Override
+				public SchemaFields call() throws Exception {
+					QueryRequestContext queryContext = new QueryRequestContext(getRequest());
+					getSchemaFrom1Server(collection, queryContext, queryStrategy, nodes);
+					return queryContext.schema.dFields;
+				}
+			});
+		}
+		return fieldList;
+	}
 
-    @Override
-    public void execute(Context context) throws Exception {
-        this.enableChangeDomain(context);
-        AppDomainInfo domain = this.getAppDomain();
-        if (domain instanceof Nullable) {
-            return;
-        }
-        QueryResutStrategy queryStrategy = QueryIndexServlet.createQueryResutStrategy(domain, new QueryRequestWrapper(getRequest(), context), getResponse(), getDaoContext());
-        List<ServerJoinGroup> nodes = queryStrategy.queryProcess();
-        context.put("sfields", this.getSfields(queryStrategy, nodes));
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.enableChangeDomain(context);
+		AppDomainInfo domain = this.getAppDomain();
+		if (domain instanceof Nullable) {
+			return;
+		}
+		QueryResutStrategy queryStrategy = QueryIndexServlet.createQueryResutStrategy(domain,
+				new QueryRequestWrapper(getRequest(), context), getResponse(), getDaoContext());
 
-    public static class QueryRequestWrapper extends HttpServletRequestWrapper {
+		if (!queryStrategy.collectionExist()) {
+			// 索引存在吗？
+			this.forward("collectionNotCreated.vm");
+			return;
+		}
 
-        private final Context context;
+		List<ServerJoinGroup> nodes = queryStrategy.queryProcess();
+		context.put("sfields", this.getSfields(queryStrategy, nodes));
+	}
 
-        public QueryRequestWrapper(HttpServletRequest request, Context context) {
-            super(request);
-            this.context = context;
-        }
+	public static class QueryRequestWrapper extends HttpServletRequestWrapper {
 
-        @Override
-        public void setAttribute(String name, Object o) {
-            context.put(name, o);
-        }
-    }
+		private final Context context;
 
-    private void getSchemaFrom1Server(String collection, QueryRequestContext requestContext, final QueryResutStrategy queryResutStrategy, final List<ServerJoinGroup> serverlist) throws ServletException {
-        // boolean isSuccessGet = false;
-        for (ServerJoinGroup server : serverlist) {
-            try {
-                requestContext.schema = processSchema(queryResutStrategy.getRequest(), // http://http://10.1.4.145:8080/solr/search4shop_shard1_replica1/:0/solr/search4shopadmin/file/?file=schema.xml
-                "http://" + server.getIp() + ":8080/solr/" + collection);
-                // isSuccessGet = true;
-                return;
-            } catch (Exception e) {
-                logger.warn(e.getMessage(), e);
-            }
-        }
-        requestContext.schema = new ParseResult(false);
-    // StringBuffer servers = new StringBuffer();
-    // for (ServerJoinGroup server : serverlist) {
-    // servers.append("[").append(server.getIpAddress()).append("]");
-    // 
-    // }
-    // throw new ServletException("remote server faild,remote servers:" +
-    // servers.toString());
-    }
+		public QueryRequestWrapper(HttpServletRequest request, Context context) {
+			super(request);
+			this.context = context;
+		}
 
-    public static class QueryRequestContext {
+		@Override
+		public void setAttribute(String name, Object o) {
+			context.put(name, o);
+		}
+	}
 
-        // final ResultCount count = new ResultCount();
-        public AtomicLong resultCount = new AtomicLong();
+	private void getSchemaFrom1Server(String collection, QueryRequestContext requestContext,
+			final QueryResutStrategy queryResutStrategy, final List<ServerJoinGroup> serverlist)
+			throws ServletException {
+		// boolean isSuccessGet = false;
+		for (ServerJoinGroup server : serverlist) {
+			try {
+				requestContext.schema = processSchema(queryResutStrategy.getRequest(), // http://http://10.1.4.145:8080/solr/search4shop_shard1_replica1/:0/solr/search4shopadmin/file/?file=schema.xml
+						"http://" + server.getIp() + ":8080/solr/" + collection);
+				// isSuccessGet = true;
+				return;
+			} catch (Exception e) {
+				logger.warn(e.getMessage(), e);
+			}
+		}
+		requestContext.schema = new ParseResult(false);
+		// StringBuffer servers = new StringBuffer();
+		// for (ServerJoinGroup server : serverlist) {
+		// servers.append("[").append(server.getIpAddress()).append("]");
+		//
+		// }
+		// throw new ServletException("remote server faild,remote servers:" +
+		// servers.toString());
+	}
 
-        public final HttpServletRequest request;
+	public static class QueryRequestContext {
 
-        public ParseResult schema;
+		// final ResultCount count = new ResultCount();
+		public AtomicLong resultCount = new AtomicLong();
 
-        public QueryRequestContext(HttpServletRequest request) {
-            super();
-            this.request = request;
-        }
+		public final HttpServletRequest request;
 
-        public void add(long value) {
-            this.resultCount.addAndGet(value);
-        }
+		public ParseResult schema;
 
-        public final boolean queryDebug = false;
-    }
+		public QueryRequestContext(HttpServletRequest request) {
+			super();
+			this.request = request;
+		}
 
-    private static ParseResult processSchema(final SolrQueryModuleCreator creator, final String url) throws MalformedURLException {
-        return ConfigFileContext.processContent(new URL(url + "/admin/file/?file=schema.xml"), new StreamProcess<ParseResult>() {
+		public void add(long value) {
+			this.resultCount.addAndGet(value);
+		}
 
-            @Override
-            public ParseResult p(int status, InputStream stream, String md5) {
-                return creator.processSchema(stream);
-            }
-        });
-    }
+		public final boolean queryDebug = false;
+	}
+
+	private static ParseResult processSchema(final SolrQueryModuleCreator creator, final String url)
+			throws MalformedURLException {
+		return ConfigFileContext.processContent(new URL(url + "/admin/file/?file=schema.xml"),
+				new StreamProcess<ParseResult>() {
+
+					@Override
+					public ParseResult p(int status, InputStream stream, String md5) {
+						return creator.processSchema(stream);
+					}
+				});
+	}
 }

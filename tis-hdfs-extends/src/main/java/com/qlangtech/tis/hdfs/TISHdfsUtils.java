@@ -52,174 +52,182 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  */
 public class TISHdfsUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(TISHdfsUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(TISHdfsUtils.class);
 
-    public static void main(String[] args) throws Exception {
-    // FileSystem fs = TISHdfsUtils.getFileSystem();
-    // System.out.println( fs.get);
-    // FileStatus[] files = fs.listStatus(new Path("/"));
-    // 
-    // for (FileStatus s : files) {
-    // 
-    // System.out.println(s.getPath());
-    // }
-    }
+	public static void main(String[] args) throws Exception {
+		// FileSystem fs = TISHdfsUtils.getFileSystem();
+		// System.out.println( fs.get);
+		// FileStatus[] files = fs.listStatus(new Path("/"));
+		//
+		// for (FileStatus s : files) {
+		//
+		// System.out.println(s.getPath());
+		// }
+	}
 
-    /**
-     * @param commandLine
-     * @param dest
-     * @param runtime
-     * @return
-     */
-    public static List<Path> getLibPaths(final String localJarDir, Path dest) /* hdfs 目标目录 */
-    {
-        try {
-            // String localJarDir = null;
-            // if (commandLine != null) {
-            // localJarDir =
-            // commandLine.getOptionValue(YarnConstant.PARAM_OPTION_LOCAL_JAR_DIR);
-            // }
-            List<Path> libs = null;
-            if (StringUtils.isNotBlank(localJarDir)) {
-                libs = copyLibs2Hdfs(localJarDir, dest);
-            } else {
-                libs = new ArrayList<Path>();
-                if (!getFileSystem().exists(dest)) {
-                    throw new IllegalStateException("target dest:" + dest + " is not exist ,please make sure having deploy the index build jar to hdfs.");
-                }
-                for (FileStatus s : getFileSystem().listStatus(dest)) {
-                    libs.add(s.getPath());
-                }
-            }
-            if (libs.size() < 1) {
-                throw new IllegalStateException("libs size can not small than 1");
-            }
-            return libs;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+	/**
+	 * @param commandLine
+	 * @param dest
+	 * @param runtime
+	 * @return
+	 */
+	public static List<Path> getLibPaths(final String localJarDir,
+			Path dest) /* hdfs 目标目录 */
+	{
+		try {
+			// String localJarDir = null;
+			// if (commandLine != null) {
+			// localJarDir =
+			// commandLine.getOptionValue(YarnConstant.PARAM_OPTION_LOCAL_JAR_DIR);
+			// }
+			List<Path> libs = null;
+			if (StringUtils.isNotBlank(localJarDir)) {
+				libs = copyLibs2Hdfs(localJarDir, dest);
+			} else {
+				libs = new ArrayList<Path>();
+				if (!getFileSystem().exists(dest)) {
+					throw new IllegalStateException("target dest:" + dest
+							+ " is not exist ,please make sure having deploy the index build jar to hdfs.");
+				}
+				for (FileStatus s : getFileSystem().listStatus(dest)) {
+					libs.add(s.getPath());
+				}
+			}
+			if (libs.size() < 1) {
+				throw new IllegalStateException("libs size can not small than 1");
+			}
+			return libs;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    /**
-     * 将本地jar包上传到hdfs上去
-     *
-     * @param localJarDir
-     * @param runtime
-     * @return
-     * @throws Exception
-     */
-    public static List<Path> copyLibs2Hdfs(String localJarDir, Path dest) throws /* hdfs 目标目录 */
-    Exception {
-        List<Path> libs = new ArrayList<Path>();
-        if (StringUtils.isBlank(localJarDir)) {
-            throw new IllegalArgumentException("param localJarDir can not be null");
-        }
-        // 本地删除
-        FileSystem fs = getFileSystem();
-        // final Path path = new Path(YarnConstant.HDFS_GROUP_LIB_DIR + "/" +
-        // runtime.getKeyName());
-        fs.delete(dest, true);
-        logger.info("path:" + dest + " have been delete");
-        // 取得需要的lib包
-        File dir = new File(localJarDir);
-        String[] childs = null;
-        if (!dir.isDirectory() || (childs = dir.list(new FilenameFilter() {
+	/**
+	 * 将本地jar包上传到hdfs上去
+	 *
+	 * @param localJarDir
+	 * @param runtime
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<Path> copyLibs2Hdfs(String localJarDir, Path dest)
+			throws /* hdfs 目标目录 */
+			Exception {
+		List<Path> libs = new ArrayList<Path>();
+		if (StringUtils.isBlank(localJarDir)) {
+			throw new IllegalArgumentException("param localJarDir can not be null");
+		}
+		// 本地删除
+		FileSystem fs = getFileSystem();
+		// final Path path = new Path(YarnConstant.HDFS_GROUP_LIB_DIR + "/" +
+		// runtime.getKeyName());
+		fs.delete(dest, true);
+		logger.info("path:" + dest + " have been delete");
+		// 取得需要的lib包
+		File dir = new File(localJarDir);
+		String[] childs = null;
+		if (!dir.isDirectory() || (childs = dir.list(new FilenameFilter() {
 
-            @Override
-            public boolean accept(File dir, String name) {
-                return StringUtils.endsWith(name, ".jar");
-            }
-        })).length < 1) {
-            throw new IllegalStateException("dir:" + dir.getAbsolutePath() + " has not find any jars");
-        }
-        URI source = null;
-        Path d = null;
-        for (String f : childs) {
-            source = (new File(dir, f)).toURI();
-            d = new Path(dest, f);
-            fs.copyFromLocalFile(new Path(source), d);
-            libs.add(d);
-            logger.info("local:" + source + " have been copy to hdfs");
-        }
-        return libs;
-    }
+			@Override
+			public boolean accept(File dir, String name) {
+				return StringUtils.endsWith(name, ".jar");
+			}
+		})).length < 1) {
+			throw new IllegalStateException("dir:" + dir.getAbsolutePath() + " has not find any jars");
+		}
+		URI source = null;
+		Path d = null;
+		for (String f : childs) {
+			source = (new File(dir, f)).toURI();
+			d = new Path(dest, f);
+			fs.copyFromLocalFile(new Path(source), d);
+			libs.add(d);
+			logger.info("local:" + source + " have been copy to hdfs");
+		}
+		return libs;
+	}
 
-    private static final Map<String, FileSystem> fileSys = new HashMap<String, FileSystem>();
+	private static final Map<String, FileSystem> fileSys = new HashMap<String, FileSystem>();
 
-    public static FileSystem getFileSystem() {
-        TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
-        return getFileSystem(config.getHdfsAddress());
-    }
+	public static FileSystem getFileSystem() {
+		TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
+		return getFileSystem(config.getHdfsAddress());
+	}
 
-    public static FileSystem getFileSystem(String hdfsAddress) {
-        try {
-            FileSystem fileSystem = fileSys.get(hdfsAddress);
-            if (fileSystem == null) {
-                synchronized (TISHdfsUtils.class) {
-                    fileSystem = fileSys.get(hdfsAddress);
-                    if (fileSystem == null) {
-                        Configuration conf = new Configuration();
-                        conf.set(FsPermission.UMASK_LABEL, "000");
-                        TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
-                        conf.set("fs.default.name", config.getHdfsAddress());
-                        conf.set("hadoop.job.ugi", "admin");
-                        logger.info("run environment:" + config.getRunEnvironment());
-                        
-                        if (config.getRuntime() == RunEnvironment.ONLINE ) {
-                            URL url = TISHdfsUtils.class.getResource("/online-hdfs-site.xml");
-                            conf.addResource(url);
-                            logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
-                        } else {
-                            URL url = TISHdfsUtils.class.getResource("/daily-hdfs-site.xml");
-                            conf.addResource(url);
-                            logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
-                        }
-                       
-                        conf.setBoolean("fs.hdfs.impl.disable.cache", true);
-                        fileSystem = new FilterFileSystem(FileSystem.get(conf)) {
+	public static FileSystem getFileSystem(String hdfsAddress) {
+		try {
+			FileSystem fileSystem = fileSys.get(hdfsAddress);
+			if (fileSystem == null) {
+				synchronized (TISHdfsUtils.class) {
+					fileSystem = fileSys.get(hdfsAddress);
+					if (fileSystem == null) {
+						Configuration conf = new Configuration();
+						conf.set(FsPermission.UMASK_LABEL, "000");
+						TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
+						conf.set("fs.default.name", config.getHdfsAddress());
+						conf.set("hadoop.job.ugi", "admin");
 
-                            @Override
-                            public boolean delete(Path f, boolean recursive) throws IOException {
-                                try {
-                                    return super.delete(f, recursive);
-                                } catch (Exception e) {
-                                    throw new RuntimeException("path:" + f, e);
-                                }
-                            }
+						RunEnvironment runtime = RunEnvironment.getSysRuntime();
+						logger.info("run environment:" + runtime);
 
-                            @Override
-                            public boolean mkdirs(Path f, FsPermission permission) throws IOException {
-                                return super.mkdirs(f, FsPermission.getDirDefault());
-                            }
+						if (runtime == RunEnvironment.ONLINE) {
+							URL url = TISHdfsUtils.class.getResource("/online-hdfs-site.xml");
+							conf.addResource(url);
+							logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
+						} else {
+							URL url = TISHdfsUtils.class.getResource("/daily-hdfs-site.xml");
+							conf.addResource(url);
+							logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
+						}
 
-                            @Override
-                            public FSDataOutputStream create(Path f, FsPermission permission, boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
-                                return super.create(f, FsPermission.getDefault(), overwrite, bufferSize, replication, blockSize, progress);
-                            }
+						conf.setBoolean("fs.hdfs.impl.disable.cache", true);
+						fileSystem = new FilterFileSystem(FileSystem.get(conf)) {
 
-                            @Override
-                            public FileStatus[] listStatus(Path f) throws IOException {
-                                try {
-                                    return super.listStatus(f);
-                                } catch (Exception e) {
-                                    throw new RuntimeException("path:" + f, e);
-                                }
-                            }
+							@Override
+							public boolean delete(Path f, boolean recursive) throws IOException {
+								try {
+									return super.delete(f, recursive);
+								} catch (Exception e) {
+									throw new RuntimeException("path:" + f, e);
+								}
+							}
 
-                            @Override
-                            public void close() throws IOException {
-                            // super.close();
-                            // 设置不被关掉
-                            }
-                        };
-                        fileSystem.listStatus(new Path("/"));
-                        fileSys.put(hdfsAddress, fileSystem);
-                    }
-                }
-            }
-            return fileSystem;
-        } catch (IOException e) {
-            throw new RuntimeException("hdfsAddress:" + TSearcherConfigFetcher.get().getHdfsAddress(), e);
-        }
-    }
+							@Override
+							public boolean mkdirs(Path f, FsPermission permission) throws IOException {
+								return super.mkdirs(f, FsPermission.getDirDefault());
+							}
+
+							@Override
+							public FSDataOutputStream create(Path f, FsPermission permission, boolean overwrite,
+									int bufferSize, short replication, long blockSize, Progressable progress)
+									throws IOException {
+								return super.create(f, FsPermission.getDefault(), overwrite, bufferSize, replication,
+										blockSize, progress);
+							}
+
+							@Override
+							public FileStatus[] listStatus(Path f) throws IOException {
+								try {
+									return super.listStatus(f);
+								} catch (Exception e) {
+									throw new RuntimeException("path:" + f, e);
+								}
+							}
+
+							@Override
+							public void close() throws IOException {
+								// super.close();
+								// 设置不被关掉
+							}
+						};
+						fileSystem.listStatus(new Path("/"));
+						fileSys.put(hdfsAddress, fileSystem);
+					}
+				}
+			}
+			return fileSystem;
+		} catch (IOException e) {
+			throw new RuntimeException("hdfsAddress:" + TSearcherConfigFetcher.get().getHdfsAddress(), e);
+		}
+	}
 }

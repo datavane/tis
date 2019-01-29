@@ -48,6 +48,8 @@ import com.qlangtech.tis.trigger.module.screen.Setappstatus;
 import com.qlangtech.tis.trigger.module.screen.TriggerBasicModule;
 
 /* 
+ * 配置全量构建任务，触发时间相关
+ * 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */

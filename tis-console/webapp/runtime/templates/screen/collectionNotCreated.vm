@@ -1,0 +1,6 @@
+
+
+<div class="alert alert-danger">
+    <h4><i class="fa fa-warning" ></i> ERROR!</h4>
+索引实例${appDomain.appName}还未被创建
+  </div>

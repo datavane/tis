@@ -67,6 +67,7 @@ public class UserUtils {
                         session.setAttribute(USER_TOKEN_SESSION, result);
                         return result;
                     }
+                    return NOT_LOGIN_USER;
                 } else {
                     return NOT_LOGIN_USER;
                 }

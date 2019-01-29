@@ -28,8 +28,7 @@ import com.qlangtech.tis.manage.biz.dal.dao.IApplicationExtendDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IDepartmentDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncRoleRelationDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IRdsDbDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IRdsTableDAO;
+
 import com.qlangtech.tis.manage.biz.dal.dao.IRoleDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.ITisManageBizDalDAOFacade;
 import com.qlangtech.tis.manage.biz.dal.dao.IUsrApplyDptRecordDAO;
@@ -41,85 +40,67 @@ import com.qlangtech.tis.manage.biz.dal.dao.IUsrDptRelationDAO;
  */
 public class TisManageBizDalDAOFacadeImpl implements ITisManageBizDalDAOFacade {
 
-    private final IUsrDptRelationDAO usrDptRelationDAO;
+	private final IUsrDptRelationDAO usrDptRelationDAO;
 
-    private final IApplicationDAO applicationDAO;
+	private final IApplicationDAO applicationDAO;
 
-    private final IDepartmentDAO departmentDAO;
+	private final IDepartmentDAO departmentDAO;
 
-    private final IFuncRoleRelationDAO funcRoleRelationDAO;
+	private final IFuncRoleRelationDAO funcRoleRelationDAO;
 
-    private final IRoleDAO roleDAO;
+	private final IRoleDAO roleDAO;
 
-    private final IFuncDAO funcDAO;
+	private final IFuncDAO funcDAO;
 
-    private final IUsrApplyDptRecordDAO usrApplyDptRecordDAO;
+	private final IUsrApplyDptRecordDAO usrApplyDptRecordDAO;
 
-    // 聚石塔相关DAO
-    // private final IIsvDAO isvDAO;
-    private final IRdsDbDAO rdsDbDAO;
+	private final IApplicationExtendDAO applicationExtendDAO;
 
-    private final IRdsTableDAO rdsTableDAO;
+	public IUsrDptRelationDAO getUsrDptRelationDAO() {
+		return this.usrDptRelationDAO;
+	}
 
-    private final IApplicationExtendDAO applicationExtendDAO;
+	public IApplicationDAO getApplicationDAO() {
+		return this.applicationDAO;
+	}
 
-    public IUsrDptRelationDAO getUsrDptRelationDAO() {
-        return this.usrDptRelationDAO;
-    }
+	public IDepartmentDAO getDepartmentDAO() {
+		return this.departmentDAO;
+	}
 
-    public IApplicationDAO getApplicationDAO() {
-        return this.applicationDAO;
-    }
+	public IFuncRoleRelationDAO getFuncRoleRelationDAO() {
+		return this.funcRoleRelationDAO;
+	}
 
-    public IDepartmentDAO getDepartmentDAO() {
-        return this.departmentDAO;
-    }
+	public IRoleDAO getRoleDAO() {
+		return this.roleDAO;
+	}
 
-    public IFuncRoleRelationDAO getFuncRoleRelationDAO() {
-        return this.funcRoleRelationDAO;
-    }
+	public IFuncDAO getFuncDAO() {
+		return this.funcDAO;
+	}
 
-    public IRoleDAO getRoleDAO() {
-        return this.roleDAO;
-    }
+	public IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO() {
+		return this.usrApplyDptRecordDAO;
+	}
 
-    public IFuncDAO getFuncDAO() {
-        return this.funcDAO;
-    }
+	public IApplicationExtendDAO getApplicationExtendDAO() {
+		return this.applicationExtendDAO;
+	}
 
-    public IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO() {
-        return this.usrApplyDptRecordDAO;
-    }
+	public TisManageBizDalDAOFacadeImpl(IUsrDptRelationDAO usrDptRelationDAO, IApplicationDAO applicationDAO,
+			IDepartmentDAO departmentDAO, IFuncRoleRelationDAO funcRoleRelationDAO, IRoleDAO roleDAO, IFuncDAO funcDAO,
+			IUsrApplyDptRecordDAO usrApplyDptRecordDAO, // IIsvDAO isvDAO,
+			IApplicationExtendDAO applicationExtendDAO) {
+		this.usrDptRelationDAO = usrDptRelationDAO;
+		this.applicationDAO = applicationDAO;
+		this.departmentDAO = departmentDAO;
+		this.funcRoleRelationDAO = funcRoleRelationDAO;
+		this.roleDAO = roleDAO;
+		this.funcDAO = funcDAO;
+		this.usrApplyDptRecordDAO = usrApplyDptRecordDAO;
+		// this.isvDAO = isvDAO;
 
-    // //聚石塔相关表
-    // public IIsvDAO getIsvDAO() {
-    // return this.isvDAO;
-    // }
-    // 
-    public IRdsDbDAO getRdsDbDAO() {
-        return this.rdsDbDAO;
-    }
-
-    public IRdsTableDAO getRdsTableDAO() {
-        return this.rdsTableDAO;
-    }
-
-    public IApplicationExtendDAO getApplicationExtendDAO() {
-        return this.applicationExtendDAO;
-    }
-
-    public TisManageBizDalDAOFacadeImpl(IUsrDptRelationDAO usrDptRelationDAO, IApplicationDAO applicationDAO, IDepartmentDAO departmentDAO, IFuncRoleRelationDAO funcRoleRelationDAO, IRoleDAO roleDAO, IFuncDAO funcDAO, IUsrApplyDptRecordDAO usrApplyDptRecordDAO, // IIsvDAO isvDAO,
-    IRdsDbDAO rdsDbDAO, IRdsTableDAO rdsTableDAO, IApplicationExtendDAO applicationExtendDAO) {
-        this.usrDptRelationDAO = usrDptRelationDAO;
-        this.applicationDAO = applicationDAO;
-        this.departmentDAO = departmentDAO;
-        this.funcRoleRelationDAO = funcRoleRelationDAO;
-        this.roleDAO = roleDAO;
-        this.funcDAO = funcDAO;
-        this.usrApplyDptRecordDAO = usrApplyDptRecordDAO;
-        // this.isvDAO = isvDAO;
-        this.rdsDbDAO = rdsDbDAO;
-        this.rdsTableDAO = rdsTableDAO;
-        this.applicationExtendDAO = applicationExtendDAO;
-    }
+		this.applicationExtendDAO = applicationExtendDAO;
+	}
 }

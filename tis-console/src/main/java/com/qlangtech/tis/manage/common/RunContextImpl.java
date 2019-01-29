@@ -36,8 +36,6 @@ import com.qlangtech.tis.manage.biz.dal.dao.IFuncDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncRoleRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IGlobalAppResourceDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IGroupInfoDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IRdsDbDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IRdsTableDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IResourceParametersDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IRoleDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IServerDAO;
@@ -94,11 +92,7 @@ public class RunContextImpl implements RunContext {
 
 	private final IResourceParametersDAO resourceParametersDAO;
 
-	// 聚石塔相关DAO
-	// private final IIsvDAO isvDAO;
-	private final IRdsDbDAO rdsDbDAO;
 
-	private final IRdsTableDAO rdsTableDAO;
 
 	private final IApplicationExtendDAO applicationExtendDAO;
 
@@ -117,7 +111,7 @@ public class RunContextImpl implements RunContext {
 			IFuncDAO funcDAO, IFuncRoleRelationDAO funcRoleRelationDAO, IRoleDAO roleDAO,
 			IResourceParametersDAO resourceParametersDAO, IUsrDptExtraRelationDAO usrDptExtraRelationDAO, // IIsvDAO
 																											// isvDAO,
-			IUsrApplyDptRecordDAO usrApplyDptRecordDAO, IRdsDbDAO rdsDbDAO, IRdsTableDAO rdsTableDAO,
+			IUsrApplyDptRecordDAO usrApplyDptRecordDAO, 
 			IApplicationExtendDAO applicationExtendDAO, ZooKeeperGetter zooKeeperGetter,
 			ClusterStateReader clusterStateReader) {
 		super();
@@ -146,10 +140,7 @@ public class RunContextImpl implements RunContext {
 		this.roleDAO = roleDAO;
 		this.resourceParametersDAO = resourceParametersDAO;
 		this.usrDptExtraRelationDAO = usrDptExtraRelationDAO;
-		// 聚石塔相关DAO
-		// this.isvDAO = isvDAO;
-		this.rdsDbDAO = rdsDbDAO;
-		this.rdsTableDAO = rdsTableDAO;
+	
 		this.applicationExtendDAO = applicationExtendDAO;
 		this.zooKeeperGetter = zooKeeperGetter;
 		this.clusterStateReader = clusterStateReader;
@@ -275,18 +266,6 @@ public class RunContextImpl implements RunContext {
 
 	public IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO() {
 		return this.usrApplyDptRecordDAO;
-	}
-
-	// 聚石塔相关表
-	// public IIsvDAO getIsvDAO() {
-	// return this.isvDAO;
-	// }
-	public IRdsDbDAO getRdsDbDAO() {
-		return this.rdsDbDAO;
-	}
-
-	public IRdsTableDAO getRdsTableDAO() {
-		return this.rdsTableDAO;
 	}
 
 	public IApplicationExtendDAO getApplicationExtendDAO() {

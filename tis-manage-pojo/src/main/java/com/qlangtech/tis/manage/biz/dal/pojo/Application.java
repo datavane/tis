@@ -30,166 +30,140 @@ import java.util.Date;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class Application implements Serializable, IYuntiPath {
+public class Application implements Serializable {
 
-    private Integer appId;
+	private Integer appId;
 
-    private String projectName;
+	private String projectName;
 
-    private String recept;
+	private String recept;
 
-    private String manager;
+	private String manager;
 
-    private Date createTime;
+	private Date createTime;
 
-    private Date updateTime;
+	private Date updateTime;
 
-    private String isDeleted;
+	private String isDeleted;
 
-    private Boolean isAutoDeploy;
+	/**
+	 * prop:dpt_id
+	 */
+	private Integer dptId;
 
-    /**
-     * prop:dpt_id
-     */
-    private Integer dptId;
+	// private String indexsetName;
+	/**
+	 * prop:dpt_name
+	 */
+	private String dptName;
 
-    // private String indexsetName;
-    /**
-     * prop:dpt_name
-     */
-    private String dptName;
+	// private String yuntiPath;
+	// <result column="nobel_app_id" property="nobleAppId" jdbcType="INTEGER" />
+	// <result column="nobel_app_name" property="nobleAppName"
+	// jdbcType="VARCHAR" />
+	private Integer nobleAppId;
 
-    // private String yuntiPath;
-    // <result column="nobel_app_id" property="nobleAppId" jdbcType="INTEGER" />
-    // <result column="nobel_app_name" property="nobleAppName"
-    // jdbcType="VARCHAR" />
-    private Integer nobleAppId;
+	private String nobleAppName;
 
-    private String nobleAppName;
+	public Integer getNobleAppId() {
+		return nobleAppId;
+	}
 
-    public Integer getNobleAppId() {
-        return nobleAppId;
-    }
+	public void setNobleAppId(Integer nobleAppId) {
+		this.nobleAppId = nobleAppId;
+	}
 
-    public void setNobleAppId(Integer nobleAppId) {
-        this.nobleAppId = nobleAppId;
-    }
+	public String getNobleAppName() {
+		return nobleAppName;
+	}
 
-    public String getNobleAppName() {
-        return nobleAppName;
-    }
+	public void setNobleAppName(String nobleAppName) {
+		this.nobleAppName = nobleAppName;
+	}
 
-    public void setNobleAppName(String nobleAppName) {
-        this.nobleAppName = nobleAppName;
-    }
+	private static final long serialVersionUID = 1L;
 
-    // ▼▼ 新版本中 该属性专用
-    // public String getIndexsetName() {
-    // return this.indexsetName;
-    // }
-    // 
-    // public void setIndexsetName(String indexsetName) {
-    // this.indexsetName = indexsetName;
-    // }
-    // ▲▲ 新版本中 该属性专用
-    // public void setYuntiPath(String yuntiPath) {
-    // this.yuntiPath = yuntiPath;
-    // }
-    // 
-    // public String getYuntiPath() {
-    // return yuntiPath;
-    // }
-    private static final long serialVersionUID = 1L;
+	public Integer getAppId() {
+		return appId;
+	}
 
-    public Integer getAppId() {
-        return appId;
-    }
+	public void setAppId(Integer appId) {
+		this.appId = appId;
+	}
 
-    public void setAppId(Integer appId) {
-        this.appId = appId;
-    }
+	public String getProjectName() {
+		return projectName;
+	}
 
-    public String getProjectName() {
-        return projectName;
-    }
+	public void setProjectName(String projectName) {
+		this.projectName = projectName == null ? null : projectName.trim();
+	}
 
-    public void setProjectName(String projectName) {
-        this.projectName = projectName == null ? null : projectName.trim();
-    }
+	public String getRecept() {
+		return recept;
+	}
 
-    public String getRecept() {
-        return recept;
-    }
+	public void setRecept(String recept) {
+		this.recept = recept == null ? null : recept.trim();
+	}
 
-    public void setRecept(String recept) {
-        this.recept = recept == null ? null : recept.trim();
-    }
+	public String getManager() {
+		return manager;
+	}
 
-    public String getManager() {
-        return manager;
-    }
+	public void setManager(String manager) {
+		this.manager = manager == null ? null : manager.trim();
+	}
 
-    public void setManager(String manager) {
-        this.manager = manager == null ? null : manager.trim();
-    }
+	public Date getCreateTime() {
+		return createTime;
+	}
 
-    public Date getCreateTime() {
-        return createTime;
-    }
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
+	public Date getUpdateTime() {
+		return updateTime;
+	}
 
-    public Date getUpdateTime() {
-        return updateTime;
-    }
+	public void setUpdateTime(Date updateTime) {
+		this.updateTime = updateTime;
+	}
 
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
+	public String getIsDeleted() {
+		return isDeleted;
+	}
 
-    public String getIsDeleted() {
-        return isDeleted;
-    }
+	public void setIsDeleted(String isDeleted) {
+		this.isDeleted = isDeleted == null ? null : isDeleted.trim();
+	}
 
-    public void setIsDeleted(String isDeleted) {
-        this.isDeleted = isDeleted == null ? null : isDeleted.trim();
-    }
+	/**
+	 * get:dpt_id
+	 */
+	public Integer getDptId() {
+		return dptId;
+	}
 
-    public Boolean getIsAutoDeploy() {
-        return isAutoDeploy;
-    }
+	/**
+	 * set:dpt_id
+	 */
+	public void setDptId(Integer dptId) {
+		this.dptId = dptId;
+	}
 
-    public void setIsAutoDeploy(Boolean isAutoDeploy) {
-        this.isAutoDeploy = isAutoDeploy;
-    }
+	/**
+	 * get:dpt_name
+	 */
+	public String getDptName() {
+		return dptName;
+	}
 
-    /**
-     * get:dpt_id
-     */
-    public Integer getDptId() {
-        return dptId;
-    }
-
-    /**
-     * set:dpt_id
-     */
-    public void setDptId(Integer dptId) {
-        this.dptId = dptId;
-    }
-
-    /**
-     * get:dpt_name
-     */
-    public String getDptName() {
-        return dptName;
-    }
-
-    /**
-     * set:dpt_name
-     */
-    public void setDptName(String dptName) {
-        this.dptName = dptName == null ? null : dptName.trim();
-    }
+	/**
+	 * set:dpt_name
+	 */
+	public void setDptName(String dptName) {
+		this.dptName = dptName == null ? null : dptName.trim();
+	}
 }

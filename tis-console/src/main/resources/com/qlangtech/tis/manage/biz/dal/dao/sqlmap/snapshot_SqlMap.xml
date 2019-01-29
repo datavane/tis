@@ -21,8 +21,6 @@
     <result column="create_user_name" jdbcType="VARCHAR" property="createUserName" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="pre_sn_id" jdbcType="INTEGER" property="preSnId" />
-    
-    <result column="res_schema_virtual_id" property="resSchemaVirtualId" jdbcType="BIGINT" />
     <result column="memo" property="memo" jdbcType="VARCHAR" />
     
     <result column="biz_id" property="bizId" jdbcType="INTEGER" />
@@ -60,7 +58,7 @@
   <select id="ibatorgenerated_selectByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria" resultMap="ibatorgenerated_BaseResultMap">
     select aa.sn_id, app_id, res_schema_id, res_solr_id, res_jar_id, res_core_prop_id,
       res_ds_id, res_application_id, create_time, create_user_id, create_user_name, update_time,
-      pre_sn_id,res_schema_virtual_id,memo,biz_id
+      pre_sn_id,memo,biz_id
      from ( select sn_id from snapshot
     <isParameterPresent>
       <include refid="snapshot.ibatorgenerated_Example_Where_Clause" />
@@ -121,7 +119,7 @@
       WARNING - if you hava any question please contact to baisui
     -->
     select sn_id, app_id,  res_schema_id, res_solr_id, res_jar_id, res_core_prop_id, res_ds_id,
-      res_application_id, create_time, create_user_id, create_user_name, update_time, pre_sn_id,res_schema_virtual_id,memo,biz_id
+      res_application_id, create_time, create_user_id, create_user_name, update_time, pre_sn_id,memo,biz_id
     from snapshot
     where sn_id = #snId:INTEGER#
   </select>
@@ -145,11 +143,11 @@
     -->
     insert into snapshot (sn_id, app_id, res_schema_id, res_solr_id, res_jar_id,
       res_core_prop_id, res_ds_id, res_application_id, create_time, create_user_id,
-      create_user_name, update_time, pre_sn_id,res_schema_virtual_id,memo)
+      create_user_name, update_time, pre_sn_id,memo)
     values (#snId:INTEGER#, #appId:INTEGER#, #resSchemaId:BIGINT#,
       #resSolrId:BIGINT#, #resJarId:BIGINT#, #resCorePropId:BIGINT#, #resDsId:BIGINT#,
       #resApplicationId:BIGINT#, #createTime:TIMESTAMP#, #createUserId:BIGINT#,
-      #createUserName:VARCHAR#, #updateTime:TIMESTAMP#, #preSnId:INTEGER#,#resSchemaVirtualId:BIGINT#,#memo:VARCHAR#)
+      #createUserName:VARCHAR#, #updateTime:TIMESTAMP#, #preSnId:INTEGER#,#memo:VARCHAR#)
      <selectKey resultClass="INTEGER" > 
         SELECT LAST_INSERT_ID(); 
     </selectKey>
@@ -200,10 +198,6 @@
       <isNotNull prepend="," property="preSnId">
         pre_sn_id
       </isNotNull>
-        
-      <isNotNull prepend="," property="resSchemaVirtualId">
-        res_schema_virtual_id
-      </isNotNull>
       <isNotNull prepend="," property="memo">
         memo
       </isNotNull>      
@@ -253,10 +247,6 @@
       </isNotNull>
       <isNotNull prepend="," property="preSnId">
         #preSnId:INTEGER#
-      </isNotNull>
-      
-      <isNotNull prepend="," property="resSchemaVirtualId">
-         #resSchemaVirtualId:BIGINT#
       </isNotNull>
       <isNotNull prepend="," property="memo">
          #memo:VARCHAR#

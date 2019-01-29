@@ -1,0 +1,19 @@
+
+<div style="width:800px;margin: 0 auto;">
+<h3>全局参数设置</h3>
+<form>
+   <div class="form-group">
+  <div style="float:right">
+   <button type="submit" style="width:4em;" class="btn btn-primary">提交</button>
+  </div>
+   </div>
+  
+  #foreach($item in $globalParams)
+  <div class="form-group" style="clear:both">
+    <label for="$item.name">$item.name</label>
+    <input name="$item.name" type="text" class="form-control" id="$item.name" />
+     <p class="tis-bg-info" >$item.desc</p>
+  </div>
+  #end
+</form>
+</div>

@@ -30,7 +30,7 @@ import com.qlangtech.tis.manage.common.BasicOperationDomainLogger;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public final class ServerGroup extends BasicOperationDomainLogger implements IYuntiPath {
+public final class ServerGroup extends BasicOperationDomainLogger  {
 
     private Integer gid;
 
@@ -122,13 +122,4 @@ public final class ServerGroup extends BasicOperationDomainLogger implements IYu
         this.updateTime = updateTime;
     }
 
-    private String yuntiPath;
-
-    public String getYuntiPath() {
-        return yuntiPath;
-    }
-
-    public void setYuntiPath(String yuntiPath) {
-        this.yuntiPath = yuntiPath;
-    }
 }

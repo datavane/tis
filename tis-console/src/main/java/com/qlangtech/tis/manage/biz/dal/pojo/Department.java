@@ -26,130 +26,100 @@ package com.qlangtech.tis.manage.biz.dal.pojo;
 import java.io.Serializable;
 import java.util.Date;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class Department implements Serializable {
 
-    private Integer dptId;
+	private Integer dptId;
 
-    private Integer parentId;
+	private Integer parentId;
 
-    private String name;
+	private String name;
 
-    private Date gmtCreate;
+	private Date gmtCreate;
 
-    private Date gmtModified;
+	private Date gmtModified;
 
-    private Integer indexsetSnapshot;
+	/**
+	 * prop:full_name
+	 */
+	private String fullName;
 
-    private Integer templateFlag;
+	/**
+	 * prop:leaf
+	 */
+	private Boolean leaf;
 
-    // Indexset 应用模板特性，是否有实时特性，是否有普通模式特性
-    public Integer getTemplateFlag() {
-        return templateFlag;
-    }
+	private static final long serialVersionUID = 1L;
 
-    public void setTemplateFlag(Integer templateFlag) {
-        this.templateFlag = templateFlag;
-    }
+	public Integer getDptId() {
+		return dptId;
+	}
 
-    /**
-     * prop:full_name
-     */
-    private String fullName;
+	public void setDptId(Integer dptId) {
+		this.dptId = dptId;
+	}
 
-    /**
-     * prop:leaf
-     */
-    private Boolean leaf;
+	public Integer getParentId() {
+		return parentId;
+	}
 
-    private Integer alibabaDptId;
+	public void setParentId(Integer parentId) {
+		this.parentId = parentId;
+	}
 
-    private static final long serialVersionUID = 1L;
+	public String getName() {
+		return name;
+	}
 
-    public Integer getDptId() {
-        return dptId;
-    }
+	public void setName(String name) {
+		this.name = name == null ? null : name.trim();
+	}
 
-    public void setDptId(Integer dptId) {
-        this.dptId = dptId;
-    }
+	public Date getGmtCreate() {
+		return gmtCreate;
+	}
 
-    public Integer getParentId() {
-        return parentId;
-    }
+	public void setGmtCreate(Date gmtCreate) {
+		this.gmtCreate = gmtCreate;
+	}
 
-    public void setParentId(Integer parentId) {
-        this.parentId = parentId;
-    }
+	public Date getGmtModified() {
+		return gmtModified;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public void setGmtModified(Date gmtModified) {
+		this.gmtModified = gmtModified;
+	}
 
-    public void setName(String name) {
-        this.name = name == null ? null : name.trim();
-    }
+	/**
+	 * get:full_name
+	 */
+	public String getFullName() {
+		return fullName;
+	}
 
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
+	/**
+	 * set:full_name
+	 */
+	public void setFullName(String fullName) {
+		this.fullName = fullName == null ? null : fullName.trim();
+	}
 
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
+	/**
+	 * get:leaf
+	 */
+	public Boolean getLeaf() {
+		return leaf;
+	}
 
-    public Date getGmtModified() {
-        return gmtModified;
-    }
+	/**
+	 * set:leaf
+	 */
+	public void setLeaf(Boolean leaf) {
+		this.leaf = leaf;
+	}
 
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
-    }
-
-    /**
-     * get:full_name
-     */
-    public String getFullName() {
-        return fullName;
-    }
-
-    public Integer getIndexsetSnapshot() {
-        return indexsetSnapshot;
-    }
-
-    public void setIndexsetSnapshot(Integer indexsetSnapshot) {
-        this.indexsetSnapshot = indexsetSnapshot;
-    }
-
-    /**
-     * set:full_name
-     */
-    public void setFullName(String fullName) {
-        this.fullName = fullName == null ? null : fullName.trim();
-    }
-
-    /**
-     * get:leaf
-     */
-    public Boolean getLeaf() {
-        return leaf;
-    }
-
-    /**
-     * set:leaf
-     */
-    public void setLeaf(Boolean leaf) {
-        this.leaf = leaf;
-    }
-
-    public Integer getAlibabaDptId() {
-        return alibabaDptId;
-    }
-
-    public void setAlibabaDptId(Integer alibabaDptId) {
-        this.alibabaDptId = alibabaDptId;
-    }
 }

@@ -89,24 +89,14 @@ public class CheckAppDomainExistValve {
     }
 
     public static AppDomainInfo getAppDomain(HttpServletRequest request, RunContext context) {
-        // Assert.assertNotNull(applicationDAO);
+   
         AppDomainInfo domain = (AppDomainInfo) request.getAttribute(ActionTool.REQUEST_DOMAIN_KEY);
         if (domain != null) {
             return domain;
         }
-        // Integer bizid = null;
-        // Integer appid = null;
+
         AppDomainInfo appDomain = null;
-        // Cookie cookie = getCookie(request,
-        // ChangeDomainAction.COOKIE_SELECT_APP);
-        // if (cookie == null) {
-        // // domain = new NullAppDomainInfo(applicationDAO);
-        // domain = AppDomainInfo.createAppNotAware(getRuntime());
-        // request.setAttribute(ActionTool.REQUEST_DOMAIN_KEY, domain);
-        // return domain;
-        // }
-        // Matcher match = p2.matcher(cookie.getValue());
-        // .getRuntime(request);
+        
         AppAndRuntime environment = DefaultFilter.getAppAndRuntime();
         if (environment == null) {
             domain = AppDomainInfo.createAppNotAware(RunEnvironment.getSysRuntime());
@@ -164,7 +154,7 @@ public class CheckAppDomainExistValve {
             }
             appDomain = new AppDomainInfo(app.getDptId(), app.getAppId(), runtime, // getRuntime(match),
             context);
-            appDomain.setAutoDeploy(app.getIsAutoDeploy());
+           
             break;
         }
         return appDomain;

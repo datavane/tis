@@ -112,16 +112,6 @@
 	<!-- 添加权限管理2013/01/24 end -->
 
 
-
-
-	<bean id="rdsDbDAO"
-		class="com.qlangtech.tis.manage.biz.dal.dao.impl.RdsDbDAOImpl"
-		parent="basicEndSearchDao" />
-
-	<bean id="rdsTableDAO"
-		class="com.qlangtech.tis.manage.biz.dal.dao.impl.RdsTableDAOImpl"
-		parent="basicEndSearchDao" />
-
 	<bean id="applicationExtendDAO"
 		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationExtendDAOImpl"
 		parent="basicEndSearchDao" />
@@ -156,12 +146,10 @@
 		<constructor-arg index="19" ref="usrApplyDptRecordDAO" />
 
 
-		<constructor-arg index="20" ref="rdsDbDAO" />
-		<constructor-arg index="21" ref="rdsTableDAO" />
-		<constructor-arg index="22" ref="applicationExtendDAO" />
+		<constructor-arg index="20" ref="applicationExtendDAO" />
 
-		<constructor-arg index="23" ref="zooKeeperGetter" />
-		<constructor-arg index="24" ref="clusterStateReader" />
+		<constructor-arg index="21" ref="zooKeeperGetter" />
+		<constructor-arg index="22" ref="clusterStateReader" />
 
 	</bean>
 

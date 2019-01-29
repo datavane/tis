@@ -31,6 +31,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.qlangtech.tis.manage.common.Config;
+
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
@@ -38,10 +40,9 @@ import org.slf4j.LoggerFactory;
 public enum RunEnvironment {
 
 	// ///////////
-	DAILY("daily", (short) 0, "日常环境", GlobalConfigRepositoryHost.DAILY_GlobalConfigRepositoryHost, ""),
+	DAILY("daily", (short) 0, "日常环境", Config.getTisRepository(), Config.getTisRepository()),
 	// //////////////////////
-	ONLINE("online", (short) 2, "生产环境", GlobalConfigRepositoryHost.ONLINE_GlobalConfigRepositoryHost, // /
-			"http://tis2.2dfire-inc.com");
+	ONLINE("online", (short) 2, "生产环境", Config.getTisRepository(), Config.getTisRepository());
 
 	private static final Logger logger = LoggerFactory.getLogger(RunEnvironment.class);
 

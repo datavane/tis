@@ -66,7 +66,7 @@ BasicModule {
 
     // terminatorTriggerBizDalDaoFacade
     @Autowired
-    public void setTerminatorTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
+    public void setTisTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
         this.triggerContext = triggerDaoContext;
     }
 

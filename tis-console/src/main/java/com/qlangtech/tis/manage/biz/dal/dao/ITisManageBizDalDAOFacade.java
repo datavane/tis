@@ -43,11 +43,5 @@ public interface ITisManageBizDalDAOFacade {
 
     IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO();
 
-    // 聚石塔相关表
-    // IIsvDAO getIsvDAO();
-    IRdsDbDAO getRdsDbDAO();
-
-    IRdsTableDAO getRdsTableDAO();
-
     IApplicationExtendDAO getApplicationExtendDAO();
 }

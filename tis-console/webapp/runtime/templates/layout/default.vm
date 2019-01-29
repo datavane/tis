@@ -213,6 +213,13 @@ function opendialog(title,src,width,height,callbackfunc){
    
 </script>
 <style type="text/css"><!--
+
+.tis-bg-info{
+ background-color:#ede6e6;
+ padding:7px;
+ color:#999999;
+}
+
   .help{
      background: url($manageModule.setTarget("/imgs/help.png"))  no-repeat scroll left center transparent;
      padding-left:20px;

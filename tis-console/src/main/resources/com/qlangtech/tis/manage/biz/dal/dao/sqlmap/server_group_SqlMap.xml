@@ -17,7 +17,7 @@
 		<result column="is_deleted" property="deleteFlag"
 			typeHandler="com.qlangtech.tis.manage.common.ibatis.DeleteColumnTypeHandlerCallback" />
 	
-	    <result column="yunti_path" property="yuntiPath" jdbcType="VARCHAR" />
+	    
 	</resultMap>
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
@@ -62,7 +62,7 @@
 		-->
 		select aa.gid, app_id, runt_environment, group_index,
 		publish_snapshot_id, create_time,
-		update_time, is_deleted,yunti_path
+		update_time, is_deleted
 		from ( select gid from server_group
 		<isParameterPresent>
 			<include refid="server_group.ibatorgenerated_Example_Where_Clause" />
@@ -81,7 +81,7 @@
 		-->
 		select gid, app_id, runt_environment, group_index,
 		publish_snapshot_id, create_time,
-		update_time, is_deleted,yunti_path
+		update_time, is_deleted
 		from server_group
 		where gid = #gid:INTEGER#
 	</select>
@@ -91,7 +91,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup">
 		select gg.gid, gg.app_id, gg.runt_environment, gg.group_index,
 		gg.publish_snapshot_id, gg.create_time,
-		gg.update_time, gg.is_deleted, if(LENGTH(TRIM(gg.yunti_path)) >0,gg.yunti_path,app.yunti_path) as yunti_path
+		gg.update_time, gg.is_deleted
 		from server_group gg inner join application app on(gg.app_id = app.app_id) 
 		where app.project_name = #appName:VARCHAR# and gg.runt_environment = #runtEnvironment:INTEGER# 
 		      and gg.group_index = #groupIndex:INTEGER# and gg.is_deleted = 'N'
@@ -166,9 +166,7 @@
 				is_deleted
       </isNotNull>
       
-        <isNotNull prepend="," property="yuntiPath" >
-        yunti_path
-      </isNotNull>
+      
 			)
 		</dynamic>
 		values
@@ -198,9 +196,7 @@
 				#deleteFlag,handler=com.qlangtech.tis.manage.common.ibatis.DeleteColumnTypeHandlerCallback#
       </isNotNull>
       
-      <isNotNull prepend="," property="yuntiPath" >
-                #yuntiPath:VARCHAR#
-      </isNotNull>
+   
 			)
 		</dynamic>
 		<selectKey resultClass="INTEGER">
@@ -249,9 +245,7 @@
 				is_deleted = #record.deleteFlag,handler=com.qlangtech.tis.manage.common.ibatis.DeleteColumnTypeHandlerCallback#
       </isNotNull>
       
-        <isNotNull prepend="," property="record.yuntiPath" >
-        yunti_path = #record.yuntiPath:VARCHAR#
-      </isNotNull>
+       
 		</dynamic>
 		<isParameterPresent>
 			<include refid="server_group.ibatorgenerated_Example_Where_Clause" />

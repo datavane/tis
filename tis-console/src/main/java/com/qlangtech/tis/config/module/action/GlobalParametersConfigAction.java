@@ -35,7 +35,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 
 /*
- * 取得全局配置参数
+ * 取得/设置全局配置参数
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

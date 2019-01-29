@@ -23,37 +23,37 @@
  */
 package com.qlangtech.tis.runtime.module.control;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.manage.biz.dal.pojo.FuncCriteria;
+//import java.util.ArrayList;
+//import java.util.HashMap;
+//import java.util.List;
+//import java.util.Map;
+//import com.alibaba.citrus.turbine.Context;
+//import com.qlangtech.tis.manage.biz.dal.pojo.FuncCriteria;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
-import com.qlangtech.tis.runtime.module.screen.FuncList.FuncGroup;
+//import com.qlangtech.tis.runtime.module.screen.FuncList.FuncGroup;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class FuncList extends BasicScreen {
+public abstract class FuncList extends BasicScreen {
 
     private static final long serialVersionUID = 1L;
-
-    @Override
-    public void execute(Context context) throws Exception {
-        FuncCriteria criteria = new FuncCriteria();
-        // criteria.setOrderByClause("func_group_key desc");
-        Map<FuncGroup, List<com.qlangtech.tis.manage.biz.dal.pojo.Func>> funcGroup = new HashMap<FuncGroup, List<com.qlangtech.tis.manage.biz.dal.pojo.Func>>();
-        List<com.qlangtech.tis.manage.biz.dal.pojo.Func> funcCluter = null;
-        for (com.qlangtech.tis.manage.biz.dal.pojo.Func func : this.getFuncDAO().selectByExample(criteria)) {
-            FuncGroup key = new FuncGroup(func.getFuncGroupKey(), func.getFuncGroupName());
-            if ((funcCluter = funcGroup.get(key)) == null) {
-                funcCluter = new ArrayList<com.qlangtech.tis.manage.biz.dal.pojo.Func>();
-                funcGroup.put(key, funcCluter);
-            }
-            funcCluter.add(func);
-        }
-        context.put("funclist", funcGroup);
-    }
+//
+//    @Override
+//    public void execute(Context context) throws Exception {
+//        FuncCriteria criteria = new FuncCriteria();
+//        // criteria.setOrderByClause("func_group_key desc");
+//        Map<FuncGroup, List<com.qlangtech.tis.manage.biz.dal.pojo.Func>> funcGroup = new HashMap<FuncGroup, List<com.qlangtech.tis.manage.biz.dal.pojo.Func>>();
+//        List<com.qlangtech.tis.manage.biz.dal.pojo.Func> funcCluter = null;
+//        for (com.qlangtech.tis.manage.biz.dal.pojo.Func func : this.getFuncDAO().selectByExample(criteria)) {
+//            FuncGroup key = new FuncGroup(func.getFuncGroupKey(), func.getFuncGroupName());
+//            if ((funcCluter = funcGroup.get(key)) == null) {
+//                funcCluter = new ArrayList<com.qlangtech.tis.manage.biz.dal.pojo.Func>();
+//                funcGroup.put(key, funcCluter);
+//            }
+//            funcCluter.add(func);
+//        }
+//        context.put("funclist", funcGroup);
+//    }
 }

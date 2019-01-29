@@ -37,9 +37,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.TISZkStateReader;
@@ -49,14 +51,15 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
-import com.qlangtech.tis.TisZkClient;
 import com.koubei.web.tag.pager.LinkBuilder;
 import com.koubei.web.tag.pager.Pager;
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.ActionSupport;
+import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.manage.biz.dal.dao.IAppPackageDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IAppTriggerJobRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
@@ -67,8 +70,6 @@ import com.qlangtech.tis.manage.biz.dal.dao.IFuncDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncRoleRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IGlobalAppResourceDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IGroupInfoDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IRdsDbDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IRdsTableDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IResourceParametersDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IRoleDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
@@ -107,6 +108,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.MessageHandler;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
+
 import junit.framework.Assert;
 
 /* *
@@ -962,18 +964,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, M
 
 	public IUploadResourceDAO getUploadResourceDAO() {
 		return getDaoContext().getUploadResourceDAO();
-	}
-
-	// // 聚石塔相关
-	// public IIsvDAO getIsvDAO() {
-	// return getDaoContext().getIsvDAO();
-	// }
-	public IRdsDbDAO getRdsDbDAO() {
-		return getDaoContext().getRdsDbDAO();
-	}
-
-	public IRdsTableDAO getRdsTableDAO() {
-		return getDaoContext().getRdsTableDAO();
 	}
 
 	public IApplicationExtendDAO getApplicationExtendDAO() {
