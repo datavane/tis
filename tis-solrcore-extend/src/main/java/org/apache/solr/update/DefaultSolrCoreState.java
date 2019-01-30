@@ -38,7 +38,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.MergePolicy;
 import org.apache.lucene.search.Sort;
 import org.apache.solr.cloud.ActionThrottle;
-import org.apache.solr.cloud.RecoveryStrategy;
+import org.apache.solr.cloud.bak.RecoveryStrategy;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.core.CoreContainer;
