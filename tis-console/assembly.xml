@@ -38,7 +38,7 @@
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
 
-<!-- 
+<!--  -->
 		<fileSet>
 			<directory>${basedir}/webapp</directory>
 			<excludes>
@@ -46,7 +46,7 @@
 			</excludes>
 			<outputDirectory>/webapp</outputDirectory>
 		</fileSet>
- -->
+
 	</fileSets>
 	<dependencySets>
 

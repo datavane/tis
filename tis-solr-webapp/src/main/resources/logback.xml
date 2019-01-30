@@ -7,12 +7,13 @@
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<target>System.out</target>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
 		<encoder>
 			<pattern>${PATTERN}</pattern>
 			<charset>utf8</charset>
 		</encoder>
-		<!-- <filter class="com.alibaba.citrus.logconfig.logback.LevelRangeFilter"> 
-			<levelMax>INFO</levelMax> </filter> -->
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern>
 		</layout>
@@ -106,7 +107,7 @@
 
 	<root>
 		<level value="ERROR" />
-		<appender-ref ref="solr-appender" />
+		<appender-ref ref="STDOUT" />
 	</root>
 
 </configuration>
