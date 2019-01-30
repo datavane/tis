@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.koubei.util;
+package com.qlangtech.tis.util;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）

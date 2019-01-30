@@ -23,7 +23,6 @@
  */
 package com.qlangtech.tis;
 
-import com.qlangtech.tis.servlet.CheckHealthJettyRunner;
 import com.qlangtech.tis.servlet.JettyTISRunner;
 
 /*
@@ -34,11 +33,11 @@ import com.qlangtech.tis.servlet.JettyTISRunner;
  */
 public class Application {
 
-    private static CheckHealthJettyRunner checkHealth;
+   // private static CheckHealthJettyRunner checkHealth;
 
     public static void main(String[] args) throws Exception {
         JettyTISRunner.main(args);
-        checkHealth = new CheckHealthJettyRunner("/solr", 8088);
-        checkHealth.start();
+//        checkHealth = new CheckHealthJettyRunner("/solr", 8088);
+//        checkHealth.start();
     }
 }
