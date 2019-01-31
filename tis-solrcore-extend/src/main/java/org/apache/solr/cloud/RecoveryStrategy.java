@@ -867,7 +867,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 		} catch (Throwable e) {
 			// log.error(e.getMessage(), e);
 		}
-		
+		//▼▼▼ 百岁修改20190130
 		Future<RecoveryInfo> future = null;
 		// 这里修改了
 		if (fulldumptimePoint > 0 && core.isReloaded()) {

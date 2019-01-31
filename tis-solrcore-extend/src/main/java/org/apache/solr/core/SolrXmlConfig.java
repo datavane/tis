@@ -57,9 +57,8 @@ import com.google.common.base.Strings;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 
 
-/*
- * @author 百岁（baisui@qlangtech.com）
- * @date 2019年1月17日
+/**
+ *
  */
 public class SolrXmlConfig {
 
@@ -368,7 +367,8 @@ public class SolrXmlConfig {
     String hostContext = required("solrcloud", "hostContext", removeValue(nl, "hostContext"));
 
     CloudConfig.CloudConfigBuilder builder = new CloudConfig.CloudConfigBuilder(hostName, hostPort, hostContext);
-    // ▼▼ baisui add 2015/12/08
+    
+    // ▼▼ baisui add 2019/01/31
     TSearcherConfigFetcher configFetcher = TSearcherConfigFetcher.get();
     builder.setZkHost(configFetcher.getZkAddress());
     for (Map.Entry<String, Object> entry : nl) {
@@ -394,7 +394,7 @@ public class SolrXmlConfig {
           builder.setAutoReplicaFailoverWaitAfterExpiration(parseInt(name, value));
           break;
         case "zkHost":
-        //  builder.setZkHost(value);
+          //builder.setZkHost(value);
           break;
         case "genericCoreNodeNames":
           builder.setUseGenericCoreNames(Boolean.parseBoolean(value));
