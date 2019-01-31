@@ -293,7 +293,13 @@ public class CoreAction extends CoreDefineModule {
             throw new IllegalStateException("overseer ephemeral node id:" + id + " is illegal");
         }
         String routerName = "search4personas".equals(collectionName) ? "strhash" : "plain";
-        StringBuffer urlBuffer = new StringBuffer("http://" + StringUtils.substringBefore(arr[1], "_") + "/solr/admin/collections?action=CREATE&name=" + collectionName + "&router.name=" + routerName + "&router.field=" + routerField + "&replicationFactor=" + repliation + "&numShards=" + groupNum + "&collection.configName=2dfire_test_config&maxShardsPerNode=" + MAX_SHARDS_PER_NODE + "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(nodeSet, getEncode()) + "&property.configsnapshotid=" + publishSnapshotId);
+        StringBuffer urlBuffer = new StringBuffer("http://" + StringUtils.substringBefore(arr[1], "_") //
+        + "/solr/admin/collections?action=CREATE&name=" + collectionName + "&router.name=" + routerName //
+        + "&router.field=" + routerField + "&replicationFactor=" + repliation + "&numShards=" + groupNum //
+        + "&collection.configName=tis_mock_config&maxShardsPerNode=" + MAX_SHARDS_PER_NODE //
+        + "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(nodeSet, getEncode()) //
+        + "&property.configsnapshotid=" + publishSnapshotId);//
+        
         if (CollectionUtils.isNotEmpty(rules)) {
             for (String rule : rules) {
                 urlBuffer.append("&").append(DocCollection.RULE).append("=").append(URLEncoder.encode(rule, getEncode()));
