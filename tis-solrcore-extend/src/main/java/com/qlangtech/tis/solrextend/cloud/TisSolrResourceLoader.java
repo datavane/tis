@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -47,6 +48,7 @@ import org.apache.solr.core.SolrResourceNotFoundException;
 import org.apache.solr.handler.IndexFetcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
@@ -54,7 +56,6 @@ import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.common.TerminatorRepositoryException;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
