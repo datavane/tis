@@ -6,7 +6,7 @@
        ">
 
 	<context:property-placeholder
-		location="classpath:com/qlangtech/tis/manage/config.properties" />
+		location="classpath:tis-web-config/config.properties" />
 
 	<!-- 百岁添加 fordao -->
 	<import resource="classpath:/datasource-config-2dfire.xml" />
