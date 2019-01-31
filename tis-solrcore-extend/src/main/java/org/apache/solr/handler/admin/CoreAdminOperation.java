@@ -40,6 +40,41 @@
  */
 package org.apache.solr.handler.admin;
 
+import static org.apache.solr.common.params.CommonParams.NAME;
+import static org.apache.solr.common.params.CoreAdminParams.COLLECTION;
+import static org.apache.solr.common.params.CoreAdminParams.REPLICA;
+import static org.apache.solr.common.params.CoreAdminParams.SHARD;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.BACKUPCORE;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.CREATE;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.CREATESNAPSHOT;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.DELETESNAPSHOT;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.INVOKE;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.LISTSNAPSHOTS;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.MERGEINDEXES;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.OVERSEEROP;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.PREPRECOVERY;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.REJOINLEADERELECTION;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.RELOAD;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.RENAME;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.REQUESTAPPLYUPDATES;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.REQUESTBUFFERUPDATES;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.REQUESTRECOVERY;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.REQUESTSTATUS;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.REQUESTSYNCSHARD;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.RESTORECORE;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.SPLIT;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.STATUS;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.SWAP;
+import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.UNLOAD;
+import static org.apache.solr.handler.admin.CoreAdminHandler.COMPLETED;
+import static org.apache.solr.handler.admin.CoreAdminHandler.FAILED;
+import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE;
+import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE_MESSAGE;
+import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE_STATUS;
+import static org.apache.solr.handler.admin.CoreAdminHandler.RUNNING;
+import static org.apache.solr.handler.admin.CoreAdminHandler.buildCoreParams;
+import static org.apache.solr.handler.admin.CoreAdminHandler.normalizePath;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -64,6 +99,7 @@ import org.apache.solr.core.SolrInfoBean;
 import org.apache.solr.core.snapshots.SolrSnapshotManager;
 import org.apache.solr.core.snapshots.SolrSnapshotMetaDataManager;
 import org.apache.solr.core.snapshots.SolrSnapshotMetaDataManager.SnapshotMetaData;
+import org.apache.solr.handler.admin.CoreAdminHandler.CallInfo;
 import org.apache.solr.handler.admin.CoreAdminHandler.CoreAdminOp;
 import org.apache.solr.metrics.SolrMetricManager;
 import org.apache.solr.search.SolrIndexSearcher;
@@ -74,21 +110,6 @@ import org.apache.solr.util.RefCounted;
 import org.apache.solr.util.TestInjection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.solr.common.params.CommonParams.NAME;
-import static org.apache.solr.common.params.CoreAdminParams.COLLECTION;
-import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.*;
-import static org.apache.solr.common.params.CoreAdminParams.REPLICA;
-import static org.apache.solr.common.params.CoreAdminParams.SHARD;
-import static org.apache.solr.handler.admin.CoreAdminHandler.COMPLETED;
-import static org.apache.solr.handler.admin.CoreAdminHandler.CallInfo;
-import static org.apache.solr.handler.admin.CoreAdminHandler.FAILED;
-import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE;
-import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE_MESSAGE;
-import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE_STATUS;
-import static org.apache.solr.handler.admin.CoreAdminHandler.RUNNING;
-import static org.apache.solr.handler.admin.CoreAdminHandler.buildCoreParams;
-import static org.apache.solr.handler.admin.CoreAdminHandler.normalizePath;
 
 enum CoreAdminOperation implements CoreAdminOp {
 
@@ -240,7 +261,7 @@ enum CoreAdminOperation implements CoreAdminOp {
   }),
 
   OVERSEEROP_OP(OVERSEEROP, it -> {
-    ZkController zkController = it.handler.coreContainer.getZkController();
+	  ZkController zkController = it.handler.coreContainer.getZkController();
     if (zkController != null) {
       String op = it.req.getParams().get("op");
       String electionNode = it.req.getParams().get("electionNode");
@@ -253,7 +274,7 @@ enum CoreAdminOperation implements CoreAdminOp {
   }),
 
   REJOINLEADERELECTION_OP(REJOINLEADERELECTION, it -> {
-    ZkController zkController = it.handler.coreContainer.getZkController();
+	  ZkController zkController = it.handler.coreContainer.getZkController();
 
     if (zkController != null) {
       zkController.rejoinShardLeaderElection(it.req.getParams());

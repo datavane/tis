@@ -24,6 +24,7 @@
 package com.qlangtech.tis.solrextend.handler.component.s4product;
 
 import java.io.IOException;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.cloud.CloudDescriptor;
 import org.apache.solr.cloud.ZkController;

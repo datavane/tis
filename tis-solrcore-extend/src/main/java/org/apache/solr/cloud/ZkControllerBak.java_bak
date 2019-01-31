@@ -139,7 +139,7 @@ import static org.apache.solr.common.cloud.ZkStateReader.SHARD_ID_PROP;
  * <p>
  * TODO: exceptions during close on attempts to update cloud state
  */
-public class ZkController {
+public class ZkControllerBak {
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	static final int WAIT_DOWN_STATES_TIMEOUT_SECONDS = 60;
@@ -294,7 +294,7 @@ public class ZkController {
 		}
 	}
 
-	public ZkController(final CoreContainer cc, String zkServerAddress, int zkClientConnectTimeout,
+	public ZkControllerBak(final CoreContainer cc, String zkServerAddress, int zkClientConnectTimeout,
 			CloudConfig cloudConfig, final CurrentCoreDescriptorProvider registerOnReconnect)
 			throws InterruptedException, TimeoutException, IOException {
 
@@ -455,7 +455,7 @@ public class ZkController {
 					@Override
 					public void command() {
 						try {
-							ZkController.this.overseer.close();
+							ZkControllerBak.this.overseer.close();
 						} catch (Exception e) {
 							log.error("Error trying to stop any Overseer threads", e);
 						}
@@ -856,7 +856,7 @@ public class ZkController {
 	}
 
 	private static String getDefaultConfigDirFromClasspath(String serverSubPath) {
-		URL classpathUrl = ZkController.class.getClassLoader().getResource(serverSubPath);
+		URL classpathUrl = ZkControllerBak.class.getClassLoader().getResource(serverSubPath);
 		try {
 			if (classpathUrl != null && new File(classpathUrl.toURI()).exists()) {
 				return new File(classpathUrl.toURI()).getAbsolutePath();
