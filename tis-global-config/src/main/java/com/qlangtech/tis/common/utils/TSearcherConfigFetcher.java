@@ -107,24 +107,6 @@ public class TSearcherConfigFetcher {
 	// 最大数据库导入线程数目
 	private final Integer maxDBDumpThreadCount;
 
-//	private TSearcherConfigFetcher() {
-//		super();
-//		this.mqStatisticsHost = null;
-//		this.indexBuildCenterHost = null;
-//		this.assembleHost = null;
-//		this.terminatorConsoleHost = null;
-//		this.zkAddress = null;
-//		this.onlineZkAddress = null;
-//		this.hdfsAddress = null;
-//		// this.runEnvironment = null;
-//		this.logFlumeAgent = null;
-//		this.logSourceAddress = null;
-//		this.job_rpcserver = null;
-//		this.job_transserver = null;
-//		this.hiveHost = null;
-//		this.maxDBDumpThreadCount = null;
-//	}
-
 	private TSearcherConfigFetcher(String serviceName) {
 		final RunEnvironment runtime = RunEnvironment.getSysRuntime();
 		ServiceConfig servceConfig = null;
@@ -199,8 +181,6 @@ public class TSearcherConfigFetcher {
 		// runEnvironment);
 		// Assert.assertNotNull("cnaddress can not be null", this.cnaddress);
 	}
-
-	
 
 	private static class ServiceConfig {
 

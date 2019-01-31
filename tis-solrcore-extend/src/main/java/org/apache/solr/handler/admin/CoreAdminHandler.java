@@ -477,7 +477,7 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 
 	private static final Map<String, CoreAdminOperation> opMap = new HashMap<>();
 
-	static class CallInfo {
+	 class CallInfo {
 		final CoreAdminHandler handler;
 		final SolrQueryRequest req;
 		final SolrQueryResponse rsp;
@@ -491,7 +491,7 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 		}
 
 		void call() throws Exception {
-//			preCoreAdminHandlerExecute(req, rsp, op);
+			preCoreAdminHandlerExecute(req, rsp, op);
 			op.execute(this);
 //			postCoreAdminHandlerExecute(req, rsp, op);
 		}
@@ -511,7 +511,6 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 	protected void postCoreAdminHandlerExecute(SolrQueryRequest req, SolrQueryResponse rsp, CoreAdminOperation op) {
 
 	}
-
 	// baisui add end
 
 	static {

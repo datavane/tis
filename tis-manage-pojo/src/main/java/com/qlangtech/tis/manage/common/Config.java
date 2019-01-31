@@ -61,10 +61,9 @@ public class Config {
 	// private Integer dptTerminatorId;
 
 	private static String bundlePath;
-	
-	
-	public static  int getDptTisId(){
-return 1;	
+
+	public static int getDptTisId() {
+		return 1;
 	}
 
 	/**
