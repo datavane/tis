@@ -78,8 +78,8 @@ public abstract class AppsFetcher implements IAppsFetcher {
         dpt.setFullName(usr.getDptName());
         Assert.assertNotNull("dpt.getDptId() can not be null", dpt.getDptId());
         // if (user.getAppsFetcher() == null) {
-        if (dpt.getDptId().equals(Config.getDptTerminatorId())) {
-            // 终搜管理者
+        if (dpt.getDptId().equals(Config.getDptTisId())) {
+            // TIS管理者
             return // user.setAppsFetcher(
             new TerminatorAdminAppsFetcher(user, dpt, // );
             context);

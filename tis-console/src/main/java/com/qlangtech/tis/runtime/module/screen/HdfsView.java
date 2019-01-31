@@ -40,6 +40,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -52,283 +53,284 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  */
 public class HdfsView extends BasicScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    // private static final String hdfs_host = "hdfs://10.232.36.131:9000";
-    static {
-    }
+	// private static final String hdfs_host = "hdfs://10.232.36.131:9000";
+	static {
+	}
 
-    private String appName;
+	private String appName;
 
-    // private String parent;
-    // @Override
-    // public String execute() throws Exception {
-    // 
-    // return INPUT;
-    // }
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+	// private String parent;
+	// @Override
+	// public String execute() throws Exception {
+	//
+	// return INPUT;
+	// }
+	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 
-    public String getPageName() {
-        return "/runtime/hdfs_view.htm";
-    }
+	public String getPageName() {
+		return "/runtime/hdfs_view.htm";
+	}
 
-    @Override
-    public void execute(Context context) throws Exception {
-        this.enableChangeDomain(context);
-        String parent = this.getString("parent");
-        Path path = null;
-        String appName = this.getAppDomain().getAppName();
-        if (StringUtils.isBlank(parent)) {
-            // || StringUtils.indexOf(parent, appName) < 1) {
-            path = getDefaultPath(appName);
-        } else {
-            path = new Path(parent);
-        }
-        context.put("currentpath", Config.getHdfsNameNodeHost(this.getAppDomain().getRunEnvironment()) + parsePath(path));
-        final List<HdfsNode> childNodes = new ArrayList<HdfsNode>();
-        if (!getFilesystem().exists(path)) {
-            context.put("childnodes", childNodes);
-            this.forward("hdfsViewTemplate.vm");
-            return;
-        }
-        FileStatus[] fileStatus = getFilesystem().listStatus(path);
-        HdfsNode hdfsNode = null;
-        FileStatus status = null;
-        for (int i = 0; fileStatus != null && i < fileStatus.length; i++) {
-            status = fileStatus[i];
-            hdfsNode = new HdfsNode(path);
-            // hdfsNode.pId = path.toString();
-            hdfsNode.name = status.getPath().getName();
-            hdfsNode.id = URLEncoder.encode(path.toString() + "/" + hdfsNode.name, getEncode());
-            hdfsNode.modifyTime = status.getModificationTime();
-            hdfsNode.size = status.getLen();
-            hdfsNode.parent = status.isDir();
-            if (hdfsNode.isSuccessFile()) {
-                InputStream reader = getFilesystem().open(status.getPath());
-                hdfsNode.memo = "一共导入了" + IOUtils.toString(reader) + "条数据";
-                IOUtils.closeQuietly(reader);
-            }
-            childNodes.add(hdfsNode);
-        }
-        // Collections.sort(childNodes, new Comparator<HdfsNode>() {
-        // @Override
-        // public int compare(HdfsNode o1, HdfsNode o2) {
-        // return (int) (o2.modifyTime - o1.modifyTime);
-        // }
-        // });
-        // this.setChildNodes(childNodes);
-        // writeJson2Response(childNodes);
-        // return "childnodes";
-        context.put("childnodes", childNodes);
-        this.forward("hdfsViewTemplate.vm");
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.enableChangeDomain(context);
+		String parent = this.getString("parent");
+		Path path = null;
+		String appName = this.getAppDomain().getAppName();
+		if (StringUtils.isBlank(parent)) {
+			// || StringUtils.indexOf(parent, appName) < 1) {
+			path = getDefaultPath(appName);
+		} else {
+			path = new Path(parent);
+		}
 
-    /**
-     * @param appName
-     * @return
-     */
-    protected Path getDefaultPath(String appName) {
-        return new Path("/user/admin/" + appName);
-    }
+		context.put("currentpath", TSearcherConfigFetcher.get().getHdfsAddress() + parsePath(path));
+		final List<HdfsNode> childNodes = new ArrayList<HdfsNode>();
+		if (!getFilesystem().exists(path)) {
+			context.put("childnodes", childNodes);
+			this.forward("hdfsViewTemplate.vm");
+			return;
+		}
+		FileStatus[] fileStatus = getFilesystem().listStatus(path);
+		HdfsNode hdfsNode = null;
+		FileStatus status = null;
+		for (int i = 0; fileStatus != null && i < fileStatus.length; i++) {
+			status = fileStatus[i];
+			hdfsNode = new HdfsNode(path);
+			// hdfsNode.pId = path.toString();
+			hdfsNode.name = status.getPath().getName();
+			hdfsNode.id = URLEncoder.encode(path.toString() + "/" + hdfsNode.name, getEncode());
+			hdfsNode.modifyTime = status.getModificationTime();
+			hdfsNode.size = status.getLen();
+			hdfsNode.parent = status.isDir();
+			if (hdfsNode.isSuccessFile()) {
+				InputStream reader = getFilesystem().open(status.getPath());
+				hdfsNode.memo = "一共导入了" + IOUtils.toString(reader) + "条数据";
+				IOUtils.closeQuietly(reader);
+			}
+			childNodes.add(hdfsNode);
+		}
+		// Collections.sort(childNodes, new Comparator<HdfsNode>() {
+		// @Override
+		// public int compare(HdfsNode o1, HdfsNode o2) {
+		// return (int) (o2.modifyTime - o1.modifyTime);
+		// }
+		// });
+		// this.setChildNodes(childNodes);
+		// writeJson2Response(childNodes);
+		// return "childnodes";
+		context.put("childnodes", childNodes);
+		this.forward("hdfsViewTemplate.vm");
+	}
 
-    private String parsePath(Path path) throws Exception {
-        String[] p = StringUtils.split(path.toString(), "/");
-        // if (p.length < 2) {
-        // return path.toString();
-        // }
-        StringBuffer result = new StringBuffer();
-        StringBuffer pathTemp = new StringBuffer();
-        for (int i = 0; i < p.length; i++) {
-            result.append("/");
-            pathTemp.append("/").append(p[i]);
-            // if (i < 1) {
-            // result.append(p[i]);
-            // } else {
-            result.append("<a target='_self' class='path' href='" + this.getPageName() + "?parent=");
-            result.append(URLEncoder.encode(pathTemp.toString(), getEncode()));
-            result.append("'>");
-            result.append(p[i]);
-            result.append("</a>");
-        // }
-        }
-        return result.toString();
-    }
+	/**
+	 * @param appName
+	 * @return
+	 */
+	protected Path getDefaultPath(String appName) {
+		return new Path("/user/admin/" + appName);
+	}
 
-    // private List<HdfsNode> childNodes;
-    // public void setChildNodes(List<HdfsNode> childNodes) {
-    // this.childNodes = childNodes;
-    // }
-    public String getAppName() {
-        return appName;
-    }
+	private String parsePath(Path path) throws Exception {
+		String[] p = StringUtils.split(path.toString(), "/");
+		// if (p.length < 2) {
+		// return path.toString();
+		// }
+		StringBuffer result = new StringBuffer();
+		StringBuffer pathTemp = new StringBuffer();
+		for (int i = 0; i < p.length; i++) {
+			result.append("/");
+			pathTemp.append("/").append(p[i]);
+			// if (i < 1) {
+			// result.append(p[i]);
+			// } else {
+			result.append("<a target='_self' class='path' href='" + this.getPageName() + "?parent=");
+			result.append(URLEncoder.encode(pathTemp.toString(), getEncode()));
+			result.append("'>");
+			result.append(p[i]);
+			result.append("</a>");
+			// }
+		}
+		return result.toString();
+	}
 
-    public void setAppName(String appName) {
-        this.appName = appName;
-    }
+	// private List<HdfsNode> childNodes;
+	// public void setChildNodes(List<HdfsNode> childNodes) {
+	// this.childNodes = childNodes;
+	// }
+	public String getAppName() {
+		return appName;
+	}
 
-    // public static void main(String[] arg) throws Exception {
-    // System.out.println(getFilesystem());
-    // 
-    // FSDataInputStream reader = getFilesystem()
-    // .open(
-    // new Path(
-    // "/user/admin/search4pixUser/all/0/20120513220000/search4pixUser.suc"));
-    // 
-    // // 读取success文件
-    // System.out.println("dump count :" + IOUtils.toString(reader));
-    // 
-    // IOUtils.closeQuietly(reader);
-    // }
-    private static final Map<RunEnvironment, FileSystem> fileSysMap = new HashMap<RunEnvironment, FileSystem>();
+	public void setAppName(String appName) {
+		this.appName = appName;
+	}
 
-    protected FileSystem getFilesystem() {
-        RunEnvironment envi = this.getAppDomain().getRunEnvironment();
-        return getFilesystem(envi);
-    }
+	// public static void main(String[] arg) throws Exception {
+	// System.out.println(getFilesystem());
+	//
+	// FSDataInputStream reader = getFilesystem()
+	// .open(
+	// new Path(
+	// "/user/admin/search4pixUser/all/0/20120513220000/search4pixUser.suc"));
+	//
+	// // 读取success文件
+	// System.out.println("dump count :" + IOUtils.toString(reader));
+	//
+	// IOUtils.closeQuietly(reader);
+	// }
+	private static final Map<RunEnvironment, FileSystem> fileSysMap = new HashMap<RunEnvironment, FileSystem>();
 
-    /**
-     * @return the filesystem
-     */
-    protected FileSystem getFilesystem(RunEnvironment envi) {
-        FileSystem fileSys = fileSysMap.get(envi);
-        if (fileSys == null) {
-            fileSys = TISHdfsUtils.getFileSystem();
-            fileSysMap.put(envi, fileSys);
-        }
-        return fileSys;
-    }
+	protected FileSystem getFilesystem() {
+		RunEnvironment envi = this.getAppDomain().getRunEnvironment();
+		return getFilesystem(envi);
+	}
 
-    // private FileSystem createFileSystem(String hdfsHost) {
-    // Configuration configuration = new Configuration();
-    // FileSystem fileSys = null;
-    // if (StringUtils.isEmpty(hdfsHost)) {
-    // throw new IllegalStateException("hdfsHost can not be null");
-    // }
-    // try {
-    // configuration.set("fs.default.name", hdfsHost);
-    // // configuration.set("mapred.job.tracker",
-    // // "10.232.36.131:9001");
-    // // configuration.set("mapred.local.dir",
-    // // "/home/yusen/hadoop/mapred/local");
-    // // configuration.set("mapred.system.dir",
-    // // "/home/yusen/hadoop/tmp/mapred/system");
-    // // configuration.setInt("dump.split.size", 2);
-    // //
-    // configuration.addResource("core-site.xml");
-    // configuration.addResource("mapred-site.xml");
-    // 
-    // fileSys = FileSystem.get(configuration);//
-    // FileSystem.newInstance(configuration);
-    // 
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // return fileSys;
-    // }
-    public static void main(String[] arg) throws Exception {
-    // ClassLoader loader = HdfsView.class.getClassLoader();
-    // System.out.println(loader);
-    // System.out.println(loader
-    // .getResource("org/apache/hadoop/ipc/Client.class"));
-    // HdfsView view = new HdfsView();
-    // 
-    // FileSystem fs = view.createFileSystem("hdfs://10.1.6.211:9000");
-    // 
-    // FileStatus[] fileStatus = fs.listStatus(new Path("/user/hive"));
-    // FileStatus status = null;
-    // for (int i = 0; fileStatus != null && i < fileStatus.length; i++) {
-    // status = fileStatus[i];
-    // 
-    // System.out.println(status.getPath());
-    // 
-    // // System.out.println("path:" + .getPath());
-    // // System.out.println("path:" + fileStatus[i].getPath().getName());
-    // // System.out.println("last modify:"
-    // // + new Date(fileStatus[i].getModificationTime()));
-    // //
-    // // System.out.println(fileStatus[i].isDir());
-    // //
-    // // System.out.println();
-    // 
-    // }
-    }
+	/**
+	 * @return the filesystem
+	 */
+	protected FileSystem getFilesystem(RunEnvironment envi) {
+		FileSystem fileSys = fileSysMap.get(envi);
+		if (fileSys == null) {
+			fileSys = TISHdfsUtils.getFileSystem();
+			fileSysMap.put(envi, fileSys);
+		}
+		return fileSys;
+	}
 
-    public static class HdfsNode {
+	// private FileSystem createFileSystem(String hdfsHost) {
+	// Configuration configuration = new Configuration();
+	// FileSystem fileSys = null;
+	// if (StringUtils.isEmpty(hdfsHost)) {
+	// throw new IllegalStateException("hdfsHost can not be null");
+	// }
+	// try {
+	// configuration.set("fs.default.name", hdfsHost);
+	// // configuration.set("mapred.job.tracker",
+	// // "10.232.36.131:9001");
+	// // configuration.set("mapred.local.dir",
+	// // "/home/yusen/hadoop/mapred/local");
+	// // configuration.set("mapred.system.dir",
+	// // "/home/yusen/hadoop/tmp/mapred/system");
+	// // configuration.setInt("dump.split.size", 2);
+	// //
+	// configuration.addResource("core-site.xml");
+	// configuration.addResource("mapred-site.xml");
+	//
+	// fileSys = FileSystem.get(configuration);//
+	// FileSystem.newInstance(configuration);
+	//
+	// } catch (Exception e) {
+	// throw new RuntimeException(e);
+	// }
+	// return fileSys;
+	// }
+	public static void main(String[] arg) throws Exception {
+		// ClassLoader loader = HdfsView.class.getClassLoader();
+		// System.out.println(loader);
+		// System.out.println(loader
+		// .getResource("org/apache/hadoop/ipc/Client.class"));
+		// HdfsView view = new HdfsView();
+		//
+		// FileSystem fs = view.createFileSystem("hdfs://10.1.6.211:9000");
+		//
+		// FileStatus[] fileStatus = fs.listStatus(new Path("/user/hive"));
+		// FileStatus status = null;
+		// for (int i = 0; fileStatus != null && i < fileStatus.length; i++) {
+		// status = fileStatus[i];
+		//
+		// System.out.println(status.getPath());
+		//
+		// // System.out.println("path:" + .getPath());
+		// // System.out.println("path:" + fileStatus[i].getPath().getName());
+		// // System.out.println("last modify:"
+		// // + new Date(fileStatus[i].getModificationTime()));
+		// //
+		// // System.out.println(fileStatus[i].isDir());
+		// //
+		// // System.out.println();
+		//
+		// }
+	}
 
-        private final Path path;
+	public static class HdfsNode {
 
-        // },
-        public HdfsNode(Path path) {
-            super();
-            this.path = path;
-        }
+		private final Path path;
 
-        public String getPath() {
-            return (new Path(this.path, this.getName())).toString();
-        }
+		// },
+		public HdfsNode(Path path) {
+			super();
+			this.path = path;
+		}
 
-        private String id;
+		public String getPath() {
+			return (new Path(this.path, this.getName())).toString();
+		}
 
-        private String pId;
+		private String id;
 
-        // 节点名称
-        private String name;
+		private String pId;
 
-        // 是否是父亲节点
-        private boolean parent;
+		// 节点名称
+		private String name;
 
-        private long size;
+		// 是否是父亲节点
+		private boolean parent;
 
-        // private String modifyTime;
-        private long modifyTime;
+		private long size;
 
-        // 备注
-        private String memo;
+		// private String modifyTime;
+		private long modifyTime;
 
-        public String getMemo() {
-            return memo;
-        }
+		// 备注
+		private String memo;
 
-        public String getModifyTime() {
-            return dateFormat.format(new Date(modifyTime));
-        }
+		public String getMemo() {
+			return memo;
+		}
 
-        public String getId() {
-            return id;
-        }
+		public String getModifyTime() {
+			return dateFormat.format(new Date(modifyTime));
+		}
 
-        public String getpId() {
-            return pId;
-        }
+		public String getId() {
+			return id;
+		}
 
-        public boolean isParent() {
-            return parent;
-        }
+		public String getpId() {
+			return pId;
+		}
 
-        public String getName() {
-            return name;
-        }
+		public boolean isParent() {
+			return parent;
+		}
 
-        public long getSize() {
-            return size;
-        }
+		public String getName() {
+			return name;
+		}
 
-        public String getFormatSize() {
-            // ManageUtils.formatVolume(size);
-            return FileUtils.byteCountToDisplaySize(size);
-        }
+		public long getSize() {
+			return size;
+		}
 
-        /**
-         * 是否是成功文件
-         *
-         * @return
-         */
-        public boolean isSuccessFile() {
-            return !this.isParent() && StringUtils.endsWith(this.getName(), ".suc");
-        }
+		public String getFormatSize() {
+			// ManageUtils.formatVolume(size);
+			return FileUtils.byteCountToDisplaySize(size);
+		}
 
-        public boolean isDownloadable() {
-            return !this.isParent() & this.getSize() > 0;
-        }
-    }
+		/**
+		 * 是否是成功文件
+		 *
+		 * @return
+		 */
+		public boolean isSuccessFile() {
+			return !this.isParent() && StringUtils.endsWith(this.getName(), ".suc");
+		}
+
+		public boolean isDownloadable() {
+			return !this.isParent() & this.getSize() > 0;
+		}
+	}
 }

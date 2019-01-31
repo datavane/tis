@@ -23,8 +23,8 @@
  */
 package com.qlangtech.tis.runtime.module.screen;
 
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.manage.common.Config;
+//import com.alibaba.citrus.turbine.Context;
+//import com.qlangtech.tis.manage.common.Config;
 
 /*
  * 查询响应时间查看
@@ -47,12 +47,12 @@ public abstract class Queryresponse extends BasicScreen {
 	 * com.taobao.terminator.runtime.module.screen.BasicScreen#execute(com.alibaba
 	 * .citrus.turbine.Context)
 	 */
-    @Override
-    public // @Func("query_react_time_view") 不需要有权限控制
-    void execute(Context context) throws Exception {
-        this.enableChangeDomain(context);
-        context.put("groupAdapterList", createServerGroupAdapterList(false));
-        context.put("appdomain", this.getAppDomain());
-        context.put("responseTimeHost", Config.getResponseTimeHost(this.getAppDomain().getRunEnvironment()));
-    }
+//    @Override
+//    public // @Func("query_react_time_view") 不需要有权限控制
+//    void execute(Context context) throws Exception {
+//        this.enableChangeDomain(context);
+//        context.put("groupAdapterList", createServerGroupAdapterList(false));
+//        context.put("appdomain", this.getAppDomain());
+//        context.put("responseTimeHost", Config.getResponseTimeHost(this.getAppDomain().getRunEnvironment()));
+//    }
 }

@@ -178,7 +178,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
     }
 
     /**
-     * 从终搜仓库中取得资源
+     * 从TIS仓库中取得资源
      *
      * @param terminatorUrl
      * @param appName

@@ -1775,7 +1775,7 @@ public class CoreAction extends CoreDefineModule {
     // + this.getAppDomain().getAppName() + ", 您可以在应用更新页进行操作了");
     // } else if (response.isFailed()) {
     // this.addErrorMessage(context, "创建应用 : "
-    // + this.getAppDomain().getAppName() + " 失败,请联系终搜同学");
+    // + this.getAppDomain().getAppName() + " 失败,请联系TIS同学");
     // } else {
     // this.addErrorMessage(context, "processing");
     // }
