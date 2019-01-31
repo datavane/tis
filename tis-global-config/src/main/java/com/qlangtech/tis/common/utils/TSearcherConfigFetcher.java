@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
-import com.qlangtech.tis.pubhook.common.Nullable;
+//import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 /*
@@ -107,23 +107,23 @@ public class TSearcherConfigFetcher {
 	// 最大数据库导入线程数目
 	private final Integer maxDBDumpThreadCount;
 
-	private TSearcherConfigFetcher() {
-		super();
-		this.mqStatisticsHost = null;
-		this.indexBuildCenterHost = null;
-		this.assembleHost = null;
-		this.terminatorConsoleHost = null;
-		this.zkAddress = null;
-		this.onlineZkAddress = null;
-		this.hdfsAddress = null;
-		// this.runEnvironment = null;
-		this.logFlumeAgent = null;
-		this.logSourceAddress = null;
-		this.job_rpcserver = null;
-		this.job_transserver = null;
-		this.hiveHost = null;
-		this.maxDBDumpThreadCount = null;
-	}
+//	private TSearcherConfigFetcher() {
+//		super();
+//		this.mqStatisticsHost = null;
+//		this.indexBuildCenterHost = null;
+//		this.assembleHost = null;
+//		this.terminatorConsoleHost = null;
+//		this.zkAddress = null;
+//		this.onlineZkAddress = null;
+//		this.hdfsAddress = null;
+//		// this.runEnvironment = null;
+//		this.logFlumeAgent = null;
+//		this.logSourceAddress = null;
+//		this.job_rpcserver = null;
+//		this.job_transserver = null;
+//		this.hiveHost = null;
+//		this.maxDBDumpThreadCount = null;
+//	}
 
 	private TSearcherConfigFetcher(String serviceName) {
 		final RunEnvironment runtime = RunEnvironment.getSysRuntime();
@@ -200,12 +200,7 @@ public class TSearcherConfigFetcher {
 		// Assert.assertNotNull("cnaddress can not be null", this.cnaddress);
 	}
 
-	private static class NullTSearcherConfigFetcher extends TSearcherConfigFetcher implements Nullable {
-
-		public NullTSearcherConfigFetcher() {
-			super();
-		}
-	}
+	
 
 	private static class ServiceConfig {
 
