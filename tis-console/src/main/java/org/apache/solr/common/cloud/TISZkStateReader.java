@@ -246,7 +246,8 @@ public class TISZkStateReader {
 			ClusterState clusterState = this.getClusterState();
 			Set<String> collectionNames = clusterState.getCollectionStates().keySet();
 			Map<String, Integer> solrCoreCountMap = new HashMap<>();
-			clusterState.getLiveNodes().forEach(node -> solrCoreCountMap.put(node, 0));
+
+			refreshLiveNodes(null).forEach(node -> solrCoreCountMap.put(node, 0));
 			collectionNames.stream().map(clusterState::getCollection).map(DocCollection::getSlices)
 					.flatMap(// collection流转化为扁平流
 							Collection::stream)
@@ -437,7 +438,7 @@ public class TISZkStateReader {
 	/**
 	 * Refresh live_nodes.
 	 */
-	private void refreshLiveNodes(Watcher watcher) throws KeeperException, InterruptedException {
+	public Set<String> refreshLiveNodes(Watcher watcher) throws KeeperException, InterruptedException {
 		Set<String> newLiveNodes;
 		try {
 			List<String> nodeList = zkClient.getChildren(LIVE_NODES_ZKNODE, watcher, true);
@@ -458,6 +459,7 @@ public class TISZkStateReader {
 			LOG.debug("Updated live nodes from ZooKeeper... {} -> {}", new TreeSet<>(oldLiveNodes),
 					new TreeSet<>(newLiveNodes));
 		}
+		return newLiveNodes;
 	}
 
 	/**
