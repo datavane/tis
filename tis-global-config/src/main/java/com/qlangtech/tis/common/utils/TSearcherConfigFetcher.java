@@ -361,7 +361,8 @@ public class TSearcherConfigFetcher {
 		try {
 			return getInstance("search4");
 		} catch (Throwable e) {
-			return new NullTSearcherConfigFetcher();
+			// return new NullTSearcherConfigFetcher();
+			throw new RuntimeException("global params is not useable", e);
 		}
 	}
 
