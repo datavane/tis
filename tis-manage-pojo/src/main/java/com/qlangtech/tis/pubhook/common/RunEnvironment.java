@@ -70,7 +70,7 @@ public enum RunEnvironment {
 				if (runtime == null) {
 					String run = null;
 					try {
-						ResourceBundle solrwebConfig = ResourceBundle.getBundle("solr-web-config/config");
+						ResourceBundle solrwebConfig = ResourceBundle.getBundle("tis-web-config/config");
 						run = solrwebConfig.getString(RunEnvironment.KEY_RUNTIME);
 						logger.info("runtime get from \"solr-web-config/config\":" + run);
 					} catch (Throwable e) {
