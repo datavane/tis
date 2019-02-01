@@ -246,12 +246,12 @@
 	<!-- ===============tis incr cluster logger(end)=================== -->
 
 
-	<logger name="com.dfire" level="INFO">
+	<logger name="com.qlangtech" level="INFO">
 		<appender-ref ref="dump" />
 	</logger>
 
 
-	<logger name="com.dfire.tis" level="INFO">
+	<logger name="com.qlangtech.tis" level="INFO">
 		<appender-ref ref="console" />
 	</logger>
 
