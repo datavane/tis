@@ -9,7 +9,7 @@
 	<formats>
 		<format>tar.gz</format>
 	</formats>
-	<includeBaseDirectory>false</includeBaseDirectory>
+	<includeBaseDirectory>true</includeBaseDirectory>
 
 	<fileSets>
 		<!-- 文件主体jar包 -->
