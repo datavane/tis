@@ -39,7 +39,13 @@
 			</includes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
-
+<fileSet>
+            <directory>${basedir}/webapp</directory>
+            <excludes>
+                <exclude>WEB-INF/classes/**</exclude>
+            </excludes>
+            <outputDirectory>/webapp</outputDirectory>
+        </fileSet>
 
 	</fileSets>
 
