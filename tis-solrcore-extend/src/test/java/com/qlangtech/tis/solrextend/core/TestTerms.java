@@ -40,41 +40,41 @@ import java.nio.charset.Charset;
  */
 public class TestTerms {
 
-    public void testIteraveTerm() throws Exception {
-        SolrCore core = TestEmbeddedSolrServer.server.getCoreContainer().getCore("menu");
-        IndexReader rootreader = core.getSearcher().get().getIndexReader();
-        LeafReader reader = null;
-        Bits liveDocs = null;
-        Terms terms = null;
-        TermsEnum termEnum = null;
-        PostingsEnum posting = null;
-        BytesRef term = null;
-        int docid;
-        final Charset utf8 = Charset.forName("utf8");
-        OutputStream output = FileUtils.openOutputStream(new File(TestEmbeddedSolrServer.solrHome, "terms.txt"));
-        PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, utf8));
-        for (LeafReaderContext leaf : rootreader.getContext().leaves()) {
-            reader = leaf.reader();
-            liveDocs = reader.getLiveDocs();
-            terms = reader.terms("sale_out");
-            termEnum = terms.iterator();
-            while ((term = termEnum.next()) != null) {
-            // writer.println(NumericUtils.getPrefixCodedLongShift(term));
-            // writer.println(term.utf8ToString());
-            }
-        // termEnum.next();
-        // do {
-        // posting = termEnum.postings(posting);
-        // term = termEnum.term().utf8ToString();
-        // 
-        // System.out.println(term);
-        // 
-        // docid = posting.nextDoc();
-        // 
-        // } while ((docid != PostingsEnum.NO_MORE_DOCS && (liveDocs == null
-        // || (liveDocs != null && liveDocs.get(docid)))));
-        }
-        writer.flush();
-        writer.close();
-    }
+//    public void testIteraveTerm() throws Exception {
+//        SolrCore core = TestEmbeddedSolrServer.server.getCoreContainer().getCore("menu");
+//        IndexReader rootreader = core.getSearcher().get().getIndexReader();
+//        LeafReader reader = null;
+//        Bits liveDocs = null;
+//        Terms terms = null;
+//        TermsEnum termEnum = null;
+//        PostingsEnum posting = null;
+//        BytesRef term = null;
+//        int docid;
+//        final Charset utf8 = Charset.forName("utf8");
+//        OutputStream output = FileUtils.openOutputStream(new File(TestEmbeddedSolrServer.solrHome, "terms.txt"));
+//        PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, utf8));
+//        for (LeafReaderContext leaf : rootreader.getContext().leaves()) {
+//            reader = leaf.reader();
+//            liveDocs = reader.getLiveDocs();
+//            terms = reader.terms("sale_out");
+//            termEnum = terms.iterator();
+//            while ((term = termEnum.next()) != null) {
+//            // writer.println(NumericUtils.getPrefixCodedLongShift(term));
+//            // writer.println(term.utf8ToString());
+//            }
+//        // termEnum.next();
+//        // do {
+//        // posting = termEnum.postings(posting);
+//        // term = termEnum.term().utf8ToString();
+//        // 
+//        // System.out.println(term);
+//        // 
+//        // docid = posting.nextDoc();
+//        // 
+//        // } while ((docid != PostingsEnum.NO_MORE_DOCS && (liveDocs == null
+//        // || (liveDocs != null && liveDocs.get(docid)))));
+//        }
+//        writer.flush();
+//        writer.close();
+//    }
 }
