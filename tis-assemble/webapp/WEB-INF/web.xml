@@ -57,7 +57,6 @@
 		<servlet-class>com.qlangtech.tis.fullbuild.servlet.BuildTriggerServlet</servlet-class>
 	</servlet>
 	
-		<url-pattern>/realtime-status</url-pattern> </servlet-mapping> -->
 	<servlet>
 		<servlet-name>realtimeStatePage</servlet-name>
 		<servlet-class>com.qlangtech.tis.realtime.servlet.RealtimeStatePageServlet</servlet-class>
@@ -81,10 +80,6 @@
 		<url-pattern>/check_health</url-pattern>
 	</filter-mapping>
 
-	<filter-mapping>
-		<filter-name>monitorFilter</filter-name>
-		<url-pattern>/full-dump-assemble/check_health</url-pattern>
-	</filter-mapping>
 	<!-- baisui add end -->
 
 

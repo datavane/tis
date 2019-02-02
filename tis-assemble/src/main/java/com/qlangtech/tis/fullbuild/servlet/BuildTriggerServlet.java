@@ -25,6 +25,8 @@ package com.qlangtech.tis.fullbuild.servlet;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
@@ -70,7 +72,14 @@ public class BuildTriggerServlet extends TisServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(BuildTriggerServlet.class);
 
-    // public BuildTriggerServlet(
+    @Override
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		
+		logger.info("i have been initialized");
+	}
+
+	// public BuildTriggerServlet(
     // IndexSwapTaskflowLauncher indexSwapTaskflowLauncher) {
     // super(indexSwapTaskflowLauncher);
     // }
