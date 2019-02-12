@@ -47,7 +47,7 @@ public class RemoteBuildCenterUtils {
 
     static {
         try {
-            File dir = new File(System.getProperty("dir-hdfs20", "/opt/data/jetty/dir-hdfs20"));
+            File dir = new File(System.getProperty("dir-hdfs20", "/opt/data/spring-boot/dir-hdfs20"));
             if (!dir.exists() || !dir.isDirectory()) {
                 throw new IllegalStateException("dir-hdfs20:" + dir.getAbsolutePath() + " is illegal.");
             }
@@ -57,7 +57,7 @@ public class RemoteBuildCenterUtils {
                 urls[i++] = ((new File(dir, f)).toURI().toURL());
             }
             final ClassLoader buildTriggerClassLoader = new TriggerClassLoader(urls, RemoteBuildCenterUtils.class.getClassLoader());
-            Class<?> indexTriggerClass = buildTriggerClassLoader.loadClass("com.dfire.tis.fullbuild.indexbuild.impl.Hadoop020RemoteJobTriggerFactory");
+            Class<?> indexTriggerClass = buildTriggerClassLoader.loadClass("com.qlangtech.tis.fullbuild.indexbuild.impl.Hadoop020RemoteJobTriggerFactory");
             remoteJobTriggerFactory = (IRemoteJobTriggerFactory) indexTriggerClass.newInstance();
             taskPool = Executors.newCachedThreadPool(new ThreadFactory() {
 

@@ -32,9 +32,28 @@ import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
  */
 public interface IRemoteJobTriggerFactory {
 
-    // 创建build索引任务
-    public IRemoteJobTrigger createBuildJob(DistributeLog log, String timePoint, String indexName, String username, String groupNum, ImportDataProcessInfo state, TaskContext context) throws Exception;
+	//
+	/**
+	 * 创建build索引任务
+	 * 
+	 * @param log
+	 *            分布式日志收集
+	 * @param timePoint
+	 *            创建全量构建的时间点，solrcore reload时需要补增量就依赖该时间戳
+	 * @param indexName
+	 *            solr collection名称
+	 * @param username
+	 *            系统触发的用户名
+	 * @param groupNum
+	 *            solrcollection 索引的slice名称
+	 * @param state
+	 * @param context
+	 * @return
+	 * @throws Exception
+	 */
+	public IRemoteJobTrigger createBuildJob(DistributeLog log, String timePoint, String indexName, String username,
+			String groupNum, ImportDataProcessInfo state, TaskContext context) throws Exception;
 
-    // 创建dump数据任务
-    public IRemoteJobTrigger createDumpJob(String indexName, String starttime, TaskContext context) throws Exception;
+	// 创建dump数据任务
+	public IRemoteJobTrigger createDumpJob(String indexName, String starttime, TaskContext context) throws Exception;
 }
