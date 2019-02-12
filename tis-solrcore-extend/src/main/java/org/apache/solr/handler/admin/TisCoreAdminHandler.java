@@ -279,7 +279,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 	}
 
 	// private static final String SEGMENT_FILE = "segments_1";
-	private static final Pattern coreNamePattern = Pattern.compile("(search4.+?)_shard(\\d+?)_replica\\d+");
+	private static final Pattern coreNamePattern = Pattern.compile("(search4.+?)_shard(\\d+?)_replica_n\\d+");
 
 	/**
 	 * 将刚刚构建好的全量文件放置到本地目标文件夹中
