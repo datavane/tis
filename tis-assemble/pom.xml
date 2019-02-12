@@ -44,6 +44,16 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-mapreduce-client-core</artifactId>
+		</dependency>
+		
+		<dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+        </dependency>
+
+		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-servlet-monitor</artifactId>
 		</dependency>
@@ -74,10 +84,7 @@
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-solr-core</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-mapreduce-client-core</artifactId>
-		</dependency>
+
 
 		<dependency>
 			<groupId>org.apache.hive</groupId>
@@ -207,19 +214,17 @@
 			<artifactId>spring-orm</artifactId>
 			<version>${spring-version}</version>
 		</dependency>
-		
+
 		<dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>${spring-version}</version>
-        </dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
 
 	</dependencies>
 
 	<build>
-	<!-- 
-		<outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
-		 -->
+		<!-- <outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory> -->
 		<finalName>tis-assemble</finalName>
 		<resources>
 			<resource>
@@ -241,39 +246,33 @@
 				</configuration>
 			</plugin>
 
-<!-- 
+			<!-- <plugin> <groupId>com.qlangtech.tis</groupId> <artifactId>tiswar-maven-plugin</artifactId> 
+				<configuration> <appnamePattern>tis-assemble</appnamePattern> </configuration> 
+				</plugin> -->
+
 			<plugin>
-				<groupId>com.qlangtech.tis</groupId>
-				<artifactId>tiswar-maven-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
 				<configuration>
-					<appnamePattern>tis-assemble</appnamePattern>
+					<archive>
+						<manifest>
+							<mainClass>com.qlangtech.tis.Application</mainClass>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<useUniqueVersions>true</useUniqueVersions>
+						</manifest>
+						<manifestEntries>
+							<class-path>conf/</class-path>
+						</manifestEntries>
+					</archive>
+					<excludes>
+						<exclude>env.conf</exclude>
+						<exclude>*.yml</exclude>
+						<exclude>*.xml</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
- -->
- 
-           <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.qlangtech.tis.Application</mainClass>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <useUniqueVersions>true</useUniqueVersions>
-                        </manifest>
-                        <manifestEntries>
-                            <class-path>conf/</class-path>
-                        </manifestEntries>
-                    </archive>
-                    <excludes>
-                        <exclude>env.conf</exclude>
-                        <exclude>*.yml</exclude>
-                        <exclude>*.xml</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
 
 			<plugin>
 				<groupId>com.qlangtech.tis</groupId>
@@ -281,7 +280,7 @@
 				<configuration>
 					<descriptor>./assembly.xml</descriptor>
 					<outputDirectory>../</outputDirectory>
-					
+
 					<appendAssemblyId>false</appendAssemblyId>
 					<tarLongFileMode>gnu</tarLongFileMode>
 					<!-- <appnamePattern>full-dump-assemble</appnamePattern> -->
