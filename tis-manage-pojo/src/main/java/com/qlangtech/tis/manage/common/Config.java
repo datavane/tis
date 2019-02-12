@@ -87,9 +87,9 @@ public class Config {
 		this.tisRepository = p.getString("tis.repository");
 
 		this.projectName = p.getString("project.name");
-		if (StringUtils.isEmpty(this.projectName)) {
-			throw new IllegalStateException("config param projectname can not be null");
-		}
+//		if (StringUtils.isEmpty(this.projectName)) {
+//			throw new IllegalStateException("config param projectname can not be null");
+//		}
 		// userToken = new HashMap<String, String>();
 		// publishHook = new HashMap<RunEnvironment, String>();
 		// responseTimeHost = new HashMap<RunEnvironment, String>();
