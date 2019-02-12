@@ -786,19 +786,41 @@ public class TISZkStateReader {
 		}
 	}
 
-	private class LazyCollectionRef extends ClusterState.CollectionRef {
+	private static final long LAZY_CACHE_TIME = TimeUnit.NANOSECONDS.convert(ZkStateReader.STATE_UPDATE_DELAY,
+			TimeUnit.MILLISECONDS);
 
+	private class LazyCollectionRef extends ClusterState.CollectionRef {
 		private final String collName;
+		private long lastUpdateTime;
+		private DocCollection cachedDocCollection;
 
 		public LazyCollectionRef(String collName) {
 			super(null);
 			this.collName = collName;
+			this.lastUpdateTime = -1;
 		}
 
 		@Override
-		public DocCollection get() {
-			// TODO: consider limited caching
-			return getCollectionLive(TISZkStateReader.this, collName);
+		public synchronized DocCollection get(boolean allowCached) {
+			gets.incrementAndGet();
+			if (!allowCached || lastUpdateTime < 0 || System.nanoTime() - lastUpdateTime > LAZY_CACHE_TIME) {
+				boolean shouldFetch = true;
+				if (cachedDocCollection != null) {
+					Stat exists = null;
+					try {
+						exists = zkClient.exists(getCollectionPath(collName), null, true);
+					} catch (Exception e) {
+					}
+					if (exists != null && exists.getVersion() == cachedDocCollection.getZNodeVersion()) {
+						shouldFetch = false;
+					}
+				}
+				if (shouldFetch) {
+					cachedDocCollection = getCollectionLive(TISZkStateReader.this, collName);
+					lastUpdateTime = System.nanoTime();
+				}
+			}
+			return cachedDocCollection;
 		}
 
 		@Override
@@ -810,6 +832,14 @@ public class TISZkStateReader {
 		public String toString() {
 			return "LazyCollectionRef(" + collName + ")";
 		}
+	}
+
+	public static String getCollectionPathRoot(String coll) {
+		return COLLECTIONS_ZKNODE + "/" + coll;
+	}
+
+	public static String getCollectionPath(String coll) {
+		return getCollectionPathRoot(coll) + "/state.json";
 	}
 
 	/**

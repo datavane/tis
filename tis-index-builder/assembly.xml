@@ -34,18 +34,18 @@
 				<exclude>commons-logging:commons-logging</exclude>
 				<exclude>org.apache.tomcat:tomcat-catalina</exclude>
 
-				<exclude>*:jcl-over-slf4j-*</exclude>
-				<exclude>*:logback-*</exclude>
-				<exclude>*:apache-log4j-*</exclude>
-				<exclude>*:log4j-*</exclude>
-				<exclude>*:slf4j-api-*</exclude>
-				<exclude>*:slf4j-log4j12-*</exclude>
-				<exclude>*:logback-*</exclude>
-				<exclude>*:commons-logging-*</exclude>
+				<exclude>*:jcl-over-slf4j*</exclude>
+				<exclude>*:logback*</exclude>
+				<exclude>*:apache-log4j*</exclude>
+				<exclude>*:log4j*</exclude>
+				<exclude>*:slf4j-api*</exclude>
+				<exclude>*:slf4j-log4j12*</exclude>
+				<exclude>*:logback*</exclude>
+				<exclude>*:commons-logging*</exclude>
 				<exclude>*:commons-io-2.3</exclude>
 				<exclude>*:jetty*</exclude>
-				<exclude>*:javax.servlet-*</exclude>
-				<exclude>*:servlet-api-*</exclude>
+				<exclude>*:javax.servlet*</exclude>
+				<exclude>*:servlet-api*</exclude>
 
 			</excludes>
 			<outputDirectory>.</outputDirectory>
