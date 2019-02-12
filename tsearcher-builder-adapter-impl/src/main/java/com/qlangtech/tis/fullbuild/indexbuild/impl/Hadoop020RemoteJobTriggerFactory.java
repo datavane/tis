@@ -84,9 +84,9 @@ public class Hadoop020RemoteJobTriggerFactory implements IRemoteJobTriggerFactor
 		jobConf.setAtLeastMemoryMb(300);
 		jobConf.setAtLeastSpaceMb(1024);
 		String indexBuilder = StringUtils.defaultIfEmpty(state.getIndexBuilder(),
-				"com.taobao.terminator.indexbuilder.map.HdfsIndexBuilder");
-		jobConf.set("task.map.class", "com.taobao.terminator.indexbuilder.map.HdfsIndexGetConfig," + indexBuilder
-				+ ",com.taobao.terminator.indexbuilder.map.HdfsIndexDeliver");
+				"com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder");
+		jobConf.set("task.map.class", "com.qlangtech.tis.indexbuilder.map.HdfsIndexGetConfig," + indexBuilder
+				+ ",com.qlangtech.tis.indexbuilder.map.HdfsIndexDeliver");
 		jobConf.set("task.jar.transfer", "false,false,false");
 		String appcontext = "/user/" + username + "/" + coreName + "/app/applicationContext.xml";
 		jobConf.set("indexing.configpath", appcontext);

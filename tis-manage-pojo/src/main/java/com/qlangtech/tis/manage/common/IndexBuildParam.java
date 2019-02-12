@@ -99,58 +99,5 @@ public class IndexBuildParam {
             System.out.println(f);
         }
     }
-    // 
-    // String schemaPath = "/user/" + username + "/" + coreName +
-    // "/schema/schema.xml";
-    // jobConf.set(, schemaPath);
-    // 
-    // jobConf.set("", state.getIndexName());
-    // jobConf.set(, coreName);
-    // jobConf.set(, String.valueOf(1));
-    // jobConf.set(, username);
-    // jobConf.set(, state.getTimepoint());
-    // jobConf.set(, groupNum);
-    // 
-    // if (StringUtils.isNotBlank(state.getHdfsdelimiter())) {
-    // jobConf.set(, state.getHdfsdelimiter());
-    // }
-    // 
-    // // /user/admin/search4realjhsactivity/all/0/20150908233000/
-    // 
-    // jobConf.set("job.name", coreName + "-indexBuildJob");
-    // // jobConf.setAtLeastMemoryMb(300);
-    // // jobConf.setAtLeastSpaceMb(1024);
-    // // jobConf.set("task.map.class",
-    // //
-    // "com.taobao.terminator.indexbuilder.map.HdfsIndexGetConfig,com.taobao.terminator.indexbuilder.map.HdfsIndexBuilder,com.taobao.terminator.indexbuilder.map.HdfsIndexDeliver");
-    // 
-    // // jobConf.set("task.jar.transfer", "false,false,false");
-    // 
-    // // String appcontext = "/user/" + username + "/" + coreName +
-    // // "/app/applicationContext.xml";
-    // // jobConf.set(, appcontext);
-    // 
-    // // final String sourcePath = "/user/" + userName + "/" + serviceName
-    // // + "/all/" + groupNum + "/" + timePoint + "/";
-    // // if (UISVersion.useSolr60(state.getIndexName())) {
-    // // logger.info("collection:" + state.getIndexName() + " use solr6.0");
-    // // jobConf.set("job.jarfile",
-    // // "indexbuilder6.0,indexbuilder6.0,indexbuilder6.0");
-    // // } else {
-    // // logger.info("collection:" + state.getIndexName() + " use solr5.3");
-    // // jobConf.set("job.jarfile",
-    // // "indexbuilder5.3,indexbuilder5.3,indexbuilder5.3");
-    // // }
-    // 
-    // jobConf.set("job.solrversion", UISVersion.useSolr60(state.getIndexName())
-    // ? UISVersion.SOLR_VERSION_6 : UISVersion.SOLR_VERSION_5);
-    // 
-    // // if (state.getMaxDumpCount() != null) {
-    // // jobConf.set("indexing.recordlimit",
-    // // String.valueOf(state.getMaxDumpCount()));
-    // // log.addLog(state, "has set record limit:" +
-    // // String.valueOf(state.getMaxDumpCount()));
-    // // }
-    // 
-    // jobConf.set("indexing.sourcetype", "HDFS");
+ 
 }
