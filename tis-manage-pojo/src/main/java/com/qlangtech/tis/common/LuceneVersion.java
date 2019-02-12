@@ -29,8 +29,8 @@ package com.qlangtech.tis.common;
  */
 public enum LuceneVersion {
 
-    LUCENE_6, LUCENE_5;
+	LUCENE_6, LUCENE_5, LUCENE_7;
 
-    private LuceneVersion() {
-    }
+	private LuceneVersion() {
+	}
 }

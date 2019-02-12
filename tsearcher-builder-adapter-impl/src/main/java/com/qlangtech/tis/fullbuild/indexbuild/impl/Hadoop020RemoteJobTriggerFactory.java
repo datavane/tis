@@ -91,11 +91,11 @@ public class Hadoop020RemoteJobTriggerFactory implements IRemoteJobTriggerFactor
 		String appcontext = "/user/" + username + "/" + coreName + "/app/applicationContext.xml";
 		jobConf.set("indexing.configpath", appcontext);
 		if (// RunEnvironment.isOnlineMode()
-		state.getLuceneVersion() == LuceneVersion.LUCENE_6) // &&
+		state.getLuceneVersion() == LuceneVersion.LUCENE_7) // &&
 		// UISVersion.isDataCenterCollection(state.getIndexName())
 		{
 			LOG.info("collection:" + state.getIndexName() + " use solr6.0");
-			jobConf.set("job.jarfile", "indexbuilder6.0,indexbuilder6.0,indexbuilder6.0");
+			jobConf.set("job.jarfile", "indexbuilder7.6,indexbuilder7.6,indexbuilder7.6");
 		} else {
 			LOG.info("collection:" + state.getIndexName() + " use solr5.3");
 			jobConf.set("job.jarfile", "indexbuilder5.3,indexbuilder5.3,indexbuilder5.3");
