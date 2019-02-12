@@ -161,7 +161,7 @@ public class JettyTISRunner {
 		webAppContext.setClassLoader(Thread.currentThread().getContextClassLoader());
 		webAppContext.setConfigurationDiscovered(true);
 		webAppContext.setParentLoaderPriority(true);
-
+		webAppContext.setThrowUnavailableOnStartupException(true);
 		webAppContext.addServlet(CheckHealth.class, "/check_health");
 		server.setHandler(webAppContext);
 		// this.rootContext = new ServletContextHandler(server, context//

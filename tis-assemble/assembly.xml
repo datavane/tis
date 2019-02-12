@@ -67,8 +67,9 @@
 				<exclude>*:log4j*</exclude>
 				<exclude>*:slf4j-log4j12*</exclude>
 				<exclude>*:commons-logging*</exclude>
+				<!--
 				<exclude>*:commons-io*</exclude>
-				<!-- <exclude>*:jetty*.jar</exclude> <exclude>*:javax.servlet-*</exclude> 
+				 <exclude>*:jetty*.jar</exclude> <exclude>*:javax.servlet-*</exclude> 
 					<exclude>*:servlet-api-*</exclude> -->
 			</excludes>
 			<outputDirectory>/lib</outputDirectory>

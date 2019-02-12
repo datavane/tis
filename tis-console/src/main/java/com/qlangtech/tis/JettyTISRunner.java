@@ -158,6 +158,7 @@ public class JettyTISRunner {
         webAppContext.setConfigurationDiscovered(true);
         webAppContext.setParentLoaderPriority(true);
         webAppContext.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
+        webAppContext.setThrowUnavailableOnStartupException(true);
         server.setHandler(webAppContext);
     // this.rootContext = new ServletContextHandler(server, context//
     // ,ServletContextHandler.SESSIONS
