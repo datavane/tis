@@ -357,8 +357,16 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 
 			@Override
 			public LuceneVersion getLuceneVersion() {
-				return getTISLuceneVersion(domain).equals(Version.LUCENE_7_6_0) ? LuceneVersion.LUCENE_7
-						: LuceneVersion.LUCENE_5;
+				// return
+				// getTISLuceneVersion(domain).equals(Version.LUCENE_7_6_0) ?
+				// LuceneVersion.LUCENE_7
+				// : LuceneVersion.LUCENE_5;
+				Version ver = getTISLuceneVersion(domain);
+				if (ver.equals(Version.LUCENE_7_6_0)) {
+					return LuceneVersion.LUCENE_7;
+				}
+
+				throw new IllegalStateException("illegal version ver:" + ver);
 			}
 		});
 		// chainContext.setIndexName(getIndexname());
