@@ -81,7 +81,7 @@ public class Corenodemanage extends CoreDefineScreen {
                         final SimpleOrderedMap mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
                         SimpleOrderedMap core = (SimpleOrderedMap) ((SimpleOrderedMap) mbeans.get("CORE")).get("core");
                         SimpleOrderedMap status = ((SimpleOrderedMap) core.get("stats"));
-                        instanceDir.add(StringUtils.substringAfterLast((String) status.get("indexDir"), "/"));
+                        instanceDir.add(StringUtils.substringAfterLast((String) status.get("CORE.indexDir"), "/"));
                         return null;
                     }
                 });
