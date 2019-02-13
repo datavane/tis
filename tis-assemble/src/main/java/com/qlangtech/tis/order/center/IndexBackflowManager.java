@@ -23,9 +23,11 @@
  */
 package com.qlangtech.tis.order.center;
 
+import static org.apache.commons.io.FileUtils.ONE_KB_BI;
+import static org.apache.commons.io.FileUtils.ONE_MB_BI;
 import static org.apache.solr.common.cloud.ZkStateReader.BASE_URL_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.CORE_NAME_PROP;
-import static org.apache.commons.io.FileUtils.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -44,6 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,9 +58,11 @@ import org.apache.solr.common.params.CoreAdminParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.HttpUtils.ProcessResponse;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
 
 /*
@@ -68,406 +73,464 @@ import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
  */
 public class IndexBackflowManager {
 
-    int phrase = 0;
+	int phrase = 0;
 
-    private static final Logger log = LoggerFactory.getLogger(IndexBackflowManager.class);
+	private static final Logger log = LoggerFactory.getLogger(IndexBackflowManager.class);
 
-    public static final long STATUS_GET_INTERVAL = 5000;
+	public static final long STATUS_GET_INTERVAL = 5000;
 
-    private static final ConcurrentHashMap<String, ReentrantLock> /*
-													 * nodename,example:10.1.5. 19
-													 */
-    nodeLockMap = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<String, ReentrantLock> /*
+																	 * nodename,
+																	 * example:
+																	 * 10.1.5.
+																	 * 19
+																	 */
+	nodeLockMap = new ConcurrentHashMap<>();
 
-    private final ExecutorService backFlowExecutor;
+	private final ExecutorService backFlowExecutor;
 
-    private final DocCollection collection;
+	private final DocCollection collection;
 
-    private Map<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */
-    nodeBackflowLock;
+	private Map<String, ConcurrentLinkedQueue<BuildResult>> /*
+															 * nodename,example:
+															 * 10.1.5.19
+															 */
+	nodeBackflowLock;
 
-    private final Map<String, List<Replica>> /* shardName,example:shard1 */
-    shardMap;
+	private final Map<String, List<Replica>> /* shardName,example:shard1 */
+	shardMap;
 
-    private final int nodeSize;
+	private final int nodeSize;
 
-    // private static final Pattern NODE_PATTERN = Pattern
-    // .compile("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):\\d+_solr");
-    private final CountDownLatch replicaCountDown;
+	// private static final Pattern NODE_PATTERN = Pattern
+	// .compile("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):\\d+_solr");
+	private final CountDownLatch replicaCountDown;
 
-    private boolean executeSuccess = true;
+	private boolean executeSuccess = true;
 
-    public boolean isExecuteSuccess() {
-        return this.executeSuccess;
-    }
+	public boolean isExecuteSuccess() {
+		return this.executeSuccess;
+	}
 
-    public void await() {
-        try {
-            replicaCountDown.await(10, TimeUnit.HOURS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
+	public void await() {
+		try {
+			replicaCountDown.await(10, TimeUnit.HOURS);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    public List<Replica> getReplicByShard(int shard) {
-        final String shardName = "shard" + (shard + 1);
-        List<Replica> replics = shardMap.get(shardName);
-        if (replics == null || replics.size() < 1) {
-            throw new IllegalStateException(shardName + " relevant replics is null");
-        }
-        return replics;
-    }
+	public List<Replica> getReplicByShard(int shard) {
+		final String shardName = "shard" + (shard + 1);
+		List<Replica> replics = shardMap.get(shardName);
+		if (replics == null || replics.size() < 1) {
+			throw new IllegalStateException(shardName + " relevant replics is null");
+		}
+		return replics;
+	}
 
-    public IndexBackflowManager(final DocCollection collection) {
-        this.collection = collection;
-        final Map<String, List<Replica>> /* shardName,example:shard1 */
-        shardMap = new HashMap<>();
-        final Map<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */
-        nodeBackflowLock = new HashMap<>();
-        List<Replica> nodeReplics = null;
-        ConcurrentLinkedQueue<BuildResult> lock = null;
-        int replicaCount = 0;
-        for (Slice slice : collection.getSlices()) {
-            nodeReplics = shardMap.get(slice.getName());
-            if (nodeReplics == null) {
-                nodeReplics = new ArrayList<>();
-                shardMap.put(slice.getName(), nodeReplics);
-            }
-            for (Replica replica : slice.getReplicas()) {
-                replicaCount++;
-                lock = nodeBackflowLock.get(replica.getNodeName());
-                if (lock == null) {
-                    lock = new ConcurrentLinkedQueue<BuildResult>();
-                    nodeBackflowLock.put(replica.getNodeName(), lock);
-                }
-                nodeReplics.add(replica);
-            }
-        }
-        this.replicaCountDown = new CountDownLatch(replicaCount);
-        this.nodeSize = nodeBackflowLock.keySet().size();
-        this.backFlowExecutor = Executors.newFixedThreadPool(nodeSize);
-        this.nodeBackflowLock = Collections.unmodifiableMap(nodeBackflowLock);
-        this.shardMap = Collections.unmodifiableMap(shardMap);
-    }
+	public IndexBackflowManager(final DocCollection collection) {
+		this.collection = collection;
+		final Map<String, List<Replica>> /* shardName,example:shard1 */
+		shardMap = new HashMap<>();
+		final Map<String, ConcurrentLinkedQueue<BuildResult>> /*
+																 * nodename,
+																 * example:10.1.
+																 * 5.19
+																 */
+		nodeBackflowLock = new HashMap<>();
+		List<Replica> nodeReplics = null;
+		ConcurrentLinkedQueue<BuildResult> lock = null;
+		int replicaCount = 0;
+		for (Slice slice : collection.getSlices()) {
+			nodeReplics = shardMap.get(slice.getName());
+			if (nodeReplics == null) {
+				nodeReplics = new ArrayList<>();
+				shardMap.put(slice.getName(), nodeReplics);
+			}
+			for (Replica replica : slice.getReplicas()) {
+				replicaCount++;
+				lock = nodeBackflowLock.get(replica.getNodeName());
+				if (lock == null) {
+					lock = new ConcurrentLinkedQueue<BuildResult>();
+					nodeBackflowLock.put(replica.getNodeName(), lock);
+				}
+				nodeReplics.add(replica);
+			}
+		}
+		this.replicaCountDown = new CountDownLatch(replicaCount);
+		this.nodeSize = nodeBackflowLock.keySet().size();
+		this.backFlowExecutor = Executors.newFixedThreadPool(nodeSize);
+		this.nodeBackflowLock = Collections.unmodifiableMap(nodeBackflowLock);
+		this.shardMap = Collections.unmodifiableMap(shardMap);
+	}
 
-    /**
-     * 遍历所有的副本
-     *
-     * @param action
-     */
-    public void vistAllReplica(Consumer<Replica> action) {
-        shardMap.values().forEach((a) -> {
-            a.forEach(action);
-        });
-    }
+	/**
+	 * 遍历所有的副本
+	 *
+	 * @param action
+	 */
+	public void vistAllReplica(Consumer<Replica> action) {
+		shardMap.values().forEach((a) -> {
+			a.forEach(action);
+		});
+	}
 
-    /**
-     * group size
-     *
-     * @return
-     */
-    public int getGroupSize() {
-        return this.shardMap.keySet().size();
-    }
+	/**
+	 * group size
+	 *
+	 * @return
+	 */
+	public int getGroupSize() {
+		return this.shardMap.keySet().size();
+	}
 
-    public void addBackFlowTask(BuildResult buildResult) {
-        ConcurrentLinkedQueue<BuildResult> backflowQueue = this.nodeBackflowLock.get(buildResult.getNodeName());
-        if (backflowQueue == null) {
-            throw new IllegalStateException("node:" + buildResult.getNodeName() + " relevant backflow queue can not be null");
-        }
-        backflowQueue.offer(buildResult);
-    }
+	public void addBackFlowTask(BuildResult buildResult) {
+		ConcurrentLinkedQueue<BuildResult> backflowQueue = this.nodeBackflowLock.get(buildResult.getNodeName());
+		if (backflowQueue == null) {
+			throw new IllegalStateException(
+					"node:" + buildResult.getNodeName() + " relevant backflow queue can not be null");
+		}
+		backflowQueue.offer(buildResult);
+	}
 
-    public void startSwapClusterIndex(String userName, final int taskid) throws Exception {
-        for (final Map.Entry<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */
-        entry : nodeBackflowLock.entrySet()) {
-            this.backFlowExecutor.execute(() -> {
-                MDC.put("app", collection.getName());
-                while (true) {
-                    BuildResult buildResult = entry.getValue().poll();
-                    if (buildResult == null) {
-                        if (replicaCountDown.getCount() < 1) {
-                            // 说明任务已经全部结束需要退出了
-                            return;
-                        }
-                        try {
-                            Thread.sleep(3000);
-                        } catch (Throwable e) {
-                        }
-                        continue;
-                    }
-                    ReentrantLock lock = nodeLockMap.get(entry.getKey());
-                    if (lock == null) {
-                        lock = new ReentrantLock();
-                        ReentrantLock tmp = nodeLockMap.putIfAbsent(entry.getKey(), lock);
-                        if (tmp != null) {
-                            lock = tmp;
-                        }
-                    }
-                    try {
-                        log.info("node:" + entry.getKey() + " gain the lock");
-                        lock.lockInterruptibly();
-                        BackflowResult backflowResult = triggerIndexBackflow(buildResult, Long.parseLong(buildResult.getTimepoint()), userName, taskid);
-                        if (backflowResult.isSuccess()) {
-                            this.replicaCountDown.countDown();
-                        } else {
-                            shortCircuit();
-                        }
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
-                        shortCircuit();
-                        throw new RuntimeException(e);
-                    } finally {
-                        lock.unlock();
-                    }
-                }
-            });
-        }
-    }
+	public void startSwapClusterIndex(String userName, final int taskid) throws Exception {
+		for (final Map.Entry<String, ConcurrentLinkedQueue<BuildResult>> /*
+																			 * nodename
+																			 * ,
+																			 * example
+																			 * :
+																			 * 10
+																			 * .
+																			 * 1
+																			 * .
+																			 * 5
+																			 * .
+																			 * 19
+																			 */
+		entry : nodeBackflowLock.entrySet()) {
+			this.backFlowExecutor.execute(() -> {
+				MDC.put("app", collection.getName());
+				while (true) {
+					BuildResult buildResult = entry.getValue().poll();
+					if (buildResult == null) {
+						if (replicaCountDown.getCount() < 1) {
+							// 说明任务已经全部结束需要退出了
+							return;
+						}
+						try {
+							Thread.sleep(3000);
+						} catch (Throwable e) {
+						}
+						continue;
+					}
+					ReentrantLock lock = nodeLockMap.get(entry.getKey());
+					if (lock == null) {
+						lock = new ReentrantLock();
+						ReentrantLock tmp = nodeLockMap.putIfAbsent(entry.getKey(), lock);
+						if (tmp != null) {
+							lock = tmp;
+						}
+					}
+					try {
+						log.info("node:" + entry.getKey() + " gain the lock");
+						lock.lockInterruptibly();
+						BackflowResult backflowResult = triggerIndexBackflow(buildResult,
+								Long.parseLong(buildResult.getTimepoint()), userName, taskid);
+						if (backflowResult.isSuccess()) {
+							this.replicaCountDown.countDown();
+						} else {
+							shortCircuit();
+						}
+					} catch (Exception e) {
+						log.error(e.getMessage(), e);
+						shortCircuit();
+						throw new RuntimeException(e);
+					} finally {
+						lock.unlock();
+					}
+				}
+			});
+		}
+	}
 
-    public void shortCircuit() {
-        this.executeSuccess = false;
-        // 说明有一组回流失败了，需要短路任务执行
-        while (this.replicaCountDown.getCount() > 0) {
-            this.replicaCountDown.countDown();
-        }
-    }
+	public void shortCircuit() {
+		this.executeSuccess = false;
+		// 说明有一组回流失败了，需要短路任务执行
+		while (this.replicaCountDown.getCount() > 0) {
+			this.replicaCountDown.countDown();
+		}
+	}
 
-    public static String RUNNING = "running";
+	public static String RUNNING = "running";
 
-    public static String COMPLETED = "completed";
+	public static String COMPLETED = "completed";
 
-    public static String FAILED = "failed";
+	public static String FAILED = "failed";
 
-    public static String NOT_FOUND = "notfound";
+	public static String NOT_FOUND = "notfound";
 
-    /**
-     * 触发索引回流
-     *
-     * @param replica
-     * @param timestamp
-     * @param userName
-     * @param taskid
-     * @return
-     * @throws Exception
-     */
-    private BackflowResult triggerIndexBackflow(BuildResult buildResult, long timestamp, String userName, final int taskid) throws Exception {
-        final Replica replica = buildResult.getReplica();
-        final long coreReloadSleepTime = buildResult.getCoreReloadSleepTime();
-        final String requestId = taskid + "_p_" + (phrase++);
-        if (replica == null) {
-            throw new IllegalArgumentException("replica can not be null");
-        }
-        log.info("start " + replica.getCoreUrl() + " index back,size:" + FileUtils.byteCountToDisplaySize(buildResult.getIndexSize()) + ",coreReloadSleepTime:" + coreReloadSleepTime);
-        URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&execaction=swapindexfile&core=" + replica.getStr(CORE_NAME_PROP) + "&property.hdfs_timestamp=" + timestamp + "&property.hdfs_user=" + userName + "&" + CommonAdminParams.ASYNC + "=" + requestId + "&property.core_reload_sleep_time=" + (coreReloadSleepTime > 0 ? coreReloadSleepTime : 0));
-        log.debug("apply swap index url :" + url);
-        BackflowResult result = HttpUtils.processContent(url, new StreamProcess<BackflowResult>() {
+	/**
+	 * 触发索引回流
+	 *
+	 * @param replica
+	 * @param timestamp
+	 * @param userName
+	 * @param taskid
+	 * @return
+	 * @throws Exception
+	 */
+	private BackflowResult triggerIndexBackflow(BuildResult buildResult, long timestamp, String userName,
+			final int taskid) throws Exception {
+		final Replica replica = buildResult.getReplica();
+		final long coreReloadSleepTime = buildResult.getCoreReloadSleepTime();
+		final String requestId = taskid + "_p_" + (phrase++);
+		if (replica == null) {
+			throw new IllegalArgumentException("replica can not be null");
+		}
+		log.info("start " + replica.getCoreUrl() + " index back,size:"
+				+ FileUtils.byteCountToDisplaySize(buildResult.getIndexSize()) + ",coreReloadSleepTime:"
+				+ coreReloadSleepTime);
+		URL url = new URL(
+				replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&execaction=swapindexfile&core="
+						+ replica.getStr(CORE_NAME_PROP) + "&property.hdfs_timestamp=" + timestamp
+						+ "&property.hdfs_user=" + userName + "&" + CommonAdminParams.ASYNC + "=" + requestId
+						+ "&property.core_reload_sleep_time=" + (coreReloadSleepTime > 0 ? coreReloadSleepTime : 0));
+		log.debug("apply swap index url :" + url);
+		BackflowResult result = HttpUtils.processContent(url, new StreamProcess<BackflowResult>() {
 
-            @Override
-            public BackflowResult p(int status, InputStream stream, String md5) {
-                BackflowResult result = new BackflowResult();
-                try {
-                    log.info(IOUtils.toString(stream, Charset.forName("utf8")));
-                    URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=requeststatus&wt=json&" + CoreAdminParams.REQUESTID + "=" + requestId);
-                    log.info("check is successful :" + url);
-                    return getCallbackResult(replica, url);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-                return result;
-            }
-        }, 5);
-        return result;
-    }
+			@Override
+			public BackflowResult p(int status, InputStream stream, String md5) {
+				BackflowResult result = new BackflowResult();
+				try {
 
-    // 将近两个小时
-    private static final int MAX_RETRY = 3000;
+					if (!HttpUtils.processResponse(stream, (err) -> {
+						result.setSTATUS(FAILED);
+						result.setMsg(err);
+					}).success) {
+						return result;
+					}
+					// log.info(IOUtils.toString(stream,
+					// Charset.forName("utf8")));
+					URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=requeststatus&wt=json&"
+							+ CoreAdminParams.REQUESTID + "=" + requestId);
+					log.info("check url :" + url);
+					return getCallbackResult(replica, url);
+				} catch (Exception e) {
+					log.error(e.getMessage(), e);
+				}
+				return result;
+			}
+		}, 5);
+		return result;
+	}
 
-    /**
-     * 轮询是否回流完成
-     *
-     * @param replica
-     * @param url
-     * @return
-     */
-    private BackflowResult getCallbackResult(Replica replica, URL url) {
-        int applyCount = 0;
-        BackflowResult callbackResult = null;
-        IndexflowbackStatus preStatus = null;
-        while (applyCount++ < MAX_RETRY) {
-            callbackResult = HttpUtils.processContent(url, new StreamProcess<BackflowResult>() {
+	// 将近两个小时
+	private static final int MAX_RETRY = 3000;
 
-                @Override
-                public BackflowResult p(int status, InputStream stream, String md5) {
-                    BackflowResult callbackResult = null;
-                    try {
-                        String body = IOUtils.toString(stream, Charset.forName("utf8"));
-                        callbackResult = (BackflowResult) JSON.parseObject(body, BackflowResult.class);
-                        callbackResult.setResponseBody(body);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return callbackResult;
-                }
-            }, 10);
-            if (callbackResult.isFaild()) {
-                log.error(replica.getCoreUrl() + ",index back faild:" + callbackResult.getMsg() + "\n body:" + callbackResult.getResponseBody());
-                return callbackResult;
-            }
-            if (!callbackResult.isSuccess()) {
-                try {
-                    Thread.sleep(STATUS_GET_INTERVAL);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                log.info("waitting index flowback " + replica.getStr(CORE_NAME_PROP) + "," + callbackResult.getCopyStatus(preStatus) + "retry count:" + applyCount + ",remain:" + this.replicaCountDown.getCount() + "nodes");
-                preStatus = callbackResult.getIndexflowback_status();
-                continue;
-            }
-            return callbackResult;
-        }
-        if (applyCount >= MAX_RETRY) {
-            log.error(replica.getStr(CORE_NAME_PROP) + " index back faild:exceed the max retry count " + MAX_RETRY);
-        }
-        return callbackResult;
-    }
+	/**
+	 * 轮询是否回流完成
+	 *
+	 * @param replica
+	 * @param url
+	 * @return
+	 */
+	private BackflowResult getCallbackResult(Replica replica, URL url) {
+		int applyCount = 0;
+		BackflowResult callbackResult = null;
+		IndexflowbackStatus preStatus = null;
+		while (applyCount++ < MAX_RETRY) {
+			callbackResult = HttpUtils.processContent(url, new StreamProcess<BackflowResult>() {
 
-    public static class BackflowResult {
+				@Override
+				public BackflowResult p(int status, InputStream stream, String md5) {
+					BackflowResult callbackResult = null;
+					// try {
+					ProcessResponse result = null;
 
-        private boolean result = false;
+					result = HttpUtils.processResponse(stream, (err) -> {
 
-        private String responseBody;
+					});
 
-        private String msg;
+					if (result.success) {
 
-        private String STATUS;
+					}
 
-        private String trace;
+					// String body = IOUtils.toString(stream,
+					// Charset.forName("utf8"));
+					//
+					// callbackResult = (BackflowResult) JSON.parseObject(body,
+					// BackflowResult.class);
+					// callbackResult.setResponseBody(body);
+					// } catch (IOException e) {
+					// throw new RuntimeException(e);
+					// }
+					return callbackResult;
+				}
+			}, 10);
+			if (callbackResult.isFaild()) {
+				log.error(replica.getCoreUrl() + ",index back faild:" + callbackResult.getMsg() + "\n body:"
+						+ callbackResult.getResponseBody());
+				return callbackResult;
+			}
+			if (!callbackResult.isSuccess()) {
+				try {
+					Thread.sleep(STATUS_GET_INTERVAL);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+				log.info("waitting index flowback " + replica.getStr(CORE_NAME_PROP) + ","
+						+ callbackResult.getCopyStatus(preStatus) + "retry count:" + applyCount + ",remain:"
+						+ this.replicaCountDown.getCount() + "nodes");
+				preStatus = callbackResult.getIndexflowback_status();
+				continue;
+			}
+			return callbackResult;
+		}
+		if (applyCount >= MAX_RETRY) {
+			log.error(replica.getStr(CORE_NAME_PROP) + " index back faild:exceed the max retry count " + MAX_RETRY);
+		}
+		return callbackResult;
+	}
 
-        private IndexflowbackStatus indexflowback_status = new IndexflowbackStatus();
+	public static class BackflowResult {
 
-        public IndexflowbackStatus getIndexflowback_status() {
-            return indexflowback_status;
-        }
+		private boolean result = false;
 
-        public void setIndexflowback_status(IndexflowbackStatus indexflowback_status) {
-            this.indexflowback_status = indexflowback_status;
-        }
+		private String responseBody;
 
-        /**
-         * 打印索引回流進度狀態，1.已经读到的，2.总共有的字节，3.百分比，4.读取速率（每秒）
-         *
-         * @param preStatus
-         * @return
-         */
-        public String getCopyStatus(IndexflowbackStatus preStatus) {
-            if (indexflowback_status.all < 1) {
-                return StringUtils.EMPTY;
-            }
-            StringBuffer summary = new StringBuffer(byteCountToDisplaySize(BigInteger.valueOf(indexflowback_status.readed)));
-            summary.append("/");
-            summary.append(byteCountToDisplaySize(BigInteger.valueOf(indexflowback_status.all))).append("(");
-            summary.append((int) ((((double) indexflowback_status.readed) / indexflowback_status.all) * 100));
-            summary.append("%");
-            if (preStatus != null) {
-                summary.append(",speed:");
-                summary.append(byteCountToDisplaySize(BigInteger.valueOf((indexflowback_status.readed - preStatus.readed) * 1000 / STATUS_GET_INTERVAL)));
-                summary.append("/s");
-            }
-            return summary.append(")").toString();
-        }
+		private String msg;
 
-        private static String byteCountToDisplaySize(final BigInteger size) {
-            String displaySize;
-            if (size.divide(ONE_MB_BI).compareTo(BigInteger.ZERO) > 0) {
-                displaySize = String.valueOf(size.divide(ONE_MB_BI)) + "MB";
-            } else if (size.divide(ONE_KB_BI).compareTo(BigInteger.ZERO) > 0) {
-                displaySize = String.valueOf(size.divide(ONE_KB_BI)) + "KB";
-            } else {
-                displaySize = String.valueOf(size) + " bytes";
-            }
-            return displaySize;
-        }
+		private String STATUS;
 
-        public boolean isFaild() {
-            if (FAILED.equalsIgnoreCase(STATUS) || NOT_FOUND.equalsIgnoreCase(STATUS)) {
-                return true;
-            }
-            return false;
-        }
+		private String trace;
 
-        public String getResponseBody() {
-            return responseBody;
-        }
+		private IndexflowbackStatus indexflowback_status = new IndexflowbackStatus();
 
-        public void setResponseBody(String responseBody) {
-            this.responseBody = responseBody;
-        }
+		public IndexflowbackStatus getIndexflowback_status() {
+			return indexflowback_status;
+		}
 
-        public String getTrace() {
-            return trace;
-        }
+		public void setIndexflowback_status(IndexflowbackStatus indexflowback_status) {
+			this.indexflowback_status = indexflowback_status;
+		}
 
-        public void setTrace(String trace) {
-            this.trace = trace;
-        }
+		/**
+		 * 打印索引回流進度狀態，1.已经读到的，2.总共有的字节，3.百分比，4.读取速率（每秒）
+		 *
+		 * @param preStatus
+		 * @return
+		 */
+		public String getCopyStatus(IndexflowbackStatus preStatus) {
+			if (indexflowback_status.all < 1) {
+				return StringUtils.EMPTY;
+			}
+			StringBuffer summary = new StringBuffer(
+					byteCountToDisplaySize(BigInteger.valueOf(indexflowback_status.readed)));
+			summary.append("/");
+			summary.append(byteCountToDisplaySize(BigInteger.valueOf(indexflowback_status.all))).append("(");
+			summary.append((int) ((((double) indexflowback_status.readed) / indexflowback_status.all) * 100));
+			summary.append("%");
+			if (preStatus != null) {
+				summary.append(",speed:");
+				summary.append(byteCountToDisplaySize(BigInteger
+						.valueOf((indexflowback_status.readed - preStatus.readed) * 1000 / STATUS_GET_INTERVAL)));
+				summary.append("/s");
+			}
+			return summary.append(")").toString();
+		}
 
-        public boolean isSuccess() {
-            return COMPLETED.equalsIgnoreCase(STATUS);
-        }
+		private static String byteCountToDisplaySize(final BigInteger size) {
+			String displaySize;
+			if (size.divide(ONE_MB_BI).compareTo(BigInteger.ZERO) > 0) {
+				displaySize = String.valueOf(size.divide(ONE_MB_BI)) + "MB";
+			} else if (size.divide(ONE_KB_BI).compareTo(BigInteger.ZERO) > 0) {
+				displaySize = String.valueOf(size.divide(ONE_KB_BI)) + "KB";
+			} else {
+				displaySize = String.valueOf(size) + " bytes";
+			}
+			return displaySize;
+		}
 
-        public String getMsg() {
-            return msg;
-        }
+		public boolean isFaild() {
+			if (FAILED.equalsIgnoreCase(STATUS) || NOT_FOUND.equalsIgnoreCase(STATUS)) {
+				return true;
+			}
+			return false;
+		}
 
-        public void setMsg(String msg) {
-            this.msg = msg;
-        }
+		public String getResponseBody() {
+			return responseBody;
+		}
 
-        public String getSTATUS() {
-            return STATUS;
-        }
+		public void setResponseBody(String responseBody) {
+			this.responseBody = responseBody;
+		}
 
-        public void setSTATUS(String sTATUS) {
-            STATUS = sTATUS;
-        }
+		public String getTrace() {
+			return trace;
+		}
 
-        @Override
-        public String toString() {
-            return "status:" + getSTATUS() + ",msg:" + getMsg();
-        }
-    }
+		public void setTrace(String trace) {
+			this.trace = trace;
+		}
 
-    public static class IndexflowbackStatus {
+		public boolean isSuccess() {
+			return COMPLETED.equalsIgnoreCase(STATUS);
+		}
 
-        private long all;
+		public String getMsg() {
+			return msg;
+		}
 
-        private long readed;
+		public void setMsg(String msg) {
+			this.msg = msg;
+		}
 
-        public long getAll() {
-            return all;
-        }
+		public String getSTATUS() {
+			return STATUS;
+		}
 
-        public void setAll(long all) {
-            this.all = all;
-        }
+		public void setSTATUS(String sTATUS) {
+			STATUS = sTATUS;
+		}
 
-        public long getReaded() {
-            return readed;
-        }
+		@Override
+		public String toString() {
+			return "status:" + getSTATUS() + ",msg:" + getMsg();
+		}
+	}
 
-        public void setReaded(long readed) {
-            this.readed = readed;
-        }
-    }
+	public static class IndexflowbackStatus {
 
-    public static void main(String[] args) throws Exception {
-    // IndexBackflowManager backflow = new IndexBackflowManager();
-    // BackflowResult result = backflow.getCallbackResult(null, new URL(
-    // "http://10.1.7.42:8983/solr/admin/cores?action=requeststatus&requestid=123&wt=json"));
-    // 
-    // System.out.println(result.getMsg() + " " + result.getSTATUS() +
-    // result.isFaild() + " "
-    // + result.isSuccess());
-    }
+		private long all;
+
+		private long readed;
+
+		public long getAll() {
+			return all;
+		}
+
+		public void setAll(long all) {
+			this.all = all;
+		}
+
+		public long getReaded() {
+			return readed;
+		}
+
+		public void setReaded(long readed) {
+			this.readed = readed;
+		}
+	}
+
+	public static void main(String[] args) throws Exception {
+		// IndexBackflowManager backflow = new IndexBackflowManager();
+		// BackflowResult result = backflow.getCallbackResult(null, new URL(
+		// "http://10.1.7.42:8983/solr/admin/cores?action=requeststatus&requestid=123&wt=json"));
+		//
+		// System.out.println(result.getMsg() + " " + result.getSTATUS() +
+		// result.isFaild() + " "
+		// + result.isSuccess());
+	}
 }

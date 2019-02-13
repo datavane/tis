@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.qlangtech.tis</groupId>
-	    <artifactId>tis-pom</artifactId>
+		<artifactId>tis-pom</artifactId>
 		<version>3.7.47</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	
+
 	<artifactId>tis-common</artifactId>
 	<packaging>jar</packaging>
 
@@ -34,6 +34,12 @@
 			<version>11.0.2</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.noggit</groupId>
+			<artifactId>noggit</artifactId>
+			<version>0.8</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

@@ -77,6 +77,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.HttpUtils.ProcessResponse;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.spring.aop.Func;
@@ -250,11 +251,7 @@ public class CoreAction extends CoreDefineModule {
 			this.addErrorMessage(context, "组内副本数不能小于1");
 			return;
 		}
-		// if (this.getBoolean("shardSpecificNode")) {
-		// // 是否开启组内设置节点地址功能
-		// final String rule = this.getString(DocCollection.RULE);
-		// List<String> rules = Arrays.asList(StringUtils.split(rule, "|"));
-		// }
+
 		FCoreRequest request = createCoreRequest(context, groupNum, repliation, "创建", true,
 				this.getBoolean("shardSpecificNode"));
 		if (!request.isValid()) {
@@ -317,10 +314,10 @@ public class CoreAction extends CoreDefineModule {
 		log.info("create new cloud url:" + url);
 
 		HttpUtils.processContent(url, new StreamProcess<Object>() {
-
 			@Override
 			public Object p(int status, InputStream stream, String md5) {
-				if (processResponse(context, ips.get(0), stream)) {
+				ProcessResponse result = null;
+				if ((result = HttpUtils.processResponse(stream, (err) -> addErrorMessage(context, err))).success) {
 					addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliation + "个副本");
 				}
 				return null;
@@ -329,7 +326,7 @@ public class CoreAction extends CoreDefineModule {
 	}
 
 	@SuppressWarnings("all")
-	private boolean processResponse(final Context context, String serverip, InputStream stream) {
+	private boolean processResponsee(final Context context, InputStream stream) {
 
 		Object resp = null;
 		String respBody = null;
@@ -372,28 +369,6 @@ public class CoreAction extends CoreDefineModule {
 			}
 		}
 		return true;
-
-		// NamedList<Object> nameList = RESPONSE_PARSER.processResponse(stream,
-		// getEncode());
-		// SimpleOrderedMap errors = (SimpleOrderedMap) nameList.get("error");
-		// if (errors != null) {
-		// for (int i = 0; i < errors.size(); i++) {
-		// addErrorMessage(context,
-		// serverip + "," +
-		// StringUtils.replace(String.valueOf(errors.getVal(i)), "\"", "'"));
-		// }
-		// return false;
-		// }
-		// SimpleOrderedMap failure = (SimpleOrderedMap)
-		// nameList.get("failure");
-		// if (failure != null) {
-		// for (int i = 0; i < failure.size(); i++) {
-		// addErrorMessage(context,
-		// serverip + "," +
-		// StringUtils.replace(String.valueOf(failure.getVal(i)), "\"", "'"));
-		// }
-		// return false;
-		// }
 
 	}
 
@@ -498,7 +473,10 @@ public class CoreAction extends CoreDefineModule {
 							@Override
 							public Boolean p(int status, InputStream stream, String md5) {
 								successUpdateNodeCount.incrementAndGet();
-								return processResponse(context, replica.getNodeName(), stream);
+								// return processResponse(context, stream);
+
+								return HttpUtils.processResponse(stream,
+										(err) -> addErrorMessage(context, err)).success;
 							}
 						});
 					}
