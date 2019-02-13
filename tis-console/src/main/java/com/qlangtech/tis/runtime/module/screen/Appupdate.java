@@ -23,11 +23,10 @@
  */
 package com.qlangtech.tis.runtime.module.screen;
 
-import junit.framework.Assert;
-import org.apache.commons.lang.StringUtils;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.manage.common.YuntiPathInfo;
+
+import junit.framework.Assert;
 
 /*
  * 应用更新页面
