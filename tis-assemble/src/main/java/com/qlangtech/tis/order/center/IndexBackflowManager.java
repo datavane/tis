@@ -343,7 +343,7 @@ public class IndexBackflowManager {
 						callbackResult.msg = err;
 					});
 
-					logger.info("respBody:\n" + result.respBody);
+					//logger.info("respBody:\n" + result.respBody);
 
 					if (!result.success) {
 						callbackResult.setSTATUS(BackflowResult.FAILED);

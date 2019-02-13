@@ -69,7 +69,7 @@ public class Corenodemanage extends CoreDefineScreen {
         final Set<String> instanceDir = new HashSet<String>();
         for (Slice slice : collection.getSlices()) {
             for (final Replica replica : slice.getReplicas()) {
-                URL url = new URL(replica.getCoreUrl() + "admin/mbeans?stats=true&cat=CORE&key=core");
+                URL url = new URL(replica.getCoreUrl() + "admin/mbeans?stats=true&cat=CORE&key=core&wt=xml");
                 // http://10.1.7.41:8983/solr/search4totalpay_shard1_replica1/admin/mbeans?cat=QUERYHANDLER&key=/select&key=/update&stats=true
                 // http://120.55.195.132:8080/solr/search4totalpay_shard1_replica2/admin/mbeans?stats=true&cat=QUERYHANDLER&cat=CORE&key=/select&key=/update&key=searcher&key=core
                 ConfigFileContext.processContent(url, new StreamProcess<Object>() {
