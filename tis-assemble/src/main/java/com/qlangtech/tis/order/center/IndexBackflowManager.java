@@ -300,8 +300,7 @@ public class IndexBackflowManager {
 					}).success) {
 						return result;
 					}
-					// log.info(IOUtils.toString(stream,
-					// Charset.forName("utf8")));
+
 					URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=requeststatus&wt=json&"
 							+ CoreAdminParams.REQUESTID + "=" + requestId);
 					log.info("check url :" + url);
