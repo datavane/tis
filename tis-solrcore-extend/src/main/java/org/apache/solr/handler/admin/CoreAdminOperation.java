@@ -331,34 +331,37 @@ enum CoreAdminOperation implements CoreAdminOp {
 			log().warn(
 					"zkController is null in CoreAdminHandler.handleRequestInternal:REJOINLEADERELECTION. No action taken.");
 		}
-	}), INVOKE_OP(INVOKE, new InvokeOp()), BACKUPCORE_OP(BACKUPCORE, new BackupCoreOp()), RESTORECORE_OP(RESTORECORE,
-			new RestoreCoreOp()), CREATESNAPSHOT_OP(CREATESNAPSHOT, new CreateSnapshotOp()), DELETESNAPSHOT_OP(
-					DELETESNAPSHOT, new DeleteSnapshotOp()), LISTSNAPSHOTS_OP(LISTSNAPSHOTS, it -> {
-						final SolrParams params = it.req.getParams();
-						String cname = params.required().get(CoreAdminParams.CORE);
+	}), //
+	INVOKE_OP(INVOKE, new InvokeOp()), //
+	BACKUPCORE_OP(BACKUPCORE, new BackupCoreOp()), //
+	RESTORECORE_OP(RESTORECORE, new RestoreCoreOp()), //
+	CREATESNAPSHOT_OP(CREATESNAPSHOT, new CreateSnapshotOp()), //
+	DELETESNAPSHOT_OP(DELETESNAPSHOT, new DeleteSnapshotOp()), //
+	LISTSNAPSHOTS_OP(LISTSNAPSHOTS, it -> {
+		final SolrParams params = it.req.getParams();
+		String cname = params.required().get(CoreAdminParams.CORE);
 
-						CoreContainer cc = it.handler.getCoreContainer();
+		CoreContainer cc = it.handler.getCoreContainer();
 
-						try (SolrCore core = cc.getCore(cname)) {
-							if (core == null) {
-								throw new SolrException(ErrorCode.BAD_REQUEST, "Unable to locate core " + cname);
-							}
+		try (SolrCore core = cc.getCore(cname)) {
+			if (core == null) {
+				throw new SolrException(ErrorCode.BAD_REQUEST, "Unable to locate core " + cname);
+			}
 
-							SolrSnapshotMetaDataManager mgr = core.getSnapshotMetaDataManager();
-							NamedList result = new NamedList();
-							for (String name : mgr.listSnapshots()) {
-								Optional<SnapshotMetaData> metadata = mgr.getSnapshotMetaData(name);
-								if (metadata.isPresent()) {
-									NamedList<String> props = new NamedList<>();
-									props.add(SolrSnapshotManager.GENERATION_NUM,
-											String.valueOf(metadata.get().getGenerationNumber()));
-									props.add(SolrSnapshotManager.INDEX_DIR_PATH, metadata.get().getIndexDirPath());
-									result.add(name, props);
-								}
-							}
-							it.rsp.add(SolrSnapshotManager.SNAPSHOTS_INFO, result);
-						}
-					});
+			SolrSnapshotMetaDataManager mgr = core.getSnapshotMetaDataManager();
+			NamedList result = new NamedList();
+			for (String name : mgr.listSnapshots()) {
+				Optional<SnapshotMetaData> metadata = mgr.getSnapshotMetaData(name);
+				if (metadata.isPresent()) {
+					NamedList<String> props = new NamedList<>();
+					props.add(SolrSnapshotManager.GENERATION_NUM, String.valueOf(metadata.get().getGenerationNumber()));
+					props.add(SolrSnapshotManager.INDEX_DIR_PATH, metadata.get().getIndexDirPath());
+					result.add(name, props);
+				}
+			}
+			it.rsp.add(SolrSnapshotManager.SNAPSHOTS_INFO, result);
+		}
+	});
 
 	final CoreAdminParams.CoreAdminAction action;
 	final CoreAdminOp fun;

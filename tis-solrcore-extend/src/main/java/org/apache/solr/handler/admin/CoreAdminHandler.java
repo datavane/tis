@@ -222,6 +222,7 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 					MDC.remove("CoreAdminHandler.action");
 				}
 				//▲▲▲ 百岁 add for asynchronize task end
+				return;
 			}
 
 			final CallInfo callInfo = new CallInfo(this, req, rsp, op);
