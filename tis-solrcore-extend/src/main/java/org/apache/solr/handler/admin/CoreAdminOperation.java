@@ -75,6 +75,8 @@ import static org.apache.solr.handler.admin.CoreAdminHandler.RUNNING;
 import static org.apache.solr.handler.admin.CoreAdminHandler.buildCoreParams;
 import static org.apache.solr.handler.admin.CoreAdminHandler.normalizePath;
 
+import static com.qlangtech.tis.manage.common.TISCollectionUtils.*;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -299,9 +301,9 @@ enum CoreAdminOperation implements CoreAdminOp {
 			IndexBackflowStatus backflowStatus = null;
 			if ((backflowStatus = taskObj.getBackflowStatus()) != null) {
 				Map<String, Long> status = new HashMap<>();
-				status.put("all", backflowStatus.getAllContentLength());
-				status.put("readed", backflowStatus.getHaveReaded());
-				callInfo.rsp.add("indexflowback_status", status);
+				status.put(INDEX_BACKFLOW_ALL, backflowStatus.getAllContentLength());
+				status.put(INDEX_BACKFLOW_READED, backflowStatus.getHaveReaded());
+				callInfo.rsp.add(INDEX_BACKFLOW_STATUS, status);
 			}
 		}
 		// ▲▲▲▲ end 百岁 baisui 20190213

@@ -60,6 +60,7 @@ import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.HttpUtils.ProcessResponse;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
+import static com.qlangtech.tis.manage.common.TISCollectionUtils.*;
 
 /*
  * 索引回流控制器
@@ -335,7 +336,7 @@ public class IndexBackflowManager {
 				@Override
 				public BackflowResult p(int status, InputStream stream, String md5) {
 					BackflowResult callbackResult = new BackflowResult();
-					// try {
+
 					ProcessResponse result = null;
 
 					result = HttpUtils.processResponse(stream, (err) -> {
@@ -351,6 +352,15 @@ public class IndexBackflowManager {
 
 					Map<String, Object> resultMap = (Map<String, Object>) result.result;
 					callbackResult.setSTATUS(String.valueOf(resultMap.get("STATUS")));
+
+					Map<String, Long> backflowStatus = (Map<String, Long>) resultMap.get(INDEX_BACKFLOW_STATUS);
+					if (backflowStatus != null) {
+						IndexflowbackStatus indexflowbackStatus = new IndexflowbackStatus();
+						indexflowbackStatus.setAll(backflowStatus.get(INDEX_BACKFLOW_ALL));
+						indexflowbackStatus.setReaded(backflowStatus.get(INDEX_BACKFLOW_READED));
+						callbackResult.setIndexflowback_status(indexflowbackStatus);
+					}
+
 					// String body = IOUtils.toString(stream,
 					// Charset.forName("utf8"));
 					//

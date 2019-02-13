@@ -185,8 +185,43 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 			// Pick the action
 			CoreAdminOperation op = opMap.get(req.getParams().get(ACTION, STATUS.toString()).toLowerCase(Locale.ROOT));
 			if (op == null) {
-				handleCustomAction(req, rsp);
-				return;
+				// handleCustomAction(req, rsp);
+				// return;
+				//▼▼▼ 百岁 20190213 add for asynchronize task
+
+				try {
+					MDC.put("CoreAdminHandler.asyncId", taskId);
+					MDC.put("CoreAdminHandler.action", "handleCustomAction");
+					parallelExecutor.execute(new Runnable() {
+
+						@Override
+						public void run() {
+
+							boolean exceptionCaught = false;
+							try {
+								handleCustomAction(req, rsp);
+
+								taskObject.setRspObject(rsp);
+							} catch (Exception e) {
+								exceptionCaught = true;
+								taskObject.setRspObjectFromException(e);
+							} finally {
+								removeTask("running", taskObject.taskId);
+								if (exceptionCaught) {
+									addTask(FAILED, taskObject, true);
+								} else {
+									addTask(COMPLETED, taskObject, true);
+								}
+							}
+
+						}
+
+					});
+				} finally {
+					MDC.remove("CoreAdminHandler.asyncId");
+					MDC.remove("CoreAdminHandler.action");
+				}
+				//▲▲▲ 百岁 add for asynchronize task end
 			}
 
 			final CallInfo callInfo = new CallInfo(this, req, rsp, op);
@@ -477,7 +512,7 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 
 	private static final Map<String, CoreAdminOperation> opMap = new HashMap<>();
 
-	 class CallInfo {
+	class CallInfo {
 		final CoreAdminHandler handler;
 		final SolrQueryRequest req;
 		final SolrQueryResponse rsp;
@@ -493,7 +528,7 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 		void call() throws Exception {
 			preCoreAdminHandlerExecute(req, rsp, op);
 			op.execute(this);
-//			postCoreAdminHandlerExecute(req, rsp, op);
+			// postCoreAdminHandlerExecute(req, rsp, op);
 		}
 
 	}
@@ -502,7 +537,7 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 	public Collection<Api> getApis() {
 		return coreAdminHandlerApi.getApis();
 	}
-	
+
 	// baisui add
 	protected void preCoreAdminHandlerExecute(SolrQueryRequest req, SolrQueryResponse rsp, CoreAdminOperation op) {
 

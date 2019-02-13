@@ -57,9 +57,9 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.qlangtech.tis.common.SolrCoreUtils;
-import com.qlangtech.tis.common.SolrCoreUtils.TisCoreName;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.manage.common.TISCollectionUtils.TisCoreName;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
 import com.qlangtech.tis.solrextend.utils.TisIndexFetcher;
 
@@ -296,7 +296,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 			final File indexDir, SolrQueryResponse rsp, String taskId) {
 		final long starttime = System.currentTimeMillis();
 
-		TisCoreName tiscoreName = SolrCoreUtils.parse(core.getName());
+		TisCoreName tiscoreName = TISCollectionUtils.parse(core.getName());
 
 //		Matcher coreNameMatcher = coreNamePattern.matcher(core.getName());
 //		if (!coreNameMatcher.matches()) {
