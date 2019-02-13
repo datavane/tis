@@ -57,6 +57,8 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.qlangtech.tis.common.SolrCoreUtils;
+import com.qlangtech.tis.common.SolrCoreUtils.TisCoreName;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
 import com.qlangtech.tis.solrextend.utils.TisIndexFetcher;
@@ -279,7 +281,8 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 	}
 
 	// private static final String SEGMENT_FILE = "segments_1";
-	private static final Pattern coreNamePattern = Pattern.compile("(search4.+?)_shard(\\d+?)_replica_n\\d+");
+	// private static final Pattern coreNamePattern =
+	// Pattern.compile("(search4.+?)_shard(\\d+?)_replica_n\\d+");
 
 	/**
 	 * 将刚刚构建好的全量文件放置到本地目标文件夹中
@@ -292,14 +295,17 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 	protected void downloadIndexFile2IndexDir(String hdfsHome, long hdfsTimeStamp, String hdfsUser, SolrCore core,
 			final File indexDir, SolrQueryResponse rsp, String taskId) {
 		final long starttime = System.currentTimeMillis();
-		Matcher coreNameMatcher = coreNamePattern.matcher(core.getName());
-		if (!coreNameMatcher.matches()) {
-			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
-					"core name:" + core.getName() + " does not match pattern:" + coreNameMatcher);
-		}
-		String coreName = coreNameMatcher.group(1);
+
+		TisCoreName tiscoreName = SolrCoreUtils.parse(core.getName());
+
+//		Matcher coreNameMatcher = coreNamePattern.matcher(core.getName());
+//		if (!coreNameMatcher.matches()) {
+//			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+//					"core name:" + core.getName() + " does not match pattern:" + coreNameMatcher);
+//		}
+		String coreName = tiscoreName.getName();//// coreNameMatcher.group(1);
 		// 需要减1
-		final int group = Integer.parseInt(coreNameMatcher.group(2)) - 1;
+		final int group = tiscoreName.getSharedNo()-1;// Integer.parseInt(coreNameMatcher.group(2)) - 1;
 		Path hdfsPath = new Path(
 				"/user/" + hdfsUser + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
 		log.info("load from hdfs:" + hdfsHome + ",path:" + hdfsPath);

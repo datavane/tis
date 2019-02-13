@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.cloud.dump.DumpJobId;
 import com.qlangtech.tis.cloud.dump.DumpJobStatus;
+import com.qlangtech.tis.common.SolrCoreUtils;
+import com.qlangtech.tis.common.SolrCoreUtils.TisCoreName;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.exception.IndexDumpFatalException;
 import com.qlangtech.tis.hdfs.util.Constants;
@@ -56,243 +58,253 @@ import com.qlangtech.tis.trigger.jst.impl.RemoteIndexBuildJob;
  * @date 2019年1月17日
  */
 public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
+	// public static final Pattern PATTERN_CORE =
+	// Pattern.compile("search4(.+?)_shard(\\d+?)_replica_n(\\d+?)");
+	protected final String userName;
 
-    protected final String userName;
+	protected DistributeLog log;
 
-    protected DistributeLog log;
+	private static final Logger logger = LoggerFactory.getLogger(RemoteIndexBuildJob.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(RemoteIndexBuildJob.class);
+	protected static final FileSystem fileSystem;
 
-    protected static final FileSystem fileSystem;
+	protected final String groupNum;
 
-    protected final String groupNum;
+	static int jobid = 0;
 
-    static int jobid = 0;
+	static {
+		fileSystem = createFileSystem(TSearcherConfigFetcher.get().getHdfsAddress());
+	}
 
-    static {
-        fileSystem = createFileSystem(TSearcherConfigFetcher.get().getHdfsAddress());
-    }
+	public AbstractIndexBuildJob(// ,
+			ImportDataProcessInfo processInfo, // ,
+			int group, // ExecutorService taskPool,
+			String userName) {
+		// System.getProperty("user.name");
+		this.userName = userName;
+		this.state = processInfo;
+		if (StringUtils.isEmpty(processInfo.getTimepoint())) {
+			throw new IllegalArgumentException("processInfo.getTimepoint() can not be null");
+		}
+		this.groupNum = String.valueOf(group);
+		// this.taskPool = taskPool;
+	}
 
-    public AbstractIndexBuildJob(// ,
-    ImportDataProcessInfo processInfo, // ,
-    int group, // ExecutorService taskPool,
-    String userName) {
-        // System.getProperty("user.name");
-        this.userName = userName;
-        this.state = processInfo;
-        if (StringUtils.isEmpty(processInfo.getTimepoint())) {
-            throw new IllegalArgumentException("processInfo.getTimepoint() can not be null");
-        }
-        this.groupNum = String.valueOf(group);
-    // this.taskPool = taskPool;
-    }
+	public DistributeLog getLog() {
+		return log;
+	}
 
-    public DistributeLog getLog() {
-        return log;
-    }
+	public void setLog(DistributeLog log) {
+		this.log = log;
+	}
 
-    public void setLog(DistributeLog log) {
-        this.log = log;
-    }
+	public String getUserName() {
+		return userName;
+	}
 
-    public String getUserName() {
-        return userName;
-    }
+	public String getGroupNum() {
+		return groupNum;
+	}
 
-    public String getGroupNum() {
-        return groupNum;
-    }
+	public static void main(String[] arg) throws Exception {
+	}
 
-    public static void main(String[] arg) throws Exception {
-    }
+	// private static final Log LOG =
+	// LogFactory.getLog(RemoteIndexBuildJob.class);
+	private final TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
 
-    // private static final Log LOG =
-    // LogFactory.getLog(RemoteIndexBuildJob.class);
-    private final TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
+	public static interface SCallback {
 
-    public static interface SCallback {
+		public void execute(ImportDataProcessInfo state, BuildResult buildResult);
+	}
 
-        public void execute(ImportDataProcessInfo state, BuildResult buildResult);
-    }
+	protected final ImportDataProcessInfo state;
 
-    protected final ImportDataProcessInfo state;
+	public BuildResult call() throws Exception {
+		try {
+			return startBuildIndex();
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new RuntimeException(e);
+		}
+	}
 
-    public BuildResult call() throws Exception {
-        try {
-            return startBuildIndex();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e);
-        }
-    }
+	/**
+	 * 执行单组build任務
+	 *
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("all")
+	public final BuildResult startBuildIndex() throws Exception {
+		final String coreName = state.getIndexName() + '-' + groupNum;
+		final String timePoint = state.getTimepoint();
+		final DumpJobStatus status = new DumpJobStatus();
+		status.setUserName(userName);
+		status.setTimepoint(state.getTimepoint());
+		status.setDumpType("remote");
+		DumpJobId dumpJobId = new DumpJobId("jtIdentifier", jobid++);
+		status.setDumpJobID(dumpJobId);
+		status.setCoreName(coreName);
+		// RunEnvironment.getEnum(config.getRunEnvironment());
+		RunEnvironment runtime = config.getRuntime();
+		long now = System.currentTimeMillis();
+		final String outPath = state.getIndexBuildOutputPath(this.userName, Integer.parseInt(this.groupNum));
+		logger.info("build out path:" + outPath);
+		SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTerminatorConsoleHostAddress(),
+				state.getIndexName(), 0, runtime, ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLOR,
+				ConfigFileReader.FILE_CORE_PROPERTIES, ConfigFileReader.FILE_APPLICATION);
+		if (domain == null) {
+			throw new IllegalStateException(
+					"index:" + state.getIndexName() + ",runtime:" + runtime + " have not prepare for confg");
+		}
+		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, "config");
+		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SOLOR, "config");
+		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_CORE_PROPERTIES, "config");
+		// TODO 为了兼容老的索引先加上，到时候要删除掉的
+		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, Constants.SCHEMA);
+		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_APPLICATION, "app");
+		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_CORE_PROPERTIES, "core");
+		// TODO 为了兼容老的索引先加上，到时候要删除掉的 end
+		logger.info("Excute  RemoteDumpJob: Sbumit Remote Job .....  ");
+		status.setStartTime(now);
+		// String[] core = this.coreName.split("-");
+		String serviceName = state.getIndexName();
+		// ///////////////////////////////////////////
+		logger.info("Excute Remote Dump Job Status: Sbumit  ");
+		return buildSliceIndex(coreName, timePoint, status, outPath, serviceName);
+	}
 
-    /**
-     * 执行单组build任務
-     *
-     * @return
-     * @throws Exception
-     */
-    @SuppressWarnings("all")
-    public final BuildResult startBuildIndex() throws Exception {
-        final String coreName = state.getIndexName() + '-' + groupNum;
-        final String timePoint = state.getTimepoint();
-        final DumpJobStatus status = new DumpJobStatus();
-        status.setUserName(userName);
-        status.setTimepoint(state.getTimepoint());
-        status.setDumpType("remote");
-        DumpJobId dumpJobId = new DumpJobId("jtIdentifier", jobid++);
-        status.setDumpJobID(dumpJobId);
-        status.setCoreName(coreName);
-        // RunEnvironment.getEnum(config.getRunEnvironment());
-        RunEnvironment runtime = config.getRuntime();
-        long now = System.currentTimeMillis();
-        final String outPath = state.getIndexBuildOutputPath(this.userName, Integer.parseInt(this.groupNum));
-        logger.info("build out path:" + outPath);
-        SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTerminatorConsoleHostAddress(), state.getIndexName(), 0, runtime, ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLOR, ConfigFileReader.FILE_CORE_PROPERTIES, ConfigFileReader.FILE_APPLICATION);
-        if (domain == null) {
-            throw new IllegalStateException("index:" + state.getIndexName() + ",runtime:" + runtime + " have not prepare for confg");
-        }
-        writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, "config");
-        writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SOLOR, "config");
-        writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_CORE_PROPERTIES, "config");
-        // TODO 为了兼容老的索引先加上，到时候要删除掉的
-        writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, Constants.SCHEMA);
-        writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_APPLICATION, "app");
-        writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_CORE_PROPERTIES, "core");
-        // TODO 为了兼容老的索引先加上，到时候要删除掉的 end
-        logger.info("Excute  RemoteDumpJob: Sbumit Remote Job .....  ");
-        status.setStartTime(now);
-        // String[] core = this.coreName.split("-");
-        String serviceName = state.getIndexName();
-        // ///////////////////////////////////////////
-        logger.info("Excute Remote Dump Job Status: Sbumit  ");
-        return buildSliceIndex(coreName, timePoint, status, outPath, serviceName);
-    }
+	protected abstract BuildResult buildSliceIndex(final String coreName, final String timePoint,
+			final DumpJobStatus status, final String outPath, String serviceName)
+			throws Exception, IOException, InterruptedException;
 
-    protected abstract BuildResult buildSliceIndex(final String coreName, final String timePoint, final DumpJobStatus status, final String outPath, String serviceName) throws Exception, IOException, InterruptedException;
+	public static class BuildResult {
 
-    public static class BuildResult {
+		public static BuildResult createFaild() {
+			BuildResult buildResult = new BuildResult(Integer.MAX_VALUE, new ImportDataProcessInfo(0));
+			return buildResult.setSuccess(false);
+		}
 
-        public static BuildResult createFaild() {
-            BuildResult buildResult = new BuildResult(Integer.MAX_VALUE, new ImportDataProcessInfo(0));
-            return buildResult.setSuccess(false);
-        }
+		public static BuildResult clone(BuildResult from) {
+			BuildResult buildResult = new BuildResult(from.groupIndex, from.processInfo);
+			buildResult.setSuccess(true).setIndexSize(from.indexSize);
+			return buildResult;
+		}
 
-        public static BuildResult clone(BuildResult from) {
-            BuildResult buildResult = new BuildResult(from.groupIndex, from.processInfo);
-            buildResult.setSuccess(true).setIndexSize(from.indexSize);
-            return buildResult;
-        }
+		private Replica replica;
 
-        private Replica replica;
+		public Replica getReplica() {
+			return replica;
+		}
 
-        public Replica getReplica() {
-            return replica;
-        }
+		public final String getNodeName() {
+			return this.replica.getNodeName();
+		}
 
-        public final String getNodeName() {
-            return this.replica.getNodeName();
-        }
+		// 执行索引回流时需要sleep的时间
+		public long getCoreReloadSleepTime() {
+			boolean shallSleep = processInfo.indexBackFlowShallSleep(groupIndex);
+			if (shallSleep) {
+				return (long) (Math.log10(1 + this.getIndexSize()) * 12000);
+			} else {
+				return -1l;
+			}
+		}
 
-        // 执行索引回流时需要sleep的时间
-        public long getCoreReloadSleepTime() {
-            boolean shallSleep = processInfo.indexBackFlowShallSleep(groupIndex);
-            if (shallSleep) {
-                return (long) (Math.log10(1 + this.getIndexSize()) * 12000);
-            } else {
-                return -1l;
-            }
-        }
+		public static void main(String[] args) {
+			System.out.println((long) (Math.log10(1 + 319l * 1024 * 1024) * 12000));
+		}
 
-        public static void main(String[] args) {
-            System.out.println((long) (Math.log10(1 + 319l * 1024 * 1024) * 12000));
-        }
+		public BuildResult setReplica(Replica replica) {
+			this.replica = replica;
+			return this;
+		}
 
-        public BuildResult setReplica(Replica replica) {
-            this.replica = replica;
-            return this;
-        }
+		// private final RunningJob rj;
+		private boolean success;
 
-        // private final RunningJob rj;
-        private boolean success;
+		private final ImportDataProcessInfo processInfo;
 
-        private final ImportDataProcessInfo processInfo;
+		public String getTimepoint() {
+			return this.processInfo.getTimepoint();
+		}
 
-        public String getTimepoint() {
-            return this.processInfo.getTimepoint();
-        }
+		public boolean isSuccess() {
+			return success;
+		}
 
-        public boolean isSuccess() {
-            return success;
-        }
+		public BuildResult setSuccess(boolean success) {
+			this.success = success;
+			return this;
+		}
 
-        public BuildResult setSuccess(boolean success) {
-            this.success = success;
-            return this;
-        }
+		private final int groupIndex;
 
-        private final int groupIndex;
+		// 索引磁盘容量
+		private long indexSize;
 
-        // 索引磁盘容量
-        private long indexSize;
+		public long getIndexSize() {
+			return indexSize;
+		}
 
-        public long getIndexSize() {
-            return indexSize;
-        }
+		public void setIndexSize(long indexSize) {
+			this.indexSize = indexSize;
+		}
 
-        public void setIndexSize(long indexSize) {
-            this.indexSize = indexSize;
-        }
+		public int getGroupIndex() {
+			return groupIndex;
+		}
 
-        public int getGroupIndex() {
-            return groupIndex;
-        }
+		public BuildResult(Replica replica, ImportDataProcessInfo processInfo) {
+			super();
+			String coreName = replica.getStr(ZkStateReader.CORE_NAME_PROP);
+			// Matcher matcher = TisCoreAdminHandler..matcher(coreName);
+			// if (!matcher.matches()) {
+			// throw new IllegalStateException("coreName:" + coreName + " is not
+			// match the pattern:" + PATTERN_CORE);
+			// }
 
-        public static final Pattern PATTERN_CORE = Pattern.compile("search4(.+?)_shard(\\d+?)_replica(\\d+?)");
+			TisCoreName tiscoreName = SolrCoreUtils.parse(coreName);
 
-        public BuildResult(Replica replica, ImportDataProcessInfo processInfo) {
-            super();
-            String coreName = replica.getStr(ZkStateReader.CORE_NAME_PROP);
-            Matcher matcher = PATTERN_CORE.matcher(coreName);
-            if (!matcher.matches()) {
-                throw new IllegalStateException("coreName:" + coreName + " is not match the pattern:" + PATTERN_CORE);
-            }
-            this.groupIndex = Integer.parseInt(matcher.group(2)) - 1;
-            this.processInfo = processInfo;
-        }
+			this.groupIndex = tiscoreName.getSharedNo() - 1;
+			this.processInfo = processInfo;
+		}
 
-        public BuildResult(int group, ImportDataProcessInfo processInfo) {
-            super();
-            this.groupIndex = group;
-            this.processInfo = processInfo;
-        }
+		public BuildResult(int group, ImportDataProcessInfo processInfo) {
+			super();
+			this.groupIndex = group;
+			this.processInfo = processInfo;
+		}
 
-        public String getHdfsSourcePath() {
-            return this.processInfo.getHdfsSourcePath().build(String.valueOf(groupIndex));
-        }
-    }
+		public String getHdfsSourcePath() {
+			return this.processInfo.getHdfsSourcePath().build(String.valueOf(groupIndex));
+		}
+	}
 
-    public static FileSystem createFileSystem(String hdfsHost) {
-        return TISHdfsUtils.getFileSystem();
-    }
+	public static FileSystem createFileSystem(String hdfsHost) {
+		return TISHdfsUtils.getFileSystem();
+	}
 
-    /**
-     * @param config
-     * @param coreName
-     * @param domain
-     * @return
-     * @throws IndexDumpFatalException
-     */
-    private void writeResource2Hdfs(String coreName, SnapshotDomain domain, PropteryGetter getter, String subdir) throws IndexDumpFatalException {
-        Path dst = new Path(config.getHdfsAddress() + Path.SEPARATOR + Constants.USER + Path.SEPARATOR + userName + Path.SEPARATOR + coreName + Path.SEPARATOR + subdir + Path.SEPARATOR + getter.getFileName());
-        OutputStream dstoutput = null;
-        try {
-            dstoutput = fileSystem.create(dst, true);
-            IOUtils.write(getter.getContent(domain), dstoutput);
-        } catch (IOException e1) {
-            throw new IndexDumpFatalException("[ERROR] Submit Service Core  Schema.xml to HDFS Failure !!!!", e1);
-        } finally {
-            IOUtils.closeQuietly(dstoutput);
-        }
-    }
+	/**
+	 * @param config
+	 * @param coreName
+	 * @param domain
+	 * @return
+	 * @throws IndexDumpFatalException
+	 */
+	private void writeResource2Hdfs(String coreName, SnapshotDomain domain, PropteryGetter getter, String subdir)
+			throws IndexDumpFatalException {
+		Path dst = new Path(config.getHdfsAddress() + Path.SEPARATOR + Constants.USER + Path.SEPARATOR + userName
+				+ Path.SEPARATOR + coreName + Path.SEPARATOR + subdir + Path.SEPARATOR + getter.getFileName());
+		OutputStream dstoutput = null;
+		try {
+			dstoutput = fileSystem.create(dst, true);
+			IOUtils.write(getter.getContent(domain), dstoutput);
+		} catch (IOException e1) {
+			throw new IndexDumpFatalException("[ERROR] Submit Service Core  Schema.xml to HDFS Failure !!!!", e1);
+		} finally {
+			IOUtils.closeQuietly(dstoutput);
+		}
+	}
 }
