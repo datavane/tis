@@ -53,6 +53,7 @@ public class HttpUtils {
 		try {
 			respBody = IOUtils.toString(stream, "utf8");
 			resp = ObjectBuilder.getVal(new JSONParser(respBody));
+			result.respBody = respBody;
 			result.result = resp;
 		} catch (Exception pe) {
 			throw new RuntimeException("Expected JSON response from server but received: " + respBody
@@ -108,7 +109,7 @@ public class HttpUtils {
 	public static class ProcessResponse {
 		public boolean success;
 		public Object result;
-
+		public String respBody;
 	}
 
 	public interface IMsgProcess {

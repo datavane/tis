@@ -28,11 +28,9 @@ import static org.apache.commons.io.FileUtils.ONE_MB_BI;
 import static org.apache.solr.common.cloud.ZkStateReader.BASE_URL_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.CORE_NAME_PROP;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +46,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.Replica;
@@ -59,7 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.HttpUtils.ProcessResponse;
@@ -72,6 +68,8 @@ import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
  * @date 2019年1月17日
  */
 public class IndexBackflowManager {
+
+	private static final Logger logger = LoggerFactory.getLogger(IndexBackflowManager.class);
 
 	int phrase = 0;
 
@@ -262,14 +260,6 @@ public class IndexBackflowManager {
 		}
 	}
 
-	public static String RUNNING = "running";
-
-	public static String COMPLETED = "completed";
-
-	public static String FAILED = "failed";
-
-	public static String NOT_FOUND = "notfound";
-
 	/**
 	 * 触发索引回流
 	 *
@@ -305,7 +295,7 @@ public class IndexBackflowManager {
 				try {
 
 					if (!HttpUtils.processResponse(stream, (err) -> {
-						result.setSTATUS(FAILED);
+						result.setSTATUS(BackflowResult.FAILED);
 						result.setMsg(err);
 					}).success) {
 						return result;
@@ -342,20 +332,26 @@ public class IndexBackflowManager {
 		while (applyCount++ < MAX_RETRY) {
 			callbackResult = HttpUtils.processContent(url, new StreamProcess<BackflowResult>() {
 
+				@SuppressWarnings("all")
 				@Override
 				public BackflowResult p(int status, InputStream stream, String md5) {
-					BackflowResult callbackResult = null;
+					BackflowResult callbackResult = new BackflowResult();
 					// try {
 					ProcessResponse result = null;
 
 					result = HttpUtils.processResponse(stream, (err) -> {
-
+						callbackResult.msg = err;
 					});
 
-					if (result.success) {
+					logger.info("respBody:\n" + result.respBody);
 
+					if (!result.success) {
+						callbackResult.setSTATUS(BackflowResult.FAILED);
+						return callbackResult;
 					}
 
+					Map<String, Object> resultMap = (Map<String, Object>) result.result;
+					callbackResult.setSTATUS(String.valueOf(resultMap.get("STATUS")));
 					// String body = IOUtils.toString(stream,
 					// Charset.forName("utf8"));
 					//
@@ -394,6 +390,14 @@ public class IndexBackflowManager {
 	}
 
 	public static class BackflowResult {
+
+		public static String RUNNING = "running";
+
+		public static String COMPLETED = "completed";
+
+		public static String FAILED = "failed";
+
+		public static String NOT_FOUND = "notfound";
 
 		private boolean result = false;
 

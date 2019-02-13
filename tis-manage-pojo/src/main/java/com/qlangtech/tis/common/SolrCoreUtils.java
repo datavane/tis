@@ -18,15 +18,15 @@ public class SolrCoreUtils {
 		private int replicaNo;
 
 		public String getName() {
-			return NAME_PREFIX + name;
+			return NAME_PREFIX + this.name;
 		}
 
 		public int getSharedNo() {
-			return sharedNo;
+			return this.sharedNo;
 		}
 
 		public int getReplicaNo() {
-			return replicaNo;
+			return this.replicaNo;
 		}
 
 	}
