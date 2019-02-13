@@ -26,8 +26,7 @@ package com.qlangtech.tis.trigger.jst;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
@@ -36,18 +35,19 @@ import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.qlangtech.tis.hdfs.TISHdfsUtils;
+
 import com.qlangtech.tis.cloud.dump.DumpJobId;
 import com.qlangtech.tis.cloud.dump.DumpJobStatus;
-import com.qlangtech.tis.common.SolrCoreUtils;
-import com.qlangtech.tis.common.SolrCoreUtils.TisCoreName;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.exception.IndexDumpFatalException;
+import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.hdfs.util.Constants;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.manage.common.TISCollectionUtils.TisCoreName;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.feedback.DistributeLog;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
@@ -265,7 +265,7 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 			// match the pattern:" + PATTERN_CORE);
 			// }
 
-			TisCoreName tiscoreName = SolrCoreUtils.parse(coreName);
+			TisCoreName tiscoreName = TISCollectionUtils.parse(coreName);
 
 			this.groupIndex = tiscoreName.getSharedNo() - 1;
 			this.processInfo = processInfo;
