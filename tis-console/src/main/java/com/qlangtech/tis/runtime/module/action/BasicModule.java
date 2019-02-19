@@ -239,9 +239,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, M
 			}
 
 			public void setLayout(String layout) {
-				// /runtime/templates/layout/ext_tpl.vm
-				// StringUtils.split();
-				//
 				final String namespace = getActionContext().getActionInvocation().getProxy().getNamespace();
 				Matcher matcher = COMPONENT_PATTERN.matcher(namespace);
 				if (matcher.find()) {
@@ -1059,6 +1056,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, M
 		@Override
 		public void put(String key, Object value) {
 			contextMap.put(key, value);
+		}
+
+		@Override
+		public void putIfEmpty(String key, Object value) {
+			contextMap.putIfAbsent(key, value);
 		}
 
 		@Override

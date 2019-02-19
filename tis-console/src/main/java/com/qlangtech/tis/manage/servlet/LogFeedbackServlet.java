@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.servlet.ServletException;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
@@ -43,6 +43,7 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.openshift.restclient.IClient;
@@ -200,6 +201,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
                 // 线上环境不提供详细日志发送
                 return;
             }
+           
             try {
                 this.logtypes.add(monitorTarget.getLogType());
                 if (monitorTarget.getLogType() == LogType.INCR_BUILD) {
@@ -236,7 +238,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
                 } else {
                     synchronized (monitorSet) {
                         if (monitorSet.add(monitorTarget)) {
-                            logCollector.registerMonitorEvent(monitorTarget);
+                         //   logCollector.registerMonitorEvent(monitorTarget);
                         }
                     }
                 }

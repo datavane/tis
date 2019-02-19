@@ -377,8 +377,8 @@ public class SaveFileContentAction extends BasicModule implements ModelDriven<Sa
     private PropteryGetter createConfigFileGetter(String fileName) {
         if (StringUtils.endsWith(fileName, "ds")) {
             return ConfigFileReader.FILE_DATA_SOURCE;
-        } else if (StringUtils.endsWith(fileName, "core")) {
-            return ConfigFileReader.FILE_CORE_PROPERTIES;
+//        } else if (StringUtils.endsWith(fileName, "core")) {
+//            return ConfigFileReader.FILE_CORE_PROPERTIES;
         } else if (StringUtils.endsWith(fileName, "application_context")) {
             // 保存文件
             return ConfigFileReader.FILE_APPLICATION;

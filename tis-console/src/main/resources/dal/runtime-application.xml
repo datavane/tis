@@ -10,7 +10,7 @@
 	</bean>
 	 -->
 	 
-	 <bean id="ocClient" class="com.qlangtech.tis.manage.spring.OpenshiftClinetFactory" lazy-init="true">
+	<bean id="ocClient" class="com.qlangtech.tis.manage.spring.OpenshiftClinetFactory" lazy-init="true">
         <property name="baseUrl" value="${ocClient.baseUrl}" />
         <property name="userName" value="${ocClient.userName}" />
         <property name="password" value="${ocClient.password}" />

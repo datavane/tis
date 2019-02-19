@@ -73,7 +73,7 @@ $manageTool.noescape($pager.link)
 #foreach($item in $applist)
 <tr id="row${item.appId}"> 
 <td align="center">$item.appId</td>
-<td><a href="$manageModule.setTarget('app')?appid=$item.appId">$item.projectName</a> <span>#if($item.isAutoDeploy)自动部署 #end<span> </td>
+<td> $item.projectName</td>
 <td> $item.recept</td>
 <td> #if(${item.dptId}>0)  $manageTool.getShortDepartmentName(${item.dptName}) #else 未设置 #end    </td>
 <td align="right">$manageTool.formatDateYYYYMMdd($item.createTime)</td>

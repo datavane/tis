@@ -21,31 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.qlangtech.tis.csvparse;
+package com.qlangtech.tis.runtime.module.screen;
 
-import java.io.File;
-import java.util.Date;
+import com.alibaba.citrus.turbine.Context;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class NullPointExceptionTest {
+public class BizDomainAdd extends BasicManageScreen {
 
-    private void executeFile(File file, String type, long date) {
-    // ......
-    }
+	private static final long serialVersionUID = 1L;
 
-    private Date getExecuteDate() {
-        return null;
-    }
-
-    private File getNowHasNotBeenExecuteFile() {
-        return new File("D:\\j2ee_solution\\eclipse-SDK-3.5.2-taobao20111209\\workspace\\terminator-manage\\src\\main\\webapp\\WEB-INF\\lib\\commons-codec-1.5.jar");
-    }
-
-    public static void main(String[] args) {
-        NullPointExceptionTest exceptionTest = new NullPointExceptionTest();
-        exceptionTest.executeFile(exceptionTest.getNowHasNotBeenExecuteFile(), "new", exceptionTest.getExecuteDate().getTime());
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.disableNavigationBar(context);
+		//
+		// Integer bizid = this.getInt("bizid");
+		// Assert.assertNotNull("bizid can not be null", bizid);
+		// BizDomain biz = this.getBizDomainDAO().loadFromWriteDB(bizid);
+		// Assert.assertNotNull(biz);
+		//
+		// context.put("biz", biz);
+	}
 }

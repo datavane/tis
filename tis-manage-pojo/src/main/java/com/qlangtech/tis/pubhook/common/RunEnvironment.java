@@ -42,7 +42,7 @@ public enum RunEnvironment {
 	// ///////////
 	DAILY("daily", (short) 0, "日常环境", Config.getTisRepository(), Config.getTisRepository()),
 	// //////////////////////
-	ONLINE("online", (short) 2, "生产环境", Config.getTisRepository(), Config.getTisRepository());
+	ONLINE("online", (short) 2, "生产环境", Config.getTisRepository(), Config.getOnlineTisRepository());
 
 	private static final Logger logger = LoggerFactory.getLogger(RunEnvironment.class);
 

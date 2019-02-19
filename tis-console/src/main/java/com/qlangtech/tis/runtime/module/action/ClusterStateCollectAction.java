@@ -120,6 +120,7 @@ public class ClusterStateCollectAction extends BasicModule {
 
             @Override
             public List<ClusterSnapshot> getSnapshots() {
+            
                 IClusterSnapshotQueryGetter getter = queryTimeSpan.get(minute);
                 Assert.assertNotNull("time getter:" + minute + " can not be null", getter);
                 final ClusterSnapshotQuery timeSpanQuery = getter.create();

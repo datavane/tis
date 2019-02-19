@@ -407,11 +407,11 @@ public final class ResSynManager {
                     continue;
                 }
                 CompareResult compare = new CompareResult(res.getGetter());
-                if (ConfigFileReader.FILE_JAR.getFileName().equals(res.getGetter().getFileName())) {
-                    compare.result.append("内容不同");
-                    result.add(compare);
-                    continue;
-                }
+//                if (ConfigFileReader.FILE_JAR.getFileName().equals(res.getGetter().getFileName())) {
+//                    compare.result.append("内容不同");
+//                    result.add(compare);
+//                    continue;
+//                }
                 LinkedList<Diff> differ = dmp.diff_main(new String(res.getDaily().getContent(), BasicModule.getEncode()), new String(res.getOnline().getContent(), BasicModule.getEncode()), true);
                 for (Diff d : differ) {
                     if (d.operation == Operation.EQUAL) {

@@ -34,34 +34,42 @@ import com.opensymphony.xwork2.ActionContext;
  */
 public class MockContext implements Context {
 
-    // private final ActionContext actionContext;
-    // 
-    // public MockContext() {
-    // super();
-    // this.actionContext = ActionContext.getContext();
-    // }
-    @Override
-    public boolean containsKey(String key) {
-        throw new UnsupportedOperationException();
-    }
+	// private final ActionContext actionContext;
+	//
+	// public MockContext() {
+	// super();
+	// this.actionContext = ActionContext.getContext();
+	// }
+	@Override
+	public boolean containsKey(String key) {
+		throw new UnsupportedOperationException();
+	}
 
-    @Override
-    public Object get(String key) {
-        Assert.assertNotNull("ActionContext.getContext() can not be null", ActionContext.getContext());
-        return ActionContext.getContext().get(key);
-    }
+	@Override
+	public Object get(String key) {
+		Assert.assertNotNull("ActionContext.getContext() can not be null", ActionContext.getContext());
+		return ActionContext.getContext().get(key);
+	}
 
-    @Override
-    public Set<String> keySet() {
-        return null;
-    }
+	@Override
+	public Set<String> keySet() {
+		return null;
+	}
 
-    @Override
-    public void put(String key, Object value) {
-        ActionContext.getContext().put(key, value);
-    }
+	@Override
+	public void put(String key, Object value) {
+		ActionContext.getContext().put(key, value);
+	}
 
-    @Override
-    public void remove(String key) {
-    }
+	@Override
+	public void putIfEmpty(String key, Object value) {
+		ActionContext ctx = ActionContext.getContext();
+		if (ctx.get(key) == null) {
+			ctx.put(key, value);
+		}
+	}
+
+	@Override
+	public void remove(String key) {
+	}
 }

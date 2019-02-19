@@ -1,19 +1,15 @@
-<h2>更新业务线</h2>
+<h2>添加业务线</h2>
 <style type="text/css"><!--
   #uploaddialog p span{
     width:4em;
     display:inline-block;
   }
-
 -->
 </style>
 #showFormErrors("csrfCheck")
-<form method="post" action="$manageModule.setTarget("biz_domain_update")" >
-#*
-$csrfToken.hiddenField
-*#
+<form method="post" action="$manageModule.setTarget("biz_domain_add")" >
+
 <input type="hidden" name="action"  value="biz_domain_action"/>
-<input type="hidden" name="bizid" value="$biz.dptId"/>
 <fieldset id="uploaddialog">
 
 <div class="form-group">
@@ -23,7 +19,7 @@ $csrfToken.hiddenField
 </div>
 
 <p>
-<input type="submit" class="btn btn-default" id="btnaddapp" name="event_submit_do_update" value="提     交" />
+<input type="submit" class="btn btn-default" id="btnaddapp" name="event_submit_do_add" value="添 加" />
 </p>
 </fieldset>
 </form>

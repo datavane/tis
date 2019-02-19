@@ -1,9 +1,9 @@
 <h2>全局配置参数一览</h2>
 <p>
-#popup("$manageModule.setTarget('config_file_parameters_add')","添加参数","600*500")
+#popup("$manageModule.setTarget('config_file_parameters_add')","添加参数","800*600")
 </p>
 <table class="table table-bordered " width="100%" >
-<tr>
+<tr style="border-bottom:thick solid #666666;">
   <th>键  </th>
   <th>值</th>
 </tr>
@@ -13,10 +13,15 @@
    ${item.keyName}
  </td>
   <td>
-   #popup("$manageModule.setTarget('config_file_parameters_set')?rpid=$item.rpId&runtime=${runtime.keyName}","设置","800*400")
+   #popup("$manageModule.setTarget('config_file_parameters_set')?rpid=$item.rpId&runtime=${runtime.keyName}","设置","800*500")
    <strong style="display:inline-block;width:4em">DAILY:</strong>$!item.envVal  &nbsp; 
-   <p class="bg-info" style="padding:8px;">Duis mollis, est non commodo luctus, nisi erat porttitor ligula.</p>
   
+  
+ </td>
+</tr>
+<tr style="border-bottom:thick solid #666666;">
+ <td class="bg-info" colspan="2">
+  $!item.desc
  </td>
 </tr>
 

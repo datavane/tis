@@ -1,6 +1,24 @@
+<style type="text/css">
+<!--
+ .alert-center {
+            width:400px;
+            height: 100px;
+            position: absolute;
+            left:50%;
+            top:30%;    
+            margin-left:-200px;
+            margin-top:-100px;
+            text-align:center;
+ 
+ }
+-->
+</style>
 
-
-<div class="alert alert-danger">
-    <h4><i class="fa fa-warning" ></i> ERROR!</h4>
-索引实例${appDomain.appName}还未被创建
-  </div>
+<div class="alert alert-danger alert-center">
+    
+索引实例${appDomain.appName}还未被创建 
+<br/>
+<a target="_self" class="btn btn-primary" href="/coredefine/corenodemanage.htm">创建新索引</a>
+</div>
+  
+  

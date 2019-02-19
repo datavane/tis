@@ -34,10 +34,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.sql.DataSource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.DocCollection;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.alibaba.citrus.turbine.Context;
 import com.opensymphony.xwork2.ModelDriven;
 import com.qlangtech.tis.manage.PermissionConstant;
@@ -61,6 +64,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
 import com.qlangtech.tis.trigger.biz.dal.dao.JobConstant;
 import com.qlangtech.tis.trigger.module.action.TriggerAction;
+
 import junit.framework.Assert;
 
 /*
@@ -89,7 +93,12 @@ public class AddAppAction extends BasicModule implements ModelDriven<Application
 	void doAddApp(// Navigator nav,
 			Context context) {
 		Assert.assertNotNull("param app can not be null", app);
+		context.put("biz", this.app);
 		if (!isAppNameValid(this, context, app)) {
+			return;
+		}
+		if (StringUtils.isBlank(this.app.getRecept())) {
+			this.addErrorMessage(context, "请填写接口人");
 			return;
 		}
 		Integer dptid = this.getInt("dptId");
@@ -97,15 +106,21 @@ public class AddAppAction extends BasicModule implements ModelDriven<Application
 		app.setDptName(getDepartment(this, dptid).getFullName());
 		app.setCreateTime(new Date());
 
-		app.setNobleAppId(0);
-		app.setNobleAppName("");
 		ApplicationCriteria criteria = new ApplicationCriteria();
 		criteria.createCriteria().andProjectNameEqualTo(app.getProjectName());
 		if (this.getApplicationDAO().countByExample(criteria) > 0) {
 			this.addErrorMessage(context, "系统中已经有同名（“" + app.getProjectName() + "”）应用存在");
 			return;
 		}
-		createApplication(app, context, this, triggerContext);
+
+		ApplicationCriteria aquery = new ApplicationCriteria();
+		aquery.createCriteria().andProjectNameEqualTo(ConfigFileParametersAction.APP_NAME_TEMPLATE);
+		List<Application> apps = this.getApplicationDAO().selectByExample(aquery);
+		// 从模板将需要拷贝的配置模板拷贝过来
+		for (Application a : apps) {
+			this.copyConfig(context, a, createApplication(app, context, this, triggerContext));
+		}
+
 		addActionMessage(context, "已经成功创建应用[" + app.getProjectName() + "]");
 	}
 
@@ -155,7 +170,8 @@ public class AddAppAction extends BasicModule implements ModelDriven<Application
 				triggerContext);
 		TriggerAction.createJob(newid, context, "0 0/10 * * * ?", JobConstant.JOB_INCREASE_DUMP, basicModule,
 				triggerContext);
-		GroupAction.createGroup(context, RunEnvironment.getSysRuntime(), FIRST_GROUP_INDEX, newid, basicModule);
+		GroupAction.createGroup(context, RunEnvironment.getSysRuntime(), FIRST_GROUP_INDEX, newid,
+				null /* publishSnapshotId */ , basicModule);
 		return newid;
 	}
 
@@ -260,7 +276,14 @@ public class AddAppAction extends BasicModule implements ModelDriven<Application
 			this.addErrorMessage(context, "拷贝目标应用已经删除");
 			return;
 		}
-		final ServerGroup group = DownloadServlet.getServerGroup(fromAppId,
+		copyConfig(context, fromApp, toAppId);
+
+		this.addActionMessage(context,
+				"拷贝源应用“" + fromApp.getProjectName() + "”已经成功复制到目标应用“" + destinationApp.getProjectName() + "”");
+	}
+
+	private void copyConfig(Context context, Application fromApp, Integer toAppId) {
+		final ServerGroup group = DownloadServlet.getServerGroup(fromApp.getAppId(),
 				(new Integer(FIRST_GROUP_INDEX)).shortValue(), this.getAppDomain().getRunEnvironment().getId(),
 				getServerGroupDAO());
 		if (group == null) {
@@ -287,9 +310,6 @@ public class AddAppAction extends BasicModule implements ModelDriven<Application
 		newSnapshto.setCreateUserName(this.getLoginUserName());
 		// final Integer newsnapshotId =
 		this.getSnapshotDAO().insertSelective(newSnapshto);
-
-		this.addActionMessage(context,
-				"拷贝源应用“" + fromApp.getProjectName() + "”已经成功复制到目标应用“" + destinationApp.getProjectName() + "”");
 	}
 
 	/**

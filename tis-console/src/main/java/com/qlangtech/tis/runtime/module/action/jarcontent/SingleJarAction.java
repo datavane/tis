@@ -39,7 +39,7 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class SingleJarAction extends BasicModule implements ModelDriven<SingleJarForm> {
+public abstract class SingleJarAction extends BasicModule implements ModelDriven<SingleJarForm> {
 
     private static final long serialVersionUID = 4619294097920803660L;
 
@@ -56,34 +56,34 @@ public class SingleJarAction extends BasicModule implements ModelDriven<SingleJa
      *
      * @param form
      */
-    @Func(PermissionConstant.CONFIG_UPLOAD)
-    @SuppressWarnings("all")
-    public void doUploadSingleJar(Context context) throws Exception {
-        if (jarForm.getUploadfile() == null) {
-            this.addErrorMessage(context, "请上传Jar文件");
-            return;
-        }
-        Integer snapshotId = this.getInt("snapshot");
-        Assert.assertNotNull(snapshotId);
-        final Snapshot snapshot = this.getSnapshotDAO().loadFromWriteDB(snapshotId);
-        Assert.assertNotNull(snapshot);
-        // for (FileItem item : items) {
-        UploadResource resource = new UploadResource();
-        resource.setContent(jarForm.getContent());
-        resource.setCreateTime(new Date());
-        resource.setResourceType(ConfigFileReader.FILE_JAR.getFileName());
-        resource.setMd5Code(ConfigFileReader.md5file(resource.getContent()));
-        Integer resid = this.getUploadResourceDAO().insert(resource);
-        Snapshot createSnapshot = ConfigFileReader.FILE_JAR.createNewSnapshot(resid, snapshot);
-        createSnapshot.setSnId(null);
-        createSnapshot.setUpdateTime(new Date());
-        createSnapshot.setCreateTime(new Date());
-        try {
-            createSnapshot.setCreateUserId(Long.parseLong(this.getUserId()));
-        } catch (Throwable e) {
-        }
-        createSnapshot.setCreateUserName(this.getLoginUserName());
-        Integer id = this.getSnapshotDAO().insertSelective(createSnapshot);
-        this.addActionMessage(context, "已经成功创建了一条新Snapshot：" + id);
-    }
+//    @Func(PermissionConstant.CONFIG_UPLOAD)
+//    @SuppressWarnings("all")
+//    public void doUploadSingleJar(Context context) throws Exception {
+//        if (jarForm.getUploadfile() == null) {
+//            this.addErrorMessage(context, "请上传Jar文件");
+//            return;
+//        }
+//        Integer snapshotId = this.getInt("snapshot");
+//        Assert.assertNotNull(snapshotId);
+//        final Snapshot snapshot = this.getSnapshotDAO().loadFromWriteDB(snapshotId);
+//        Assert.assertNotNull(snapshot);
+//        // for (FileItem item : items) {
+//        UploadResource resource = new UploadResource();
+//        resource.setContent(jarForm.getContent());
+//        resource.setCreateTime(new Date());
+//        resource.setResourceType(ConfigFileReader.FILE_JAR.getFileName());
+//        resource.setMd5Code(ConfigFileReader.md5file(resource.getContent()));
+//        Integer resid = this.getUploadResourceDAO().insert(resource);
+//        Snapshot createSnapshot = ConfigFileReader.FILE_JAR.createNewSnapshot(resid, snapshot);
+//        createSnapshot.setSnId(null);
+//        createSnapshot.setUpdateTime(new Date());
+//        createSnapshot.setCreateTime(new Date());
+//        try {
+//            createSnapshot.setCreateUserId(Long.parseLong(this.getUserId()));
+//        } catch (Throwable e) {
+//        }
+//        createSnapshot.setCreateUserName(this.getLoginUserName());
+//        Integer id = this.getSnapshotDAO().insertSelective(createSnapshot);
+//        this.addActionMessage(context, "已经成功创建了一条新Snapshot：" + id);
+//    }
 }

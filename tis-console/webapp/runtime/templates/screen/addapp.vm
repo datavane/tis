@@ -18,38 +18,43 @@ $csrfToken.hiddenField
 <input type="hidden" name="action" value="add_app_action"/>
 
 <fieldset id="uploaddialog">
-<legend>设置表单</legend>
-<p>
- <span>名称:</span> 
-  <input type="text" name="projectName" value="$!projectName"/>
-    <em style="color:red">必选</em>
-</p>
-<p>
- <span>所属部门:</span>    
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="projectName">名称</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" id="projectName" placeholder="search4xxx" name="projectName" value="$!biz.projectName" />
+      <em style="color:red">必选</em>
+    </div>
+  </div>
+  
+   <div class="form-group">
+    <label class="col-sm-2 control-label" for="dptId">所属部门</label>
+    <div class="col-sm-10">
  #if($dpt)
-   <input type="hidden" name="dptId" value="$!dptId"/> $dpt.fullName
+   <input type="hidden" name="dptId" value="$!dptId"/>$dpt.fullName
  #else  
-   <select name="dptId">
+   <select id="dptId" name="dptId" class="form-control">
      #foreach($item in $dptlist)  
-       <option #if($item.value == $dptId) selected #end value="$item.value">$item.name</option>
+       <option #if($item.value == $biz.dptId) selected #end value="$item.value">$item.name</option>
      #end  
    </select>
    <em style="color:red">必选</em>
   #end
-</p>
-<p>
- <span>接口人:</span> 
-  <input type="text" name="recept" value="$!recept"/> 
-    <em style="color:red">必选</em>
-</p>
-#*
-<p>
- <span>是否自动部署:</span> 
-  <input type="checkbox" name="isautodeploy" id="isautodeploy" value="true"/><label for="isautodeploy">是</label>
-</p>
-*#
-<p>
-<input type="submit" id="btnaddapp" name="event_submit_do_add_app" value="提     交" />
-</p>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="recept">接口人</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" id="recept" placeholder="xiaobai" name="recept" value="$!biz.recept" />
+      <em style="color:red">必选</em>
+    </div>
+  </div>
+<div class="form-group">
+<div class="col-sm-12" style="text-align:right">
+<input type="submit" id="btnaddapp" class="btn btn-default" name="event_submit_do_add_app" value="提     交" />
+</div>
+  </div>
+
 </fieldset>
 </form>

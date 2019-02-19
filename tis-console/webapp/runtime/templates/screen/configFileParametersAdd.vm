@@ -14,29 +14,27 @@
 <form method="post" action="$manageModule.setTarget("config_file_parameters_add")">
   <input type="hidden" name="action" value="config_file_parameters_action"/>
 <fieldset id="uploaddialog">
- <legend>设置表单</legend>
- <p>
-  <span>键名：</span> <input type="text" name="keyname"  />
-  <em style="color:red">必选</em>
- </p>
- 
- <p>
-  <span>DAILY VALUE：</span> <input size="40" type="text" name="dailyvalue"  />
-  <em>选填</em>
- </p>
- 
- <p>
-  <span>READY VALUE：</span> <input size="40" type="text" name="readyvalue"  />
-  <em >选填</em>
- </p>
- 
- <p>
-  <span>ONLINE VALUE：</span> <input size="40" type="text" name="onlinevalue"  />
-  <em >选填</em>
- </p>
+  
+<div class="form-group">
+    <label for="keyname">键名</label>  
+    <input type="text" class="form-control" name="keyname" size="50" value="$!biz.keyName"/>
+    <em style="color:red">必填</em>
+</div>
+
+<div class="form-group">
+    <label for="keyvalue">值</label>  
+    <input type="text" class="form-control" name="keyvalue" size="50" value="$!biz.envVal"/>
+    <em style="color:red">必填</em>
+</div>
+
+<div class="form-group">
+    <label for="desc">描述</label>  
+    <input type="text" class="form-control" name="desc" size="50" value="$!biz.desc"/>
+    <em style="color:red">必填</em>
+</div>
  
  <p style="text-align:right;">
-  <input type="submit" style="width:80px;height:30px;" name="event_submit_do_add_parameter" value="提 交" />
+  <input type="submit" class="btn btn-default" name="event_submit_do_add_parameter" value="提 交" />
  </p>
  
 </fieldset>

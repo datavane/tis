@@ -162,90 +162,90 @@ public class LogCollectorClientManager {
      * @param monitorTarget
      * @param listener
      */
-    public void registerMonitorEvent(MonotorTarget monitorTarget) throws Exception {
-        try {
-            synchronized (audienceList) {
-                final Set<ILogListener> finallisteners = Collections.unmodifiableSet(audienceList);
-                if (monitorTarget.getLogType() == LogType.MQ_TAGS_STATUS) {
-                    RefCounted<ScheduledExecutorService> refScheduled = null;
-                    synchronized (tagsMonitor) {
-                        refScheduled = tagsMonitor.get(monitorTarget);
-                        if (refScheduled == null || refScheduled.isClosed()) {
-                            final List<FocusTags> focusTags = getFocusTags(monitorTarget);
-                            if (focusTags.size() < 1) {
-                                log.warn("monitorTarget:" + monitorTarget + ",focusTags is empty");
-                                return;
-                            }
-                            StringBuffer tagsParams = new StringBuffer();
-                            for (int i = 0; i < focusTags.size(); i++) {
-                                tagsParams.append("&").append(focusTags.get(i));
-                            }
-                            refScheduled = new RefCounted<ScheduledExecutorService>(Executors.newScheduledThreadPool(1)) {
-
-                                @Override
-                                protected void init(ScheduledExecutorService resource) {
-                                    final Map<String, TopicTagStatus> /* this.tag */
-                                    binlogTopicTagStatus = new HashMap<>();
-                                    final Map<String, TopicTagStatus> /* this.tag */
-                                    transferTagStatus = new HashMap<>();
-                                    TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
-                                    // final Cache<String, TopicTagIncrStatus> c = CacheBuilder.newBuilder()
-                                    // .expireAfterWrite(10, TimeUnit.SECONDS)
-                                    // .build(new CacheLoader<String, TopicTagIncrStatus>() {
-                                    // @Override
-                                    // public TopicTagIncrStatus load(String key) throws Exception {
-                                    // return new TopicTagIncrStatus();
-                                    // }
-                                    // });
-                                    resource.scheduleAtFixedRate(new Runnable() {
-
-                                        @Override
-                                        public void run() {
-                                            try {
-                                                getTopicTagStatus(monitorTarget, tagsParams, binlogTopicTagStatus);
-                                                getIncrTransferTagUpdateMap(transferTagStatus, monitorTarget.getCollection());
-                                                // KEY_SOLR_CONSUME
-                                                long currSec = (System.currentTimeMillis() / 1000);
-                                                topicTagIncrStatus.add(currSec, TopicTagIncr.create(KEY_SOLR_CONSUME, binlogTopicTagStatus, transferTagStatus));
-                                                topicTagIncrStatus.add(currSec, TopicTagIncr.create(KEY_TABLE_CONSUME_COUNT, binlogTopicTagStatus, transferTagStatus));
-                                                for (String tabTag : topicTagIncrStatus.getFocusTags()) {
-                                                    topicTagIncrStatus.add(currSec, TopicTagIncr.create(tabTag, binlogTopicTagStatus, transferTagStatus));
-                                                }
-                                                ExecuteState<TisIncrStatus> event = ExecuteState.create(monitorTarget.logType, (topicTagIncrStatus.getAverageTopicTagIncr(false, /* average */
-                                                false)));
-                                                event.setServiceName(monitorTarget.getCollection());
-                                                for (ILogListener l : finallisteners) {
-                                                    l.read(event);
-                                                }
-                                                log.info(monitorTarget.toString());
-                                            } catch (Throwable e) {
-                                                log.error(monitorTarget.toString(), e);
-                                            }
-                                        }
-                                    }, 10, 2000, TimeUnit.MILLISECONDS);
-                                }
-
-                                @Override
-                                protected void close() {
-                                    this.resource.shutdown();
-                                }
-                            };
-                            tagsMonitor.put(monitorTarget, refScheduled);
-                        }
-                        refScheduled.incref();
-                    }
-                } else {
-                    LogCollector logCollector = LogCollector.getCollector();
-                    logCollector.start();
-                    logCollector.sendInfo(monitorTarget);
-                }
-                log.info("send monitor register:" + monitorTarget.getCollection() + "," + monitorTarget.getLogType());
-            }
-        } catch (Exception e) {
-            LogCollector.getCollector().processError(e);
-            throw e;
-        }
-    }
+//    public void registerMonitorEvent(MonotorTarget monitorTarget) throws Exception {
+//        try {
+//            synchronized (audienceList) {
+//                final Set<ILogListener> finallisteners = Collections.unmodifiableSet(audienceList);
+//                if (monitorTarget.getLogType() == LogType.MQ_TAGS_STATUS) {
+//                    RefCounted<ScheduledExecutorService> refScheduled = null;
+//                    synchronized (tagsMonitor) {
+//                        refScheduled = tagsMonitor.get(monitorTarget);
+//                        if (refScheduled == null || refScheduled.isClosed()) {
+//                            final List<FocusTags> focusTags = getFocusTags(monitorTarget);
+//                            if (focusTags.size() < 1) {
+//                                log.warn("monitorTarget:" + monitorTarget + ",focusTags is empty");
+//                                return;
+//                            }
+//                            StringBuffer tagsParams = new StringBuffer();
+//                            for (int i = 0; i < focusTags.size(); i++) {
+//                                tagsParams.append("&").append(focusTags.get(i));
+//                            }
+//                            refScheduled = new RefCounted<ScheduledExecutorService>(Executors.newScheduledThreadPool(1)) {
+//
+//                                @Override
+//                                protected void init(ScheduledExecutorService resource) {
+//                                    final Map<String, TopicTagStatus> /* this.tag */
+//                                    binlogTopicTagStatus = new HashMap<>();
+//                                    final Map<String, TopicTagStatus> /* this.tag */
+//                                    transferTagStatus = new HashMap<>();
+//                                    TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
+//                                    // final Cache<String, TopicTagIncrStatus> c = CacheBuilder.newBuilder()
+//                                    // .expireAfterWrite(10, TimeUnit.SECONDS)
+//                                    // .build(new CacheLoader<String, TopicTagIncrStatus>() {
+//                                    // @Override
+//                                    // public TopicTagIncrStatus load(String key) throws Exception {
+//                                    // return new TopicTagIncrStatus();
+//                                    // }
+//                                    // });
+//                                    resource.scheduleAtFixedRate(new Runnable() {
+//
+//                                        @Override
+//                                        public void run() {
+//                                            try {
+//                                                getTopicTagStatus(monitorTarget, tagsParams, binlogTopicTagStatus);
+//                                                getIncrTransferTagUpdateMap(transferTagStatus, monitorTarget.getCollection());
+//                                                // KEY_SOLR_CONSUME
+//                                                long currSec = (System.currentTimeMillis() / 1000);
+//                                                topicTagIncrStatus.add(currSec, TopicTagIncr.create(KEY_SOLR_CONSUME, binlogTopicTagStatus, transferTagStatus));
+//                                                topicTagIncrStatus.add(currSec, TopicTagIncr.create(KEY_TABLE_CONSUME_COUNT, binlogTopicTagStatus, transferTagStatus));
+//                                                for (String tabTag : topicTagIncrStatus.getFocusTags()) {
+//                                                    topicTagIncrStatus.add(currSec, TopicTagIncr.create(tabTag, binlogTopicTagStatus, transferTagStatus));
+//                                                }
+//                                                ExecuteState<TisIncrStatus> event = ExecuteState.create(monitorTarget.logType, (topicTagIncrStatus.getAverageTopicTagIncr(false, /* average */
+//                                                false)));
+//                                                event.setServiceName(monitorTarget.getCollection());
+//                                                for (ILogListener l : finallisteners) {
+//                                                    l.read(event);
+//                                                }
+//                                                log.info(monitorTarget.toString());
+//                                            } catch (Throwable e) {
+//                                                log.error(monitorTarget.toString(), e);
+//                                            }
+//                                        }
+//                                    }, 10, 2000, TimeUnit.MILLISECONDS);
+//                                }
+//
+//                                @Override
+//                                protected void close() {
+//                                    this.resource.shutdown();
+//                                }
+//                            };
+//                            tagsMonitor.put(monitorTarget, refScheduled);
+//                        }
+//                        refScheduled.incref();
+//                    }
+//                } else {
+//                    LogCollector logCollector = LogCollector.getCollector();
+//                    logCollector.start();
+//                    logCollector.sendInfo(monitorTarget);
+//                }
+//                log.info("send monitor register:" + monitorTarget.getCollection() + "," + monitorTarget.getLogType());
+//            }
+//        } catch (Exception e) {
+//            LogCollector.getCollector().processError(e);
+//            throw e;
+//        }
+//    }
 
     public static class TisIncrStatus {
 
@@ -310,71 +310,71 @@ public class LogCollectorClientManager {
         });
     }
 
-    void getTopicTagStatus(MonotorTarget monitorTarget, StringBuffer tagsParams, Map<String, TopicTagStatus> topicTagStatus) throws MalformedURLException {
-        URL apply = null;
-        TopicTagStatus tagStatus = null;
-        List<String> mqStatisticsHost = TSearcherConfigFetcher.get().getMQStatisticsHost();
-        // / binlog-msg/tag_count?topics=binlogmsg
-        Map<String, AtomicLong> /* absolute count */
-        tagsAbsoluteCount = new HashMap<>();
-        for (String h : mqStatisticsHost) {
-            apply = new URL(h + "/binlog-msg/tag_count?tformat=false" + tagsParams.toString());
-            System.out.println(apply);
-            HttpUtils.post(apply, Collections.emptyList(), new PostFormStreamProcess<Void>() {
-
-                @Override
-                public Void p(int status, InputStream stream, String md5) {
-                    AtomicLong absoluteCount = null;
-                    TopicTagStatus tagStatus = null;
-                    TopicTagStatus exist = null;
-                    JSONTokener tokener = new JSONTokener(stream);
-                    JSONObject o = new JSONObject(tokener);
-                    JSONObject tags = null;
-                    JSONObject props = null;
-                    int sendCount = 0;
-                    for (String key : o.keySet()) {
-                        tags = o.getJSONObject(key);
-                        if (tags != null) {
-                            for (String tagKey : tags.keySet()) {
-                                // String topic, String tag, int count, String lastUpdate
-                                // tagStatus = ;
-                                props = tags.getJSONObject(tagKey);
-                                sendCount = props.getInt("count");
-                                long last = 0;
-                                if (!props.isNull(KEY_JSON_LAST)) {
-                                    last = props.getLong(KEY_JSON_LAST);
-                                }
-                                tagStatus = new TopicTagStatus(key, tagKey, 0, last);
-                                absoluteCount = tagsAbsoluteCount.get(tagStatus.getTag());
-                                if (absoluteCount == null) {
-                                    absoluteCount = new AtomicLong();
-                                    tagsAbsoluteCount.put(tagStatus.getTag(), absoluteCount);
-                                }
-                                absoluteCount.addAndGet(sendCount);
-                                exist = topicTagStatus.get(tagStatus.getTag());
-                                if (exist == null) {
-                                    topicTagStatus.put(tagStatus.getTag(), tagStatus);
-                                } else {
-                                    exist.merge(tagStatus);
-                                }
-                            }
-                        }
-                    }
-                    return null;
-                }
-            });
-        }
-        AtomicLong absoluteCount = null;
-        for (Map.Entry<String, TopicTagStatus> e : topicTagStatus.entrySet()) {
-            tagStatus = topicTagStatus.get(e.getKey());
-            absoluteCount = tagsAbsoluteCount.get(tagStatus.getTag());
-            if (absoluteCount != null) {
-                tagStatus.setCount(absoluteCount.get());
-            } else {
-                tagStatus.clean();
-            }
-        }
-    }
+//    void getTopicTagStatus(MonotorTarget monitorTarget, StringBuffer tagsParams, Map<String, TopicTagStatus> topicTagStatus) throws MalformedURLException {
+//        URL apply = null;
+//        TopicTagStatus tagStatus = null;
+//        List<String> mqStatisticsHost = TSearcherConfigFetcher.get().getMQStatisticsHost();
+//        // / binlog-msg/tag_count?topics=binlogmsg
+//        Map<String, AtomicLong> /* absolute count */
+//        tagsAbsoluteCount = new HashMap<>();
+//        for (String h : mqStatisticsHost) {
+//            apply = new URL(h + "/binlog-msg/tag_count?tformat=false" + tagsParams.toString());
+//            System.out.println(apply);
+//            HttpUtils.post(apply, Collections.emptyList(), new PostFormStreamProcess<Void>() {
+//
+//                @Override
+//                public Void p(int status, InputStream stream, String md5) {
+//                    AtomicLong absoluteCount = null;
+//                    TopicTagStatus tagStatus = null;
+//                    TopicTagStatus exist = null;
+//                    JSONTokener tokener = new JSONTokener(stream);
+//                    JSONObject o = new JSONObject(tokener);
+//                    JSONObject tags = null;
+//                    JSONObject props = null;
+//                    int sendCount = 0;
+//                    for (String key : o.keySet()) {
+//                        tags = o.getJSONObject(key);
+//                        if (tags != null) {
+//                            for (String tagKey : tags.keySet()) {
+//                                // String topic, String tag, int count, String lastUpdate
+//                                // tagStatus = ;
+//                                props = tags.getJSONObject(tagKey);
+//                                sendCount = props.getInt("count");
+//                                long last = 0;
+//                                if (!props.isNull(KEY_JSON_LAST)) {
+//                                    last = props.getLong(KEY_JSON_LAST);
+//                                }
+//                                tagStatus = new TopicTagStatus(key, tagKey, 0, last);
+//                                absoluteCount = tagsAbsoluteCount.get(tagStatus.getTag());
+//                                if (absoluteCount == null) {
+//                                    absoluteCount = new AtomicLong();
+//                                    tagsAbsoluteCount.put(tagStatus.getTag(), absoluteCount);
+//                                }
+//                                absoluteCount.addAndGet(sendCount);
+//                                exist = topicTagStatus.get(tagStatus.getTag());
+//                                if (exist == null) {
+//                                    topicTagStatus.put(tagStatus.getTag(), tagStatus);
+//                                } else {
+//                                    exist.merge(tagStatus);
+//                                }
+//                            }
+//                        }
+//                    }
+//                    return null;
+//                }
+//            });
+//        }
+//        AtomicLong absoluteCount = null;
+//        for (Map.Entry<String, TopicTagStatus> e : topicTagStatus.entrySet()) {
+//            tagStatus = topicTagStatus.get(e.getKey());
+//            absoluteCount = tagsAbsoluteCount.get(tagStatus.getTag());
+//            if (absoluteCount != null) {
+//                tagStatus.setCount(absoluteCount.get());
+//            } else {
+//                tagStatus.clean();
+//            }
+//        }
+//    }
 
     public static class TopicTagStatus {
 

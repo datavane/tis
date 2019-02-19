@@ -67,11 +67,11 @@ public class SolrCloudQueryResutStrategy extends QueryResutStrategy {
 		this.runContext = runContext;
 	}
 
-	@Override
-	public boolean collectionExist() {
-		TISZkStateReader clusterReader = runContext.getZkStateReader();
-		return clusterReader.getClusterState().getCollectionRef(domain.getAppName()) != null;
-	}
+//	@Override
+//	public boolean collectionExist() {
+//		TISZkStateReader clusterReader = runContext.getZkStateReader();
+//		return clusterReader.getClusterState().getCollectionRef(domain.getAppName()) != null;
+//	}
 
 	// @Override
 	// public int getServicePort() {

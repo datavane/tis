@@ -23,9 +23,6 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_APPLICATION;
-import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_CORE_PROPERTIES;
-import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_DATA_SOURCE;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_SCHEMA;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_SOLOR;
 
@@ -217,9 +214,8 @@ public class ManageUtils {
 			"opendialog(null,{3},$(window).width()-150,($(document).height()>$(window).height()?$(document).height():$(window).height())-15,{2});");
 
 	// opendialog('$caption',this.href,
-	private static final MessageFormat urlformat = new MessageFormat(
-			"&nbsp;<a target=''_blank'' href=''{0}'' {4}  onclick=\"" + openDialogScript.toPattern()
-					+ " return false;\">{1}</a>");
+	private static final MessageFormat urlformat = new MessageFormat("<a target=''_blank'' href=''{0}'' {4}  onclick=\""
+			+ openDialogScript.toPattern() + " return false;\">{1}</a>");
 
 	public String openMaximizeDialog(String href) {
 		return openDialogScript.format(new Object[] { StringUtils.EMPTY, StringUtils.EMPTY, "function(){}", href });
@@ -322,8 +318,7 @@ public class ManageUtils {
 
 	public String getServerConfigViewLink(Module broker, String appName, short group, String serverIp, int port) {
 		StringBuilder url = new StringBuilder();
-		PropteryGetter[] getAry = new PropteryGetter[] { FILE_APPLICATION, FILE_SCHEMA, FILE_SOLOR, FILE_DATA_SOURCE,
-				FILE_CORE_PROPERTIES };
+		PropteryGetter[] getAry = new PropteryGetter[] { FILE_SCHEMA, FILE_SOLOR };
 		for (PropteryGetter g : getAry) {
 			appendLink(broker, url, appName, group, serverIp, port, g.getFileName());
 		}
@@ -464,9 +459,9 @@ public class ManageUtils {
 				&& (getAppDomain(this.request).getRunEnvironment() == RunEnvironment.getEnum(runtime));
 	}
 
-//	public String getHsfMonitorHost() {
-//		return Config.getHsfMonotorHost(this.getAppDomain().getRunEnvironment());
-//	}
+	// public String getHsfMonitorHost() {
+	// return Config.getHsfMonotorHost(this.getAppDomain().getRunEnvironment());
+	// }
 
 	private NavigationBar navigatebar = null;
 

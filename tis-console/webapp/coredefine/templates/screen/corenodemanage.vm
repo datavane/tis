@@ -143,9 +143,9 @@ to {left:300px;}
      <dl class="dl-horizontal left" >
      <dt>副本信息</dt>
       
-      <dd style="#if(!$instanceDirDesc.valid) background-color:pink;" #end">  $instanceDirDesc.desc  </dd>
+      <dd style="#if(!$instanceDirDesc.valid) background-color:pink;" #end">  $!instanceDirDesc.desc  </dd>
        <dt>集群结构</dt>
-      <dd >  1组×2副本  </dd>
+      <dd >  ${instanceDirDesc.sharedCount}组×${instanceDirDesc.replicaCount}副本  </dd>
      </dl>
      
      <h3 style="border-bottom:thin dotted  #cccccc;">配置</h3>

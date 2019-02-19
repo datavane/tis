@@ -57,8 +57,6 @@ import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.zookeeper.data.Stat;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.noggit.JSONParser;
-import org.noggit.ObjectBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -94,6 +92,8 @@ import com.qlangtech.tis.solrj.util.ZkUtils;
  * @date 2019年1月17日
  */
 public class CoreAction extends CoreDefineModule {
+
+	public static final String DEFAULT_SOLR_CONFIG = "tis_mock_config";
 
 	private static final long serialVersionUID = -6753169329484480543L;
 
@@ -300,7 +300,7 @@ public class CoreAction extends CoreDefineModule {
 		StringBuffer urlBuffer = new StringBuffer("http://" + StringUtils.substringBefore(arr[1], "_") //
 				+ "/solr/admin/collections?action=CREATE&name=" + collectionName + "&router.name=" + routerName //
 				+ "&router.field=" + routerField + "&replicationFactor=" + repliation + "&numShards=" + groupNum //
-				+ "&collection.configName=tis_mock_config&maxShardsPerNode=" + MAX_SHARDS_PER_NODE //
+				+ "&collection.configName=" + DEFAULT_SOLR_CONFIG + "&maxShardsPerNode=" + MAX_SHARDS_PER_NODE //
 				+ "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(nodeSet, getEncode()) //
 				+ "&property.configsnapshotid=" + publishSnapshotId);//
 

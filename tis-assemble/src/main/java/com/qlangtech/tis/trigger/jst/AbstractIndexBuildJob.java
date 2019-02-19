@@ -153,18 +153,20 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 		logger.info("build out path:" + outPath);
 		SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTerminatorConsoleHostAddress(),
 				state.getIndexName(), 0, runtime, ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLOR,
-				ConfigFileReader.FILE_CORE_PROPERTIES, ConfigFileReader.FILE_APPLICATION);
+				ConfigFileReader.FILE_APPLICATION);
 		if (domain == null) {
 			throw new IllegalStateException(
 					"index:" + state.getIndexName() + ",runtime:" + runtime + " have not prepare for confg");
 		}
 		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, "config");
 		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SOLOR, "config");
-		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_CORE_PROPERTIES, "config");
+		// writeResource2Hdfs(coreName, domain,
+		// ConfigFileReader.FILE_CORE_PROPERTIES, "config");
 		// TODO 为了兼容老的索引先加上，到时候要删除掉的
 		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, Constants.SCHEMA);
 		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_APPLICATION, "app");
-		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_CORE_PROPERTIES, "core");
+		// writeResource2Hdfs(coreName, domain,
+		// ConfigFileReader.FILE_CORE_PROPERTIES, "core");
 		// TODO 为了兼容老的索引先加上，到时候要删除掉的 end
 		logger.info("Excute  RemoteDumpJob: Sbumit Remote Job .....  ");
 		status.setStartTime(now);

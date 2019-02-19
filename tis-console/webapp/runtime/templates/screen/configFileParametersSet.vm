@@ -1,4 +1,4 @@
-<h2>设置全局配置参数   ${param.keyName},${runtime.describe}</h2>
+<h2>设置全局配置参数   ‘${param.keyName}’</h2>
 <style type="text/css"><!--
   #uploaddialog p span{
     width:2em;
@@ -17,15 +17,22 @@
   <input type="hidden" name="rpid" value="${param.rpId}"/>
   
 <fieldset id="uploaddialog">
- <legend>设置表单</legend>
-<p>
-  <span>值：</span> <input size="40" type="text" name="keyvalue" value="$!{paramValue}" />
-  <em style="color:red">必填</em>
-</p>
  
+
+<div class="form-group">
+    <label for="keyvalue">值</label>  
+    <input type="text" class="form-control" name="keyvalue" size="50" value="$!biz.envVal"/>
+    <em style="color:red">必填</em>
+</div>
+
+<div class="form-group">
+    <label for="desc">描述</label>  
+    <input type="text" class="form-control" name="desc" size="50" value="$!biz.desc"/>
+    <em style="color:red">必填</em>
+</div>
  
  <p style="text-align:right;">
-  <input type="submit" style="width:100px;height:28px;" 
+  <input type="submit" class="btn btn-default" 
            name="event_submit_do_set_parameter" value="提 交" />
  </p>
  

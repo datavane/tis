@@ -489,7 +489,7 @@ ICoreService {
             SolrZkClient zookeeper = getZookeeper();
             if (!zookeeper.exists(COLLECT_STATE_PATH, true)) {
                 // 当前节点为空，创建节点立即返回
-                ZkUtils.guaranteeExist(zookeeper, COLLECT_STATE_PATH);
+                ZkUtils.guaranteeExist(zookeeper.getSolrZooKeeper(), COLLECT_STATE_PATH);
                 zookeeper.create(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), CreateMode.EPHEMERAL, true);
                 log.info("create new lock path:" + COLLECT_STATE_PATH);
                 return true;

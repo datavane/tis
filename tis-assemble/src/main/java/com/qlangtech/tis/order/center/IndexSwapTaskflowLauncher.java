@@ -547,7 +547,7 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 	// public void setApplicationContext(ApplicationContext applicationContext)
 	// throws BeansException {
 	//
-	// applicationContext.getBeanNamesForType(com.taobao.terminator.hdfs.client.bean.HdfsRealTimeTerminatorBean.class);
+	
 	// }
 	// /**
 	// * @return

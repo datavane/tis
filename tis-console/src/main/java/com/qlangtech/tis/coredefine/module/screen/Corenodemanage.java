@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,10 +38,13 @@ import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import com.alibaba.citrus.turbine.Context;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.solrdao.SolrFieldsParser.SchemaFields;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -47,100 +52,145 @@ import com.qlangtech.tis.manage.spring.aop.Func;
  */
 public class Corenodemanage extends CoreDefineScreen {
 
-    private static final Log log = LogFactory.getLog(Corenodemanage.class);
+	private static final Log log = LogFactory.getLog(Corenodemanage.class);
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Override
-    @Func(PermissionConstant.APP_CORE_MANAGE_VIEW)
-    public void execute(Context context) throws Exception {
-        this.enableChangeDomain(context);
-        if (!isIndexExist()) {
-            this.forward("coredefine_step1");
-            return;
-        }
-    }
+	private static final Cache<String, InstanceDirDesc> /* collection name */
+	instanceDirDesc;
 
-    public static final XMLResponseParser RESPONSE_PARSER = new XMLResponseParser();
+	static {
+		instanceDirDesc = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
+	}
 
-    public InstanceDirDesc getInstanceDirDesc() throws Exception {
-        InstanceDirDesc dirDesc = new InstanceDirDesc();
-        DocCollection collection = this.getIndex();
-        final Set<String> instanceDir = new HashSet<String>();
-        for (Slice slice : collection.getSlices()) {
-            for (final Replica replica : slice.getReplicas()) {
-                URL url = new URL(replica.getCoreUrl() + "admin/mbeans?stats=true&cat=CORE&key=core&wt=xml");
-                // http://10.1.7.41:8983/solr/search4totalpay_shard1_replica1/admin/mbeans?cat=QUERYHANDLER&key=/select&key=/update&stats=true
-                // http://120.55.195.132:8080/solr/search4totalpay_shard1_replica2/admin/mbeans?stats=true&cat=QUERYHANDLER&cat=CORE&key=/select&key=/update&key=searcher&key=core
-                ConfigFileContext.processContent(url, new StreamProcess<Object>() {
+	@Override
+	@Func(PermissionConstant.APP_CORE_MANAGE_VIEW)
+	public void execute(Context context) throws Exception {
+		this.enableChangeDomain(context);
+		if (!isIndexExist()) {
+			this.forward("coredefine_step1");
+			return;
+		}
+	}
 
-                    @Override
-                    @SuppressWarnings("all")
-                    public Object p(int s, InputStream stream, String md5) {
-                        SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream, "utf8");
-                        final SimpleOrderedMap mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
-                        SimpleOrderedMap core = (SimpleOrderedMap) ((SimpleOrderedMap) mbeans.get("CORE")).get("core");
-                        SimpleOrderedMap status = ((SimpleOrderedMap) core.get("stats"));
-                        instanceDir.add(StringUtils.substringAfterLast((String) status.get("CORE.indexDir"), "/"));
-                        return null;
-                    }
-                });
-            }
-        }
-        dirDesc.setValid(false);
-        final StringBuffer replicDirDesc = new StringBuffer();
-        if (instanceDir.size() > 1) {
-            replicDirDesc.append("(");
-            int count = 0;
-            for (String d : instanceDir) {
-                replicDirDesc.append(d);
-                if (++count < instanceDir.size()) {
-                    replicDirDesc.append(",");
-                }
-            }
-            replicDirDesc.append(")");
-            dirDesc.setDesc("副本目录不一致，分别为:" + replicDirDesc);
-        } else if (instanceDir.size() == 1) {
-            dirDesc.setValid(true);
-            for (String d : instanceDir) {
-                dirDesc.setDesc("所有副本目录为:" + d);
-                break;
-            }
-        } else {
-            dirDesc.setDesc("副本目录数异常,size:" + instanceDir.size());
-        }
-        return dirDesc;
-    }
+	public static final XMLResponseParser RESPONSE_PARSER = new XMLResponseParser();
 
-    public static class InstanceDirDesc {
+	public InstanceDirDesc getInstanceDirDesc() throws Exception {
 
-        private String desc;
+		DocCollection collection = this.getIndex();
 
-        private boolean valid;
+		InstanceDirDesc dirDesc = instanceDirDesc.getIfPresent(collection.getName());
+		if (dirDesc == null) {
+			synchronized (collection) {
+				dirDesc = new InstanceDirDesc();
+				final Set<String> instanceDir = new HashSet<String>();
+				dirDesc.setSharedCount(collection.getSlices().size());
+				boolean hasReplicaSize = false;
+				for (Slice slice : collection.getSlices()) {
+					if (!hasReplicaSize) {
+						dirDesc.setReplicaCount(slice.getReplicas().size());
+						hasReplicaSize = true;
+					}
 
-        public String getDesc() {
-            return desc;
-        }
+					for (final Replica replica : slice.getReplicas()) {
+						URL url = new URL(replica.getCoreUrl() + "admin/mbeans?stats=true&cat=CORE&key=core&wt=xml");
+						// http://10.1.7.41:8983/solr/search4totalpay_shard1_replica1/admin/mbeans?cat=QUERYHANDLER&key=/select&key=/update&stats=true
+						// http://120.55.195.132:8080/solr/search4totalpay_shard1_replica2/admin/mbeans?stats=true&cat=QUERYHANDLER&cat=CORE&key=/select&key=/update&key=searcher&key=core
+						ConfigFileContext.processContent(url, new StreamProcess<Object>() {
 
-        public void setDesc(String desc) {
-            this.desc = desc;
-        }
+							@Override
+							@SuppressWarnings("all")
+							public Object p(int s, InputStream stream, String md5) {
+								SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream,
+										"utf8");
+								final SimpleOrderedMap mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
+								SimpleOrderedMap core = (SimpleOrderedMap) ((SimpleOrderedMap) mbeans.get("CORE"))
+										.get("core");
+								SimpleOrderedMap status = ((SimpleOrderedMap) core.get("stats"));
+								instanceDir
+										.add(StringUtils.substringAfterLast((String) status.get("CORE.indexDir"), "/"));
+								return null;
+							}
+						});
+					}
+				}
+				dirDesc.setValid(false);
+				final StringBuffer replicDirDesc = new StringBuffer();
+				if (instanceDir.size() > 1) {
+					replicDirDesc.append("(");
+					int count = 0;
+					for (String d : instanceDir) {
+						replicDirDesc.append(d);
+						if (++count < instanceDir.size()) {
+							replicDirDesc.append(",");
+						}
+					}
+					replicDirDesc.append(")");
+					dirDesc.setDesc("副本目录不一致，分别为:" + replicDirDesc);
+				} else if (instanceDir.size() == 1) {
+					dirDesc.setValid(true);
+					for (String d : instanceDir) {
+						dirDesc.setDesc("所有副本目录为:" + d);
+						break;
+					}
+				} else {
+					dirDesc.setDesc("副本目录数异常,size:" + instanceDir.size());
+				}
+				instanceDirDesc.put(collection.getName(), dirDesc);
+			}
+		}
 
-        public boolean isValid() {
-            return valid;
-        }
+		return dirDesc;
+	}
 
-        public void setValid(boolean valid) {
-            this.valid = valid;
-        }
-    }
+	public static class InstanceDirDesc {
 
-    /**
-     * “SolrCore属性” 显示应用相关的属性
-     *
-     * @return
-     */
-    public boolean isShowServerRelateProp() {
-        return false;
-    }
+		private String desc;
+
+		private int sharedCount;
+		private int replicaCount;
+
+		public int getSharedCount() {
+			return sharedCount;
+		}
+
+		public void setSharedCount(int sharedCount) {
+			this.sharedCount = sharedCount;
+		}
+
+		public int getReplicaCount() {
+			return replicaCount;
+		}
+
+		public void setReplicaCount(int replicaCount) {
+			this.replicaCount = replicaCount;
+		}
+
+		private boolean valid;
+
+		public String getDesc() {
+			return desc;
+		}
+
+		public void setDesc(String desc) {
+			this.desc = desc;
+		}
+
+		public boolean isValid() {
+			return valid;
+		}
+
+		public void setValid(boolean valid) {
+			this.valid = valid;
+		}
+	}
+
+	/**
+	 * “SolrCore属性” 显示应用相关的属性
+	 *
+	 * @return
+	 */
+	public boolean isShowServerRelateProp() {
+		return false;
+	}
 }

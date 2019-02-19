@@ -103,7 +103,7 @@ public class IndexQuery extends BasicScreen {
 		QueryResutStrategy queryStrategy = QueryIndexServlet.createQueryResutStrategy(domain,
 				new QueryRequestWrapper(getRequest(), context), getResponse(), getDaoContext());
 
-		if (!queryStrategy.collectionExist()) {
+		if (!this.isIndexExist()) {
 			// 索引存在吗？
 			this.forward("collectionNotCreated.vm");
 			return;

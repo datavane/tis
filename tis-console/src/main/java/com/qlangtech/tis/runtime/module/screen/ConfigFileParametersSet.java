@@ -23,12 +23,15 @@
  */
 package com.qlangtech.tis.runtime.module.screen;
 
-import junit.framework.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.manage.biz.dal.dao.IResourceParametersDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.ResourceParameters;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+
+import junit.framework.Assert;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -36,48 +39,51 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  */
 public class ConfigFileParametersSet extends BasicManageScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private IResourceParametersDAO resourceParametersDAO;
+	private IResourceParametersDAO resourceParametersDAO;
 
-    @Override
-    public void execute(Context context) throws Exception {
-        this.disableNavigationBar(context);
-        Long rpid = this.getLong("rpid");
-        Assert.assertNotNull(rpid);
-        ResourceParameters param = resourceParametersDAO.selectByPrimaryKey(rpid);
-        Assert.assertNotNull(param);
-        context.put("param", param);
-        RunEnvironment runtime = RunEnvironment.getEnum(this.getString("runtime"));
-        context.put("runtime", runtime);
-        String paramValue = getParameterValue(param, runtime);
-        context.put("paramValue", paramValue);
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.disableNavigationBar(context);
+		Long rpid = this.getLong("rpid");
+		Assert.assertNotNull(rpid);
+		ResourceParameters param = resourceParametersDAO.selectByPrimaryKey(rpid);
+		Assert.assertNotNull(param);
+		context.putIfEmpty("param", param);
+		RunEnvironment runtime = RunEnvironment.getEnum(this.getString("runtime"));
+		context.put("runtime", runtime);
+		String paramValue = getParameterValue(param, runtime);
 
-    public static String getParameterValue(ResourceParameters param, RunEnvironment runtime) {
-        Assert.assertNotNull(param);
-        Assert.assertNotNull(runtime);
-        String paramValue = null;
-        switch(runtime) {
-            case DAILY:
-                paramValue = param.getDailyValue();
-                break;
-            // break;
-            case ONLINE:
-                paramValue = param.getOnlineValue();
-                break;
-            default:
-                throw new IllegalArgumentException("runtime:" + runtime + " is invalid");
-        }
-        return paramValue;
-    }
+		// Option option = new Option(param.getKeyName(), paramValue);
+		context.putIfEmpty("biz", param);
+		// context.put("paramValue", paramValue);
+	}
 
-    public IResourceParametersDAO getResourceParametersDAO() {
-        return resourceParametersDAO;
-    }
+	public static String getParameterValue(ResourceParameters param, RunEnvironment runtime) {
+		Assert.assertNotNull(param);
+		Assert.assertNotNull(runtime);
+		String paramValue = null;
+		switch (runtime) {
+		case DAILY:
+			paramValue = param.getDailyValue();
+			break;
+		// break;
+		case ONLINE:
+			paramValue = param.getOnlineValue();
+			break;
+		default:
+			throw new IllegalArgumentException("runtime:" + runtime + " is invalid");
+		}
+		return paramValue;
+	}
 
-    @Autowired
-    public void setResourceParametersDAO(IResourceParametersDAO resourceParametersDAO) {
-        this.resourceParametersDAO = resourceParametersDAO;
-    }
+	public IResourceParametersDAO getResourceParametersDAO() {
+		return resourceParametersDAO;
+	}
+
+	@Autowired
+	public void setResourceParametersDAO(IResourceParametersDAO resourceParametersDAO) {
+		this.resourceParametersDAO = resourceParametersDAO;
+	}
 }

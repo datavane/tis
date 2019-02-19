@@ -63,7 +63,6 @@
 
 #*
 <fieldset id="appquicklink">
- <legend>应用查找</legend>
 $control.setTemplate("appselect.vm")
 <p>
  <a id="appserverview" href="#" >查看服务器</a>
@@ -73,7 +72,7 @@ $control.setTemplate("appselect.vm")
 
 
 <p>
-#popup("$manageModule.setTarget('config_file_parameters_add')","添加","600*500")
+#popup("$manageModule.setTarget('biz_domain_add')","添加","600*500")
 </p>
 <table class="table table-bordered table-hover" width="100%">
 <thead>
@@ -84,29 +83,17 @@ $control.setTemplate("appselect.vm")
  <th width="13%">名称</th>
 
  <th width="12%">创建时间</th>
+ <th width="12%">操作</th>
 </tr>
 </thead>
 #foreach($item in $bizlist)
 <tr> 
 <td align="center">$item.dptId</td>
-<td> #popupp("$manageModule.setTarget('applist')?dptid=$item.dptId","$item.fullName","max")
-</td>
-#*
-<td>
- #if($item.indexsetSnapshot)
-   #popupp("$manageModule.setTarget('biz_domain_update')?bizid=$item.dptId","更新IndexSet","700*400")
-   #popupp("$manageModule.setTarget('biz_domain_update')?bizid=$item.dptId","添加Index","700*400")
- #else 
-    #popupp("$manageModule.setTarget('create_index_set')?bizid=$item.dptId","创建IndexSet","max")
- #end 
-</td>
-*#
+<td>$item.fullName</td>
 <td>$item.name</td>
-
-
 <td align="right" style="font-size:12px">$manageTool.formatDateYYYYMMdd($item.gmtCreate)</td>
 
-
+<td> #popup("$manageModule.setTarget('biz_domain_update')?bizid=$item.dptId","更新","600*500") </td>
 </tr>
 #end
 </table>

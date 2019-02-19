@@ -35,7 +35,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class Addgroup extends BasicManageScreen {
+public abstract class Addgroup extends BasicManageScreen {
 
     private static final long serialVersionUID = 1L;
 

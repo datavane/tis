@@ -28,8 +28,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+import com.qlangtech.tis.pubhook.common.Nullable;
 //import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
@@ -63,15 +62,21 @@ public class TSearcherConfigFetcher {
 
 	public static final String CONFIG_runenvironment = "runenvironment";
 
-	private static final String CONFIG_terminator_host_address = "tis_host_address";
+	public static final String CONFIG_terminator_host_address = "tis_host_address";
 
-	private static final String jobtracker_rpcserver = "jobtracker_rpcserver";
+	public static final String jobtracker_rpcserver = "jobtracker_rpcserver";
 
-	private static final String jobtracker_transserver = "jobtracker_transserver";
+	public static final String jobtracker_transserver = "jobtracker_transserver";
 
-	private static final String LOG_SOURCE_ADDRESS = "log_source_address";
+	public static final String LOG_SOURCE_ADDRESS = "log_source_address";
 
-	private List<String> mqStatisticsHost;
+	public static final String TIS_ASSEMBLE_HOST = "tis_assemble_host";
+
+	public static final String HIVE_HOST = "hivehost";
+	
+	public static final String INDEX_BUILD_CENTER_HOST = "index_build_center_host";
+
+	// private List<String> mqStatisticsHost;
 
 	private final String indexBuildCenterHost;
 
@@ -107,6 +112,22 @@ public class TSearcherConfigFetcher {
 	// 最大数据库导入线程数目
 	private final Integer maxDBDumpThreadCount;
 
+	public TSearcherConfigFetcher() {
+
+		this.indexBuildCenterHost = null;
+		this.assembleHost = null;
+		this.terminatorConsoleHost = null;
+		this.zkAddress = null;
+		this.onlineZkAddress = null;
+		this.hdfsAddress = null;
+		this.logFlumeAgent = null;
+		this.logSourceAddress = null;
+		this.job_rpcserver = null;
+		this.job_transserver = null;
+		this.hiveHost = null;
+		this.maxDBDumpThreadCount = null;
+	}
+
 	private TSearcherConfigFetcher(String serviceName) {
 		final RunEnvironment runtime = RunEnvironment.getSysRuntime();
 		ServiceConfig servceConfig = null;
@@ -114,8 +135,6 @@ public class TSearcherConfigFetcher {
 			URL url = new URL(runtime.getInnerRepositoryURL()
 					+ "/config/config.ajax?action=global_parameters_config_action&event_submit_do_get_all=y&runtime="
 					+ runtime.getKeyName() + "&resulthandler=advance_query_result");
-			// Exception e = new Exception();
-			// e.printStackTrace();
 			System.out.println("apply url:" + url);
 			List<KeyPair> pairs = ConfigFileContext.processContent(url, new StreamProcess<List<KeyPair>>() {
 
@@ -133,20 +152,22 @@ public class TSearcherConfigFetcher {
 			throw new RuntimeException(e1);
 		}
 		// build中心host地址
-		this.indexBuildCenterHost = servceConfig.getString("index_build_center_host");
+		this.indexBuildCenterHost = servceConfig.getString(INDEX_BUILD_CENTER_HOST);
 		Assert.assertNotNull("indexBuildCenterHost can not be null,key:index_build_center_host", indexBuildCenterHost);
 
-		this.assembleHost = servceConfig.getString("tis_assemble_host");
+		this.assembleHost = servceConfig.getString(TIS_ASSEMBLE_HOST);
 		this.logFlumeAgent = servceConfig.getString(CONFIG_LOG_FLUME_AGENT_ADDRESS);
 
-		try {
-			this.mqStatisticsHost = Arrays.asList(StringUtils.split(servceConfig.getString("mq_statistics_host"), ","));
-		} catch (Throwable e1) {
-			this.mqStatisticsHost = Collections.emptyList();
-		}
+		// try {
+		// this.mqStatisticsHost =
+		// Arrays.asList(StringUtils.split(servceConfig.getString("mq_statistics_host"),
+		// ","));
+		// } catch (Throwable e1) {
+		// this.mqStatisticsHost = Collections.emptyList();
+		// }
 
 		this.maxDBDumpThreadCount = servceConfig.getInteger("max_db_dump_thread_count");
-		this.hiveHost = servceConfig.getString("hivehost");
+		this.hiveHost = servceConfig.getString(HIVE_HOST);
 		zkAddress = servceConfig.getString(CONFIG_ZKADDRESS);
 		hdfsAddress = servceConfig.getString(CONFIG_HDFS_ADDRESS);
 		// ;
@@ -275,18 +296,19 @@ public class TSearcherConfigFetcher {
 		return getInstance().onlineZkAddress;
 	}
 
-	/**
-	 * 南星的MQ访问查询服務端地址
-	 *
-	 * @return
-	 */
-	public List<String> getMQStatisticsHost() {
-		List<String> mqStatisticsHost = getInstance().mqStatisticsHost;
-		if (mqStatisticsHost.size() < 1) {
-			throw new IllegalStateException("mqStatisticsHost size can not small than 1");
-		}
-		return mqStatisticsHost;
-	}
+	// /**
+	// * 南星的MQ访问查询服務端地址
+	// *
+	// * @return
+	// */
+	// public List<String> getMQStatisticsHost() {
+	// List<String> mqStatisticsHost = getInstance().mqStatisticsHost;
+	// if (mqStatisticsHost.size() < 1) {
+	// throw new IllegalStateException("mqStatisticsHost size can not small than
+	// 1");
+	// }
+	// return mqStatisticsHost;
+	// }
 
 	public String getIndexBuildCenterHost() {
 		return getInstance().indexBuildCenterHost;
@@ -336,12 +358,19 @@ public class TSearcherConfigFetcher {
 		try {
 			return getInstance("search4");
 		} catch (Throwable e) {
-			// return new NullTSearcherConfigFetcher();
-			throw new RuntimeException("global params is not useable", e);
+			logger.warn(e.getMessage(), e);
+			return new NullTSearcherConfigFetcher();
+			// throw new RuntimeException("global params is not useable", e);
 		}
 	}
 
-	public static TSearcherConfigFetcher getInstance(String serviceName) {
+	private static class NullTSearcherConfigFetcher extends TSearcherConfigFetcher implements Nullable {
+		public NullTSearcherConfigFetcher() {
+			super();
+		}
+	}
+
+	private static TSearcherConfigFetcher getInstance(String serviceName) {
 		Assert.assertTrue(StringUtils.startsWith(serviceName, "search4"));
 		TSearcherConfigFetcher config = null;
 		config = indexsConfig.get(serviceName);

@@ -23,50 +23,50 @@
  */
 package com.qlangtech.tis.runtime.module.screen.jarcontent;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.apache.commons.io.IOUtils;
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.manage.common.ConfigFileReader;
-import com.qlangtech.tis.manage.common.PropteryGetter;
-import com.qlangtech.tis.manage.servlet.DownloadResource;
-import com.qlangtech.tis.manage.servlet.DownloadServlet;
+//import java.io.ByteArrayInputStream;
+//import java.io.IOException;
+//import java.io.UnsupportedEncodingException;
+//import org.apache.commons.io.IOUtils;
+//import com.alibaba.citrus.turbine.Context;
+//import com.qlangtech.tis.manage.common.ConfigFileReader;
+//import com.qlangtech.tis.manage.common.PropteryGetter;
+//import com.qlangtech.tis.manage.servlet.DownloadResource;
+//import com.qlangtech.tis.manage.servlet.DownloadServlet;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class Jar extends BasicContentScreen {
-
-    /**
-     */
-    private static final long serialVersionUID = 1L;
-
-    private final PropteryGetter getter = ConfigFileReader.FILE_JAR;
-
-    @Override
-    protected PropteryGetter getSolrDependency() {
-        return getter;
-    }
-
-    @Override
-    protected boolean isEditModel() {
-        return false;
-    }
-
-    @Override
-    protected void processContent(Context context) throws UnsupportedEncodingException {
-        getResponse().setContentType(DownloadResource.JAR_CONTENT_TYPE);
-        DownloadServlet.setDownloadName(getResponse(), getter.getFileName());
-        ByteArrayInputStream reader = null;
-        try {
-            reader = new ByteArrayInputStream(getSnapshot(context).getJarFile().getContent());
-            IOUtils.copy(reader, getResponse().getOutputStream());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            IOUtils.closeQuietly(reader);
-        }
-    }
-}
+//public class Jar extends BasicContentScreen {
+//
+//    /**
+//     */
+//    private static final long serialVersionUID = 1L;
+//
+//    private final PropteryGetter getter = ConfigFileReader.FILE_JAR;
+//
+//    @Override
+//    protected PropteryGetter getSolrDependency() {
+//        return getter;
+//    }
+//
+//    @Override
+//    protected boolean isEditModel() {
+//        return false;
+//    }
+//
+//    @Override
+//    protected void processContent(Context context) throws UnsupportedEncodingException {
+//        getResponse().setContentType(DownloadResource.JAR_CONTENT_TYPE);
+//        DownloadServlet.setDownloadName(getResponse(), getter.getFileName());
+//        ByteArrayInputStream reader = null;
+//        try {
+//            reader = new ByteArrayInputStream(getSnapshot(context).getJarFile().getContent());
+//            IOUtils.copy(reader, getResponse().getOutputStream());
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            IOUtils.closeQuietly(reader);
+//        }
+//    }
+//}

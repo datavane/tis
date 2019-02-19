@@ -34,97 +34,108 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class UsrDptRelationDAOImpl extends BasicDAO<UsrDptRelation, UsrDptRelationCriteria> implements IUsrDptRelationDAO {
+public class UsrDptRelationDAOImpl extends BasicDAO<UsrDptRelation, UsrDptRelationCriteria>
+		implements IUsrDptRelationDAO {
 
-    public UsrDptRelationDAOImpl() {
-        super();
-    }
+	public UsrDptRelationDAOImpl() {
+		super();
+	}
 
-    @Override
-    public List<TriggerCrontab> selectAppDumpJob(UsrDptRelationCriteria criteria) {
-        return this.listAnonymity("usr_dpt_relation.ibatorgenerated_select_out_join_app_trigger_job_relation_ByExample", criteria);
-    }
+	@Override
+	public List<TriggerCrontab> selectAppDumpJob(UsrDptRelationCriteria criteria) {
+		return this.listAnonymity("usr_dpt_relation.ibatorgenerated_select_out_join_app_trigger_job_relation_ByExample",
+				criteria);
+	}
 
-    @Override
-    public String getEntityName() {
-        return "usr_dpt_relation";
-    }
+	@Override
+	public String getEntityName() {
+		return "usr_dpt_relation";
+	}
 
-    public int countByExample(UsrDptRelationCriteria example) {
-        Integer count = (Integer) this.count("usr_dpt_relation.ibatorgenerated_countByExample", example);
-        return count;
-    }
+	/**
+	 * 添加一个新的系统管理员用户
+	 */
+	@Override
+	public void addAdminUser() {
+		this.insert("usr_dpt_relation.ibatorgenerated_add_admin_user", new UsrDptRelation());
+	}
 
-    public int countFromWriteDB(UsrDptRelationCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("usr_dpt_relation.ibatorgenerated_countByExample", example);
-        return count;
-    }
+	public int countByExample(UsrDptRelationCriteria example) {
+		Integer count = (Integer) this.count("usr_dpt_relation.ibatorgenerated_countByExample", example);
+		return count;
+	}
 
-    public int deleteByExample(UsrDptRelationCriteria criteria) {
-        return this.deleteRecords("usr_dpt_relation.ibatorgenerated_deleteByExample", criteria);
-    }
+	public int countFromWriteDB(UsrDptRelationCriteria example) {
+		Integer count = (Integer) this.countFromWriterDB("usr_dpt_relation.ibatorgenerated_countByExample", example);
+		return count;
+	}
 
-    public int deleteByPrimaryKey(String usrId) {
-        UsrDptRelation key = new UsrDptRelation();
-        key.setUsrId(usrId);
-        return this.deleteRecords("usr_dpt_relation.ibatorgenerated_deleteByPrimaryKey", key);
-    }
+	public int deleteByExample(UsrDptRelationCriteria criteria) {
+		return this.deleteRecords("usr_dpt_relation.ibatorgenerated_deleteByExample", criteria);
+	}
 
-    public void insert(UsrDptRelation record) {
-        this.insert("usr_dpt_relation.ibatorgenerated_insert", record);
-    }
+	public int deleteByPrimaryKey(String usrId) {
+		UsrDptRelation key = new UsrDptRelation();
+		key.setUsrId(usrId);
+		return this.deleteRecords("usr_dpt_relation.ibatorgenerated_deleteByPrimaryKey", key);
+	}
 
-    public void insertSelective(UsrDptRelation record) {
-        this.insert("usr_dpt_relation.ibatorgenerated_insertSelective", record);
-    }
+	public void insert(UsrDptRelation record) {
+		this.insert("usr_dpt_relation.ibatorgenerated_insert", record);
+	}
 
-    public List<UsrDptRelation> selectByExample(UsrDptRelationCriteria criteria) {
-        return this.selectByExample(criteria, 1, 100);
-    }
+	public void insertSelective(UsrDptRelation record) {
+		this.insert("usr_dpt_relation.ibatorgenerated_insertSelective", record);
+	}
 
-    @SuppressWarnings("unchecked")
-    public List<UsrDptRelation> selectByExample(UsrDptRelationCriteria example, int page, int pageSize) {
-        example.setPage(page);
-        example.setPageSize(pageSize);
-        List<UsrDptRelation> list = this.list("usr_dpt_relation.ibatorgenerated_selectByExample", example);
-        return list;
-    }
+	public List<UsrDptRelation> selectByExample(UsrDptRelationCriteria criteria) {
+		return this.selectByExample(criteria, 1, 100);
+	}
 
-    public UsrDptRelation selectByPrimaryKey(String usrId) {
-        UsrDptRelation key = new UsrDptRelation();
-        key.setUsrId(usrId);
-        UsrDptRelation record = (UsrDptRelation) this.load("usr_dpt_relation.ibatorgenerated_selectByPrimaryKey", key);
-        return record;
-    }
+	@SuppressWarnings("unchecked")
+	public List<UsrDptRelation> selectByExample(UsrDptRelationCriteria example, int page, int pageSize) {
+		example.setPage(page);
+		example.setPageSize(pageSize);
+		List<UsrDptRelation> list = this.list("usr_dpt_relation.ibatorgenerated_selectByExample", example);
+		return list;
+	}
 
-    public int updateByExampleSelective(UsrDptRelation record, UsrDptRelationCriteria example) {
-        UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
-        return this.updateRecords("usr_dpt_relation.ibatorgenerated_updateByExampleSelective", parms);
-    }
+	public UsrDptRelation selectByPrimaryKey(String usrId) {
+		UsrDptRelation key = new UsrDptRelation();
+		key.setUsrId(usrId);
+		UsrDptRelation record = (UsrDptRelation) this.load("usr_dpt_relation.ibatorgenerated_selectByPrimaryKey", key);
+		return record;
+	}
 
-    public int updateByExample(UsrDptRelation record, UsrDptRelationCriteria example) {
-        UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
-        return this.updateRecords("usr_dpt_relation.ibatorgenerated_updateByExample", parms);
-    }
+	public int updateByExampleSelective(UsrDptRelation record, UsrDptRelationCriteria example) {
+		UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
+		return this.updateRecords("usr_dpt_relation.ibatorgenerated_updateByExampleSelective", parms);
+	}
 
-    public UsrDptRelation loadFromWriteDB(String usrId) {
-        UsrDptRelation key = new UsrDptRelation();
-        key.setUsrId(usrId);
-        UsrDptRelation record = (UsrDptRelation) this.loadFromWriterDB("usr_dpt_relation.ibatorgenerated_selectByPrimaryKey", key);
-        return record;
-    }
+	public int updateByExample(UsrDptRelation record, UsrDptRelationCriteria example) {
+		UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
+		return this.updateRecords("usr_dpt_relation.ibatorgenerated_updateByExample", parms);
+	}
 
-    private static class UpdateByExampleParms extends UsrDptRelationCriteria {
+	public UsrDptRelation loadFromWriteDB(String usrId) {
+		UsrDptRelation key = new UsrDptRelation();
+		key.setUsrId(usrId);
+		UsrDptRelation record = (UsrDptRelation) this
+				.loadFromWriterDB("usr_dpt_relation.ibatorgenerated_selectByPrimaryKey", key);
+		return record;
+	}
 
-        private Object record;
+	private static class UpdateByExampleParms extends UsrDptRelationCriteria {
 
-        public UpdateByExampleParms(Object record, UsrDptRelationCriteria example) {
-            super(example);
-            this.record = record;
-        }
+		private Object record;
 
-        public Object getRecord() {
-            return record;
-        }
-    }
+		public UpdateByExampleParms(Object record, UsrDptRelationCriteria example) {
+			super(example);
+			this.record = record;
+		}
+
+		public Object getRecord() {
+			return record;
+		}
+	}
 }

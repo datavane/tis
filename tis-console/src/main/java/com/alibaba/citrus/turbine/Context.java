@@ -38,6 +38,13 @@ public interface Context {
     public Set<String> keySet();
 
     public void put(String key, Object value);
+    
+    /**
+     * 只有当上下文中为空的时候才向内部塞入
+     * @param key
+     * @param value
+     */
+    public void putIfEmpty(String key, Object value);
 
     public void remove(String key);
 }

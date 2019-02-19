@@ -41,6 +41,8 @@ public class Config {
 	private static Config config;
 
 	private final String tisRepository;
+	// 线上同步地址
+	private final String tisOnlineRepository;
 
 	// private Map<String, String> userToken;
 
@@ -82,11 +84,13 @@ public class Config {
 		P p = new P(bundle);
 
 		this.tisRepository = p.getString("tis.repository");
+		this.tisOnlineRepository = p.getString("tis.online.repository");
 
 		this.projectName = p.getString("project.name");
-//		if (StringUtils.isEmpty(this.projectName)) {
-//			throw new IllegalStateException("config param projectname can not be null");
-//		}
+		// if (StringUtils.isEmpty(this.projectName)) {
+		// throw new IllegalStateException("config param projectname can not be
+		// null");
+		// }
 		// userToken = new HashMap<String, String>();
 		// publishHook = new HashMap<RunEnvironment, String>();
 		// responseTimeHost = new HashMap<RunEnvironment, String>();
@@ -179,6 +183,10 @@ public class Config {
 
 	public static String getProjectName() {
 		return getInstance().projectName;
+	}
+
+	public static String getOnlineTisRepository() {
+		return getInstance().tisOnlineRepository;
 	}
 
 	// public static Map<RunEnvironment, String> getPublishHook() {

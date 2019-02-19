@@ -38,33 +38,33 @@ import com.qlangtech.tis.manage.spring.aop.Func;
  */
 public class Bizdomainlist extends BasicManageScreen {
 
-    /**
-     */
-    private static final long serialVersionUID = 1L;
+	/**
+	 */
+	private static final long serialVersionUID = 1L;
 
-    @Func(PermissionConstant.APP_DEPARTMENT_LIST)
-    public void execute(Context context) throws Exception {
-        // disableDomainView(context);
-        context.put("bizlist", getAllBizDomain());
-    }
+	@Func(PermissionConstant.APP_DEPARTMENT_LIST)
+	public void execute(Context context) throws Exception {
+		// disableDomainView(context);
+		context.put("bizlist", getAllBizDomain());
+	}
 
-    /**
-     * 取得所有的业务线实体
-     *
-     * @return
-     */
-    protected final List<Department> getAllBizDomain() {
-        DepartmentCriteria q = new DepartmentCriteria();
-        q.createCriteria().andIsLeaf();
-        // q.setOrderByClause("dpt_id desc");
-        List<Department> dpts = this.getDepartmentDAO().selectByExample(q, 1, 200);
-        Collections.sort(dpts, new Comparator<Department>() {
-
-            @Override
-            public int compare(Department o1, Department o2) {
-                return o1.getFullName().compareTo(o2.getFullName());
-            }
-        });
-        return dpts;
-    }
+	/**
+	 * 取得所有的业务线实体
+	 *
+	 * @return
+	 */
+	protected final List<Department> getAllBizDomain() {
+		DepartmentCriteria q = new DepartmentCriteria();
+		q.createCriteria().andIsLeaf();
+		q.setOrderByClause("dpt_id desc");
+		List<Department> dpts = this.getDepartmentDAO().selectByExample(q, 1, 200);
+		// Collections.sort(dpts, new Comparator<Department>() {
+		//
+		// @Override
+		// public int compare(Department o1, Department o2) {
+		// return o1.getFullName().compareTo(o2.getFullName());
+		// }
+		// });
+		return dpts;
+	}
 }

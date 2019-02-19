@@ -186,8 +186,8 @@ public class AppSynAction extends BasicModule {
         //app.setIsAutoDeploy(true);
         app.setProjectName(configPush.getCollection());
         app.setRecept(configPush.getReception());
-        app.setNobleAppId(0);
-        app.setNobleAppName("default");
+//        app.setNobleAppId(0);
+//        app.setNobleAppName("default");
         // 创建应用
         Integer newid = AddAppAction.createApplication(app, context, this, triggerContext);
         return newid;

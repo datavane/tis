@@ -25,9 +25,9 @@ package com.qlangtech.tis.manage.servlet;
 
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_APPLICATION;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_DATA_SOURCE;
-import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_JAR;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_SCHEMA;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_SOLOR;
+
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
@@ -101,10 +101,10 @@ public class DownloadResource {
     // }
     private static PropteryGetter getGotStrategy(DownloadResource resource) {
         final String resourceName = resource.getResourceName();
-        if (JAR_NAME.equalsIgnoreCase(resourceName)) {
-            // ConfigFileReader.createJarGetter(resource.getPack());
-            return FILE_JAR;
-        }
+//        if (JAR_NAME.equalsIgnoreCase(resourceName)) {
+//            // ConfigFileReader.createJarGetter(resource.getPack());
+//            return FILE_JAR;
+//        }
         if (FILE_APPLICATION.getFileName().equals(resourceName)) {
             return FILE_APPLICATION;
         }

@@ -1,17 +1,21 @@
 
 <div style="width:800px;margin: 0 auto;">
 <h3>全局参数设置</h3>
-<form>
-   <div class="form-group">
+#showFormErrors("index")
+<form  method="post" action="$manageModule.setTarget("index")">
+<input type="hidden" name="action" value="config_file_parameters_action"/>
+  <div class="form-group">
   <div style="float:right">
-   <button type="submit" style="width:4em;" class="btn btn-primary">提交</button>
+   <input type="submit" style="width:4em;" class="btn btn-primary"
+     name="event_submit_do_init_parameter" value="提交" />
   </div>
    </div>
   
   #foreach($item in $globalParams)
   <div class="form-group" style="clear:both">
     <label for="$item.name">$item.name</label>
-    <input name="$item.name" type="text" class="form-control" id="$item.name" />
+    <input name="$item.name" type="text" class="form-control" id="$item.name" 
+      value="$!options.get($item.name).value" />
      <p class="tis-bg-info" >$item.desc</p>
   </div>
   #end

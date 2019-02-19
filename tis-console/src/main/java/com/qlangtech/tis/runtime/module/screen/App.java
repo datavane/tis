@@ -23,14 +23,14 @@
  */
 package com.qlangtech.tis.runtime.module.screen;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import junit.framework.Assert;
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.manage.PermissionConstant;
-import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria.Criteria;
-import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
+//import java.util.Collections;
+//import java.util.Comparator;
+//import java.util.List;
+//import junit.framework.Assert;
+//import com.alibaba.citrus.turbine.Context;
+//import com.qlangtech.tis.manage.PermissionConstant;
+//import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria.Criteria;
+//import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -38,40 +38,42 @@ import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
  */
 public abstract class App extends BasicManageScreen {
 
-    /**
-     */
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    public void execute(final Context context) throws Exception {
-        // this.disableDomainView(context);
-        final Integer appid = getInt("appid");
-        Assert.assertNotNull("appid can not be null in request parameter", appid);
-        context.put("app", this.getApplicationDAO().loadFromWriteDB(appid));
-        List<ServerGroupAdapter> grouplist = this.createServerGroupAdapterList(new ServerGroupCriteriaSetter() {
-
-            @Override
-            public void process(Criteria criteria) {
-                criteria.andAppIdEqualTo(appid);
-            }
-        }, false);
-        Collections.sort(grouplist, new Comparator<ServerGroupAdapter>() {
-
-            @Override
-            public int compare(ServerGroupAdapter o1, ServerGroupAdapter o2) {
-                int environmentCompare = (o1.getRuntEnvironment() - o2.getRuntEnvironment());
-                if (environmentCompare != 0) {
-                    return environmentCompare;
-                } else {
-                    return o1.getGroup().getGroupIndex() - o2.getGroup().getGroupIndex();
-                }
-            }
-        });
-        // 是否有应用数据的维护权限
-        // context.put("hasdatamanageperminssion", this.getAuthService()
-        // .hasPermissionUseByNaviagionBar(this.getUserId(),
-        // PermissionConstant.PERMISSION_BASE_DATA_MANAGE));
-        context.put("hasdatamanageperminssion", this.getAppsFetcher().hasGrantAuthority(PermissionConstant.APP_SERVER_GROUP_SET) && this.getAppsFetcher().hasGrantAuthority(PermissionConstant.APP_SERVER_SET));
-        context.put("grouplist", grouplist);
-    }
+//	/**
+//	 */
+//	private static final long serialVersionUID = 1L;
+//
+//	@Override
+//	public void execute(final Context context) throws Exception {
+//		// this.disableDomainView(context);
+//		final Integer appid = getInt("appid");
+//		Assert.assertNotNull("appid can not be null in request parameter", appid);
+//		context.put("app", this.getApplicationDAO().loadFromWriteDB(appid));
+//		List<ServerGroupAdapter> grouplist = this.createServerGroupAdapterList(new ServerGroupCriteriaSetter() {
+//
+//			@Override
+//			public void process(Criteria criteria) {
+//				criteria.andAppIdEqualTo(appid);
+//			}
+//		}, false);
+//		Collections.sort(grouplist, new Comparator<ServerGroupAdapter>() {
+//
+//			@Override
+//			public int compare(ServerGroupAdapter o1, ServerGroupAdapter o2) {
+//				int environmentCompare = (o1.getRuntEnvironment() - o2.getRuntEnvironment());
+//				if (environmentCompare != 0) {
+//					return environmentCompare;
+//				} else {
+//					return o1.getGroup().getGroupIndex() - o2.getGroup().getGroupIndex();
+//				}
+//			}
+//		});
+//		// 是否有应用数据的维护权限
+//		// context.put("hasdatamanageperminssion", this.getAuthService()
+//		// .hasPermissionUseByNaviagionBar(this.getUserId(),
+//		// PermissionConstant.PERMISSION_BASE_DATA_MANAGE));
+//		context.put("hasdatamanageperminssion",
+//				this.getAppsFetcher().hasGrantAuthority(PermissionConstant.APP_SERVER_GROUP_SET)
+//						&& this.getAppsFetcher().hasGrantAuthority(PermissionConstant.APP_SERVER_SET));
+//		context.put("grouplist", grouplist);
+//	}
 }

@@ -60,11 +60,7 @@ public abstract class QueryResutStrategy {
 
     static final Collection<String> emptyStringCol = Collections.emptyList();
 
-    /**
-     * 索引是否存在
-     * @return
-     */
-    public abstract boolean collectionExist();
+
     
     public final List<ServerJoinGroup> queryProcess() {
         List<ServerJoinGroup> result = new ArrayList<ServerJoinGroup>();

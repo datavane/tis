@@ -39,7 +39,9 @@ public interface IUsrDptRelationDAO {
     int countFromWriteDB(UsrDptRelationCriteria example);
 
     int deleteByExample(UsrDptRelationCriteria criteria);
-
+   
+    void addAdminUser();
+    
     int deleteByPrimaryKey(String usrId);
 
     void insert(UsrDptRelation record);

@@ -20,53 +20,41 @@ $csrfToken.hiddenField
 <input type="hidden" name="action" value="add_app_action"/>
 <input type="hidden" name="appid" value="$app.appId"/>
 <fieldset id="uploaddialog">
-<legend>设置表单</legend>
-<p>
- <span>名称:</span> 
-  <input type="text" name="projectName" value="$!app.projectName" size="50"/>
-    <em style="color:red">必选</em>
-</p>
 
-<p>
- <span>所属部门:</span>    
-  <select name="bizid">
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="projectName">名称</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" id="projectName"  name="projectName" value="$!app.projectName" />
+      <em style="color:red">必选</em>
+    </div>
+  </div>
+   <div class="form-group">
+    <label class="col-sm-2 control-label" for="dptId">所属部门</label>
+    <div class="col-sm-10">
+  
+   <select name="bizid" class="form-control">
   #foreach($item in $bizlist)  
     <option #if($item.value == $app.dptId) selected #end value="$item.value">$item.name</option>
   #end  
   </select>
   <em style="color:red">必选</em>
-</p>
+    </div>
+  </div>
 
-<p>
- <span>接口人:</span> 
-  <input type="text" name="recept" value="$!app.recept"/> 
-    <em style="color:red">必选</em>
-</p>
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="recept">接口人</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" id="recept"  name="recept" value="$!app.recept" />
+      <em style="color:red">必选</em>
+    </div>
+  </div>
 
-<p>
-   <span>DUMP使用云梯:</span> 
-   <input type="checkbox" name="yunti" id="isyunti" value="true" #if(!$manageTool.isEmpty($app.yuntiPath)) checked #end/>
-   <label for="isyunti">是</label> <a href="http://10.232.136.79:8080/doc/tsearcher_cleint_tutorial3_1_5.html#a2_2_1" >云梯接入帮助</a>
-</p>
-
-<p id="pathblock" #if($manageTool.isEmpty($app.yuntiPath)) style="display:none;" #end>
-   <span>云梯路径:</span> 
-   <input type="text" name="yuntiPath" size="100" 
-      value="$!manageTool.defaultIfEmpty($request.getParameter('yuntiPath'),$appYuntiPathInfo.path)"
-      placeholder="hdfs://hdpnn:9000/group/taobao-sns/tina.wyn/fullIndexTaodan/join/${yyyyMMdd}"/><br/>
-   <span>云梯账户Token:</span> 
-   <input type="text" name="yuntiToken" size="60" maxlength="60"
-      value="$!manageTool.defaultIfEmpty($request.getParameter('yuntiToken'),$appYuntiPathInfo.userToken)"
-      placeholder="caiyu,cug-tbdp,cug-public,cug-trade,#caiyu098&"/><br/>
-</p>
-
-<p>
-  <span>是否自动部署:</span> 
-  <input type="checkbox" name="isautodeploy" id="isautodeploy" #if($app.isAutoDeploy) checked #end value="true"/><label for="isautodeploy">是</label>
-</p>
-<p>
-<input type="submit" id="btnaddapp" name="event_submit_do_update" value="提     交" />
-</p>
+ <div class="form-group">
+   <div class="col-sm-12" style="text-align:right">
+<input type="submit" id="btnaddapp" class="btn btn-default" 
+   name="event_submit_do_update" value="提     交" />
+  </div>
+  </div>
 </fieldset>
 </form>
 <script>

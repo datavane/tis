@@ -167,7 +167,7 @@ public class TisSolrResourceLoader extends ZkSolrResourceLoader {
 	 */
 	public static int getRemoteSnapshotId(String collectionName) throws Exception {
 		SnapshotDomain snapshotDomain = downConfigFromConsoleRepository(-1, collectionName, null,
-				new PropteryGetter[] { ConfigFileReader.FILE_CORE_PROPERTIES }, false);
+				new PropteryGetter[] { ConfigFileReader.FILE_SOLOR }, false);
 		return snapshotDomain.getSnapshot().getSnId();
 	}
 

@@ -24,24 +24,26 @@
 package com.qlangtech.tis.runtime.module.screen;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public abstract class BizDomainUpdate extends BasicManageScreen {
+public class BizDomainUpdate extends BasicManageScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Override
-    public void execute(Context context) throws Exception {
-    // this.disableNavigationBar(context);
-    // 
-    // Integer bizid = this.getInt("bizid");
-    // Assert.assertNotNull("bizid can not be null", bizid);
-    // BizDomain biz = this.getBizDomainDAO().loadFromWriteDB(bizid);
-    // Assert.assertNotNull(biz);
-    // 
-    // context.put("biz", biz);
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.disableNavigationBar(context);
+
+		Integer bizid = this.getInt("bizid");
+		Assert.assertNotNull("bizid can not be null", bizid);
+		Department dpt = this.getDepartmentDAO().selectByPrimaryKey(bizid);
+		// BizDomain biz = this.getBizDomainDAO().loadFromWriteDB(bizid);
+		Assert.assertNotNull(dpt);
+		context.putIfEmpty("biz", dpt);
+	}
 }

@@ -12,6 +12,8 @@
     <result column="online_value" property="onlineValue" jdbcType="VARCHAR" />
     <result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP" />
     <result column="gmt_update" property="gmtUpdate" jdbcType="TIMESTAMP" />
+    
+    <result column="desc" property="desc" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
@@ -46,7 +48,7 @@
     <!--
       
     -->
-    select aa.rp_id, key_name, daily_value, ready_value, online_value, gmt_create, gmt_update
+    select aa.rp_id, key_name, daily_value, ready_value, online_value, gmt_create, gmt_update,`desc`
      from ( select rp_id from resource_parameters 
     <isParameterPresent >
       <include refid="resource_parameters.ibatorgenerated_Example_Where_Clause" />
@@ -61,7 +63,7 @@
     <!--
       
     -->
-    select rp_id, key_name, daily_value, ready_value, online_value, gmt_create, gmt_update
+    select rp_id,key_name,daily_value,ready_value, online_value, gmt_create, gmt_update,`desc`
     from resource_parameters
     where rp_id = #rpId:BIGINT#
   </select>
@@ -84,9 +86,9 @@
       
     -->
     insert into resource_parameters (rp_id, key_name, daily_value, ready_value, online_value,
-      gmt_create, gmt_update)
+      gmt_create, gmt_update,`desc`)
     values (#rpId:BIGINT#, #keyName:VARCHAR#, #dailyValue:VARCHAR#, #readyValue:VARCHAR#,
-      #onlineValue:VARCHAR#, #gmtCreate:TIMESTAMP#, #gmtUpdate:TIMESTAMP#)
+      #onlineValue:VARCHAR#, #gmtCreate:TIMESTAMP#, #gmtUpdate:TIMESTAMP#,#desc:VARCHAR#)
     <selectKey resultClass="LONG" >
       SELECT LAST_INSERT_ID();
     </selectKey>
@@ -118,6 +120,9 @@
       <isNotNull prepend="," property="gmtUpdate" >
         gmt_update
       </isNotNull>
+      <isNotNull prepend="," property="desc" >
+        `desc`
+      </isNotNull>
       )
     </dynamic>
     values
@@ -142,6 +147,9 @@
       </isNotNull>
       <isNotNull prepend="," property="gmtUpdate" >
         #gmtUpdate:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="desc" >
+        #desc:VARCHAR#
       </isNotNull>
       )
     </dynamic>
@@ -183,6 +191,10 @@
       <isNotNull prepend="," property="record.gmtUpdate" >
         gmt_update = #record.gmtUpdate:TIMESTAMP#
       </isNotNull>
+      
+      <isNotNull prepend="," property="record.desc" >
+        `desc` = #record.desc:VARCHAR#
+      </isNotNull>
     </dynamic>
     <isParameterPresent >
       <include refid="resource_parameters.ibatorgenerated_Example_Where_Clause" />
@@ -199,7 +211,8 @@
       ready_value = #record.readyValue:VARCHAR#,
       online_value = #record.onlineValue:VARCHAR#,
       gmt_create = #record.gmtCreate:TIMESTAMP#,
-      gmt_update = #record.gmtUpdate:TIMESTAMP#
+      gmt_update = #record.gmtUpdate:TIMESTAMP# ,
+      `desc` = #record.desc:VARCHAR#
     <isParameterPresent >
       <include refid="resource_parameters.ibatorgenerated_Example_Where_Clause" />
     </isParameterPresent>

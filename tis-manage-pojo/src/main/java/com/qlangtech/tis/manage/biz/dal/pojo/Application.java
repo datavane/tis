@@ -61,25 +61,25 @@ public class Application implements Serializable {
 	// <result column="nobel_app_id" property="nobleAppId" jdbcType="INTEGER" />
 	// <result column="nobel_app_name" property="nobleAppName"
 	// jdbcType="VARCHAR" />
-	private Integer nobleAppId;
+	//private Integer nobleAppId;
 
-	private String nobleAppName;
+	//private String nobleAppName;
 
-	public Integer getNobleAppId() {
-		return nobleAppId;
-	}
-
-	public void setNobleAppId(Integer nobleAppId) {
-		this.nobleAppId = nobleAppId;
-	}
-
-	public String getNobleAppName() {
-		return nobleAppName;
-	}
-
-	public void setNobleAppName(String nobleAppName) {
-		this.nobleAppName = nobleAppName;
-	}
+//	public Integer getNobleAppId() {
+//		return nobleAppId;
+//	}
+//
+//	public void setNobleAppId(Integer nobleAppId) {
+//		this.nobleAppId = nobleAppId;
+//	}
+//
+//	public String getNobleAppName() {
+//		return nobleAppName;
+//	}
+//
+//	public void setNobleAppName(String nobleAppName) {
+//		this.nobleAppName = nobleAppName;
+//	}
 
 	private static final long serialVersionUID = 1L;
 

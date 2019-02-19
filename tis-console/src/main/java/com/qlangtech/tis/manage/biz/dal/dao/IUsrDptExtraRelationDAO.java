@@ -44,6 +44,8 @@ public interface IUsrDptExtraRelationDAO {
     Long insert(UsrDptExtraRelation record);
 
     Long insertSelective(UsrDptExtraRelation record);
+    
+    
 
     List<UsrDptExtraRelation> selectByExample(UsrDptExtraRelationCriteria criteria);
 

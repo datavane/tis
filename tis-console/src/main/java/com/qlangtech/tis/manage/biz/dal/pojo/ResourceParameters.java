@@ -47,6 +47,9 @@ public class ResourceParameters implements Serializable {
 	private Date gmtCreate;
 
 	private Date gmtUpdate;
+	
+	// 描述信息
+	private String desc;
 
 	private static final long serialVersionUID = 1L;
 
@@ -116,4 +119,14 @@ public class ResourceParameters implements Serializable {
 	public void setGmtUpdate(Date gmtUpdate) {
 		this.gmtUpdate = gmtUpdate;
 	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+	
+	
 }

@@ -109,8 +109,14 @@ function opendialog_no_iframe(title,src,width,height,callbackfunc){
 
 function opendialog(title,src,width,height,callbackfunc){
    try
-{  
-  var footer =  $("#modal .modal-footer");
+{ 
+
+  
+  var modal = $( "#modalTemplate" ).tmpl({});
+  
+  var footer = modal.find(".modal-footer");// $("#modal .modal-footer");
+  
+ 
   if( callbackfunc && (callbackfunc.onSuccess || callbackfunc.onClose )){
  
      footer.css("display","block");
@@ -132,33 +138,19 @@ function opendialog(title,src,width,height,callbackfunc){
 
 
    if(src.content){
-     $("#modal .modal-body").html("<div style='height:"+(height)+"'>"+src.content+"</div>");
+     modal.find(".modal-body").html("<div style='height:"+(height)+"'>"+src.content+"</div>");
    }else{
-     $("#modal .modal-body").html("<div style='height:"+(height)+"'> <iframe id='wdialog' frameborder='0' height='"+(height-100)+"' width='100%' src='"+src+"' ></iframe></div>");
+     modal.find(".modal-body").html("<div style='height:"+(height)+"'> <iframe id='wdialog' frameborder='0' height='"+(height-100)+"' width='100%' src='"+src+"' ></iframe></div>");
    } 
-   $("#modal .modal-dialog").css("width",width);
-   $("#modal #myModalLabel").html(title);
-   $("#modal").modal({});
-  #* 
-     var dialog = $("<div style='height:"+(height)+"'> <iframe id='wdialog' frameborder='0' height='"+(height-60)+"' width='100%' src='"+src+"' ></iframe></div>")
-		.dialog({
-			autoOpen: false,
-			width:width,
-			height:height,
-			title: title,
-			modal: true,
-			autoResize:false,
-			//close: function(event, ui) { 
-			//  if(!notRefeshWhenDialogClose){ 
-			//     window.location.reload();
-			//  }  
-			//}
-			close: callbackfunc
-		});
-	 
-    dialog.dialog('open');
-    return dialog;
-    *#
+   modal.find(".modal-dialog").css("width",width);
+   modal.find(".myModalLabel").html(title);
+  if(callbackfunc && (typeof callbackfunc === 'function')){
+   modal.on('hidden.bs.modal', function (e) {
+     callbackfunc();
+   });
+   }
+   modal.modal({});
+  
 }catch(err)
 {
    alert(err);
@@ -377,18 +369,20 @@ $manageTool.noescape($manageTool.createNavigateBar())
 <div style="clear:both"></div>
 
 
-<!-- modal -->
-<div id="modal" class="modal fade"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+
+
+</body>
+</html>
+
+<script id="modalTemplate" type="text/x-jquery-tmpl">
+<div  class="modal fade"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content ">
-      #* *#
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="myModalLabel"></h4>
+        <h4 class="modal-title" class="myModalLabel"></h4>
       </div>
-     
       <div class="modal-body">
-       
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default footer-close" >关闭</button>
@@ -397,9 +391,8 @@ $manageTool.noescape($manageTool.createNavigateBar())
     </div>
   </div>
 </div>
+</script>
 
-</body>
-</html>
 <script>
    
 #if(!$manageTool.test && $shallPresentInFrame)

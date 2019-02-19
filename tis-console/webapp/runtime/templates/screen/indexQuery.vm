@@ -21,16 +21,16 @@
  }
  -->
 </style>
-<form method="post" id="queryForm" action="$manageModule.setTarget("indexQuery")">
-  <a id="btnserverSelect" href="#" onclick="return btnserverSelectClick();">引擎节点</a>
-  <a target='_blank' href='/runtime/view_pojo.htm'  onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()>$(window).height()?$(document).height():$(window).height())-15,function(){}); return false;">POJO</a>
-<div>
 
+<form method="post" id="queryForm" action="$manageModule.setTarget("indexQuery")">
+  <a id="btnserverSelect" href="#" onclick="return btnserverSelectClick();">节点</a>
+  &nbsp;<a target='_blank' href='/runtime/view_pojo.htm'  onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()>$(window).height()?$(document).height():$(window).height())-15,function(){}); return false;">POJO</a>
+<div>
 <div id="serverSelectDialog">
 
   <table width="100%">
   <tr><td width="50%"><button onclick="return btnHideServerSelectClick()">关闭</button></td>
-      <td align="right"><button id="selectall">全选</button><button  id="unselectall">全不选</button></td></tr>
+      <td align="right"><button id="selectall" onclick="selectallClick();return false;">全选</button><button  id="unselectall">全不选</button></td></tr>
   </table>
   <table width="100%" border="1">
   #foreach($i in $querySelectServerCandiate.entrySet())     
@@ -39,7 +39,7 @@
       <td>
          #foreach($server in $i.value)    
             <input id="lab${server.hashCode()}"  type="checkbox" name="servergroup${i.key}" value="$server.ipAddress" />
-            <lable for="lab${server.hashCode()}" style="font-weight:#if($server.leader)bold#end">${server.ip}</lable>        
+            <label for="lab${server.hashCode()}" style="font-weight:#if($server.leader)bold#end">${server.ip}</label>        
          #end
       </td>
     </tr>
@@ -47,6 +47,8 @@
   </table>
 </div>
 </div>
+
+
 
 <fieldset>
  <input type="hidden" name="appName"               value="${appDomain.appName}" />
@@ -57,7 +59,7 @@
  <div>
  <span>query:</span><span class="help"><a target="_blank"
   href="http://wiki.apache.org/solr/SolrQuerySyntax">Solr查询语法</a></span> <br/>
- <textarea name="q" cols="80" rows="3"></textarea> 
+ <textarea name="q" cols="90" rows="3"></textarea> 
  <span style="color:#666666;font-size:16px"> example:  *:*,id:478222</span>
  </div>
 
@@ -68,8 +70,8 @@
   <input type="text" name="sort" value="" size="40" placeholder="example:'create_time desc'"/> 
   </td>
    <td>
-   <span style="display:inline-block;width:4em;">rows:</span>
-  <input type="text" name="shownum" value="3" />
+   <span style="display:inline-block;width:5em;">start/rows:</span>
+  <input type="text" name="start" value="0" size="3" /> <input type="text" name="shownum" value="3" size="3" />
    </td>
  </tr>
  
@@ -201,26 +203,26 @@ var resultCount =0
         }});
   }
 
+  function selectallClick(){
+     $("#serverSelectDialog").find("input[type='checkbox']").prop("checked",true);
+  }
+
   $(document).ready(function(){
   
-    $("#selectall").click( function(){
-        $("#serverSelectDialog").find("input:checkbox").attr("checked",true);
-        return false;
-      }
-    );
+ 
     
    $("#fieldselectall").click(function(){ 
-       $("#selectColumn").find("input[type='checkbox']").attr("checked",true);
+       $("#selectColumn").find("input[type='checkbox']").prop("checked",true);
         return false;
    });
    
     $("#fieldunselectall").click(function(){     
-       $("#selectColumn").find("input[type='checkbox']").attr("checked",false);
+       $("#selectColumn").find("input[type='checkbox']").prop("checked",false);
         return false;
     });
     
     $("#unselectall").click(function(){
-      $("#serverSelectDialog").find("input:checkbox").attr("checked",false);
+      $("#serverSelectDialog").find("input:checkbox").prop("checked",false);
       return false;
     });
   })

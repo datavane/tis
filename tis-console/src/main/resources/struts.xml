@@ -43,6 +43,7 @@
 
 
 	<package name="default" extends="struts-default">
+
 		<interceptors>
 
 			<interceptor name="serverGroupExist"
@@ -54,21 +55,28 @@
 
 			<interceptor name="tisException"
 				class="com.qlangtech.tis.manage.common.valve.TisExceptionInterceptor" />
-			
+
+			<interceptor name="operationLog"
+				class="com.qlangtech.tis.manage.spring.aop.OperationLogInterceptor" />
+
+
 			<interceptor-stack name="tisStack">
 				<interceptor-ref name="params">
 					<param name="excludeParams">^class\..*,^dojo\..*,^struts\..*,^session\..*,^request\..*,^application\..*,^servlet(Request|Response)\..*,^parameters\..*,^action:.*,^method:.*</param>
 				</interceptor-ref>
 				<interceptor-ref name="domainSelected" />
+				<!--  -->
 				<interceptor-ref name="authority" />
+				
 				<interceptor-ref name="tisException" />
-
+				<interceptor-ref name="operationLog" />
 				<interceptor-ref name="defaultStack" />
 			</interceptor-stack>
 
 		</interceptors>
 
 		<default-interceptor-ref name="tisStack" />
+
 	</package>
 
 </struts>
