@@ -182,31 +182,64 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 				throw new IllegalStateException("core:" + cname + " can not be null");
 			}
 			final String hdfsHome = core.getSolrConfig().getVal("hdfsHome", true);
-			long hdfsTimeStamp = params.getLong(CoreAdminParams.PROPERTY_PREFIX + HDFS_TIMESTAMP);
+			final long hdfsTimeStamp = params.getLong(CoreAdminParams.PROPERTY_PREFIX + HDFS_TIMESTAMP);
 			String hdfsUser = params.get(CoreAdminParams.PROPERTY_PREFIX + HDFS_USER);
 			Long coreReloadSleepTime = params.getLong(CoreAdminParams.PROPERTY_PREFIX + CORE_RELOAD_SLEEP_TIME);
 			// 将新的时间
-			// boolean replaceSameIndexDir = false;
 			final File oldIndexDir = new File(core.getNewIndexDir());
 			String oldIndexDirName = oldIndexDir.getName();
 			log.info("oldIndexDirName:" + oldIndexDirName + ",abstractPath:" + oldIndexDir.getAbsolutePath());
 			final File indexDirParent = oldIndexDir.getParentFile();
-			File newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
-			if (newDir.exists()) {
-				log.info("newdir:" + newDir.getAbsolutePath() + " is exist,will make a new dir");
-				Matcher m = INDEX_DATA_PATTERN.matcher(newDir.getName());
-				if (m.matches()) {
-					int order = 1;
-					if (StringUtils.isNotBlank(m.group(3))) {
-						order = Integer.parseInt(m.group(3));
-						order++;
-					}
-					newDir = new File(indexDirParent, m.group(1) + "_" + order);
-					log.info("newdir:" + newDir.getAbsolutePath());
-				} else {
-					throw new IllegalStateException("newDir is not illegal:" + newDir.getAbsolutePath());
+
+			Matcher m = INDEX_DATA_PATTERN.matcher(oldIndexDirName);
+			File newDir = null;
+			if (m.matches()) {
+				int order = 1;
+				if (StringUtils.isNotBlank(m.group(3))) {
+					order = Integer.parseInt(m.group(3));
+					order++;
 				}
+				newDir = new File(indexDirParent, m.group(1) + "_" + order);
+				log.info("newdir:" + newDir.getAbsolutePath());
+			} else {
+//				throw new IllegalStateException("oldIndexDirName is not illegal:" + oldIndexDirName);
+				newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
 			}
+			
+			
+//			File newDir = null;
+//			if (oldIndexDir.exists()) {
+//				Matcher m = INDEX_DATA_PATTERN.matcher(oldIndexDirName);
+//				if (m.matches()) {
+//					int order = 1;
+//					if (StringUtils.isNotBlank(m.group(3))) {
+//						order = Integer.parseInt(m.group(3));
+//						order++;
+//					}
+//					newDir = new File(indexDirParent, m.group(1) + "_" + order);
+//					log.info("newdir:" + newDir.getAbsolutePath());
+//				} else {
+//					throw new IllegalStateException("oldIndexDirName is not illegal:" + oldIndexDirName);
+//				}
+//			} else {
+//				newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
+//			}
+//
+//			if (newDir.exists()) {
+//				log.info("newdir:" + newDir.getAbsolutePath() + " is exist,will make a new dir");
+//				Matcher m = INDEX_DATA_PATTERN.matcher(newDir.getName());
+//				if (m.matches()) {
+//					int order = 1;
+//					if (StringUtils.isNotBlank(m.group(3))) {
+//						order = Integer.parseInt(m.group(3));
+//						order++;
+//					}
+//					newDir = new File(indexDirParent, m.group(1) + "_" + order);
+//					log.info("newdir:" + newDir.getAbsolutePath());
+//				} else {
+//					throw new IllegalStateException("newDir is not illegal:" + newDir.getAbsolutePath());
+//				}
+//			}
 			long downloadStart = System.currentTimeMillis();
 			final String taskId = req.getParams().get(CommonAdminParams.ASYNC);
 			// 从hdfs上将build好的索引文件拉下来
@@ -298,14 +331,16 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 
 		TisCoreName tiscoreName = TISCollectionUtils.parse(core.getName());
 
-//		Matcher coreNameMatcher = coreNamePattern.matcher(core.getName());
-//		if (!coreNameMatcher.matches()) {
-//			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
-//					"core name:" + core.getName() + " does not match pattern:" + coreNameMatcher);
-//		}
+		// Matcher coreNameMatcher = coreNamePattern.matcher(core.getName());
+		// if (!coreNameMatcher.matches()) {
+		// throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+		// "core name:" + core.getName() + " does not match pattern:" +
+		// coreNameMatcher);
+		// }
 		String coreName = tiscoreName.getName();//// coreNameMatcher.group(1);
 		// 需要减1
-		final int group = tiscoreName.getSharedNo()-1;// Integer.parseInt(coreNameMatcher.group(2)) - 1;
+		final int group = tiscoreName.getSharedNo() - 1;// Integer.parseInt(coreNameMatcher.group(2))
+														// - 1;
 		Path hdfsPath = new Path(
 				"/user/" + hdfsUser + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
 		log.info("load from hdfs:" + hdfsHome + ",path:" + hdfsPath);
