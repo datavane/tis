@@ -26,6 +26,7 @@ package com.qlangtech.tis.runtime.module.action;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.manage.common.NavigationJsonBar;
 import com.qlangtech.tis.manage.common.RunContextGetter;
+import com.qlangtech.tis.manage.spring.aop.OperationIgnore;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -35,6 +36,7 @@ public class MenuAction extends BasicModule {
 
     private static final long serialVersionUID = 1L;
 
+    @OperationIgnore
     public void doLoadAllMenu(Context context) {
         NavigationJsonBar menuBuilder = new NavigationJsonBar(this.getRequest());
         menuBuilder.setRunContextGetter(new RunContextGetter(this));

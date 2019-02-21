@@ -60,7 +60,7 @@ SELECT rr.from_time as from_time,rr.to_time as to_time,
     from nums,(select @a:= #fromTime#) a where @a < #toTime#
 )rr LEFT OUTER JOIN cluster_snapshot sn 
       ON (sn.gmt_create <= rr.to_time  and sn.gmt_create > rr.from_time and sn.app_id=#appId#)
-GROUP BY rr.a   
+GROUP BY rr.from_time,rr.to_time   
     
     ]]>
     </select>
@@ -80,7 +80,7 @@ SELECT rr.from_time as from_time,rr.to_time as to_time,
     from nums,(select @a:= #fromTime#) a where @a < #toTime#
 )rr LEFT OUTER JOIN cluster_snapshot sn 
       ON (sn.gmt_create <= rr.to_time  and sn.gmt_create > rr.from_time and sn.app_id=#appId#)
-GROUP BY rr.a
+GROUP BY rr.from_time,rr.to_time
   	]]>
 	</select>
 
@@ -99,7 +99,7 @@ SELECT rr.from_time as from_time,rr.to_time as to_time,
     from nums,(select @a:=date_add( now(),interval -5 hour ) f) a where @a < now()
 )rr LEFT OUTER JOIN cluster_snapshot sn 
       ON (sn.gmt_create <= rr.to_time  and sn.gmt_create > rr.from_time and sn.app_id=#appId#)
-GROUP BY rr.a
+GROUP BY rr.from_time,rr.to_time
 
   	]]>
 	</select>
@@ -118,7 +118,7 @@ SELECT rr.from_time as from_time,rr.to_time as to_time,
     from nums,(select @a:= #fromTime# ) a where @a < #toTime#
 )rr LEFT OUTER JOIN cluster_snapshot_pre_day sn 
       ON (sn.gmt_create <= rr.to_time  and sn.gmt_create > rr.from_time and sn.app_id=#appId#)
-GROUP BY rr.a
+GROUP BY rr.from_time,rr.to_time
 
     ]]>
     </select>
@@ -137,7 +137,7 @@ SELECT rr.from_time as from_time,rr.to_time as to_time,
     from nums,(select @a:= #fromTime#) a where @a < now()
 )rr LEFT OUTER JOIN cluster_snapshot_pre_day sn 
       ON (sn.gmt_create <= rr.to_time  and sn.gmt_create > rr.from_time and sn.app_id=#appId#)
-GROUP BY rr.a
+GROUP BY rr.from_time,rr.to_time
 
     ]]>
     </select>

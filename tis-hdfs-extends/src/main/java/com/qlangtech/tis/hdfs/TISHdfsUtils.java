@@ -55,14 +55,6 @@ public class TISHdfsUtils {
 	private static final Logger logger = LoggerFactory.getLogger(TISHdfsUtils.class);
 
 	public static void main(String[] args) throws Exception {
-		// FileSystem fs = TISHdfsUtils.getFileSystem();
-		// System.out.println( fs.get);
-		// FileStatus[] files = fs.listStatus(new Path("/"));
-		//
-		// for (FileStatus s : files) {
-		//
-		// System.out.println(s.getPath());
-		// }
 	}
 
 	/**

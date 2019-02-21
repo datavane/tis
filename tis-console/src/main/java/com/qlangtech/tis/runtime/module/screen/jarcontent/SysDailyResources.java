@@ -23,17 +23,15 @@
  */
 package com.qlangtech.tis.runtime.module.screen.jarcontent;
 
-import junit.framework.Assert;
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
-import com.qlangtech.tis.manage.common.ConfigFileReader;
-import com.qlangtech.tis.manage.common.SnapshotDomain;
-import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
-import com.qlangtech.tis.openapi.impl.AppKey;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction.SynManagerWorker;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
-import com.qlangtech.tis.runtime.pojo.ResSynManager;
+
+import junit.framework.Assert;
 
 /*
  * 将日常的配置同步到线上去
@@ -43,34 +41,44 @@ import com.qlangtech.tis.runtime.pojo.ResSynManager;
  */
 public class SysDailyResources extends BasicScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    public void execute(Context context) throws Exception {
-        this.disableNavigationBar(context);
-        shallnotShowEnvironment(context);
-        Assert.assertNotNull(this.getAppDomain());
-        AppDomainInfo app = this.getAppDomain();
-        // final AppKey appKey = new AppKey(app.getAppName(), (short) 0,
-        // RunEnvironment.DAILY, true);
-        final SynManagerWorker synManager = SynManagerWorker.create(app.getAppName(), this.getContext(), this);
-        // 日常向线上推送文件
-        // SnapshotDomain dailyResDomain = LoadSolrCoreConfigByAppNameServlet
-        // .getSnapshotDomain(ConfigFileReader.getConfigList(), appKey, this);
-        // if (dailyResDomain != null) {
-        // SnapshotDomain onlineRes = ResSynManager
-        // .getOnlineResourceConfig(app.getAppName());
-        // ResSynManager synManager = ResSynManager.createSynManagerOnlineFromDaily(app.getAppName(), this);
-        // new ResSynManager(dailyResDomain,
-        // onlineRes);
-        context.put("dailyRes", synManager.getDailyRes());
-        // context.put("onlineRes", synManager.getOnlineResDomain());
-        // context.put("rescompare", synManager.getCompareResult());
-        context.put("synManager", synManager);
-    // }
-    }
+	public void execute(Context context) throws Exception {
+		this.disableNavigationBar(context);
+		shallnotShowEnvironment(context);
+		Assert.assertNotNull(this.getAppDomain());
+		AppDomainInfo app = this.getAppDomain();
 
-    @Override
-    public boolean isEnableDomainView() {
-        return false;
-    }
+		if (StringUtils.isEmpty(RunEnvironment.ONLINE.getPublicRepositoryURL())) {
+			this.addErrorMessage(context, "还未设置生产环境服务端地址,请联系系统管理员");
+			this.forward("jarcontent/sysDailyResourcesNotSetPublicRepositoryURL.vm");
+			return;
+		}
+
+		// final AppKey appKey = new AppKey(app.getAppName(), (short) 0,
+		// RunEnvironment.DAILY, true);
+		final SynManagerWorker synManager = SynManagerWorker.create(app.getAppName(), this.getContext(), this);
+		// 日常向线上推送文件
+		// SnapshotDomain dailyResDomain = LoadSolrCoreConfigByAppNameServlet
+		// .getSnapshotDomain(ConfigFileReader.getConfigList(), appKey, this);
+		// if (dailyResDomain != null) {
+		// SnapshotDomain onlineRes = ResSynManager
+		// .getOnlineResourceConfig(app.getAppName());
+		// ResSynManager synManager =
+		// ResSynManager.createSynManagerOnlineFromDaily(app.getAppName(),
+		// this);
+		// new ResSynManager(dailyResDomain,
+		// onlineRes);
+		context.put("dailyRes", synManager.getDailyRes());
+		// context.put("onlineRes", synManager.getOnlineResDomain());
+		// context.put("rescompare", synManager.getCompareResult());
+		context.put("synManager", synManager);
+		// }
+
+	}
+
+	@Override
+	public boolean isEnableDomainView() {
+		return false;
+	}
 }

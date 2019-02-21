@@ -1,8 +1,4 @@
-#*
-<p>
-<h3>Daily SNAPSHOT版本：$dailyRes.snapshot.snId </h3>
-</p>                      
-*#
+
 #if($dailyRes && $onlineRes)
 <div id="messageblock"></div>
 <p>

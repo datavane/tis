@@ -79,6 +79,7 @@ import com.qlangtech.tis.manage.common.HttpUtils.ProcessResponse;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.manage.spring.aop.OperationIgnore;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
@@ -161,6 +162,7 @@ public class CoreAction extends CoreDefineModule {
 	/**
 	 * 创建一个应用,选择组×组内副本数目
 	 */
+	@OperationIgnore
 	@Func(PermissionConstant.APP_INITIALIZATION)
 	public void doCreateCoreSetp1(Context context) throws Exception {
 		final Integer groupNum = this.getInt("group");

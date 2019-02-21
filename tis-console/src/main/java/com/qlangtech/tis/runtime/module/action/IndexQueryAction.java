@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
 import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
+import com.qlangtech.tis.manage.spring.aop.OperationIgnore;
 import com.qlangtech.tis.runtime.module.screen.IndexQuery.QueryRequestContext;
 import com.qlangtech.tis.runtime.module.screen.IndexQuery.QueryRequestWrapper;
 
@@ -59,7 +60,7 @@ public class IndexQueryAction extends BasicModule {
     // }
     // 
     // //
-    // http://l.admin.taobao.org/runtime/index_query.ajax?action=index_query_action&event_submit_do_query=y&resulthandler=advance_query_result&execsql=select+*+from+search4sucai%3B
+    @OperationIgnore
     public void doQuery(Context context) throws Exception {
         List<String> sfields = Lists.newArrayList(this.getRequest().getParameterValues("sfields"));
         final String query = StringUtils.defaultIfBlank((this.getString("q")).replaceAll("\r|\n", StringUtils.EMPTY), "*:*");

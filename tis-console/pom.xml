@@ -63,20 +63,6 @@
 			</properties>
 		</profile>
 
-		<profile>
-			<id>tha</id>
-			<properties>
-				<env>tha</env>
-			</properties>
-		</profile>
-
-		<profile>
-			<id>kr</id>
-			<properties>
-				<env>kr</env>
-			</properties>
-		</profile>
-
 	</profiles>
 	<dependencies>
 

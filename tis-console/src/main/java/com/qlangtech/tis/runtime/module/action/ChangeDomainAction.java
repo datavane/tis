@@ -26,11 +26,14 @@ package com.qlangtech.tis.runtime.module.action;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
+
 import com.alibaba.citrus.turbine.Context;
 import com.opensymphony.xwork2.ModelDriven;
 import com.qlangtech.tis.manage.ChangeDomainForm;
@@ -39,11 +42,12 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria.Criteria;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher.CriteriaSetter;
+import com.qlangtech.tis.manage.spring.aop.OperationIgnore;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
-import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.GroupAction.SuggestCallback;
 import com.qlangtech.tis.runtime.module.control.AppDomain;
+
 import junit.framework.Assert;
 
 /* *
@@ -86,6 +90,7 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
      * @param nav
      * @throws Exception
      */
+    @OperationIgnore
     public // @FormGroup(GROUPNAME) ChangeDomainForm form,
     void doChange(// Navigator nav,
     Context context) throws Exception {
@@ -104,6 +109,7 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
      * @param context
      * @throws Exception
      */
+    @OperationIgnore
     public void doChangeRuntimeAjax(Context context) throws Exception {
         // Integer appid = parseSelectedAppid(form, context);
         // if (appid == null) {
@@ -119,6 +125,7 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
      * @param context
      * @throws Exception
      */
+    @OperationIgnore
     public void doChangeAppAjax(Context context) throws Exception {
         Integer appid = this.getInt("appid");
         if (appid == null) {
@@ -162,6 +169,7 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
      * @param context
      * @throws Exception
      */
+    @OperationIgnore
     public void doAppNameSuggestDaily(Context context) throws Exception {
     }
 
@@ -170,6 +178,7 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
      *
      * @param context
      */
+    @OperationIgnore
     public void doAppNameSuggest(Context context) throws Exception {
         final String appNameFuzzy = StringUtils.trimToEmpty(this.getString("query"));
         processNameSuggest(this.getRequest(), this.getUser(), this, false, appNameFuzzy);
@@ -247,7 +256,7 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
     // 
     // }
     }
-
+    @OperationIgnore
     public void doRuntimeChange(// Navigator nav
     Context context) throws Exception {
         // AppDomainInfo appdomain = this.getAppDomain();

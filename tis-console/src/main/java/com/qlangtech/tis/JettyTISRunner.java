@@ -25,6 +25,7 @@ package com.qlangtech.tis;
 
 import java.io.File;
 import java.io.IOException;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -34,6 +35,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.NetworkTrafficServerConnector;
 import org.eclipse.jetty.server.Server;
@@ -43,7 +45,9 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.manage.servlet.TISErrorHandler;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -148,6 +152,7 @@ public class JettyTISRunner {
 		server.setConnectors(new Connector[] { // , healthConnector
 				connector });
 		server.setStopAtShutdown(true);
+
 		// URL url =
 		// server.getClass().getResource("/org/eclipse/jetty/webapp/WebAppContext.class");
 		// System.out.println(url);
@@ -158,25 +163,20 @@ public class JettyTISRunner {
 		Resource webContentResource = Resource.newResource(webappDir);
 		WebAppContext webAppContext = new WebAppContext(webContentResource, context);
 		webAppContext.setDescriptor("/WEB-INF/web.xml");
-		 webAppContext.setDisplayName("jetty");
+		webAppContext.setDisplayName("jetty");
 		webAppContext.setWelcomeFiles(new String[] { "index.htm" });
 		webAppContext.setClassLoader(Thread.currentThread().getContextClassLoader());
 		webAppContext.setConfigurationDiscovered(true);
 		webAppContext.setParentLoaderPriority(true);
 		webAppContext.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
+		webAppContext.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
+		
+		webAppContext.setErrorHandler(new TISErrorHandler());
+		// webAppContext.addServlet(servlet, pathSpec);
+		// webAppContext.setServletHandler(servletHandler);
+
 		webAppContext.setThrowUnavailableOnStartupException(true);
 		server.setHandler(webAppContext);
-		// this.rootContext = new ServletContextHandler(server, context//
-		// ,ServletContextHandler.SESSIONS
-		// );
-		// server.setThreadPool(new QueuedThreadPool(100));
-		// Initialize the servlets
-		// this.rootContext = new Context(server, context,
-		// ServletContextHandler.SESSIONS);
-		// for some reason, there must be a servlet for this to get applied
-		// rootContext.addServlet(Servlet404.class, "/*");
-		// dispatchFilter = rootContext.addFilter(InnerFilter.class, "*",
-		// EnumSet.of(DispatcherType.REQUEST));
 	}
 
 	public void addServlet(HttpServlet servlet, String pathSpec) {

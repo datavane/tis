@@ -34,6 +34,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.manage.biz.dal.dao.IClusterSnapshotDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotQuery;
+import com.qlangtech.tis.manage.spring.aop.OperationIgnore;
 
 /*
  * 用户查询访问提供不同时段的报表
@@ -103,6 +104,7 @@ public class ClusterStateCollectAction extends BasicModule {
      * @param context
      * @throws Exception
      */
+    @OperationIgnore
     public void doCollect(Context context) throws Exception {
         Integer minute = this.getInt("m");
         Assert.assertNotNull(minute);

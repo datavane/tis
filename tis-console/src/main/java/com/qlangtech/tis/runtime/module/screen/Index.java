@@ -40,7 +40,7 @@ public class Index extends BasicManageScreen {
 	@Override
 	public void execute(Context context) throws Exception {
 		this.disableNavigationBar(context);
-
+		
 		if (TSearcherConfigFetcher.get() instanceof Nullable) {
 			// 新安装全局参数还还没有设置
 			this.forward("globalParamSet.vm");

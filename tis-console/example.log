@@ -298,4 +298,89 @@ DEBUG qtp827084938-14 freemarker.cache - Couldn't find template in cache for "or
   DEBUG qtp1684792003-12 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
   DEBUG qtp1684792003-12 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
   DEBUG qtp1684792003-12 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1684792003-13 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1684792003-13 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1684792003-13 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-21 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-21 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-21 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-19 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-19 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-19 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-14 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-14 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-14 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-20 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-20 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-20 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-16 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-16 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-16 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp282265585-18 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp282265585-18 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp282265585-18 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-21 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-21 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-21 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-20 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-20 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-20 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-20 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-20 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-20 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-21 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-21 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-21 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-15 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-15 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-15 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-19 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-19 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-19 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-19 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-19 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-19 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-29 com.openshift.internal.restclient.okhttp.ResponseCodeInterceptor - Response{protocol=http/1.1, code=500, message=Internal Server Error, url=https://cloudapps.2dfire.net:8443/oauth/authorize?response_type=token&client_id=openshift-challenging-client}
+  DEBUG qtp1117519786-14 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1117519786-14 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1117519786-14 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1117519786-18 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1117519786-18 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1117519786-18 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1117519786-19 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1117519786-19 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1117519786-19 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1973233403-19 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1973233403-19 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1973233403-19 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-20 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-20 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-20 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-17 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-17 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-17 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-19 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-19 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-19 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-21 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-21 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-21 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-16 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-16 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-16 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-21 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-21 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-21 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-20 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-20 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-20 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-19 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-19 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-19 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-20 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-20 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-20 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
+  DEBUG qtp1936722816-19 freemarker.cache - Couldn't find template in cache for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed); will try to load it.
+  DEBUG qtp1936722816-19 freemarker.cache - TemplateLoader.findTemplateSource("org/apache/struts2/dispatcher/error.ftl"): Found
+  DEBUG qtp1936722816-19 freemarker.cache - Loading template for "org/apache/struts2/dispatcher/error.ftl"("zh_CN", UTF-8, parsed) from "jar:file:/D:/j2ee_solution/mvn_repository/org/apache/struts/struts2-core/2.5.8/struts2-core-2.5.8.jar!/org/apache/struts2/dispatcher/error.ftl"
   

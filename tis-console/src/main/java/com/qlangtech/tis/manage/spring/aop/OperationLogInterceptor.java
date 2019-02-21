@@ -56,8 +56,10 @@ public class OperationLogInterceptor extends MethodFilterInterceptor {
 		String namespace = proxy.getNamespace();
 		final Method method = action.getExecuteMethod();
 
+		OperationIgnore optIgnore = method.getAnnotation(OperationIgnore.class);
+
 		if (!StringUtils.startsWith(method.getName(), "do") || StringUtils.startsWith(method.getName(), "doGet")
-				|| StringUtils.startsWith(method.getName(), "doLoad")) {
+				|| StringUtils.startsWith(method.getName(), "doLoad") || optIgnore != null) {
 			return invocation.invoke();
 		}
 

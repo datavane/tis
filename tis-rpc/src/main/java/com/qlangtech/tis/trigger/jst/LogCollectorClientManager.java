@@ -162,11 +162,11 @@ public class LogCollectorClientManager {
      * @param monitorTarget
      * @param listener
      */
-//    public void registerMonitorEvent(MonotorTarget monitorTarget) throws Exception {
-//        try {
-//            synchronized (audienceList) {
-//                final Set<ILogListener> finallisteners = Collections.unmodifiableSet(audienceList);
-//                if (monitorTarget.getLogType() == LogType.MQ_TAGS_STATUS) {
+    public void registerMonitorEvent(MonotorTarget monitorTarget) throws Exception {
+        try {
+            synchronized (audienceList) {
+                final Set<ILogListener> finallisteners = Collections.unmodifiableSet(audienceList);
+                if (monitorTarget.getLogType() == LogType.MQ_TAGS_STATUS) {
 //                    RefCounted<ScheduledExecutorService> refScheduled = null;
 //                    synchronized (tagsMonitor) {
 //                        refScheduled = tagsMonitor.get(monitorTarget);
@@ -234,18 +234,18 @@ public class LogCollectorClientManager {
 //                        }
 //                        refScheduled.incref();
 //                    }
-//                } else {
-//                    LogCollector logCollector = LogCollector.getCollector();
-//                    logCollector.start();
-//                    logCollector.sendInfo(monitorTarget);
-//                }
-//                log.info("send monitor register:" + monitorTarget.getCollection() + "," + monitorTarget.getLogType());
-//            }
-//        } catch (Exception e) {
-//            LogCollector.getCollector().processError(e);
-//            throw e;
-//        }
-//    }
+                } else {
+                    LogCollector logCollector = LogCollector.getCollector();
+                    logCollector.start();
+                    logCollector.sendInfo(monitorTarget);
+                }
+                log.info("send monitor register:" + monitorTarget.getCollection() + "," + monitorTarget.getLogType());
+            }
+        } catch (Exception e) {
+            LogCollector.getCollector().processError(e);
+            throw e;
+        }
+    }
 
     public static class TisIncrStatus {
 

@@ -39,6 +39,7 @@ import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.DefaultOperationDomainLogger;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.manage.spring.aop.OperationIgnore;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 
@@ -57,6 +58,7 @@ public class SnapshotRevsionAction extends BasicModule {
 	/*
 	 * 与doSelectRevsion的区别在于，源参数是页面传递， doSelectRevsionByContext的参数是有http接口传入
 	 */
+    @OperationIgnore
 	public void doSelectRevsionByContext(Context context) {
 		Integer snapshotid = (Integer) context.get("selectedSnapshotid");
 		// final Integer groupid = this.getInt("groupid");
@@ -85,6 +87,7 @@ public class SnapshotRevsionAction extends BasicModule {
 						+ "</strong>");
 	}
 
+    @OperationIgnore
 	@Func(PermissionConstant.CONFIG_SNAPSHOT_CHANGE)
 	public void doSelectRevsion(Context context) {
 		Integer snapshotid = this.getInt("selectedSnapshotid");
@@ -123,6 +126,7 @@ public class SnapshotRevsionAction extends BasicModule {
 	 *
 	 * @param context
 	 */
+    @OperationIgnore
 	@Func(PermissionConstant.CONFIG_SNAPSHOT_CHANGE)
 	public void doGetLatestSnapshot(Context context) throws Exception {
 		Integer snapshotId = this.getInt("maxsnapshotid");

@@ -24,16 +24,26 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>setResponseLocal</filter-name>
-		<url-pattern>*.htm</url-pattern>
+		<url-pattern>*</url-pattern>
 	</filter-mapping>
 	
+	<!-- 
 	<filter-mapping>
         <filter-name>setResponseLocal</filter-name>
         <url-pattern>*.ajax</url-pattern>
     </filter-mapping>
+ -->
 
+    <servlet>
+        <servlet-name>index</servlet-name>
+        <servlet-class>com.qlangtech.tis.manage.servlet.IndexServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>index</servlet-name>
+        <url-pattern>index.htm</url-pattern>
+    </servlet-mapping>
 
-<servlet>
+    <servlet>
         <servlet-name>struts2</servlet-name>
         <servlet-class>org.apache.struts2.dispatcher.servlet.StrutsServlet</servlet-class>
     </servlet>
@@ -109,15 +119,12 @@
 	</servlet-mapping>
 
 
-
+<!-- 
 	<welcome-file-list>
-		
 		<welcome-file>index.htm</welcome-file>
-		<!-- 
 		<welcome-file>/runtime/index.htm</welcome-file>
         <welcome-file>ext.htm</welcome-file>
 		<welcome-file>index.jsp</welcome-file>
-	 -->
 	</welcome-file-list>
-
+ -->
 </web-app>

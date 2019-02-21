@@ -74,6 +74,9 @@
                         <exclude>env.conf</exclude>
                         <exclude>*.yml</exclude>
                         <exclude>*.xml</exclude>
+                        <exclude>**/*.properties</exclude>
+                        
+                        
                     </excludes>
                 </configuration>
             </plugin>

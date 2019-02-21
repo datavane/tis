@@ -356,6 +356,10 @@ public class ManageUtils {
 			throw new IllegalStateException("record value:" + value + " is not illegal");
 		}
 	}
+	
+	public String left(String val,int size){
+		return  StringUtils.left(val, size);
+	}
 
 	// public String environment(Short runtEnvironment) {
 	// return RunEnvironment.getEnum(runtEnvironment).getDescribe();

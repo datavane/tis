@@ -8,25 +8,30 @@
   <th width="5%">ID</th>
   <th width="5%">昵称</th>
   <th>所属部门</th>
+ #*
   <th>拥有角色</th>
+ *#
   <th width="12%">创建时间</th>
   <th>操作</th>
 </tr>
 </thead>
 #foreach($item in $usrlist)
 <tr> 
-<td align="center">$item.usrId</td>
+<td align="center">$manageTool.left($item.usrId,6)</td>
 <td align="center">$item.userName</td>
 <td>$item.dptId <a href="#">$item.dptName</a>  #popup("$manageModule.setTarget('usrUpdate')?usrid=$item.usrId","设置",'800*500')  </td>
+#*
 <td> #if($item.rId>0)${item.rId} $item.roleName #else 打酱油  #end 
   #popup("$manageModule.setTarget('roleselect')?usrid=$item.usrId","角色设置",'600*500') </td>
+*#  
 <td align="right" style="font-size:12px">$manageTool.formatDateYYYYMMdd($item.createTime)</td>
 
 
 <td>
-    <button onclick="deleteUser($item.usrId)">删除</button>
-           
-    #popupp("$manageModule.setTarget('usrAssociateOtherDpt')?usrid=$item.usrId","关联部门",'800*600')   
+    <button onclick="deleteUser('$item.usrId')" class="btn btn-default btn-sm">删除</button>
+  #*         
+    #popupp("$manageModule.setTarget('usrAssociateOtherDpt')?usrid=$item.usrId","关联部门",'800*600')
+  *# 
 </td>
 </tr>
 #end

@@ -44,6 +44,7 @@
 			<directory>${basedir}/${project.build.directory}/classes</directory>
 			<includes>
 				<include>env.conf</include>
+				<include>**/*.properties</include>
 			</includes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>

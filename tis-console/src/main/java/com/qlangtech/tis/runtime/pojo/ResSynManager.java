@@ -153,8 +153,8 @@ public final class ResSynManager {
      * @return
      * @throws TerminatorRepositoryException
      */
-    public static SnapshotDomain getOnlineResourceConfig(String appName, RunEnvironment runtime, String terminatorRepositoryOnline) throws TerminatorRepositoryException {
-        return HttpConfigFileReader.getResource(terminatorRepositoryOnline, appName, 0, /* groupIndex */
+    public static SnapshotDomain getOnlineResourceConfig(String appName, RunEnvironment runtime, String tisRepositoryOnline) throws TerminatorRepositoryException {
+        return HttpConfigFileReader.getResource(tisRepositoryOnline, appName, 0, /* groupIndex */
         runtime, true, /* unmergeglobalparams */
         false, /* reThrowNewException */
         ConfigFileReader.getAry);
