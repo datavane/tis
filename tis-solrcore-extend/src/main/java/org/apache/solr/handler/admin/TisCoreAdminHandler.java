@@ -181,7 +181,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 			if (core == null) {
 				throw new IllegalStateException("core:" + cname + " can not be null");
 			}
-			//final String hdfsHome = core.getSolrConfig().getVal("hdfsHome", true);
+			final String hdfsHome = core.getSolrConfig().getVal("hdfsHome", true);
 			final long hdfsTimeStamp = params.getLong(CoreAdminParams.PROPERTY_PREFIX + HDFS_TIMESTAMP);
 			String hdfsUser = params.get(CoreAdminParams.PROPERTY_PREFIX + HDFS_USER);
 			Long coreReloadSleepTime = params.getLong(CoreAdminParams.PROPERTY_PREFIX + CORE_RELOAD_SLEEP_TIME);
@@ -243,7 +243,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 			long downloadStart = System.currentTimeMillis();
 			final String taskId = req.getParams().get(CommonAdminParams.ASYNC);
 			// 从hdfs上将build好的索引文件拉下来
-			downloadIndexFile2IndexDir(hdfsHome, hdfsTimeStamp, hdfsUser, core, newDir, rsp, taskId);
+			downloadIndexFile2IndexDir(hdfsHome,hdfsTimeStamp, hdfsUser, core, newDir, rsp, taskId);
 			// 更新index.properties中的index属性指向到新的文件夹目录
 			refreshIndexPropFile(core, newDir.getName(), indexDirParent);
 			if (newSnapshotId != null) {
@@ -325,7 +325,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 	 * @param dirContext
 	 * @throws IOException
 	 */
-	protected void downloadIndexFile2IndexDir( long hdfsTimeStamp, String hdfsUser, SolrCore core,
+	protected void downloadIndexFile2IndexDir(String hdfsHome, long hdfsTimeStamp, String hdfsUser, SolrCore core,
 			final File indexDir, SolrQueryResponse rsp, String taskId) {
 		final long starttime = System.currentTimeMillis();
 
