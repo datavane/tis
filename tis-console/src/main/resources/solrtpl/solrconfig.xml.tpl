@@ -5,7 +5,7 @@
 	<luceneMatchVersion>7.6.0</luceneMatchVersion>
 
     <hdfsHome>${hdfsaddress}</hdfsHome>
-    <tisRepository>${terminator_host_address}</tisRepository>
+    <tisRepository>${tis_host_address}</tisRepository>
 	<dataDir>./data</dataDir>
 
 	<directoryFactory name="DirectoryFactory"

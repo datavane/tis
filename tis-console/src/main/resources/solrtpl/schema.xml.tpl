@@ -2,12 +2,12 @@
 <!DOCTYPE schema SYSTEM  "solrres://tisrepository/dtd/solrschema.dtd">
 <schema name="template" version="1.5">
  <types>
-     <fieldType name="string"  class="solr.StrField"  sortMissingLast="true" omitNorms="true" omitTermFreqAndPositions="true"/>
+    <fieldType name="string"  class="solr.StrField"  sortMissingLast="true" omitNorms="true" omitTermFreqAndPositions="true"/>
     
-    <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
-    <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
-    <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
-    <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
+    <fieldType name="pint"    class="solr.IntPointField"       docValues="false"/>
+    <fieldType name="pfloat"  class="solr.FloatPointField"     docValues="false"/>
+    <fieldType name="plong"   class="solr.LongPointField"      docValues="false"/>
+    <fieldType name="pdouble" class="solr.DoublePointField"    docValues="false"/>
   
   
     <fieldType name="bitwise" class="com.qlangtech.tis.solrextend.fieldtype.BitwiseField" 
@@ -55,13 +55,13 @@
    
  </types> 
  <fields>
-    <field name="id"        type="string" stored="true" indexed="true" required="true"/>
-    <field name="name"      type="string" stored="true" indexed="true" required="true"  docValues="true"/>
+    <field name="id"        type="string"  stored="true" indexed="true" required="true"/>
+    <field name="name"      type="string"  stored="true" indexed="true" required="true"  docValues="true"/>
     <field name="kind"      type="pint"    stored="true" indexed="true" required="false"/>
   
   
 
-    <field name="_version_"  type="long"   indexed="false" stored="true" required="true" docValues="true"/>
+    <field name="_version_"  type="plong"   indexed="false" stored="true" required="true" docValues="true"/>
     <field name="text"       type="string" indexed="true"  stored="false" multiValued="true"/>
 
  </fields>
