@@ -23,6 +23,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -43,6 +44,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.CoreDescriptor;
 import org.apache.solr.core.SolrCore;
+import org.apache.solr.handler.admin.TisCoreAdminHandler;
 import org.apache.solr.logging.MDCLoggingContext;
 import org.apache.solr.request.LocalSolrQueryRequest;
 import org.apache.solr.request.SolrQueryRequest;
@@ -646,14 +648,16 @@ public class RecoveryStrategy implements Runnable, Closeable {
 					// leaderUrl
 					// + " i am:" + zkController.getNodeName());
 					// ▼▼▼▼ 百岁 baisui comment 禁止到leader节点上去同步tlog文件
-//					PeerSyncWithLeader peerSyncWithLeader = new PeerSyncWithLeader(core, leader.getCoreUrl(),
-//							ulog.getNumRecordsToKeep());
-//					boolean syncSuccess = peerSyncWithLeader.sync(recentVersions).isSuccess();
+					// PeerSyncWithLeader peerSyncWithLeader = new
+					// PeerSyncWithLeader(core, leader.getCoreUrl(),
+					// ulog.getNumRecordsToKeep());
+					// boolean syncSuccess =
+					// peerSyncWithLeader.sync(recentVersions).isSuccess();
 					// ▲▲▲▲
 					boolean syncSuccess = true;
 					if (syncSuccess) {
 						SolrQueryRequest req = new LocalSolrQueryRequest(core, new ModifiableSolrParams());
-						//强行进行一次Commit force open a new searcher
+						// 强行进行一次Commit force open a new searcher
 						core.getUpdateHandler().commit(new CommitUpdateCommand(req, false));
 						req.close();
 						log.info("PeerSync stage of recovery was successful.");
@@ -854,7 +858,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 			req.close();
 			return null;
 		}
-		
+
 		UpdateLog ulog = core.getUpdateHandler().getUpdateLog();
 		if (!(ulog instanceof TisUpdateLog)) {
 			throw new SolrException(ErrorCode.SERVER_ERROR, "Replay failed,ulog must be type of 'TisUpdateLog'");
@@ -863,11 +867,19 @@ public class RecoveryStrategy implements Runnable, Closeable {
 		File indexDir = new File(core.getIndexDir());
 		long fulldumptimePoint = 0;
 		try {
-			fulldumptimePoint = Long.parseLong(StringUtils.substringAfter(indexDir.getName(), "index"));
+			// bugfix:20190221 by baisui, incr log recovery not work,when full build once
+			// with same hdfstimestamp
+			Matcher m = TisCoreAdminHandler.INDEX_DATA_PATTERN.matcher(indexDir.getName());
+			if (m.matches()) {
+				fulldumptimePoint = Long.parseLong(m.group(1));
+			}
+			// fulldumptimePoint =
+			// Long.parseLong(StringUtils.substringAfter(indexDir.getName(),
+			// "index"));
 		} catch (Throwable e) {
-			// log.error(e.getMessage(), e);
+			log.error("timestamp get error,index name:" + indexDir.getName(), e);
 		}
-		//▼▼▼ 百岁修改20190130
+		// ▼▼▼ 百岁修改20190130
 		Future<RecoveryInfo> future = null;
 		// 这里修改了
 		if (fulldumptimePoint > 0 && core.isReloaded()) {
@@ -878,7 +890,6 @@ public class RecoveryStrategy implements Runnable, Closeable {
 			// 重新启动
 			future = tisUpdateLog.applyBufferedUpdates();
 		}
-		
 
 		if (future == null) {
 			// no replay needed\

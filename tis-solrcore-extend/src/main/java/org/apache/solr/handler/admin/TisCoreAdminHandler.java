@@ -81,7 +81,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 	public static final String HDFS_USER = "hdfs_user";
 
 	public static final String KEY_INDEX_BACK_FLOW_STATUS = "index_back_flow_status";
-
+	public static final Pattern INDEX_DATA_PATTERN = Pattern.compile("(index\\d{14})(_(\\d+))?");
 	/**
 	 * @param coreContainer
 	 */
@@ -146,7 +146,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 		}
 	}
 
-	private static final Pattern INDEX_DATA_PATTERN = Pattern.compile("(index\\d{14})(_(\\d+))?");
+	
 
 	public static void main(String[] args) {
 		Matcher m = INDEX_DATA_PATTERN.matcher("index20160318001000");
@@ -200,12 +200,12 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 					order++;
 				}
 				newDir = new File(indexDirParent, m.group(1) + "_" + order);
-				log.info("newdir:" + newDir.getAbsolutePath());
+				
 			} else {
 //				throw new IllegalStateException("oldIndexDirName is not illegal:" + oldIndexDirName);
 				newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
 			}
-			
+			log.info("newdir:" + newDir.getAbsolutePath());
 			
 //			File newDir = null;
 //			if (oldIndexDir.exists()) {
