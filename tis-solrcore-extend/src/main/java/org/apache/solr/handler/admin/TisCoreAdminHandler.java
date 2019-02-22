@@ -181,7 +181,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 			if (core == null) {
 				throw new IllegalStateException("core:" + cname + " can not be null");
 			}
-			final String hdfsHome = core.getSolrConfig().getVal("hdfsHome", true);
+			//final String hdfsHome = core.getSolrConfig().getVal("hdfsHome", true);
 			final long hdfsTimeStamp = params.getLong(CoreAdminParams.PROPERTY_PREFIX + HDFS_TIMESTAMP);
 			String hdfsUser = params.get(CoreAdminParams.PROPERTY_PREFIX + HDFS_USER);
 			Long coreReloadSleepTime = params.getLong(CoreAdminParams.PROPERTY_PREFIX + CORE_RELOAD_SLEEP_TIME);
@@ -325,7 +325,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 	 * @param dirContext
 	 * @throws IOException
 	 */
-	protected void downloadIndexFile2IndexDir(String hdfsHome, long hdfsTimeStamp, String hdfsUser, SolrCore core,
+	protected void downloadIndexFile2IndexDir( long hdfsTimeStamp, String hdfsUser, SolrCore core,
 			final File indexDir, SolrQueryResponse rsp, String taskId) {
 		final long starttime = System.currentTimeMillis();
 

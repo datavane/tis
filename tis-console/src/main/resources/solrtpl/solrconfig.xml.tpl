@@ -4,6 +4,8 @@
 
 	<luceneMatchVersion>7.6.0</luceneMatchVersion>
 
+    <hdfsHome>${hdfsaddress}</hdfsHome>
+    <tisRepository>${terminator_host_address}</tisRepository>
 	<dataDir>./data</dataDir>
 
 	<directoryFactory name="DirectoryFactory"
@@ -37,14 +39,10 @@
 			<openSearcher>false</openSearcher>
 		</autoCommit>
 
-
-
 		<autoSoftCommit>
 			<maxTime>2000</maxTime>
 			<maxDocs>99999999</maxDocs>
 		</autoSoftCommit>
-
-
 
 	</updateHandler>
 
