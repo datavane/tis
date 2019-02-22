@@ -164,10 +164,10 @@ public class HdfsIndexBuilder implements TaskMapper {
             // indexConf.getDocQueueSize() * 2 + 10);
             logger.info("RamDirQueueSize:" + indexConf.getRamDirQueueSize());
             BlockingQueue<RAMDirectory> dirQueue = new ArrayBlockingQueue<RAMDirectory>(indexConf.getRamDirQueueSize());
-            if (indexConf.getSourceReaderFactory() == null) {
-                logger.error("[taskid:" + taskid + "]" + "配置错误：indexing.sourcetype参数没有配置");
-                throw new Exception("配置错误：indexing.sourcetype参数没有配置");
-            }
+//            if (indexConf.getSourceReaderFactory() == null) {
+//                logger.error("[taskid:" + taskid + "]" + "配置错误：indexing.sourcetype参数没有配置");
+//                throw new Exception("配置错误：indexing.sourcetype参数没有配置");
+//            }
             HDFSReaderFactory readerFactory = new HDFSReaderFactory();
             readerFactory.setIndexSchema(indexMetaConfig.indexSchema);
             // if (indexConf.getSouceReaderRactoryJarPath() != null) {
