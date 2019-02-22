@@ -220,21 +220,21 @@ public class ConfigFileReader {
         }
     }
 
-    public static final PropteryGetter FILE_APPLICATION = new BasicPropteryGetter() {
-
-        public String getFileName() {
-            return ConfigConstant.FILE_APPLICATION;
-        }
-
-        public Snapshot setSolrCoreResourceId(long newUploadResourceId, Snapshot colon) {
-            colon.setResApplicationId((long) newUploadResourceId);
-            return colon;
-        }
-
-        public UploadResource getUploadResource(SnapshotDomain snapshotDomain) {
-            return snapshotDomain.getApplication();
-        }
-    };
+//    public static final PropteryGetter FILE_APPLICATION = new BasicPropteryGetter() {
+//
+//        public String getFileName() {
+//            return ConfigConstant.FILE_APPLICATION;
+//        }
+//
+//        public Snapshot setSolrCoreResourceId(long newUploadResourceId, Snapshot colon) {
+//            colon.setResApplicationId((long) newUploadResourceId);
+//            return colon;
+//        }
+//
+//        public UploadResource getUploadResource(SnapshotDomain snapshotDomain) {
+//            return snapshotDomain.getApplication();
+//        }
+//    };
 
     public static final BasicPropteryGetter FILE_SCHEMA = new SchemaFile();
 
@@ -361,23 +361,23 @@ public class ConfigFileReader {
         }
     };
 
-    public static final PropteryGetter FILE_DATA_SOURCE = new BasicPropteryGetter() {
-
-        public String getFileName() {
-            return ConfigConstant.FILE_DATA_SOURCE;
-        }
-
-        @Override
-        public Snapshot setSolrCoreResourceId(long newUploadResourceId, Snapshot colon) {
-            colon.setResDsId(newUploadResourceId);
-            return colon;
-        }
-
-        @Override
-        public UploadResource getUploadResource(SnapshotDomain snapshotDomain) {
-            return snapshotDomain.getDatasource();
-        }
-    };
+//    public static final PropteryGetter FILE_DATA_SOURCE = new BasicPropteryGetter() {
+//
+//        public String getFileName() {
+//            return ConfigConstant.FILE_DATA_SOURCE;
+//        }
+//
+//        @Override
+//        public Snapshot setSolrCoreResourceId(long newUploadResourceId, Snapshot colon) {
+//            colon.setResDsId(newUploadResourceId);
+//            return colon;
+//        }
+//
+//        @Override
+//        public UploadResource getUploadResource(SnapshotDomain snapshotDomain) {
+//            return snapshotDomain.getDatasource();
+//        }
+//    };
 
 //    public static final PropteryGetter FILE_JAR = new BasicPropteryGetter() {
 //

@@ -56,211 +56,169 @@ import com.qlangtech.tis.runtime.module.screen.ConfigFileParametersSet;
  */
 public class SnapshotViewImplDAO extends BasicDAO<SnapshotDomain, SnapshotCriteria> implements ISnapshotViewDAO {
 
-    private ISnapshotDAO snapshotDAO;
+	private ISnapshotDAO snapshotDAO;
 
-    private IUploadResourceDAO uploadResourceDao;
+	private IUploadResourceDAO uploadResourceDao;
 
-    private IResourceParametersDAO resourceParametersDAO;
+	private IResourceParametersDAO resourceParametersDAO;
 
-    // static{
-    // Velocity.in
-    // }
-    @Override
-    public String getEntityName() {
-        return "snapshot_view";
-    }
+	// static{
+	// Velocity.in
+	// }
+	@Override
+	public String getEntityName() {
+		return "snapshot_view";
+	}
 
-    private static String encode = "utf8";
+	private static String encode = "utf8";
 
-    @Override
-    public SnapshotDomain getView(Integer snId) {
-        return getView(snId, null);
-    }
+	@Override
+	public SnapshotDomain getView(Integer snId) {
+		return getView(snId, null);
+	}
 
-    @Override
-    public SnapshotDomain getView(Integer snId, final RunEnvironment runtime) {
-        // 实现懒加载
-        // Assert.assertNotNull("param runtime", runtime);
-        Assert.assertNotNull("param snId ", snId);
-        // Assert.assertNotNull("obj runtime can not be null ", runtime);
-        final Snapshot snapshot = snapshotDAO.loadFromWriteDB(snId);
-        if (snapshot == null) {
-            throw new IllegalArgumentException("snid:" + snId + " relevant record is not exist");
-        }
-        SnapshotDomain domain = new SnapshotDomain() {
+	@Override
+	public SnapshotDomain getView(Integer snId, final RunEnvironment runtime) {
+		// 实现懒加载
+		// Assert.assertNotNull("param runtime", runtime);
+		Assert.assertNotNull("param snId ", snId);
+		// Assert.assertNotNull("obj runtime can not be null ", runtime);
+		final Snapshot snapshot = snapshotDAO.loadFromWriteDB(snId);
+		if (snapshot == null) {
+			throw new IllegalArgumentException("snid:" + snId + " relevant record is not exist");
+		}
+		SnapshotDomain domain = new SnapshotDomain() {
 
-            UploadResource springConfig;
+			UploadResource springConfig;
 
-            UploadResource coreProp;
+			UploadResource coreProp;
 
-            UploadResource datasource;
+			UploadResource datasource;
 
-            UploadResource jar;
+			UploadResource jar;
 
-            UploadResource solrConfig;
+			UploadResource solrConfig;
 
-            UploadResource schema;
+			UploadResource schema;
 
-            @Override
-            public Snapshot getSnapshot() {
-                return snapshot;
-            }
+			@Override
+			public Snapshot getSnapshot() {
+				return snapshot;
+			}
 
-            @Override
-            public Integer getAppId() {
-                return snapshot.getAppId();
-            }
+			@Override
+			public Integer getAppId() {
+				return snapshot.getAppId();
+			}
 
-            // @Override
-            // public Integer getPackId() {
-            // return snapshot.getPid();
-            // }
-            @Override
-            public UploadResource getApplication() {
-                if (springConfig == null && snapshot.getResApplicationId() != null) {
-                    springConfig = uploadResourceDao.loadFromWriteDB(snapshot.getResApplicationId());
-                }
-                return springConfig;
-            }
+			@Override
+			public UploadResource getSolrConfig() {
+				try {
+					if (this.solrConfig == null && snapshot.getResSolrId() != null) {
+						solrConfig = uploadResourceDao.loadFromWriteDB(snapshot.getResSolrId());
+						if (runtime != null) {
+							mergeSystemParameter(solrConfig, runtime);
+						}
+					}
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+				return solrConfig;
+			}
 
-            @Override
-            public UploadResource getCoreProp() {
-                if (coreProp == null && snapshot.getResCorePropId() != null) {
-                    coreProp = uploadResourceDao.loadFromWriteDB(snapshot.getResCorePropId());
-                }
-                return coreProp;
-            // return uploadResourceDao.loadFromWriteDB(snapshot
-            // .getResCorePropId());
-            }
+			@Override
+			public UploadResource getSolrSchema() {
+				if (this.schema == null && snapshot.getResSchemaId() != null) {
+					schema = uploadResourceDao.loadFromWriteDB(snapshot.getResSchemaId());
+					// mergeSystemParameter(schema, runtime);
+				}
+				return schema;
+				// return uploadResourceDao.loadFromWriteDB(snapshot
+				// .getResSchemaId());
+			}
+		};
+		return domain;
+	}
 
-            @Override
-            public UploadResource getDatasource() {
-                if (this.datasource == null && snapshot.getResDsId() != null) {
-                    datasource = uploadResourceDao.loadFromWriteDB(snapshot.getResDsId());
-                }
-                return datasource;
-            // return
-            // uploadResourceDao.loadFromWriteDB(snapshot.getResDsId());
-            }
+	// @Override
+	// public SnapshotDomain getView(Integer snId, RunEnvironment runtime) {
+	// return getView(snId, runtime, true);
+	// }
+	public IResourceParametersDAO getResourceParametersDAO() {
+		return resourceParametersDAO;
+	}
 
-            @Override
-            public UploadResource getJarFile() {
-                if (this.jar == null && snapshot.getResJarId() != null) {
-                    jar = uploadResourceDao.loadFromWriteDB(snapshot.getResJarId());
-                }
-                return jar;
-            // return uploadResourceDao
-            // .loadFromWriteDB(snapshot.getResJarId());
-            }
+	public void setResourceParametersDAO(IResourceParametersDAO resourceParametersDAO) {
+		this.resourceParametersDAO = resourceParametersDAO;
+	}
 
-            @Override
-            public UploadResource getSolrConfig() {
-                try {
-                    if (this.solrConfig == null && snapshot.getResSolrId() != null) {
-                        solrConfig = uploadResourceDao.loadFromWriteDB(snapshot.getResSolrId());
-                        if (runtime != null) {
-                            mergeSystemParameter(solrConfig, runtime);
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                return solrConfig;
-            }
+	private VelocityContext createContext(RunEnvironment runtime) {
+		VelocityContext velocityContext = new VelocityContext();
+		ResourceParametersCriteria criteria = new ResourceParametersCriteria();
+		List<ResourceParameters> params = resourceParametersDAO.selectByExample(criteria, 1, 100);
+		for (ResourceParameters param : params) {
+			velocityContext.put(param.getKeyName(), ConfigFileParametersSet.getParameterValue(param, runtime));
+		}
+		return velocityContext;
+	}
 
-            @Override
-            public UploadResource getSolrSchema() {
-                if (this.schema == null && snapshot.getResSchemaId() != null) {
-                    schema = uploadResourceDao.loadFromWriteDB(snapshot.getResSchemaId());
-                // mergeSystemParameter(schema, runtime);
-                }
-                return schema;
-            // return uploadResourceDao.loadFromWriteDB(snapshot
-            // .getResSchemaId());
-            }
-        };
-        return domain;
-    }
+	private static final VelocityEngine velocityEngine;
 
-    // @Override
-    // public SnapshotDomain getView(Integer snId, RunEnvironment runtime) {
-    // return getView(snId, runtime, true);
-    // }
-    public IResourceParametersDAO getResourceParametersDAO() {
-        return resourceParametersDAO;
-    }
+	static {
+		try {
+			velocityEngine = new VelocityEngine();
+			Properties prop = new Properties();
+			prop.setProperty("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.NullLogChute");
+			velocityEngine.init(prop);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    public void setResourceParametersDAO(IResourceParametersDAO resourceParametersDAO) {
-        this.resourceParametersDAO = resourceParametersDAO;
-    }
+	/**
+	 * 将文档内容和系统参数合并
+	 *
+	 * @param resource
+	 * @throws UnsupportedEncodingException
+	 * @throws IOException
+	 */
+	private void mergeSystemParameter(UploadResource resource, RunEnvironment runtime) {
+		OutputStreamWriter writer = null;
+		try {
+			VelocityContext context = createContext(runtime);
+			byte[] content = resource.getContent();
+			ByteArrayOutputStream converted = new ByteArrayOutputStream();
+			// StringWriter writer = new StringWriter(converted);
+			writer = new OutputStreamWriter(converted, encode);
+			// Velocity.evaluate(context, writer, resource.getResourceType(),
+			// new String(content, encode));
+			velocityEngine.evaluate(context, writer, resource.getResourceType(), new String(content, encode));
+			writer.flush();
+			resource.setContent(converted.toByteArray());
+			resource.setMd5Code(ConfigFileReader.md5file(resource.getContent()));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			IOUtils.closeQuietly(writer);
+		}
+	}
 
-    private VelocityContext createContext(RunEnvironment runtime) {
-        VelocityContext velocityContext = new VelocityContext();
-        ResourceParametersCriteria criteria = new ResourceParametersCriteria();
-        List<ResourceParameters> params = resourceParametersDAO.selectByExample(criteria, 1, 100);
-        for (ResourceParameters param : params) {
-            velocityContext.put(param.getKeyName(), ConfigFileParametersSet.getParameterValue(param, runtime));
-        }
-        return velocityContext;
-    }
+	// @Override
+	// public SnapshotDomain getView(Integer snId) {
+	// SnapshotDomain domain = new SnapshotDomain();
+	// // Snapshot snapshot = new Snapshot();
+	// // snapshot.setSnId(snId);
+	// domain.getSnapshot().setSnId(snId);
+	//
+	// return this.load("snapshot_view.ibatorgenerated_selectById", domain);
+	// }
+	// @Autowired
+	public void setUploadResourceDao(IUploadResourceDAO uploadResourceDao) {
+		this.uploadResourceDao = uploadResourceDao;
+	}
 
-    private static final VelocityEngine velocityEngine;
-
-    static {
-        try {
-            velocityEngine = new VelocityEngine();
-            Properties prop = new Properties();
-            prop.setProperty("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.NullLogChute");
-            velocityEngine.init(prop);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 将文档内容和系统参数合并
-     *
-     * @param resource
-     * @throws UnsupportedEncodingException
-     * @throws IOException
-     */
-    private void mergeSystemParameter(UploadResource resource, RunEnvironment runtime) {
-        OutputStreamWriter writer = null;
-        try {
-            VelocityContext context = createContext(runtime);
-            byte[] content = resource.getContent();
-            ByteArrayOutputStream converted = new ByteArrayOutputStream();
-            // StringWriter writer = new StringWriter(converted);
-            writer = new OutputStreamWriter(converted, encode);
-            // Velocity.evaluate(context, writer, resource.getResourceType(),
-            // new String(content, encode));
-            velocityEngine.evaluate(context, writer, resource.getResourceType(), new String(content, encode));
-            writer.flush();
-            resource.setContent(converted.toByteArray());
-            resource.setMd5Code(ConfigFileReader.md5file(resource.getContent()));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            IOUtils.closeQuietly(writer);
-        }
-    }
-
-    // @Override
-    // public SnapshotDomain getView(Integer snId) {
-    // SnapshotDomain domain = new SnapshotDomain();
-    // // Snapshot snapshot = new Snapshot();
-    // // snapshot.setSnId(snId);
-    // domain.getSnapshot().setSnId(snId);
-    // 
-    // return this.load("snapshot_view.ibatorgenerated_selectById", domain);
-    // }
-    // @Autowired
-    public void setUploadResourceDao(IUploadResourceDAO uploadResourceDao) {
-        this.uploadResourceDao = uploadResourceDao;
-    }
-
-    // @Autowired
-    public void setSnapshotDAO(ISnapshotDAO snapshotDAO) {
-        this.snapshotDAO = snapshotDAO;
-    }
+	// @Autowired
+	public void setSnapshotDAO(ISnapshotDAO snapshotDAO) {
+		this.snapshotDAO = snapshotDAO;
+	}
 }

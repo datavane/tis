@@ -67,8 +67,10 @@ public class Hadoop020RemoteJobTriggerFactory implements IRemoteJobTriggerFactor
 				? ImportDataProcessInfo.createIndexDir(username, timePoint, groupNum, indexName, true)
 				: state.getHdfsSourcePath().build(groupNum);
 		jobConf.set("indexing.sourcepath", hdfsSourcePath);
-		jobConf.set("indexing." + ConfigConstant.FILE_CORE_PROPERTIES,
-				"/user/" + username + "/" + coreName + "/core/" + ConfigConstant.FILE_CORE_PROPERTIES);
+		
+//		jobConf.set("indexing." + ConfigConstant.FILE_CORE_PROPERTIES,
+//				"/user/" + username + "/" + coreName + "/core/" + ConfigConstant.FILE_CORE_PROPERTIES);
+		
 		String schemaPath = "/user/" + username + "/" + coreName + "/schema/schema.xml";
 		jobConf.set("indexing.schemapath", schemaPath);
 		jobConf.set("indexing.servicename", indexName);

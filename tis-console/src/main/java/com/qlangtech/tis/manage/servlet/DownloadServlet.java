@@ -49,103 +49,116 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  */
 public class DownloadServlet extends BasicServlet {
 
-    private static final Pattern download_pattern = Pattern.compile(".+?/download/publish/(\\d+)/(\\d+)/group(\\d+)/r(\\d+)/(" + replace(ConfigConstant.FILE_APPLICATION + "|" + ConfigConstant.FILE_DATA_SOURCE + "|" + ConfigConstant.FILE_SCHEMA + "|" + ConfigConstant.FILE_SOLOR) + "|" + DownloadResource.JAR_NAME + ")");
+	// private static final Pattern download_pattern =
+	// Pattern.compile(".+?/download/publish/(\\d+)/(\\d+)/group(\\d+)/r(\\d+)/("
+	// + replace(ConfigConstant.FILE_APPLICATION + "|" +
+	// ConfigConstant.FILE_DATA_SOURCE + "|" + ConfigConstant.FILE_SCHEMA + "|"
+	// + ConfigConstant.FILE_SOLOR) + "|" + DownloadResource.JAR_NAME + ")");
 
-    // private static final Pattern temp = Pattern
-    // .compile("(applicationContext\\.xml|ds\\.xml|schema\\.xml|solrconfig\\.xml)");
-    public static String replace(String name) {
-        return name.replace(".", "\\.");
-    }
+	private static final Pattern download_pattern = Pattern
+			.compile(".+?/download/publish/(\\d+)/(\\d+)/group(\\d+)/r(\\d+)/("
+					+ replace(ConfigConstant.FILE_SCHEMA + "|" + ConfigConstant.FILE_SOLOR) + ")");
 
-    private static final long serialVersionUID = 1L;
+	// private static final Pattern temp = Pattern
+	// .compile("(applicationContext\\.xml|ds\\.xml|schema\\.xml|solrconfig\\.xml)");
+	public static String replace(String name) {
+		return name.replace(".", "\\.");
+	}
 
-    @Override
-    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        try {
-            Matcher matcher = null;
-            if (!(matcher = getURLPattern().matcher(request.getRequestURL())).matches()) {
-                throw new ServletException("has not match dowload url pattern:" + request.getRequestURL());
-            }
-            DownloadResource downloadRes = getDownloadResource(matcher);
-            StringBuffer writer = getAppendInfo(request, downloadRes);
-            ServletOutputStream output = response.getOutputStream();
-            response.setContentType(downloadRes.getContentType());
-            setDownloadName(response, downloadRes.getFileName());
-            response.addHeader("filemd5", downloadRes.getMd5CodeValue());
-            response.setContentLength(downloadRes.getFileLength() + writer.length());
-            if (writer.length() > 0) {
-                output.write(writer.toString().getBytes());
-            }
-            IOUtils.write(downloadRes.read(), output);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    // finally {
-    // try {
-    // inputStream.close();
-    // } catch (Throwable e) {
-    // }
-    // }
-    }
+	private static final long serialVersionUID = 1L;
 
-    public static void setDownloadName(final HttpServletResponse response, String fileName) {
-        response.addHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-    }
+	@Override
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
+			throws ServletException, IOException {
+		try {
+			Matcher matcher = null;
+			if (!(matcher = getURLPattern().matcher(request.getRequestURL())).matches()) {
+				throw new ServletException("has not match dowload url pattern:" + request.getRequestURL());
+			}
+			DownloadResource downloadRes = getDownloadResource(matcher);
+			StringBuffer writer = getAppendInfo(request, downloadRes);
+			ServletOutputStream output = response.getOutputStream();
+			response.setContentType(downloadRes.getContentType());
+			setDownloadName(response, downloadRes.getFileName());
+			response.addHeader("filemd5", downloadRes.getMd5CodeValue());
+			response.setContentLength(downloadRes.getFileLength() + writer.length());
+			if (writer.length() > 0) {
+				output.write(writer.toString().getBytes());
+			}
+			IOUtils.write(downloadRes.read(), output);
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+		// finally {
+		// try {
+		// inputStream.close();
+		// } catch (Throwable e) {
+		// }
+		// }
+	}
 
-    protected StringBuffer getAppendInfo(final HttpServletRequest request, DownloadResource downloadRes) throws IOException {
-        StringBuffer writer = new StringBuffer();
-        writer.append("\n<!--\n");
-        writer.append("download date:" + ManageUtils.formatDateYYYYMMdd(new Date())).append("\n");
-        writer.append("app:" + downloadRes.getApplication().getProjectName()).append("\n");
-        writer.append("request:" + request.getRequestURL()).append("\n");
-        writer.append("-->");
-        return writer;
-    }
+	public static void setDownloadName(final HttpServletResponse response, String fileName) {
+		response.addHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+	}
 
-    protected Pattern getURLPattern() {
-        return download_pattern;
-    }
+	protected StringBuffer getAppendInfo(final HttpServletRequest request, DownloadResource downloadRes)
+			throws IOException {
+		StringBuffer writer = new StringBuffer();
+		writer.append("\n<!--\n");
+		writer.append("download date:" + ManageUtils.formatDateYYYYMMdd(new Date())).append("\n");
+		writer.append("app:" + downloadRes.getApplication().getProjectName()).append("\n");
+		writer.append("request:" + request.getRequestURL()).append("\n");
+		writer.append("-->");
+		return writer;
+	}
 
-    protected DownloadResource getDownloadResource(Matcher matcher) {
-        Integer bizid = Integer.parseInt(matcher.group(1));
-        Integer appid = Integer.parseInt(matcher.group(2));
-        Short groupIndex = Short.parseShort(matcher.group(3));
-        // 开发环境 线上 线下。。。。
-        Short runtime = Short.parseShort(matcher.group(4));
-        final String resourceName = matcher.group(5);
-        // ServerGroupCriteria gcriteria = new ServerGroupCriteria();
-        // gcriteria.createCriteria().andGroupIndexEqualTo(groupIndex)
-        // .andRuntEnvironmentEqualTo(runtime).andAppIdEqualTo(appid);
-        // List<ServerGroup> groupList = this.getContext().getServerGroupDAO()
-        // .selectByExample(gcriteria);
-        final ServerGroup group = getServerGroup(appid, groupIndex, runtime, this.getContext().getServerGroupDAO());
-        if (group == null) {
-            throw new IllegalStateException("appid:" + appid + ",groupIndex:" + groupIndex + " runtime:" + // AppDomainInfo.getRunEnvir()
-            RunEnvironment.getEnum(runtime) + " can not find a group");
-        }
-        if (group.getPublishSnapshotId() == null) {
-            throw new IllegalStateException("group id:" + group.getGid() + " group have not set publishSnapshotId");
-        }
-        Application app = this.getContext().getApplicationDAO().selectByPrimaryKey(appid);
-        if (bizid.intValue() != app.getDptId()) {
-            throw new IllegalArgumentException("bizid.intValue()" + bizid.intValue() + " != app.getBizId()" + app.getDptId());
-        }
-        final SnapshotDomain snapshot = this.getContext().getSnapshotViewDAO().getView(group.getPublishSnapshotId());
-        // Snapshot snapshot, String resourceName
-        return new DownloadResource(app, snapshot, resourceName);
-    }
+	protected Pattern getURLPattern() {
+		return download_pattern;
+	}
 
-    public static ServerGroup getServerGroup(Integer appid, Short groupIndex, Short runtime, IServerGroupDAO serverGroupDAO) {
-        ServerGroupCriteria gcriteria = new ServerGroupCriteria();
-        gcriteria.createCriteria().andGroupIndexEqualTo(groupIndex).andRuntEnvironmentEqualTo(runtime).andAppIdEqualTo(appid);
-        List<ServerGroup> groupList = serverGroupDAO.selectByExample(gcriteria);
-        for (ServerGroup g : groupList) {
-            return g;
-        }
-        return null;
-    }
-    /**
-     * @param resourceName
-     * @return
-     */
+	protected DownloadResource getDownloadResource(Matcher matcher) {
+		Integer bizid = Integer.parseInt(matcher.group(1));
+		Integer appid = Integer.parseInt(matcher.group(2));
+		Short groupIndex = Short.parseShort(matcher.group(3));
+		// 开发环境 线上 线下。。。。
+		Short runtime = Short.parseShort(matcher.group(4));
+		final String resourceName = matcher.group(5);
+		// ServerGroupCriteria gcriteria = new ServerGroupCriteria();
+		// gcriteria.createCriteria().andGroupIndexEqualTo(groupIndex)
+		// .andRuntEnvironmentEqualTo(runtime).andAppIdEqualTo(appid);
+		// List<ServerGroup> groupList = this.getContext().getServerGroupDAO()
+		// .selectByExample(gcriteria);
+		final ServerGroup group = getServerGroup(appid, groupIndex, runtime, this.getContext().getServerGroupDAO());
+		if (group == null) {
+			throw new IllegalStateException("appid:" + appid + ",groupIndex:" + groupIndex + " runtime:" + // AppDomainInfo.getRunEnvir()
+					RunEnvironment.getEnum(runtime) + " can not find a group");
+		}
+		if (group.getPublishSnapshotId() == null) {
+			throw new IllegalStateException("group id:" + group.getGid() + " group have not set publishSnapshotId");
+		}
+		Application app = this.getContext().getApplicationDAO().selectByPrimaryKey(appid);
+		if (bizid.intValue() != app.getDptId()) {
+			throw new IllegalArgumentException(
+					"bizid.intValue()" + bizid.intValue() + " != app.getBizId()" + app.getDptId());
+		}
+		final SnapshotDomain snapshot = this.getContext().getSnapshotViewDAO().getView(group.getPublishSnapshotId());
+		// Snapshot snapshot, String resourceName
+		return new DownloadResource(app, snapshot, resourceName);
+	}
+
+	public static ServerGroup getServerGroup(Integer appid, Short groupIndex, Short runtime,
+			IServerGroupDAO serverGroupDAO) {
+		ServerGroupCriteria gcriteria = new ServerGroupCriteria();
+		gcriteria.createCriteria().andGroupIndexEqualTo(groupIndex).andRuntEnvironmentEqualTo(runtime)
+				.andAppIdEqualTo(appid);
+		List<ServerGroup> groupList = serverGroupDAO.selectByExample(gcriteria);
+		for (ServerGroup g : groupList) {
+			return g;
+		}
+		return null;
+	}
+	/**
+	 * @param resourceName
+	 * @return
+	 */
 }

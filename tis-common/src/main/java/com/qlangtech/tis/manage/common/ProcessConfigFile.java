@@ -46,9 +46,9 @@ public class ProcessConfigFile {
     public void execute() {
         try {
             for (PropteryGetter getter : ConfigFileReader.getConfigList()) {
-                if (ConfigConstant.FILE_JAR.equals(getter.getFileName())) {
-                    continue;
-                }
+//                if (ConfigConstant.FILE_JAR.equals(getter.getFileName())) {
+//                    continue;
+//                }
                 // 没有属性得到
                 if (getter.getUploadResource(domain) == null) {
                     continue;

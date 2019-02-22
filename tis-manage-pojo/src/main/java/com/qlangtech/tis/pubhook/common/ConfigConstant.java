@@ -29,15 +29,15 @@ package com.qlangtech.tis.pubhook.common;
  */
 public class ConfigConstant {
 
-    public static final String FILE_APPLICATION = "applicationContext.xml";
-
-    public static final String FILE_DATA_SOURCE = "ds.xml";
+//    public static final String FILE_APPLICATION = "applicationContext.xml";
+//
+//    public static final String FILE_DATA_SOURCE = "ds.xml";
 
     public static final String FILE_SCHEMA = "schema.xml";
 
     public static final String FILE_SOLOR = "solrconfig.xml";
 
-    public static final String FILE_JAR = "dump.jar";
-
-    public static final String FILE_CORE_PROPERTIES = "core.properties";
+//    public static final String FILE_JAR = "dump.jar";
+//
+//    public static final String FILE_CORE_PROPERTIES = "core.properties";
 }

@@ -23,8 +23,6 @@
  */
 package com.qlangtech.tis.manage.servlet;
 
-import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_APPLICATION;
-import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_DATA_SOURCE;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_SCHEMA;
 import static com.qlangtech.tis.manage.common.ConfigFileReader.FILE_SOLOR;
 
@@ -50,7 +48,7 @@ public class DownloadResource {
     // private final ConfigFileReader fileReader;
     private final PropteryGetter getStrategy;
 
-    public static final String JAR_NAME = "jar";
+   // public static final String JAR_NAME = "jar";
 
     public DownloadResource(Application application, SnapshotDomain snapshot, String resourceName) {
         super();
@@ -67,7 +65,8 @@ public class DownloadResource {
     public static final String JAR_CONTENT_TYPE = "application/zip";
 
     public String getContentType() {
-        return JAR_NAME.equals(resourceName) ? JAR_CONTENT_TYPE : XML_CONTENT_TYPE;
+        //return JAR_NAME.equals(resourceName) ? JAR_CONTENT_TYPE :
+        return 	XML_CONTENT_TYPE;
     }
 
     public int getFileLength() {
@@ -105,12 +104,7 @@ public class DownloadResource {
 //            // ConfigFileReader.createJarGetter(resource.getPack());
 //            return FILE_JAR;
 //        }
-        if (FILE_APPLICATION.getFileName().equals(resourceName)) {
-            return FILE_APPLICATION;
-        }
-        if (FILE_DATA_SOURCE.getFileName().equals(resourceName)) {
-            return FILE_DATA_SOURCE;
-        }
+        
         if (FILE_SOLOR.getFileName().equals(resourceName)) {
             return FILE_SOLOR;
         }

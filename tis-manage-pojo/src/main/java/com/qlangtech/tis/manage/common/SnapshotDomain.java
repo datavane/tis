@@ -32,95 +32,49 @@ import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
  */
 public class SnapshotDomain {
 
-    private UploadResource application = new UploadResource();
+	private UploadResource solrSchema = new UploadResource();
 
-    private UploadResource coreProp = new UploadResource();
+	private UploadResource solrConfig = new UploadResource();
 
-    private UploadResource datasource = new UploadResource();
+	private final Snapshot snapshot;
 
-    private UploadResource jarFile = new UploadResource();
+	public SnapshotDomain() {
+		super();
+		snapshot = new Snapshot();
+	}
 
-    private UploadResource solrSchema = new UploadResource();
+	public SnapshotDomain(Snapshot snapshot) {
+		super();
+		if (snapshot == null) {
+			throw new IllegalArgumentException("snapshot can not be null");
+		}
+		this.snapshot = snapshot;
+	}
 
-    private UploadResource solrConfig = new UploadResource();
+	public Integer getAppId() {
+		return snapshot.getAppId();
+	}
 
-    private final Snapshot snapshot;
+	public Snapshot getSnapshot() {
+		if (this.snapshot == null) {
+			throw new NullPointerException("this.snapshot can not be null");
+		}
+		return snapshot;
+	}
 
-    public SnapshotDomain() {
-        super();
-        snapshot = new Snapshot();
-    }
+	public void setSolrSchema(UploadResource solrSchema) {
+		this.solrSchema = solrSchema;
+	}
 
-    public SnapshotDomain(Snapshot snapshot) {
-        super();
-        if (snapshot == null) {
-            throw new IllegalArgumentException("snapshot can not be null");
-        }
-        this.snapshot = snapshot;
-    }
+	public void setSolrConfig(UploadResource solrConfig) {
+		this.solrConfig = solrConfig;
+	}
 
-    // public Integer getPackId() {
-    // return snapshot.getPid();
-    // }
-    public Integer getAppId() {
-        return snapshot.getAppId();
-    }
+	public UploadResource getSolrSchema() {
+		return solrSchema;
+	}
 
-    // public void setSnapshot(Snapshot snapshot) {
-    // this.snapshot = snapshot;
-    // }
-    public Snapshot getSnapshot() {
-        if (this.snapshot == null) {
-            throw new NullPointerException("this.snapshot can not be null");
-        }
-        return snapshot;
-    }
-
-    public void setApplication(UploadResource application) {
-        this.application = application;
-    }
-
-    public void setCoreProp(UploadResource coreProp) {
-        this.coreProp = coreProp;
-    }
-
-    public void setDatasource(UploadResource datasource) {
-        this.datasource = datasource;
-    }
-
-    public void setJarFile(UploadResource jarFile) {
-        this.jarFile = jarFile;
-    }
-
-    public void setSolrSchema(UploadResource solrSchema) {
-        this.solrSchema = solrSchema;
-    }
-
-    public void setSolrConfig(UploadResource solrConfig) {
-        this.solrConfig = solrConfig;
-    }
-
-    public UploadResource getApplication() {
-        return application;
-    }
-
-    public UploadResource getCoreProp() {
-        return coreProp;
-    }
-
-    public UploadResource getDatasource() {
-        return datasource;
-    }
-
-    public UploadResource getJarFile() {
-        return jarFile;
-    }
-
-    public UploadResource getSolrSchema() {
-        return solrSchema;
-    }
-
-    public UploadResource getSolrConfig() {
-        return solrConfig;
-    }
+	public UploadResource getSolrConfig() {
+		return solrConfig;
+	}
 }

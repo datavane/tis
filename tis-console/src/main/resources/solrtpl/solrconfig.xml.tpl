@@ -117,7 +117,7 @@
 
 
 	<requestHandler name="/replication"
-		class="com.dfire.tis.solrextend.handler.normal.TisReplicationHandler">
+		class="com.qlangtech.tis.solrextend.handler.normal.TisReplicationHandler">
 
 	</requestHandler>
 	<searchComponent name="termsComponent" class="solr.TermsComponent" />

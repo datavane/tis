@@ -152,8 +152,7 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 		final String outPath = state.getIndexBuildOutputPath(this.userName, Integer.parseInt(this.groupNum));
 		logger.info("build out path:" + outPath);
 		SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTerminatorConsoleHostAddress(),
-				state.getIndexName(), 0, runtime, ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLOR,
-				ConfigFileReader.FILE_APPLICATION);
+				state.getIndexName(), 0, runtime, ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLOR);
 		if (domain == null) {
 			throw new IllegalStateException(
 					"index:" + state.getIndexName() + ",runtime:" + runtime + " have not prepare for confg");
@@ -164,7 +163,7 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 		// ConfigFileReader.FILE_CORE_PROPERTIES, "config");
 		// TODO 为了兼容老的索引先加上，到时候要删除掉的
 		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, Constants.SCHEMA);
-		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_APPLICATION, "app");
+		//writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_APPLICATION, "app");
 		// writeResource2Hdfs(coreName, domain,
 		// ConfigFileReader.FILE_CORE_PROPERTIES, "core");
 		// TODO 为了兼容老的索引先加上，到时候要删除掉的 end

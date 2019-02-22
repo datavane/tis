@@ -90,16 +90,16 @@ public class HdfsIndexGetConfig implements TaskMapper {
             // DicManageClient dicManageClient=new DicManageClient(serviceName);
             // dicManageClient.checkRemoteDic();
             final String taskOutPath = context.getMapPath();
-            String corepropPath = context.getUserParam("indexing." + ConfigConstant.FILE_CORE_PROPERTIES);
-            if (StringUtils.isNotBlank(corepropPath)) {
-                InputStream input = fs.open(new Path(corepropPath));
-                File coreprop = new File(new File(taskOutPath, "core"), ConfigConstant.FILE_CORE_PROPERTIES);
-                OutputStream output = FileUtils.openOutputStream(coreprop);
-                IOUtils.copy(input, output);
-                IOUtils.closeQuietly(input);
-                IOUtils.closeQuietly(output);
-                context.setUserParam("corepropfile", coreprop.getAbsolutePath());
-            }
+          //  String corepropPath = context.getUserParam("indexing." + ConfigConstant.FILE_CORE_PROPERTIES);
+//            if (StringUtils.isNotBlank(corepropPath)) {
+//                InputStream input = fs.open(new Path(corepropPath));
+//                File coreprop = new File(new File(taskOutPath, "core"), ConfigConstant.FILE_CORE_PROPERTIES);
+//                OutputStream output = FileUtils.openOutputStream(coreprop);
+//                IOUtils.copy(input, output);
+//                IOUtils.closeQuietly(input);
+//                IOUtils.closeQuietly(output);
+//                context.setUserParam("corepropfile", coreprop.getAbsolutePath());
+//            }
             String schemaPath = context.getUserParam("indexing.schemapath");
             if (schemaPath == null) {
                 logger.error("[taskid:" + taskid + "]" + "indexing.schemapath 参数没有配置");

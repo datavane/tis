@@ -277,16 +277,9 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
 	}
 
 	protected ConfigContentGetter[] getContentGetter(UploadJarForm form) throws IOException {
-		ConfigContentGetter[] getters = new ConfigContentGetter[6];
+		ConfigContentGetter[] getters = new ConfigContentGetter[2];
 		getters[0] = new ConfigContentGetter(ConfigFileReader.FILE_SCHEMA, form.getSchema());
 		getters[1] = new ConfigContentGetter(ConfigFileReader.FILE_SOLOR, form.getConfig());
-		// getters[2] = new
-		// ConfigContentGetter(ConfigFileReader.FILE_CORE_PROPERTIES,
-		// form.getCoreprop());
-		getters[2] = new ConfigContentGetter(ConfigFileReader.FILE_DATA_SOURCE, form.getDatasource());
-		getters[3] = new ConfigContentGetter(ConfigFileReader.FILE_APPLICATION, form.getSpring());
-		// getters[5] = new ConfigContentGetter(ConfigFileReader.FILE_JAR,
-		// form.getUploadfile());
 		return getters;
 	}
 
