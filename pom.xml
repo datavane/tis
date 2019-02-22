@@ -48,7 +48,7 @@
 		<module>tsearcher-dumpcenter</module>
 
 		<module>tis-solrcore-extend</module>
-		
+
 		<module>tis-realtime-base</module>
 		<module>tis-cluster-status-collect</module>
 		<module>tis-console</module>
@@ -658,6 +658,12 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.0.2</version>
+				</plugin>
+
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-war-plugin</artifactId>

@@ -59,7 +59,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.6</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -67,7 +66,6 @@
 							<mainClass>com.qlangtech.tis.solrdao.SolrPojoBuilder</mainClass>
 							<classpathPrefix>./dependency</classpathPrefix>
 						</manifest>
-
 					</archive>
 				</configuration>
 			</plugin>
