@@ -49,7 +49,7 @@ import com.qlangtech.tis.pubhook.common.ConfigConstant;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 /*
- * http://terminator.admin.taobao.org/download/appconfig/appname/0/
+ * http://localhost/download/appconfig/appname/0/
  * runtimeEnvironment/schema.xml/solrconfig.xml
  *
  * @author 百岁（baisui@qlangtech.com）

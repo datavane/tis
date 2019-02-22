@@ -33,74 +33,45 @@ import com.qlangtech.tis.common.TerminatorCommonUtils;
  */
 public class FetchFileListResponse implements Serializable {
 
-    private static final long serialVersionUID = -7796004384519073966L;
+	private static final long serialVersionUID = -7796004384519073966L;
 
-    /**
-     * @uml.property  name="masterIp"
-     */
-    private String masterIp = TerminatorCommonUtils.getLocalHostIP();
+	private String masterIp = TerminatorCommonUtils.getLocalHostIP();
 
-    /**
-     * @uml.property  name="port"
-     */
-    private int port;
+	private int port;
 
-    /**
-     * @uml.property  name="fileNameList"
-     */
-    private List<String> fileNameList = null;
+	private List<String> fileNameList = null;
 
-    public FetchFileListResponse(String masterIp, int port, List<String> fileNameList) {
-        this.masterIp = masterIp;
-        this.fileNameList = fileNameList;
-        this.port = port;
-    }
+	public FetchFileListResponse(String masterIp, int port, List<String> fileNameList) {
+		this.masterIp = masterIp;
+		this.fileNameList = fileNameList;
+		this.port = port;
+	}
 
-    /**
-     * @return
-     * @uml.property  name="masterIp"
-     */
-    public String getMasterIp() {
-        return masterIp;
-    }
+	public String getMasterIp() {
+		return masterIp;
+	}
 
-    /**
-     * @param masterIp
-     * @uml.property  name="masterIp"
-     */
-    public void setMasterIp(String masterIp) {
-        this.masterIp = masterIp;
-    }
+	public void setMasterIp(String masterIp) {
+		this.masterIp = masterIp;
+	}
 
-    /**
-     * @return
-     * @uml.property  name="fileNameList"
-     */
-    public List<String> getFileNameList() {
-        return fileNameList;
-    }
+	public List<String> getFileNameList() {
+		return fileNameList;
+	}
 
-    /**
-     * @param fileNameList
-     * @uml.property  name="fileNameList"
-     */
-    public void setFileNameList(List<String> fileNameList) {
-        this.fileNameList = fileNameList;
-    }
+	public void setFileNameList(List<String> fileNameList) {
+		this.fileNameList = fileNameList;
+	}
 
-    /**
-     * @return
-     * @uml.property  name="port"
-     */
-    public int getPort() {
-        return port;
-    }
+	public int getPort() {
+		return port;
+	}
 
-    /**
-     * @param port
-     * @uml.property  name="port"
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
+	/**
+	 * @param port
+	 * @uml.property name="port"
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
 }

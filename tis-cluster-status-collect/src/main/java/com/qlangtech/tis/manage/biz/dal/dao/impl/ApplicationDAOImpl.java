@@ -24,7 +24,8 @@
 package com.qlangtech.tis.manage.biz.dal.dao.impl;
 
 import java.util.List;
-import com.taobao.ibatis.extend.BasicDAO;
+
+import com.qlangtech.ibatis.extend.BasicDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;

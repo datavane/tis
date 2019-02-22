@@ -23,7 +23,7 @@
  */
 package com.qlangtech.tis.fullbuild.indexbuild.impl;
 
-// import com.taobao.terminator.trigger.jst.ImportDataProcessInfo.LuceneVersion;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,24 +135,5 @@ public class Hadoop020RemoteJobTriggerFactory implements IRemoteJobTriggerFactor
 		jobConf.set("task.jar.transfer", "false,false,false");
 		return createRemoteJob(jobConf);
 	}
-	// public void updateStatus(DumpJobStatus status, JobStatus.State state) {
-	// if (state == state.FAILED) {
-	// status.setRunState(status.FAILED);
-	// }
-	// if (state == state.KILLED) {
-	// status.setRunState(status.KILLED);
-	// }
-	// if (state == state.PREP) {
-	// status.setRunState(status.PREP);
-	// }
-	// if (state == state.RUNNING) {
-	// status.setRunState(status.RUNNING);
-	// }
-	// if (state == state.SUCCEEDED) {
-	// status.setRunState(status.SUCCEEDED);
-	// }
-	// if (state == state.WAITING) {
-	// status.setRunState(status.SUCCEEDED);
-	// }
-	// }
+	
 }

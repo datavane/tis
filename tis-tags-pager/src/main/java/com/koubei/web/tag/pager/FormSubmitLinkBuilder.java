@@ -51,7 +51,7 @@ public class FormSubmitLinkBuilder implements LinkBuilder {
 
     @Override
     public StringBuffer getPagerUrl() {
-        throw new UnsupportedOperationException("getPagerUrl are not support,if you have any question please consult to baisui@taobao.com");
+        throw new UnsupportedOperationException("getPagerUrl are not support,if you have any question please consult to baisui");
     }
 
     public static void main(String[] arg) {

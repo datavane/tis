@@ -46,13 +46,7 @@ public class JobMetaDataDAO extends JdbcDaoSupport implements IJobMetaDataDAO {
 
     public static final String SQL_UPDATE_SET_STOP = "update app_trigger_job_relation set is_stop = ? where project_name= ?";
 
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.trigger.biz.dal.dao.IJobMetaDataDAO#queryJob(java
-	 * .lang.String, java.lang.Integer)
-	 */
+ 
     public TriggerJob queryJob(String appName, Integer jobtype) {
         // DataSource datasource = this.getDataSource();
         PreparedStatement statement = null;

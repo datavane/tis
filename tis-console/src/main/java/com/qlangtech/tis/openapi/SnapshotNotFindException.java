@@ -4,7 +4,7 @@
 package com.qlangtech.tis.openapi;
 
 /**
- * @author 百岁（baisui@taobao.com）
+ * @author 百岁
  * @date 2013-12-20
  */
 public class SnapshotNotFindException extends Exception {

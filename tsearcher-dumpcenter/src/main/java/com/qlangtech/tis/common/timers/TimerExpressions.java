@@ -34,7 +34,7 @@ import com.qlangtech.tis.common.timers.Utils.TimerExp;
  * <li> permonth  每月的某天的什么时候
  * <li> interval  周期性间隔进行
  * <br><br>如果用户想表达的时间不再系统默认支持的范围以内，需要用户自行实现TimerExpression,在配置时间表达式的时候配置如下形式：<br>
- * <li>{com.taobao.terminator.times.plugins.MyTimerExpression 12:12:23}
+ * <li>
  * 会自动加载该类进行时间表达是的parse操作
  *
  * @author 百岁（baisui@qlangtech.com）
@@ -42,47 +42,47 @@ import com.qlangtech.tis.common.timers.Utils.TimerExp;
  */
 public class TimerExpressions implements TimerExpression {
 
-    Map<String, TimerExpression> expressions;
+	Map<String, TimerExpression> expressions;
 
-    ClassLoader classLoader;
+	ClassLoader classLoader;
 
-    public TimerExpressions(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-        this.initDefaults();
-    }
+	public TimerExpressions(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+		this.initDefaults();
+	}
 
-    public TimerExpressions() {
-        this(Thread.currentThread().getContextClassLoader());
-    }
+	public TimerExpressions() {
+		this(Thread.currentThread().getContextClassLoader());
+	}
 
-    private void initDefaults() {
-        if (this.expressions == null) {
-            this.expressions = new HashMap<String, TimerExpression>();
-        }
-        expressions.put("perday", new PerdayExpression());
-        expressions.put("perweek", new PerweekExpression());
-        expressions.put("permonth", new PermonthExpression());
-        expressions.put("interval", new IntervalExpression());
-    }
+	private void initDefaults() {
+		if (this.expressions == null) {
+			this.expressions = new HashMap<String, TimerExpression>();
+		}
+		expressions.put("perday", new PerdayExpression());
+		expressions.put("perweek", new PerweekExpression());
+		expressions.put("permonth", new PermonthExpression());
+		expressions.put("interval", new IntervalExpression());
+	}
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public TimerInfo parse(String expression) throws TimerExpressionException {
-        TimerExp t = Utils.parseToExp(expression);
-        TimerExpression te = this.expressions.get(t.name);
-        if (te == null) {
-            String className = t.name;
-            try {
-                Class clazz = classLoader.loadClass(className);
-                te = (TimerExpression) clazz.newInstance();
-            } catch (Exception e) {
-                throw new TimerExpressionException("加载外部扩展的TimerExpression对象失败", e);
-            }
-        }
-        if (te != null) {
-            return te.parse(t.expression);
-        } else {
-            throw new TimerExpressionException("无法解析时间表达式 ==> { " + expression + " }");
-        }
-    }
+	@SuppressWarnings("unchecked")
+	@Override
+	public TimerInfo parse(String expression) throws TimerExpressionException {
+		TimerExp t = Utils.parseToExp(expression);
+		TimerExpression te = this.expressions.get(t.name);
+		if (te == null) {
+			String className = t.name;
+			try {
+				Class clazz = classLoader.loadClass(className);
+				te = (TimerExpression) clazz.newInstance();
+			} catch (Exception e) {
+				throw new TimerExpressionException("加载外部扩展的TimerExpression对象失败", e);
+			}
+		}
+		if (te != null) {
+			return te.parse(t.expression);
+		} else {
+			throw new TimerExpressionException("无法解析时间表达式 ==> { " + expression + " }");
+		}
+	}
 }

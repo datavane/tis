@@ -41,26 +41,12 @@ public class DefaultSolrQueryModuleCreatorAdapter extends SolrQueryModuleCreator
     // public void processResult(QueryRequest qrequest, QueryResponse result,
     // ServerJoinGroup server) throws Exception {
     // }
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator
-	 * #build()
-	 */
+  
     // @Override
     // public SolrParams build() {
     // throw new UnsupportedOperationException();
     // }
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator
-	 * #handleError(java.lang.String,
-	 * com.taobao.terminator.manage.biz.dal.pojo.ServerJoinGroup, long,
-	 * java.lang.Exception)
-	 */
+
     @Override
     public void handleError(String url, ServerJoinGroup server, long allcount, Exception e) {
     }
@@ -70,25 +56,12 @@ public class DefaultSolrQueryModuleCreatorAdapter extends SolrQueryModuleCreator
         return null;
     }
 
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator
-	 * #processResult(org.apache.solr.client.solrj.response.QueryResponse,
-	 * com.taobao.terminator.manage.biz.dal.pojo.ServerJoinGroup, long)
-	 */
+ 
     @Override
     public void processResult(QueryRequestContext request, QueryResponse result, ServerJoinGroup server) throws Exception {
     }
 
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator
-	 * #processSchema(java.io.InputStream)
-	 */
+
     @Override
     public ParseResult processSchema(InputStream schemaStream) {
         return null;

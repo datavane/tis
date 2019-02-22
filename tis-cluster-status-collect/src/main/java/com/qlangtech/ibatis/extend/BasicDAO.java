@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.taobao.ibatis.extend;
+package com.qlangtech.ibatis.extend;
 
 import java.util.List;
 import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;

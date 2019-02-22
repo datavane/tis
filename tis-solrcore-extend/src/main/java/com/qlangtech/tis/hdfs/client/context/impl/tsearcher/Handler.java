@@ -37,7 +37,7 @@ import com.qlangtech.tis.solrextend.dir.loader.HdfsClassLoader;
  */
 public class Handler extends URLStreamHandler {
 
-    private static final String HANDLER_PKG = "com.taobao.terminator.hdfs.client.context.impl";
+    private static final String HANDLER_PKG = "com.qlangtech.tis.hdfs.client.context.impl";
 
     public static void setup() {
         String oldValue = System.getProperty("java.protocol.handler.pkgs");

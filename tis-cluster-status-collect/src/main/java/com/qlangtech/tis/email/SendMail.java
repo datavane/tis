@@ -52,7 +52,6 @@ public class SendMail {
     public static void main(String[] args) throws Exception {
         SendMail sender = new SendMail();
         // List<String> recipient = new ArrayList<String>();
-        // recipient.add("baisui@taobao.com");
         // sender.send(recipient);
         // String content = null;
         sender.send("大家好这是一封测试邮件", "这是一封测试邮件", "tis-report@2dfire.com");

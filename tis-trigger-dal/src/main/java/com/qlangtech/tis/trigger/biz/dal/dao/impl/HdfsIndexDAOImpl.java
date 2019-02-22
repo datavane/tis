@@ -118,12 +118,6 @@ public class HdfsIndexDAOImpl extends BasicDAO<HdfsIndex, HdfsIndexCriteria> imp
         }
     }
 
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.trigger.biz.dal.dao.impl.BasicDAO#getTableName()
-	 */
     @Override
     public String getTableName() {
         return "hdfs_index";

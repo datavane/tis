@@ -23,7 +23,6 @@
  */
 package com.qlangtech.tis.manage.biz.dal.pojo;
 
-// import com.taobao.ibatis.extend.BasicCriteria;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;

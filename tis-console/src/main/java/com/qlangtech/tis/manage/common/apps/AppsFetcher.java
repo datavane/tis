@@ -97,13 +97,7 @@ public abstract class AppsFetcher implements IAppsFetcher {
         return create(user, context, false);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.taobao.terminator.manage.common.apps.IAppsFetcher#hasGrantAuthority
-     * (java.lang.String)
-     */
+ 
     @Override
     public boolean hasGrantAuthority(String permissionCode) {
         return this.authorityFuncList.contains(permissionCode);
@@ -126,63 +120,26 @@ public abstract class AppsFetcher implements IAppsFetcher {
 
     protected abstract List<String> initAuthorityFuncList();
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.taobao.terminator.manage.common.apps.IAppsFetcher#getApps(com.taobao
-     * .terminator.manage.common.apps.AppsFetcher.CriteriaSetter)
-     */
+  
     @Override
     public abstract List<Application> getApps(CriteriaSetter setter);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.taobao.terminator.manage.common.apps.IAppsFetcher#count(com.taobao
-     * .terminator.manage.common.apps.AppsFetcher.CriteriaSetter)
-     */
+
     @Override
     public abstract int count(CriteriaSetter setter);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.taobao.terminator.manage.common.apps.IAppsFetcher#update(com.taobao
-     * .terminator.manage.biz.dal.pojo.Application,
-     * com.taobao.terminator.manage.common.apps.AppsFetcher.CriteriaSetter)
-     */
+
     @Override
     public abstract int update(Application app, CriteriaSetter setter);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.taobao.terminator.manage.common.apps.IAppsFetcher#
-     * getDepartmentBelongs (com.taobao.terminator.manage.common.RunContext)
-     */
+
     @Override
     public abstract List<Department> getDepartmentBelongs(RunContext runcontext);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.taobao.terminator.manage.common.apps.IAppsFetcher#getTriggerTabs(
-     * com.taobao.terminator.manage.biz.dal.dao.IUsrDptRelationDAO)
-     */
     @Override
     public abstract List<TriggerCrontab> getTriggerTabs(IUsrDptRelationDAO usrDptRelationDAO);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.taobao.terminator.manage.common.apps.IAppsFetcher#getAppApplyList
-     * (com.taobao.terminator.manage.biz.dal.dao.IApplicationApplyDAO)
-     */
+  
     @Override
     public abstract List<ApplicationApply> getAppApplyList(IApplicationApplyDAO applicationApplyDAO);
 

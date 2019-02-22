@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.taobao.ibatis.extend;
+package com.qlangtech.ibatis.extend;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）

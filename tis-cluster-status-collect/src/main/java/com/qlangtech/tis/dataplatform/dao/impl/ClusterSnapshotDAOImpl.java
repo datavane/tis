@@ -25,10 +25,11 @@ package com.qlangtech.tis.dataplatform.dao.impl;
 
 import java.util.Date;
 import java.util.List;
+
+import com.qlangtech.ibatis.extend.BasicDAO;
 import com.qlangtech.tis.dataplatform.dao.IClusterSnapshotDAO;
 import com.qlangtech.tis.dataplatform.pojo.ClusterSnapshot;
 import com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotCriteria;
-import com.taobao.ibatis.extend.BasicDAO;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）

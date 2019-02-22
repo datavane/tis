@@ -573,16 +573,5 @@ public class ManageUtils {
 		} catch (InterruptedException e) {
 		}
 	}
-	// public static void main(String[] arg) {
-	// // System.out.println(urlformat.format(new Object[] { "www.taobao.com",
-	// // "aaaa" }));
-	//
-	// ManageUtils util = new ManageUtils();
-	// // System.out.println();
-	//
-	// util.buildNewEcrmData();
-	// }
-	/**
-	 * 判断用户是否拥有业务方管理员角色
-	 */
+
 }

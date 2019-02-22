@@ -25,24 +25,24 @@ package com.qlangtech.tis;
 
 import static org.apache.solr.common.cloud.ZkStateReader.BASE_URL_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.CORE_NAME_PROP;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import junit.framework.TestCase;
+
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.cloud.Slice;
-import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.params.CommonAdminParams;
 import org.apache.solr.common.params.CoreAdminParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.alibaba.fastjson.JSON;
-import com.qlangtech.tis.hdfs.client.bean.HdfsRealTimeTerminatorBean;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
+
+import junit.framework.TestCase;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -54,35 +54,35 @@ public class TestIndexBackflow extends TestCase {
 
     private static final Logger log = LoggerFactory.getLogger(TestIndexBackflow.class);
 
-    public void testBackflow() throws Exception {
-        HdfsRealTimeTerminatorBean dumpBean = (HdfsRealTimeTerminatorBean) TestOrderinfoDump.context.getBean("search4totalpay");
-        ZkStateReader zkStateReader = dumpBean.getDumpContext().getServiceConfig().getZkStateReader();
-        DocCollection collection = zkStateReader.getClusterState().getCollection("search4totalpay");
-        long timestamp = 20151014210509l;
-        String username = "baisui";
-        int taskid = 1233 + (int) (Math.random() * 10000);
-        Replica leader = null;
-        BackflowResult backflowResult = null;
-        // String requestId = null;
-        for (Slice slice : collection.getSlices()) {
-            leader = slice.getLeader();
-            backflowResult = triggerIndexBackflow(leader, timestamp, username, taskid);
-            if (!backflowResult.isSuccess()) {
-                return;
-            }
-            log.info(leader.getStr(CORE_NAME_PROP) + " index backflow success,node name:" + leader.getNodeName());
-            for (Replica replica : slice.getReplicas()) {
-                if (leader == replica) {
-                    continue;
-                }
-                backflowResult = triggerIndexBackflow(replica, timestamp, username, taskid);
-                if (!backflowResult.isSuccess()) {
-                    return;
-                }
-                log.info(replica.getStr(CORE_NAME_PROP) + " index backflow success,node name:" + replica.getNodeName());
-            }
-        }
-    }
+//    public void testBackflow() throws Exception {
+//        HdfsRealTimeTerminatorBean dumpBean = (HdfsRealTimeTerminatorBean) TestOrderinfoDump.context.getBean("search4totalpay");
+//        ZkStateReader zkStateReader = dumpBean.getDumpContext().getServiceConfig().getZkStateReader();
+//        DocCollection collection = zkStateReader.getClusterState().getCollection("search4totalpay");
+//        long timestamp = 20151014210509l;
+//        String username = "baisui";
+//        int taskid = 1233 + (int) (Math.random() * 10000);
+//        Replica leader = null;
+//        BackflowResult backflowResult = null;
+//        // String requestId = null;
+//        for (Slice slice : collection.getSlices()) {
+//            leader = slice.getLeader();
+//            backflowResult = triggerIndexBackflow(leader, timestamp, username, taskid);
+//            if (!backflowResult.isSuccess()) {
+//                return;
+//            }
+//            log.info(leader.getStr(CORE_NAME_PROP) + " index backflow success,node name:" + leader.getNodeName());
+//            for (Replica replica : slice.getReplicas()) {
+//                if (leader == replica) {
+//                    continue;
+//                }
+//                backflowResult = triggerIndexBackflow(replica, timestamp, username, taskid);
+//                if (!backflowResult.isSuccess()) {
+//                    return;
+//                }
+//                log.info(replica.getStr(CORE_NAME_PROP) + " index backflow success,node name:" + replica.getNodeName());
+//            }
+//        }
+//    }
 
     public static String RUNNING = "running";
 

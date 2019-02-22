@@ -24,32 +24,28 @@
 package com.qlangtech.tis.indexbuilder.index;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.lucene.document.Document;
+
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.SolrInputField;
 import org.apache.solr.schema.IndexSchema;
-import org.apache.solr.schema.SchemaField;
 import org.apache.solr.update.DocumentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.taobao.terminator.build.metrics.Counters;
-import com.taobao.terminator.build.metrics.Messages;
-import com.taobao.terminator.build.task.Task;
+
 import com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
+import com.taobao.terminator.build.metrics.Counters;
+import com.taobao.terminator.build.metrics.Messages;
+import com.taobao.terminator.build.task.Task;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）

@@ -61,7 +61,7 @@ public class UploadFileServlet extends HttpServlet {
         fileUpload = new ServletFileUpload(itemFactory);
     }
 
-    private static final String uploadDir = "/home/admin/tomcat/taobao-tomcat-7.0.52.2/deploy/up";
+    private static final String uploadDir = "/home/admin/tomcat/deploy/up";
 
     @Override
     protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

@@ -32,57 +32,35 @@ import java.util.Map;
  */
 public class DeleteByQueryRequest implements RouteValueSupport, Serializable {
 
-    private static final long serialVersionUID = 2347117955060292621L;
+	private static final long serialVersionUID = 2347117955060292621L;
 
-    /**
-     * @uml.property  name="routeValue"
-     */
-    public Map<String, String> routeValue;
+	public Map<String, String> routeValue;
 
-    /**
-     * @uml.property  name="query"
-     */
-    public String query;
+	public String query;
 
-    public DeleteByQueryRequest() {
-    }
+	public DeleteByQueryRequest() {
+	}
 
-    public DeleteByQueryRequest(Map<String, String> routeValue, String query) {
-        super();
-        this.routeValue = routeValue;
-        this.query = query;
-    }
+	public DeleteByQueryRequest(Map<String, String> routeValue, String query) {
+		super();
+		this.routeValue = routeValue;
+		this.query = query;
+	}
 
-    /**
-     * @return
-     * @uml.property  name="routeValue"
-     */
-    @Override
-    public Map<String, String> getRouteValue() {
-        return routeValue;
-    }
+	@Override
+	public Map<String, String> getRouteValue() {
+		return routeValue;
+	}
 
-    /**
-     * @return
-     * @uml.property  name="query"
-     */
-    public String getQuery() {
-        return query;
-    }
+	public String getQuery() {
+		return query;
+	}
 
-    /**
-     * @param query
-     * @uml.property  name="query"
-     */
-    public void setQuery(String query) {
-        this.query = query;
-    }
+	public void setQuery(String query) {
+		this.query = query;
+	}
 
-    /**
-     * @param routeValue
-     * @uml.property  name="routeValue"
-     */
-    public void setRouteValue(Map<String, String> routeValue) {
-        this.routeValue = routeValue;
-    }
+	public void setRouteValue(Map<String, String> routeValue) {
+		this.routeValue = routeValue;
+	}
 }

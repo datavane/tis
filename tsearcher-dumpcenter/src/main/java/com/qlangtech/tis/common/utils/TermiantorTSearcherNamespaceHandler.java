@@ -48,13 +48,9 @@ public class TermiantorTSearcherNamespaceHandler extends NamespaceHandlerSupport
         registerBeanDefinitionParser("incrdump", new com.qlangtech.tis.common.utils.DumpProviderParser());
         registerBeanDefinitionParser("dataprocess", new com.qlangtech.tis.common.utils.DataprocessorParser());
         registerBeanDefinitionParser("grouprouter", new GroupRouterParser());
-        // com.taobao.terminator.hdfs.client.router;ModGroupRouter
+        
         registerBeanDefinitionParser("yuntidump", new TSearcherYuntiParser());
         registerBeanDefinitionParser("pathCreator", new TSearcherPathCreatorParser());
-    // registerBeanDefinitionParser("dumpAndQuery",
-    // new com.taobao.terminator.common.utils.TSearcherQueryParser());
-    // 
-    // registerBeanDefinitionParser("realtimeDumpAndQuery",
-    // new com.taobao.terminator.common.utils.TSearcherQueryParser());
+   
     }
 }

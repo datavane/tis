@@ -34,9 +34,7 @@ public class TResourceManagerImpl extends ResourceManagerImpl {
 
     @Override
     public synchronized void initialize(RuntimeServices rsvc) throws Exception {
-        // <property name="spring.resource.loader.class"
-        // value="com.taobao.terminator.manage.common.webx.WebxSpringResourceLoaderAdapter"
-        // />
+       
         rsvc.getConfiguration().setProperty("spring.resource.loader.class", "com.qlangtech.tis.manage.common.webx.WebxSpringResourceLoaderAdapter");
         super.initialize(rsvc);
     }

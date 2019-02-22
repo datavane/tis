@@ -40,12 +40,9 @@ import com.qlangtech.tis.hdfs.client.context.impl.tsearcher.Handler;
  */
 public class HdfsClassLoader extends ClassLoader {
 
-    // public static final byte[] hdfsprocessJarContent;
     public static final byte[] hadoopcoreJarContent;
 
     static {
-        //com.taobao.terminator.hdfs.client.context.impl.tsearcher.Handler.setup();
-        
         hadoopcoreJarContent = readJarContent("tsearch_hadoop_lib/hadoop-core-1.2.1.jar");
     }
 

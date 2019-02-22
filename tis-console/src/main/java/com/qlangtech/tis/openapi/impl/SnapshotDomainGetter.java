@@ -9,7 +9,7 @@ import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.openapi.SnapshotNotFindException;
 
 /**
- * @author 百岁（baisui@taobao.com）
+ * @author 百岁
  * @date 2013-12-20
  */
 public class SnapshotDomainGetter {

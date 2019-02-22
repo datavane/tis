@@ -71,12 +71,12 @@ public class AppDomainSelectedCheckValve extends MethodFilterInterceptor {
         include_urls.put("/runtime/zklockview", NULL_RUNTIME);
         include_urls.put("/runtime/jarcontent/snapshotlist", NULL_RUNTIME);
         // include_urls.put("/publishZookeeperWrapper", Arrays.asList(
-        // http://l.admin.taobao.org/runtime/hdfs_view.htm
+        //
         include_urls.put("/runtime/hdfs_view", NULL_RUNTIME);
         // include_urls.put("/launchdumpandbuildindex", Arrays.asList(
         include_urls.put("/runtime/jarcontent/grouplist", NULL_RUNTIME);
         include_urls.put("/runtime/launchdumpandbuildindex", NULL_RUNTIME);
-        // http://l.admin.taobao.org/trigger/triggermonitor.htm
+        
         include_urls.put("/runtime/triggermonitor", NULL_RUNTIME);
         // include_urls.put("/hdfsuserlist",
         // RunEnvironment.READY));

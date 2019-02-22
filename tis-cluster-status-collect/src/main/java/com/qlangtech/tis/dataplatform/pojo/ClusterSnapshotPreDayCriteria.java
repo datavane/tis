@@ -23,13 +23,14 @@
  */
 package com.qlangtech.tis.dataplatform.pojo;
 
-import com.taobao.ibatis.extend.BasicCriteria;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import com.qlangtech.ibatis.extend.BasicCriteria;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）

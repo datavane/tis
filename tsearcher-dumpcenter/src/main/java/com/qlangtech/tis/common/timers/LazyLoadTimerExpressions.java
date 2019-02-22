@@ -33,55 +33,48 @@ import java.util.Map;
 @Deprecated
 public class LazyLoadTimerExpressions implements TimerExpression {
 
-    Map<String, Holder> expressions;
+	Map<String, Holder> expressions;
 
-    public LazyLoadTimerExpressions() {
-        this.initDefaults();
-    }
+	public LazyLoadTimerExpressions() {
+		this.initDefaults();
+	}
 
-    private void initDefaults() {
-        if (this.expressions == null) {
-            this.expressions = new HashMap<String, Holder>();
-        }
-        expressions.put("perday", new Holder() {
+	private void initDefaults() {
+		if (this.expressions == null) {
+			this.expressions = new HashMap<String, Holder>();
+		}
+		expressions.put("perday", new Holder() {
 
-            @Override
-            public TimerExpression newInstance() {
-                return new PerdayExpression();
-            }
-        });
-        expressions.put("interval", new Holder() {
+			@Override
+			public TimerExpression newInstance() {
+				return new PerdayExpression();
+			}
+		});
+		expressions.put("interval", new Holder() {
 
-            @Override
-            public TimerExpression newInstance() {
-                return new IntervalExpression();
-            }
-        });
-    }
+			@Override
+			public TimerExpression newInstance() {
+				return new IntervalExpression();
+			}
+		});
+	}
 
-    @Override
-    public TimerInfo parse(String expression) throws TimerExpressionException {
-        return null;
-    }
+	@Override
+	public TimerInfo parse(String expression) throws TimerExpressionException {
+		return null;
+	}
 
-    /**
-     * @author  yingyuan.lyq
-     */
-    abstract class Holder {
+	abstract class Holder {
 
-        /**
-         * @uml.property  name="te"
-         * @uml.associationEnd
-         */
-        TimerExpression te = null;
+		TimerExpression te = null;
 
-        public TimerExpression getInstance() {
-            if (te == null) {
-                te = newInstance();
-            }
-            return te;
-        }
+		public TimerExpression getInstance() {
+			if (te == null) {
+				te = newInstance();
+			}
+			return te;
+		}
 
-        public abstract TimerExpression newInstance();
-    }
+		public abstract TimerExpression newInstance();
+	}
 }

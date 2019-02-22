@@ -124,12 +124,5 @@ public class DateToLongProcessor {
             e.printStackTrace();
         }
     }
-    /* (non-Javadoc)
-	 * @see com.taobao.terminator.common.data.processor.DataProcessor#getDesc()
-	 */
-    // @Override
-    // public String getDesc() {
-    // // TODO Auto-generated method stub
-    // return null;
-    // }
+   
 }

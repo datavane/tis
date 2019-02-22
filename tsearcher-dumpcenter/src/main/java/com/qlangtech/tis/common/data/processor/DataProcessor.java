@@ -33,58 +33,49 @@ import java.util.Map;
  */
 public interface DataProcessor {
 
-    /**
-     * 该DataProcessor的职责描述
-     * @return
-     */
-    String getDesc();
+	/**
+	 * 该DataProcessor的职责描述
+	 * 
+	 * @return
+	 */
+	String getDesc();
 
-    /**
-     * 数据处理方法,如果该行数据不符合要求，亦即不需要索引的数据,直接返回null，dump程序会自动忽略该数据
-     *
-     * @param map 代表一行数据，亦即一个Document数据源
-     * @throws DataProcessException
-     */
-    ResultCode process(Map<String, String> map) throws DataProcessException;
+	/**
+	 * 数据处理方法,如果该行数据不符合要求，亦即不需要索引的数据,直接返回null，dump程序会自动忽略该数据
+	 *
+	 * @param map
+	 *            代表一行数据，亦即一个Document数据源
+	 * @throws DataProcessException
+	 */
+	ResultCode process(Map<String, String> map) throws DataProcessException;
 
-    /**
-     * @author  yingyuan.lyq
-     */
-    public class ResultCode {
+	public class ResultCode {
 
-        int code;
+		int code;
 
-        String msg;
+		String msg;
 
-        /**
-         * @uml.property  name="sUC"
-         * @uml.associationEnd
-         */
-        public static final ResultCode SUC = new ResultCode(0, "处理成功");
+		public static final ResultCode SUC = new ResultCode(0, "处理成功");
 
-        /**
-         * @uml.property  name="fAI"
-         * @uml.associationEnd
-         */
-        public static final ResultCode FAI = new ResultCode(-1, "处理失败");
+		public static final ResultCode FAI = new ResultCode(-1, "处理失败");
 
-        private ResultCode(int code, String msg) {
-            super();
-            this.code = code;
-            this.msg = msg;
-        }
+		private ResultCode(int code, String msg) {
+			super();
+			this.code = code;
+			this.msg = msg;
+		}
 
-        public ResultCode(String msg) {
-            this(-2, msg);
-        }
+		public ResultCode(String msg) {
+			this(-2, msg);
+		}
 
-        public boolean isSuc() {
-            return this.code == 0;
-        }
+		public boolean isSuc() {
+			return this.code == 0;
+		}
 
-        @Override
-        public String toString() {
-            return "code : " + code + "  msg : " + msg;
-        }
-    }
+		@Override
+		public String toString() {
+			return "code : " + code + "  msg : " + msg;
+		}
+	}
 }

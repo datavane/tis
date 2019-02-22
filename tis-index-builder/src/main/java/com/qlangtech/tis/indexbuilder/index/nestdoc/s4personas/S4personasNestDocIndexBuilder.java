@@ -26,14 +26,16 @@ package com.qlangtech.tis.indexbuilder.index.nestdoc.s4personas;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.schema.IndexSchema;
-import com.taobao.terminator.build.metrics.Counters;
-import com.taobao.terminator.build.metrics.Messages;
+
 import com.qlangtech.tis.indexbuilder.index.IndexMaker;
 import com.qlangtech.tis.indexbuilder.index.nestdoc.NestDocIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
+import com.taobao.terminator.build.metrics.Counters;
+import com.taobao.terminator.build.metrics.Messages;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）

@@ -513,7 +513,7 @@ public class SolrFieldsParser {
         // 索引构建的实现类
         private String indexBuilderClass;
 
-        // 对应接口的实现类com.taobao.terminator.indexbuilder.doc.IInputDocCreator
+        // 对应接口的实现类
         // = "default";
         private String documentCreatorType;
 
