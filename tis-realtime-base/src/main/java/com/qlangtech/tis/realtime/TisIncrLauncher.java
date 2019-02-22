@@ -28,22 +28,23 @@ import org.apache.hadoop.security.UserGroupInformation;
 import java.util.Arrays;
 import java.util.List;
 
-/*
- * Author: Qinjiu(qinjiu@2dfire.com)
- * Date: 7/19/2017
- * Time: 7:37 PM
- * Description: 增量工程启动类
- *
+/* 
+ * 增量工程启动类
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class TisIncrLauncher {
 
-    public static void main(String[] args) throws Exception {
-        UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("Tis"));
-        List<String> argsList = Arrays.asList(args);
-        System.out.println("args: " + argsList.toString());
-        TransferIncrContainer incrContainer = new TransferIncrContainer(argsList);
-        incrContainer.start();
-    }
+	private static final String APP_NAME = "transferApp";
+	public static final String PARAM_OPTION_LOCAL_JAR_DIR = "localjardir";
+	public static final String PARAM_OPTION_LOCAL_QUEUE = "queue";
+	public static final String ENVIRONMENT_INCR_EXEC_GROUP = "incr_exec_group";
+
+	public static void main(String[] args) throws Exception {
+		UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("Tis"));
+		List<String> argsList = Arrays.asList(args);
+		System.out.println("args: " + argsList.toString());
+		TransferIncrContainer incrContainer = new TransferIncrContainer(argsList);
+		incrContainer.start();
+	}
 }

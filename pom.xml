@@ -48,6 +48,8 @@
 		<module>tsearcher-dumpcenter</module>
 
 		<module>tis-solrcore-extend</module>
+		
+		<module>tis-realtime-base</module>
 		<module>tis-cluster-status-collect</module>
 		<module>tis-console</module>
 		<module>tis-solr-webapp</module>

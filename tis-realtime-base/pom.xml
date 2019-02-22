@@ -43,7 +43,7 @@
 			<artifactId>logback-flume-appender</artifactId>
 			<groupId>com.gilt.logback</groupId>
 		</dependency>
-
+<!-- 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>terminator-job-trigger-common</artifactId>
@@ -59,6 +59,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+ -->	
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
@@ -116,12 +117,13 @@
 			</dependency> <dependency> <groupId>org.eclipse.jetty</groupId> <artifactId>jetty-server</artifactId> 
 			</dependency> <dependency> <groupId>org.eclipse.jetty</groupId> <artifactId>jetty-servlet</artifactId> 
 			</dependency> -->
+			<!-- 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>jmxtools</artifactId>
 			<version>1.2.1</version>
 		</dependency>
-
+ -->
 
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -175,7 +177,7 @@
 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>terminator-pubhook-common</artifactId>
+			<artifactId>tis-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -186,7 +188,7 @@
 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>global-diamond-config</artifactId>
+			<artifactId>tis-global-config</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

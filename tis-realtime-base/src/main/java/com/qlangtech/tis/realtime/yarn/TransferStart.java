@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -58,9 +59,10 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
-import com.qlangtech.tis.hdfs.TisIncrLauncher;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.realtime.TisIncrLauncher;
 
 /*
  * 该类的启动类是：com.dfire.tis.hdfs.TisIncrLauncher(在terminator-job-trigger-common工程中)

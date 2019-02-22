@@ -31,16 +31,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.management.MBeanException;
 import javax.management.RuntimeOperationsException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.modeler.BaseModelMBean;
 import org.apache.commons.modeler.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import com.qlangtech.tis.hdfs.TisIncrLauncher;
-import com.sun.jdmk.comm.HtmlAdaptorServer;
+
+import com.qlangtech.tis.realtime.TisIncrLauncher;
+//import com.sun.jdmk.comm.HtmlAdaptorServer;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -111,10 +114,10 @@ public class TransferStatusMBean extends BaseModelMBean implements InitializingB
         // MBeanServer mserver = registry.getMBeanServer();
         // String oname = "Users:name=Group";
         // final int port = NetUtils.getFreeSocketPort();
-        final HtmlAdaptorServer htmlAdaptor = new HtmlAdaptorServer();
-        htmlAdaptor.setPort(50001);
-        registry.registerComponent(htmlAdaptor, "tis:type=increase,name=htmladapter", null);
-        htmlAdaptor.start();
+        //final HtmlAdaptorServer htmlAdaptor = new HtmlAdaptorServer();
+        //htmlAdaptor.setPort(50001);
+        //registry.registerComponent(htmlAdaptor, "tis:type=increase,name=htmladapter", null);
+        //htmlAdaptor.start();
         // 这个变量应该要能拿到
         final String incrExecGroup = StringUtils.defaultIfEmpty(System.getenv(TisIncrLauncher.ENVIRONMENT_INCR_EXEC_GROUP), System.getProperty(TisIncrLauncher.ENVIRONMENT_INCR_EXEC_GROUP));
         if (StringUtils.isBlank(incrExecGroup)) {

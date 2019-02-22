@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 //
 import org.apache.http.client.HttpClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -82,6 +81,8 @@ import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.ShardParams;
 
+import com.qlangtech.tis.TisZkClient;
+
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
@@ -118,7 +119,8 @@ public class ExtendCloudSolrClient extends CloudSolrClient {
 	// private final List<OnReconnect> clusterStateChangeListener = new
 	// ArrayList<OnReconnect>();
 	//
-	// private TisZkClient tisZkClient;
+	private TisZkClient tisZkClient;
+
 	//
 	public ExtendCloudSolrClient(String zkHost, HttpClient httpClient) {
 		// super(zkHost, httpClient);
@@ -132,14 +134,16 @@ public class ExtendCloudSolrClient extends CloudSolrClient {
 		// }
 		// });
 	}
+
 	//
-	// public TisZkClient getTisZkClient() {
-	// return this.tisZkClient;
-	// }
+	public TisZkClient getTisZkClient() {
+		return this.tisZkClient;
+	}
+
 	//
-	// private void setTisZkClient(TisZkClient tisZkClient) {
-	// this.tisZkClient = tisZkClient;
-	// }
+	private void setTisZkClient(TisZkClient tisZkClient) {
+		this.tisZkClient = tisZkClient;
+	}
 
 	// @Override
 	// @SuppressWarnings("all")

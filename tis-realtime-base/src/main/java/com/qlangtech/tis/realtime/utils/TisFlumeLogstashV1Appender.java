@@ -25,11 +25,14 @@ package com.qlangtech.tis.realtime.utils;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
-import com.qlangtech.tis.hdfs.TisIncrLauncher;
-import com.qlangtech.tis.realtime.transfer.BasicONSListener;
+
 import com.gilt.logback.flume.FlumeLogstashV1Appender;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
+import com.qlangtech.tis.realtime.TisIncrLauncher;
+import com.qlangtech.tis.realtime.transfer.BasicONSListener;
+
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
 /* *
