@@ -96,14 +96,7 @@ public class LoginAction extends BasicModule {
         ChangeDomainAction.addCookie(getResponse(), UserUtils.USER_TOKEN, "", StringUtils.substringBefore(host, ":"), 0);
         final TisHttpServletRequestWrapper request = (TisHttpServletRequestWrapper) (((StrutsRequestWrapper) this.getRequest()).getRequest());
         request.removeCookie(UserUtils.USER_TOKEN);
-        // https://login.alibaba-inc.com/ssoLogout.htm?APP_NAME=taobaoterminator&BACK_URL=http%3A%2F%2Fdaily.terminator.admin.taobao.org%2Fruntime%2F&CONTEXT_PATH=%2F
-        // BucSSOClientUtil.handleSSOLogout(this.getRequest(), getResponse());
-        // getRundataInstance().redirectTo(Config.getSSOLogoutURL() +
-        // "?APP_NAME=taobaoterminator&BACK_URL=http%3A%2F%2F"
-        // + (ManageUtils.isDevelopMode() ? "daily." : StringUtils.EMPTY) +
-        // "terminator.admin.taobao.org%3A"
-        // + (ManageUtils.isDevelopMode() ? "8080" : "9999") +
-        // "%2Fruntime%2F&CONTEXT_PATH=%2F");
+        
         getRundataInstance().redirectTo("/runtime/login.htm");
     // nav.redirectToLocation();
     }

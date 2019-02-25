@@ -40,9 +40,13 @@ public class Config {
 
 	private static Config config;
 
-	private final String tisRepository;
+	private final String tisHostIp;
 	// 线上同步地址
 	private final String tisOnlineRepository;
+
+	private final String assembleHostAddress;// =10.1.29.64
+	private final String jobTrackerHostAddress;
+	// jobtracker.host=10.1.27.162
 
 	// private Map<String, String> userToken;
 
@@ -83,55 +87,13 @@ public class Config {
 		// localRepository = bundle.getString("local.repository");
 		P p = new P(bundle);
 
-		this.tisRepository = p.getString("tis.repository");
+		this.tisHostIp = p.getString("tis.host");
 		this.tisOnlineRepository = p.getString("tis.online.repository");
 
-		this.projectName = p.getString("project.name");
-		// if (StringUtils.isEmpty(this.projectName)) {
-		// throw new IllegalStateException("config param projectname can not be
-		// null");
-		// }
-		// userToken = new HashMap<String, String>();
-		// publishHook = new HashMap<RunEnvironment, String>();
-		// responseTimeHost = new HashMap<RunEnvironment, String>();
-		// // zkAddress = new HashMap<RunEnvironment, String>();
-		// hdfshost = new HashMap<RunEnvironment, String>();
-		// // this.tddlParseHost = p.getString("tddl.parse.host");
-		// Enumeration<String> keys = bundle.getKeys();
-		// String nameKey = null;
-		// final String hookHostPrefix = "publish.hook.host.";
-		// final String queryResponseTimeHost = "query.response.time.host.";
-		// final String zkaddress = "zkaddress.host.";
-		// while (keys.hasMoreElements()) {
-		// nameKey = keys.nextElement();
-		// if (StringUtils.startsWith(nameKey, "user.")) {
-		// userToken.put(StringUtils.substringAfter(nameKey, "user."),
-		// bundle.getString(nameKey));
-		// }
-		// setKey(publishHook, bundle, nameKey, hookHostPrefix);
-		// setKey(responseTimeHost, bundle, nameKey, queryResponseTimeHost);
-		// // setKey(zkAddress, bundle, nameKey, zkaddress);
-		// // hdfs 地址
-		// setKey(hdfshost, bundle, nameKey, "hdfs.host.");
-		// setKey(hsfMonotorHost, bundle, nameKey, "hsf.monitor.host.");
-		// }
-		// try {
-		// this.dptTerminatorId =
-		// Integer.parseInt(bundle.getString("dpt.terminator.id"));
-		// } catch (Throwable e) {
-		// }
+		this.assembleHostAddress = p.getString("assemble.host");
+		this.jobTrackerHostAddress = p.getString("jobtracker.host");
 
-		// try {
-		// FuncGroup group = null;
-		// String[] groups = StringUtils.split(bundle.getString("func.groups"),
-		// ",");
-		// for (String g : groups) {
-		// group = new FuncGroup(Integer.parseInt(StringUtils.split(g, ":")[0]),
-		// StringUtils.split(g, ":")[1]);
-		// funcGroup.add(group);
-		// }
-		// } catch (Throwable e) {
-		// }
+		this.projectName = p.getString("project.name");
 
 	}
 
@@ -201,8 +163,20 @@ public class Config {
 	// return getInstance().hdfshost.get(runtime);
 	// }
 
+	public static String getJobtrackerHost() {
+		return getInstance().jobTrackerHostAddress;
+	}
+
+	public static String getAssembleHostAddress() {
+		return getInstance().assembleHostAddress;
+	}
+
 	public static String getTisRepository() {
-		return getInstance().tisRepository;
+		return "http://" + getInstance().tisHostIp + ":8080";
+	}
+
+	public static String getTISHostIp() {
+		return getInstance().tisHostIp;
 	}
 
 	public static RunEnvironment getRunEnvironment() {

@@ -48,6 +48,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ResourceParametersCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.spring.aop.Func;
@@ -126,7 +127,7 @@ public class ConfigFileParametersAction extends BasicModule {
 
 							return true;
 						}
-					}, new ParamProcess()), //
+					}, new ParamProcess(), true /* userinput */), //
 			new GlobalParam(TSearcherConfigFetcher.CONFIG_HDFS_ADDRESS, "全量构建分布式文件系统地址" //
 					, new ParamValiate() {
 						@Override
@@ -134,16 +135,19 @@ public class ConfigFileParametersAction extends BasicModule {
 							if (!super.validate(ctx, module, p)) {
 								return false;
 							}
-
 							String prefix = "hdfs://";
 							if (!StringUtils.startsWith(p.getValue(), prefix)) {
 								module.addErrorMessage(ctx, p.getName() + "应以" + prefix + "作为前缀");
 								return false;
 							}
-
 							return true;
 						}
-					}, new ParamProcess()), //
+					}, new ParamProcess() {
+						@Override
+						void process(ConfigFileParametersAction m, GlobalParam p, Option option) {
+							this.insertDefault(m, p.getName(), "hdfs://cluster-cdh", p.getDesc());
+						}
+					}), //
 			new GlobalParam(TSearcherConfigFetcher.CONFIG_terminator_host_address, "TIS中控节点Host地址" //
 					, new ParamValiate() {
 						@Override
@@ -159,7 +163,7 @@ public class ConfigFileParametersAction extends BasicModule {
 					}, new ParamProcess() {
 						@Override
 						public void process(ConfigFileParametersAction m, GlobalParam p, Option option) {
-							this.insertDefault(m, p.getName(), "http://" + option.getValue() + ":8080", p.getDesc());
+							this.insertDefault(m, p.getName(), Config.getTisRepository(), p.getDesc());
 						}
 					}), //
 			new GlobalParam(TSearcherConfigFetcher.TIS_ASSEMBLE_HOST, "TIS全量控制、日志收集节点" //
@@ -179,17 +183,17 @@ public class ConfigFileParametersAction extends BasicModule {
 						public void process(ConfigFileParametersAction m, GlobalParam p, Option option) {
 							this.insertDefault(m //
 							, p.getName() //
-							, "http://" + option.getValue() + ":8080" //
+							, "http://" + Config.getAssembleHostAddress() + ":8080" //
 							, p.getDesc());
 
 							this.insertDefault(m //
 							, TSearcherConfigFetcher.LOG_SOURCE_ADDRESS //
-							, option.getValue() //
+							, Config.getAssembleHostAddress() //
 							, "结构化日志收集地址");
 
 							this.insertDefault(m //
 							, TSearcherConfigFetcher.CONFIG_LOG_FLUME_AGENT_ADDRESS //
-							, option.getValue() + ":41414" //
+							, Config.getAssembleHostAddress() + ":41414" //
 							, "全量、增量flume日志收集地址");
 						}
 					}), //
@@ -210,17 +214,17 @@ public class ConfigFileParametersAction extends BasicModule {
 						public void process(ConfigFileParametersAction m, GlobalParam p, Option option) {
 
 							this.insertDefault(m, p.getName() //
-							, option.getValue() + ":8848" //
+							, Config.getJobtrackerHost() + ":8848" //
 							, p.getDesc());
 
 							this.insertDefault(m //
 							, TSearcherConfigFetcher.jobtracker_transserver //
-							, option.getValue() + ":8849" //
+							, Config.getJobtrackerHost() + ":8849" //
 							, p.getDesc());
 
 							this.insertDefault(m //
 							, TSearcherConfigFetcher.INDEX_BUILD_CENTER_HOST //
-							, "http://" + option.getValue() + ":9999/jobtracker.jsp" //
+							, "http://" + Config.getJobtrackerHost() + ":9999/jobtracker.jsp" //
 							, p.getDesc() + " URL");
 
 						}
@@ -241,7 +245,7 @@ public class ConfigFileParametersAction extends BasicModule {
 							, option.getValue() //
 							, "TIS 全量构建HIVE入口地址");
 						}
-					}) //
+					}, true /* user input */) //
 
 			// , new GlobalParam("mq_statistics_host", "TIS实时日志状态收集节点地址" //
 			// , new ParamValiate() {
@@ -291,7 +295,7 @@ public class ConfigFileParametersAction extends BasicModule {
 		for (GlobalParam p : globalParams) {
 			Option pp = new Option(p.getName(), this.getString(p.getName()));
 			paramMap.put(p.getName(), pp);
-			if (!p.validate(context, this, pp)) {
+			if (p.isUserInput() && !p.validate(context, this, pp)) {
 				hasError = true;
 			}
 		}
@@ -407,17 +411,27 @@ public class ConfigFileParametersAction extends BasicModule {
 		private ParamProcess process;
 
 		private String name;
+		private final boolean userInput;
 
-		public GlobalParam(String name, String desc, ParamValiate validator, ParamProcess process) {
+		public GlobalParam(String name, String desc, ParamValiate validator, ParamProcess process, boolean userInput) {
 			// super(name, null);
 			this.name = name;
 			this.desc = desc;
 			this.validator = validator;
 			this.process = process;
+			this.userInput = userInput;
+		}
+
+		public GlobalParam(String name, String desc, ParamValiate validator, ParamProcess process) {
+			this(name, desc, validator, process, false /* userInput */);
 		}
 
 		public boolean validate(Context ctx, BasicModule module, Option p) {
 			return validator.validate(ctx, module, p);
+		}
+
+		public boolean isUserInput() {
+			return this.userInput;
 		}
 
 		public String getName() {

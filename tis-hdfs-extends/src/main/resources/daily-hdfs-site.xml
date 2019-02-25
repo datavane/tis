@@ -14,42 +14,42 @@
     <name>dfs.ha.automatic-failover.enabled.daily-cdh</name>
     <value>true</value>
   </property>
-  <!--'ha.zookeeper.quorum', originally set to 'hadoop-cdh001.daily.2dfire.info:2181,hadoop-cdh003.daily.2dfire.info:2181,hadoop1009.daily.2dfire.info:2181' (non-final), is overridden below by a safety valve-->
+  <!--'ha.zookeeper.quorum', originally set to '10.1.21.131:2181,10.1.21.141:2181,hadoop1009.daily.2dfire.info:2181' (non-final), is overridden below by a safety valve-->
   <property>
     <name>dfs.ha.namenodes.daily-cdh</name>
     <value>namenode228,namenode295</value>
   </property>
   <property>
     <name>dfs.namenode.rpc-address.daily-cdh.namenode228</name>
-    <value>hadoop-cdh001.daily.2dfire.info:8020</value>
+    <value>10.1.21.131:8020</value>
   </property>
   <property>
     <name>dfs.namenode.servicerpc-address.daily-cdh.namenode228</name>
-    <value>hadoop-cdh001.daily.2dfire.info:8022</value>
+    <value>10.1.21.131:8022</value>
   </property>
   <property>
     <name>dfs.namenode.http-address.daily-cdh.namenode228</name>
-    <value>hadoop-cdh001.daily.2dfire.info:50070</value>
+    <value>10.1.21.131:50070</value>
   </property>
   <property>
     <name>dfs.namenode.https-address.daily-cdh.namenode228</name>
-    <value>hadoop-cdh001.daily.2dfire.info:50470</value>
+    <value>10.1.21.131:50470</value>
   </property>
   <property>
     <name>dfs.namenode.rpc-address.daily-cdh.namenode295</name>
-    <value>hadoop-cdh003.daily.2dfire.info:8020</value>
+    <value>10.1.21.141:8020</value>
   </property>
   <property>
     <name>dfs.namenode.servicerpc-address.daily-cdh.namenode295</name>
-    <value>hadoop-cdh003.daily.2dfire.info:8022</value>
+    <value>10.1.21.141:8022</value>
   </property>
   <property>
     <name>dfs.namenode.http-address.daily-cdh.namenode295</name>
-    <value>hadoop-cdh003.daily.2dfire.info:50070</value>
+    <value>10.1.21.141:50070</value>
   </property>
   <property>
     <name>dfs.namenode.https-address.daily-cdh.namenode295</name>
-    <value>hadoop-cdh003.daily.2dfire.info:50470</value>
+    <value>10.1.21.141:50470</value>
   </property>
   <property>
     <name>dfs.replication</name>

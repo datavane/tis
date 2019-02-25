@@ -23,13 +23,16 @@
  */
 package com.qlangtech.tis.runtime.module.screen;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.runtime.module.action.ConfigFileParametersAction;
 import com.qlangtech.tis.runtime.module.action.ConfigFileParametersAction.GlobalParam;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
@@ -40,7 +43,7 @@ public class Index extends BasicManageScreen {
 	@Override
 	public void execute(Context context) throws Exception {
 		this.disableNavigationBar(context);
-		
+
 		if (TSearcherConfigFetcher.get() instanceof Nullable) {
 			// 新安装全局参数还还没有设置
 			this.forward("globalParamSet.vm");
@@ -50,8 +53,15 @@ public class Index extends BasicManageScreen {
 		getRundataInstance().setLayout("blank");
 	}
 
-	public GlobalParam[] getGlobalParams() {
-		return ConfigFileParametersAction.globalParams;
+	public List<GlobalParam> getGlobalParams() {
+
+		List<GlobalParam> result = new ArrayList<>();
+		for (GlobalParam g : ConfigFileParametersAction.globalParams) {
+			if (g.isUserInput()) {
+				result.add(g);
+			}
+		}
+		return result;
 	}
 
 	@Override
