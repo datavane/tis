@@ -172,11 +172,15 @@ public class Config {
 	}
 
 	public static String getTisRepository() {
-		return "http://" + getInstance().tisHostIp + ":8080";
+		return "http://" + getTISHostIp() + ":8080";
 	}
 
 	public static String getTISHostIp() {
-		return getInstance().tisHostIp;
+		String hostIp = getInstance().tisHostIp;
+		if (StringUtils.isEmpty(hostIp)) {
+			throw new IllegalStateException("hostIP can not be null");
+		}
+		return hostIp;
 	}
 
 	public static RunEnvironment getRunEnvironment() {
