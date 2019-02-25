@@ -29,8 +29,6 @@ import java.util.ResourceBundle;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
-
 /* 
  * 全局配置信息加載
  * @author 百岁（baisui@qlangtech.com）
@@ -183,9 +181,9 @@ public class Config {
 		return hostIp;
 	}
 
-	public static RunEnvironment getRunEnvironment() {
-		return RunEnvironment.DAILY;
-	}
+//	public static RunEnvironment getRunEnvironment() {
+//		return RunEnvironment.DAILY;
+//	}
 
 	/**
 	 * @param args
