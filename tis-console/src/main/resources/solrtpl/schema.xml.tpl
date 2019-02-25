@@ -65,7 +65,7 @@
     <field name="text"       type="string" indexed="true"  stored="false" multiValued="true"/>
 
  </fields>
+ <uniqueKey>id</uniqueKey>
  <sharedKey>kind</sharedKey>
- <uniqueKey>kind</uniqueKey>
-  
+ 
 </schema>

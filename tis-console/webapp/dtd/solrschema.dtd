@@ -49,6 +49,8 @@
 <!ATTLIST fieldType subFieldType CDATA  #IMPLIED>
 <!ATTLIST fieldType valIndex  CDATA  #IMPLIED>
 
+<!ATTLIST fieldType docValues CDATA  #IMPLIED>
+
 <!ELEMENT analyzer (tokenizer|filter|charFilter)*>
 <!ATTLIST analyzer 
   type (index|query) #IMPLIED
