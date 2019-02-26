@@ -27,7 +27,7 @@ import junit.framework.Assert;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelation;
 
-/* *
+/*
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */

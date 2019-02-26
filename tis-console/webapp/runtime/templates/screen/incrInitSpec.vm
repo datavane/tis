@@ -6,7 +6,7 @@
     <label for="inputGitUrl" class="col-sm-1 control-label">GIT_URI</label>
     <div class="col-sm-11">
       <input type="text" class="form-control" name="giturl"
-       id="inputGitUrl" placeholder="git@git.2dfire-inc.com:tis-incr/tis-incr-xxx.git"
+       id="inputGitUrl" placeholder="git@github.com:tis-incr/tis-incr-xxx.git"
        value="$!{spec.gitAddress}">
     </div>
   </div>

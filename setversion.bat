@@ -1,1 +1,1 @@
-mvn versions:set -DnewVersion=3.7.47 -DprocessDependencies=true -DgenerateBackupPoms=false -o
+mvn versions:set -DnewVersion=1.0.0 -DprocessDependencies=true -DgenerateBackupPoms=false -o
