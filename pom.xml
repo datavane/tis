@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>tis-pom</artifactId>
-	<version>3.7.47</version>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<name>tis-pom</name>
 	<url>http://maven.apache.org</url>
@@ -84,10 +84,9 @@
 			</dependency>
 
 			<dependency>
-
 				<groupId>com.qlangtech.tis</groupId>
 				<artifactId>tis-solr-core</artifactId>
-				<version>7.6.0-fix1-SNAPSHOT</version>
+				<version>7.6.0-fix1</version>
 				<exclusions>
 					<exclusion>
 						<groupId>org.apache.hadoop</groupId>
