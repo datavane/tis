@@ -14,9 +14,9 @@
 <link href="$rundata.request.contextPath/runtime/css/customerCenter.css" rel="stylesheet" type="text/css"/>
 <script src="$rundata.request.contextPath/runtime/js/jquery.tmpl.js"></script>
 
-    <link href="/runtime/js/jquery-ui-1.9.2/css/base/jquery-ui-1.9.2.custom.min.css" rel="stylesheet">
+<link href="/runtime/js/jquery-ui-1.9.2/css/base/jquery-ui-1.9.2.custom.min.css" rel="stylesheet">
     
-    <script src="/runtime/js/jquery-ui-1.9.2/js/jquery-ui-1.9.2.custom.min.js"></script>
+<script src="/runtime/js/jquery-ui-1.9.2/js/jquery-ui-1.9.2.custom.min.js"></script>
 
 <script src="/runtime/js/layer/layer.js"></script>
 

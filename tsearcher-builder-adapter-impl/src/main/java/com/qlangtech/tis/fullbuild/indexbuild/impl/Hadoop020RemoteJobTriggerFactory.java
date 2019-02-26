@@ -130,7 +130,7 @@ public class Hadoop020RemoteJobTriggerFactory implements IRemoteJobTriggerFactor
 		jobConf.set("job.name", indexName + "-FullDumpJob");
 		jobConf.set("dumpstarttime", starttime);
 		jobConf.set("job.jarfile", "tsearcher-dumpcenter,tsearcher-dumpcenter,tsearcher-dumpcenter");
-		final String execTaskClass = "com.dfire.tis.order.dump.biz." + indexName + ".TableDumpTask";
+		final String execTaskClass = "com.qlangtech.tis.order.dump.biz." + indexName + ".TableDumpTask";
 		jobConf.set("task.map.class", "com.taobao.terminator.build.task.impl.MockTaskMap," + execTaskClass
 				+ ",com.taobao.terminator.build.task.impl.MockTaskMap");
 		LOG.info("execTaskClass:" + execTaskClass);

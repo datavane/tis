@@ -73,7 +73,7 @@ public class TSearcherConfigFetcher {
 	public static final String TIS_ASSEMBLE_HOST = "tis_assemble_host";
 
 	public static final String HIVE_HOST = "hivehost";
-	
+
 	public static final String INDEX_BUILD_CENTER_HOST = "index_build_center_host";
 
 	// private List<String> mqStatisticsHost;
@@ -339,18 +339,6 @@ public class TSearcherConfigFetcher {
 		// return configFetcher;
 	}
 
-	// public static void setConfigCenterHost(String runtime) {
-	// RunEnvironment rt = RunEnvironment.getEnum(runtime);
-	// System.setProperty(RunEnvironment.KEY_RUNTIME, rt.getKeyName());
-	//
-	// if (rt == RunEnvironment.ONLINE) {
-	// System.setProperty("globalConfigRepositoryHost",
-	// "http://tis.2dfire.info:8080");
-	// } else {
-	// System.setProperty("globalConfigRepositoryHost",
-	// "http://10.1.7.43:8080");
-	// }
-	// }
 	private static final Map<String, TSearcherConfigFetcher> /* indexName */
 	indexsConfig = new HashMap<String, TSearcherConfigFetcher>();
 
@@ -360,7 +348,6 @@ public class TSearcherConfigFetcher {
 		} catch (Throwable e) {
 			logger.warn(e.getMessage(), e);
 			return new NullTSearcherConfigFetcher();
-			// throw new RuntimeException("global params is not useable", e);
 		}
 	}
 

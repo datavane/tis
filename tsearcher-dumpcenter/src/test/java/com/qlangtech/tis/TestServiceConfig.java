@@ -36,35 +36,7 @@ import com.qlangtech.tis.common.zk.TerminatorZkClient;
  */
 public class TestServiceConfig extends TestCase {
 
-    public void testGetGroupCount() throws Exception {
-        // String serviceName,
-        // ServiceConfigSupport serviceConfigSupport
-        TerminatorZkClient client = TerminatorZkClient.create("10.1.6.65:2181,10.1.6.67:2181,10.1.6.80:2181/tis/cloud", 30000, new OnReconnect() {
+	public void testGetGroupCount() throws Exception {
 
-            @Override
-            public String getReconnectName() {
-                return null;
-            }
-
-            @Override
-            public void onReconnect(TerminatorZkClient zkClient) throws Exception {
-            }
-        }, false);
-        IServiceConfig serviceConfig = new ServiceConfig("search4dfireOrderInfo", client, new ServiceConfigSupport() {
-
-            @Override
-            public void onServiceConfigChange(IServiceConfig serviceConfig) {
-            }
-
-            @Override
-            public IServiceConfig getServiceConfig() {
-                return null;
-            }
-        });
-        long current = System.currentTimeMillis();
-        for (int i = 0; i < 1000; i++) {
-            serviceConfig.getGroupNum();
-        }
-        System.out.println("consume:" + (System.currentTimeMillis() - current));
-    }
+	}
 }

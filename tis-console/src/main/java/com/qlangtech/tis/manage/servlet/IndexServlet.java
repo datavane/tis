@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * 欢迎页面
- * @author 百岁（baisui@2dfire.com）
  *
  * @date 2019年2月20日
  */

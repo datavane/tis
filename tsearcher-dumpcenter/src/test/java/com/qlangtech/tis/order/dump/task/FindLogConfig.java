@@ -30,10 +30,7 @@ package com.qlangtech.tis.order.dump.task;
 public class FindLogConfig {
 
     public static void main(String[] args) {
-        print("/com/dfire/tis/dump/yarn/HelloWorldMaster.class");
-        print("/log4j.properties");
-        print("/log4j.xml");
-        print("/logback.xml");
+     
     }
 
     private static void print(String arg) {

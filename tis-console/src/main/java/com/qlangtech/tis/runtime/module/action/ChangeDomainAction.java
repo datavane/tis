@@ -292,6 +292,7 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
      * @param from
      * @param context
      */
+    @OperationIgnore
     public void doSelectChange(Context context) {
         this.setErrorMsgInvisiable(context);
         Integer bizid = this.getInt("bizid");

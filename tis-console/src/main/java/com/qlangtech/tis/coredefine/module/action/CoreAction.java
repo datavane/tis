@@ -1026,7 +1026,7 @@ public class CoreAction extends CoreDefineModule {
 	 * @throws Exception
 	 */
 	public void doFreshSelectableNode(Context ctx) throws Exception {
-		// long curr = System.currentTimeMillis();
+		Thread.sleep(5000l);
 		TISZkStateReader zkReader = this.getZkStateReader();
 		zkReader.clearSelectTableNodes();
 		WrapperContext context = new WrapperContext(ctx);

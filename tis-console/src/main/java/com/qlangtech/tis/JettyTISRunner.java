@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.manage.servlet.TISErrorHandler;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
@@ -89,54 +89,6 @@ public class JettyTISRunner {
 		}
 	}
 
-	// public JettyTISRunner(String context, int port, String
-	// solrConfigFilename) {
-	// this.init(context, port);
-	// if (solrConfigFilename != null)
-	// dispatchFilter.setInitParameter("solrconfig-filename",
-	// solrConfigFilename);
-	// }
-	// public JettySolrRunner( String context, String home, String dataDir, int
-	// port, boolean log )
-	// {
-	// if(!log) {
-	// System.setProperty("org.mortbay.log.class", NoLog.class.getName() );
-	// System.setProperty("java.util.logging.config.file",
-	// home+"/conf/logging.properties");
-	// NoLog noLogger = new NoLog();
-	// org.mortbay.log.Log.setLog(noLogger);
-	// }
-	//
-	// // Initalize JNDI
-	// Config.setInstanceDir(home);
-	// new SolrCore(dataDir, new IndexSchema(home+"/conf/schema.xml"));
-	// this.init( context, port );
-	// }
-	// private ServletContextHandler rootContext;
-	// private void init(String context, int port) {
-	// this.context = context;
-	// server = new Server(port);
-	// if (System.getProperty("jetty.testMode") != null) {
-	// // SelectChannelConnector connector = new SelectChannelConnector();
-	// // Normal SocketConnector is what solr's example server uses by
-	// // default
-	// SocketConnector connector = new SocketConnector();
-	// connector.setPort(port);
-	// connector.setReuseAddress(true);
-	// server.setConnectors(new Connector[] { connector });
-	// server.setSessionIdManager(new HashSessionIdManager(new Random()));
-	// }
-	// server.setStopAtShutdown(true);
-	//
-	// // server.setThreadPool(new QueuedThreadPool(100));
-	//
-	// // Initialize the servlets
-	// this.rootContext = new Context(server, context, Context.SESSIONS);
-	// // for some reason, there must be a servlet for this to get applied
-	// rootContext.addServlet(Servlet404.class, "/*");
-	// dispatchFilter = rootContext.addFilter(InnerFilter.class, "*",
-	// Handler.REQUEST);
-	// }
 	private void init(String context, int port) throws Exception {
 		this.context = context;
 		server = new Server(new QueuedThreadPool(450));
@@ -170,7 +122,7 @@ public class JettyTISRunner {
 		webAppContext.setParentLoaderPriority(true);
 		webAppContext.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
 		webAppContext.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
-		
+
 		webAppContext.setErrorHandler(new TISErrorHandler());
 		// webAppContext.addServlet(servlet, pathSpec);
 		// webAppContext.setServletHandler(servletHandler);

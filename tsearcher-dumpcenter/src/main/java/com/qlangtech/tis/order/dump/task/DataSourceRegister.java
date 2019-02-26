@@ -47,198 +47,189 @@ import com.qlangtech.tis.order.dump.task.AbstractTableDumpTask.DBLinkMetaData;
  */
 public class DataSourceRegister implements ApplicationContextAware, InitializingBean {
 
-    // daily syn with online
-    // private static final String[] dbinfos = new String[] { "10.1.6.212_1_32",
-    // "10.1.6.213_33_64", "10.1.6.214_65_96", "10.1.6.215_97_128" };
-    // private static final String[] dbinfos = new String[] {
-    // "cluster1211.my.2dfire-inc.com_1_32",
-    // "cluster1212.my.2dfire-inc.com_33_64",
-    // "cluster1213.my.2dfire-inc.com_65_96",
-    // "cluster1214.my.2dfire-inc.com_97_128" };
-    // online
-    // private static final String[] dbinfos = new String[] {
-    // "10.173.228.159_1_32", "10.173.229.64_33_64",
-    // "10.173.224.97_65_96", "10.173.224.53_97_128" };
-    private static final Logger log = LoggerFactory.getLogger(DataSourceRegister.class);
+	private static final Logger log = LoggerFactory.getLogger(DataSourceRegister.class);
 
-    public static void main(String[] args) throws Exception {
-        InetAddress address = InetAddress.getByName("10.1.7.26");
-        System.out.println(address.getHostAddress());
-    }
+	public static void main(String[] args) throws Exception {
+		InetAddress address = InetAddress.getByName("10.1.7.26");
+		System.out.println(address.getHostAddress());
+	}
 
-    // daily test
-    // private static final String[] dbinfos = new String[] { "10.1.6.101_1_32",
-    // "10.1.6.102_33_64", "10.1.6.103_65_96", "10.1.6.104_97_128" };
-    private String processDbs;
+	// daily test
+	// private static final String[] dbinfos = new String[] { "10.1.6.101_1_32",
+	// "10.1.6.102_33_64", "10.1.6.103_65_96", "10.1.6.104_97_128" };
+	private String processDbs;
 
-    public String getProcessDbs() {
-        return processDbs;
-    }
+	public String getProcessDbs() {
+		return processDbs;
+	}
 
-    public void setProcessDbs(String processDbs) {
-        this.processDbs = processDbs;
-    }
+	public void setProcessDbs(String processDbs) {
+		this.processDbs = processDbs;
+	}
 
-    public abstract static class DBRegister {
+	public abstract static class DBRegister {
 
-        private final List<DBLinkMetaData> dbMetaList;
+		private final List<DBLinkMetaData> dbMetaList;
 
-        public DBRegister(List<DBLinkMetaData> dbMetaList) {
-            this.dbMetaList = dbMetaList;
-        }
+		public DBRegister(List<DBLinkMetaData> dbMetaList) {
+			this.dbMetaList = dbMetaList;
+		}
 
-        private void createDBLinkDefinition(String ip, DBLinkMetaData dbsMeta, int i) {
-            final String dbName = dbsMeta.getDbName() + ((i > -1) ? i : StringUtils.EMPTY);
-            String jdbcUrl = "jdbc:mysql://" + ip + ":" + dbsMeta.getPort() + "/" + dbName + "?useUnicode=yes&amp;characterEncoding=utf8";
-            final String dbDefinitionId = dbsMeta.getDbDefineId() + ((i > -1) ? i : StringUtils.EMPTY);
-            log.info("create dbbean:" + dbDefinitionId + ",jdbc url:" + jdbcUrl);
-            createDefinition(dbDefinitionId, "com.mysql.jdbc.Driver", jdbcUrl, dbsMeta.getUserName(), dbsMeta.getPassword());
-        }
+		private void createDBLinkDefinition(String ip, DBLinkMetaData dbsMeta, int i) {
+			final String dbName = dbsMeta.getDbName() + ((i > -1) ? i : StringUtils.EMPTY);
+			String jdbcUrl = "jdbc:mysql://" + ip + ":" + dbsMeta.getPort() + "/" + dbName
+					+ "?useUnicode=yes&amp;characterEncoding=utf8";
+			final String dbDefinitionId = dbsMeta.getDbDefineId() + ((i > -1) ? i : StringUtils.EMPTY);
+			log.info("create dbbean:" + dbDefinitionId + ",jdbc url:" + jdbcUrl);
+			createDefinition(dbDefinitionId, "com.mysql.jdbc.Driver", jdbcUrl, dbsMeta.getUserName(),
+					dbsMeta.getPassword());
+		}
 
-        protected abstract void createDefinition(String dbDefinitionId, String driverClassName, String jdbcUrl, String userName, String password);
+		protected abstract void createDefinition(String dbDefinitionId, String driverClassName, String jdbcUrl,
+				String userName, String password);
 
-        public void setApplicationContext() throws BeansException {
-            String[] splitInfo = null;
-            String ip = null;
-            int startDb, endDb;
-            for (DBLinkMetaData dbsMeta : dbMetaList) {
-                for (String dbs : StringUtils.split(dbsMeta.getHostEmnu(), ",")) {
-                    splitInfo = StringUtils.split(dbs, "_");
-                    if (splitInfo.length == 1) {
-                        ip = dbs;
-                        createDBLinkDefinition(getHostIpAddress(ip), dbsMeta, -1);
-                    } else if (splitInfo.length == 2) {
-                        ip = getHostIpAddress(splitInfo[0]);
-                        startDb = Integer.parseInt(splitInfo[1]);
-                        createDBLinkDefinition(ip, dbsMeta, startDb);
-                    } else if (splitInfo.length == 3) {
-                        ip = getHostIpAddress(splitInfo[0]);
-                        startDb = Integer.parseInt(splitInfo[1]);
-                        endDb = Integer.parseInt(splitInfo[2]);
-                        for (int i = startDb; i <= endDb; i++) {
-                            createDBLinkDefinition(ip, dbsMeta, i);
-                        }
-                    }
-                }
-            }
-        }
+		public void setApplicationContext() throws BeansException {
+			String[] splitInfo = null;
+			String ip = null;
+			int startDb, endDb;
+			for (DBLinkMetaData dbsMeta : dbMetaList) {
+				for (String dbs : StringUtils.split(dbsMeta.getHostEmnu(), ",")) {
+					splitInfo = StringUtils.split(dbs, "_");
+					if (splitInfo.length == 1) {
+						ip = dbs;
+						createDBLinkDefinition(getHostIpAddress(ip), dbsMeta, -1);
+					} else if (splitInfo.length == 2) {
+						ip = getHostIpAddress(splitInfo[0]);
+						startDb = Integer.parseInt(splitInfo[1]);
+						createDBLinkDefinition(ip, dbsMeta, startDb);
+					} else if (splitInfo.length == 3) {
+						ip = getHostIpAddress(splitInfo[0]);
+						startDb = Integer.parseInt(splitInfo[1]);
+						endDb = Integer.parseInt(splitInfo[2]);
+						for (int i = startDb; i <= endDb; i++) {
+							createDBLinkDefinition(ip, dbsMeta, i);
+						}
+					}
+				}
+			}
+		}
 
-        /**
-         * 将host转成IP地址
-         *
-         * @param ip
-         * @return
-         */
-        protected String getHostIpAddress(String ip) {
-            try {
-                InetAddress address = InetAddress.getByName(ip);
-                return address.getHostAddress();
-            } catch (UnknownHostException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+		/**
+		 * 将host转成IP地址
+		 *
+		 * @param ip
+		 * @return
+		 */
+		protected String getHostIpAddress(String ip) {
+			try {
+				InetAddress address = InetAddress.getByName(ip);
+				return address.getHostAddress();
+			} catch (UnknownHostException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 
-    // private static final String userName = "order";
-    // private static final String password = "order@552208";
-    // static void setApplicationContext(DefaultListableBeanFactory factory,
-    // List<DBLinkMetaData> dbMetaList) throws BeansException {
-    // DefaultListableBeanFactory beanFactory = factory;
-    // 
-    // String[] splitInfo = null;
-    // String ip = null;
-    // int startDb, endDb;
-    // 
-    // for (DBLinkMetaData dbsMeta : dbMetaList) {
-    // 
-    // for (String dbs : StringUtils.split(dbsMeta.getHostEmnu(), ",")) {
-    // splitInfo = StringUtils.split(dbs, "_");
-    // if (splitInfo.length == 1) {
-    // ip = dbs;
-    // createDBLinkDefinition(beanFactory, ip, dbsMeta, -1);
-    // } else if (splitInfo.length == 3) {
-    // ip = splitInfo[0];
-    // startDb = Integer.parseInt(splitInfo[1]);
-    // endDb = Integer.parseInt(splitInfo[2]);
-    // for (int i = startDb; i <= endDb; i++) {
-    // createDBLinkDefinition(beanFactory, ip, dbsMeta, i);
-    // }
-    // }
-    // }
-    // }
-    // }
-    // /**
-    // * @param beanFactory
-    // * @param ip
-    // * @param dbsMeta
-    // * @param i
-    // */
-    // private static void createDBLinkDefinition(
-    // DefaultListableBeanFactory beanFactory, String ip,
-    // DBLinkMetaData dbsMeta, int i) {
-    // 
-    // }
-    private ApplicationContext applicationContext;
+	// private static final String userName = "order";
+	// private static final String password = "order@552208";
+	// static void setApplicationContext(DefaultListableBeanFactory factory,
+	// List<DBLinkMetaData> dbMetaList) throws BeansException {
+	// DefaultListableBeanFactory beanFactory = factory;
+	//
+	// String[] splitInfo = null;
+	// String ip = null;
+	// int startDb, endDb;
+	//
+	// for (DBLinkMetaData dbsMeta : dbMetaList) {
+	//
+	// for (String dbs : StringUtils.split(dbsMeta.getHostEmnu(), ",")) {
+	// splitInfo = StringUtils.split(dbs, "_");
+	// if (splitInfo.length == 1) {
+	// ip = dbs;
+	// createDBLinkDefinition(beanFactory, ip, dbsMeta, -1);
+	// } else if (splitInfo.length == 3) {
+	// ip = splitInfo[0];
+	// startDb = Integer.parseInt(splitInfo[1]);
+	// endDb = Integer.parseInt(splitInfo[2]);
+	// for (int i = startDb; i <= endDb; i++) {
+	// createDBLinkDefinition(beanFactory, ip, dbsMeta, i);
+	// }
+	// }
+	// }
+	// }
+	// }
+	// /**
+	// * @param beanFactory
+	// * @param ip
+	// * @param dbsMeta
+	// * @param i
+	// */
+	// private static void createDBLinkDefinition(
+	// DefaultListableBeanFactory beanFactory, String ip,
+	// DBLinkMetaData dbsMeta, int i) {
+	//
+	// }
+	private ApplicationContext applicationContext;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        // 校验bean 是否正确
-        String[] dbs = StringUtils.split(processDbs, ";");
-        DataSource ds = null;
-        StringBuffer buffer = new StringBuffer();
-        for (String db : dbs) {
-            ds = (DataSource) applicationContext.getBean(db);
-            if (ds == null) {
-                throw new IllegalStateException("db:" + db + " is not defined");
-            }
-            if (!isOK(ds, buffer)) {
-                buffer.append(db).append(",");
-            }
-        }
-        if (buffer.length() > 0) {
-            log.error("db config has some error," + buffer);
-            throw new IllegalStateException("db has some error:" + buffer.toString());
-        }
-    }
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		// 校验bean 是否正确
+		String[] dbs = StringUtils.split(processDbs, ";");
+		DataSource ds = null;
+		StringBuffer buffer = new StringBuffer();
+		for (String db : dbs) {
+			ds = (DataSource) applicationContext.getBean(db);
+			if (ds == null) {
+				throw new IllegalStateException("db:" + db + " is not defined");
+			}
+			if (!isOK(ds, buffer)) {
+				buffer.append(db).append(",");
+			}
+		}
+		if (buffer.length() > 0) {
+			log.error("db config has some error," + buffer);
+			throw new IllegalStateException("db has some error:" + buffer.toString());
+		}
+	}
 
-    private boolean hasRrcordDbError = false;
+	private boolean hasRrcordDbError = false;
 
-    /**
-     * @param ds
-     * @throws SQLException
-     */
-    private boolean isOK(DataSource ds, StringBuffer errorRecord) throws SQLException {
-        try {
-            Connection conn;
-            Statement statement;
-            ResultSet result;
-            conn = ds.getConnection();
-            statement = conn.createStatement();
-            result = statement.executeQuery("select 1");
-            if (result.next()) {
-                if (result.getInt(1) != 1) {
-                    // "result shall be 1 but not");
-                    return false;
-                }
-            } else {
-                // throw new IllegalStateException("can not get result");
-                return false;
-            }
-            result.close();
-            statement.close();
-            conn.close();
-            return true;
-        } catch (Exception e) {
-            if (!hasRrcordDbError) {
-                errorRecord.append(ExceptionUtils.getStackTrace(e));
-                hasRrcordDbError = true;
-            }
-            return false;
-        }
-    }
+	/**
+	 * @param ds
+	 * @throws SQLException
+	 */
+	private boolean isOK(DataSource ds, StringBuffer errorRecord) throws SQLException {
+		try {
+			Connection conn;
+			Statement statement;
+			ResultSet result;
+			conn = ds.getConnection();
+			statement = conn.createStatement();
+			result = statement.executeQuery("select 1");
+			if (result.next()) {
+				if (result.getInt(1) != 1) {
+					// "result shall be 1 but not");
+					return false;
+				}
+			} else {
+				// throw new IllegalStateException("can not get result");
+				return false;
+			}
+			result.close();
+			statement.close();
+			conn.close();
+			return true;
+		} catch (Exception e) {
+			if (!hasRrcordDbError) {
+				errorRecord.append(ExceptionUtils.getStackTrace(e));
+				hasRrcordDbError = true;
+			}
+			return false;
+		}
+	}
 }

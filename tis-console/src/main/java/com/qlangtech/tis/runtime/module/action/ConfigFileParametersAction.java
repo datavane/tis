@@ -79,18 +79,22 @@ public class ConfigFileParametersAction extends BasicModule {
 	private static final String IP_PATTERN = "((25[0-5]|2[0-4]\\d|[1]{1}\\d{1}\\d{1}|[1-9]{1}\\d{1}|\\d{1})($|(?!\\.$)\\.)){4}";
 
 	private static final Pattern PATTERN_IP = Pattern.compile("^" + IP_PATTERN + "$");
+
+	private static final Pattern PATTERN_ZK_ADDRESS = Pattern.compile("([^/]+)(/.+)$");
 	// private static final Pattern PATTERN_IP_WITH_PORT = Pattern.compile("^" +
 	// IP_PATTERN + "\\:" + "$");
 
 	public static void main(String[] args) {
 
-		// Matcher matcher = PATTERN_IP_WITH_PORT.matcher("10.1.21.105:");
-		//
-		// if (matcher.matches()) {
-		// System.out.println("match");
-		// } else {
-		// System.out.println("not match");
-		// }
+		Matcher matcher = PATTERN_ZK_ADDRESS.matcher("10.1.21.202:2181,10.1.21.201:2181,10.1.21.200:2181/tis/7_6cloud");
+
+		if (matcher.matches()) {
+			System.out.println("match");
+			System.out.println(matcher.group(1));
+			System.out.println(matcher.group(2));
+		} else {
+			System.out.println("not match");
+		}
 
 	}
 
@@ -105,14 +109,27 @@ public class ConfigFileParametersAction extends BasicModule {
 							if (!super.validate(ctx, module, p)) {
 								return false;
 							}
+							Matcher matcher = PATTERN_ZK_ADDRESS.matcher(p.getValue());
+							if (!matcher.matches()) {
+								module.addErrorMessage(ctx, "ZK地址不符合规范:" + PATTERN_ZK_ADDRESS);
+								return false;
+							}
+
+							final String zkServer = matcher.group(1);
+							String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
+							if (StringUtils.endsWith(zkSubDir, "/")) {
+								zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
+								p.setValue(StringUtils.substring(p.getValue(), 0, p.getValue().length() - 1));
+							}
+
 							ZooKeeper zk = null;
 							try {
-								zk = new ZooKeeper(p.getValue(), 40000, null);
+								zk = new ZooKeeper(zkServer, 50000, null);
 								zk.getChildren("/", false);
 
-								ZkUtils.guaranteeExist(zk, "/tis");
-								ZkUtils.guaranteeExist(zk, "/tis-lock/dumpindex");
-								ZkUtils.guaranteeExist(zk, "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG);
+								ZkUtils.guaranteeExist(zk, zkSubDir + "/tis");
+								ZkUtils.guaranteeExist(zk, zkSubDir + "/tis-lock/dumpindex");
+								ZkUtils.guaranteeExist(zk, zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG);
 
 							} catch (Throwable e) {
 								module.addErrorMessage(ctx, p.getName() + "填写的地址不能连接Zookeeper主机");

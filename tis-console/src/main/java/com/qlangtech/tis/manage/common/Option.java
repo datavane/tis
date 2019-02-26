@@ -31,7 +31,7 @@ public class Option {
 
 	private final String name;
 
-	private final String value;
+	private String value;
 
 	public Option(String name, String value) {
 		super();
@@ -46,4 +46,9 @@ public class Option {
 	public String getValue() {
 		return this.value;
 	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
 }

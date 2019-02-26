@@ -29,16 +29,12 @@ package com.qlangtech.tis.pubhook.common;
  */
 public class GlobalConfigRepositoryHost {
 
-//    public static final String ONLINE_GlobalConfigRepositoryHost = "http://tis.2dfire-inc.com";
-//
-//    public static final String DAILY_GlobalConfigRepositoryHost = "http://10.1.29.227:8080";
+	private GlobalConfigRepositoryHost() {
+	}
 
-    private GlobalConfigRepositoryHost() {
-    }
-
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-    }
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+	}
 }

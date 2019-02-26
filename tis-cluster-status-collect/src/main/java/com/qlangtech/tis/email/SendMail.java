@@ -84,19 +84,6 @@ public class SendMail {
     private String password = "Hello1234";
 
     private String mail_from = "tis.service@2dfire.com";
-
-    // private String username = "baisui@2dfire.com";
-    // // 你的邮箱密码:
-    // private String password = "Hello1234";
-    // 
-    // private String mail_from = "baisui@2dfire.com";
-    // private String host = "vpn.gecareers.cn";
-    // // // 这个是你的邮箱用户名
-    // private String username = "tis@2dfire.tech";
-    // // 你的邮箱密码:
-    // private String password = "nX2izEe4xEmkQP";
-    // 
-    // private String mail_from = "tis@2dfire.tech";
     private String personalName = "TIS日报表";
 
     private static final String SSL_FACTORY = "javax.net.ssl.SSLSocketFactory";

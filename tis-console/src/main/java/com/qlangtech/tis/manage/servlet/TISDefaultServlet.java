@@ -3,8 +3,6 @@ package com.qlangtech.tis.manage.servlet;
 import org.eclipse.jetty.servlet.DefaultServlet;
 
 /**
- * @author 百岁（baisui@2dfire.com）
- *
  * @date 2019年2月20日
  */
 public class TISDefaultServlet extends DefaultServlet {

@@ -30,8 +30,7 @@
  <span>指定组内节点:</span><input type="checkbox" name="shardSpecificNode" id="shardSpecificNode" value="y"/>
   <label for="shardSpecificNode">是</label>
    <em style="color:#999999">该功能在组内节点多机房部署的情况下使用</em> 
- </p>  
-  
+ </p>
   </td>
  </tr>
  <tr>

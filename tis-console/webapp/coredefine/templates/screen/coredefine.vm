@@ -6,7 +6,7 @@
 
 <fieldset style="padding-left:50px;padding-right:50px">
 <legend>
- 定义索引-第二步(选择候选机器 )</legend> 
+ 定义索引-第二步(选择候选机器)</legend> 
  <table width="100%">
  <tr>
  <td align="right" >
@@ -17,7 +17,7 @@
    </td>
  </tr>
  <tr>
- <td width="30%"> <button onclick="freshSelectableNode();return false;" >刷新</button> 
+ <td width="30%"> <button onclick="freshSelectableNode();return false;">刷新</button> 
    filter:<input type="text" oninput="filter_onchange(this)" name="filter"  />
 #*
 <span > core文件副本：</span>
@@ -32,8 +32,6 @@
 *# 
  
    </td>
- 
- 
  </tr>
  <tr>
  <td colspan="2">
@@ -69,6 +67,8 @@
 </fieldset>
  </form>
 <script>
+
+ 
 
   function freshSelectableNode(){
   

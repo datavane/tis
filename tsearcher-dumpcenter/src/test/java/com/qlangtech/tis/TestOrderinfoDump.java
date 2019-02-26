@@ -23,18 +23,6 @@
  */
 package com.qlangtech.tis;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorCompletionService;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import com.qlangtech.tis.common.config.IServiceConfig;
-import com.qlangtech.tis.hdfs.client.bean.BasicTerminatorClient;
-import com.qlangtech.tis.hdfs.client.bean.HdfsRealTimeTerminatorBean;
-import com.qlangtech.tis.hdfs.client.bean.MockWorkflowFeedback;
-import com.qlangtech.tis.trigger.socket.IWorkflowFeedback;
 import junit.framework.TestCase;
 
 /* *
@@ -43,50 +31,4 @@ import junit.framework.TestCase;
  */
 public class TestOrderinfoDump extends TestCase {
 
-    public static final ClassPathXmlApplicationContext context;
-
-    static {
-        context = new ClassPathXmlApplicationContext("/search4dfireorderinfo.xml") {
-
-            protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-                DefaultListableBeanFactory factory = (DefaultListableBeanFactory) beanFactory;
-                // OrderCenterDataSourceRegister.setApplicationContext(factory);
-                super.prepareBeanFactory(beanFactory);
-            }
-        };
-        System.out.println("order30:" + context.getBean("order30"));
-        System.out.println("static initialize ");
-    }
-
-    @SuppressWarnings("all")
-    public void testImport() throws Exception {
-        // 
-        Map<String, HdfsRealTimeTerminatorBean> beans = context.getBeansOfType(HdfsRealTimeTerminatorBean.class);
-        final Date startTime = new Date();
-        final IWorkflowFeedback workflowFeedback = new MockWorkflowFeedback();
-        ExecutorCompletionService<DumpResult> executeService = new ExecutorCompletionService(BasicTerminatorClient.threadPool);
-        int dumpJobCount = 0;
-        for (final HdfsRealTimeTerminatorBean dumpBean : beans.values()) {
-            executeService.submit(new Callable<DumpResult>() {
-
-                @Override
-                public DumpResult call() throws Exception {
-                    // return dumpResult;
-                    return null;
-                }
-            });
-            dumpJobCount++;
-        }
-        DumpResult dumpResult = null;
-        for (int i = 0; i < dumpJobCount; i++) {
-            dumpResult = executeService.take().get();
-            System.out.println("dump job:" + dumpResult.serviceConfig.getServiceName() + " complete!!!");
-        }
-        System.out.println("all over ");
-    }
-
-    private class DumpResult {
-
-        private IServiceConfig serviceConfig;
-    }
 }
