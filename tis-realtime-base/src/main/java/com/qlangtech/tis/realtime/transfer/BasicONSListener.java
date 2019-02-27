@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.OnReconnect;
@@ -50,24 +51,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.InitializingBean;
+
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.google.common.util.concurrent.RateLimiter;
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
+import com.qlangtech.tis.manage.common.SendSMSUtils;
+import com.qlangtech.tis.realtime.core.AsyncMsg;
+import com.qlangtech.tis.realtime.core.ConsumerHandle;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultFocusTags;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultPk;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultPojo;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultTable;
 import com.qlangtech.tis.solrj.extend.TisCloudSolrClient;
-import com.google.common.util.concurrent.RateLimiter;
-import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
-import com.qlangtech.tis.manage.common.SendSMSUtils;
 import com.qlangtech.tis.wangjubao.jingwei.Table;
 import com.qlangtech.tis.wangjubao.jingwei.TableCluster;
 import com.qlangtech.tis.wangjubao.jingwei.TableClusterParser;
-import com.twodfire.async.message.client.consumer.ConsumerHandle;
-import com.twodfire.async.message.client.to.AsyncMsg;
 
-/* *
+
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
@@ -155,8 +158,9 @@ public abstract class BasicONSListener extends ConsumerHandle implements Initial
         return StringUtils.EMPTY;
     }
 
-    /**
-     * 消费ons发送过来的增量消息
+  
+	/**
+     * MQ发送过来的增量消息
      *
      * @param event
      */
@@ -385,7 +389,7 @@ public abstract class BasicONSListener extends ConsumerHandle implements Initial
     public void afterPropertiesSet() throws Exception {
         MDC.put("app", this.getCollectionName());
         try {
-            final String fieldTransferPath = "com/dfire/tis/realtime/transfer/" + this.getCollectionName() + "/field-transfer.xml";
+            final String fieldTransferPath = "com/qlangtech/tis/realtime/transfer/" + this.getCollectionName() + "/field-transfer.xml";
             TableClusterParser parser = new TableClusterParser();
             try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(fieldTransferPath)) {
                 if (inputStream == null) {

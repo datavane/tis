@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2016/12/23.
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

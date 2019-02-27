@@ -37,7 +37,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2017/1/17.
  * <p>
  * <p>
  * <p>

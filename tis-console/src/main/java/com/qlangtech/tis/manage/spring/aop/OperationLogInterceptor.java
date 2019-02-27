@@ -30,7 +30,7 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
 /**
  * 执行操作拦截器
  * 
- * @author 百岁（baisui@2dfire.com）
+ * @author 百岁
  *
  * @date 2019年2月18日
  */
@@ -88,7 +88,7 @@ public class OperationLogInterceptor extends MethodFilterInterceptor {
 					operationLog.setUsrId(user.getId());
 					operationLog.setUsrName(user.getName());
 					operationLog.setCreateTime(new Date());
-					operationLog.setOpDesc(getRequestDesc());
+					operationLog.setOpDesc(getRequestDesc(app));
 					operationLogDAO.insertSelective(operationLog);
 				}
 			} catch (Throwable e) {
@@ -97,7 +97,7 @@ public class OperationLogInterceptor extends MethodFilterInterceptor {
 		}
 	}
 
-	private String getRequestDesc() {
+	private String getRequestDesc(AppDomainInfo app) {
 		HttpServletRequest request = ServletActionContext.getRequest();
 		StringBuffer desc = new StringBuffer();
 		Enumeration<String> paramEnum = request.getParameterNames();
@@ -110,6 +110,7 @@ public class OperationLogInterceptor extends MethodFilterInterceptor {
 			desc.append(key).append("=").append( //
 					StringUtils.substring(request.getParameter(key), 0, 200)).append("\n");
 		}
+		desc.append("collection=").append(app.getAppName());
 		return desc.toString();
 	}
 

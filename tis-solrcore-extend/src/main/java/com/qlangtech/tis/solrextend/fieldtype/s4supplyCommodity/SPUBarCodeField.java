@@ -42,7 +42,6 @@ import org.apache.solr.schema.SchemaField;
 import org.apache.solr.schema.TextField;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2016/12/24.
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

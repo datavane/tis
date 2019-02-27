@@ -47,6 +47,9 @@ var TIS = {
                }
                errhtml+="</ul>";
                layer.msg(errhtml, {icon: 5});
+               if(spec.faild){
+                 spec.faild(data);
+               }
             }else{
                 if(!data.success){
                    layer.msg("系统错误<br/><pre>"+data.stacktrace+"</pre>", {icon: 5});
@@ -59,6 +62,9 @@ var TIS = {
 	   error:function(XMLHttpRequest,textStatus,errorThrown){
 		    layer.closeAll('loading');
             layer.msg('服务端有错误', {icon: 5});
+            if(spec.faild){
+               spec.faild(data);
+            }
 		},
 	   complete:function(XMLHttpRequest, textStatus){
 					

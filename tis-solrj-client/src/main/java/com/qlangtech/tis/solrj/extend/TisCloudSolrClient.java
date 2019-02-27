@@ -350,7 +350,6 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
 	// // HttpException, IOException {
 	// // Span span = (Span) context.getAttribute(TRACER_SPAN);
 	// // if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-	// // span.setTag(com.dfire.magiceye.Constants.RESPONSE_STATUS,
 	// // Config.STATUS.ERR.getType());
 	// // }
 	// // span.finish();

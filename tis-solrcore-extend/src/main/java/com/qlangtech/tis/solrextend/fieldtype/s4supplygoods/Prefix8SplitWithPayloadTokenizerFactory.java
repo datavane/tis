@@ -39,8 +39,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2017/1/17.<br>
- *http://k.2dfire.net/pages/viewpage.action?pageId=257622376<br>
  * warehouseId_days 在parser阶段需要将warhouseid 切分成两个terms<br>
  * warehouseId 从第9位开始到最后一位
  * warehouseId 前8位也就是selfentityid

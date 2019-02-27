@@ -70,7 +70,7 @@
 		<appender-ref ref="solr-request-appender" />
 	</logger>
 	
-	<logger name="com.dfire.tis">
+	<logger name="com.qlangtech.tis">
 		<level value="INFO" />
 		<appender-ref ref="solr-appender" />
 	</logger>

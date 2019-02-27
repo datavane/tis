@@ -184,7 +184,7 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 		Set<String> /* collection name */
 		includes = Collections.emptySet();
 		AppLauncherResource launcherResource = LauncherResourceUtils.getAppResource(includes,
-				"classpath*:com/dfire/tis/assemble/search4*/join.xml");
+				"classpath*:com/qlangtech/tis/assemble/search4*/join.xml");
 		indexs = Collections.unmodifiableList(launcherResource.getIndexNames());
 		FlumeApplication.startFlume();
 		logger.info("success start flume service");

@@ -376,7 +376,6 @@ public class TripleValueMapReduceComponent extends SearchComponent {
     /**
      * group by menukind
      *
-     * @author 百岁 baisui@2dfire.com
      * @date 2015年12月5日 下午2:23:47
      */
     public static class CountAndFee {

@@ -27,7 +27,6 @@ import com.qlangtech.tis.solrj.extend.ExtendCloudSolrClient;
 import org.apache.solr.client.solrj.io.stream.expr.StreamFactory;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 3/1/2017.
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

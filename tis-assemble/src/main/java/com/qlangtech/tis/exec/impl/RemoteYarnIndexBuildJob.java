@@ -66,203 +66,225 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 
-    // private static final Logger logger =
-    // LoggerFactory.getLogger(RemoteYarnIndexBuildJob.class);
-    private static final Logger logger = LoggerFactory.getLogger(RemoteYarnIndexBuildJob.class);
+	// private static final Logger logger =
+	// LoggerFactory.getLogger(RemoteYarnIndexBuildJob.class);
+	private static final Logger logger = LoggerFactory.getLogger(RemoteYarnIndexBuildJob.class);
 
-    /**
-     * @param processInfo
-     * @param group
-     *            第几组
-     * @param userName
-     */
-    public RemoteYarnIndexBuildJob(ImportDataProcessInfo processInfo, int group, String userName) {
-        super(processInfo, group, userName);
-    }
+	/**
+	 * @param processInfo
+	 * @param group
+	 *            第几组
+	 * @param userName
+	 */
+	public RemoteYarnIndexBuildJob(ImportDataProcessInfo processInfo, int group, String userName) {
+		super(processInfo, group, userName);
+	}
 
-    @Override
-    protected BuildResult buildSliceIndex(String coreName, String timePoint, DumpJobStatus statuss, String outPath, String serviceName) throws Exception, IOException, InterruptedException {
-        TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
-        // RunEnvironment.getEnum(config.getRunEnvironment());
-        RunEnvironment runtime = config.getRuntime();
-        final Path dest = new Path(YarnConstant.HDFS_GROUP_LIB_DIR + YarnConstant.INDEX_BUILD_JAR_DIR + '/' + runtime.getKeyName());
-        List<Path> libs = TISHdfsUtils.getLibPaths(StringUtils.EMPTY, dest);
-        YarnConfiguration conf = new YarnConfiguration();
-        conf.set("hadoop.job.ugi", "search");
-        conf.addResource(FileUtils.openInputStream(new File(YarnConstant.PATH_YARN_SITE)));
-        YarnClient yarnClient = YarnClient.createYarnClient();
-        yarnClient.init(conf);
-        yarnClient.start();
-        YarnClientApplication app = yarnClient.createApplication();
-        ApplicationSubmissionContext submissionContext = app.getApplicationSubmissionContext();
-        submissionContext.setMaxAppAttempts(100);
-        submissionContext.setKeepContainersAcrossApplicationAttempts(false);
-        final ApplicationId appid = submissionContext.getApplicationId();
-        submissionContext.setApplicationName(coreName + "-indexbuild");
-        ContainerLaunchContext amContainer = Records.newRecord(ContainerLaunchContext.class);
-        final String JAVA_HOME = "/usr/lib/java/jdk1.8.0_91";
-        final int memoryConsume = 3000;
-        amContainer.setCommands(Collections.singletonList(JAVA_HOME + "/bin/java " + getMemorySpec(memoryConsume) + getRemoteDebugParam(runtime) + " -Druntime=" + runtime.getKeyName() + " com.dfire.tis.build.yarn.BuildNodeMaster " + createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
-        setJarsLibs(amContainer, libs);
-        /* 运行依賴的環境變量 */
-        Map<String, String> environment = new HashMap<String, String>();
-        setEnvironment(environment, amContainer, conf, true);
-        submissionContext.setAMContainerSpec(amContainer);
-        // 使用4核10G的节点，原则上越大越好
-        Resource capability = Records.newRecord(Resource.class);
-        capability.setMemory(memoryConsume);
-        capability.setVirtualCores(3);
-        // submissionContext.setNodeLabelExpression(nodeLabelExpression);
-        submissionContext.setResource(capability);
-        submissionContext.setQueue("default");
-        Priority p = Records.newRecord(Priority.class);
-        p.setPriority(1000);
-        submissionContext.setPriority(p);
-        yarnClient.submitApplication(submissionContext);
-        logger.info("success to submit");
-        ApplicationReport appReport = yarnClient.getApplicationReport(appid);
-        logger.info("get app report,appid:" + appid);
-        YarnApplicationState appState = appReport.getYarnApplicationState();
-        FinalApplicationStatus finalStatus = appReport.getFinalApplicationStatus();
-        while (appState != YarnApplicationState.RUNNING && appState != YarnApplicationState.KILLED && appState != YarnApplicationState.FAILED && appState != YarnApplicationState.FINISHED) {
-            logger.info("waitting:" + coreName + " ,build task wait launch,current:" + appState);
-            Thread.sleep(2000);
-            appReport = yarnClient.getApplicationReport(appid);
-            appState = appReport.getYarnApplicationState();
-            finalStatus = appReport.getFinalApplicationStatus();
-        }
-        while (appState == YarnApplicationState.RUNNING) {
-            logger.info("slice:" + coreName + " ,progress:" + appReport.getProgress());
-            Thread.sleep(2000);
-            appReport = yarnClient.getApplicationReport(appid);
-            appState = appReport.getYarnApplicationState();
-            finalStatus = appReport.getFinalApplicationStatus();
-        }
-        BuildResult result = new BuildResult(Integer.parseInt(groupNum), this.state);
-        result.setSuccess(true);
-        if (appState == YarnApplicationState.KILLED || appState == YarnApplicationState.FAILED || finalStatus != FinalApplicationStatus.SUCCEEDED) {
-            logger.error("slice:" + coreName + " ,build result:" + appState + "\n finalStatus:" + finalStatus + "\ndiagnostics:" + appReport.getDiagnostics());
-            result.setSuccess(false);
-        } else {
-            logger.info("core:" + coreName + " app (" + appid + ") is " + appState);
-        }
-        return result;
-    }
+	@Override
+	protected BuildResult buildSliceIndex(String coreName, String timePoint, DumpJobStatus statuss, String outPath,
+			String serviceName) throws Exception, IOException, InterruptedException {
+		TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
+		// RunEnvironment.getEnum(config.getRunEnvironment());
+		RunEnvironment runtime = config.getRuntime();
+		final Path dest = new Path(
+				YarnConstant.HDFS_GROUP_LIB_DIR + YarnConstant.INDEX_BUILD_JAR_DIR + '/' + runtime.getKeyName());
+		List<Path> libs = TISHdfsUtils.getLibPaths(StringUtils.EMPTY, dest);
+		YarnConfiguration conf = new YarnConfiguration();
+		conf.set("hadoop.job.ugi", "search");
+		conf.addResource(FileUtils.openInputStream(new File(YarnConstant.PATH_YARN_SITE)));
+		YarnClient yarnClient = YarnClient.createYarnClient();
+		yarnClient.init(conf);
+		yarnClient.start();
+		YarnClientApplication app = yarnClient.createApplication();
+		ApplicationSubmissionContext submissionContext = app.getApplicationSubmissionContext();
+		submissionContext.setMaxAppAttempts(100);
+		submissionContext.setKeepContainersAcrossApplicationAttempts(false);
+		final ApplicationId appid = submissionContext.getApplicationId();
+		submissionContext.setApplicationName(coreName + "-indexbuild");
+		ContainerLaunchContext amContainer = Records.newRecord(ContainerLaunchContext.class);
+		final String JAVA_HOME = "/usr/lib/java/jdk1.8.0_91";
+		final int memoryConsume = 3000;
+		amContainer.setCommands(Collections
+				.singletonList(JAVA_HOME + "/bin/java " + getMemorySpec(memoryConsume) + getRemoteDebugParam(runtime)
+						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.BuildNodeMaster "
+						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
+						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
+		setJarsLibs(amContainer, libs);
+		/* 运行依賴的環境變量 */
+		Map<String, String> environment = new HashMap<String, String>();
+		setEnvironment(environment, amContainer, conf, true);
+		submissionContext.setAMContainerSpec(amContainer);
+		// 使用4核10G的节点，原则上越大越好
+		Resource capability = Records.newRecord(Resource.class);
+		capability.setMemory(memoryConsume);
+		capability.setVirtualCores(3);
+		// submissionContext.setNodeLabelExpression(nodeLabelExpression);
+		submissionContext.setResource(capability);
+		submissionContext.setQueue("default");
+		Priority p = Records.newRecord(Priority.class);
+		p.setPriority(1000);
+		submissionContext.setPriority(p);
+		yarnClient.submitApplication(submissionContext);
+		logger.info("success to submit");
+		ApplicationReport appReport = yarnClient.getApplicationReport(appid);
+		logger.info("get app report,appid:" + appid);
+		YarnApplicationState appState = appReport.getYarnApplicationState();
+		FinalApplicationStatus finalStatus = appReport.getFinalApplicationStatus();
+		while (appState != YarnApplicationState.RUNNING && appState != YarnApplicationState.KILLED
+				&& appState != YarnApplicationState.FAILED && appState != YarnApplicationState.FINISHED) {
+			logger.info("waitting:" + coreName + " ,build task wait launch,current:" + appState);
+			Thread.sleep(2000);
+			appReport = yarnClient.getApplicationReport(appid);
+			appState = appReport.getYarnApplicationState();
+			finalStatus = appReport.getFinalApplicationStatus();
+		}
+		while (appState == YarnApplicationState.RUNNING) {
+			logger.info("slice:" + coreName + " ,progress:" + appReport.getProgress());
+			Thread.sleep(2000);
+			appReport = yarnClient.getApplicationReport(appid);
+			appState = appReport.getYarnApplicationState();
+			finalStatus = appReport.getFinalApplicationStatus();
+		}
+		BuildResult result = new BuildResult(Integer.parseInt(groupNum), this.state);
+		result.setSuccess(true);
+		if (appState == YarnApplicationState.KILLED || appState == YarnApplicationState.FAILED
+				|| finalStatus != FinalApplicationStatus.SUCCEEDED) {
+			logger.error("slice:" + coreName + " ,build result:" + appState + "\n finalStatus:" + finalStatus
+					+ "\ndiagnostics:" + appReport.getDiagnostics());
+			result.setSuccess(false);
+		} else {
+			logger.info("core:" + coreName + " app (" + appid + ") is " + appState);
+		}
+		return result;
+	}
 
-    protected String getMemorySpec(int memoryConsume) {
-        final int javaMemory = (int) (memoryConsume * 0.9);
-        return " -Xms" + javaMemory + "m -Xmx" + javaMemory + "m";
-    }
+	protected String getMemorySpec(int memoryConsume) {
+		final int javaMemory = (int) (memoryConsume * 0.9);
+		return " -Xms" + javaMemory + "m -Xmx" + javaMemory + "m";
+	}
 
-    protected String getRemoteDebugParam(RunEnvironment runtime) {
-        return (runtime == RunEnvironment.DAILY) ? " -Xrunjdwp:transport=dt_socket,address=9890,suspend=n,server=y " : StringUtils.EMPTY;
-    }
+	protected String getRemoteDebugParam(RunEnvironment runtime) {
+		return (runtime == RunEnvironment.DAILY) ? " -Xrunjdwp:transport=dt_socket,address=9890,suspend=n,server=y "
+				: StringUtils.EMPTY;
+	}
 
-    private StringBuffer createLauncherParam() {
-        final String username = "admin";
-        final String coreName = state.getIndexName() + '-' + groupNum;
-        TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
-        JobConf jobConf = new JobConf();
-        // 设置记录条数
-        if (state.getDumpCount() != null) {
-            jobConf.set(IndexBuildParam.INDEXING_ROW_COUNT, String.valueOf(state.getDumpCount()));
-        }
-        jobConf.set(IndexBuildParam.INDEXING_SOURCE_FS_NAME, config.getHdfsAddress());
-        jobConf.set(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS, state.getBuildTableTitleItems());
-        String outPath = ImportDataProcessInfo.createIndexDir(username, state.getTimepoint(), groupNum, state.getIndexName(), false);
-        jobConf.set(IndexBuildParam.INDEXING_OUTPUT_PATH, outPath);
-        String hdfsSourcePath = state.getHdfsSourcePath() == null ? ImportDataProcessInfo.createIndexDir(username, state.getTimepoint(), groupNum, state.getIndexName(), true) : state.getHdfsSourcePath().build(groupNum);
-        jobConf.set(IndexBuildParam.INDEXING_SOURCE_PATH, hdfsSourcePath);
-        final String schemaPath = "/user/" + username + "/" + coreName + "/config/" + ConfigFileReader.FILE_SCHEMA.getFileName();
-        final String solrConifgPath = "/user/" + username + "/" + coreName + "/config/" + ConfigFileReader.FILE_SOLOR.getFileName();
-        jobConf.set(IndexBuildParam.INDEXING_SCHEMA_PATH, schemaPath);
-        jobConf.set(IndexBuildParam.INDEXING_SOLRCONFIG_PATH, solrConifgPath);
-        // "indexing.servicename"
-        jobConf.set(IndexBuildParam.INDEXING_SERVICE_NAME, state.getIndexName());
-        // "indexing.corename"
-        jobConf.set(IndexBuildParam.INDEXING_CORE_NAME, coreName);
-        // "indexing.maxNumSegments"
-        jobConf.set(IndexBuildParam.INDEXING_MAX_NUM_SEGMENTS, String.valueOf(1));
-        // "indexing.username"
-        jobConf.set(IndexBuildParam.INDEXING_USER_NAME, username);
-        // "indexing.incrtime"
-        jobConf.set(IndexBuildParam.INDEXING_INCR_TIME, state.getTimepoint());
-        // "indexing.groupnum"
-        jobConf.set(IndexBuildParam.INDEXING_GROUP_NUM, groupNum);
-        if (StringUtils.isNotBlank(state.getHdfsdelimiter())) {
-            // "indexing.delimiter"
-            jobConf.set(IndexBuildParam.INDEXING_DELIMITER, state.getHdfsdelimiter());
-        }
-        // "job.solrversion"
-        jobConf.set(IndexBuildParam.INDEXING_SOLR_VERSION, UISVersion.isDataCenterCollection(state.getIndexName()) ? UISVersion.SOLR_VERSION_6 : UISVersion.SOLR_VERSION_5);
-        jobConf.set(IndexBuildParam.INDEXING_SOURCE_TYPE, "HDFS");
-        return jobConf.paramSerialize();
-    }
+	private StringBuffer createLauncherParam() {
+		final String username = "admin";
+		final String coreName = state.getIndexName() + '-' + groupNum;
+		TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
+		JobConf jobConf = new JobConf();
+		// 设置记录条数
+		if (state.getDumpCount() != null) {
+			jobConf.set(IndexBuildParam.INDEXING_ROW_COUNT, String.valueOf(state.getDumpCount()));
+		}
+		jobConf.set(IndexBuildParam.INDEXING_SOURCE_FS_NAME, config.getHdfsAddress());
+		jobConf.set(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS, state.getBuildTableTitleItems());
+		String outPath = ImportDataProcessInfo.createIndexDir(username, state.getTimepoint(), groupNum,
+				state.getIndexName(), false);
+		jobConf.set(IndexBuildParam.INDEXING_OUTPUT_PATH, outPath);
+		String hdfsSourcePath = state.getHdfsSourcePath() == null ? ImportDataProcessInfo.createIndexDir(username,
+				state.getTimepoint(), groupNum, state.getIndexName(), true) : state.getHdfsSourcePath().build(groupNum);
+		jobConf.set(IndexBuildParam.INDEXING_SOURCE_PATH, hdfsSourcePath);
+		final String schemaPath = "/user/" + username + "/" + coreName + "/config/"
+				+ ConfigFileReader.FILE_SCHEMA.getFileName();
+		final String solrConifgPath = "/user/" + username + "/" + coreName + "/config/"
+				+ ConfigFileReader.FILE_SOLOR.getFileName();
+		jobConf.set(IndexBuildParam.INDEXING_SCHEMA_PATH, schemaPath);
+		jobConf.set(IndexBuildParam.INDEXING_SOLRCONFIG_PATH, solrConifgPath);
+		// "indexing.servicename"
+		jobConf.set(IndexBuildParam.INDEXING_SERVICE_NAME, state.getIndexName());
+		// "indexing.corename"
+		jobConf.set(IndexBuildParam.INDEXING_CORE_NAME, coreName);
+		// "indexing.maxNumSegments"
+		jobConf.set(IndexBuildParam.INDEXING_MAX_NUM_SEGMENTS, String.valueOf(1));
+		// "indexing.username"
+		jobConf.set(IndexBuildParam.INDEXING_USER_NAME, username);
+		// "indexing.incrtime"
+		jobConf.set(IndexBuildParam.INDEXING_INCR_TIME, state.getTimepoint());
+		// "indexing.groupnum"
+		jobConf.set(IndexBuildParam.INDEXING_GROUP_NUM, groupNum);
+		if (StringUtils.isNotBlank(state.getHdfsdelimiter())) {
+			// "indexing.delimiter"
+			jobConf.set(IndexBuildParam.INDEXING_DELIMITER, state.getHdfsdelimiter());
+		}
+		// "job.solrversion"
+		jobConf.set(IndexBuildParam.INDEXING_SOLR_VERSION, UISVersion.isDataCenterCollection(state.getIndexName())
+				? UISVersion.SOLR_VERSION_6 : UISVersion.SOLR_VERSION_5);
+		jobConf.set(IndexBuildParam.INDEXING_SOURCE_TYPE, "HDFS");
+		return jobConf.paramSerialize();
+	}
 
-    private static class JobConf {
+	private static class JobConf {
 
-        private Map<String, String> params = new HashMap<>();
+		private Map<String, String> params = new HashMap<>();
 
-        void set(String key, String value) {
-            this.params.put(key, value);
-        }
+		void set(String key, String value) {
+			this.params.put(key, value);
+		}
 
-        public StringBuffer paramSerialize() {
-            StringBuffer buffer = new StringBuffer();
-            for (Map.Entry<String, String> entry : params.entrySet()) {
-                if (StringUtils.isBlank(entry.getValue())) {
-                    continue;
-                }
-                buffer.append(" -").append(entry.getKey()).append(" ").append(entry.getValue());
-            }
-            logger.info("main(String[] args),param:" + buffer.toString());
-            return buffer;
-        }
-    }
+		public StringBuffer paramSerialize() {
+			StringBuffer buffer = new StringBuffer();
+			for (Map.Entry<String, String> entry : params.entrySet()) {
+				if (StringUtils.isBlank(entry.getValue())) {
+					continue;
+				}
+				buffer.append(" -").append(entry.getKey()).append(" ").append(entry.getValue());
+			}
+			logger.info("main(String[] args),param:" + buffer.toString());
+			return buffer;
+		}
+	}
 
-    public static void start(String[] args) throws Exception {
-    }
+	public static void start(String[] args) throws Exception {
+	}
 
-    private static void setEnvironment(Map<String, String> environment, ContainerLaunchContext ctx, YarnConfiguration conf, boolean includeHadoopJars) throws IOException {
-        Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), Environment.PWD.$() + File.separator + "*", File.pathSeparator);
-        if (includeHadoopJars) {
-            Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/cloudera/parcels/CDH/lib/hadoop-yarn/*", File.pathSeparator);
-            Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/cloudera/parcels/CDH/lib/hadoop-hdfs/*", File.pathSeparator);
-            Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/cloudera/parcels/CDH/lib/hadoop/*", File.pathSeparator);
-            Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/cloudera/parcels/CDH/lib/hadoop/lib/*", File.pathSeparator);
-            Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/cloudera/parcels/CDH/lib/hadoop-mapreduce/*", File.pathSeparator);
-        }
-        ctx.setEnvironment(environment);
-        logger.info("classpath:" + environment.get(Environment.CLASSPATH.name()));
-    }
+	private static void setEnvironment(Map<String, String> environment, ContainerLaunchContext ctx,
+			YarnConfiguration conf, boolean includeHadoopJars) throws IOException {
+		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), Environment.PWD.$() + File.separator + "*",
+				File.pathSeparator);
+		if (includeHadoopJars) {
+			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+					"/opt/cloudera/parcels/CDH/lib/hadoop-yarn/*", File.pathSeparator);
+			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+					"/opt/cloudera/parcels/CDH/lib/hadoop-hdfs/*", File.pathSeparator);
+			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/cloudera/parcels/CDH/lib/hadoop/*",
+					File.pathSeparator);
+			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+					"/opt/cloudera/parcels/CDH/lib/hadoop/lib/*", File.pathSeparator);
+			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+					"/opt/cloudera/parcels/CDH/lib/hadoop-mapreduce/*", File.pathSeparator);
+		}
+		ctx.setEnvironment(environment);
+		logger.info("classpath:" + environment.get(Environment.CLASSPATH.name()));
+	}
 
-    private static void setJarsLibs(ContainerLaunchContext amContainer, List<Path> libs) {
-        Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
-        for (Path l : libs) {
-            localResources.put(l.getName(), setupAppJar(l));
-        }
-        amContainer.setLocalResources(localResources);
-    }
+	private static void setJarsLibs(ContainerLaunchContext amContainer, List<Path> libs) {
+		Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
+		for (Path l : libs) {
+			localResources.put(l.getName(), setupAppJar(l));
+		}
+		amContainer.setLocalResources(localResources);
+	}
 
-    private static LocalResource setupAppJar(Path jarPath) {
-        try {
-            LocalResource localResource = Records.newRecord(LocalResource.class);
-            FileStatus jarStat = TISHdfsUtils.getFileSystem().getFileStatus(jarPath);
-            URL resURI = ConverterUtils.getYarnUrlFromPath(jarStat.getPath());
-            localResource.setResource(resURI);
-            localResource.setSize(jarStat.getLen());
-            localResource.setTimestamp(jarStat.getModificationTime());
-            localResource.setType(LocalResourceType.FILE);
-            localResource.setVisibility(LocalResourceVisibility.APPLICATION);
-            return localResource;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+	private static LocalResource setupAppJar(Path jarPath) {
+		try {
+			LocalResource localResource = Records.newRecord(LocalResource.class);
+			FileStatus jarStat = TISHdfsUtils.getFileSystem().getFileStatus(jarPath);
+			URL resURI = ConverterUtils.getYarnUrlFromPath(jarStat.getPath());
+			localResource.setResource(resURI);
+			localResource.setSize(jarStat.getLen());
+			localResource.setTimestamp(jarStat.getModificationTime());
+			localResource.setType(LocalResourceType.FILE);
+			localResource.setVisibility(LocalResourceVisibility.APPLICATION);
+			return localResource;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

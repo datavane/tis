@@ -272,8 +272,6 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 	/**
 	 * 索引回流执行状态
 	 *
-	 * @author 百岁（baisui@2dfire.com）
-	 *
 	 * @date 2016年8月18日
 	 */
 	public static class IndexBackflowStatus {

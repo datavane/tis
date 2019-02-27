@@ -19,7 +19,7 @@
 		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
 		<assembly-include.base.directory>true</assembly-include.base.directory>
 		<springboot.version>1.4.0.RELEASE</springboot.version>
-		<dfire.springboot.version>1.1.9</dfire.springboot.version>
+		
 	</properties>
 	<dependencies>
 

@@ -43,7 +43,7 @@ public class TestTisNRTCachingDirectoryFactory extends TestCase {
         TisNRTCachingDirectoryFactory factory = new TisNRTCachingDirectoryFactory();
         NamedList<Object> namedList = new NamedList<Object>();
         DefaultTisCoreContext coreContext = new DefaultTisCoreContext();
-        coreContext.setCoreName("search4dfireOrderInfo_0");
+        coreContext.setCoreName("search4OrderInfo_0");
         // namedList.add(TisSolrConfig.TIS_CORE_DESC, coreContext);
         namedList.add("hdfshost", "hdfs://10.1.6.211:9000");
         factory.init(namedList);

@@ -101,56 +101,12 @@ public class TestCloudSSolrClient extends BasicTestCase {
             doc.setField("seat_id", "0000008321947c27012195a388ef12b2");
             doc.setField("is_autocommit", 0);
             doc.setField("audit_status", 0);
-            client.add("search4dfireOrderInfo", doc, System.currentTimeMillis());
+            client.add("search4OrderInfo", doc, System.currentTimeMillis());
             System.out.println("insert:" + count);
             Thread.sleep(10);
             count++;
-        // return;
         }
-    // client.commit("search4dfireOrderInfo", true, true, true);
-    // commit(String collection, boolean waitFlush, boolean waitSearcher,
-    // boolean softCommit)
+   
     }
-    // public void testUpdate(){
-    // 
-    // 
-    // 
-    // SolrInputDocument doc = new SolrInputDocument();
-    // 
-    // doc.setField("order_id", "99999999999999999996");
-    // doc.setField("last_ver", 1);
-    // doc.setField("is_print", 0);
-    // doc.setField("seat_code", "18");
-    // 
-    // doc.setField("entity_id", "00000241");
-    // doc.setField("outfee", 0);
-    // doc.setField("is_valid", 1);
-    // doc.setField("open_time", "1398945331159");
-    // doc.setField("simple_code", "986477");
-    // doc.setField("send_time", 0);
-    // doc.setField("people_count", 3);
-    // doc.setField("global_code", "20140501190556986477");
-    // doc.setField("order_from", 0);
-    // doc.setField("modify_time", 1398945331);
-    // doc.setField("is_wait", 0);
-    // doc.setField("curr_date", 20140501);
-    // doc.setField("paymode", 0);
-    // doc.setField("status", 1);
-    // doc.setField("totalpay_id", "0000024145b572e20145b77e23603174");
-    // doc.setField("load_time", 1398942868);
-    // doc.setField("code", 83);
-    // doc.setField("send_status", 0);
-    // doc.setField("end_time", 0);
-    // doc.setField("order_kind", 1);
-    // doc.setField("is_hide", 0);
-    // doc.setField("is_limittime", 0);
-    // doc.setField("create_time", "1398942868329");
-    // doc.setField("op_time", "1398945331159");
-    // doc.setField("seat_id", "0000008321947c27012195a388ef12b2");
-    // doc.setField("is_autocommit", 0);
-    // doc.setField("audit_status", 0);
-    // 
-    // client.("search4dfireOrderInfo", "group0", doc);
-    // client.commit("search4dfireOrderInfo", true, true, false);
-    // }
+   
 }

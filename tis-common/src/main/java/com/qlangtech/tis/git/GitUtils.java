@@ -105,7 +105,7 @@ public class GitUtils {
 		URL url = null;
 		try {
 			String filePath = getHiveJoinPath(collectionName);
-			url = new URL("http://git.2dfire-inc.com/api/v3/projects/" + WORKFLOW_GIT_PROJECT_ID
+			url = new URL("http://git.tis.com/api/v3/projects/" + WORKFLOW_GIT_PROJECT_ID
 					+ "/repository/files?file_path=" + filePath + "&ref="
 					+ (runtime == RunEnvironment.DAILY ? "develop" : "master"));
 			return getFileContent(url);

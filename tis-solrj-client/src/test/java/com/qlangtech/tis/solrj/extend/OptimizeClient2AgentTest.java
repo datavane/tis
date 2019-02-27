@@ -62,7 +62,7 @@ public class OptimizeClient2AgentTest extends TestCase {
     public void setUp() throws Exception {
         super.setUp();
         // 10.1.21.202:2181,10.1.21.201:2181,10.1.21.200:2181/tis/cloud
-        zkHost = "zk1.2dfire-daily.com:2181,zk2.2dfire-daily.com:2181,zk3.2dfire-daily.com:2181/tis/cloud";
+        zkHost = "zk1.qlangtech-daily.com:2181,zk2.qlangtech-daily.com:2181,zk3.qlangtech-daily.com:2181/tis/cloud";
         client = new TisCloudSolrClient(zkHost);
     }
 

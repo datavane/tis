@@ -323,6 +323,7 @@ public class ConfigFileParametersAction extends BasicModule {
 			return;
 		}
 
+
 		// 添加一个系统管理员
 		this.getUsrDptRelationDAO().addAdminUser();
 

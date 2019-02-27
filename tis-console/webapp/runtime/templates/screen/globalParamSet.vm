@@ -2,12 +2,15 @@
 <div style="width:800px;margin: 0 auto;">
 <h3>全局参数设置</h3>
 #showFormErrors("index")
-<form  method="post" action="$manageModule.setTarget("index")">
+<form id="globalparamform"  method="post" action="$manageModule.setTarget("index")">
+<fieldset >
 <input type="hidden" name="action" value="config_file_parameters_action"/>
+<input type="hidden" name="event_submit_do_init_parameter" value="y"/>
+
   <div class="form-group">
   <div style="float:right">
-   <input type="submit" style="width:4em;" class="btn btn-primary"
-     name="event_submit_do_init_parameter" value="提交" />
+   <button style="width:4em;" class="btn btn-primary"
+      onclick="incrGloabalParam();return false;">提交</button>
   </div>
    </div>
   
@@ -19,5 +22,26 @@
      <p class="tis-bg-info" >$item.desc</p>
   </div>
   #end
+</fieldset>
 </form>
 </div>
+<script>
+    //▼▼▼ start init global param
+    function incrGloabalParam(){
+          $("#globalparamform fieldset").prop("disabled",true);
+          TIS.ajax({url:'$manageModule.setTarget('index.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:  $('#globalparamform').serialize(),
+                success:function(data){ 
+                    showMessageDialog(data);
+                    window.location.reload();
+                },
+                faild:function(data){
+                 $("#globalparamform fieldset").prop("disabled",false);
+                }                 
+            }); 
+          return false;
+    }
+    //▲▲▲ end init global param
+</script>

@@ -9,7 +9,7 @@
 		location="classpath:tis-web-config/config.properties" />
 
 	<!-- 百岁添加 fordao -->
-	<import resource="classpath:/datasource-config-2dfire.xml" />
+	<import resource="classpath:/datasource-config-tis.xml" />
 
 	<!-- 集群状态监控，主要代码在tis-collection-info-collect工程中 -->
 

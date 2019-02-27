@@ -41,7 +41,7 @@ public class TestGet extends TestCase {
     }
 
     public void testGet() throws Exception {
-        SolrDocument document = client.getById("search4dfireOrderInfo", "kkkk25", "00000241");
+        SolrDocument document = client.getById("search4OrderInfo", "kkkk25", "00000241");
         Assert.assertNotNull(document);
         for (String name : document.getFieldNames()) {
             System.out.println("key:" + name + ",value:" + document.getFieldValue(name));

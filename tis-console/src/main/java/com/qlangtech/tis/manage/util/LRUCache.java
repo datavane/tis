@@ -23,10 +23,7 @@
  */
 package com.qlangtech.tis.manage.util;
 
-/**
- * @author 百岁 baisui@2dfire.com
- * @date 2015年9月22日 下午5:22:56
- */
+
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;

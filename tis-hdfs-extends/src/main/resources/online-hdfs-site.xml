@@ -21,35 +21,35 @@
   </property>
   <property>
     <name>dfs.namenode.rpc-address.cluster-cdh.namenode216</name>
-    <value>namenode-ha1.2dfire-inc.com:8020</value>
+    <value>namenode-ha1.qlangtech.com:8020</value>
   </property>
   <property>
     <name>dfs.namenode.servicerpc-address.cluster-cdh.namenode216</name>
-    <value>namenode-ha1.2dfire-inc.com:8022</value>
+    <value>namenode-ha1.qlangtech.com:8022</value>
   </property>
   <property>
     <name>dfs.namenode.http-address.cluster-cdh.namenode216</name>
-    <value>namenode-ha1.2dfire-inc.com:50070</value>
+    <value>namenode-ha1.qlangtech.com:50070</value>
   </property>
   <property>
     <name>dfs.namenode.https-address.cluster-cdh.namenode216</name>
-    <value>namenode-ha1.2dfire-inc.com:50470</value>
+    <value>namenode-ha1.qlangtech.com:50470</value>
   </property>
   <property>
     <name>dfs.namenode.rpc-address.cluster-cdh.namenode95</name>
-    <value>namenode-ha2.2dfire-inc.com:8020</value>
+    <value>namenode-ha2.qlangtech.com:8020</value>
   </property>
   <property>
     <name>dfs.namenode.servicerpc-address.cluster-cdh.namenode95</name>
-    <value>namenode-ha2.2dfire-inc.com:8022</value>
+    <value>namenode-ha2.qlangtech.com:8022</value>
   </property>
   <property>
     <name>dfs.namenode.http-address.cluster-cdh.namenode95</name>
-    <value>namenode-ha2.2dfire-inc.com:50070</value>
+    <value>namenode-ha2.qlangtech.com:50070</value>
   </property>
   <property>
     <name>dfs.namenode.https-address.cluster-cdh.namenode95</name>
-    <value>namenode-ha2.2dfire-inc.com:50470</value>
+    <value>namenode-ha2.qlangtech.com:50470</value>
   </property>
   <property>
     <name>dfs.replication</name>
@@ -94,9 +94,5 @@
   <property>
     <name>dfs.datanode.hdfs-blocks-metadata.enabled</name>
     <value>true</value>
-  </property>
-  <property>
-    <name>ha.zookeeper.quorum</name>
-    <value>zk101.2dfire-inc.com:2181,zk102.2dfire-inc.com:2181,zk103.2dfire-inc.com:2181</value>
   </property>
 </configuration>

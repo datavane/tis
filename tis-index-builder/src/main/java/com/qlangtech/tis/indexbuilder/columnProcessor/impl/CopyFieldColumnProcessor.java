@@ -32,8 +32,6 @@ import com.qlangtech.tis.indexbuilder.columnProcessor.AdapterExternalDataColumnP
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2/22/2017.
- *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */

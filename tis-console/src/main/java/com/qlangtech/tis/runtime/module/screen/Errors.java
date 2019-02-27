@@ -3,7 +3,7 @@ package com.qlangtech.tis.runtime.module.screen;
 import com.alibaba.citrus.turbine.Context;
 
 /**
- * @author 百岁（baisui@2dfire.com）
+ * @author 百岁
  *
  * @date 2019年2月20日
  */

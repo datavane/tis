@@ -45,7 +45,6 @@ import org.apache.solr.schema.SchemaField;
 /*
  * 针对店铺的多分枝机构，需要将各个分枝机构的entitiyid分词可以让查询搜索到<br>
  * 另外要对倒数第二个分枝结构的名称保存其的docvalue值，这样可以排序
- * http://k.2dfire.net/pages/viewpage.action?pageId=262570290
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

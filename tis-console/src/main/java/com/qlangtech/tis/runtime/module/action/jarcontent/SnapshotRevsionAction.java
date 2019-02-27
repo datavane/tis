@@ -58,7 +58,7 @@ public class SnapshotRevsionAction extends BasicModule {
 	/*
 	 * 与doSelectRevsion的区别在于，源参数是页面传递， doSelectRevsionByContext的参数是有http接口传入
 	 */
-    @OperationIgnore
+	@OperationIgnore
 	public void doSelectRevsionByContext(Context context) {
 		Integer snapshotid = (Integer) context.get("selectedSnapshotid");
 		// final Integer groupid = this.getInt("groupid");
@@ -87,7 +87,6 @@ public class SnapshotRevsionAction extends BasicModule {
 						+ "</strong>");
 	}
 
-    @OperationIgnore
 	@Func(PermissionConstant.CONFIG_SNAPSHOT_CHANGE)
 	public void doSelectRevsion(Context context) {
 		Integer snapshotid = this.getInt("selectedSnapshotid");
@@ -126,7 +125,7 @@ public class SnapshotRevsionAction extends BasicModule {
 	 *
 	 * @param context
 	 */
-    @OperationIgnore
+	@OperationIgnore
 	@Func(PermissionConstant.CONFIG_SNAPSHOT_CHANGE)
 	public void doGetLatestSnapshot(Context context) throws Exception {
 		Integer snapshotId = this.getInt("maxsnapshotid");

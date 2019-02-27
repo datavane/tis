@@ -7,7 +7,7 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.CoreDescriptor;
 
 /**
- * @author 百岁（baisui@2dfire.com）
+ * @author 百岁
  *
  * @date 2019年1月30日
  */

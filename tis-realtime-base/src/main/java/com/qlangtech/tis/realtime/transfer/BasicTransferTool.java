@@ -31,17 +31,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.springframework.core.io.Resource;
+
+import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.realtime.core.ConsumerHandle;
 import com.qlangtech.tis.realtime.yarn.rpc.TopicInfo;
 import com.qlangtech.tis.spring.LauncherResourceUtils;
 import com.qlangtech.tis.spring.LauncherResourceUtils.AppLauncherResource;
 import com.qlangtech.tis.spring.ResourceXmlApplicationContext;
-import com.qlangtech.tis.common.utils.Assert;
-import com.twodfire.async.message.client.consumer.ConsumerListener;
-import com.twodfire.async.message.client.consumer.ConsumerListenerForRm;
-import com.twodfire.async.message.client.consumer.IConsumerHandle;
 
-/* *
+
+/*
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
@@ -90,23 +91,12 @@ public abstract class BasicTransferTool {
         if (this.appContext == null) {
             throw new IllegalStateException("appContext has not been initialize");
         }
-        Map<String, ConsumerListener> consumeListeners = this.appContext.getBeansOfType(ConsumerListener.class);
-        Map<String, ConsumerListenerForRm> consumeListenersRockMQ = this.appContext.getBeansOfType(ConsumerListenerForRm.class);
-        IConsumerHandle handler = null;
+        Map<String, ConsumerHandle> consumeListeners = this.appContext.getBeansOfType(ConsumerHandle.class);
+       
         List<IOnsListenerStatus> incrChannels = new ArrayList<>();
-        for (ConsumerListener l : consumeListeners.values()) {
-            handler = l.getConsumerHandle();
-            if (handler instanceof BasicONSListener) {
-                add2Channels(incrChannels, l.getTopic(), (BasicONSListener) handler);
-            }
-        }
-        for (ConsumerListenerForRm l : consumeListenersRockMQ.values()) {
-            handler = l.getConsumerHandle();
-            if (handler instanceof BasicONSListener) {
-                add2Channels(incrChannels, l.getTopic(), (BasicONSListener) handler);
-            } else if (handler instanceof IFocusTags) {
-                IFocusTags focuseTags = (IFocusTags) handler;
-                this.addCollectionFocuseTag(focuseTags.getCollectionName(), focuseTags.getTopic(), focuseTags.getFocusTags());
+        for (ConsumerHandle l : consumeListeners.values()) {  
+            if (l instanceof BasicONSListener) {
+                add2Channels(incrChannels, l.getTopic(), (BasicONSListener) l);
             }
         }
         if (incrChannels.size() < 1) {
@@ -122,7 +112,7 @@ public abstract class BasicTransferTool {
 
     protected AppLauncherResource getLauncherResource(Set<String> includesCollectionNames) throws IOException {
         if (launcherResource == null) {
-            launcherResource = LauncherResourceUtils.getAppResource(includesCollectionNames, "classpath*:com/dfire/tis/realtime/transfer/search4*/app-context*.xml");
+            launcherResource = LauncherResourceUtils.getAppResource(includesCollectionNames, "classpath*:com/qlangtech/tis/realtime/transfer/search4*/app-context*.xml");
         }
         return launcherResource;
     }

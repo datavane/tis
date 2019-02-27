@@ -14,7 +14,6 @@
     <name>dfs.ha.automatic-failover.enabled.daily-cdh</name>
     <value>true</value>
   </property>
-  <!--'ha.zookeeper.quorum', originally set to '10.1.21.131:2181,10.1.21.141:2181,hadoop1009.daily.2dfire.info:2181' (non-final), is overridden below by a safety valve-->
   <property>
     <name>dfs.ha.namenodes.daily-cdh</name>
     <value>namenode228,namenode295</value>
@@ -97,6 +96,6 @@
   </property>
   <property>
     <name>ha.zookeeper.quorum</name>
-    <value>zk1.2dfire-daily.com,zk2.2dfire-daily.com,zk3.2dfire-daily.com</value>
+    <value>zk1.qlangtech.com,zk2.qlangtech.com,zk3.qlangtech.com</value>
   </property>
 </configuration>

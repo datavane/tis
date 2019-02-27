@@ -24,14 +24,9 @@
 package com.qlangtech.tis.solrj.tracker.impl;
 
 import org.apache.solr.client.solrj.SolrQuery;
-//import com.dfire.magiceye.Tracing;
-//import com.dfire.magiceye.exception.ThrowableHandler;
-//import com.dfire.magiceye.util.TraceUtils;
+
 import com.qlangtech.tis.solrj.tracker.ISpan;
 import com.qlangtech.tis.solrj.tracker.ITracker;
-//import io.opentracing.Span;
-//import io.opentracing.Tracer;
-//import io.opentracing.tag.Tags;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -89,12 +84,7 @@ public class DefaultTracker implements ITracker {
 
             @Override
             public void error(Throwable e) {
-//                if (e != null) {
-//                    // span.setTag(com.dfire.magiceye.Constants.RESPONSE_STATUS,
-//                    // Config.STATUS.ERR.getType());
-//                    ThrowableHandler.handle(span, e);
-//                }
-            // this.finish();
+
             }
         };
     }

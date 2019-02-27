@@ -41,7 +41,6 @@ import java.util.Locale;
 import java.util.Map;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 3/3/2017.
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

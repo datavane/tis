@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Locale;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2/28/2017.
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

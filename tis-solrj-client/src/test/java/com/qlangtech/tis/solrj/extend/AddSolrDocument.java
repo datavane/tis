@@ -57,8 +57,8 @@ public class AddSolrDocument extends TestCase {
     }
 
     private String getFile() throws Exception {
-        String fileName = "C:\\Users\\Qinjiu\\Downloads\\20170710-101835-ba03\\tmp\\20170710-101835-ba03\\solr-goods" + "-report003.prod.2dfire.info\\home\\jump\\result.txt";
-        return IOUtils.toString(new FileReader(fileName));
+        
+       return null;
     }
 
     public void testAddDoc() throws Exception {

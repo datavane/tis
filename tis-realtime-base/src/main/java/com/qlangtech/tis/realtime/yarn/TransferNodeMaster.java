@@ -154,14 +154,6 @@ public class TransferNodeMaster extends BasicTransferTool implements AMRMClientA
 		// getConfig();
 		this.conf = new YarnConfiguration();
 		//
-		// // 状态收集服务端
-		// Server server = new RPC.Builder(conf)
-		// .setProtocol(IncrStatusUmbilicalProtocol.class)
-		// .setInstance(incrStatusUmbilicalProtocolServer)
-		// .setBindAddress("0.0.0.0").setPort(0).setNumHandlers(2)
-		// .setVerbose(false).build();
-		// server.start();
-		// this.incrStatusaddress = server.getListenerAddress();
 		conf.addResource(FileUtils.openInputStream(new File(TransferStart.PATH_YARN_SITE)));
 		this.nmClient = NMClient.createNMClient();
 		this.nmClient.init(conf);
@@ -268,7 +260,7 @@ public class TransferNodeMaster extends BasicTransferTool implements AMRMClientA
 							ctx.setCommands(Collections.singletonList(TransferStart.JAVA_HOME_8 + "/bin/java "
 									+ getRemoteDebugStr() + getRunningMemorySpec() + " -Druntime="
 									+ RunEnvironment.getSysEnvironment().getKeyName() + " -DgroupName="
-									+ incrExecGroupName + " com.dfire.tis.realtime.yarn.TransferIncrContainer" + " 1>"
+									+ incrExecGroupName + " com.qlangtech.tis.realtime.yarn.TransferIncrContainer" + " 1>"
 									+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
 									+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
 							if (execUnit.allocated.compareAndSet(false, true)) {

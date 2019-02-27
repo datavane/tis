@@ -40,7 +40,7 @@ public abstract class BasicTestCase extends TestCase {
 
     protected long end;
 
-    protected String zkHost = "zk1.2dfire-daily.com:2181,zk2.2dfire-daily.com:2181,zk3.2dfire-daily.com:2181/tis/cloud";
+    protected String zkHost = "zk1.qlangtech-daily.com:2181,zk2.qlangtech-daily.com:2181,zk3.qlangtech-daily.com:2181/tis/cloud";
 
     /**
      */

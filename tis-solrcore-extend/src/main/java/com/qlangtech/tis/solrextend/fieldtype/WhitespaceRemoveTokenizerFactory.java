@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2/17/2017. 去掉字符中间的空格
+ *去掉字符中间的空格
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

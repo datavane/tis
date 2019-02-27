@@ -26,7 +26,6 @@ package com.qlangtech.tis.solrj.extend.search4supplyUnionTabs;
 import org.apache.solr.client.solrj.beans.Field;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2/27/2017.
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

@@ -24,7 +24,6 @@
 package com.qlangtech.tis.realtime.yarn.rpc.impl;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2017/2/14.
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

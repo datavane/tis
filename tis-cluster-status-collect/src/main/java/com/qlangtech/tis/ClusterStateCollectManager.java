@@ -319,7 +319,7 @@ public class ClusterStateCollectManager implements InitializingBean {
         exportReport(collect);
     }
 
-    private static final String mail_to2 = "tis-report@2dfire.com";
+    private static final String mail_to2 = "tis-report@xxxx.com";
 
     public void exportReport(TSearcherClusterInfoCollect collect) throws JobExecutionException {
         logger.info("start send daily summary report");
@@ -439,7 +439,7 @@ public class ClusterStateCollectManager implements InitializingBean {
 
     private static void iterateAllIndex(Map<String, List<App>> buAppMap, CoreStatisticsReportHistory preStatistics, ProcessReport reportProcess, TSearcherClusterInfoCollect collect) {
         ICoreStatistics report = null;
-        for (Map.Entry<String, List<App>> /* bizline:/2dfire/supplyGoods */
+        for (Map.Entry<String, List<App>> /* bizline*/
         buApps : buAppMap.entrySet()) {
             if (StringUtils.isEmpty(buApps.getKey())) {
                 continue;

@@ -4,7 +4,7 @@
 
 	<parent>
 		<groupId>com.qlangtech.tis</groupId>
-	    <artifactId>tis-pom</artifactId>
+		<artifactId>tis-pom</artifactId>
 		<version>1.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
@@ -26,9 +26,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.dfire.tis</groupId>
-			<artifactId>terminator-builder</artifactId>
-			<version>1.0.0</version>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-indexbuilder-manager</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -38,10 +38,10 @@
 		</dependency>
 
 
-		 <dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-global-config</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-global-config</artifactId>
+		</dependency>
 
 
 

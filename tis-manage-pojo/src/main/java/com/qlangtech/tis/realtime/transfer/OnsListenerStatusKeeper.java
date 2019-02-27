@@ -24,7 +24,6 @@
 package com.qlangtech.tis.realtime.transfer;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2017/2/8.
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

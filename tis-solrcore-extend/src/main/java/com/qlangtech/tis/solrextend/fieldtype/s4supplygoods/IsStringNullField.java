@@ -30,8 +30,6 @@ import org.apache.lucene.index.IndexableFieldType;
 import org.apache.solr.schema.StrField;
 
 /*
- * Created by Qinjiu(Qinjiu@2dfire.com) on 2017/2/13.
- *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
