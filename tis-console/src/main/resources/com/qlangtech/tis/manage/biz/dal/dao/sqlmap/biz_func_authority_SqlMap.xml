@@ -121,7 +121,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizFuncAuthority">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select bf_id, dpt_id, func_id, app_id, create_time, update_time,
 		is_deleted, dpt_name,
@@ -159,7 +159,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizFuncAuthority">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from biz_func_authority
 		where bf_id = #bfId:INTEGER#
@@ -168,7 +168,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizFuncAuthorityCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from biz_func_authority
 		<include refid="biz_func_authority.ibatorgenerated_Example_Where_Clause" />
@@ -177,7 +177,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizFuncAuthority">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into biz_func_authority (bf_id, dpt_id, func_id, app_id,
 		create_time, update_time,
@@ -197,7 +197,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizFuncAuthority">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into biz_func_authority
 		<dynamic prepend="(">
@@ -276,7 +276,7 @@
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select count(*) from biz_func_authority
 		<include refid="biz_func_authority.ibatorgenerated_Example_Where_Clause" />
@@ -284,7 +284,7 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update biz_func_authority
 		<dynamic prepend="set">
@@ -336,7 +336,7 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update biz_func_authority
 		set bf_id = #record.bfId:INTEGER#,

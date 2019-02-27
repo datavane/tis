@@ -58,22 +58,7 @@ public class TabField {
         return String.valueOf(o);
     }
 
-    // public String[] getColunmAry() {
-    // return StringUtils.split(column, "+");
-    // }
-    // public String getAliasName() {
-    // return this.aliasName;
-    // }
-    // 
-    // public void setAliasName(String name) {
-    // this.aliasName = name;
-    // }
-    // public void setType(Module.Type type) {
-    // this.type = type;
-    // }
-    // public Module.Type getType() {
-    // return type;
-    // }
+   
     private IAliasProcess aliasProcess;
 
     public IAliasProcess getAliasProcess() {
@@ -82,9 +67,9 @@ public class TabField {
                 synchronized (this) {
                     if (aliasProcess == null) {
                         String className = "AliasFieldProcess" + this.getColumn();
-                        String script = "	package com.taobao.tsearcher ;" + "import java.util.Map;" + "class " + className + " extends com.taobao.terminator.wangjubao.jingwei.impl.AliasProcessImpl {" + "	@Override" + "	public Object process(Map<String, String> record) {" + this.getGroovyScript() + "	}" + "}";
+                        String script = "	package com.qlangtech.tis ;" + "import java.util.Map;" + "class " + className + " extends com.qlangtech.tis.wangjubao.jingwei.impl.AliasProcessImpl {" + "	@Override" + "	public Object process(Map<String, String> record) {" + this.getGroovyScript() + "	}" + "}";
                         loader.loadMyClass(tabName + this.getColumn(), script);
-                        Class<?> groovyClass = loader.loadClass("com.taobao.tsearcher." + className);
+                        Class<?> groovyClass = loader.loadClass("com.qlangtech.tis." + className);
                         aliasProcess = (IAliasProcess) groovyClass.newInstance();
                     }
                 }

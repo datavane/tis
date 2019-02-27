@@ -40,19 +40,5 @@ public abstract class Queryresponse extends BasicScreen {
      */
     private static final long serialVersionUID = 1L;
 
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.runtime.module.screen.BasicScreen#execute(com.alibaba
-	 * .citrus.turbine.Context)
-	 */
-//    @Override
-//    public // @Func("query_react_time_view") 不需要有权限控制
-//    void execute(Context context) throws Exception {
-//        this.enableChangeDomain(context);
-//        context.put("groupAdapterList", createServerGroupAdapterList(false));
-//        context.put("appdomain", this.getAppDomain());
-//        context.put("responseTimeHost", Config.getResponseTimeHost(this.getAppDomain().getRunEnvironment()));
-//    }
+   
 }

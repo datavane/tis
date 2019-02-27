@@ -3,7 +3,7 @@
 <sqlMap namespace="task_exec_log" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <result column="exec_log_id" property="execLogId" jdbcType="BIGINT" />
     <result column="task_id" property="taskId" jdbcType="BIGINT" />
@@ -15,13 +15,13 @@
   </resultMap>
   <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" extends="task_exec_log.ibatorgenerated_BaseResultMap" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <result column="log_content" property="logContent" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -50,7 +50,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExampleWithBLOBs" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLogCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select exec_log_id, task_id, domain, from_ip, gmt_create, gmt_modified, info_type, log_content
     from task_exec_log
@@ -63,7 +63,7 @@
   </select>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLogCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select aa.exec_log_id, task_id, domain, from_ip, gmt_create, gmt_modified, info_type,LEFT(log_content,80) as log_content
      from ( select exec_log_id from task_exec_log 
@@ -78,7 +78,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select exec_log_id, task_id, domain, from_ip, gmt_create, gmt_modified, info_type, log_content
     from task_exec_log
@@ -86,21 +86,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from task_exec_log
     where exec_log_id = #execLogId:BIGINT#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLogCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     delete from task_exec_log
     <include refid="task_exec_log.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into task_exec_log (exec_log_id, task_id, domain, from_ip, gmt_create, gmt_modified,
       info_type, log_content)
@@ -112,7 +112,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLog" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     insert into task_exec_log
     <dynamic prepend="(" >
@@ -176,14 +176,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskExecLogCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     select count(*) from task_exec_log
     <include refid="task_exec_log.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update task_exec_log
     <dynamic prepend="set" >
@@ -218,7 +218,7 @@
   </update>
   <update id="ibatorgenerated_updateByExampleWithBLOBs" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update task_exec_log
     set exec_log_id = #record.execLogId:BIGINT#,
@@ -235,7 +235,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui
     -->
     update task_exec_log
     set exec_log_id = #record.execLogId:BIGINT#,

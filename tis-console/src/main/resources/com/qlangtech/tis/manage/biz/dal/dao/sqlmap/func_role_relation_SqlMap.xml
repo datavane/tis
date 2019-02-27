@@ -5,7 +5,7 @@
 		class="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelation">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		<result column="id" property="id" jdbcType="INTEGER" />
 		<result column="r_id" property="rId" jdbcType="INTEGER" />
@@ -19,7 +19,7 @@
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		<iterate property="oredCriteria" conjunction="or" prepend="where"
 			removeFirstPrepend="iterate">
@@ -66,7 +66,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelationCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select aa.id, r_id, role_name, func_id, func_key, gmt_create,
 		gmt_modified, func_name
@@ -84,7 +84,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelation">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select id, r_id, role_name, func_id, func_key, gmt_create,
 		gmt_modified, func_name
@@ -95,7 +95,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelation">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from func_role_relation
 		where id = #id:INTEGER#
@@ -104,7 +104,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelationCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from func_role_relation
 		<include refid="func_role_relation.ibatorgenerated_Example_Where_Clause" />
@@ -113,7 +113,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelation">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into func_role_relation (id, r_id, role_name, func_id,
 		func_key, gmt_create,
@@ -129,7 +129,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelation">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into func_role_relation
 		<dynamic prepend="(">
@@ -196,7 +196,7 @@
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select count(*) from func_role_relation
 		<include refid="func_role_relation.ibatorgenerated_Example_Where_Clause" />
@@ -204,7 +204,7 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update func_role_relation
 		<dynamic prepend="set">
@@ -240,7 +240,7 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update func_role_relation
 		set id = #record.id:INTEGER#,

@@ -23,10 +23,7 @@
  */
 package com.qlangtech.tis.runtime.module.control;
 
-import java.util.ArrayList;
-import java.util.List;
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
 
 /* *
@@ -35,36 +32,10 @@ import com.qlangtech.tis.runtime.module.screen.BasicScreen;
  */
 public class Department extends BasicScreen {
 
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.runtime.module.screen.BasicScreen#execute(com.alibaba
-	 * .citrus.turbine.Context)
-	 */
+   
     @Override
     public void execute(Context context) throws Exception {
     // setOrgList(context);
     }
-    // private void setOrgList(Context context) {
-    // List<OrganizationDO> orglist = new ArrayList<OrganizationDO>();
-    // OrganizationDO org = null;
-    // DepartmentCriteria query = new DepartmentCriteria();
-    // query.createCriteria();
-    // 
-    // for (com.taobao.terminator.manage.biz.dal.pojo.Department dpt : this
-    // .getDepartmentDAO().selectByExample(query, 1, 500)) {
-    // org = new OrganizationDO();
-    // 
-    // org.setId(dpt.getDptId());
-    // org.setName(dpt.getName());
-    // org.setParentId(dpt.getParentId());
-    // 
-    // orglist.add(org);
-    // }
-    // 
-    // // orglist.remove(0);
-    // // orglist.remove(orglist.size() - 1);
-    // context.put("orglist", orglist);
-    // }
+  
 }

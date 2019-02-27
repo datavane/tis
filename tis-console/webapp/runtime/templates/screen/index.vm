@@ -191,12 +191,12 @@ body{
  var mainxxPanel = null;
     var user_nick = '百岁';
     var user_role = 1;
-    var downloadbaseUrl = 'http://dbtask.corp.taobao.com:9999/services/listAsynDowns?query.jobName=';
+    var downloadbaseUrl = '';
     var isFirstLogin = '0';
     var isTestEnv = false;
-    var static_path = 'http://10.232.31.53:8080';
-    var beidou_path = 'http://beidou.corp.taobao.com/';
-    var searchKey = 'terminatorhome@m110.77';
+    var static_path = '';
+    var beidou_path = '';
+    var searchKey = '';
     var searchType = '2';
     var tabEmpty = 'query table' , emptyText2 = 'table name';
     if(searchKey.charAt(0) == '$') searchKey = '';
@@ -244,19 +244,7 @@ body{
  Ext.apply(searchFields,{
    keyupcount:0
  });
- 
-  var fuzzyloader =  new Ext.taobao.AppsLoader({
-	        dataUrl:'/runtime/app_view.ajax?resulthandler=anodes&action=app_view_action&event_submit_do_query_app=y',
-             listeners:{
-                "beforeload":function(treeLoader, node) {
-               
-                 this.baseParams.query = searchFields.getValue();
-               }
-             }
-	       });
- 
-  
-         
+          
         var leftPanel = new Ext.Panel({ id:"menu_panel",
                title:"菜单栏", 
                region:"west",    //左边菜单项，有按钮可控制伸缩的 
@@ -462,23 +450,7 @@ body{
 <table>
 <tr>
 <td>
-#*
-<ul style="margin:10px;padding:0px">
-<li>
-<a style="display:inline-block;" target="_blank" 
- href="http://baike.corp.taobao.com/index.php/%E7%BB%88%E6%90%9C%E7%94%A8%E6%88%B7%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%B0%83%E7%94%A8%E6%96%87%E6%A1%A3">终搜WIKI</a>
-</li>
 
-<li>
-<a target="_blank" href="/doc/tsearcher_cleint_tutorial3_1_5.html">TSearcher客户端配置说明3_1_9(最新20130808)</a>
-</li>
-
-<li>
-<a target="_blank" href="/doc/yunti_data_prepare.htm">云梯源数据准备工作</a>
-</li>
-
-</ul>
-*#
 </td>
 </tr>
 <tr>

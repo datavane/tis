@@ -1,2 +1,2 @@
-http\://www.taobao.com/terminator/tsearcher=com.taobao.terminator.common.utils.TermiantorTSearcherNamespaceHandler
-#http\://www.taobao.com/terminator/tsearcher=com.taobao.terminator.tag.TermiantorTSearcherNamespaceHandler
+http\://www.qlangtech.com/terminator/tsearcher=com.qlangtech.tis.common.utils.TermiantorTSearcherNamespaceHandler
+#http\://www.qlangtech.com/terminator/tsearcher=com.qlangtech.tis.tag.TermiantorTSearcherNamespaceHandler

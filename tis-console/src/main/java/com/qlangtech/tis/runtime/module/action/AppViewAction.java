@@ -73,7 +73,7 @@ public abstract class AppViewAction extends Bizdomainlist {
         context.put("anodelist", anodelist);
     }
 
-    // http://l.admin.taobao.org/runtime/app_view.ajax?resulthandler=anodes&action=app_view_action&event_submit_do_query_app=y&query=search4su
+    // http://l.admin.qlangtech.org/runtime/app_view.ajax?resulthandler=anodes&action=app_view_action&event_submit_do_query_app=y&query=search4su
     /**
      * @param context
      * @throws Exception

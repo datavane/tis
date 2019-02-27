@@ -26,7 +26,7 @@ package com.qlangtech.tis.runtime.module.screen;
 import com.alibaba.citrus.turbine.Context;
 
 /*
- * exampe: http://daily.terminator.admin.taobao.org:8080/runtime/cluster_status.ajax?action=cluster_state_collect_action&event_submit_do_collect=y&resulthandler=advance_query_result&m=1440
+ * exampe: http://daily.qlangtech.org:8080/runtime/cluster_status.ajax?action=cluster_state_collect_action&event_submit_do_collect=y&resulthandler=advance_query_result&m=1440
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日

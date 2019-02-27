@@ -37,13 +37,7 @@ public class Addrole extends BasicManageScreen {
      */
     private static final long serialVersionUID = 1L;
 
-    /*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taobao.terminator.runtime.module.screen.BasicScreen#execute(com.alibaba
-	 * .citrus.turbine.Context)
-	 */
+   
     @Func(PermissionConstant.AUTHORITY_USER_LIST)
     @Override
     public void execute(Context context) throws Exception {

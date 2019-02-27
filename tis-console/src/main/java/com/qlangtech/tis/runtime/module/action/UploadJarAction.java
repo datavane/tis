@@ -146,50 +146,7 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
 		public Snapshot create(ConfigContentGetter[] getter);
 	}
 
-	/**
-	 * 上传全局资源
-	 *
-	 * @param form
-	 * @param nav
-	 * @param context
-	 * @throws Exception
-	 */
-	// @Func(PermissionConstant.GLOBAL_DEPENDENCY_UPLOAD)
-	// public void doUploadGlobalResource(
-	// @FormGroup("globalres") GlobalResource form, Navigator nav,
-	// Context context) throws Exception {
-	//
-	// Assert.assertNotNull(form);
-	// Assert.assertNotNull(form.getMemo());
-	// Assert.assertNotNull(form.getResource());
-	// if (StringUtils.endsWith(form.getResource().getFieldName(), ".jar")) {
-	// this.addErrorMessage(context, "文件属性应该为.jar");
-	// return;
-	// }
-	//
-	// InputStream reader = null;
-	// try {
-	//
-	// reader = form.getResource().getInputStream();
-	//
-	// UploadResource solrCoreDependedResource = new UploadResource();
-	// solrCoreDependedResource.setCreateTime(new Date());
-	// solrCoreDependedResource.setContent(IOUtils.toByteArray(reader));
-	// solrCoreDependedResource.setMd5Code(ConfigFileReader
-	// .md5file(solrCoreDependedResource.getContent()));
-	// solrCoreDependedResource
-	// .setResourceType(com.taobao.terminator.runtime.module.screen.GlobalResource.UPLOAD_RESOURCE_TYPE_GLOBAL);
-	// solrCoreDependedResource.setMemo(form.getMemo());
-	// Integer newid = this.getUploadResourceDAO().insert(
-	// solrCoreDependedResource);
-	//
-	// this.addActionMessage(context, "成功上传一条全局依赖资源 ID:" + newid);
-	//
-	// } finally {
-	// IOUtils.closeQuietly(reader);
-	// }
-	//
-	// }
+	
 	/**
 	 * 绑定全局资源
 	 *

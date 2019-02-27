@@ -15,7 +15,6 @@
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		<iterate property="oredCriteria" conjunction="or" prepend="where"
 			removeFirstPrepend="iterate">
@@ -52,7 +51,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizDomainCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select aa.biz_id, name, dump_type, biz_line, create_time,
 		update_time,is_deleted
@@ -70,7 +69,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizDomain">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select biz_id, name, dump_type, biz_line, create_time,
 		update_time,is_deleted
@@ -80,7 +79,7 @@
 	<delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizDomain">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from biz_domain
 		where biz_id = #bizId:INTEGER#
@@ -89,7 +88,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizDomainCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from biz_domain
 		<include refid="biz_domain.ibatorgenerated_Example_Where_Clause" />
@@ -97,7 +96,7 @@
 	<insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizDomain">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into biz_domain (biz_id, name, dump_type, biz_line,
 		create_time, update_time)
@@ -108,7 +107,7 @@
 	<insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.BizDomain">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into biz_domain
 		<dynamic prepend="(">
@@ -160,7 +159,7 @@
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select count(*) from biz_domain
 		<include refid="biz_domain.ibatorgenerated_Example_Where_Clause" />
@@ -168,7 +167,7 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update biz_domain
 		<dynamic prepend="set">
@@ -201,7 +200,7 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update biz_domain
 		set biz_id = #record.bizId:INTEGER#,

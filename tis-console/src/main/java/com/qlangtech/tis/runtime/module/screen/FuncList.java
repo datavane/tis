@@ -125,17 +125,6 @@ public abstract class FuncList extends BasicManageScreen {
     // }
     // }
     public static void main(String[] arg) {
-    // Matcher m = pattern.matcher("100047-质检组,100296-淘大留言处理组");
-    // 
-    // String img =
-    // "<img border='0' src='http://terminator.admin.taobao.org/runtime/imgs/delte_icon.jpg'/>";
-    // 
-    // System.out
-    // .println(m
-    // .replaceAll("$0 <a href='#' onclick=\"deltClick('aaaaa','bbbb' ,$1)\">"
-    // + img + "</a>  "));
-    // while (m.find()) {
-    // System.out.println(m.group());
-    // }
+    
     }
 }

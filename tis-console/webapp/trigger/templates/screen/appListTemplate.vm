@@ -31,7 +31,7 @@ td.running{
 
 #if($department)
  <div class="note2">如果没有你需要配置的应用 请联系系统管理员
-  <a style="color:blue" href="mailto:taobao-terminator@list.alibaba-inc.com?subject=定时任务配置权限申请">淘宝-终搜</a></div>
+ </div>
 #else
  <div class="note">
  亲，您还没有设置您所在的部门 <a href="${rundata.request.contextPath}/runtime/set_department.htm">设置</a>
@@ -117,7 +117,7 @@ $item.appId
 			   }				   
 	        });
 	
-	//http://daily.terminator.admin.taobao.org/trigger/triggermonitor.ajax?event_submit_do_get_recent_error_jobs=y&action=triggermonitor_ajax&resulthandler=x
+	
    jQuery.ajax({url:'$trigger.setTarget('triggermonitor.ajax')', 
          		type:'GET',
 				dataType:"json",

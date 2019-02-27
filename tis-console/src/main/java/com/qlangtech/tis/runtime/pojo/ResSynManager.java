@@ -166,48 +166,6 @@ public final class ResSynManager {
      * @param appNamePrefix
      * @return
      */
-    // http://daily.terminator.admin.taobao.org/runtime/changedomain.action?action=change_domain_action&event_submit_do_app_name_suggest=y&query=search4sucai
-    // public static List<Application> appSuggest(String appNamePrefix) {
-    // 
-    // final StringBuffer urlbuffer = new
-    // StringBuffer(Config.getTerminatorRepositoryOnline());
-    // // StringBuffer urlbuffer = new StringBuffer("http://localhost");
-    // urlbuffer.append(
-    // "/config/changedomain.action?action=app_relevant_action&event_submit_do_app_name_suggest=y&query=");
-    // urlbuffer.append(appNamePrefix);
-    // 
-    // URL requestUrl;
-    // try {
-    // requestUrl = new URL(urlbuffer.toString());
-    // } catch (MalformedURLException e) {
-    // throw new RuntimeException(e);
-    // }
-    // 
-    // return ConfigFileContext.processContent(requestUrl, new
-    // StreamProcess<List<Application>>() {
-    // @Override
-    // public List<Application> p(int status, InputStream stream, String md5) {
-    // List<Application> suggest = new ArrayList<Application>();
-    // try {
-    // JSONTokener tokener = new JSONTokener(IOUtils.toString(stream));
-    // JSONObject json = new JSONObject(tokener);
-    // JSONArray dataAry = (JSONArray) json.get("data");
-    // JSONArray suggestAry = (JSONArray) json.get("suggestions");
-    // for (int i = 0; i < dataAry.length(); i++) {
-    // Application app = new Application();
-    // app.setAppId(dataAry.getInt(i));
-    // app.setProjectName(suggestAry.getString(i));
-    // suggest.add(app);
-    // }
-    // 
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // 
-    // return suggest;
-    // }
-    // });
-    // }
     public SnapshotDomain getDailyRes() {
         return dailyRes;
     }

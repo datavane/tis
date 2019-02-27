@@ -5,7 +5,7 @@
 		id="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		<result column="task_id" jdbcType="BIGINT" property="taskId" />
 		<result column="job_id" jdbcType="BIGINT" property="jobId" />
@@ -36,7 +36,7 @@
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		<iterate conjunction="or" prepend="where" property="oredCriteria"
 			removeFirstPrepend="iterate">
@@ -98,7 +98,7 @@
 		resultMap="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select aa.task_id, job_id, trigger_from, exec_state, domain,
 		gmt_create, gmt_modified,runtime, phrase, err_log_id
@@ -116,7 +116,7 @@
 		resultMap="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		select task_id, job_id, trigger_from, exec_state, domain, gmt_create,
 		gmt_modified,runtime, phrase, err_log_id
@@ -126,7 +126,7 @@
 	<delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.Task">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from task
 		where task_id = #taskId:BIGINT#
@@ -135,7 +135,7 @@
 		parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.TaskCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		delete from task
 		<include refid="task.ibatorgenerated_Example_Where_Clause" />
@@ -143,7 +143,7 @@
 	<insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.Task">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into task (task_id, job_id, trigger_from, exec_state, domain,
 		gmt_create, gmt_modified, phrase, err_log_id)
@@ -157,7 +157,7 @@
 	<insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.trigger.biz.dal.pojo.Task">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		insert into task
 		<dynamic prepend="(">
@@ -240,7 +240,7 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update task
 		<dynamic prepend="set">
@@ -279,7 +279,7 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui
 		-->
 		update task
 		set task_id = #record.taskId:BIGINT#,

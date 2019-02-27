@@ -32,28 +32,32 @@ import java.util.Map;
  */
 public class TableIgnorRule implements ITableIgnorRule {
 
-    private ITableIgnorRule target;
+	private ITableIgnorRule target;
 
-    public boolean ignor(Map<String, String> record) {
-        return target.ignor(record);
-    }
+	public boolean ignor(Map<String, String> record) {
+		return target.ignor(record);
+	}
 
-    public void setGroovyScript(String tableName, int ruleIndex, String script) {
-        final String wrapScript = "package " + TabField.TSEARCH_PACKAGE + ";" + "import com.taobao.terminator.wangjubao.jingwei.ITableIgnorRule;" + "import java.util.Map;" + "class IGNOR" + tableName + ruleIndex + " implements ITableIgnorRule{" + "	public boolean ignor(Map<String, String> record) {" + script + "	}" + "}";
-        try {
-            TabField.loader.loadMyClass(tableName + ruleIndex, wrapScript);
-            Class<?> clazz = TabField.loader.loadClass(TabField.TSEARCH_PACKAGE + ".IGNOR" + tableName + ruleIndex);
-            target = (ITableIgnorRule) clazz.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+	public void setGroovyScript(String tableName, int ruleIndex, String script) {
+		final String wrapScript = "package " + TabField.TSEARCH_PACKAGE + ";" //
+				+ "import com.qlangtech.tis.wangjubao.jingwei.ITableIgnorRule;" //
+				+ "import java.util.Map;" //
+				+ "class IGNOR" + tableName + ruleIndex + " implements ITableIgnorRule{"//
+				+ "	public boolean ignor(Map<String, String> record) {" + script + "	}" + "}";
+		try {
+			TabField.loader.loadMyClass(tableName + ruleIndex, wrapScript);
+			Class<?> clazz = TabField.loader.loadClass(TabField.TSEARCH_PACKAGE + ".IGNOR" + tableName + ruleIndex);
+			target = (ITableIgnorRule) clazz.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    public static void main(String[] args) {
-        TableIgnorRule rule = new TableIgnorRule();
-        rule.setGroovyScript("aaa", 1, "return !record['name'] || !record['name'].number");
-        Map<String, String> record = new HashMap<String, String>();
-        record.put("name", "123.8f");
-        System.out.println(rule.ignor(record));
-    }
+	public static void main(String[] args) {
+		TableIgnorRule rule = new TableIgnorRule();
+		rule.setGroovyScript("aaa", 1, "return !record['name'] || !record['name'].number");
+		Map<String, String> record = new HashMap<String, String>();
+		record.put("name", "123.8f");
+		System.out.println(rule.ignor(record));
+	}
 }

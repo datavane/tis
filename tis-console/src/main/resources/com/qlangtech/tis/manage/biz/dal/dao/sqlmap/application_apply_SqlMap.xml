@@ -5,7 +5,6 @@
 		class="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		<result column="app_id" property="appId" jdbcType="INTEGER" />
 		<result column="project_name" property="projectName" jdbcType="VARCHAR" />
@@ -38,7 +37,6 @@
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		<iterate property="oredCriteria" conjunction="or" prepend="where"
 			removeFirstPrepend="iterate">
@@ -75,7 +73,6 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApplyCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		select aa.app_id, project_name, recept, manager, create_time,
 		update_time, is_auto_deploy,
@@ -97,7 +94,6 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		select app_id, project_name, recept, manager, create_time,
 		update_time, is_auto_deploy, dpt_id,
@@ -113,7 +109,6 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		delete from application_apply
 		where app_id = #appId:INTEGER#
@@ -122,7 +117,6 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApplyCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		delete from application_apply
 		<include refid="application_apply.ibatorgenerated_Example_Where_Clause" />
@@ -131,7 +125,6 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		insert into application_apply (app_id, project_name, recept, manager,
 		create_time, update_time,
@@ -159,7 +152,6 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		insert into application_apply
 		<dynamic prepend="(">
@@ -293,7 +285,6 @@
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		select count(*) from application_apply
 		<include refid="application_apply.ibatorgenerated_Example_Where_Clause" />
@@ -301,7 +292,6 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		update application_apply
 		<dynamic prepend="set">
@@ -381,7 +371,6 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
 		-->
 		update application_apply
 		set app_id = #record.appId:INTEGER#,

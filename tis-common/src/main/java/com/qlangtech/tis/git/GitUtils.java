@@ -31,12 +31,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import com.qlangtech.tis.git.GitUtils.IncrMonitorIndexs;
+
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
@@ -50,7 +50,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 public class GitUtils {
 
 	private static final ConfigFileContext.Header PRIVATE_TOKEN = new ConfigFileContext.Header("PRIVATE-TOKEN",
-			"XqxWfcskmh9TskxGpEac");
+			"123456");
 
 	private static final ConfigFileContext.Header DELETE_METHOD = new ConfigFileContext.Header("method", "DELETE");
 

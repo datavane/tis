@@ -2,11 +2,11 @@
 状态信息搜集到线上的数据库中，提供给终搜系统中生成应用运行的趋势报表
 
 入口类：
-com.taobao.terminator.collect.servlet.FullReportCreateServlet
+com.qlangtech.tis.collect.servlet.FullReportCreateServlet
 
 
 容器启动：
-com.taobao.terminator.ClusterStateCollectManager
+com.qlangtech.tis.ClusterStateCollectManager
 
 生成全量报告邮件
 ClusterStateCollectManager.exportReport()
