@@ -64,7 +64,9 @@
 		<dependency>
 			<groupId>org.apache.flume</groupId>
 			<artifactId>flume-ng-node</artifactId>
-			<version>1.6.0-cdh5.5.0</version>
+			<!-- 
+			<version>1.6.0-cdh5.5.0</version> -->
+			<version>1.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>
