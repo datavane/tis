@@ -19,7 +19,6 @@
 		<hive.version>1.1.0</hive.version>
 		<java.version>1.8</java.version>
 		<spring-version>3.0.6.RELEASE</spring-version>
-		<terminator.version>3.1.0-SNAPSHOT</terminator.version>
 		<jetty.version>9.4.10.RC1</jetty.version>
 		<hadoop-version>2.6.0</hadoop-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

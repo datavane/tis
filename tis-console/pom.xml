@@ -16,14 +16,11 @@
 	<properties>
 		<java.encoding>UTF-8</java.encoding>
 		<spring-version>3.0.6.RELEASE</spring-version>
-		<!-- <jetty-version>6.1.22</jetty-version> -->
 		<project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
 		<tomcat.version>7.0.47</tomcat.version>
 		<struts2.version>2.5.8</struts2.version>
 		<dockerfile-maven-version>1.4.4</dockerfile-maven-version>
-
-		<openshift-client.version>7.0.0</openshift-client.version>
-
+		<openshift-client.version>7.0.0.Final</openshift-client.version>
 	</properties>
 
 
@@ -72,9 +69,11 @@
 			<artifactId>tis-manage-pojo</artifactId>
 		</dependency>
 
+
+
 		<dependency>
-			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>tis-openshift-restclient-java</artifactId>
+			<groupId>com.openshift</groupId>
+			<artifactId>openshift-restclient-java</artifactId>
 			<version>${openshift-client.version}</version>
 		</dependency>
 
