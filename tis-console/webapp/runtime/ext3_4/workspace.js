@@ -1845,20 +1845,7 @@ Dbmis.TableGridPanel = function (G) {
             }
         })
     };
-    this.toTddl = function () {
-        var I = D.getSelectionModel().getSelected().data;
-        Ext.Ajax.request({
-            url: "/project/getDbNameById.jsn",
-            params: {
-                dbId: I.dbId
-            },
-            success: function (K, M) {
-                var L = getJson(K.responseText);
-                var J = beidou_path + "mysql/tddl.php?ln=0&envId=1&action=config-manage-all2&queryKey=" + L["dbName"];
-                window.open(J, "tddl", pubfeather)
-            }
-        })
-    };
+   
     this.watchTable = function (I) {
         var J = D.getSelectionModel().getSelected().data;
         Ext.Ajax.request({

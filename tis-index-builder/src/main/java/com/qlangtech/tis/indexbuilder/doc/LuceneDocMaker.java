@@ -26,16 +26,17 @@ package com.qlangtech.tis.indexbuilder.doc;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.taobao.terminator.build.metrics.Counters;
-import com.taobao.terminator.build.metrics.Messages;
+
+import com.qlangtech.tis.build.metrics.Counters;
+import com.qlangtech.tis.build.metrics.Messages;
 import com.qlangtech.tis.indexbuilder.exception.FieldException;
 import com.qlangtech.tis.indexbuilder.exception.RowException;
-import com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
 import com.qlangtech.tis.indexbuilder.source.SourceReader;
@@ -53,13 +54,8 @@ public class LuceneDocMaker implements Runnable {
 
 	private SourceReaderFactory readerFactory;
 
-	// private InterruptFlag interruptFlag;
-	// private LinkedList<Document> docPool;
-	// private SimpleStack<Document> docPools;
-	// private SimpleStack<Document> clearDocPool;
 	BlockingQueue<SolrInputDocument> docPoolQueue;
 
-	// BlockingQueue<SimpleStack<Document>> clearDocPoolQueue;
 	private AtomicInteger aliveDocMakerCount;
 
 	private final SuccessFlag successFlag = new SuccessFlag();
@@ -103,12 +99,11 @@ public class LuceneDocMaker implements Runnable {
 		return this.successFlag;
 	}
 
-	public LuceneDocMaker(// RawDataProcessor
-			IndexConf indexConf, // RawDataProcessor
-			IndexSchema indexSchema, // RawDataProcessor
-			IInputDocCreator documentCreator, // rawDataProcessor,
-			Messages messages, Counters counters, BlockingQueue<SolrInputDocument> docPoolQueue, // BlockingQueue<SimpleStack<Document>>
-																									// clearDocPoolQueue,
+	public LuceneDocMaker(//
+			IndexConf indexConf, //
+			IndexSchema indexSchema, //
+			IInputDocCreator documentCreator, //
+			Messages messages, Counters counters, BlockingQueue<SolrInputDocument> docPoolQueue,
 			SourceReaderFactory readerFactory, AtomicInteger aliveDocMakerCount) {
 		this.messages = messages;
 		this.counters = counters;
@@ -125,14 +120,7 @@ public class LuceneDocMaker implements Runnable {
 		this.DEFAULT_DOCUMENT_BOOST = indexConf.getDocBoost();
 		this.readerFactory = readerFactory;
 		this.printInterval = indexConf.getPrintInterval();
-		// this.filterDelete = indexConf.getBoolean("delete.filter", false);
-		// SimpleDateFormat dataFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-		// try {
-		// this.newVersion =
-		// Long.parseLong(dataFormat.format(dataFormat.parse(indexConf.getIncrTime())));
-		// } catch (ParseException e) {
-		// throw new RuntimeException(e);
-		// }
+
 		init();
 	}
 
@@ -145,20 +133,12 @@ public class LuceneDocMaker implements Runnable {
 		}
 	}
 
-	// public static final String TERM_VALUE = "_UID_";
-	// public static final Term UID_TERM = new Term("_ID", TERM_VALUE);
-	// public static void fillDocumentID(Document doc, long id) {
-	// TextField uidField = new TextField(UID_TERM.field(), new
-	// UIDTokenStream(id));
-	// // uidField.setOmitNorms(true);.
-	// doc.add(uidField);
-	// }
 	@Override
 	public void run() {
 		try {
 			doRun();
 		} catch (Throwable e) {
-			messages.addMessage(HdfsIndexBuilder.Message.ERROR_MSG, "doc maker fatal error:" + e.toString());
+			messages.addMessage(Messages.Message.ERROR_MSG, "doc maker fatal error:" + e.toString());
 			logger.error("LuceneDocMaker ", e);
 			successFlag.setFlag(SuccessFlag.Flag.FAILURE);
 			successFlag.setMsg("doc maker fatal error:" + e.toString());
@@ -179,15 +159,11 @@ public class LuceneDocMaker implements Runnable {
 		// docPool是否已经放到了queue中。
 		Map<String, String> row = null;
 		while (true) {
-			/*
-			 * File file = sfm.undealFileQueue.poll(1000,TimeUnit.MILLISECONDS);
-			 * if(file==null) { if(sfm.isAllFileDownload()) break; else
-			 * continue; } else {
-			 */
+
 			SourceReader recordReader = readerFactory.nextReader();
 			if (recordReader == null) {
 				successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
-				counters.setCounterValue(HdfsIndexBuilder.Counter.DOCMAKE_COMPLETE, successCount.get());
+				counters.setCounterValue(Counters.Counter.DOCMAKE_COMPLETE, successCount.get());
 				logger.warn(name + ":filtered:" + filteredCount);
 				// 已处理完成
 				return;
@@ -203,23 +179,20 @@ public class LuceneDocMaker implements Runnable {
 					}
 					docPoolQueue.put(solrDoc);
 					successCount.incrementAndGet();
-					/*
-					 * if(successCount%1000 == 0) {
-					 * logger.warn("docqueuesize="+docQueue.size()); }
-					 */
+
 					if ((successCount.get() % 10000) == 0) {
-						counters.setCounterValue(HdfsIndexBuilder.Counter.DOCMAKE_COMPLETE, successCount.get());
+						counters.setCounterValue(Counters.Counter.DOCMAKE_COMPLETE, successCount.get());
 						logger.warn(name + ":success:" + successCount + "failure:" + failureCount);
 					}
 				} catch (Throwable e) {
 					logger.error("", e);
-					counters.incrCounter(HdfsIndexBuilder.Counter.DOCMAKE_FAIL, 1);
+					counters.incrCounter(Counters.Counter.DOCMAKE_FAIL, 1);
 					String errorMsg = "";
 					if (e instanceof RowException || e instanceof FieldException) {
 						errorMsg = e.toString();
 					}
-					messages.addMessage(HdfsIndexBuilder.Message.ERROR_MSG, "doc maker exception:" + e + errorMsg);
-					// logger.error("doc maker error,field:"+row,e);
+					messages.addMessage(Messages.Message.ERROR_MSG, "doc maker exception:" + e + errorMsg);
+
 					if (++failureCount > indexConf.getMaxFailCount()) {
 						successFlag.setFlag(SuccessFlag.Flag.FAILURE);
 						successFlag.setMsg("LuceneDocMaker error:failureCount>" + indexConf.getMaxFailCount());
@@ -227,32 +200,9 @@ public class LuceneDocMaker implements Runnable {
 						return;
 					}
 				}
-				/*
-				 * catch (Error e) { logger.error("LuceneDocMaker error:" + e);
-				 * e.printStackTrace();
-				 * counters.incrCounter(HdfsIndexBuilder.Counter. DOCMAKE_FAIL,
-				 * 1); //
-				 * messages.addMessage(HdfsIndexBuilder.Message.ERROR_MSG, //
-				 * "doc maker error:"+e); //
-				 * messages.addMessage(HdfsIndexBuilder.Message.ERROR_MSG, //
-				 * "doc maker error,row:"+row);
-				 * successFlag.setFlag(SuccessFlag.Flag.FAILURE);
-				 * successFlag.setMsg("doc maker error:" + e); return; }
-				 */
 			}
 			logger.info(recordReader.toString());
-			// file.delete();
-			/*
-			 * else {
-			 */
-			// return ;
-			// }
 		}
-		// 把最后一个docPool放到queue中
-		// for (int i = 0; i < cores.length; i++) {
-		// docPoolQueue.put(docPools);
-		// }
-		// successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
 	}
 
 	/**
@@ -271,35 +221,6 @@ public class LuceneDocMaker implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(809057284 % 128);
-		String dFields = "numeric_field_data_value~;~:~_double_field_,date_field_data_value~;~:~_int_field_,text_field_data_value~;~:~_text_field_";
-		String[] prefixs;
-		String[] dynamicFields;
-		String[] fieldSplitors;
-		String[] valueSplitors;
-		// String dFields = indexConf.get("indexing.dynamicFields");
-		if (dFields != null) {
-			String[] fields = dFields.split(",");
-			prefixs = new String[fields.length];
-			dynamicFields = new String[fields.length];
-			fieldSplitors = new String[fields.length];
-			valueSplitors = new String[fields.length];
-			for (int i = 0; i < fields.length; i++) {
-				String field = fields[i];
-				String[] pair = field.split("~");
-				dynamicFields[i] = pair[0];
-				fieldSplitors[i] = pair[1];
-				valueSplitors[i] = pair[2];
-				prefixs[i] = pair[3];
-			}
-			int oi = 0;
-		}
-		/*
-		 * String pairs[] =
-		 * "pay_date_item_ids~:;pay_date_new_and_old_buyer~:".split(";");
-		 * for(String pair:pairs) { System.out.println(pair); String []p =
-		 * pair.split("~"); System.out.println(p.length); for(String p1:p) {
-		 * System.out.println(p1); } }
-		 */
+
 	}
 }

@@ -49,139 +49,96 @@ import com.tis.zookeeper.ZkPathUtils;
  */
 public class IndexBackFlowInterceptor implements IExecuteInterceptor {
 
-    // private static final int INCR_NODE_PORT = 9998;
-    private static final Logger logger = LoggerFactory.getLogger(IndexBackFlowInterceptor.class);
+	// private static final int INCR_NODE_PORT = 9998;
+	private static final Logger logger = LoggerFactory.getLogger(IndexBackFlowInterceptor.class);
 
-    public static final String NAME = "indexBackflow";
+	public static final String NAME = "indexBackflow";
 
-    /**
-     */
-    public IndexBackFlowInterceptor() {
-        super();
-    // this.remoteIncrControl = new DefaultRemoteIncrControl();
-    }
+	/**
+	 */
+	public IndexBackFlowInterceptor() {
+		super();
+		// this.remoteIncrControl = new DefaultRemoteIncrControl();
+	}
 
-    @Override
-    public ExecuteResult intercept(ActionInvocation invocation) throws Exception {
-        logger.info("component:" + NAME + " start execute");
-        IExecChainContext context = invocation.getContext();
-        TisZkClient zookeeper = context.getZkClient();
-        // 在回流索引的時候需要写一个标记位到zk中,这样监控在发起抱紧之前判断是否在回流索引,如回流索引的话直接退出了
-        final String zkBackIndexSignalPath = createZkSignalToken(context, zookeeper);
-        final String user = context.getContextUserName();
-        try {
-            // << 回流索引 开始>>
-            int taskid = 1233 + (int) (Math.random() * 10000);
-            IndexBackflowManager indexBackFlowQueue = null;
-            if (IndexBuildInterceptor.isPropagateFromIndexBuild(context)) {
-                indexBackFlowQueue = IndexBuildInterceptor.getIndeBackFlowQueue(context);
-            } else {
-                DocCollection collection = context.getZkStateReader().getClusterState().getCollection(context.getIndexName());
-                IndexBackflowManager indexBackFlowQueueTmp = new IndexBackflowManager(collection);
-                ImportDataProcessInfo state = new ImportDataProcessInfo(taskid);
-                state.setTimepoint(context.getPartitionTimestamp());
-                state.setIndexName(context.getIndexName());
-                indexBackFlowQueueTmp.vistAllReplica((replic) -> {
-                    BuildResult buildResult = new BuildResult(replic, state);
-                    buildResult.setSuccess(true);
-                    buildResult.setReplica(replic);
-                    // 取得当前文件夹的size
-                    String hdfsPath = state.getIndexBuildOutputPath(context.getContextUserName(), buildResult.getGroupIndex());
-                    buildResult.setIndexSize(RemoteIndexBuildJob.getSizeHdfsDir(context.getDistributeFileSystem(), hdfsPath));
-                    indexBackFlowQueueTmp.addBackFlowTask(buildResult);
-                });
-                indexBackFlowQueue = indexBackFlowQueueTmp;
-            }
-            indexBackFlowQueue.startSwapClusterIndex(user, taskid);
-            indexBackFlowQueue.await();
-            if (!indexBackFlowQueue.isExecuteSuccess()) {
-                // 失败了
-                ExecuteResult faild = ExecuteResult.createFaild();
-                faild.setMessage("indexBackFlowQueue.isExecuteSuccess() is false");
-                return faild;
-            }
-            logger.info("all node feedback successful,ps:" + context.getPartitionTimestamp());
-        } finally {
-            removeZkSignal(zookeeper, zkBackIndexSignalPath);
-        // 重新开启增量执行
-        // resumeIncrFlow(jmxConns, context.getIndexName());
-        }
-        return invocation.invoke();
-    }
+	@Override
+	public ExecuteResult intercept(ActionInvocation invocation) throws Exception {
+		logger.info("component:" + NAME + " start execute");
+		IExecChainContext context = invocation.getContext();
+		TisZkClient zookeeper = context.getZkClient();
+		// 在回流索引的時候需要写一个标记位到zk中,这样监控在发起抱紧之前判断是否在回流索引,如回流索引的话直接退出了
+		final String zkBackIndexSignalPath = createZkSignalToken(context, zookeeper);
+		final String user = context.getContextUserName();
+		try {
+			// << 回流索引 开始>>
+			int taskid = 1233 + (int) (Math.random() * 10000);
+			IndexBackflowManager indexBackFlowQueue = null;
+			if (IndexBuildInterceptor.isPropagateFromIndexBuild(context)) {
+				indexBackFlowQueue = IndexBuildInterceptor.getIndeBackFlowQueue(context);
+			} else {
+				DocCollection collection = context.getZkStateReader().getClusterState()
+						.getCollection(context.getIndexName());
+				IndexBackflowManager indexBackFlowQueueTmp = new IndexBackflowManager(collection);
+				ImportDataProcessInfo state = new ImportDataProcessInfo(taskid);
+				state.setTimepoint(context.getPartitionTimestamp());
+				state.setIndexName(context.getIndexName());
+				indexBackFlowQueueTmp.vistAllReplica((replic) -> {
+					BuildResult buildResult = new BuildResult(replic, state);
+					buildResult.setSuccess(true);
+					buildResult.setReplica(replic);
+					// 取得当前文件夹的size
+					String hdfsPath = state.getIndexBuildOutputPath(context.getContextUserName(),
+							buildResult.getGroupIndex());
+					buildResult.setIndexSize(
+							RemoteIndexBuildJob.getSizeHdfsDir(context.getDistributeFileSystem(), hdfsPath));
+					indexBackFlowQueueTmp.addBackFlowTask(buildResult);
+				});
+				indexBackFlowQueue = indexBackFlowQueueTmp;
+			}
+			indexBackFlowQueue.startSwapClusterIndex(user, taskid);
+			indexBackFlowQueue.await();
+			if (!indexBackFlowQueue.isExecuteSuccess()) {
+				// 失败了
+				ExecuteResult faild = ExecuteResult.createFaild();
+				faild.setMessage("indexBackFlowQueue.isExecuteSuccess() is false");
+				return faild;
+			}
+			logger.info("all node feedback successful,ps:" + context.getPartitionTimestamp());
+		} finally {
+			removeZkSignal(zookeeper, zkBackIndexSignalPath);
+			// 重新开启增量执行
+			// resumeIncrFlow(jmxConns, context.getIndexName());
+		}
+		return invocation.invoke();
+	}
 
-    protected String createZkSignalToken(IExecChainContext context, TisZkClient zookeeper) throws KeeperException, InterruptedException {
-        final String zkBackIndexSignalPath = ZkPathUtils.getIndexBackflowSignalPath(context.getIndexName());
-        if (!zookeeper.exists(zkBackIndexSignalPath, true)) {
-            zookeeper.create(zkBackIndexSignalPath, "".getBytes(), CreateMode.PERSISTENT, true);
-        }
-        zookeeper.create(zkBackIndexSignalPath + "/" + ZkPathUtils.INDEX_BACKFLOW_SIGNAL_PATH_SEQNODE_NAME, String.valueOf(System.currentTimeMillis()).getBytes(), CreateMode.EPHEMERAL_SEQUENTIAL, true);
-        return zkBackIndexSignalPath;
-    }
+	protected String createZkSignalToken(IExecChainContext context, TisZkClient zookeeper)
+			throws KeeperException, InterruptedException {
+		final String zkBackIndexSignalPath = ZkPathUtils.getIndexBackflowSignalPath(context.getIndexName());
+		if (!zookeeper.exists(zkBackIndexSignalPath, true)) {
+			zookeeper.create(zkBackIndexSignalPath, "".getBytes(), CreateMode.PERSISTENT, true);
+		}
+		zookeeper.create(zkBackIndexSignalPath + "/" + ZkPathUtils.INDEX_BACKFLOW_SIGNAL_PATH_SEQNODE_NAME,
+				String.valueOf(System.currentTimeMillis()).getBytes(), CreateMode.EPHEMERAL_SEQUENTIAL, true);
+		return zkBackIndexSignalPath;
+	}
 
-    private void removeZkSignal(TisZkClient zookeeper, final String zkBackIndexSignalPath) throws KeeperException, InterruptedException {
-        try {
-            List<String> children = zookeeper.getChildren(zkBackIndexSignalPath, null, true);
-            Stat stat = new Stat();
-            for (String c : children) {
-                zookeeper.getData(zkBackIndexSignalPath + "/" + c, null, stat, true);
-                zookeeper.delete(zkBackIndexSignalPath + "/" + c, stat.getVersion(), true);
-            }
-        } catch (Throwable e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
+	private void removeZkSignal(TisZkClient zookeeper, final String zkBackIndexSignalPath)
+			throws KeeperException, InterruptedException {
+		try {
+			List<String> children = zookeeper.getChildren(zkBackIndexSignalPath, null, true);
+			Stat stat = new Stat();
+			for (String c : children) {
+				zookeeper.getData(zkBackIndexSignalPath + "/" + c, null, stat, true);
+				zookeeper.delete(zkBackIndexSignalPath + "/" + c, stat.getVersion(), true);
+			}
+		} catch (Throwable e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
 
-    /**
-     * @param jmxConns
-     * @throws IOException
-     */
-    // protected void resumeIncrFlow(List<JMXConnector> jmxConns, String
-    // collectionName) throws IOException {
-    // for (JMXConnector c : jmxConns) {
-    // try {
-    // this.remoteIncrControl.resumeIncrFlow(c, collectionName);
-    // c.close();
-    // } catch (Exception e) {
-    // 
-    // }
-    // }
-    // }
-    /**
-     * @return
-     * @throws TerminatorZKException
-     * @throws Exception
-     */
-    // private List<JMXConnector> pauseIncrFlow(IExecChainContext context) throws
-    // Exception {
-    // logger.info("start pause incr process");
-    // List<JMXConnector> jmxConns = new ArrayList<JMXConnector>();
-    // try {
-    // final String incrNodeParent = "/tis/incr_transfer/" + context.getIndexName();
-    // 
-    // if (!context.getZkClient().exists(incrNodeParent, true)) {
-    // return jmxConns;
-    // }
-    // List<String> incrNodes = context.getZkClient().getChildren(incrNodeParent,
-    // null, true);
-    // for (String incrNode : incrNodes) {
-    // jmxConns.add(DefaultRemoteIncrControl.createConnector(
-    // new String(
-    // context.getZkClient().getData(incrNodeParent + "/" + incrNode, null, new
-    // Stat(), true)),
-    // INCR_NODE_PORT));
-    // }
-    // for (JMXConnector c : jmxConns) {
-    // this.remoteIncrControl.pauseIncrFlow(c, context.getIndexName());
-    // }
-    // 
-    // logger.info("success pause " + jmxConns.size() + "incr nodes");
-    // } catch (Exception e) {
-    // logger.warn(e.getMessage(), e);
-    // }
-    // return jmxConns;
-    // }
-    @Override
-    public String getName() {
-        return NAME;
-    }
+	@Override
+	public String getName() {
+		return NAME;
+	}
 }

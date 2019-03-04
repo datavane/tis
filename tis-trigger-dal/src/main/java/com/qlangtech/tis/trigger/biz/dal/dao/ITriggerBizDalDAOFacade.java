@@ -21,62 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.qlangtech.tis.common.stream;
-
-import java.io.Serializable;
+package com.qlangtech.tis.trigger.biz.dal.dao;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class FileGetRequest implements Serializable {
+public interface ITriggerBizDalDAOFacade {
 
-    private static final long serialVersionUID = 6273053372909908509L;
+    ITriggerJobDAO getTriggerJobDAO();
 
-    /**
-     * @uml.property  name="type"
-     */
-    private String type = null;
+    ITaskExecLogDAO getTaskExecLogDAO();
 
-    /**
-     * @uml.property  name="name"
-     */
-    private String name = null;
-
-    public FileGetRequest(String type, String name) {
-        this.type = type;
-        this.name = name;
-    }
-
-    /**
-     * @return
-     * @uml.property  name="name"
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @return
-     * @uml.property  name="type"
-     */
-    public String getType() {
-        return type;
-    }
-
-    /**
-     * @param name
-     * @uml.property  name="name"
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @param type
-     * @uml.property  name="type"
-     */
-    public void setType(String type) {
-        this.type = type;
-    }
+    ITaskDAO getTaskDAO();
 }

@@ -44,22 +44,10 @@ public class Config {
 
 	private final String assembleHostAddress;// =10.1.29.64
 	private final String jobTrackerHostAddress;
-	// jobtracker.host=10.1.27.162
-
-	// private Map<String, String> userToken;
 
 	private final String projectName;
 
-	// private Map<RunEnvironment, String> publishHook;
-
-	// private Map<RunEnvironment, String> responseTimeHost;
-
-	// private Map<RunEnvironment, String> zkAddress;
-	// private Map<RunEnvironment, String> hdfshost;
-
 	private final List<FuncGroup> funcGroup = new ArrayList<FuncGroup>();
-
-	// private Integer dptTerminatorId;
 
 	private static String bundlePath;
 
@@ -113,15 +101,6 @@ public class Config {
 		}
 	}
 
-	// private void setKey(Map<RunEnvironment, String> store, ResourceBundle
-	// bundle, String nameKey, final String prefix) {
-	// if (StringUtils.startsWith(nameKey, prefix)) {
-	// RunEnvironment envir =
-	// RunEnvironment.getEnum(StringUtils.substringAfter(nameKey, prefix));
-	// store.put(envir, bundle.getString(nameKey));
-	// }
-	// }
-
 	public static List<FuncGroup> getFuncGroup() {
 		return getInstance().funcGroup;
 	}
@@ -137,10 +116,6 @@ public class Config {
 		return config;
 	}
 
-	// public static Map<String, String> getUserToken() {
-	// return getInstance().userToken;
-	// }
-
 	public static String getProjectName() {
 		return getInstance().projectName;
 	}
@@ -148,18 +123,6 @@ public class Config {
 	public static String getOnlineTisRepository() {
 		return getInstance().tisOnlineRepository;
 	}
-
-	// public static Map<RunEnvironment, String> getPublishHook() {
-	// return getInstance().publishHook;
-	// }
-
-	// public static String getResponseTimeHost(RunEnvironment runtime) {
-	// return getInstance().responseTimeHost.get(runtime);
-	// }
-	//
-	// public static String getHdfsNameNodeHost(RunEnvironment runtime) {
-	// return getInstance().hdfshost.get(runtime);
-	// }
 
 	public static String getJobtrackerHost() {
 		return getInstance().jobTrackerHostAddress;
@@ -181,9 +144,9 @@ public class Config {
 		return hostIp;
 	}
 
-//	public static RunEnvironment getRunEnvironment() {
-//		return RunEnvironment.DAILY;
-//	}
+	// public static RunEnvironment getRunEnvironment() {
+	// return RunEnvironment.DAILY;
+	// }
 
 	/**
 	 * @param args

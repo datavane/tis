@@ -21,48 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.qlangtech.tis.manage.common.trigger.sources;
+package com.qlangtech.tis.manage.common;
 
-import com.qlangtech.tis.manage.common.trigger.ODPSConfig;
-import com.qlangtech.tis.manage.common.trigger.TriggerTaskConfig;
-
-/*
- * Odps 数据源
- *
+/* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class ODPSTaskConfig extends TriggerTaskConfig {
+public class TisRepositoryException extends Exception {
 
-    private ODPSConfig odpsSource;
+    private static final long serialVersionUID = 1L;
 
-    public ODPSConfig getOdpsSource() {
-        return odpsSource;
+    public TisRepositoryException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public void setOdpsSource(ODPSConfig odpsSource) {
-        this.odpsSource = odpsSource;
-    }
-
-    // odps table
-    private String tableName;
-
-    // increase time point
-    private String timepoint;
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public String getTimePoint() {
-        return timepoint;
-    }
-
-    public void setTimepoint(String timepoint) {
-        this.timepoint = timepoint;
+    public TisRepositoryException(String message) {
+        super(message);
     }
 }

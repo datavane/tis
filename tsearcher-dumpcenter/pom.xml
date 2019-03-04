@@ -4,11 +4,11 @@
 
 	<parent>
 		<groupId>com.qlangtech.tis</groupId>
-	    <artifactId>tis-pom</artifactId>
+		<artifactId>tis-pom</artifactId>
 		<version>1.0.0</version>
 	</parent>
 
-	
+
 	<artifactId>tsearcher-dumpcenter</artifactId>
 	<packaging>jar</packaging>
 	<name>tsearcher-dumpcenter</name>
@@ -21,7 +21,7 @@
 	</properties>
 
 	<build>
-        <finalName>tsearcher-dumpcenter-base</finalName>
+		<finalName>tsearcher-dumpcenter-base</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -40,42 +40,47 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-			
+
 
 		</plugins>
 	</build>
-	
+
 
 	<dependencies>
 
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tsearcher-builder-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-<dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-taskflow</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-       
-        <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-exec</artifactId>
-            <scope>provided</scope>
-        </dependency>
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-taskflow</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-        <dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-hdfs-extends</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-exec</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-hdfs-extends</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 
-        <dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-hdfs-extends</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-hdfs-extends</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
@@ -86,12 +91,6 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>tis-indexbuilder-manager</artifactId>
-			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -129,12 +128,8 @@
 			<artifactId>mysql-connector-java</artifactId>
 
 		</dependency>
-<!--
-		<dependency>
-			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>tis-client-standalone</artifactId>
-		</dependency>
--->
+		<!-- <dependency> <groupId>com.qlangtech.tis</groupId> <artifactId>tis-client-standalone</artifactId> 
+			</dependency> -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

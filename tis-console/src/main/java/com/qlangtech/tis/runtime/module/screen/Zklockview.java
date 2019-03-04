@@ -44,78 +44,48 @@ import com.qlangtech.tis.trigger.utils.LockResult;
  */
 public class Zklockview extends BasicScreen {
 
-    // private static ExtendTerminatorZkClient zkClientOnline;
-    // private static ExtendTerminatorZkClient zkClientReady;
-    // private static ExtendTerminatorZkClient zkClientDaily;
-    /**
-     */
-    private static final long serialVersionUID = 1L;
+	/**
+	 */
+	private static final long serialVersionUID = 1L;
 
-    // public static final String ZK_DUMP_LOCK_PATH_PREFIX =
-    // "/terminator/dump-controller/";
-    @Override
-    public void execute(Context context) throws Exception {
-        this.enableChangeDomain(context);
-        final AppDomainInfo domain = this.getAppDomain();
-        List<LockResult> result = new ArrayList<LockResult>();
-        // String path = "/tis-lock/dumpindex/" + domain.getAppName() +
-        // "/dumper";
-        // result.add(getNodeInfo(this.getSolrZkClient(), true/* hasChild */,
-        // path, false));
-        LockResult fulldumpLock = TriggerJobManage.getFullDumpNode(this.getSolrZkClient(), domain.getAppName());
-        result.add((fulldumpLock != null) ? fulldumpLock : TriggerJobManage.NULL_LOCK);
-        String path = "/tis/incr-transfer-group/" + TriggerParam.GROUP_NAME + "/" + domain.getAppName();
-        result.add(TriggerJobManage.getNodeInfo(this.getSolrZkClient(), true, /* hasChild */
-        path, false, "增量执行节点"));
-        context.put("locklist", result);
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.enableChangeDomain(context);
+		final AppDomainInfo domain = this.getAppDomain();
+		List<LockResult> result = new ArrayList<LockResult>();
 
-    // private static final ThreadLocal<SimpleDateFormat> timeFormat = new
-    // ThreadLocal<SimpleDateFormat>() {
-    // @Override
-    // protected SimpleDateFormat initialValue() {
-    // return new SimpleDateFormat("dd/HHmmss");
-    // }
-    // };
-    public static LockResult getNodeInfo(TisZkClient zk, boolean hasChild, String path, boolean editable) throws KeeperException, InterruptedException, UnsupportedEncodingException {
-        return TriggerJobManage.getNodeInfo(zk, hasChild, /* haChild */
-        path, editable, new PathValueProcess() {
+		LockResult fulldumpLock = TriggerJobManage.getFullDumpNode(this.getSolrZkClient(), domain.getAppName());
+		result.add((fulldumpLock != null) ? fulldumpLock : TriggerJobManage.NULL_LOCK);
+		String path = "/tis/incr-transfer-group/" + TriggerParam.GROUP_NAME + "/" + domain.getAppName();
+		result.add(TriggerJobManage.getNodeInfo(this.getSolrZkClient(), true, /* hasChild */
+				path, false, "增量执行节点"));
+		context.put("locklist", result);
+	}
 
-            @Override
-            public String process(String path, TisZkClient zk, LockResult lock) throws KeeperException, InterruptedException {
-                lock.stat = new Stat();
-                String child = new String(zk.getData(path, null, lock.stat, true));
-                lock.addChildValue(child);
-                return child;
-            }
-        }, null);
-    }
+	public static LockResult getNodeInfo(TisZkClient zk, boolean hasChild, String path, boolean editable)
+			throws KeeperException, InterruptedException, UnsupportedEncodingException {
+		return TriggerJobManage.getNodeInfo(zk, hasChild, /* haChild */
+				path, editable, new PathValueProcess() {
 
-    // public static LockResult getFullDumpNode(TisZkClient zk, String
-    // collection) throws Exception {
-    // final String ipLockPath = GRANTED_LOCK_CLIENT_IP.format(new Object[] {
-    // collection });
-    // if (!zk.exists(ipLockPath, true)) {
-    // return null;
-    // }
-    // 
-    // LockResult lock = getNodeInfo(zk, true/* hasChild */, ipLockPath, false,
-    // "全量Dump节点");
-    // 
-    // if (lock.childValus.isEmpty()) {
-    // return null;
-    // }
-    // 
-    // return lock;
-    // }
-    private ZooKeeperGetter zooKeeperGetter;
+					@Override
+					public String process(String path, TisZkClient zk, LockResult lock)
+							throws KeeperException, InterruptedException {
+						lock.stat = new Stat();
+						String child = new String(zk.getData(path, null, lock.stat, true));
+						lock.addChildValue(child);
+						return child;
+					}
+				}, null);
+	}
 
-    protected TisZkClient getZooKeeper() {
-        return zooKeeperGetter.getInstance();
-    }
+	private ZooKeeperGetter zooKeeperGetter;
 
-    @Autowired
-    public void setZooKeeperGetter(ZooKeeperGetter zooKeeperGetter) {
-        this.zooKeeperGetter = zooKeeperGetter;
-    }
+	protected TisZkClient getZooKeeper() {
+		return zooKeeperGetter.getInstance();
+	}
+
+	@Autowired
+	public void setZooKeeperGetter(ZooKeeperGetter zooKeeperGetter) {
+		this.zooKeeperGetter = zooKeeperGetter;
+	}
 }

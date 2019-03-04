@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TriggerCrontab;
-import com.qlangtech.tis.manage.common.apps.TerminatorAdminAppsFetcher;
+import com.qlangtech.tis.manage.common.apps.AdminAppsFetcher;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.trigger.zk.AbstractWatcher;
 
@@ -92,7 +92,7 @@ public class CrontabListAction extends BasicModule {
                 }
             }
         }
-        List<TriggerCrontab> crontablist = TerminatorAdminAppsFetcher.getAllTriggerTabs(context.getUsrDptRelationDAO());
+        List<TriggerCrontab> crontablist = AdminAppsFetcher.getAllTriggerTabs(context.getUsrDptRelationDAO());
         TriggerCrontab next = null;
         Iterator<TriggerCrontab> cronIt = crontablist.iterator();
         while (cronIt.hasNext()) {

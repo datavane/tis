@@ -14,8 +14,6 @@ import com.qlangtech.tis.openapi.SnapshotNotFindException;
  */
 public class SnapshotDomainGetter {
 
-	// private static final long serialVersionUID = 1L;
-
 	private final RunContext runContext;
 
 	public SnapshotDomainGetter(RunContext runContext) {
@@ -23,7 +21,6 @@ public class SnapshotDomainGetter {
 		this.runContext = runContext;
 	}
 
-	// @Override
 	public SnapshotDomain getSnapshot(AppKey appKey)// HttpServletRequest
 			// request)
 			throws SnapshotNotFindException {
@@ -36,21 +33,17 @@ public class SnapshotDomainGetter {
 		// RunEnvironment.getEnum(matcher.group(3));
 
 		// final String resources = getResources(request);
-		if (appKey.getTargetSnapshotId() != null
-				&& appKey.getTargetSnapshotId() > 0) {
+		if (appKey.getTargetSnapshotId() != null && appKey.getTargetSnapshotId() > 0) {
 			result.snapshotId = appKey.getTargetSnapshotId().intValue();
 		} else {
-			final ServerGroup group = runContext.getServerGroupDAO().load(
-					appKey.appName, appKey.groupIndex, appKey.runtime.getId());
+			final ServerGroup group = runContext.getServerGroupDAO().load(appKey.appName, appKey.groupIndex,
+					appKey.runtime.getId());
 			if (group == null) {
-				throw new SnapshotNotFindException("appName:" + appKey.appName
-						+ " groupIndex:" + appKey.groupIndex + " runtime:"
-						+ appKey.runtime
-						+ " has not a corresponding server group in db");
+				throw new SnapshotNotFindException("appName:" + appKey.appName + " groupIndex:" + appKey.groupIndex
+						+ " runtime:" + appKey.runtime + " has not a corresponding server group in db");
 			}
 			if (group.getPublishSnapshotId() == null) {
-				throw new SnapshotNotFindException("groupid:" + group.getGid()
-						+ " has not set publish snapshot id");
+				throw new SnapshotNotFindException("groupid:" + group.getGid() + " has not set publish snapshot id");
 			}
 			result.snapshotId = group.getPublishSnapshotId();
 		}
@@ -61,8 +54,7 @@ public class SnapshotDomainGetter {
 		}
 		// return result;
 
-		return runContext.getSnapshotViewDAO().getView(result.snapshotId,
-				result.runtime);
+		return runContext.getSnapshotViewDAO().getView(result.snapshotId, result.runtime);
 	}
 
 }

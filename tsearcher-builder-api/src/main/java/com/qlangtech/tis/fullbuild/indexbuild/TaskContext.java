@@ -25,11 +25,39 @@ package com.qlangtech.tis.fullbuild.indexbuild;
 
 import java.util.HashMap;
 
+import com.qlangtech.tis.build.metrics.Counters;
+import com.qlangtech.tis.build.metrics.Messages;
+
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class TaskContext extends HashMap<String, String> {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
+
+	public Counters getCounters() {
+		return null;
+	}
+
+	public Messages getMessages() {
+		return null;
+	}
+
+	public String getUserParam(String key) {
+		return "";
+	}
+
+	public String getMapPath() {
+		return null;
+	}
+
+	public String getInnerParam(String key) {
+		return null;
+	}
+
+	public void setUserParam(String key, String val) {
+
+	}
+
 }

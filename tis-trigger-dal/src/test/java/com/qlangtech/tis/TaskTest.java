@@ -27,7 +27,7 @@ import java.util.List;
 import junit.framework.TestCase;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 import com.qlangtech.tis.trigger.biz.dal.pojo.Task;
 import com.qlangtech.tis.trigger.biz.dal.pojo.TaskCriteria;
 
@@ -44,7 +44,7 @@ public class TaskTest extends TestCase {
     }
 
     public void testTaskSelect() {
-        ITerminatorTriggerBizDalDAOFacade daoFacade = context.getBean("terminatorTriggerBizDalDaoFacade", ITerminatorTriggerBizDalDAOFacade.class);
+        ITriggerBizDalDAOFacade daoFacade = context.getBean("terminatorTriggerBizDalDaoFacade", ITriggerBizDalDAOFacade.class);
         TaskCriteria criteria = new TaskCriteria();
         criteria.createCriteria().andJobIdEqualTo(23l);
         List<Task> task = daoFacade.getTaskDAO().selectByExample(criteria, 1, 20);

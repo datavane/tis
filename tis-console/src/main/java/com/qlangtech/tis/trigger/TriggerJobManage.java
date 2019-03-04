@@ -78,7 +78,7 @@ import com.qlangtech.tis.manage.common.trigger.TriggerTaskConfig;
 import com.qlangtech.tis.pubhook.common.IPreTriggerProcess;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.biz.dal.dao.IJobMetaDataDAO;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 import com.qlangtech.tis.trigger.biz.dal.dao.JobConstant;
 import com.qlangtech.tis.trigger.biz.dal.pojo.AppTrigger;
 import com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob;
@@ -107,7 +107,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 
 	private IJobMetaDataDAO jobMetaDataDAO;
 
-	private ITerminatorTriggerBizDalDAOFacade triggerBizDAO;
+	private ITriggerBizDalDAOFacade triggerBizDAO;
 
 	private IPreTriggerProcess preTriggerProcess;
 
@@ -134,11 +134,11 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 		shnchronizeCrontabConfig();
 	}
 
-	public ITerminatorTriggerBizDalDAOFacade getTriggerBizDAO() {
+	public ITriggerBizDalDAOFacade getTriggerBizDAO() {
 		return this.triggerBizDAO;
 	}
 
-	public void setTriggerBizDAO(ITerminatorTriggerBizDalDAOFacade triggerBizDAO) {
+	public void setTriggerBizDAO(ITriggerBizDalDAOFacade triggerBizDAO) {
 		this.triggerBizDAO = triggerBizDAO;
 	}
 
@@ -529,7 +529,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 	 */
 	protected Map<String, /* group name */
 			Crontab> getAllAvailableCrontabs() throws Exception {
-		URL allCrontabsUrl = new URL(TSearcherConfigFetcher.get().getTerminatorConsoleHostAddress()
+		URL allCrontabsUrl = new URL(TSearcherConfigFetcher.get().getTisConsoleHostAddress()
 				+ "/config/config.ajax?action=crontab_list_action&event_submit_do_get_list=true&resulthandler=advance_query_result");
 		return ConfigFileContext.processContent(allCrontabsUrl,
 				new StreamProcess<Map<String, /* group name */

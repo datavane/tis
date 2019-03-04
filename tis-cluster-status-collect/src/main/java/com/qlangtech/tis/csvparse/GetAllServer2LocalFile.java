@@ -50,8 +50,7 @@ public class GetAllServer2LocalFile {
         PrintStream serversFile = null;
         try {
             File localfile = null;
-            // new File(TerminatorConcentrateReport.getWorkDir(),
-            // "ips.txt");
+           
             serversFile = new PrintStream(new FileOutputStream(localfile, false));
             for (String server : servers) {
                 if (zookeeper.getChildren(ZK_SERVER_NODES_PATH + "/" + server, false).size() > 0) {

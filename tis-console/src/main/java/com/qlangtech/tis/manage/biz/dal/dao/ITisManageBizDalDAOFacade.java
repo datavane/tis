@@ -29,19 +29,18 @@ package com.qlangtech.tis.manage.biz.dal.dao;
  */
 public interface ITisManageBizDalDAOFacade {
 
-    IUsrDptRelationDAO getUsrDptRelationDAO();
+	IUsrDptRelationDAO getUsrDptRelationDAO();
 
-    IApplicationDAO getApplicationDAO();
+	IApplicationDAO getApplicationDAO();
 
-    IDepartmentDAO getDepartmentDAO();
+	IDepartmentDAO getDepartmentDAO();
 
-    IFuncRoleRelationDAO getFuncRoleRelationDAO();
+	IFuncRoleRelationDAO getFuncRoleRelationDAO();
 
-    IRoleDAO getRoleDAO();
+	IRoleDAO getRoleDAO();
 
-    IFuncDAO getFuncDAO();
+	IFuncDAO getFuncDAO();
 
-    IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO();
+	IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO();
 
-    IApplicationExtendDAO getApplicationExtendDAO();
 }

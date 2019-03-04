@@ -55,7 +55,7 @@ import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
-import com.qlangtech.tis.manage.common.TerminatorRepositoryException;
+import com.qlangtech.tis.manage.common.TisRepositoryException;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -86,7 +86,7 @@ public class TisSolrResourceLoader extends ZkSolrResourceLoader {
 	@Override
 	public String getConfigDir() {
 		// throw new UnsupportedOperationException();
-		return "repository:" + TSearcherConfigFetcher.get().getTerminatorConsoleHostAddress();
+		return "repository:" + TSearcherConfigFetcher.get().getTisConsoleHostAddress();
 	}
 
 	@Override
@@ -151,8 +151,8 @@ public class TisSolrResourceLoader extends ZkSolrResourceLoader {
 						collectionConfigDir, configFileNames.values().toArray(new PropteryGetter[0]), true);
 				// 返回需要的文件
 				return new ByteArrayInputStream(getter.getContent(snapshotDomain));
-			} catch (TerminatorRepositoryException e1) {
-				throw new SolrResourceNotFoundException("repository:" + configFetcher.getTerminatorConsoleHostAddress()
+			} catch (TisRepositoryException e1) {
+				throw new SolrResourceNotFoundException("repository:" + configFetcher.getTisConsoleHostAddress()
 						+ ",collection:" + collectionName, e1);
 			}
 		}
@@ -181,15 +181,15 @@ public class TisSolrResourceLoader extends ZkSolrResourceLoader {
 	 * @param configFetcher
 	 * @param collectionConfigDir
 	 * @return
-	 * @throws TerminatorRepositoryException
+	 * @throws TisRepositoryException
 	 * @throws IOException
 	 */
 	public static SnapshotDomain downConfigFromConsoleRepository(final long targetSnapshotid, String collectionName,
 			File collectionConfigDir, PropteryGetter[] fileGetter, boolean modifyFileSys)
-			throws TerminatorRepositoryException, IOException {
+			throws TisRepositoryException, IOException {
 		TSearcherConfigFetcher configFetcher = TSearcherConfigFetcher.get();
 		SnapshotDomain snapshotDomain = HttpConfigFileReader.getResource(
-				configFetcher.getTerminatorConsoleHostAddress(), collectionName, targetSnapshotid,
+				configFetcher.getTisConsoleHostAddress(), collectionName, targetSnapshotid,
 				configFetcher.getRuntime(), fileGetter);
 		// 期望下载的 和远端的配置文件版本不同则肯定有问题了，需要抛出异常
 		if (targetSnapshotid > 0 && snapshotDomain.getSnapshot().getSnId() != targetSnapshotid) {

@@ -25,11 +25,13 @@ package com.qlangtech.tis.indexbuilder.index.nestdoc.s4personas;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.schema.IndexSchema;
-import com.taobao.terminator.build.metrics.Counters;
-import com.taobao.terminator.build.metrics.Messages;
+
+import com.qlangtech.tis.build.metrics.Counters;
+import com.qlangtech.tis.build.metrics.Messages;
 import com.qlangtech.tis.indexbuilder.index.nestdoc.NestIndexMaker;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 
@@ -41,38 +43,11 @@ import com.qlangtech.tis.indexbuilder.map.IndexConf;
  */
 public class S4personasNestIndexMaker extends NestIndexMaker {
 
-    public S4personasNestIndexMaker(IndexConf indexConf, IndexSchema indexSchema, Messages messages, Counters counters, BlockingQueue<RAMDirectory> ramDirQueue, BlockingQueue<SolrInputDocument> docPoolQueues, AtomicInteger aliveDocMakerCount, AtomicInteger aliveIndexMakerCount) {
-        super(indexConf, indexSchema, messages, counters, ramDirQueue, docPoolQueues, aliveDocMakerCount, aliveIndexMakerCount);
-    }
-    // @Override
-    // protected List<Document> getLuceneDocument(SolrInputDocument doc, IndexSchema schema) {
-    // 
-    // try {
-    // List<Document> allDocs = new ArrayList<>();
-    // List<SolrInputDocument> allSolrDocs = flatten(doc);
-    // String idField = getHashableId(doc, schema);
-    // 
-    // for (SolrInputDocument aDoc : allSolrDocs) {
-    // aDoc.setField("_root_", idField == null ? "-1" : idField);
-    // allDocs.add(DocumentBuilder.toDocument(aDoc, schema));
-    // }
-    // return allDocs;
-    // } catch (Exception e) {
-    // throw new RuntimeException(doc.toString(), e);
-    // }
-    // }
-    // protected void recUnwrapp(List<SolrInputDocument> unwrappedDocs, SolrInputDocument currentDoc) {
-    // String idField = getHashableId(currentDoc, this.indexSchema);
-    // 
-    // List<SolrInputDocument> children = currentDoc.getChildDocuments();
-    // if (children != null) {
-    // for (SolrInputDocument child : children) {
-    // recUnwrapp(unwrappedDocs, child);
-    // }
-    // }
-    // 
-    // if (idField != null) {
-    // unwrappedDocs.add(currentDoc);
-    // }
-    // }
+	public S4personasNestIndexMaker(IndexConf indexConf, IndexSchema indexSchema, Messages messages, Counters counters,
+			BlockingQueue<RAMDirectory> ramDirQueue, BlockingQueue<SolrInputDocument> docPoolQueues,
+			AtomicInteger aliveDocMakerCount, AtomicInteger aliveIndexMakerCount) {
+		super(indexConf, indexSchema, messages, counters, ramDirQueue, docPoolQueues, aliveDocMakerCount,
+				aliveIndexMakerCount);
+	}
+
 }

@@ -24,11 +24,10 @@
 package com.qlangtech.tis;
 
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
-import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
-import com.qlangtech.tis.manage.common.TerminatorRepositoryException;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.manage.common.TisRepositoryException;
+
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
@@ -44,7 +43,7 @@ public class TestGetAppConfigBySnid extends TestCase {
             UploadResource resource = domain.getSolrSchema();
             Assert.assertNotNull(resource);
             Assert.assertNotNull(resource.getContent());
-        } catch (TerminatorRepositoryException e) {
+        } catch (TisRepositoryException e) {
             Assert.assertFalse(e.getMessage(), true);
         }
     }

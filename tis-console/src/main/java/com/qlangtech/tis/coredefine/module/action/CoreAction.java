@@ -358,8 +358,6 @@ public class CoreAction extends CoreDefineModule {
 							@Override
 							public Boolean p(int status, InputStream stream, String md5) {
 								successUpdateNodeCount.incrementAndGet();
-								// return processResponse(context, stream);
-
 								return HttpUtils.processResponse(stream,
 										(err) -> addErrorMessage(context, err)).success;
 							}
@@ -441,46 +439,9 @@ public class CoreAction extends CoreDefineModule {
 	}
 
 	public static interface ReplicaCallback {
-
 		public boolean process(boolean isLeader, Replica replica) throws Exception;
 	}
 
-	//
-	// /**
-	// * 设置这次操作的json描述
-	// *
-	// * @param request
-	// * @throws Exception
-	// */
-	// // private void setOperationLogDesc(FCoreRequest request) throws
-	// Exception {
-	// // JSONObject json = new JSONObject();
-	// // json.put("name", request.getRequest().getServiceName());
-	// // json.put("terminatorUrl", request.getRequest().getTerminatorUrl());
-	// // json.put("monopolized", request.getRequest().isMonopolized());
-	// //
-	// // JSONObject servers = new JSONObject();
-	// //
-	// // for (Map.Entry<Integer, Collection<String>> entry : request
-	// // .getServersView().entrySet()) {
-	// // JSONArray group = new JSONArray();
-	// //
-	// // for (String ip : entry.getValue()) {
-	// // group.put(ip);
-	// // }
-	// // servers.put("group" + entry.getKey(), group);
-	// // }
-	// // json.put("servers", servers);
-	// // request.getRequest().setOpDesc(json.toString());
-	// // request.getRequest().setLoggerContent(StringUtils.EMPTY);
-	// //
-	// // }
-	//
-	// private Map<String, CoreNode> getCoreNodeMap() {
-	// return getCoreNodeMap(/* getCoreNodeMap */false);
-	//
-	// }
-	//
 	// /**
 	// * 取得当前应用
 	// *
@@ -495,16 +456,6 @@ public class CoreAction extends CoreDefineModule {
 		return result;
 	}
 
-	//
-	// /**
-	// * @param context
-	// * @param serverSuffix
-	// * @param isAppNameAware
-	// * @param mustSelectMoreOneReplicAtLeast
-	// * 每一组至少选一个副本（在创建core的时候，每组至少要选一个以上的副本， <br/>
-	// * 但是在减少副本的时候每组可以一个副本都不选）
-	// * @return
-	// */
 	private ParseIpResult parseIps(Context context, String serverSuffix, boolean isAppNameAware,
 			boolean mustSelectMoreOneReplicAtLeast) {
 		ParseIpResult result = new ParseIpResult();
@@ -842,7 +793,7 @@ public class CoreAction extends CoreDefineModule {
 	// }
 	//
 	// } catch (Exception e) {
-	// throw new TerminatorInitException(e);
+	// 
 	// }
 	// return result;
 	// }

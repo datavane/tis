@@ -23,9 +23,7 @@
  */
 package com.qlangtech.tis.hdfs.client.bean.searcher;
 
-import com.qlangtech.tis.common.ServiceType;
 import com.qlangtech.tis.common.config.IServiceConfig;
-import com.qlangtech.tis.common.protocol.SearchService;
 
 /*
  * 普通模式查询客户端
@@ -35,18 +33,6 @@ import com.qlangtech.tis.common.protocol.SearchService;
  */
 public class CommonTerminatorSearcher extends BasicTerminatorSearcher {
 
-    // private static final Log logger = LogFactory
-    // .getLog(CommonTerminatorSearcher.class);
-    protected final SearchService getSearchService(ServiceType serviceType, String serviceName, int group) {
-//        return new SearchService() {
-//
-//            @Override
-//            public QueryResponse query(TerminatorQueryRequest query) throws TerminatorServiceException {
-//                return null;
-//            }
-//        };
-    	return null;
-    }
-
-    protected final void subscribeSearcherService(IServiceConfig config) {}
+	protected final void subscribeSearcherService(IServiceConfig config) {
+	}
 }

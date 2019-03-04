@@ -61,7 +61,7 @@ import com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 import com.qlangtech.tis.trigger.biz.dal.dao.JobConstant;
 import com.qlangtech.tis.trigger.module.action.TriggerAction;
 
@@ -77,7 +77,7 @@ public class AddAppAction extends BasicModule implements ModelDriven<Application
 
 	private static final long serialVersionUID = 1L;
 
-	private ITerminatorTriggerBizDalDAOFacade triggerContext;
+	private ITriggerBizDalDAOFacade triggerContext;
 
 	public static final int FIRST_GROUP_INDEX = 0;
 
@@ -160,7 +160,7 @@ public class AddAppAction extends BasicModule implements ModelDriven<Application
 	 * @return
 	 */
 	public static Integer createApplication(Application app, Context context, BasicModule basicModule,
-			ITerminatorTriggerBizDalDAOFacade triggerContext) {
+			ITriggerBizDalDAOFacade triggerContext) {
 		final Integer newid = basicModule.getApplicationDAO().insertSelective(app);
 		// 创建默认trigger触发器
 		// if (app.getIsAutoDeploy()) {
@@ -359,7 +359,7 @@ public class AddAppAction extends BasicModule implements ModelDriven<Application
 	}
 
 	@Autowired
-	public void setTisTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
+	public void setTisTriggerBizDalDaoFacade(ITriggerBizDalDAOFacade triggerDaoContext) {
 		this.triggerContext = triggerDaoContext;
 	}
 

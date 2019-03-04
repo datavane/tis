@@ -536,20 +536,7 @@ Dbmis.SearchTableGridPanel = function (manager) {
             }
         });
     };
-    this.toTddl=function (){
-        var table = panelObj.getSelectionModel().getSelected().data;
-        Ext.Ajax.request({
-            url:'/project/getDbNameById.jsn',
-            params:{dbId:table.dbId},
-            success:function (result, request) {
-                var object = getJson(result.responseText);
-                var url = beidou_path + 'mysql/tddl.php?ln=0&envId=1&action=config-manage-all2&queryKey='+object['dbName'];
-                window.open(url, 'tddl', pubfeather);
-            }
-        })
-
-    };
-
+ 
     this.watchTable = function (v) {
         var table = panelObj.getSelectionModel().getSelected().data;
         Ext.Ajax.request({

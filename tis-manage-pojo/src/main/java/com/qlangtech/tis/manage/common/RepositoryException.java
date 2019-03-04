@@ -21,17 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.qlangtech.tis.trigger.biz.dal.dao;
+package com.qlangtech.tis.manage.common;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public interface ITerminatorTriggerBizDalDAOFacade {
+public class RepositoryException extends Exception {
 
-    ITriggerJobDAO getTriggerJobDAO();
+    private static final long serialVersionUID = 1L;
 
-    ITaskExecLogDAO getTaskExecLogDAO();
+    public RepositoryException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    ITaskDAO getTaskDAO();
+    public RepositoryException(String message) {
+        super(message);
+    }
 }

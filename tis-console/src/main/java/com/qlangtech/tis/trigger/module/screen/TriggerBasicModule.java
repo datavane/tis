@@ -28,7 +28,7 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.trigger.biz.dal.dao.IJobMetaDataDAO;
 import com.qlangtech.tis.trigger.biz.dal.dao.ITaskDAO;
 import com.qlangtech.tis.trigger.biz.dal.dao.ITaskExecLogDAO;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerJobDAO;
 import com.qlangtech.tis.trigger.rmi.TriggerJobConsole;
 
@@ -36,65 +36,55 @@ import com.qlangtech.tis.trigger.rmi.TriggerJobConsole;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public abstract class TriggerBasicModule extends // implements
-BasicModule {
+public abstract class TriggerBasicModule extends BasicModule {
 
-    // ITerminatorTriggerBizDalDAOFacade
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private ITerminatorTriggerBizDalDAOFacade triggerContext;
+	private ITriggerBizDalDAOFacade triggerContext;
 
-    // protected ITerminatorTriggerBizDalDAOFacade getTriggerContext() {
-    // return triggerContext;
-    // }
-    private IJobMetaDataDAO jobMetaDataDAO;
+	private IJobMetaDataDAO jobMetaDataDAO;
 
-    private TriggerJobConsole triggerJobConsole;
+	private TriggerJobConsole triggerJobConsole;
 
-    @Autowired
-    public final void setTriggerJobConsole(TriggerJobConsole triggerJobConsole) {
-        this.triggerJobConsole = triggerJobConsole;
-    }
+	@Autowired
+	public final void setTriggerJobConsole(TriggerJobConsole triggerJobConsole) {
+		this.triggerJobConsole = triggerJobConsole;
+	}
 
-    // private ITerminatorTriggerBizDalDAOFacade triggerBizDalDAOFacade;
-    // public ITerminatorTriggerBizDalDAOFacade getTriggerDaoContext() {
-    // return triggerDaoContext;
-    // }
-    public final TriggerJobConsole getTriggerJobConsole() {
-        return triggerJobConsole;
-    }
+	public final TriggerJobConsole getTriggerJobConsole() {
+		return this.triggerJobConsole;
+	}
 
-    // terminatorTriggerBizDalDaoFacade
-    @Autowired
-    public void setTisTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
-        this.triggerContext = triggerDaoContext;
-    }
+	@Autowired
+	public void setTisTriggerBizDalDaoFacade(ITriggerBizDalDAOFacade triggerDaoContext) {
+		this.triggerContext = triggerDaoContext;
+	}
 
-    public ITerminatorTriggerBizDalDAOFacade getTerminatorTriggerBizDalDaoFacade() {
-        return this.triggerContext;
-    }
+	public ITriggerBizDalDAOFacade getTriggerBizDalDaoFacade() {
+		return this.triggerContext;
+	}
 
-    public IJobMetaDataDAO getJobMetaDataDAO() {
-        return jobMetaDataDAO;
-    }
+	public IJobMetaDataDAO getJobMetaDataDAO() {
+		return jobMetaDataDAO;
+	}
 
-    @Autowired
-    public void setJobMetaDataDAO(IJobMetaDataDAO jobMetaDataDAO) {
-        this.jobMetaDataDAO = jobMetaDataDAO;
-    }
+	@Autowired
+	public void setJobMetaDataDAO(IJobMetaDataDAO jobMetaDataDAO) {
+		this.jobMetaDataDAO = jobMetaDataDAO;
+	}
 
-    // @Override
-    public ITaskDAO getTaskDAO() {
-        return this.triggerContext.getTaskDAO();
-    }
+	// @Override
+	public ITaskDAO getTaskDAO() {
+		return this.triggerContext.getTaskDAO();
+	}
 
-    // @Override
-    public ITaskExecLogDAO getTaskExecLogDAO() {
-        return this.triggerContext.getTaskExecLogDAO();
-    }
+	// @Override
+	public ITaskExecLogDAO getTaskExecLogDAO() {
+		return this.triggerContext.getTaskExecLogDAO();
+	}
 
-    // @Override
-    public ITriggerJobDAO getTriggerJobDAO() {
-        return this.triggerContext.getTriggerJobDAO();
-    }
+	// @Override
+	public ITriggerJobDAO getTriggerJobDAO() {
+		return this.triggerContext.getTriggerJobDAO();
+	}
 }

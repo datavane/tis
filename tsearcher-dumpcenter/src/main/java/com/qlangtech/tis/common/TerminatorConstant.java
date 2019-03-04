@@ -23,21 +23,17 @@
  */
 package com.qlangtech.tis.common;
 
-import com.qlangtech.tis.common.protocol.TerminatorService;
-
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class TerminatorConstant {
 
-    public static final String CORENAME_SEPERATOR = "-";
+	public static final String CORENAME_SEPERATOR = "-";
 
-    public static final String HSF_VERSION_SEPERATOR = "-";
+	public static final String HSF_VERSION_SEPERATOR = "-";
 
-    public static final String SINGLE_CORE_GROUP_NAME = "0";
+	public static final String SINGLE_CORE_GROUP_NAME = "0";
 
-    public static final String DEFAULT_INTERFACE_NAME = TerminatorService.class.getName();
-
-    public static final String DEFAULT_SERIALIZE_TYPE = "java";
+	public static final String DEFAULT_SERIALIZE_TYPE = "java";
 }

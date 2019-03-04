@@ -55,7 +55,7 @@ import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.UploadJarAction.ConfigContentGetter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 
 import junit.framework.Assert;
 
@@ -98,7 +98,7 @@ public class ConfigFileParametersAction extends BasicModule {
 
 	}
 
-	private ITerminatorTriggerBizDalDAOFacade triggerContext;
+	private ITriggerBizDalDAOFacade triggerContext;
 
 	public static GlobalParam[] globalParams = new GlobalParam[] { //
 			new GlobalParam(TSearcherConfigFetcher.CONFIG_ZKADDRESS, "Solr集群zookeeper地址" //
@@ -605,7 +605,7 @@ public class ConfigFileParametersAction extends BasicModule {
 	}
 
 	@Autowired
-	public void setTisTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
+	public void setTisTriggerBizDalDaoFacade(ITriggerBizDalDAOFacade triggerDaoContext) {
 		this.triggerContext = triggerDaoContext;
 	}
 }

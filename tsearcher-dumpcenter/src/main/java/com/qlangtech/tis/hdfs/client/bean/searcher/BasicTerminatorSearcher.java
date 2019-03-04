@@ -27,14 +27,9 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.springframework.beans.factory.InitializingBean;
 
-import com.qlangtech.tis.common.ServiceType;
-import com.qlangtech.tis.common.TerminatorServiceException;
 import com.qlangtech.tis.common.config.IServiceConfig;
-import com.qlangtech.tis.common.protocol.SearchService;
-import com.qlangtech.tis.common.protocol.TerminatorQueryRequest;
 import com.qlangtech.tis.common.zk.TerminatorZkClient;
 import com.qlangtech.tis.hdfs.client.context.TSearcherQueryContext;
 import com.qlangtech.tis.hdfs.client.context.impl.TSearcherQueryContextImpl.ServiceConfigChangeListener;
@@ -47,99 +42,81 @@ import com.qlangtech.tis.hdfs.client.status.SolrCoreStatusHolder;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public abstract class BasicTerminatorSearcher implements SearchService, InitializingBean, TSearcherQueryContext {
+public abstract class BasicTerminatorSearcher implements InitializingBean, TSearcherQueryContext {
 
-    public static final String DEFAULT_SERVLET_CONTEXT = "terminator-search";
+	public static final String DEFAULT_SERVLET_CONTEXT = "terminator-search";
 
-    private String servletContextName = DEFAULT_SERVLET_CONTEXT;
+	private String servletContextName = DEFAULT_SERVLET_CONTEXT;
 
-    static final Log logger = LogFactory.getLog(BasicTerminatorSearcher.class);
+	static final Log logger = LogFactory.getLog(BasicTerminatorSearcher.class);
 
-    private TSearcherQueryContext queryContext;
+	private TSearcherQueryContext queryContext;
 
-    public IServiceConfig getServiceConfig() {
-        return queryContext.getServiceConfig();
-    }
+	public IServiceConfig getServiceConfig() {
+		return queryContext.getServiceConfig();
+	}
 
-    public void addCoreConfigChangeListener(ServiceConfigChangeListener listener) {
-        queryContext.addCoreConfigChangeListener(listener);
-    }
+	public void addCoreConfigChangeListener(ServiceConfigChangeListener listener) {
+		queryContext.addCoreConfigChangeListener(listener);
+	}
 
-    public void fireServiceConfigChange() {
-        queryContext.fireServiceConfigChange();
-    }
+	public void fireServiceConfigChange() {
+		queryContext.fireServiceConfigChange();
+	}
 
-    public Set<String> getGroupNameSet() {
-        return queryContext.getGroupNameSet();
-    }
+	public Set<String> getGroupNameSet() {
+		return queryContext.getGroupNameSet();
+	}
 
-    protected abstract SearchService getSearchService(ServiceType serviceType, String serviceName, int group);
+	// protected abstract SearchService getSearchService(ServiceType
+	// serviceType, String serviceName, int group);
 
-    @Override
-    public final void afterPropertiesSet() throws Exception {
-        getQueryContext().addCoreConfigChangeListener(new ServiceConfigChangeListener() {
+	@Override
+	public final void afterPropertiesSet() throws Exception {
+		getQueryContext().addCoreConfigChangeListener(new ServiceConfigChangeListener() {
 
-            @Override
-            public void onChange(IServiceConfig config) {
-                subscribeSearcherService(config);
-            }
-        });
-    }
+			@Override
+			public void onChange(IServiceConfig config) {
+				subscribeSearcherService(config);
+			}
+		});
+	}
 
-    protected abstract void subscribeSearcherService(IServiceConfig config);
+	protected abstract void subscribeSearcherService(IServiceConfig config);
 
-    /**
-     * 取得负责查询的查询服务
-     *
-     * @param serviceType
-     * @param serviceName
-     * @param group
-     * @return
-     */
-    // protected abstract SearchService getSearchService(ServiceType
-    // serviceType,
-    // String serviceName, int group);
-   // @Override
-    public QueryResponse query(TerminatorQueryRequest query) throws TerminatorServiceException {
-      return null;
-    // }
-    }
+	public GroupRouter getGroupRouter() {
+		return queryContext.getGroupRouter();
+	}
 
-   
+	public String getServiceName() {
+		return queryContext.getServiceName();
+	}
 
-    public GroupRouter getGroupRouter() {
-        return queryContext.getGroupRouter();
-    }
+	public TerminatorZkClient getZkClient() {
+		return queryContext.getZkClient();
+	}
 
-    public String getServiceName() {
-        return queryContext.getServiceName();
-    }
+	protected final boolean isSingleGroup() {
+		return getServiceConfig().getGroupSize() == 1;
+	}
 
-    public TerminatorZkClient getZkClient() {
-        return queryContext.getZkClient();
-    }
+	public final String getServletContextName() {
+		return servletContextName;
+	}
 
-    protected final boolean isSingleGroup() {
-        return getServiceConfig().getGroupSize() == 1;
-    }
+	public final void setServletContextName(String servletContextName) {
+		this.servletContextName = servletContextName;
+	}
 
-    public final String getServletContextName() {
-        return servletContextName;
-    }
+	public TSearcherQueryContext getQueryContext() {
+		return queryContext;
+	}
 
-    public final void setServletContextName(String servletContextName) {
-        this.servletContextName = servletContextName;
-    }
+	public void setQueryContext(TSearcherQueryContext queryContext) {
+		this.queryContext = queryContext;
+	}
 
-    public TSearcherQueryContext getQueryContext() {
-        return queryContext;
-    }
-
-    public void setQueryContext(TSearcherQueryContext queryContext) {
-        this.queryContext = queryContext;
-    }
-
-    public SolrCoreStatusHolder getHostStatusHolder() {
-        return queryContext.getHostStatusHolder();
-    }
+	public SolrCoreStatusHolder getHostStatusHolder() {
+		return queryContext.getHostStatusHolder();
+	}
 }

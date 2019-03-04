@@ -54,11 +54,8 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
 
 	private static final long serialVersionUID = 1L;
 
-	private DelegateAdminUserService authService;
-
 	private static final Log log = LogFactory.getLog(AuthorityCheckAdvice.class);
 
-	// private HttpServletRequest request;
 	private RunContextGetter daoContextGetter;
 
 	@Autowired
@@ -79,7 +76,6 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
 		final Method method = action.getExecuteMethod();
 		Func func = method.getAnnotation(Func.class);
 		final Rundata rundata = BasicModule.getRundataInstance();
-		// }
 		final IUser user = UserUtils.getUser(ServletActionContext.getRequest(), daoContextGetter.get());
 		if (!user.hasLogin() && !(action instanceof Login || action instanceof LoginAction
 				|| StringUtils.startsWith(namespace, "/config")
@@ -101,20 +97,4 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
 		return invocation.invoke();
 	}
 
-	public DelegateAdminUserService getAuthService() {
-		return authService;
-	}
-
-	//
-	// public HttpServletRequest getRequest() {
-	// return request;
-	// }
-	//
-	// @Autowired
-	// public void setRequest(HttpServletRequest request) {
-	// this.request = request;
-	// }
-	public void setAuthService(DelegateAdminUserService authService) {
-		this.authService = authService;
-	}
 }

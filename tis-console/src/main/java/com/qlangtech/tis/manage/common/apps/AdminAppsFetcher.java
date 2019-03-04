@@ -38,9 +38,9 @@ import com.qlangtech.tis.manage.common.TriggerCrontab;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorAdminAppsFetcher extends NormalUserApplicationFetcher {
+public class AdminAppsFetcher extends NormalUserApplicationFetcher {
 
-    public TerminatorAdminAppsFetcher(IUser user, Department department, RunContext context) {
+    public AdminAppsFetcher(IUser user, Department department, RunContext context) {
         super(user, department, context);
     }
 

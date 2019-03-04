@@ -63,11 +63,10 @@ public final class DefaultFilter implements Filter {
 	}
 
 	public static ServletResponse getRespone() {
-		// ServletActionContext.getResponse();
+		
 		return responseLocal.get();
 	}
 
-	// private TerminatorEagleEyeFilter eagleEyeFilter;
 	public static TisHttpServletRequestWrapper getReqeust() {
 		TisHttpServletRequestWrapper request = requestLocal.get();
 		Assert.assertNotNull("request has not been set in local thread", request);

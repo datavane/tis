@@ -30,36 +30,28 @@ import com.qlangtech.tis.exception.TerminatorInitException;
 import com.qlangtech.tis.hdfs.client.service.ImportGroupServiceSupport;
 
 /*
- * @description
- * @since 2012-3-1 上午10:42:42
- * @version 1.0
- *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class HdfsRealTimeTerminatorBean extends BasicTerminatorClient implements ImportGroupServiceSupport {
 
-    private static Log logger = LogFactory.getLog(HdfsRealTimeTerminatorBean.class);
+	private static Log logger = LogFactory.getLog(HdfsRealTimeTerminatorBean.class);
 
-    public static final String DEFAULT_SERVLET_CONTEXT = "terminator-search";
+	public static final String DEFAULT_SERVLET_CONTEXT = "terminator-search";
 
-    public static final int DEFAULT_ZK_TIMEOUT = 300000;
+	public static final int DEFAULT_ZK_TIMEOUT = 300000;
 
-    @Override
-    public final boolean isShallConnectTriggerServer() {
-        return !(this.getFullHdfsProvider() instanceof MockHDFSProvider);
-    }
+	@Override
+	public final boolean isShallConnectTriggerServer() {
+		return !(this.getFullHdfsProvider() instanceof MockHDFSProvider);
+	}
 
-    @Override
-    public void init() throws TerminatorInitException {
-        super.init();
-    }
+	@Override
+	public void init() throws TerminatorInitException {
+		super.init();
+	}
 
-    public static void main(String[] args) {
-        String version = "Terminator-OuterService-search4leiluo-17-10.235.160.78";
-        String[] split = version.split("-");
-        int oldIndex = version.lastIndexOf("-");
-        String oldGroupName = version.substring(oldIndex - 1, oldIndex);
-        System.out.println("oldGroupName:" + split[3]);
-    }
+	public static void main(String[] args) {
+
+	}
 }

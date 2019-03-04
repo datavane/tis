@@ -26,9 +26,11 @@ package com.qlangtech.tis.indexbuilder.index;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.lucene.store.RAMDirectory;
-import com.taobao.terminator.build.metrics.Counters;
-import com.taobao.terminator.build.metrics.Messages;
+
+import com.qlangtech.tis.build.metrics.Counters;
+import com.qlangtech.tis.build.metrics.Messages;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
 
@@ -38,29 +40,27 @@ import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
  */
 public interface IndexMerger extends Callable<SuccessFlag> {
 
-    public enum MergeMode {
+	public enum MergeMode {
+		SERIAL, CONCURRENT
+	}
 
-        SERIAL, CONCURRENT
-    }
+	public void setDirQueue(BlockingQueue<RAMDirectory> ramIndexQueue);
 
-    // public void setMergerAllocator(ArrayAllocator mergerAllocator);
-    public void setDirQueue(BlockingQueue<RAMDirectory> ramIndexQueue);
+	public void setCounters(Counters counters);
 
-    public void setCounters(Counters counters);
+	public void setMessages(Messages messages);
 
-    public void setMessages(Messages messages);
+	public void setAtomicInteger(AtomicInteger aliveIndexMakerCount);
 
-    public void setAtomicInteger(AtomicInteger aliveIndexMakerCount);
+	public void setIndexConf(IndexConf indexConf);
 
-    public void setIndexConf(IndexConf indexConf);
+	/**
+	 * @return
+	 */
+	public String getName();
 
-    /**
-     * @return
-     */
-    public String getName();
-
-    /**
-     * @param coreName
-     */
-    public void setName(String coreName);
+	/**
+	 * @param coreName
+	 */
+	public void setName(String coreName);
 }

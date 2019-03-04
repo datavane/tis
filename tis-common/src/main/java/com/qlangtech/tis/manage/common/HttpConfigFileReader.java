@@ -158,7 +158,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
 	//
 	// }
 	public static SnapshotDomain getResource(String terminatorUrl, String appName, RunEnvironment runtime,
-			PropteryGetter... fileGetter) throws TerminatorRepositoryException {
+			PropteryGetter... fileGetter) throws TisRepositoryException {
 		return getResource(terminatorUrl, appName, -1, /* targetSnapshotid */
 				runtime, false, fileGetter);
 	}
@@ -171,16 +171,16 @@ public class HttpConfigFileReader extends ConfigFileReader {
 	 * @param runtime
 	 * @param fileGetter
 	 * @return
-	 * @throws TerminatorRepositoryException
+	 * @throws TisRepositoryException
 	 */
 	public static SnapshotDomain getResource(String terminatorUrl, String appName, final long targetSnapshotid,
-			RunEnvironment runtime, PropteryGetter... fileGetter) throws TerminatorRepositoryException {
+			RunEnvironment runtime, PropteryGetter... fileGetter) throws TisRepositoryException {
 		return getResource(terminatorUrl, appName, targetSnapshotid, runtime, false, fileGetter);
 	}
 
 	public static SnapshotDomain getResource(String terminatorUrl, String appName, final long targetSnapshotid,
 			RunEnvironment runtime, boolean unmergeglobalparams, PropteryGetter... fileGetter)
-			throws TerminatorRepositoryException {
+			throws TisRepositoryException {
 		return getResource(terminatorUrl, appName, targetSnapshotid, runtime, unmergeglobalparams,
 				true, /* reThrowNewException */
 				fileGetter);
@@ -198,7 +198,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
 	 */
 	public static SnapshotDomain getResource(String terminatorUrl, String appName, final long targetSnapshotid,
 			RunEnvironment runtime, boolean unmergeglobalparams, boolean reThrowNewException,
-			PropteryGetter... fileGetter) throws TerminatorRepositoryException {
+			PropteryGetter... fileGetter) throws TisRepositoryException {
 		if (StringUtils.isEmpty(terminatorUrl)) {
 			throw new IllegalArgumentException("parameter terminatorUrl can not be null");
 		}
@@ -233,7 +233,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
 			});
 		} catch (Throwable e) {
 			if (reThrowNewException) {
-				throw new TerminatorRepositoryException(
+				throw new TisRepositoryException(
 						"config resource is not exist,appname:" + appName + " groupIndex:" + 0 + " runtime:" + runtime,
 						e);
 			} else {
@@ -243,7 +243,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
 		return null;
 	}
 
-	public static SnapshotDomain getResource(String terminatorUrl, Integer snid) throws TerminatorRepositoryException {
+	public static SnapshotDomain getResource(String terminatorUrl, Integer snid) throws TisRepositoryException {
 		try {
 			StringBuffer url = new StringBuffer(terminatorUrl + "/download/appconfigbysnid/" + snid);
 			URL requestUrl = new URL(url.toString());
@@ -255,7 +255,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
 				}
 			});
 		} catch (Throwable e) {
-			throw new TerminatorRepositoryException("config resource is not exist,snid:" + snid, e);
+			throw new TisRepositoryException("config resource is not exist,snid:" + snid, e);
 		}
 	}
 

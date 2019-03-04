@@ -55,7 +55,7 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction;
 import com.qlangtech.tis.runtime.pojo.ConfigPush;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 
 import junit.framework.Assert;
 
@@ -69,7 +69,7 @@ public class AppSynAction extends BasicModule {
 
     private static final long serialVersionUID = 1L;
 
-    private ITerminatorTriggerBizDalDAOFacade triggerContext;
+    private ITriggerBizDalDAOFacade triggerContext;
 
     /**
      * 接收从日常环境中推送上来的配置文件，<br>
@@ -253,7 +253,7 @@ public class AppSynAction extends BasicModule {
     }
 
     @Autowired
-    public void setTisTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
+    public void setTisTriggerBizDalDaoFacade(ITriggerBizDalDAOFacade triggerDaoContext) {
         this.triggerContext = triggerDaoContext;
     }
 

@@ -1,392 +1,0 @@
-[INFO] Scanning for projects...
-[WARNING] Failed to retrieve plugin descriptor for com.qlangtech.tis:tisasm-maven-plugin:1.0.1: Plugin com.qlangtech.tis:tisasm-maven-plugin:1.0.1 or one of its dependencies could not be resolved: Failed to read artifact descriptor for com.qlangtech.tis:tisasm-maven-plugin:jar:1.0.1
-[INFO]                                                                         
-[INFO] ------------------------------------------------------------------------
-[INFO] Building tis-assemble 1.0.0
-[INFO] ------------------------------------------------------------------------
-[WARNING] Failed to retrieve plugin descriptor for com.qlangtech.tis:tisasm-maven-plugin:1.0.1: Plugin com.qlangtech.tis:tisasm-maven-plugin:1.0.1 or one of its dependencies could not be resolved: Failed to read artifact descriptor for com.qlangtech.tis:tisasm-maven-plugin:jar:1.0.1
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.pom
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.pom
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.pom: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.pom
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.pom (0 B at 0.0 KB/sec)
-[WARNING] The POM for com.qlangtech.tis:tis-rpc:jar:1.0.0 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.pom
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.pom
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.pom: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.pom
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.pom (0 B at 0.0 KB/sec)
-[WARNING] The POM for com.qlangtech.tis:tis-hdfs-extends:jar:1.0.0 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.pom
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.pom
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.pom: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.pom
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.pom (0 B at 0.0 KB/sec)
-[WARNING] The POM for com.qlangtech.tis:tis-manage-pojo:jar:1.0.0 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
-[WARNING] The POM for com.qlangtech.tis:tis-global-config:jar:1.0.0 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
-[WARNING] The POM for com.qlangtech.tis:tsearcher-builder-api:jar:1.0.0 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.pom
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.pom
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.pom: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.pom
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.pom (0 B at 0.0 KB/sec)
-[WARNING] The POM for com.qlangtech.tis:tis-taskflow:jar:1.0.0 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.pom
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.pom
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.pom: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.pom
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.pom (0 B at 0.0 KB/sec)
-[WARNING] The POM for com.qlangtech.tis:tis-solrj-client:jar:1.0.0 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.jar
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.jar
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.jar
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.jar
-Downloading: http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.jar
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.jar
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.jar
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.jar
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.jar
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.jar
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.jar: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.jar
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-rpc/1.0.0/tis-rpc-1.0.0.jar (0 B at 0.0 KB/sec)
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.jar: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.jar
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-taskflow/1.0.0/tis-taskflow-1.0.0.jar (0 B at 0.0 KB/sec)
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.jar: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.jar
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-hdfs-extends/1.0.0/tis-hdfs-extends-1.0.0.jar (0 B at 0.0 KB/sec)
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.jar: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.jar
-[WARNING] Could not validate integrity of download from http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.jar: Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709
-[WARNING] Checksum validation failed, expected  but is da39a3ee5e6b4b0d3255bfef95601890afd80709 for http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.jar
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-manage-pojo/1.0.0/tis-manage-pojo-1.0.0.jar (0 B at 0.0 KB/sec)
-Downloaded: http://localhost:8080/release/com/qlangtech/tis/tis-solrj-client/1.0.0/tis-solrj-client-1.0.0.jar (0 B at 0.0 KB/sec)
-[INFO] 
-[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tis-assemble ---
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/reporting/maven-reporting-impl/2.0.5/maven-reporting-impl-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/reporting/maven-reporting-impl/2.0.5/maven-reporting-impl-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-core/1.0/doxia-core-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-core/1.0/doxia-core-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-site-renderer/1.0/doxia-site-renderer-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-site-renderer/1.0/doxia-site-renderer-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-sitetools/1.0/doxia-sitetools-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-sitetools/1.0/doxia-sitetools-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-decoration-model/1.0/doxia-decoration-model-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-decoration-model/1.0/doxia-decoration-model-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-apt/1.0/doxia-module-apt-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-apt/1.0/doxia-module-apt-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-modules/1.0/doxia-modules-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-modules/1.0/doxia-modules-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-fml/1.0/doxia-module-fml-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-fml/1.0/doxia-module-fml-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-xdoc/1.0/doxia-module-xdoc-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-xdoc/1.0/doxia-module-xdoc-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-xhtml/1.0/doxia-module-xhtml-1.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-xhtml/1.0/doxia-module-xhtml-1.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-doxia-tools/1.0.2/maven-doxia-tools-1.0.2.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-doxia-tools/1.0.2/maven-doxia-tools-1.0.2.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/11/maven-shared-components-11.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/11/maven-shared-components-11.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/file-management/1.2.1/file-management-1.2.1.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/file-management/1.2.1/file-management-1.2.1.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/10/maven-shared-components-10.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/10/maven-shared-components-10.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-dependency-analyzer/1.4/maven-dependency-analyzer-1.4.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-dependency-analyzer/1.4/maven-dependency-analyzer-1.4.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-project/2.0.5/maven-project-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-project/2.0.5/maven-project-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven/2.0.5/maven-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven/2.0.5/maven-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-settings/2.0.5/maven-settings-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-settings/2.0.5/maven-settings-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-model/2.0.5/maven-model-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-model/2.0.5/maven-model-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-profile/2.0.5/maven-profile-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-profile/2.0.5/maven-profile-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact-manager/2.0.5/maven-artifact-manager-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact-manager/2.0.5/maven-artifact-manager-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-repository-metadata/2.0.5/maven-repository-metadata-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-repository-metadata/2.0.5/maven-repository-metadata-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact/2.0.5/maven-artifact-2.0.5.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact/2.0.5/maven-artifact-2.0.5.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-project/2.2.0/maven-project-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-project/2.2.0/maven-project-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven/2.2.0/maven-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven/2.2.0/maven-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-settings/2.2.0/maven-settings-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-settings/2.2.0/maven-settings-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-model/2.2.0/maven-model-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-model/2.2.0/maven-model-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-profile/2.2.0/maven-profile-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-profile/2.2.0/maven-profile-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact-manager/2.2.0/maven-artifact-manager-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact-manager/2.2.0/maven-artifact-manager-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-repository-metadata/2.2.0/maven-repository-metadata-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-repository-metadata/2.2.0/maven-repository-metadata-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact/2.2.0/maven-artifact-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact/2.2.0/maven-artifact-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-plugin-registry/2.2.0/maven-plugin-registry-2.2.0.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-plugin-registry/2.2.0/maven-plugin-registry-2.2.0.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-invoker/2.0.11/maven-invoker-2.0.11.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-invoker/2.0.11/maven-invoker-2.0.11.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/12/maven-shared-components-12.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/12/maven-shared-components-12.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/13/maven-parent-13.pom
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/13/maven-parent-13.pom (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/reporting/maven-reporting-impl/2.0.5/maven-reporting-impl-2.0.5.jar
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-core/1.0/doxia-core-1.0.jar
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-doxia-tools/1.0.2/maven-doxia-tools-1.0.2.jar
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-sink-api/1.0/doxia-sink-api-1.0.jar
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-site-renderer/1.0/doxia-site-renderer-1.0.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-core/1.0/doxia-core-1.0.jar (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-decoration-model/1.0/doxia-decoration-model-1.0.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-decoration-model/1.0/doxia-decoration-model-1.0.jar (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-apt/1.0/doxia-module-apt-1.0.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-sink-api/1.0/doxia-sink-api-1.0.jar (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-fml/1.0/doxia-module-fml-1.0.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/reporting/maven-reporting-impl/2.0.5/maven-reporting-impl-2.0.5.jar (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-xdoc/1.0/doxia-module-xdoc-1.0.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-site-renderer/1.0/doxia-site-renderer-1.0.jar (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-xhtml/1.0/doxia-module-xhtml-1.0.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-doxia-tools/1.0.2/maven-doxia-tools-1.0.2.jar (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/file-management/1.2.1/file-management-1.2.1.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-fml/1.0/doxia-module-fml-1.0.jar (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-dependency-analyzer/1.4/maven-dependency-analyzer-1.4.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/file-management/1.2.1/file-management-1.2.1.jar (0 B at 0.0 KB/sec)
-Downloading: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-invoker/2.0.11/maven-invoker-2.0.11.jar
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-xhtml/1.0/doxia-module-xhtml-1.0.jar (0 B at 0.0 KB/sec)
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-apt/1.0/doxia-module-apt-1.0.jar (0 B at 0.0 KB/sec)
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-dependency-analyzer/1.4/maven-dependency-analyzer-1.4.jar (0 B at 0.0 KB/sec)
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-invoker/2.0.11/maven-invoker-2.0.11.jar (0 B at 0.0 KB/sec)
-Downloaded: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-xdoc/1.0/doxia-module-xdoc-1.0.jar (0 B at 0.0 KB/sec)
-[INFO] com.qlangtech.tis:tis-assemble:jar:1.0.0
-[INFO] +- com.qlangtech.tis:tis-rpc:jar:1.0.0:compile
-[INFO] +- com.qlangtech.tis:tis-hdfs-extends:jar:1.0.0:compile
-[INFO] +- commons-digester:commons-digester:jar:2.1:compile
-[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:compile
-[INFO] |  \- commons-logging:commons-logging:jar:1.2:compile
-[INFO] +- org.apache.hadoop:hadoop-yarn-client:jar:2.6.0:compile
-[INFO] |  +- com.google.guava:guava:jar:11.0.2:compile
-[INFO] |  |  \- com.google.code.findbugs:jsr305:jar:1.3.9:compile
-[INFO] |  +- commons-lang:commons-lang:jar:2.6:compile
-[INFO] |  +- commons-cli:commons-cli:jar:1.2:compile
-[INFO] |  +- log4j:log4j:jar:1.2.17:compile
-[INFO] |  +- org.apache.hadoop:hadoop-annotations:jar:2.6.0:compile
-[INFO] |  |  \- jdk.tools:jdk.tools:jar:1.6:system
-[INFO] |  +- org.apache.hadoop:hadoop-yarn-api:jar:2.6.0:compile
-[INFO] |  \- org.apache.hadoop:hadoop-yarn-common:jar:2.6.0:compile
-[INFO] |     +- javax.xml.bind:jaxb-api:jar:2.2.2:compile
-[INFO] |     |  +- javax.xml.stream:stax-api:jar:1.0-2:compile
-[INFO] |     |  \- javax.activation:activation:jar:1.1:compile
-[INFO] |     +- com.sun.jersey:jersey-client:jar:1.9:compile
-[INFO] |     +- org.codehaus.jackson:jackson-jaxrs:jar:1.9.13:compile
-[INFO] |     +- org.codehaus.jackson:jackson-xc:jar:1.9.13:compile
-[INFO] |     +- com.google.inject:guice:jar:3.0:compile
-[INFO] |     |  \- javax.inject:javax.inject:jar:1:compile
-[INFO] |     +- com.sun.jersey:jersey-json:jar:1.9:compile
-[INFO] |     |  +- org.codehaus.jettison:jettison:jar:1.1:compile
-[INFO] |     |  \- com.sun.xml.bind:jaxb-impl:jar:2.2.3-1:compile
-[INFO] |     \- com.sun.jersey.contribs:jersey-guice:jar:1.9:compile
-[INFO] +- org.apache.hadoop:hadoop-mapreduce-client-core:jar:2.6.0:compile
-[INFO] |  +- com.google.protobuf:protobuf-java:jar:2.5.0:compile
-[INFO] |  +- org.apache.avro:avro:jar:1.7.4:compile
-[INFO] |  |  +- com.thoughtworks.paranamer:paranamer:jar:2.3:compile
-[INFO] |  |  \- org.xerial.snappy:snappy-java:jar:1.0.4.1:compile
-[INFO] |  +- org.slf4j:slf4j-api:jar:1.7.7:compile
-[INFO] |  +- org.slf4j:slf4j-log4j12:jar:1.7.5:compile
-[INFO] |  +- com.google.inject.extensions:guice-servlet:jar:3.0:compile
-[INFO] |  \- io.netty:netty:jar:3.6.2.Final:compile
-[INFO] +- org.apache.hadoop:hadoop-hdfs:jar:2.6.0:compile
-[INFO] |  +- org.mortbay.jetty:jetty:jar:6.1.26:compile
-[INFO] |  +- org.mortbay.jetty:jetty-util:jar:6.1.26:compile
-[INFO] |  +- com.sun.jersey:jersey-core:jar:1.9:compile
-[INFO] |  +- com.sun.jersey:jersey-server:jar:1.9:compile
-[INFO] |  |  \- asm:asm:jar:3.1:compile
-[INFO] |  +- commons-codec:commons-codec:jar:1.4:compile
-[INFO] |  +- commons-io:commons-io:jar:2.5:compile
-[INFO] |  +- javax.servlet.jsp:jsp-api:jar:2.1:compile
-[INFO] |  +- javax.servlet:servlet-api:jar:2.5:compile
-[INFO] |  +- org.codehaus.jackson:jackson-core-asl:jar:1.9.13:compile
-[INFO] |  +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13:compile
-[INFO] |  +- tomcat:jasper-runtime:jar:5.5.23:compile
-[INFO] |  |  \- commons-el:commons-el:jar:1.0:compile
-[INFO] |  +- xmlenc:xmlenc:jar:0.52:compile
-[INFO] |  +- xerces:xercesImpl:jar:2.9.1:compile
-[INFO] |  |  \- xml-apis:xml-apis:jar:1.3.04:compile
-[INFO] |  \- org.htrace:htrace-core:jar:3.0.4:compile
-[INFO] +- com.qlangtech.tis:tis-servlet-monitor:jar:1.0.0:compile
-[INFO] +- com.qlangtech.tis:tis-manage-pojo:jar:1.0.0:compile
-[INFO] +- org.apache.flume:flume-ng-node:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  +- org.apache.flume:flume-ng-sdk:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  |  \- org.apache.avro:avro-ipc:jar:1.7.6-cdh5.5.0:compile
-[INFO] |  |     \- org.apache.velocity:velocity:jar:1.7:compile
-[INFO] |  +- org.apache.flume:flume-ng-configuration:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  +- org.apache.flume:flume-ng-core:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  |  +- org.apache.flume:flume-ng-auth:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  |  +- org.mortbay.jetty:servlet-api:jar:2.5-20110124:compile
-[INFO] |  |  +- com.google.code.gson:gson:jar:2.2.4:compile
-[INFO] |  |  \- org.apache.mina:mina-core:jar:2.0.4:compile
-[INFO] |  +- org.apache.flume.flume-ng-sinks:flume-hdfs-sink:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  +- org.apache.flume.flume-ng-sinks:flume-irc-sink:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  |  \- org.schwering:irclib:jar:1.10:compile
-[INFO] |  +- org.apache.flume.flume-ng-channels:flume-jdbc-channel:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  |  \- org.apache.derby:derby:jar:10.11.1.1:compile
-[INFO] |  +- org.apache.flume.flume-ng-channels:flume-file-channel:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  |  \- org.mapdb:mapdb:jar:0.9.9:compile
-[INFO] |  +- org.apache.flume.flume-ng-channels:flume-spillable-memory-channel:jar:1.6.0-cdh5.5.0:compile
-[INFO] |  +- log4j:apache-log4j-extras:jar:1.1:compile
-[INFO] |  +- org.apache.curator:curator-framework:jar:2.6.0:compile
-[INFO] |  \- org.apache.curator:curator-recipes:jar:2.6.0:compile
-[INFO] +- commons-collections:commons-collections:jar:3.2.2:compile
-[INFO] +- ch.qos.logback:logback-classic:jar:1.1.3:compile
-[INFO] |  \- ch.qos.logback:logback-core:jar:1.1.3:compile
-[INFO] +- org.slf4j:jcl-over-slf4j:jar:1.7.7:compile
-[INFO] +- com.qlangtech.tis:tis-solr-core:jar:7.6.0-fix1:compile
-[INFO] |  +- org.apache.lucene:lucene-analyzers-common:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-analyzers-kuromoji:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-analyzers-nori:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-analyzers-phonetic:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-backward-codecs:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-classification:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-codecs:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-core:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-expressions:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-grouping:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-highlighter:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-join:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-memory:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-misc:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-queries:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-queryparser:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-sandbox:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-spatial-extras:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-spatial3d:jar:7.6.0:compile
-[INFO] |  +- org.apache.lucene:lucene-suggest:jar:7.6.0:compile
-[INFO] |  +- com.carrotsearch:hppc:jar:0.8.1:compile
-[INFO] |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.9.6:compile
-[INFO] |  +- com.fasterxml.jackson.core:jackson-core:jar:2.9.6:compile
-[INFO] |  +- com.fasterxml.jackson.core:jackson-databind:jar:2.9.6:compile
-[INFO] |  +- com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.9.6:compile
-[INFO] |  +- com.github.ben-manes.caffeine:caffeine:jar:2.4.0:compile
-[INFO] |  +- com.lmax:disruptor:jar:3.4.0:compile
-[INFO] |  +- com.tdunning:t-digest:jar:3.1:compile
-[INFO] |  +- commons-configuration:commons-configuration:jar:1.6:compile
-[INFO] |  +- commons-fileupload:commons-fileupload:jar:1.3.3:compile
-[INFO] |  +- dom4j:dom4j:jar:1.6.1:compile
-[INFO] |  +- info.ganglia.gmetric4j:gmetric4j:jar:1.0.7:compile
-[INFO] |  +- io.dropwizard.metrics:metrics-core:jar:3.2.6:compile
-[INFO] |  +- io.dropwizard.metrics:metrics-ganglia:jar:3.2.6:compile
-[INFO] |  +- io.dropwizard.metrics:metrics-graphite:jar:3.2.6:compile
-[INFO] |  +- io.dropwizard.metrics:metrics-jetty9:jar:3.2.6:compile
-[INFO] |  +- io.dropwizard.metrics:metrics-jvm:jar:3.2.6:compile
-[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.1.0:compile
-[INFO] |  +- joda-time:joda-time:jar:2.2:compile
-[INFO] |  +- net.hydromatic:eigenbase-properties:jar:1.1.5:compile
-[INFO] |  +- org.antlr:antlr4-runtime:jar:4.5.1-1:compile
-[INFO] |  +- org.apache.calcite:calcite-core:jar:1.13.0:compile
-[INFO] |  +- org.apache.calcite:calcite-linq4j:jar:1.13.0:compile
-[INFO] |  +- org.apache.calcite.avatica:avatica-core:jar:1.10.0:compile
-[INFO] |  +- org.apache.commons:commons-exec:jar:1.3:compile
-[INFO] |  +- org.apache.commons:commons-lang3:jar:3.6:compile
-[INFO] |  +- org.apache.commons:commons-math3:jar:3.6.1:compile
-[INFO] |  +- org.apache.curator:curator-client:jar:2.8.0:compile
-[INFO] |  +- org.apache.htrace:htrace-core:jar:3.2.0-incubating:compile
-[INFO] |  +- org.apache.httpcomponents:httpclient:jar:4.5.3:compile
-[INFO] |  +- org.apache.httpcomponents:httpcore:jar:4.4.6:compile
-[INFO] |  +- org.apache.httpcomponents:httpmime:jar:4.5.3:compile
-[INFO] |  +- org.apache.logging.log4j:log4j-1.2-api:jar:2.11.0:compile
-[INFO] |  +- org.apache.logging.log4j:log4j-api:jar:2.11.0:compile
-[INFO] |  +- org.apache.logging.log4j:log4j-core:jar:2.11.0:compile
-[INFO] |  +- org.apache.logging.log4j:log4j-slf4j-impl:jar:2.11.0:compile
-[INFO] |  +- org.apache.zookeeper:zookeeper:jar:3.4.5:compile
-[INFO] |  +- org.codehaus.janino:commons-compiler:jar:2.7.6:compile
-[INFO] |  +- org.codehaus.janino:janino:jar:2.7.6:compile
-[INFO] |  +- org.codehaus.woodstox:stax2-api:jar:3.1.4:compile
-[INFO] |  +- org.codehaus.woodstox:woodstox-core-asl:jar:4.4.1:compile
-[INFO] |  +- org.eclipse.jetty:jetty-continuation:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-deploy:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-http:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-io:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-jmx:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-rewrite:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-security:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-servlets:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-util:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.eclipse.jetty:jetty-webapp:jar:9.4.10.RC1:compile
-[INFO] |  +- org.eclipse.jetty:jetty-xml:jar:9.4.11.v20180605:compile
-[INFO] |  +- org.locationtech.spatial4j:spatial4j:jar:0.7:compile
-[INFO] |  +- org.noggit:noggit:jar:0.8:compile
-[INFO] |  +- org.ow2.asm:asm:jar:5.1:compile
-[INFO] |  +- org.ow2.asm:asm-commons:jar:5.1:compile
-[INFO] |  +- org.restlet.jee:org.restlet:jar:2.3.0:compile
-[INFO] |  +- org.restlet.jee:org.restlet.ext.servlet:jar:2.3.0:compile
-[INFO] |  \- org.rrd4j:rrd4j:jar:3.2:compile
-[INFO] +- org.apache.hive:hive-jdbc:jar:1.1.0:compile
-[INFO] |  +- org.apache.hive:hive-common:jar:1.1.0:compile
-[INFO] |  +- org.apache.hive:hive-service:jar:1.1.0:compile
-[INFO] |  |  \- net.sf.jpam:jpam:jar:1.1:compile
-[INFO] |  +- org.apache.hive:hive-serde:jar:1.1.0:compile
-[INFO] |  |  +- net.sf.opencsv:opencsv:jar:2.3:compile
-[INFO] |  |  \- com.twitter:parquet-hadoop-bundle:jar:1.6.0rc3:compile
-[INFO] |  +- org.apache.hive:hive-metastore:jar:1.1.0:compile
-[INFO] |  |  +- com.jolbox:bonecp:jar:0.8.0.RELEASE:compile
-[INFO] |  |  +- org.datanucleus:datanucleus-api-jdo:jar:3.2.6:compile
-[INFO] |  |  +- org.datanucleus:datanucleus-rdbms:jar:3.2.9:compile
-[INFO] |  |  \- javax.jdo:jdo-api:jar:3.0.1:compile
-[INFO] |  |     \- javax.transaction:jta:jar:1.1:compile
-[INFO] |  +- org.apache.hive:hive-shims:jar:1.1.0:compile
-[INFO] |  |  +- org.apache.hive.shims:hive-shims-common:jar:1.1.0:compile
-[INFO] |  |  +- org.apache.hive.shims:hive-shims-0.20S:jar:1.1.0:runtime
-[INFO] |  |  +- org.apache.hive.shims:hive-shims-0.23:jar:1.1.0:runtime
-[INFO] |  |  \- org.apache.hive.shims:hive-shims-scheduler:jar:1.1.0:runtime
-[INFO] |  \- org.apache.thrift:libthrift:jar:0.9.2:compile
-[INFO] +- org.apache.hive:hive-exec:jar:1.1.0:compile
-[INFO] |  +- commons-httpclient:commons-httpclient:jar:3.0.1:compile
-[INFO] |  +- org.antlr:antlr-runtime:jar:3.4:compile
-[INFO] |  |  +- org.antlr:stringtemplate:jar:3.2.1:compile
-[INFO] |  |  \- antlr:antlr:jar:2.7.7:compile
-[INFO] |  +- org.antlr:ST4:jar:4.0.4:compile
-[INFO] |  +- org.apache.ant:ant:jar:1.9.1:compile
-[INFO] |  |  \- org.apache.ant:ant-launcher:jar:1.9.1:compile
-[INFO] |  +- org.apache.commons:commons-compress:jar:1.4.1:compile
-[INFO] |  |  \- org.tukaani:xz:jar:1.0:compile
-[INFO] |  +- org.apache.thrift:libfb303:jar:0.9.2:compile
-[INFO] |  +- org.apache.curator:apache-curator:pom:2.6.0:compile
-[INFO] |  +- org.codehaus.groovy:groovy-all:jar:2.1.6:compile
-[INFO] |  +- org.datanucleus:datanucleus-core:jar:3.2.10:compile
-[INFO] |  +- stax:stax-api:jar:1.0.1:compile
-[INFO] |  \- jline:jline:jar:2.12:compile
-[INFO] +- com.qlangtech.tis:tis-global-config:jar:1.0.0:compile
-[INFO] +- com.qlangtech.tis:tsearcher-builder-api:jar:1.0.0:compile
-[INFO] +- org.eclipse.jetty.websocket:websocket-servlet:jar:9.4.10.RC1:compile
-[INFO] |  \- org.eclipse.jetty.websocket:websocket-api:jar:9.4.10.RC1:compile
-[INFO] +- org.eclipse.jetty:jetty-server:jar:9.4.10.RC1:compile
-[INFO] +- org.eclipse.jetty:jetty-servlet:jar:9.4.10.RC1:compile
-[INFO] +- junit:junit:jar:3.8.1:test
-[INFO] +- commons-dbcp:commons-dbcp:jar:1.4:compile
-[INFO] |  \- commons-pool:commons-pool:jar:1.5.4:compile
-[INFO] +- com.qlangtech.tis:tis-taskflow:jar:1.0.0:compile
-[INFO] +- com.qlangtech.tis:tis-solrj-client:jar:1.0.0:compile
-[INFO] +- org.apache.solr:solr-solrj:jar:7.6.0:compile
-[INFO] +- mysql:mysql-connector-java:jar:5.1.30:compile
-[INFO] +- commons-daemon:commons-daemon:jar:1.0.15:compile
-[INFO] +- org.springframework:spring-core:jar:3.0.6.RELEASE:compile
-[INFO] |  \- org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
-[INFO] +- org.springframework:spring-beans:jar:3.0.6.RELEASE:compile
-[INFO] +- org.springframework:spring-aop:jar:3.0.6.RELEASE:compile
-[INFO] |  \- aopalliance:aopalliance:jar:1.0:compile
-[INFO] +- org.springframework:spring-context:jar:3.0.6.RELEASE:compile
-[INFO] |  \- org.springframework:spring-expression:jar:3.0.6.RELEASE:compile
-[INFO] +- org.springframework:spring-context-support:jar:3.0.6.RELEASE:compile
-[INFO] +- org.springframework:spring-tx:jar:3.0.6.RELEASE:compile
-[INFO] +- org.springframework:spring-jdbc:jar:3.0.6.RELEASE:compile
-[INFO] +- org.springframework:spring-orm:jar:3.0.6.RELEASE:compile
-[INFO] \- org.springframework:spring-web:jar:3.0.6.RELEASE:compile
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 19.717 s
-[INFO] Finished at: 2019-03-03T21:22:15+08:00
-[INFO] Final Memory: 32M/273M
-[INFO] ------------------------------------------------------------------------

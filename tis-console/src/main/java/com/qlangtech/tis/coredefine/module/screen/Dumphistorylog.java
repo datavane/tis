@@ -34,21 +34,11 @@ import com.qlangtech.tis.trigger.module.screen.TaskList;
  */
 public class Dumphistorylog extends TaskList {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Override
-    public void execute(Context context) throws Exception {
-        this.getRundata().setLayout("blank");
-        super.execute(context);
-    }
-    // private ZooKeeperGetter zooKeeperGetter;
-    // 
-    // protected TerminatorZooKeeper getZooKeeper() {
-    // return zooKeeperGetter.getInstance();
-    // }
-    // 
-    // @Autowired
-    // public void setZooKeeperGetter(ZooKeeperGetter zooKeeperGetter) {
-    // this.zooKeeperGetter = zooKeeperGetter;
-    // }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.getRundata().setLayout("blank");
+		super.execute(context);
+	}
 }

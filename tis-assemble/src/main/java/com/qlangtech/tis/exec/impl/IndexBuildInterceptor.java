@@ -156,19 +156,7 @@ public class IndexBuildInterceptor implements IExecuteInterceptor {
 	private boolean triggerIndexBuildJob(String indexName, final String timepoint, int groupSize,
 			HdfsSourcePathCreator hdfsSourcePathCreator, String username, IExecChainContext execContext)
 			throws Exception {
-		// TSearcherConfigFetcher tisConfig = TSearcherConfigFetcher.get();
-		// RunEnvironment runtime = tisConfig.getRuntime();//
-		// RunEnvironment.getEnum(tisConfig.getRunEnvironment());
-		// SnapshotDomain domain =
-		// HttpConfigFileReader.getResource(tisConfig.getTerminatorConsoleHostAddress(),
-		// indexName,
-		// 0, runtime, ConfigFileReader.FILE_SOLOR,
-		// ConfigFileReader.FILE_SCHEMA);
-		// if (domain == null) {
-		// throw new IllegalStateException(
-		// "index:" + indexName + ",runtime:" + runtime + " have not prepare for
-		// confg");
-		// }
+
 		ImportDataProcessInfo processInfo = new ImportDataProcessInfo(999);
 		IIndexMetaData indexMetaData = execContext.getIndexMetaData();
 		// 读取schema的内容,取得配置信息

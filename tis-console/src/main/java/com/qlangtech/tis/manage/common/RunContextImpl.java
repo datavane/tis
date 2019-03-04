@@ -29,7 +29,7 @@ import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.manage.biz.dal.dao.IAppPackageDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IAppTriggerJobRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IApplicationExtendDAO;
+
 import com.qlangtech.tis.manage.biz.dal.dao.IBizFuncAuthorityDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IDepartmentDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncDAO;
@@ -60,7 +60,6 @@ public class RunContextImpl implements RunContext {
 
 	private final IApplicationDAO applicationDAO;
 
-	// private final IBizDomainDAO bizDomainDAO;
 	private final IGroupInfoDAO groupInfoDAO;
 
 	private final IServerDAO serverDAO;
@@ -73,11 +72,8 @@ public class RunContextImpl implements RunContext {
 
 	private final IUploadResourceDAO uploadResourceDAO;
 
-	// private final AdminUserService authService;
-	// baisui add 20120413
 	private final IServerJoinGroupDAO serverJoinGroupDAO;
 
-	// private final OrgService orgService;
 	private IBizFuncAuthorityDAO bizFuncAuthorityDAO;
 
 	private final IGlobalAppResourceDAO globalAppResourceDAO;
@@ -92,27 +88,20 @@ public class RunContextImpl implements RunContext {
 
 	private final IResourceParametersDAO resourceParametersDAO;
 
-
-
-	private final IApplicationExtendDAO applicationExtendDAO;
-
 	private final ZooKeeperGetter zooKeeperGetter;
 
 	private final ClusterStateReader clusterStateReader;
 
-	public RunContextImpl(IAppPackageDAO appPackageDAO, IApplicationDAO applicationDAO, // IBizDomainDAO
-																						// bizDomainDAO,
+	public RunContextImpl(IAppPackageDAO appPackageDAO, IApplicationDAO applicationDAO,
+
 			IGroupInfoDAO groupInfoDAO, IServerDAO serverDAO, IServerGroupDAO serverGroupDAO, ISnapshotDAO snapshotDAO,
-			ISnapshotViewDAO snapshotViewDAO, // AdminUserService
-			IUploadResourceDAO uploadResourceDAO, // OrgService orgService,
+			ISnapshotViewDAO snapshotViewDAO, IUploadResourceDAO uploadResourceDAO,
 			IServerJoinGroupDAO serverJoinGroupDAO, IBizFuncAuthorityDAO bizFuncAuthorityDAO,
 			IUsrDptRelationDAO usrDptRelationDAO, IDepartmentDAO departmentDAO,
 			IGlobalAppResourceDAO globalAppResourceDAO, IAppTriggerJobRelationDAO appTriggerJobRelationDAO,
 			IFuncDAO funcDAO, IFuncRoleRelationDAO funcRoleRelationDAO, IRoleDAO roleDAO,
-			IResourceParametersDAO resourceParametersDAO, IUsrDptExtraRelationDAO usrDptExtraRelationDAO, // IIsvDAO
-																											// isvDAO,
-			IUsrApplyDptRecordDAO usrApplyDptRecordDAO, 
-			IApplicationExtendDAO applicationExtendDAO, ZooKeeperGetter zooKeeperGetter,
+			IResourceParametersDAO resourceParametersDAO, IUsrDptExtraRelationDAO usrDptExtraRelationDAO,
+			IUsrApplyDptRecordDAO usrApplyDptRecordDAO, ZooKeeperGetter zooKeeperGetter,
 			ClusterStateReader clusterStateReader) {
 		super();
 		this.appPackageDAO = appPackageDAO;
@@ -140,8 +129,7 @@ public class RunContextImpl implements RunContext {
 		this.roleDAO = roleDAO;
 		this.resourceParametersDAO = resourceParametersDAO;
 		this.usrDptExtraRelationDAO = usrDptExtraRelationDAO;
-	
-		this.applicationExtendDAO = applicationExtendDAO;
+
 		this.zooKeeperGetter = zooKeeperGetter;
 		this.clusterStateReader = clusterStateReader;
 	}
@@ -191,9 +179,6 @@ public class RunContextImpl implements RunContext {
 		return this.globalAppResourceDAO;
 	}
 
-	// public OrgService getOrgService() {
-	// return orgService;
-	// }
 	public IUploadResourceDAO getUploadResourceDAO() {
 		return uploadResourceDAO;
 	}
@@ -207,10 +192,6 @@ public class RunContextImpl implements RunContext {
 		return bizFuncAuthorityDAO;
 	}
 
-	// @Override
-	// public AdminUserService getAuthService() {
-	// return this.authService;
-	// }
 	public ISnapshotViewDAO getSnapshotViewDAO() {
 		return snapshotViewDAO;
 	}
@@ -225,19 +206,11 @@ public class RunContextImpl implements RunContext {
 		return applicationDAO;
 	}
 
-	// @Override
-	// public IBizDomainDAO getBizDomainDAO() {
-	// return bizDomainDAO;
-	// }
 	@Override
 	public IGroupInfoDAO getGroupInfoDAO() {
 		return groupInfoDAO;
 	}
 
-	// @Override
-	// public IServerDAO getServerDAO() {
-	// return serverDAO;
-	// }
 	@Override
 	public IServerGroupDAO getServerGroupDAO() {
 		return serverGroupDAO;
@@ -268,7 +241,4 @@ public class RunContextImpl implements RunContext {
 		return this.usrApplyDptRecordDAO;
 	}
 
-	public IApplicationExtendDAO getApplicationExtendDAO() {
-		return this.applicationExtendDAO;
-	}
 }

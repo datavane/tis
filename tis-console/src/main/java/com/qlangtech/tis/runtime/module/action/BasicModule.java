@@ -63,7 +63,7 @@ import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.manage.biz.dal.dao.IAppPackageDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IAppTriggerJobRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IApplicationExtendDAO;
+
 import com.qlangtech.tis.manage.biz.dal.dao.IBizFuncAuthorityDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IDepartmentDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncDAO;
@@ -961,10 +961,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, M
 
 	public IUploadResourceDAO getUploadResourceDAO() {
 		return getDaoContext().getUploadResourceDAO();
-	}
-
-	public IApplicationExtendDAO getApplicationExtendDAO() {
-		return getDaoContext().getApplicationExtendDAO();
 	}
 
 	// dao 层代码 结束

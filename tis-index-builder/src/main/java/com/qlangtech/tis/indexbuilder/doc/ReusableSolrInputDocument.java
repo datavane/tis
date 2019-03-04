@@ -29,44 +29,41 @@ import org.apache.solr.schema.IndexSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/* *
+/*
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class ReusableSolrInputDocument extends SolrInputDocument {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    public static final Logger logger = LoggerFactory.getLogger(ReusableSolrInputDocument.class);
+	public static final Logger logger = LoggerFactory.getLogger(ReusableSolrInputDocument.class);
 
-    private final IndexSchema indexSchema;
+	private final IndexSchema indexSchema;
 
-    public ReusableSolrInputDocument(IndexSchema indexSchema) {
-        super();
-        this.indexSchema = indexSchema;
-    }
+	public ReusableSolrInputDocument(IndexSchema indexSchema) {
+		super();
+		this.indexSchema = indexSchema;
+	}
 
-    public void reSetField(String name, Object value) {
-        reSetField(name, value, 1.0f);
-    }
+	public void reSetField(String name, Object value) {
+		reSetField(name, value, 1.0f);
+	}
 
-    public void reSetField(String name, Object value, float boost) {
-        SolrInputField field = getField(name);
-        if (field == null) {
-            setField(name, value);
-        } else {
-            field.setValue(value);
-        }
-    }
+	public void reSetField(String name, Object value, float boost) {
+		SolrInputField field = getField(name);
+		if (field == null) {
+			setField(name, value);
+		} else {
+			field.setValue(value);
+		}
+	}
 
-    @Override
-    public void setField(String name, Object value) {
-        if (!indexSchema.getFields().keySet().contains(name) && !indexSchema.isDynamicField(name)) {
-            return;
-        }
-        // if (!this.schemaFields.contains(name)) {
-        // return;
-        // }
-        super.setField(name, value);
-    }
+	@Override
+	public void setField(String name, Object value) {
+		if (!indexSchema.getFields().keySet().contains(name) && !indexSchema.isDynamicField(name)) {
+			return;
+		}
+		super.setField(name, value);
+	}
 }

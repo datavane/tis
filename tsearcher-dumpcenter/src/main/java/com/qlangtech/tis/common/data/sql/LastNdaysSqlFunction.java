@@ -32,45 +32,42 @@ import java.util.Date;
  */
 public class LastNdaysSqlFunction implements SqlFunction {
 
-    /**
-     * @uml.property  name="n"
-     */
-    private int n = 30;
+	private int n = 30;
 
-    private String format = "yyyy-MM-dd 00:00:00";
+	private String format = "yyyy-MM-dd 00:00:00";
 
-    private SimpleDateFormat formater;
+	private SimpleDateFormat formater;
 
-    public void init() {
-        formater = new SimpleDateFormat(format);
-    }
+	public void init() {
+		formater = new SimpleDateFormat(format);
+	}
 
-    @Override
-    public String getPlaceHolderName() {
-        return "last" + n + "Days";
-    }
+	@Override
+	public String getPlaceHolderName() {
+		return "last" + n + "Days";
+	}
 
-    @Override
-    public String getValue() {
-        Date d = new Date();
-        long l = d.getTime() - this.n * 24 * 60 * 60 * 1000l;
-        d = new Date(l);
-        return formater.format(d);
-    }
+	@Override
+	public String getValue() {
+		Date d = new Date();
+		long l = d.getTime() - this.n * 24 * 60 * 60 * 1000l;
+		d = new Date(l);
+		return formater.format(d);
+	}
 
-    /**
-     * @return
-     * @uml.property  name="n"
-     */
-    public int getN() {
-        return n;
-    }
+	/**
+	 * @return
+	 * @uml.property name="n"
+	 */
+	public int getN() {
+		return n;
+	}
 
-    /**
-     * @param n
-     * @uml.property  name="n"
-     */
-    public void setN(int n) {
-        this.n = n;
-    }
+	/**
+	 * @param n
+	 * @uml.property name="n"
+	 */
+	public void setN(int n) {
+		this.n = n;
+	}
 }

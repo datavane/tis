@@ -247,9 +247,6 @@
 				</configuration>
 			</plugin>
 
-			<!-- <plugin> <groupId>com.qlangtech.tis</groupId> <artifactId>tiswar-maven-plugin</artifactId> 
-				<configuration> <appnamePattern>tis-assemble</appnamePattern> </configuration> 
-				</plugin> -->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

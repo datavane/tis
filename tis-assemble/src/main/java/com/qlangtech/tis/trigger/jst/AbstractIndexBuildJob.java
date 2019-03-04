@@ -151,7 +151,7 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 		long now = System.currentTimeMillis();
 		final String outPath = state.getIndexBuildOutputPath(this.userName, Integer.parseInt(this.groupNum));
 		logger.info("build out path:" + outPath);
-		SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTerminatorConsoleHostAddress(),
+		SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTisConsoleHostAddress(),
 				state.getIndexName(), 0, runtime, ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLOR);
 		if (domain == null) {
 			throw new IllegalStateException(

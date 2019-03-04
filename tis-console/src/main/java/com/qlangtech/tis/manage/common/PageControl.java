@@ -41,7 +41,7 @@ import com.opensymphony.xwork2.util.ValueStack;
  */
 public class PageControl {
 
-    public TerminatorActionComponent setTemplate(final String path) throws Exception {
+    public TISActionComponent setTemplate(final String path) throws Exception {
         // if (1 == 1) {
         // OutputStreamWriter writer = new OutputStreamWriter(
         // ServletActionContext.getResponse().getOutputStream());
@@ -85,7 +85,7 @@ public class PageControl {
         actionMapper.setAlwaysSelectFullNamespace("true");
         actionMapper.getMapping(request, null);
         ActionMapping mapresult = actionMapper.getMapping(request, null);
-        final TerminatorActionComponent action = new TerminatorActionComponent(ServletActionContext.getValueStack(request), request, ServletActionContext.getResponse());
+        final TISActionComponent action = new TISActionComponent(ServletActionContext.getValueStack(request), request, ServletActionContext.getResponse());
         Container container = Dispatcher.getInstance().getContainer();
         container.inject(action);
         // action.setValueStackFactory(container.getInstance(ValueStackFactory.class));
@@ -100,13 +100,13 @@ public class PageControl {
         return action;
     }
 
-    public static class TerminatorActionComponent extends ActionComponent {
+    public static class TISActionComponent extends ActionComponent {
 
-        public TerminatorActionComponent(ValueStack stack, HttpServletRequest req, HttpServletResponse res) {
+        public TISActionComponent(ValueStack stack, HttpServletRequest req, HttpServletResponse res) {
             super(stack, req, res);
         }
 
-        public TerminatorActionComponent setParameter(String name, Object value) {
+        public TISActionComponent setParameter(String name, Object value) {
             this.addParameter(name, value);
             return this;
         }

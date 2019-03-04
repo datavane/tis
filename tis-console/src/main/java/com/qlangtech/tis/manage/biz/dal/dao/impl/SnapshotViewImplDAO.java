@@ -62,9 +62,6 @@ public class SnapshotViewImplDAO extends BasicDAO<SnapshotDomain, SnapshotCriter
 
 	private IResourceParametersDAO resourceParametersDAO;
 
-	// static{
-	// Velocity.in
-	// }
 	@Override
 	public String getEntityName() {
 		return "snapshot_view";

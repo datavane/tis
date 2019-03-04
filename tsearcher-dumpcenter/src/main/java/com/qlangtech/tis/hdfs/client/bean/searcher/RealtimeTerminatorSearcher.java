@@ -23,14 +23,7 @@
  */
 package com.qlangtech.tis.hdfs.client.bean.searcher;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import com.qlangtech.tis.common.ServiceType;
 import com.qlangtech.tis.common.config.IServiceConfig;
-import com.qlangtech.tis.common.protocol.SearchService;
-import com.qlangtech.tis.hdfs.util.Assert;
 
 /*
  * 实时查询客户端
@@ -40,30 +33,7 @@ import com.qlangtech.tis.hdfs.util.Assert;
  */
 public class RealtimeTerminatorSearcher extends BasicTerminatorSearcher {
 
-    // private static final Log logger = LogFactory
-    // .getLog(RealtimeTerminatorSearcher.class);
-    public Map<String, SearchService> searchServices;
-
-    // 
-    @Override
-    protected SearchService getSearchService(ServiceType serviceType, String serviceName, int group) {
-        Assert.assertNotNull("searchServices can not be null", this.searchServices);
-        return this.searchServices.get(String.valueOf(group));
-    }
-
-    @Override
-    protected void subscribeSearcherService(IServiceConfig config) {
-    // Set<String> groupNumberSet = this.getServiceConfig().keySet();
-    // 
-    // Map<String, SearchService> tmpSearchServices = new HashMap<String, SearchService>();
-    // for (String number : groupNumberSet) {
-    // String version = this.getServiceName() + "-" + number + "-readr";
-    // Object obj = this.subscribeHSF(SearchService.class.getName(),
-    // version);
-    // tmpSearchServices.put(number, (SearchService) obj);
-    // }
-    // 
-    // // 这玩意儿概率太低了，不同步了
-    // this.searchServices = Collections.unmodifiableMap(tmpSearchServices);
-    }
+	@Override
+	protected void subscribeSearcherService(IServiceConfig config) {
+	}
 }

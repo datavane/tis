@@ -29,29 +29,24 @@ package com.qlangtech.tis.manage.biz.dal.params;
  */
 public class Query {
 
-    private String q;
+	private String q;
 
-    private int rows;
+	private int rows;
 
-    public String getQ() {
-        return q;
-    }
+	public String getQ() {
+		return q;
+	}
 
-    public void setQ(String q) {
-        this.q = q;
-    }
+	public void setQ(String q) {
+		this.q = q;
+	}
 
-    public int getRows() {
-        return rows;
-    }
+	public int getRows() {
+		return rows;
+	}
 
-    public void setRows(int rows) {
-        this.rows = rows;
-    }
-    // public TerminatorQueryRequest asTerminatorQueryRequest() {
-    // TerminatorQueryRequest ret = new TerminatorQueryRequest();
-    // ret.setQuery(q);
-    // ret.setRows(rows);
-    // return ret;
-    // }
+	public void setRows(int rows) {
+		this.rows = rows;
+	}
+
 }

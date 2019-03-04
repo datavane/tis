@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<groupId>com.qlangtech.tis</groupId>
-	    <artifactId>tis-pom</artifactId>
+		<artifactId>tis-pom</artifactId>
 		<version>1.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
@@ -30,9 +30,7 @@
 
 
 	<properties>
-		
 		<terminator-indexbuilder.version>1.0.2</terminator-indexbuilder.version>
-
 		<test.exclude></test.exclude>
 		<test.exclude.pattern>**/${test.exclude}.java</test.exclude.pattern>
 	</properties>
@@ -41,8 +39,15 @@
 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tsearcher-builder-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-solrconfig-parser</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
@@ -81,17 +86,13 @@
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging-api</artifactId>
 				</exclusion>
-
 			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
-
 		</dependency>
-			
-
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -100,27 +101,23 @@
 		</dependency>
 
 
-		<dependency>
-			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>tis-indexbuilder-manager</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.5.8</version>
 			<scope>provided</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.5.8</version>
 			<scope>provided</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
-			 <artifactId>tis-common</artifactId>
+			<artifactId>tis-common</artifactId>
 		</dependency>
 
 		<dependency>
@@ -140,20 +137,17 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.1.3</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-
 		</dependency>
-
 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-solrcore-extend</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-
 
 
 	</dependencies>

@@ -31,7 +31,7 @@ import junit.framework.TestCase;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import com.qlangtech.tis.trigger.biz.dal.dao.IJobMetaDataDAO;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 import com.qlangtech.tis.trigger.biz.dal.pojo.Task;
 import com.qlangtech.tis.trigger.biz.dal.pojo.TaskCriteria;
 
@@ -54,7 +54,7 @@ public class AppTest extends TestCase {
     public void testTaskDAO() throws Exception {
         // System.out.println(IOUtils.toString(this.getClass()
         // .getResourceAsStream("/log4j.properties")));
-        ITerminatorTriggerBizDalDAOFacade facade = context.getBean("terminatorTriggerBizDalDaoFacade", ITerminatorTriggerBizDalDAOFacade.class);
+        ITriggerBizDalDAOFacade facade = context.getBean("terminatorTriggerBizDalDaoFacade", ITriggerBizDalDAOFacade.class);
         Assert.assertNotNull(facade);
         TaskCriteria criteria = new TaskCriteria();
         criteria.createCriteria().andJobIdEqualTo((long) 15).andDomainEqualTo("terminator").andGmtCreateInSameDay(new Date());

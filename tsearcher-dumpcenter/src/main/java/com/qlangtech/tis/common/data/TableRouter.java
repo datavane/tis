@@ -23,11 +23,11 @@
  */
 package com.qlangtech.tis.common.data;
 
-/* *
+/*
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public interface TableRouter {
 
-    public String getSubtableDesc(String key) throws Exception;
+	public String getSubtableDesc(String key) throws Exception;
 }

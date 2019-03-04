@@ -24,7 +24,6 @@
 package com.qlangtech.tis.manage.biz.dal.dao.impl;
 
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
-import com.qlangtech.tis.manage.biz.dal.dao.IApplicationExtendDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IDepartmentDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IFuncRoleRelationDAO;
@@ -54,8 +53,6 @@ public class TisManageBizDalDAOFacadeImpl implements ITisManageBizDalDAOFacade {
 
 	private final IUsrApplyDptRecordDAO usrApplyDptRecordDAO;
 
-	private final IApplicationExtendDAO applicationExtendDAO;
-
 	public IUsrDptRelationDAO getUsrDptRelationDAO() {
 		return this.usrDptRelationDAO;
 	}
@@ -84,14 +81,10 @@ public class TisManageBizDalDAOFacadeImpl implements ITisManageBizDalDAOFacade {
 		return this.usrApplyDptRecordDAO;
 	}
 
-	public IApplicationExtendDAO getApplicationExtendDAO() {
-		return this.applicationExtendDAO;
-	}
-
 	public TisManageBizDalDAOFacadeImpl(IUsrDptRelationDAO usrDptRelationDAO, IApplicationDAO applicationDAO,
 			IDepartmentDAO departmentDAO, IFuncRoleRelationDAO funcRoleRelationDAO, IRoleDAO roleDAO, IFuncDAO funcDAO,
-			IUsrApplyDptRecordDAO usrApplyDptRecordDAO, // IIsvDAO isvDAO,
-			IApplicationExtendDAO applicationExtendDAO) {
+			IUsrApplyDptRecordDAO usrApplyDptRecordDAO // IIsvDAO isvDAO,
+	) {
 		this.usrDptRelationDAO = usrDptRelationDAO;
 		this.applicationDAO = applicationDAO;
 		this.departmentDAO = departmentDAO;
@@ -100,7 +93,5 @@ public class TisManageBizDalDAOFacadeImpl implements ITisManageBizDalDAOFacade {
 		this.funcDAO = funcDAO;
 		this.usrApplyDptRecordDAO = usrApplyDptRecordDAO;
 		// this.isvDAO = isvDAO;
-
-		this.applicationExtendDAO = applicationExtendDAO;
 	}
 }

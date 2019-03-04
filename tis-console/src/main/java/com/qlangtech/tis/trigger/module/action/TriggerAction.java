@@ -41,7 +41,7 @@ import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.TriggerCrontab;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 import com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob;
 import com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJobCriteria;
 import com.qlangtech.tis.trigger.module.screen.Setappstatus;
@@ -225,7 +225,7 @@ public class TriggerAction extends TriggerBasicModule {
      * @param crontab
      * @param jobtype
      */
-    public static boolean createJob(Integer appid, Context context, String crontab, byte jobtype, BasicModule basicModule, ITerminatorTriggerBizDalDAOFacade triggerContext) {
+    public static boolean createJob(Integer appid, Context context, String crontab, byte jobtype, BasicModule basicModule, ITriggerBizDalDAOFacade triggerContext) {
         // final Integer appid = this.getInt("appid");
         Assert.assertNotNull(triggerContext);
         Assert.assertNotNull(basicModule);
@@ -294,7 +294,7 @@ public class TriggerAction extends TriggerBasicModule {
         if (crontab == null) {
             return;
         }
-        if (createJob(this.getInt("appid"), context, crontab, fulldump ? JOB_TYPE_FULL_DUMP : JOB_INCREASE_DUMP, this, this.getTerminatorTriggerBizDalDaoFacade())) {
+        if (createJob(this.getInt("appid"), context, crontab, fulldump ? JOB_TYPE_FULL_DUMP : JOB_INCREASE_DUMP, this, this.getTriggerBizDalDaoFacade())) {
             this.addActionMessage(context, "设置" + (fulldump ? "全量" : "增量") + "定时任务表达式:“" + crontab + "”成功");
         }
     }

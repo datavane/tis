@@ -28,10 +28,13 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.taobao.terminator.build.jobtask.TaskContext;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+
 import com.qlangtech.tis.hdfs.client.bean.HdfsRealTimeTerminatorBean;
+import com.qlangtech.tis.trigger.socket.TaskContext;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -39,26 +42,33 @@ import com.qlangtech.tis.hdfs.client.bean.HdfsRealTimeTerminatorBean;
  */
 public abstract class BasicTableDumpTask extends AbstractTableDumpTask {
 
-    private static final Logger logger = LoggerFactory.getLogger(BasicTableDumpTask.class);
+	private static final Logger logger = LoggerFactory.getLogger(BasicTableDumpTask.class);
 
-    public BasicTableDumpTask() {
-        super();
-    }
+	public BasicTableDumpTask() {
+		super();
+	}
 
-    protected Reader getDataSourceConfigStream() {
-        try {
-            return new InputStreamReader(this.getClass().getResourceAsStream("config.properties"), "utf8");
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException(e);
-        }
-    }
+	protected Reader getDataSourceConfigStream() {
+		try {
+			return new InputStreamReader(this.getClass().getResourceAsStream("config.properties"), "utf8");
+		} catch (UnsupportedEncodingException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
-    @Override
-    protected Collection<HdfsRealTimeTerminatorBean> getDumpBeans(TaskContext context) {
-        // 启动dump任务
-        Map<String, HdfsRealTimeTerminatorBean> /* 索引名称 */
-        dumpBeans = springContext.getBeansOfType(HdfsRealTimeTerminatorBean.class);
-        Collection<HdfsRealTimeTerminatorBean> dumpbeans = dumpBeans.values();
-        return dumpbeans;
-    }
+	@Override
+	protected Collection<HdfsRealTimeTerminatorBean> getDumpBeans(
+			com.qlangtech.tis.fullbuild.indexbuild.TaskContext context) throws Exception {
+
+		// 启动dump任务
+		Map<String, HdfsRealTimeTerminatorBean> /* 索引名称 */
+		dumpBeans = springContext.getBeansOfType(HdfsRealTimeTerminatorBean.class);
+		Collection<HdfsRealTimeTerminatorBean> dumpbeans = dumpBeans.values();
+		return dumpbeans;
+	}
+
+	@Override
+	protected void registerExtraBeanDefinition(DefaultListableBeanFactory factory) {
+	}
+
 }

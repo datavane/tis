@@ -83,8 +83,8 @@ public class TSearcherConfigFetcher {
 	// 组装节点
 	private final String assembleHost;
 
-	// 终搜后台地址
-	private final String terminatorConsoleHost;
+	// TIS后台地址
+	private final String tisConsoleHost;
 
 	private final String zkAddress;
 
@@ -116,7 +116,7 @@ public class TSearcherConfigFetcher {
 
 		this.indexBuildCenterHost = null;
 		this.assembleHost = null;
-		this.terminatorConsoleHost = null;
+		this.tisConsoleHost = null;
 		this.zkAddress = null;
 		this.onlineZkAddress = null;
 		this.hdfsAddress = null;
@@ -173,7 +173,7 @@ public class TSearcherConfigFetcher {
 		// ;
 		// runEnvironment = servceConfig.getString(CONFIG_runenvironment);
 
-		this.terminatorConsoleHost = servceConfig.getString(CONFIG_terminator_host_address);
+		this.tisConsoleHost = servceConfig.getString(CONFIG_terminator_host_address);
 		try {
 			this.logSourceAddress = servceConfig.getString(LOG_SOURCE_ADDRESS);
 		} catch (Throwable e) {
@@ -275,8 +275,8 @@ public class TSearcherConfigFetcher {
 	 *
 	 * @return
 	 */
-	public String getTerminatorConsoleHostAddress() {
-		return getInstance().terminatorConsoleHost;
+	public String getTisConsoleHostAddress() {
+		return getInstance().tisConsoleHost;
 	}
 
 	// public String getHbaseAddress() {

@@ -38,81 +38,76 @@ import com.qlangtech.tis.pubhook.common.Nullable;
  */
 public class RoleUpdate extends BasicScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Override
-    public void execute(Context context) throws Exception {
-        this.disableNavigationBar(context);
-    // final Role role = getRole(context, this.getInt("roleid"));
-    // 
-    // if (context.get("role") == null) {
-    // context.put("role", role);
-    // }
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		this.disableNavigationBar(context);
+	}
 
-    private static class NULL_ROLE extends Role implements Nullable {
+	private static class NULL_ROLE extends Role implements Nullable {
 
-        private static final long serialVersionUID = 1L;
-    }
+		private static final long serialVersionUID = 1L;
+	}
 
-    private Role role = null;
+	private Role role = null;
 
-    public Role getRole() {
-        if (role == null) {
-            Integer roleid = getRoleId();
-            if (roleid == null || roleid < 1) {
-                role = new NULL_ROLE();
-            } else {
-                role = this.getRoleDAO().loadFromWriteDB(roleid);
-            }
-        }
-        return role;
-    }
+	public Role getRole() {
+		if (role == null) {
+			Integer roleid = getRoleId();
+			if (roleid == null || roleid < 1) {
+				role = new NULL_ROLE();
+			} else {
+				role = this.getRoleDAO().loadFromWriteDB(roleid);
+			}
+		}
+		return role;
+	}
 
-    protected Integer getRoleId() {
-        return this.getInt("roleid");
-    }
+	protected Integer getRoleId() {
+		return this.getInt("roleid");
+	}
 
-    private List<Integer> funcids;
+	private List<Integer> funcids;
 
-    public List<Integer> getSelfuncid() {
-        if (getRole() instanceof Nullable) {
-            return Collections.emptyList();
-        }
-        if (funcids == null) {
-            FuncRoleRelationCriteria criteria = new FuncRoleRelationCriteria();
-            criteria.createCriteria().andRIdEqualTo(getRole().getrId());
-            funcids = new ArrayList<Integer>();
-            for (FuncRoleRelation relation : this.getFuncRoleRelationDAO().selectByExample(criteria)) {
-                funcids.add(relation.getFuncId());
-            }
-        }
-        return funcids;
-    }
+	public List<Integer> getSelfuncid() {
+		if (getRole() instanceof Nullable) {
+			return Collections.emptyList();
+		}
+		if (funcids == null) {
+			FuncRoleRelationCriteria criteria = new FuncRoleRelationCriteria();
+			criteria.createCriteria().andRIdEqualTo(getRole().getrId());
+			funcids = new ArrayList<Integer>();
+			for (FuncRoleRelation relation : this.getFuncRoleRelationDAO().selectByExample(criteria)) {
+				funcids.add(relation.getFuncId());
+			}
+		}
+		return funcids;
+	}
 
-    // protected Role getRole(Context context, Integer roleid) {
-    // 
-    // if (roleid < 1) {
-    // return new NULL_ROLE();
-    // }
-    // 
-    // final Role role = this.getRoleDAO().loadFromWriteDB(roleid);
-    // Assert.assertNotNull(role);
-    // if (context.get(RoleAction.selfuncidKEY) == null) {
-    // FuncRoleRelationCriteria criteria = new FuncRoleRelationCriteria();
-    // criteria.createCriteria().andRIdEqualTo(role.getrId());
-    // final List<Integer> funcids = new ArrayList<Integer>();
-    // for (FuncRoleRelation relation : this.getFuncRoleRelationDAO()
-    // .selectByExample(criteria)) {
-    // funcids.add(relation.getFuncId());
-    // }
-    // 
-    // context.put(RoleAction.selfuncidKEY, funcids);
-    // }
-    // return role;
-    // }
-    @Override
-    public boolean isEnableDomainView() {
-        return false;
-    }
+	// protected Role getRole(Context context, Integer roleid) {
+	//
+	// if (roleid < 1) {
+	// return new NULL_ROLE();
+	// }
+	//
+	// final Role role = this.getRoleDAO().loadFromWriteDB(roleid);
+	// Assert.assertNotNull(role);
+	// if (context.get(RoleAction.selfuncidKEY) == null) {
+	// FuncRoleRelationCriteria criteria = new FuncRoleRelationCriteria();
+	// criteria.createCriteria().andRIdEqualTo(role.getrId());
+	// final List<Integer> funcids = new ArrayList<Integer>();
+	// for (FuncRoleRelation relation : this.getFuncRoleRelationDAO()
+	// .selectByExample(criteria)) {
+	// funcids.add(relation.getFuncId());
+	// }
+	//
+	// context.put(RoleAction.selfuncidKEY, funcids);
+	// }
+	// return role;
+	// }
+	@Override
+	public boolean isEnableDomainView() {
+		return false;
+	}
 }

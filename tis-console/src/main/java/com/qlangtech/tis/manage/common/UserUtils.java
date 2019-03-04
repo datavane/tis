@@ -31,7 +31,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelation;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
-import com.qlangtech.tis.manage.common.apps.TerminatorAdminAppsFetcher;
+import com.qlangtech.tis.manage.common.apps.AdminAppsFetcher;
 import com.qlangtech.tis.runtime.module.action.LoginAction;
 
 /* *
@@ -114,7 +114,7 @@ public class UserUtils {
 		NOT_LOGIN_USER.setDepartment("none");
 	}
 
-	private static class SuperUserFetcher extends TerminatorAdminAppsFetcher {
+	private static class SuperUserFetcher extends AdminAppsFetcher {
 
 		public SuperUserFetcher(RunContext context) {
 			super(null, null, context);

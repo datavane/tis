@@ -38,8 +38,9 @@
 		<module>tis-trigger-dal</module>
 
 		<module>tsearcher-builder-api</module>
+		<!-- 
 		<module>tsearcher-builder-adapter-impl</module>
-
+        -->
 		<module>tis-taskflow</module>
 
 		<module>tis-assemble</module>

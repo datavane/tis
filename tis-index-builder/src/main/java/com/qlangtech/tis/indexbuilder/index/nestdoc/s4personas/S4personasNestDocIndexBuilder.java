@@ -31,24 +31,27 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.schema.IndexSchema;
 
+import com.qlangtech.tis.build.metrics.Counters;
+import com.qlangtech.tis.build.metrics.Messages;
 import com.qlangtech.tis.indexbuilder.index.IndexMaker;
 import com.qlangtech.tis.indexbuilder.index.nestdoc.NestDocIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
-import com.taobao.terminator.build.metrics.Counters;
-import com.taobao.terminator.build.metrics.Messages;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class S4personasNestDocIndexBuilder extends NestDocIndexBuilder {
 
-    public S4personasNestDocIndexBuilder() throws IOException {
-        super();
-    }
+	public S4personasNestDocIndexBuilder() throws IOException {
+		super();
+	}
 
-    @Override
-    protected IndexMaker createIndexMaker(IndexConf indexConf, Counters counters, Messages messages, IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount, BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) {
-        return new S4personasNestIndexMaker(indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues, aliveDocMakerCount, aliveIndexMakerCount);
-    }
+	@Override
+	protected IndexMaker createIndexMaker(IndexConf indexConf, Counters counters, Messages messages,
+			IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount,
+			BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) {
+		return new S4personasNestIndexMaker(indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
+				aliveDocMakerCount, aliveIndexMakerCount);
+	}
 }

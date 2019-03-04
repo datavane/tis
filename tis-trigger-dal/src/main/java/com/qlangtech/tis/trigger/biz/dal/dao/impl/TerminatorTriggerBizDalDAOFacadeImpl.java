@@ -25,14 +25,14 @@ package com.qlangtech.tis.trigger.biz.dal.dao.impl;
 
 import com.qlangtech.tis.trigger.biz.dal.dao.ITaskDAO;
 import com.qlangtech.tis.trigger.biz.dal.dao.ITaskExecLogDAO;
-import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
+import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerBizDalDAOFacade;
 import com.qlangtech.tis.trigger.biz.dal.dao.ITriggerJobDAO;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TerminatorTriggerBizDalDAOFacadeImpl implements ITerminatorTriggerBizDalDAOFacade {
+public class TerminatorTriggerBizDalDAOFacadeImpl implements ITriggerBizDalDAOFacade {
 
     private final ITriggerJobDAO triggerJobDAO;
 

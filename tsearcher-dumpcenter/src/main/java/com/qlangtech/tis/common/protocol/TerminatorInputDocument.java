@@ -31,58 +31,47 @@ import org.apache.solr.common.SolrInputDocument;
  */
 public class TerminatorInputDocument {
 
-    /**
-     * @uml.property  name="solrInputDocument"
-     * @uml.associationEnd
-     */
-    private SolrInputDocument solrInputDocument;
+	private SolrInputDocument solrInputDocument;
 
-    /**
-     * @uml.property  name="routeValue"
-     */
-    private Object routeValue = null;
+	private Object routeValue = null;
 
-    public TerminatorInputDocument() {
-    }
+	public TerminatorInputDocument() {
+	}
 
-    public TerminatorInputDocument(SolrInputDocument solrInputDocument) {
-        this(solrInputDocument, null);
-    }
+	public TerminatorInputDocument(SolrInputDocument solrInputDocument) {
+		this(solrInputDocument, null);
+	}
 
-    public TerminatorInputDocument(SolrInputDocument solrInputDocument, Object routeValue) {
-        this.solrInputDocument = solrInputDocument;
-        this.routeValue = routeValue;
-    }
+	public TerminatorInputDocument(SolrInputDocument solrInputDocument, Object routeValue) {
+		this.solrInputDocument = solrInputDocument;
+		this.routeValue = routeValue;
+	}
 
-    /**
-     * @return
-     * @uml.property  name="solrInputDocument"
-     */
-    public SolrInputDocument getSolrInputDocument() {
-        return solrInputDocument;
-    }
+	public SolrInputDocument getSolrInputDocument() {
+		return solrInputDocument;
+	}
 
-    /**
-     * @param solrInputDocument
-     * @uml.property  name="solrInputDocument"
-     */
-    public void setSolrInputDocument(SolrInputDocument solrInputDocument) {
-        this.solrInputDocument = solrInputDocument;
-    }
+	/**
+	 * @param solrInputDocument
+	 * @uml.property name="solrInputDocument"
+	 */
+	public void setSolrInputDocument(SolrInputDocument solrInputDocument) {
+		this.solrInputDocument = solrInputDocument;
+	}
 
-    /**
-     * @return
-     * @uml.property  name="routeValue"
-     */
-    public Object getRouteValue() {
-        return routeValue;
-    }
+	/**
+	 * @return
+	 * @uml.property name="routeValue"
+	 */
+	public Object getRouteValue() {
+		return routeValue;
+	}
 
-    /**
-     * @param routeValue
-     * @uml.property  name="routeValue"
-     */
-    public void setRouteValue(Object routeValue) {
-        this.routeValue = routeValue;
-    }
+	/**
+	 * @param routeValue
+	 * @uml.property name="routeValue"
+	 */
+	public void setRouteValue(Object routeValue) {
+		this.routeValue = routeValue;
+	}
 }

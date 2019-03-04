@@ -66,7 +66,7 @@ import org.slf4j.MDC;
 
 import com.google.common.collect.ImmutableMap;
 import com.qlangtech.tis.manage.common.PropteryGetter;
-import com.qlangtech.tis.manage.common.TerminatorRepositoryException;
+import com.qlangtech.tis.manage.common.TisRepositoryException;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
 
 /**
@@ -286,11 +286,11 @@ public class CoreAdminHandler extends RequestHandlerBase implements PermissionNa
 	 * @param collection
 	 * @param needReload
 	 * @param newSnapshotId
-	 * @throws TerminatorRepositoryException
+	 * @throws TisRepositoryException
 	 * @throws IOException
 	 */
 	protected boolean updateConfig(SolrQueryRequest req, SolrQueryResponse rsp, String collection, String cname,
-			boolean needReload, int newSnapshotId) throws TerminatorRepositoryException, IOException {
+			boolean needReload, int newSnapshotId) throws TisRepositoryException, IOException {
 		try (SolrCore core = coreContainer.getCore(cname)) {
 			File collectionDir = TisSolrResourceLoader
 					.getCollectionConfigDir(core.getResourceLoader().getInstancePath(), collection);

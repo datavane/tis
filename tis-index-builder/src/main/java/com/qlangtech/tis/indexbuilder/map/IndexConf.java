@@ -29,14 +29,17 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.management.OperatingSystemMXBean;
-import com.taobao.terminator.build.jobtask.Context;
+
+import com.qlangtech.tis.build.jobtask.Context;
+import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.indexbuilder.index.IndexMerger.MergeMode;
 import com.qlangtech.tis.indexbuilder.source.SourceType;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.sun.management.OperatingSystemMXBean;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -48,6 +51,10 @@ public class IndexConf extends Configuration {
 
 	public IndexConf(boolean loadDefault) {
 		super(false);
+	}
+
+	public void loadFrom(TaskContext context) {
+
 	}
 
 	public String getBucketname() {
@@ -245,10 +252,6 @@ public class IndexConf extends Configuration {
 		return getInt("indexing.maker.MaxMergeAtOnce", 10000);
 	}
 
-	public String getLockFilePath() {
-		return get("indexing.merger.lockfilepath", "/home/admin/terminator_builder/temp/lock");
-	}
-
 	public long getOptimizeSizeThreshold() {
 		return getLong("indexing.optimze.optimizeSizeThreshold", 1000000000L);
 	}
@@ -257,7 +260,6 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public int getOptimizeNumThreshold() {
-		
 		return getInt("indexing.optimze.optimizeNumThreshold", 10000000);
 	}
 
@@ -280,7 +282,7 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public boolean isDownloadFile() {
-		
+
 		return getBoolean("indexing.isdownloadfile", false);
 	}
 
@@ -313,7 +315,7 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public String getTargetOkFilePath() {
-		
+
 		return get("indexing.targetokfilepath", "/user/admin/" + getServiceName() + "/all/okfile");
 	}
 
@@ -359,7 +361,7 @@ public class IndexConf extends Configuration {
 	}
 
 	public String getIndexDate() {
-		
+
 		// 检索节点不传indexing.date,只能从路径中截取建索引的日期，恶心死了
 		String date = null;
 		try {
@@ -408,30 +410,25 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public String getYuntijarpath() {
-		
+
 		return get("indexing.yuntijarpath", "/home/admin/terminator_builder/sharelib/yuntihdfs");
 	}
 
 	public String getHbase094jarpath() {
-		
+
 		return get("indexing.hbase094jarpath", "/home/admin/terminator_builder/sharelib/hbase0.94");
 	}
 
 	public String getHbaseSite() {
-		
-		return get("indexing.hbasesite", "/home/admin/terminator_builder/sharelib/hbase0.94/hbase-site.xml");
-	}
 
-	public String getOdpsjarpath() {
-		
-		return get("indexing.odpsjarpath", "/home/admin/terminator_builder/sharelib/odps");
+		return get("indexing.hbasesite", "/home/admin/terminator_builder/sharelib/hbase0.94/hbase-site.xml");
 	}
 
 	/**
 	 * @return
 	 */
 	public String getFileNameSplitor() {
-		
+
 		return get("indexing.filenamesplitor", "-");
 	}
 
@@ -448,7 +445,6 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public boolean isOptimzeRelease() {
-		
 		return getBoolean("indexing.optimizerelease", false);
 	}
 
@@ -456,23 +452,14 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public String getPayloadFields() {
-		
 		return get("indexing.payloadfields");
 	}
 
-	/**
-	 * @return
-	 */
 	public boolean genRangeField() {
-		
 		return getBoolean("indexing.genrangefield", true);
 	}
 
-	/**
-	 * @return
-	 */
 	public String getServicejarpath() {
-		
 		return "/home/admin/terminator_builder/sharelib/userJar/" + getServiceName();
 	}
 
@@ -480,50 +467,22 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public RunEnvironment getRunEnvironment() {
-		
 		String env = get("job.runEnvironment", "online");
 		return RunEnvironment.getEnum(env);
-		// if (env.equals("daily")) {
-		// return RunEnvironment.DAILY;
-		// //} else if (env.equals("ready")) {
-		// // return RunEnvironment.READY;
-		// } else if (env.equals("online")) {
-		// return RunEnvironment.ONLINE;
-		// } else {
-		// return RunEnvironment.ONLINE;
-		// }
 	}
 
 	public SourceType getSourceType() {
-		return getEnum("indexing.sourcetype", SourceType.UNKNOWN);
+		return getEnum("indexing.sourcetype", SourceType.HDFS);
 	}
 
-	/**
-	 * @return
-	 */
-	public String getRemoteJarHost() {
-		
-		return get("indexing.remotejarhost", "http://terminator.admin.tbsite.net:9999");
-	}
-
-	/**
-	 * @return
-	 */
 	public boolean isLoadJar() {
-		
 		return getBoolean("indexing.isloadjar", true);
 	}
 
-	/**
-	 * @return
-	 */
 	public String getSourceReaderFactory() {
 		return get("indexing.sourcereaderfactory");
 	}
 
-	/**
-	 * @return
-	 */
 	public String getSouceReaderRactoryJarPath() {
 		return get("indexing.sourcereaderfactoryjarpath");
 	}
@@ -547,7 +506,6 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public String getRsAddr() {
-		
 		return get("indexing.rsaddr");
 	}
 
@@ -555,48 +513,7 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public String getAppKey() {
-		
 		return get("indexing.appkey");
-	}
-
-	/**
-	 * @return
-	 */
-	public String getOdpsEndpoint() {
-		
-		return get("indexing.odpsendpoint", "http://dt.odps.aliyun-inc.com");
-	}
-
-	/**
-	 * @return
-	 */
-	public String getOdpsAccessId() {
-		
-		return get("indexing.odpsaccessid", "");
-	}
-
-	/**
-	 * @return
-	 */
-	public String getOdpsAccessKey() {
-		
-		return get("indexing.odpsaccesskey", "");
-	}
-
-	/**
-	 * @return
-	 */
-	public String getOdpsProject() {
-		
-		return get("indexing.odpsproject", "");
-	}
-
-	/**
-	 * @return
-	 */
-	public String getOdpsTable() {
-		
-		return get("indexing.odpstable", "");
 	}
 
 	/**
@@ -610,7 +527,6 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public String getShardKey() {
-		
 		return get("indexing.shardkey");
 	}
 
@@ -618,50 +534,14 @@ public class IndexConf extends Configuration {
 	 * @return
 	 */
 	public int getTotalGroups() {
-		
 		return getInt("indexing.totalgroups", 1);
 	}
 
 	/**
 	 * @return
 	 */
-	public String getOdpsPartition() {
-		
-		String partdesc = get("indexing.odpspartition", "");
-		partdesc = partdesc.trim();
-		int start = partdesc.indexOf("{");
-		int end = partdesc.indexOf("}");
-		if (start != -1 && end != -1) {
-			SimpleDateFormat sf = new SimpleDateFormat(partdesc.substring(start + 1, end));
-			return partdesc.substring(0, start) + sf.format(new Date());
-		} else {
-			return partdesc;
-		}
-	}
-
-	public static void main(String[] args) {
-		SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-		format.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
-		System.out.println(format.format(new Date()));
-		IndexConf conf = new IndexConf(false);
-		System.out.println(conf.get("ddd") == null);
-		String corename = "searchxdxx-9";
-		System.out.println(corename.substring(corename.lastIndexOf("-") + 1));
-		/*
-		 * String partdesc = " date{yyyyMMdd}"; int start =
-		 * partdesc.indexOf("{"); int end = partdesc.indexOf("}"); String p =
-		 * ""; if(start!=-1 && end!=-1) { SimpleDateFormat sf=new
-		 * SimpleDateFormat(partdesc.substring(start+1,end)); p=
-		 * partdesc.substring(0, start)+sf.format(new Date()); } else { p=
-		 * partdesc; } System.out.println(p);
-		 */
-	}
-
-	/**
-	 * @return
-	 */
 	public int gethbaseScanCache() {
-		
+
 		return getInt("indexing.hbasescancache", 1000);
 	}
 }

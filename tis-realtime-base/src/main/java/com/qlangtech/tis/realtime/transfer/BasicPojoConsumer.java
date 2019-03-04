@@ -465,7 +465,7 @@ public abstract class BasicPojoConsumer implements Runnable {
                 if (fiedls == null) {
                     fiedls = new HashSet<String>();
                     TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
-                    SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTerminatorConsoleHostAddress(), collection, config.getRuntime(), ConfigFileReader.FILE_SCHEMA);
+                    SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTisConsoleHostAddress(), collection, config.getRuntime(), ConfigFileReader.FILE_SCHEMA);
                     ParseResult parseResult = null;
                     StringBuffer acceptKeys = new StringBuffer();
                     try (ByteArrayInputStream reader = new ByteArrayInputStream(ConfigFileReader.FILE_SCHEMA.getContent(domain))) {

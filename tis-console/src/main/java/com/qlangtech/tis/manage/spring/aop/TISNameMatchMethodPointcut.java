@@ -21,49 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.qlangtech.tis.common.data;
+package com.qlangtech.tis.manage.spring.aop;
 
-import java.util.ArrayList;
-import java.util.List;
-import com.qlangtech.tis.common.data.sql.SqlFunction;
+import java.lang.reflect.Method;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.aop.support.StaticMethodMatcherPointcut;
 
-/*
- * 支持SqlFunction的MultiDataProvider 
- *
+/* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class SFSupportMultiDataProvider extends MultiDataProvider implements PlusSqlFunctionRegisterable {
-
-    protected List<SqlFunction> functionList;
+public class TISNameMatchMethodPointcut extends StaticMethodMatcherPointcut {
 
     @Override
-    protected void doInit() throws Exception {
-        for (DataProvider dp : dataProviders) {
-            if (dp instanceof PlusSqlFunctionRegisterable) {
-                for (SqlFunction f : this.functionList) {
-                    ((PlusSqlFunctionRegisterable) dp).registerSqlFunction(f);
-                }
-            }
+    public boolean matches(Method method, Class<?> targetClass) {
+        if (StringUtils.startsWith(method.getName(), "count")) {
+            return false;
         }
-    }
-
-    @Override
-    public void unregisterAll() {
-        if (this.functionList == null)
-            return;
-        this.functionList.clear();
-    }
-
-    @Override
-    public void registerSqlFunction(SqlFunction sqlFunction) {
-        if (functionList == null) {
-            this.functionList = new ArrayList<SqlFunction>();
+        if (StringUtils.startsWith(method.getName(), "select")) {
+            return false;
         }
-        this.functionList.add(sqlFunction);
-    }
-
-    @Override
-    public void unregisterSqlFunction(String name) {
+        if (StringUtils.startsWith(method.getName(), "load")) {
+            return false;
+        }
+        if (StringUtils.startsWith(method.getName(), "get")) {
+            return false;
+        }
+        if (StringUtils.startsWith(method.getName(), "is")) {
+            return false;
+        }
+        return true;
     }
 }

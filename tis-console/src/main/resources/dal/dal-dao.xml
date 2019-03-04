@@ -112,12 +112,6 @@
 	<!-- 添加权限管理2013/01/24 end -->
 
 
-	<bean id="applicationExtendDAO"
-		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationExtendDAOImpl"
-		parent="basicEndSearchDao" />
-
-
-
 	<bean id="daoContext" class="com.qlangtech.tis.manage.common.RunContextImpl">
 		<constructor-arg index="0" ref="appPackageDAO" />
 		<constructor-arg index="1" ref="applicationDAO" />
@@ -145,11 +139,8 @@
 		<constructor-arg index="18" ref="usrDptExtraRelationDAO" />
 		<constructor-arg index="19" ref="usrApplyDptRecordDAO" />
 
-
-		<constructor-arg index="20" ref="applicationExtendDAO" />
-
-		<constructor-arg index="21" ref="zooKeeperGetter" />
-		<constructor-arg index="22" ref="clusterStateReader" />
+		<constructor-arg index="20" ref="zooKeeperGetter" />
+		<constructor-arg index="21" ref="clusterStateReader" />
 
 	</bean>
 

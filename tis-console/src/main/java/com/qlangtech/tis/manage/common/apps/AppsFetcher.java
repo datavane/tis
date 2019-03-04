@@ -66,7 +66,7 @@ public abstract class AppsFetcher implements IAppsFetcher {
             // dpt.setFullName(usr.getDptName());
             dpt.setDptId(123);
             dpt.setFullName("dpt");
-            return new TerminatorAdminAppsFetcher(user, dpt, context);
+            return new AdminAppsFetcher(user, dpt, context);
         }
         // TUser user = UserUtils.getUser(DefaultFilter.getReqeust());
         Assert.assertNotNull("user can not be null", user);
@@ -81,7 +81,7 @@ public abstract class AppsFetcher implements IAppsFetcher {
         if (dpt.getDptId().equals(Config.getDptTisId())) {
             // TIS管理者
             return // user.setAppsFetcher(
-            new TerminatorAdminAppsFetcher(user, dpt, // );
+            new AdminAppsFetcher(user, dpt, // );
             context);
         } else if (usr.isExtraDptRelation()) {
             return new NormalUserWithExtraDptsApplicationFetcher(user, dpt, context);

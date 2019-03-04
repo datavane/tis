@@ -21,18 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.qlangtech.tis.common.container;
+package com.qlangtech.tis.client;
 
-/*
- * @description
- * 在自定义的Plugin，可以获取其他Services的成员变量
- * @since 2012-3-5 下午10:06:54
- * @version 1.0
- *
+/* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public interface TerminatorConfPlugin {
+public class TISInitException extends RuntimeException {
 
-    public void initServiceConf();
+    private static final long serialVersionUID = 1621075154716590750L;
+
+    public TISInitException() {
+        super();
+    }
+
+    public TISInitException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public TISInitException(String message) {
+        super(message);
+    }
+
+    public TISInitException(Throwable cause) {
+        super(cause);
+    }
 }

@@ -138,10 +138,6 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 	public void contextDestroyed(ServletContextEvent sce) {
 	}
 
-	// private static final String indexName = "search4totalpay";
-	// private JettyTISRunner jetty;
-	// private HdfsRealTimeTerminatorBean totalpayBean;
-	// private IRemoteIncrControl remoteIncrControl;
 	private TisZkClient zkClient;
 
 	ZkStateReader zkStateReader;
@@ -335,7 +331,7 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 		chainContext.setZkClient(zkClient);
 		chainContext.setZkStateReader(zkStateReader);
 		TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
-		SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTerminatorConsoleHostAddress(),
+		SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTisConsoleHostAddress(),
 				chainContext.getIndexName(), config.getRuntime(), ConfigFileReader.FILE_SCHEMA,
 				ConfigFileReader.FILE_SOLOR);
 		SolrFieldsParser solrFieldsParser = new SolrFieldsParser();
@@ -357,10 +353,6 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 
 			@Override
 			public LuceneVersion getLuceneVersion() {
-				// return
-				// getTISLuceneVersion(domain).equals(Version.LUCENE_7_6_0) ?
-				// LuceneVersion.LUCENE_7
-				// : LuceneVersion.LUCENE_5;
 				Version ver = getTISLuceneVersion(domain);
 				if (ver.equals(Version.LUCENE_7_6_0)) {
 					return LuceneVersion.LUCENE_7;
@@ -369,7 +361,6 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 				throw new IllegalStateException("illegal version ver:" + ver);
 			}
 		});
-		// chainContext.setIndexName(getIndexname());
 		invoke = AbstractActionInvocation.createExecChain(chainContext);
 		ExecuteResult execResult = invoke.invoke();
 		if (!execResult.isSuccess()) {
@@ -492,223 +483,6 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 		}
 	}
 
-	// /**
-	// * 开始执行dump
-	// *
-	// * @param startTime
-	// * @param dumpTask
-	// * @return
-	// * @throws InterruptedException
-	// * @throws ExecutionException
-	// * @throws TimeoutException
-	// */
-	// private RunningStatus startDump(final Date startTime,
-	// final IRemoteJobTrigger dumpTask) throws InterruptedException,
-	// ExecutionException, TimeoutException {
-	// Future<RunningStatus> dumpResult = RemoteBuildCenterUtils.taskPool
-	// .submit(new Callable<RunningStatus>() {
-	// @Override
-	// public RunningStatus call() throws Exception {
-	// dumpTask.submitJob();
-	// RunningStatus runStatus = null;
-	// while (true) {
-	// runStatus = dumpTask.getRunningStatus();
-	// if (runStatus.isComplete()) {
-	// logger.info("dump complete");
-	// break;
-	// }
-	// logger.info("execute dump,exec past:"
-	// + (System.currentTimeMillis() - startTime
-	// .getTime()) / 1000 + "s");
-	// Thread.sleep(3000);
-	// }
-	// return runStatus;
-	// }
-	// });
-	// return dumpResult.get(5, TimeUnit.HOURS);
-	// // return runningStatus;
-	// }
-	// /**
-	// * @param jmxConns
-	// * @throws IOException
-	// */
-	// protected void resumeIncrFlow(List<JMXConnector> jmxConns)
-	// throws IOException {
-	// for (JMXConnector c : jmxConns) {
-	// try {
-	// this.remoteIncrControl.resumeIncrFlow(c);
-	// c.close();
-	// } catch (Exception e) {
-	//
-	// }
-	// }
-	// }
-	// @Override
-	// public void setApplicationContext(ApplicationContext applicationContext)
-	// throws BeansException {
-	//
-	
-	// }
-	// /**
-	// * @return
-	// * @throws TerminatorZKException
-	// * @throws Exception
-	// */
-	// private List<JMXConnector> pauseIncrFlow() throws Exception {
-	// List<JMXConnector> jmxConns = new ArrayList<JMXConnector>();
-	// try {
-	// final String incrNodeParent = "/tis/incr_transfer/" + indexName;
-	// if (!this.zkClient.exists(incrNodeParent, true)) {
-	// return jmxConns;
-	// }
-	// List<String> incrNodes = this.zkClient.getChildren(incrNodeParent,
-	// null, true);
-	// for (String incrNode : incrNodes) {
-	// jmxConns.add(DefaultRemoteIncrControl.createConnector(
-	// new String(this.zkClient.getData(incrNodeParent + "/"
-	// + incrNode, null, new Stat(), true)),
-	// INCR_NODE_PORT));
-	// }
-	// for (JMXConnector c : jmxConns) {
-	// this.remoteIncrControl.pauseIncrFlow(c);
-	// }
-	// } catch (Exception e) {
-	// logger.warn(e.getMessage(), e);
-	// }
-	// return jmxConns;
-	// }
-	// /**
-	// * @param indexName
-	// * @param zkClient
-	// * @throws UnknownHostException
-	// * @throws KeeperException
-	// * @throws InterruptedException
-	// */
-	// private static void registerMyself(final String indexName, TisZkClient
-	// zkClient, int port)
-	// throws UnknownHostException, KeeperException, InterruptedException {
-	// final String lockpath = "/tis-lock/dumpindex/" + indexName;
-	// try {
-	//
-	// ZkUtils.guaranteeExist(zkClient.getZK(), lockpath);
-	// String ip = Inet4Address.getLocalHost().getHostAddress();
-	// zkClient.create(lockpath + "/dumper", (ip + ":" + port).getBytes(),
-	// CreateMode.EPHEMERAL_SEQUENTIAL, true);
-	// } catch (Exception e) {
-	// throw KeeperException.create(Code.BADARGUMENTS, lockpath + "/dumper");
-	// }
-	// }
-	// private static final ExecutorService executorService = Executors
-	// .newCachedThreadPool();
-	// /**
-	// * 触发索引build
-	// *
-	// * @param indexName
-	// * @param timepoint
-	// * @param groupSize
-	// * @param sourcePath
-	// * @throws Exception
-	// */
-	// private boolean triggerIndexBuildJob(String indexName,
-	// final String timepoint, int groupSize,
-	// HdfsSourcePathCreator hdfsSourcePathCreator) throws Exception {
-	//
-	// ImportDataProcessInfo processinfo = new ImportDataProcessInfo(999);
-	// processinfo.setTimepoint(timepoint);
-	// processinfo.setIndexName(indexName);
-	//
-	// processinfo.setHdfsSourcePathCreator(hdfsSourcePathCreator);
-	//
-	// // processinfo.setHdfsSourcePathCreator(new HdfsSourcePathCreator() {
-	// // @Override
-	// // public String build(String group) {
-	// // // return
-	// // // "/user/hive/db/totalpay_summary/pt=20151014210509/pmod="
-	// // // + group;
-	// //
-	// // return String.format(sourcePath, timepoint, group);
-	// // }
-	// // });
-	//
-	// final DistributeLog log = new DistributeLog() {
-	// @Override
-	// public void addLog(ImportDataProcessInfo state, String msg) {
-	// logger.info(msg);
-	// }
-	//
-	// @Override
-	// public void addLog(ImportDataProcessInfo state, InfoType level,
-	// String msg) {
-	// logger.info("level:" + level + "," + msg);
-	// }
-	// };
-	//
-	// ExecutorCompletionService<BuildResult> completionService = new
-	// ExecutorCompletionService<BuildResult>(
-	// executorService);
-	//
-	// for (int grouIndex = 0; grouIndex < groupSize; grouIndex++) {
-	// RemoteIndexBuildJob indexBuildJob = createRemoteIndexBuildJob(
-	// processinfo, grouIndex);
-	// indexBuildJob.setLog(log);
-	// completionService.submit(indexBuildJob);
-	// }
-	// Future<BuildResult> result = null;
-	// BuildResult buildResult = null;
-	// for (int grouIndex = 0; grouIndex < groupSize; grouIndex++) {
-	// result = completionService.poll(4, TimeUnit.HOURS);
-	// if (result == null) {
-	// continue;
-	// }
-	// buildResult = result.get();
-	// if (!buildResult.isSuccess()) {
-	// logger.error("sourpath:" + buildResult.getHdfsSourcePath()
-	// + " build faild.");
-	// // build失败
-	// return false;
-	// }
-	// logger.info("indexsize:" + buildResult.getIndexSize());
-	// logger.info("group:" + buildResult.getGroup());
-	// }
-	//
-	// // 成功
-	// return true;
-	// }
-	// @Override
-	// public void setApplicationContext(ApplicationContext applicationContext)
-	// throws BeansException {
-	// this.beanContext = applicationContext;
-	// }
-	// private FileSystem getDistributeFileSystem() {
-	// fileSystem = TISHdfsUtils.getFileSystem();
-	// if (fileSystem == null) {
-	// synchronized (IndexSwapTaskflowLauncher.class) {
-	// if (fileSystem == null) {
-	// TSearcherConfigFetcher configFetcher = TSearcherConfigFetcher.get();
-	// Configuration configuration = new Configuration();
-	// FileSystem fileSys = null;
-	// if (StringUtils.isEmpty(configFetcher.getHdfsAddress())) {
-	// throw new IllegalStateException("hdfsHost can not be null");
-	// }
-	// logger.info("hdfsAddress:" + configFetcher.getHdfsAddress());
-	// try {
-	// configuration.set("fs.default.name", configFetcher.getHdfsAddress());
-	//
-	// configuration.addResource("core-site.xml");
-	// configuration.addResource("mapred-site.xml");
-	//
-	// fileSys = FileSystem.get(configuration);
-	//
-	// } catch (Exception e) {
-	// throw new RuntimeException(e);
-	// }
-	// fileSystem = fileSys;
-	//
-	// }
-	// }
-	// }
-	// return fileSystem;
-	// }
 	// ///daemon/////////////////===========================================
 	@Override
 	public void init(DaemonContext context) throws DaemonInitException, Exception {
