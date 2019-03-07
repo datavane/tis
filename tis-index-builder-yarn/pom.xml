@@ -45,6 +45,20 @@
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-hdfs-extends</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-common</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+			<version>${hadoop-version}</version>
+			<scope>provided</scope>
+			
 		</dependency>
 
 		<dependency>
@@ -55,15 +69,33 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-client</artifactId>
-			<!-- 
 			<scope>provided</scope>
-			 -->
+			
 		</dependency>
 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-index-builder</artifactId>
 			<version>${project.version}</version>
+
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-client</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.qlangtech.tis</groupId>
+					<artifactId>tis-rpc</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.qlangtech.tis</groupId>
+					<artifactId>tis-solrj-client</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 

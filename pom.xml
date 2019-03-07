@@ -34,18 +34,16 @@
 		<module>tis-tags-pager</module>
 		<module>tis-common</module>
 		<module>tis-rpc</module>
-		
+
 		<module>tsearcher-builder-api</module>
 		<module>tis-index-builder</module>
 		<module>tis-index-builder-yarn</module>
-		
-		
+
+
 		<module>tis-trigger-dal</module>
 
-		
-		<!-- 
-		<module>tsearcher-builder-adapter-impl</module>
-        -->
+
+		<!-- <module>tsearcher-builder-adapter-impl</module> -->
 		<module>tis-taskflow</module>
 
 		<module>tis-assemble</module>

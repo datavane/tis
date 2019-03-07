@@ -117,13 +117,16 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.BuildNodeMaster "
 						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
 						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
-		
-//		amContainer.setCommands(
-//				Collections.singletonList(javaCommand + getMemorySpec(memoryConsume) + getRemoteDebugParam(runtime)
-//						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.Main "
-//						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
-//						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
-		
+
+		// amContainer.setCommands(
+		// Collections.singletonList(javaCommand + getMemorySpec(memoryConsume)
+		// + getRemoteDebugParam(runtime)
+		// + " -Druntime=" + runtime.getKeyName() + "
+		// com.qlangtech.tis.build.yarn.Main "
+		// + createLauncherParam() + " 1>" +
+		// ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
+		// + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
+
 		setJarsLibs(amContainer, libs);
 		/* 运行依賴的環境變量 */
 		Map<String, String> environment = new HashMap<String, String>();
@@ -300,6 +303,12 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 			boolean includeHadoopJars) throws IOException {
 		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), Environment.PWD.$() + File.separator + "*",
 				File.pathSeparator);
+
+		for (String c : YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH) {
+
+			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), c.trim(), File.pathSeparator);
+		}
+
 		// if (includeHadoopJars) {
 		// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
 		// "/opt/cloudera/parcels/CDH/lib/hadoop-yarn/*", File.pathSeparator);

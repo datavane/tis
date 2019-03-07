@@ -176,33 +176,31 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 		}
 	}
 
-	public synchronized boolean doneWithContainers() {
-		// return isShutdown || numContainersToWaitFor <= 0;
-		return true;
-	}
+	// public synchronized boolean doneWithContainers() {
+	// // return isShutdown || numContainersToWaitFor <= 0;
+	// return true;
+	// }
 
 	// public static String getRemoteDebugStr() {
 	// return "-Xrunjdwp:transport=dt_socket,address=45687,suspend=n,server=y";
 	// }
 
-	public static void setEnvironment(Map<String, String> environment, ContainerLaunchContext ctx,
-			YarnConfiguration conf, boolean includeHadoopJars) throws IOException {
-
-		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), Environment.PWD.$() + File.separator + "*",
-				File.pathSeparator);
-		if (includeHadoopJars) {
-			// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
-			// "/opt/cloudera/parcels/CDH-5.5.1-1.cdh5.5.1.p0.11/jars/*",
-			// File.pathSeparator);
-			for (String c : conf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
-					YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
-				Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), c.trim(), File.pathSeparator);
-			}
-		}
-
-		ctx.setEnvironment(environment);
-		System.out.println("classpath:" + environment.get(Environment.CLASSPATH.name()));
-	}
+//	public static void setEnvironment(Map<String, String> environment, ContainerLaunchContext ctx,
+//			YarnConfiguration conf, boolean includeHadoopJars) throws IOException {
+//
+//		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), Environment.PWD.$() + File.separator + "*",
+//				File.pathSeparator);
+//		if (includeHadoopJars) {
+//
+//			for (String c : conf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
+//					YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
+//				Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), c.trim(), File.pathSeparator);
+//			}
+//		}
+//
+//		ctx.setEnvironment(environment);
+//		System.out.println("classpath:" + environment.get(Environment.CLASSPATH.name()));
+//	}
 
 	public void onShutdownRequest() {
 		System.out.println("onShutdownRequest");
