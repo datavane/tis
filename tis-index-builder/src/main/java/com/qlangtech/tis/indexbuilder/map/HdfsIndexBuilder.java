@@ -85,6 +85,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 	// 由consel传入的taskid
 	private String taskid = "";
+	private Future<SuccessFlag> mergeExecResult;
 
 	public HdfsIndexBuilder() throws IOException {
 		startTime = System.currentTimeMillis();
@@ -153,7 +154,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 				luceneDocMaker.setName(indexConf.getCoreName() + "-docMaker-" + docMakerCount + "-" + i);
 				resultFlagSet.add(luceneDocMaker.getResultFlag());
 				// threadList.add(luceneDocMaker.getSuccessFlag());
-				Thread t = new Thread(luceneDocMaker);
+				Thread t = new Thread(luceneDocMaker, "luceneDocMaker-" + i);
 				// if (loader != null && isTaskFromTis() // && getJarStatus()
 				// ) {
 				// logger.warn("loader is not null and is task from tis");
@@ -164,8 +165,8 @@ public class HdfsIndexBuilder implements TaskMapper {
 				t.start();
 			}
 			// merge线程
-			Future<SuccessFlag> mergeExecResult = waitIndexMergeTask(indexConf, aliveIndexMakerCount, counters,
-					messages, dirQueue, indexMetaConfig.indexSchema);
+			this.mergeExecResult = waitIndexMergeTask(indexConf, aliveIndexMakerCount, counters, messages, dirQueue,
+					indexMetaConfig.indexSchema);
 			logger.warn("----" + indexConf.getIndexSmallCacheSize());
 			logger.warn("----" + indexConf.getIndexRamDirBufferSize());
 			logger.warn("----" + indexConf.getIndexLargeCacheSize());
@@ -208,6 +209,18 @@ public class HdfsIndexBuilder implements TaskMapper {
 			TaskReturn tr = new TaskReturn(TaskReturn.ReturnCode.FAILURE, e1.toString());
 			return tr;
 		}
+	}
+
+	/**
+	 * 索引merge是否完成
+	 * 
+	 * @return
+	 */
+	public boolean getMergeOver() {
+		if (mergeExecResult == null) {
+			return false;
+		}
+		return mergeExecResult.isDone();
 	}
 
 	private IndexMetaConfig parseIndexMetadata(TaskContext context, IndexConf indexConf) {

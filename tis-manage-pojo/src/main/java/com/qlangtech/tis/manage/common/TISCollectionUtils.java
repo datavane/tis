@@ -23,12 +23,8 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -36,30 +32,9 @@ import org.apache.commons.lang.StringUtils;
  */
 public class TISCollectionUtils {
 
-	private static Set<String> monitorIgnore;
-	
-//	status.put("all", backflowStatus.getAllContentLength());
-//	status.put("readed", backflowStatus.getHaveReaded());
-//	callInfo.rsp.add("indexflowback_status", status);
-	
 	public static String INDEX_BACKFLOW_STATUS = "indexflowback_status";
 	public static String INDEX_BACKFLOW_READED = "readed";
-	public static String INDEX_BACKFLOW_ALL ="all";
-
-	
-	static {
-		monitorIgnore = new HashSet<String>();
-		// monitorIgnore.add(StringUtils.lowerCase("search4Supplier"));
-		// monitorIgnore.add(StringUtils.lowerCase("search4WarehouseStock"));
-		// monitorIgnore.add(StringUtils.lowerCase("search4MenuProfitsNew"));
-		// monitorIgnore.add(StringUtils.lowerCase("search4TimeStatistic"));
-		// monitorIgnore.add(StringUtils.lowerCase("search4OperationStatistic"));
-		// monitorIgnore.add(StringUtils.lowerCase("search4GoodsRaw"));
-		// monitorIgnore.add(StringUtils.lowerCase("search4shopActivity"));
-		// 以下这个索引是因为现在更新量实在太低了 还没有正式使用
-		// monitorIgnore.add(StringUtils.lowerCase("search4shop"));
-		// monitorIgnore.add(StringUtils.lowerCase("search4supplyGoods"));
-	}
+	public static String INDEX_BACKFLOW_ALL = "all";
 
 	private static String NAME_PREFIX = "search4";
 	private static final Pattern coreNamePattern = Pattern.compile(NAME_PREFIX + "(.+?)_shard(\\d+?)_replica_n(\\d+?)");
@@ -98,16 +73,4 @@ public class TISCollectionUtils {
 		return coreName;
 	}
 
-	private static boolean monitorIgnore(String collection) {
-		return monitorIgnore.contains(StringUtils.lowerCase(collection));
-	}
-
-	/**
-	 * 是否忽略增量执行
-	 *
-	 * @return
-	 */
-	public static boolean ignoreIncrTransfer(String collection) {
-		return UISVersion.isDataCenterCollection(collection) || monitorIgnore(collection);
-	}
 }

@@ -40,169 +40,175 @@ import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
  */
 public class AbstractActionInvocation implements ActionInvocation {
 
-    public static final String COMMAND_KEY_DIRECTBUILD = "directbuild";
+	public static final String COMMAND_KEY_DIRECTBUILD = "directbuild";
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractActionInvocation.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractActionInvocation.class);
 
-    // 原生的全流程構建，從dump開始到最後索引回流
-    private static final IExecuteInterceptor[] fullints = new IExecuteInterceptor[] { // new BindTablePartitionInterceptor(),
-    new DumpInterceptor(), // //
-    new TableJoinInterceptor(), // ////////
-    new IndexBuildInterceptor(), new IndexBackFlowInterceptor() };
+	// 原生的全流程構建，從dump開始到最後索引回流
+	private static final IExecuteInterceptor[] fullints = new IExecuteInterceptor[] { // new
+																						// BindTablePartitionInterceptor(),
+			new DumpInterceptor(), // //
+			new TableJoinInterceptor(), // ////////
+			new IndexBuildInterceptor(), //
+			new IndexBackFlowInterceptor() };
 
-    // 由数据中心触发的直接進入索引build階段
-    private static final IExecuteInterceptor[] directBuild = new IExecuteInterceptor[] { // /////
-    new IndexBuildWithHdfsPathInterceptor(), new IndexBackFlowInterceptor() };
+	// 由数据中心触发的直接進入索引build階段
+	private static final IExecuteInterceptor[] directBuild //
+			= new IExecuteInterceptor[] { // /////
+					new IndexBuildWithHdfsPathInterceptor() //
+					, new IndexBackFlowInterceptor() };
 
-    /**
-     * 创建执行链
-     *
-     * @param chainContext
-     * @return
-     */
-    public static ActionInvocation createExecChain(IExecChainContext chainContext) {
-        final Map<String, Integer> /* index */
-        componentOrders = new HashMap<String, Integer>();
-        IExecuteInterceptor[] ints = null;
-        if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
-            ints = directBuild;
-        } else {
-            ints = fullints;
-        }
-        AbstractActionInvocation preInvocation = new AbstractActionInvocation();
-        preInvocation.setContext(chainContext);
-        preInvocation.setComponentOrders(componentOrders);
-        AbstractActionInvocation invocation = null;
-        for (int i = (ints.length - 1); i >= 0; i--) {
-            componentOrders.put(ints[i].getName(), i);
-            invocation = new AbstractActionInvocation();
-            invocation.setComponentOrders(componentOrders);
-            invocation.setContext(chainContext);
-            invocation.setInterceptor(ints[i]);
-            invocation.setSuccessor(preInvocation);
-            preInvocation = invocation;
-        }
-        logger.info("component description:");
-        for (Map.Entry<String, Integer> componentEntry : componentOrders.entrySet()) {
-            logger.info(componentEntry.getKey() + ":" + componentEntry.getValue());
-        }
-        logger.info("=====================description end");
-        return preInvocation;
-    }
+	/**
+	 * 创建执行链
+	 *
+	 * @param chainContext
+	 * @return
+	 */
+	public static ActionInvocation createExecChain(IExecChainContext chainContext) {
+		final Map<String, Integer> /* index */
+		componentOrders = new HashMap<String, Integer>();
+		IExecuteInterceptor[] ints = null;
+		if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
+			ints = directBuild;
+		} else {
+			ints = fullints;
+		}
+		AbstractActionInvocation preInvocation = new AbstractActionInvocation();
+		preInvocation.setContext(chainContext);
+		preInvocation.setComponentOrders(componentOrders);
+		AbstractActionInvocation invocation = null;
+		for (int i = (ints.length - 1); i >= 0; i--) {
+			componentOrders.put(ints[i].getName(), i);
+			invocation = new AbstractActionInvocation();
+			invocation.setComponentOrders(componentOrders);
+			invocation.setContext(chainContext);
+			invocation.setInterceptor(ints[i]);
+			invocation.setSuccessor(preInvocation);
+			preInvocation = invocation;
+		}
+		logger.info("component description:");
+		for (Map.Entry<String, Integer> componentEntry : componentOrders.entrySet()) {
+			logger.info(componentEntry.getKey() + ":" + componentEntry.getValue());
+		}
+		logger.info("=====================description end");
+		return preInvocation;
+	}
 
-    // = new HashMap<String,
-    private Map<String, Integer> componentOrders;
+	// = new HashMap<String,
+	private Map<String, Integer> componentOrders;
 
-    // Integer>();
-    @Override
-    public ExecuteResult invoke() throws Exception {
-        if (componentOrders == null) {
-            throw new IllegalStateException("componentOrders can not be null");
-        }
-        String start = chainContext.getString(IndexSwapTaskflowLauncher.COMPONENT_START);
-        String end = chainContext.getString(IndexSwapTaskflowLauncher.COMPONENT_END);
-        int startIndex = Integer.MIN_VALUE;
-        int endIndex = Integer.MAX_VALUE;
-        try {
-            startIndex = componentOrders.get(start);
-        } catch (Throwable e) {
-        }
-        try {
-            endIndex = componentOrders.get(end);
-        } catch (Throwable e) {
-        }
-        if (interceptor == null) {
-            // return chainContext.execute();
-            return ExecuteResult.SUCCESS;
-        } else {
-            int current;
-            try {
-                current = componentOrders.get(interceptor.getName());
-            } catch (Throwable e) {
-                throw new IllegalStateException("component:" + interceptor.getName() + " can not find value in componentOrders," + componentOrders.toString());
-            }
-            if (current >= startIndex && current <= endIndex) {
-                logger.info("execute " + interceptor.getName() + ":" + current + "[" + startIndex + "," + endIndex + "]");
-                return interceptor.intercept(successor);
-            } else {
-                // 直接跳过
-                return successor.invoke();
-            }
-        }
-    }
+	// Integer>();
+	@Override
+	public ExecuteResult invoke() throws Exception {
+		if (componentOrders == null) {
+			throw new IllegalStateException("componentOrders can not be null");
+		}
+		String start = chainContext.getString(IndexSwapTaskflowLauncher.COMPONENT_START);
+		String end = chainContext.getString(IndexSwapTaskflowLauncher.COMPONENT_END);
+		int startIndex = Integer.MIN_VALUE;
+		int endIndex = Integer.MAX_VALUE;
+		try {
+			startIndex = componentOrders.get(start);
+		} catch (Throwable e) {
+		}
+		try {
+			endIndex = componentOrders.get(end);
+		} catch (Throwable e) {
+		}
+		if (interceptor == null) {
+			// return chainContext.execute();
+			return ExecuteResult.SUCCESS;
+		} else {
+			int current;
+			try {
+				current = componentOrders.get(interceptor.getName());
+			} catch (Throwable e) {
+				throw new IllegalStateException("component:" + interceptor.getName()
+						+ " can not find value in componentOrders," + componentOrders.toString());
+			}
+			if (current >= startIndex && current <= endIndex) {
+				logger.info(
+						"execute " + interceptor.getName() + ":" + current + "[" + startIndex + "," + endIndex + "]");
+				return interceptor.intercept(successor);
+			} else {
+				// 直接跳过
+				return successor.invoke();
+			}
+		}
+	}
 
-    public Map<String, Integer> getComponentOrders() {
-        return componentOrders;
-    }
+	public Map<String, Integer> getComponentOrders() {
+		return componentOrders;
+	}
 
-    public void setComponentOrders(Map<String, Integer> componentOrders) {
-        this.componentOrders = componentOrders;
-    }
+	public void setComponentOrders(Map<String, Integer> componentOrders) {
+		this.componentOrders = componentOrders;
+	}
 
-    // public static void main(String[] arg) throws Exception {
-    // 
-    // BasicModule action = new BasicModule() {
-    // private static final long serialVersionUID = 1L;
-    // 
-    // @Override
-    // public String execute() throws Exception {
-    // System.out.println("BasicModule exec");
-    // return "basicModule";
-    // }
-    // };
-    // 
-    // AbstractActionInvocation actionInvoc = new AbstractActionInvocation();
-    // actionInvoc.setAction(action);
-    // 
-    // Interceptor inter = new Interceptor() {
-    // @Override
-    // public String intercept(ActionInvocation invocation)
-    // throws Exception {
-    // try {
-    // return "interc1";
-    // // return invocation.invoke();
-    // } finally {
-    // System.out.println("post interc1");
-    // }
-    // }
-    // };
-    // 
-    // AbstractActionInvocation actionInvoc2 = new AbstractActionInvocation();
-    // actionInvoc2.setAction(action);
-    // actionInvoc2.setInterceptor(inter);
-    // actionInvoc2.setSuccessor(actionInvoc);
-    // 
-    // System.out.println("forward:" + actionInvoc2.invoke());
-    // // action.execute();
-    // }
-    @Override
-    public IExecChainContext getContext() {
-        return this.chainContext;
-    }
+	// public static void main(String[] arg) throws Exception {
+	//
+	// BasicModule action = new BasicModule() {
+	// private static final long serialVersionUID = 1L;
+	//
+	// @Override
+	// public String execute() throws Exception {
+	// System.out.println("BasicModule exec");
+	// return "basicModule";
+	// }
+	// };
+	//
+	// AbstractActionInvocation actionInvoc = new AbstractActionInvocation();
+	// actionInvoc.setAction(action);
+	//
+	// Interceptor inter = new Interceptor() {
+	// @Override
+	// public String intercept(ActionInvocation invocation)
+	// throws Exception {
+	// try {
+	// return "interc1";
+	// // return invocation.invoke();
+	// } finally {
+	// System.out.println("post interc1");
+	// }
+	// }
+	// };
+	//
+	// AbstractActionInvocation actionInvoc2 = new AbstractActionInvocation();
+	// actionInvoc2.setAction(action);
+	// actionInvoc2.setInterceptor(inter);
+	// actionInvoc2.setSuccessor(actionInvoc);
+	//
+	// System.out.println("forward:" + actionInvoc2.invoke());
+	// // action.execute();
+	// }
+	@Override
+	public IExecChainContext getContext() {
+		return this.chainContext;
+	}
 
-    private IExecChainContext chainContext;
+	private IExecChainContext chainContext;
 
-    private IExecuteInterceptor interceptor;
+	private IExecuteInterceptor interceptor;
 
-    private ActionInvocation successor;
+	private ActionInvocation successor;
 
-    public void setSuccessor(ActionInvocation successor) {
-        this.successor = successor;
-    }
+	public void setSuccessor(ActionInvocation successor) {
+		this.successor = successor;
+	}
 
-    public IExecuteInterceptor getSuccessor() {
-        return interceptor;
-    }
+	public IExecuteInterceptor getSuccessor() {
+		return interceptor;
+	}
 
-    public void setInterceptor(IExecuteInterceptor successor) {
-        this.interceptor = successor;
-    }
+	public void setInterceptor(IExecuteInterceptor successor) {
+		this.interceptor = successor;
+	}
 
-    // @Override
-    // public IExecChainContext getAction() {
-    // return this.chainContext;
-    // }
-    public void setContext(IExecChainContext action) {
-        this.chainContext = action;
-    }
+	// @Override
+	// public IExecChainContext getAction() {
+	// return this.chainContext;
+	// }
+	public void setContext(IExecChainContext action) {
+		this.chainContext = action;
+	}
 }

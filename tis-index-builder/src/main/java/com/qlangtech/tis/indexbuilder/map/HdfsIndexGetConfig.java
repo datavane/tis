@@ -49,15 +49,10 @@ public class HdfsIndexGetConfig implements TaskMapper {
 
 	long startTime;
 
-	// 由consel传入的taskid
 	private String taskid = "";
 
 	public HdfsIndexGetConfig() throws IOException {
 		startTime = System.currentTimeMillis();
-		// getAllFileName();
-		// indexSchema = new IndexSchema(new
-		// SolrResourceLoader("",IndexConf.class.getClassLoader() ,null),
-		// indexConf.getSchemaName(), null);
 	}
 
 	@Override
@@ -66,12 +61,7 @@ public class HdfsIndexGetConfig implements TaskMapper {
 		indexConf = new IndexConf(false);
 		indexConf.addResource("config.xml");
 		try {
-			// System.out.println("config.xml url:"
-			// + this.getClass().getClassLoader()
-			// .getResource("config.xml"));
 			indexConf.loadFrom(context);
-			// Configuration conf = new Configuration();
-			// String fsName = indexConf.getFsName();
 			String fsName = indexConf.getSourceFsName();
 			logger.warn("remote hdfs host:" + fsName);
 			fs = TISHdfsUtils.getFileSystem();
@@ -81,8 +71,8 @@ public class HdfsIndexGetConfig implements TaskMapper {
 
 			String schemaPath = context.getUserParam("indexing.schemapath");
 			if (schemaPath == null) {
-				logger.error("[taskid:" + taskid + "]" + "indexing.schemapath 参数没有配置");
-				return new TaskReturn(TaskReturn.ReturnCode.FAILURE, "indexing.schemapath 参数没有配置");
+				logger.error("[taskid:" + taskid + "]" + "indexing.schemapath param has not config");
+				return new TaskReturn(TaskReturn.ReturnCode.FAILURE, "indexing.schemapath param has not config");
 			}
 			String configPath = context.getUserParam("indexing.configpath");
 			try {
@@ -111,13 +101,11 @@ public class HdfsIndexGetConfig implements TaskMapper {
 					context.setUserParam("configFile", configFile);
 				}
 			} catch (IOException e) {
-				// + e);
 				return new TaskReturn(TaskReturn.ReturnCode.FAILURE,
 						"get schema error:" + ExceptionUtils.getStackTrace(e));
 			}
 			return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
 		} catch (Throwable e) {
-			// logger.error("[taskid:" + taskid + "]" + "get schema fail:", e);
 			return new TaskReturn(TaskReturn.ReturnCode.FAILURE, "get schema fail:" + ExceptionUtils.getStackTrace(e));
 		}
 	}

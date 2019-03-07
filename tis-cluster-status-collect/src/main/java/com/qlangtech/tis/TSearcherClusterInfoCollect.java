@@ -307,7 +307,7 @@ public class TSearcherClusterInfoCollect implements // implements
 			int pastTimeGap = 0;
 			if (lastestUpdateCount.get(collection) == null
 					|| (pastTimeGap = lastestUpdateCount.get(collection).size()) >= getMonitorTimerange(collection)) {
-				if (!TISCollectionUtils.ignoreIncrTransfer(collection) && !isInIndexBackFlowState(collection)) {
+				if ( !isInIndexBackFlowState(collection)) {
 					invalidCollection.add(collection);
 					// if ("search4totalpay".equals(collection)) {
 					// SendSMSUtils.send("collection search4totalpay incr

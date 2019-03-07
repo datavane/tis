@@ -23,23 +23,23 @@
  */
 package com.qlangtech.tis.manage.common.trigger;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class SourceType {
 
-    private String type;
+	private String type;
 
-    public SourceType() {
-        super();
-    }
+	public SourceType() {
+		super();
+	}
 
-    public String getType() {
-        return type;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public void setType(String type) {
+		this.type = type;
+	}
 }

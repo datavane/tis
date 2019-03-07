@@ -23,22 +23,26 @@
  */
 package com.qlangtech.tis.yarn.common;
 
+import java.io.File;
+
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class YarnConstant {
 
-    public static final String PATH_YARN_SITE = "/etc/hive/conf.cloudera.hive/yarn-site.xml";
+	public static final String PATH_YARN_SITE = "/opt/app/hadoop-2.6.1/etc/hadoop/yarn-site.xml";
 
-    public static final String HDFS_GROUP_LIB_DIR = "/user/admin/";
+	public static final String HDFS_GROUP_LIB_DIR = "/user/admin/";
 
-    public static final String INDEX_BUILD_JAR_DIR = "indexbuild";
+	public static final String INDEX_BUILD_JAR_DIR = "indexbuild";
 
-    // ===============================================
-    public static final String PARAM_COLLECTION_NAME = "collection";
+	// ===============================================
+	public static final String PARAM_COLLECTION_NAME = "collection";
 
-    public static final String PARAM_OPTION_LOCAL_JAR_DIR = "localJarDir";
+	public static final String PARAM_OPTION_LOCAL_JAR_DIR = "localJarDir";
 
-    public static final String PARAM_OPTION_LOCAL_QUEUE = "queue";
+	public static final String LOCAL_JAR_DIR_PATH = INDEX_BUILD_JAR_DIR + File.separator + PARAM_OPTION_LOCAL_JAR_DIR;
+
+	public static final String PARAM_OPTION_LOCAL_QUEUE = "queue";
 }

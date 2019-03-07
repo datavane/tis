@@ -119,7 +119,6 @@ public class TISHdfsUtils {
 		File dir = new File(localJarDir);
 		String[] childs = null;
 		if (!dir.isDirectory() || (childs = dir.list(new FilenameFilter() {
-
 			@Override
 			public boolean accept(File dir, String name) {
 				return StringUtils.endsWith(name, ".jar");
@@ -129,6 +128,7 @@ public class TISHdfsUtils {
 		}
 		URI source = null;
 		Path d = null;
+
 		for (String f : childs) {
 			source = (new File(dir, f)).toURI();
 			d = new Path(dest, f);
@@ -165,17 +165,20 @@ public class TISHdfsUtils {
 						URL url = TISHdfsUtils.class.getResource("/tis-web-config/hdfs-site.xml");
 						conf.addResource(url);
 						logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
-						
-						
-//						if (runtime == RunEnvironment.ONLINE) {
-//							URL url = TISHdfsUtils.class.getResource("/online-hdfs-site.xml");
-//							conf.addResource(url);
-//							logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
-//						} else {
-//							URL url = TISHdfsUtils.class.getResource("/daily-hdfs-site.xml");
-//							conf.addResource(url);
-//							logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
-//						}
+
+						// if (runtime == RunEnvironment.ONLINE) {
+						// URL url =
+						// TISHdfsUtils.class.getResource("/online-hdfs-site.xml");
+						// conf.addResource(url);
+						// logger.info("add hdfs:" + config.getHdfsAddress() + "
+						// resource:" + url);
+						// } else {
+						// URL url =
+						// TISHdfsUtils.class.getResource("/daily-hdfs-site.xml");
+						// conf.addResource(url);
+						// logger.info("add hdfs:" + config.getHdfsAddress() + "
+						// resource:" + url);
+						// }
 
 						conf.setBoolean("fs.hdfs.impl.disable.cache", true);
 						fileSystem = new FilterFileSystem(FileSystem.get(conf)) {

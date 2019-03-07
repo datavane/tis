@@ -25,10 +25,8 @@ package com.qlangtech.tis.order.dump.task;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,12 +64,7 @@ public class CommonTableDumpTask extends AbstractTableDumpTask {
 			+ "db.member.username=order\n" + "db.member.password=order@552208";
 
 	public static void main(String[] args) {
-		CommonTableDumpTask tableDumpTask = new CommonTableDumpTask();
-		TaskContext taskContext = new TaskContext();
-		SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-		taskContext.setUserParam("dumpstarttime", format.format(new Date()));
-		taskContext.setUserParam("job.name", "search4degreeflow4de-dump_degree_flow");
-		tableDumpTask.map(taskContext);
+
 	}
 
 	@Override

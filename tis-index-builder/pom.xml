@@ -15,16 +15,7 @@
 	<build>
 		<finalName>tis-index-builder</finalName>
 		<plugins>
-			<plugin>
-				<groupId>com.qlangtech.tis</groupId>
-				<artifactId>tisasm-maven-plugin</artifactId>
-				<configuration>
-					<descriptor>./assembly.xml</descriptor>
-					<outputDirectory>../</outputDirectory>
-					<appendAssemblyId>false</appendAssemblyId>
-					<tarLongFileMode>gnu</tarLongFileMode>
-				</configuration>
-			</plugin>
+			
 		</plugins>
 	</build>
 
@@ -58,6 +49,7 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-client</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-client</artifactId>

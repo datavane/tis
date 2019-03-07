@@ -25,10 +25,12 @@ package com.qlangtech.tis.exec.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FileStatus;
@@ -55,16 +57,17 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.qlangtech.tis.hdfs.TISHdfsUtils;
-import com.qlangtech.tis.yarn.common.YarnConstant;
+
 import com.qlangtech.tis.cloud.dump.DumpJobStatus;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
+import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.IndexBuildParam;
 import com.qlangtech.tis.manage.common.UISVersion;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
+import com.qlangtech.tis.yarn.common.YarnConstant;
 
 /* 
  * @author 百岁（baisui@qlangtech.com）
@@ -88,18 +91,13 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 
 	@Override
 	protected BuildResult buildSliceIndex(String coreName, String timePoint, DumpJobStatus statuss, String outPath,
-			String serviceName) throws Exception, IOException, InterruptedException {
+			String serviceName) throws Exception {
 		TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
-		// RunEnvironment.getEnum(config.getRunEnvironment());
 		RunEnvironment runtime = config.getRuntime();
-		final Path dest = new Path(
-				YarnConstant.HDFS_GROUP_LIB_DIR + YarnConstant.INDEX_BUILD_JAR_DIR + '/' + runtime.getKeyName());
-		List<Path> libs = TISHdfsUtils.getLibPaths(StringUtils.EMPTY, dest);
-		YarnConfiguration conf = new YarnConfiguration();
-		conf.set("hadoop.job.ugi", "search");
-		conf.addResource(FileUtils.openInputStream(new File(YarnConstant.PATH_YARN_SITE)));
+		final List<Path> libs = getDependencyLibsPath();
+
 		YarnClient yarnClient = YarnClient.createYarnClient();
-		yarnClient.init(conf);
+		yarnClient.init(getYarnConfig());
 		yarnClient.start();
 		YarnClientApplication app = yarnClient.createApplication();
 		ApplicationSubmissionContext submissionContext = app.getApplicationSubmissionContext();
@@ -108,17 +106,28 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		final ApplicationId appid = submissionContext.getApplicationId();
 		submissionContext.setApplicationName(coreName + "-indexbuild");
 		ContainerLaunchContext amContainer = Records.newRecord(ContainerLaunchContext.class);
-		final String JAVA_HOME = "/usr/lib/java/jdk1.8.0_91";
-		final int memoryConsume = 3000;
-		amContainer.setCommands(Collections
-				.singletonList(JAVA_HOME + "/bin/java " + getMemorySpec(memoryConsume) + getRemoteDebugParam(runtime)
+		// 可以设置javaHome 留给以后扩展
+		final String JAVA_HOME = "";// "/usr/lib/java/jdk1.8.0_91";
+
+		String javaCommand = StringUtils.isEmpty(JAVA_HOME) ? "java" : (JAVA_HOME + "/bin/java ");
+
+		final int memoryConsume = 500;
+		amContainer.setCommands(
+				Collections.singletonList(javaCommand + getMemorySpec(memoryConsume) + getRemoteDebugParam(runtime)
 						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.BuildNodeMaster "
 						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
 						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
+		
+//		amContainer.setCommands(
+//				Collections.singletonList(javaCommand + getMemorySpec(memoryConsume) + getRemoteDebugParam(runtime)
+//						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.Main "
+//						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
+//						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
+		
 		setJarsLibs(amContainer, libs);
 		/* 运行依賴的環境變量 */
 		Map<String, String> environment = new HashMap<String, String>();
-		setEnvironment(environment, amContainer, conf, true);
+		setEnvironment(environment, amContainer, true);
 		submissionContext.setAMContainerSpec(amContainer);
 		// 使用4核10G的节点，原则上越大越好
 		Resource capability = Records.newRecord(Resource.class);
@@ -164,8 +173,52 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		return result;
 	}
 
+	/**
+	 * 取得执行build依赖的lib包路径<br>
+	 * 事先需要先將jar包存放到本地目录中，执行时如果返现本地没有‘deploy_token’ 标记文件则需要将本地的lib包上传到远端
+	 * 
+	 * @return
+	 */
+	private List<Path> getDependencyLibsPath() throws Exception {
+		TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
+		RunEnvironment runtime = config.getRuntime();
+
+		final Path dest = new Path(
+				YarnConstant.HDFS_GROUP_LIB_DIR + YarnConstant.INDEX_BUILD_JAR_DIR + '/' + runtime.getKeyName());
+		final File dataDir = new File(System.getProperty("data.dir"));
+		if (!dataDir.exists()) {
+			throw new IllegalStateException("data.dir has not been defined");
+		}
+		File deployToken = new File(dataDir, YarnConstant.LOCAL_JAR_DIR_PATH + File.separator + "deploy_token");
+		List<Path> libs = null;
+		synchronized (RemoteYarnIndexBuildJob.class) {
+			if (deployToken.exists()) {
+				// 之前的jar包已经存在
+				libs = TISHdfsUtils.getLibPaths(StringUtils.EMPTY, dest);
+			} else {
+				// 重新上传indexbuild所需要的jar包
+				libs = TISHdfsUtils.getLibPaths((new File(dataDir, YarnConstant.LOCAL_JAR_DIR_PATH)).getAbsolutePath(),
+						dest);
+				FileUtils.touch(deployToken);
+			}
+		}
+		return libs;
+	}
+
+	private YarnConfiguration getYarnConfig() throws IOException {
+		YarnConfiguration conf = new YarnConfiguration();
+		conf.set("hadoop.job.ugi", "search");
+		final File f = new File(YarnConstant.PATH_YARN_SITE);
+		if (!f.exists()) {
+			throw new IllegalStateException("yarn-site.xml is not exist:" + YarnConstant.PATH_YARN_SITE);
+		}
+		InputStream yarnsiteStream = FileUtils.openInputStream(f);
+		conf.addResource(yarnsiteStream);
+		return conf;
+	}
+
 	protected String getMemorySpec(int memoryConsume) {
-		final int javaMemory = (int) (memoryConsume * 0.9);
+		final int javaMemory = (int) (memoryConsume * 0.8);
 		return " -Xms" + javaMemory + "m -Xmx" + javaMemory + "m";
 	}
 
@@ -214,8 +267,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 			jobConf.set(IndexBuildParam.INDEXING_DELIMITER, state.getHdfsdelimiter());
 		}
 		// "job.solrversion"
-		jobConf.set(IndexBuildParam.INDEXING_SOLR_VERSION, UISVersion.isDataCenterCollection(state.getIndexName())
-				? UISVersion.SOLR_VERSION_6 : UISVersion.SOLR_VERSION_5);
+		jobConf.set(IndexBuildParam.INDEXING_SOLR_VERSION, UISVersion.SOLR_VERSION_7);
 		jobConf.set(IndexBuildParam.INDEXING_SOURCE_TYPE, "HDFS");
 		return jobConf.paramSerialize();
 	}
@@ -245,21 +297,22 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 	}
 
 	private static void setEnvironment(Map<String, String> environment, ContainerLaunchContext ctx,
-			YarnConfiguration conf, boolean includeHadoopJars) throws IOException {
+			boolean includeHadoopJars) throws IOException {
 		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), Environment.PWD.$() + File.separator + "*",
 				File.pathSeparator);
-		if (includeHadoopJars) {
-			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
-					"/opt/cloudera/parcels/CDH/lib/hadoop-yarn/*", File.pathSeparator);
-			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
-					"/opt/cloudera/parcels/CDH/lib/hadoop-hdfs/*", File.pathSeparator);
-			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/cloudera/parcels/CDH/lib/hadoop/*",
-					File.pathSeparator);
-			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
-					"/opt/cloudera/parcels/CDH/lib/hadoop/lib/*", File.pathSeparator);
-			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
-					"/opt/cloudera/parcels/CDH/lib/hadoop-mapreduce/*", File.pathSeparator);
-		}
+		// if (includeHadoopJars) {
+		// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+		// "/opt/cloudera/parcels/CDH/lib/hadoop-yarn/*", File.pathSeparator);
+		// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+		// "/opt/cloudera/parcels/CDH/lib/hadoop-hdfs/*", File.pathSeparator);
+		// Apps.addToEnvironment(environment, Environment.CLASSPATH.name() //
+		// , "/opt/cloudera/parcels/CDH/lib/hadoop/*", File.pathSeparator);
+		// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+		// "/opt/cloudera/parcels/CDH/lib/hadoop/lib/*", File.pathSeparator);
+		// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+		// "/opt/cloudera/parcels/CDH/lib/hadoop-mapreduce/*",
+		// File.pathSeparator);
+		// }
 		ctx.setEnvironment(environment);
 		logger.info("classpath:" + environment.get(Environment.CLASSPATH.name()));
 	}

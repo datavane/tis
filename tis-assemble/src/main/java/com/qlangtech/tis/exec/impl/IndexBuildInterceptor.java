@@ -312,13 +312,15 @@ public class IndexBuildInterceptor implements IExecuteInterceptor {
 	 */
 	protected final AbstractIndexBuildJob createRemoteIndexBuildJob(ImportDataProcessInfo processinfo, int grouIndex,
 			String username) {
+		return new RemoteYarnIndexBuildJob(processinfo, grouIndex, username);
+		
 		// 暂时全部提交到32G机器上构建索引吧
-		try {
-			return new RemoteIndexBuildJob(processinfo, grouIndex, RemoteBuildCenterUtils.remoteJobTriggerFactory,
-					RemoteBuildCenterUtils.taskPool, username);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+//		try {
+//			return new RemoteIndexBuildJob(processinfo, grouIndex, RemoteBuildCenterUtils.remoteJobTriggerFactory,
+//					RemoteBuildCenterUtils.taskPool, username);
+//		} catch (Exception e) {
+//			throw new RuntimeException(e);
+//		}
 		// }
 	}
 

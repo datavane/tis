@@ -27,33 +27,70 @@ import java.util.HashMap;
 
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
+import com.qlangtech.tis.manage.common.IndexBuildParam;
+import org.apache.commons.cli.CommandLine;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class TaskContext extends HashMap<String, String> {
 
 	private static final long serialVersionUID = 1L;
+	private final Counters counters = new Counters();
+	private final Messages message = new Messages();
+
+	private final CommandLine commandLine;
+
+	private TaskContext(CommandLine commandLine) {
+		super();
+		this.commandLine = commandLine;
+	}
+
+	public static TaskContext create(CommandLine commandLine) {
+		return new TaskContext(commandLine);
+	}
+
+	private Integer allRowCount;
+
+	public int getAllRowCount() {
+		if (allRowCount == null) {
+			try {
+				allRowCount = Integer.parseInt(getInnerParam(IndexBuildParam.INDEXING_ROW_COUNT));
+			} catch (Throwable e) {
+			}
+			allRowCount = Integer.MAX_VALUE;
+		}
+		return allRowCount;
+	}
+
+	/**
+	 * 构建索引已经完成的条数
+	 * 
+	 * @return
+	 */
+	public long getIndexMakerComplete() {
+		return this.counters.getCounter(Counters.Counter.DOCMAKE_COMPLETE).get();
+	}
 
 	public Counters getCounters() {
-		return null;
+		return this.counters;
 	}
 
 	public Messages getMessages() {
-		return null;
-	}
-
-	public String getUserParam(String key) {
-		return "";
-	}
-
-	public String getMapPath() {
-		return null;
+		return this.message;
 	}
 
 	public String getInnerParam(String key) {
-		return null;
+		return commandLine.getOptionValue(key);
+	}
+
+	public String getUserParam(String key) {
+		return commandLine.getOptionValue(key);
+	}
+
+	public String getMapPath() {
+		return commandLine.getOptionValue("task.map.output.path");
 	}
 
 	public void setUserParam(String key, String val) {

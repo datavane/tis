@@ -30,7 +30,6 @@ import java.util.Map;
 import com.qlangtech.tis.config.module.action.CrontabListAction;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TriggerCrontab;
-import com.qlangtech.tis.manage.common.trigger.ExecType;
 import com.qlangtech.tis.manage.common.trigger.TriggerTaskConfig;
 import com.qlangtech.tis.trigger.httpserver.ITriggerContext;
 
@@ -42,34 +41,34 @@ import com.qlangtech.tis.trigger.httpserver.ITriggerContext;
  */
 public class TisTriggerJobManage extends TriggerJobManage {
 
-    private RunContext runContext;
+	private RunContext runContext;
 
-    @Override
-    public void triggerFullDump(TriggerTaskConfig config, ExecType execType, ITriggerContext triggerContext) throws Exception {
-        super.triggerFullDump(config, execType, triggerContext);
-    }
+	@Override
+	public void triggerFullDump(TriggerTaskConfig config, ITriggerContext triggerContext) throws Exception {
+		super.triggerFullDump(config, triggerContext);
+	}
 
-    @Override
-    protected Map<String, Crontab> getAllAvailableCrontabs() throws Exception {
-        List<TriggerCrontab> contabs = CrontabListAction.getAllTriggerCrontab(getRunContext());
-        Map<String, Crontab> result = new HashMap<String, Crontab>();
-        Crontab t = null;
-        for (TriggerCrontab contab : contabs) {
-            t = new Crontab(contab.getAppName(), contab.getFcrontab(), contab.getFjobId());
-            result.put(getGroupName(contab.getAppName()), t);
-        }
-        return result;
-    }
+	@Override
+	protected Map<String, Crontab> getAllAvailableCrontabs() throws Exception {
+		List<TriggerCrontab> contabs = CrontabListAction.getAllTriggerCrontab(getRunContext());
+		Map<String, Crontab> result = new HashMap<String, Crontab>();
+		Crontab t = null;
+		for (TriggerCrontab contab : contabs) {
+			t = new Crontab(contab.getAppName(), contab.getFcrontab(), contab.getFjobId());
+			result.put(getGroupName(contab.getAppName()), t);
+		}
+		return result;
+	}
 
-    protected void shnchronizeCrontabConfig() {
-        super.shnchronizeCrontabConfig();
-    }
+	protected void shnchronizeCrontabConfig() {
+		super.shnchronizeCrontabConfig();
+	}
 
-    public RunContext getRunContext() {
-        return runContext;
-    }
+	public RunContext getRunContext() {
+		return runContext;
+	}
 
-    public void setRunContext(RunContext runContext) {
-        this.runContext = runContext;
-    }
+	public void setRunContext(RunContext runContext) {
+		this.runContext = runContext;
+	}
 }

@@ -23,40 +23,41 @@
  */
 package com.qlangtech.tis.trigger.socket;
 
-import junit.framework.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import com.qlangtech.tis.manage.common.trigger.ExecType;
+
 import com.qlangtech.tis.trigger.TriggerJobManage;
 import com.qlangtech.tis.trigger.httpserver.impl.NullTriggerContext;
 
-/* *
+import junit.framework.Assert;
+
+/*
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public final class TriggerJob implements Job {
 
-    private static final Log log = LogFactory.getLog(TriggerJob.class);
+	private static final Log log = LogFactory.getLog(TriggerJob.class);
 
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        JobDataMap data = context.getJobDetail().getJobDataMap();
-        // Connection conn = (Connection) data.get(TriggerJobServer.CONNECTION);
-        JobSchedule schedule = (JobSchedule) data.get(TriggerJobManage.JOB_SCHEDULE);
-        TriggerJobManage triggerJobServer = (TriggerJobManage) data.get(TriggerJobManage.JOB_TRIGGER_SERVER);
-        Assert.assertNotNull(schedule);
-        // Assert.assertNotNull(conn);
-        log.info("job was fire with trigger:" + schedule.getIndexName() + ",crontab:" + schedule.getCrobexp());
-        // 执行全量任务开始
-        try {
-            triggerJobServer.triggerFullDump(schedule.getIndexName(), ExecType.FULLBUILD, new NullTriggerContext());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new JobExecutionException(e);
-        }
-    }
+	@Override
+	public void execute(JobExecutionContext context) throws JobExecutionException {
+		JobDataMap data = context.getJobDetail().getJobDataMap();
+
+		JobSchedule schedule = (JobSchedule) data.get(TriggerJobManage.JOB_SCHEDULE);
+		TriggerJobManage triggerJobServer = (TriggerJobManage) data.get(TriggerJobManage.JOB_TRIGGER_SERVER);
+		Assert.assertNotNull(schedule);
+		// Assert.assertNotNull(conn);
+		log.info("job was fire with trigger:" + schedule.getIndexName() + ",crontab:" + schedule.getCrobexp());
+		// 执行全量任务开始
+		try {
+			triggerJobServer.triggerFullDump(schedule.getIndexName(), new NullTriggerContext());
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw new JobExecutionException(e);
+		}
+	}
 }

@@ -73,7 +73,7 @@ import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.manage.common.trigger.ExecType;
+
 import com.qlangtech.tis.manage.common.trigger.TriggerTaskConfig;
 import com.qlangtech.tis.pubhook.common.IPreTriggerProcess;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -269,12 +269,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 	 */
 	public TriggerTaskConfig getTaskConfigFromRepository(final String indexName)
 			throws MalformedURLException, SessionExpiredException {
-		// URL allCrontabsUrl = new URL(
-		// "http://"
-		// + tisHost
-		// +
-		// "/config/config.ajax?action=trigger_config_action&event_submit_do_get_config=true&resulthandler=advance_query_result&indexname="
-		// + indexName);
+
 		TriggerTaskConfig config = new TriggerTaskConfig();
 		config.setAppName(indexName);
 		config.setTaskId(123);
@@ -307,7 +302,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 	 * @param context
 	 * @throws Exception
 	 */
-	public final void triggerFullDump(String indexName, ExecType execType, ITriggerContext context) throws Exception {
+	public final void triggerFullDump(String indexName, ITriggerContext context) throws Exception {
 		TriggerTaskConfig triggerConfig = getTaskConfigFromRepository(indexName);
 		if (triggerConfig == null) {
 			log.error("triggerConfig == null,so exist");
@@ -318,11 +313,10 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 			preTriggerProcess.process();
 		}
 		log.info("start to execute triggerFullDump,indexName:" + indexName);
-		triggerFullDump(triggerConfig, execType, context);
+		triggerFullDump(triggerConfig, context);
 	}
 
-	public void triggerFullDump(final TriggerTaskConfig config, ExecType execType, ITriggerContext triggerContext)
-			throws Exception {
+	public void triggerFullDump(final TriggerTaskConfig config, ITriggerContext triggerContext) throws Exception {
 		// final SolrZkClient zookeeper = this.getZookeeper();
 		// String parentpath = "/tis-lock/dumpindex/" + config.getAppName();
 		//

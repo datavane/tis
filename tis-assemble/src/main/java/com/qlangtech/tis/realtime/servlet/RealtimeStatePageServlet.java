@@ -57,9 +57,7 @@ public class RealtimeStatePageServlet extends javax.servlet.http.HttpServlet {
         List<RowPair> stats = new ArrayList<>();
         RowPair p = null;
         for (IOnsListenerStatus stat : this.incrChannels) {
-            if (TISCollectionUtils.ignoreIncrTransfer(stat.getCollectionName())) {
-                continue;
-            }
+            
             if (p == null) {
                 p = new RowPair();
             }

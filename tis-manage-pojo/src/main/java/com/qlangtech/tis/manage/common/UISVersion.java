@@ -23,28 +23,12 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import org.apache.commons.lang.StringUtils;
-
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class UISVersion {
 
-    public static final String SOLR_VERSION_6 = "solr6";
+	public static final String SOLR_VERSION_7 = "solr7";
 
-    public static final String SOLR_VERSION_5 = "solr5";
-
-    public static boolean isDataCenterCollection(String collection) {
-        // 数据中心测试用需要过滤掉
-        return StringUtils.startsWith(collection, "search4_fat") || StringUtils.startsWith(collection, "search4_thin");
-    // || StringUtils.equalsIgnoreCase(collection, "search4TimeStatistic")
-    // || StringUtils.equalsIgnoreCase(collection, "search4OperationStatistic");
-    }
-
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-    }
 }

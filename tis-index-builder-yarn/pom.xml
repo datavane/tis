@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="GBK"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<parent>
+		<groupId>com.qlangtech.tis</groupId>
+		<artifactId>tis-pom</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>tis-index-builder-yarn</artifactId>
+	<packaging>jar</packaging>
+
+	<url>http://maven.apache.org</url>
+	<build>
+		<finalName>tis-index-builder-yarn</finalName>
+		<plugins>
+			<plugin>
+				<groupId>com.qlangtech.tis</groupId>
+				<artifactId>tisasm-maven-plugin</artifactId>
+				<configuration>
+					<descriptor>./assembly.xml</descriptor>
+					<outputDirectory>../</outputDirectory>
+					<appendAssemblyId>false</appendAssemblyId>
+					<tarLongFileMode>gnu</tarLongFileMode>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF8</project.build.sourceEncoding>
+
+
+		<test.exclude></test.exclude>
+		<test.exclude.pattern>**/${test.exclude}.java</test.exclude.pattern>
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-hdfs-extends</artifactId>
+		</dependency>
+
+		<dependency>
+			<artifactId>logback-flume-appender</artifactId>
+			<groupId>com.gilt.logback</groupId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-yarn-client</artifactId>
+			<!-- 
+			<scope>provided</scope>
+			 -->
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-index-builder</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+
+	</dependencies>
+
+</project>

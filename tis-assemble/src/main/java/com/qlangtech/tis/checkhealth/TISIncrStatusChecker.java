@@ -52,141 +52,120 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  */
 public class TISIncrStatusChecker implements StatusChecker, ServletContextAware {
 
-    private ServletContext servletContext;
+	private ServletContext servletContext;
 
-    private IncrMonitorIndexs monitorIndexs;
+	private IncrMonitorIndexs monitorIndexs;
 
-    private IndexSwapTaskflowLauncher launcherContext;
+	private IndexSwapTaskflowLauncher launcherContext;
 
-    // 监控时间一个小时
-    private static final long INCR_STATE_MONITOR_INTERVAL = 60 * 60;
+	// 监控时间一个小时
+	private static final long INCR_STATE_MONITOR_INTERVAL = 60 * 60;
 
-    // 最後一次收集數據時間
-    private long lastMonitorTimeStampSec;
+	// 最後一次收集數據時間
+	private long lastMonitorTimeStampSec;
 
-    private static final Logger logger = LoggerFactory.getLogger("check_health");
+	private static final Logger logger = LoggerFactory.getLogger("check_health");
 
-    // private TSearcherClusterInfoCollect tisClusterInfoCollect;
-    // private ZkStateReader zkStateReader;
-    private void refeshLastMonitorTimeStampSec() {
-        lastMonitorTimeStampSec = System.currentTimeMillis() / 1000;
-    }
+	// private TSearcherClusterInfoCollect tisClusterInfoCollect;
+	// private ZkStateReader zkStateReader;
+	private void refeshLastMonitorTimeStampSec() {
+		lastMonitorTimeStampSec = System.currentTimeMillis() / 1000;
+	}
 
-    @Override
-    public void setServletContext(ServletContext servletContext) {
-        this.servletContext = servletContext;
-    }
+	@Override
+	public void setServletContext(ServletContext servletContext) {
+		this.servletContext = servletContext;
+	}
 
-    @Override
-    public StatusModel check() {
-        // logger.info("do check_health");
-        StatusModel stateModel = new StatusModel();
-        stateModel.level = StatusLevel.OK;
-        long current = System.currentTimeMillis() / 1000;
-        // 每20分钟监测一次
-        if (lastMonitorTimeStampSec + INCR_STATE_MONITOR_INTERVAL < current) {
-            // ////////////////////////////////////////////////////////////////
-            Map<String, Long> /* node last update timesec */
-            nodesLastUpdateTimeSec = null;
-            final StringBuffer buffer = new StringBuffer();
-            for (String index : this.monitorIndexs.includes) {
-                nodesLastUpdateTimeSec = launcherContext.getIncrStatusUmbilicalProtocol().getLastUpdateTimeSec(index);
-                if (nodesLastUpdateTimeSec.size() < 1) {
-                    // 增量任务已经停止
-                    stateModel.message = index + " incr task shutdown";
-                    stateModel.level = StatusLevel.FAIL;
-                    logger.error(stateModel.message);
-                    return stateModel;
-                }
-                for (Map.Entry<String, Long> /* node last update timesec */
-                s : nodesLastUpdateTimeSec.entrySet()) {
-                    if ((s.getValue() + INCR_STATE_MONITOR_INTERVAL) < current) {
-                        stateModel.message = index + "_incr n:" + s.getKey() + " Run down," + s.getValue();
-                        stateModel.level = StatusLevel.FAIL;
-                        logger.error(stateModel.message);
-                        return stateModel;
-                    }
-                }
-                printLastUpdateTimeSec(buffer, index, nodesLastUpdateTimeSec);
-            }
-            logger.info(buffer.toString());
-            refeshLastMonitorTimeStampSec();
-        }
-        return stateModel;
-    // final long lastCollectTimeStamp =
-    // tisClusterInfoCollect.getLastCollectTimeStamp();
-    // if (System.currentTimeMillis() > (lastCollectTimeStamp +
-    // (COLLECT_STATE_INTERVAL * 2 * 1000))) {
-    // stateModel.level = StatusLevel.FAIL;
-    // SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-    // stateModel.message = "from:" + timeFormat.format(new
-    // Date(lastCollectTimeStamp))
-    // + " have not collect cluster status";
-    // logger.info("cluster collect has error:" + stateModel.message);
-    // logger.info("System.currentTimeMillis():" + System.currentTimeMillis());
-    // logger.info("lastCollectTimeStamp:" + lastCollectTimeStamp);
-    // } else {
-    // logger.info("cluster collect is regular");
-    // }
-    // 
-    // return stateModel;
-    }
+	@Override
+	public StatusModel check() {
+		// logger.info("do check_health");
+		StatusModel stateModel = new StatusModel();
+		stateModel.level = StatusLevel.OK;
+		long current = System.currentTimeMillis() / 1000;
+		// 每20分钟监测一次
+		if (lastMonitorTimeStampSec + INCR_STATE_MONITOR_INTERVAL < current) {
+			// ////////////////////////////////////////////////////////////////
+			Map<String, Long> /* node last update timesec */
+			nodesLastUpdateTimeSec = null;
+			final StringBuffer buffer = new StringBuffer();
+			for (String index : this.monitorIndexs.includes) {
+				nodesLastUpdateTimeSec = launcherContext.getIncrStatusUmbilicalProtocol().getLastUpdateTimeSec(index);
+				if (nodesLastUpdateTimeSec.size() < 1) {
+					// 增量任务已经停止
+					stateModel.message = index + " incr task shutdown";
+					stateModel.level = StatusLevel.FAIL;
+					logger.error(stateModel.message);
+					return stateModel;
+				}
+				for (Map.Entry<String, Long> /* node last update timesec */
+				s : nodesLastUpdateTimeSec.entrySet()) {
+					if ((s.getValue() + INCR_STATE_MONITOR_INTERVAL) < current) {
+						stateModel.message = index + "_incr n:" + s.getKey() + " Run down," + s.getValue();
+						stateModel.level = StatusLevel.FAIL;
+						logger.error(stateModel.message);
+						return stateModel;
+					}
+				}
+				printLastUpdateTimeSec(buffer, index, nodesLastUpdateTimeSec);
+			}
+			logger.info(buffer.toString());
+			refeshLastMonitorTimeStampSec();
+		}
+		return stateModel;
 
-    private static final ThreadLocal<SimpleDateFormat> timeFormat = new ThreadLocal<SimpleDateFormat>() {
+	}
 
-        @Override
-        protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        }
-    };
+	private static final ThreadLocal<SimpleDateFormat> timeFormat = new ThreadLocal<SimpleDateFormat>() {
 
-    private void printLastUpdateTimeSec(StringBuffer buffer, String indexName, Map<String, /* FromAddress */
-    Long> nodesLastUpdateTimeSec) {
-        // final StringBuffer buffer = new StringBuffer("incr status monitor:" +
-        // indexName + "\n");
-        buffer.append("\nincr status monitor:" + indexName);
-        for (Map.Entry<String, Long> /* node last update timesec */
-        entry : nodesLastUpdateTimeSec.entrySet()) {
-            buffer.append("\n\t").append(entry.getKey()).append(",lastUpdate:").append(timeFormat.get().format(new Date(entry.getValue() * 1000)));
-        }
-    }
+		@Override
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		}
+	};
 
-    @Override
-    public void init() {
-        refeshLastMonitorTimeStampSec();
-        this.launcherContext = IndexSwapTaskflowLauncher.getIndexSwapTaskflowLauncher(this.servletContext);
-        try {
-            if (AssembleConfig.isDisbleIncrIndexMonitor()) {
-                this.monitorIndexs = new IncrMonitorIndexs();
-            } else {
-                this.monitorIndexs = GitUtils.$().getIncrMonitorIndexs(RunEnvironment.getSysRuntime());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        logger.info("start monitor index:" + Arrays.toString(this.monitorIndexs.includes.toArray()));
-    // ApplicationContext appContext = WebApplicationContextUtils
-    // .getRequiredWebApplicationContext(servletContext);
-    // this.tisClusterInfoCollect = appContext.getBean("clusterInfoCollect",
-    // TSearcherClusterInfoCollect.class);
-    // this.zkStateReader = appContext.getBean("solrClient", ZkStateReader.class);
-    }
+	private void printLastUpdateTimeSec(StringBuffer buffer, String indexName, Map<String, /* FromAddress */
+			Long> nodesLastUpdateTimeSec) {
 
-    @Override
-    public Mode mode() {
-        return Mode.PUB;
-    }
+		buffer.append("\nincr status monitor:" + indexName);
+		for (Map.Entry<String, Long> /* node last update timesec */
+		entry : nodesLastUpdateTimeSec.entrySet()) {
+			buffer.append("\n\t").append(entry.getKey()).append(",lastUpdate:")
+					.append(timeFormat.get().format(new Date(entry.getValue() * 1000)));
+		}
+	}
 
-    @Override
-    public int order() {
-        return 0;
-    }
+	@Override
+	public void init() {
+		refeshLastMonitorTimeStampSec();
+		this.launcherContext = IndexSwapTaskflowLauncher.getIndexSwapTaskflowLauncher(this.servletContext);
+		try {
+			if (AssembleConfig.isDisbleIncrIndexMonitor()) {
+				this.monitorIndexs = new IncrMonitorIndexs();
+			} else {
+				this.monitorIndexs = GitUtils.$().getIncrMonitorIndexs(RunEnvironment.getSysRuntime());
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		logger.info("start monitor index:" + Arrays.toString(this.monitorIndexs.includes.toArray()));
+	}
 
-    public static void main(String[] args) throws Exception {
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        Enumeration<URL> urls = loader.getResources("META-INF/services/" + StatusChecker.class.getName());
-        while (urls.hasMoreElements()) {
-            System.out.println(urls.nextElement());
-        }
-    }
+	@Override
+	public Mode mode() {
+		return Mode.PUB;
+	}
+
+	@Override
+	public int order() {
+		return 0;
+	}
+
+	public static void main(String[] args) throws Exception {
+		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+		Enumeration<URL> urls = loader.getResources("META-INF/services/" + StatusChecker.class.getName());
+		while (urls.hasMoreElements()) {
+			System.out.println(urls.nextElement());
+		}
+	}
 }
