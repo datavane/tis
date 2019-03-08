@@ -94,7 +94,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 			String serviceName) throws Exception {
 		TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
 		RunEnvironment runtime = config.getRuntime();
-		final List<Path> libs = getDependencyLibsPath();
+		// final List<Path> libs = getDependencyLibsPath();
 
 		YarnClient yarnClient = YarnClient.createYarnClient();
 		yarnClient.init(getYarnConfig());
@@ -127,8 +127,9 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		// ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
 		// + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
 
-		setJarsLibs(amContainer, libs);
-		/* 运行依賴的環境變量 */
+		// setJarsLibs(amContainer, libs);
+
+		/* CLASSPATH 运行依賴的環境變量 */
 		Map<String, String> environment = new HashMap<String, String>();
 		setEnvironment(environment, amContainer, true);
 		submissionContext.setAMContainerSpec(amContainer);
@@ -211,11 +212,12 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 	private YarnConfiguration getYarnConfig() throws IOException {
 		YarnConfiguration conf = new YarnConfiguration();
 		conf.set("hadoop.job.ugi", "search");
-		final File f = new File(YarnConstant.PATH_YARN_SITE);
-		if (!f.exists()) {
-			throw new IllegalStateException("yarn-site.xml is not exist:" + YarnConstant.PATH_YARN_SITE);
+
+		InputStream yarnsiteStream = this.getClass().getResourceAsStream(YarnConstant.CLASSPATH_YARN_CONFIG_PATH);
+		if (yarnsiteStream == null) {
+			throw new IllegalStateException("yarn-site.xml is not exist in class path:" + YarnConstant.PATH_YARN_SITE);
 		}
-		InputStream yarnsiteStream = FileUtils.openInputStream(f);
+
 		conf.addResource(yarnsiteStream);
 		return conf;
 	}
@@ -301,11 +303,15 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 
 	private static void setEnvironment(Map<String, String> environment, ContainerLaunchContext ctx,
 			boolean includeHadoopJars) throws IOException {
-		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), Environment.PWD.$() + File.separator + "*",
+		// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+		// Environment.PWD.$() + File.separator + "*",
+		// File.pathSeparator);
+
+		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/data/tis/sharelib/indexbuild7.6/*",
 				File.pathSeparator);
+		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), "/opt/data/tis/conf", File.pathSeparator);
 
 		for (String c : YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH) {
-
 			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), c.trim(), File.pathSeparator);
 		}
 

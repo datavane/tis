@@ -31,7 +31,11 @@ import java.io.File;
  */
 public class YarnConstant {
 
-	public static final String PATH_YARN_SITE = "/opt/app/hadoop-2.6.1/etc/hadoop/yarn-site.xml";
+	public static final String YARN_CONFIG_FILE_NAME = "yarn-site.xml";
+
+	public static final String CLASSPATH_YARN_CONFIG_PATH = "/tis-web-config/" + YarnConstant.YARN_CONFIG_FILE_NAME;
+
+	public static final String PATH_YARN_SITE = "/opt/app/hadoop-2.6.1/etc/hadoop/" + YARN_CONFIG_FILE_NAME;
 
 	public static final String HDFS_GROUP_LIB_DIR = "/user/admin/";
 
