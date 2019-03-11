@@ -85,7 +85,7 @@ public class HdfsIndexGetConfig implements TaskMapper {
 
 			String schemaPath = context.getUserParam(IndexBuildParam.INDEXING_SCHEMA_PATH);
 			if (schemaPath == null) {
-				logger.error("indexing.schemapath  param have not been config");
+				logger.error(IndexBuildParam.INDEXING_SCHEMA_PATH + " param have not been config");
 				return new TaskReturn(TaskReturn.ReturnCode.FAILURE,
 						IndexBuildParam.INDEXING_SCHEMA_PATH + "  param have not been config");
 			}

@@ -27,10 +27,13 @@ public class IndexConf {
 	}
 
 	public String getOutputPath() {
-		return this.get(IndexBuildParam.INDEXING_OUTPUT_PATH);
+		String outputPath = this.get(IndexBuildParam.INDEXING_OUTPUT_PATH);
+		if (StringUtils.isEmpty(outputPath)) {
+			throw new IllegalStateException("param " + IndexBuildParam.INDEXING_OUTPUT_PATH + " can not be null");
+		}
+		return outputPath;
 	}
 
-	// example:search4OperationStatistic
 	public String getCollectionName() {
 		String collectionName = this.get(IndexBuildParam.INDEXING_SERVICE_NAME);
 		if (StringUtils.isBlank(collectionName)) {
@@ -43,26 +46,13 @@ public class IndexConf {
 		return this.context.getUserParam(key);
 	}
 
-	// public String getWriteFileUser() {
-	// return get("terminator.write.file.user");
-	// }
-
 	public String getSchemaName() {
 		return "schema.xml";
 	}
 
-	// public MergeMode getMergeMode() {
-	// return MergeMode.valueOf(get("indexing.mergemode",
-	// "serial").toUpperCase());
-	// }
-
 	public String getSourcePath() {
 		return get(IndexBuildParam.INDEXING_SOURCE_PATH);
 	}
-
-	// public int getHdfsReaderBufferSize() {
-	// return getInt("indexing.hdfsreaderbuffersize", 1024);
-	// }
 
 	public int getFlushCountThreshold() {
 		return 90000000;

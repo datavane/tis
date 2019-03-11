@@ -380,9 +380,7 @@ public class IndexMergerImpl implements IndexMerger {
 
 	private void cleanRemoteOutPath() throws Exception {
 		String destOutPath = indexConf.getOutputPath();
-		if (destOutPath == null) {
-			throw new Exception("indexing.outputpath 参数没有配置");
-		}
+
 		Path destPath = new Path(destOutPath);
 		if (fs.exists(destPath)) {
 			FileStatus[] fileStatus = fs.listStatus(destPath);

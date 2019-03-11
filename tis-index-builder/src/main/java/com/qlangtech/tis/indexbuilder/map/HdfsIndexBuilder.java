@@ -390,11 +390,11 @@ public class HdfsIndexBuilder implements TaskMapper {
 	 * @throws IOException
 	 */
 	protected void setDumpFileTitles(TaskContext context, Context readerContext) throws IOException {
-		String buildtabletitleitems = context.getUserParam("indexing.buildtabletitleitems");
+		String buildtabletitleitems = context.getUserParam(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS);
 		if (StringUtils.isBlank(buildtabletitleitems)) {
 			throw new IllegalStateException(" indexing.buildtabletitleitems shall be set in user param ");
 		}
-		logger.info("indexing.buildtabletitleitems:" + buildtabletitleitems);
+		logger.info(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS+":" + buildtabletitleitems);
 		readerContext.put("titletext", StringUtils.split(buildtabletitleitems, ","));
 	}
 
