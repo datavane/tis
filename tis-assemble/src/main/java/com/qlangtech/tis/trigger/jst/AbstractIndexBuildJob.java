@@ -172,7 +172,7 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 		// String[] core = this.coreName.split("-");
 		String serviceName = state.getIndexName();
 		// ///////////////////////////////////////////
-		logger.info("Excute Remote Dump Job Status: Sbumit  ");
+		logger.info("Excute Remote IndexBuild Job Status: Sbumit  ");
 		return buildSliceIndex(coreName, timePoint, status, outPath, serviceName);
 	}
 

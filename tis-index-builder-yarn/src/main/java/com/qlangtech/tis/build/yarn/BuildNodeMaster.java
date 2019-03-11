@@ -44,7 +44,7 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(BuildNodeMaster.class);
 
-	private static final Logger buildinfologger = LoggerFactory.getLogger("buildinfoLogger");
+	//private static final Logger buildinfologger = LoggerFactory.getLogger("buildinfoLogger");
 
 	boolean isShutdown = false;
 
@@ -143,7 +143,7 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 			masterShutdown(FinalApplicationStatus.SUCCEEDED, StringUtils.EMPTY);
 		} catch (Throwable e) {
 			// logger.error(e.getMessage(), e);
-			buildinfologger.error(e.getMessage(), e);
+			logger.error(e.getMessage(), e);
 			masterShutdown(FinalApplicationStatus.FAILED, ExceptionUtils.getRootCauseMessage(e));
 		}
 	}
@@ -157,9 +157,9 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 		System.out.println(m);
 
 		if (appStatus == FinalApplicationStatus.FAILED) {
-			buildinfologger.error(m + ",status:" + appStatus + ",msg:" + msg);
+			logger.error(m + ",status:" + appStatus + ",msg:" + msg);
 		} else {
-			buildinfologger.info(m + ",status:" + appStatus + ",msg:" + msg);
+			logger.info(m + ",status:" + appStatus + ",msg:" + msg);
 		}
 		try {
 			rmClient.unregisterApplicationMaster(appStatus

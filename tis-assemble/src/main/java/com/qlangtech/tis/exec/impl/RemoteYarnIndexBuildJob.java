@@ -215,7 +215,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 
 		InputStream yarnsiteStream = this.getClass().getResourceAsStream(YarnConstant.CLASSPATH_YARN_CONFIG_PATH);
 		if (yarnsiteStream == null) {
-			throw new IllegalStateException("yarn-site.xml is not exist in class path:" + YarnConstant.PATH_YARN_SITE);
+			throw new IllegalStateException("yarn-site.xml is not exist in class path:" + YarnConstant.CLASSPATH_YARN_CONFIG_PATH);
 		}
 
 		conf.addResource(yarnsiteStream);

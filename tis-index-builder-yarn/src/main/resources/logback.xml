@@ -31,13 +31,20 @@
 	</appender>
 
 	<appender name="indexbuild-async" class="ch.qos.logback.classic.AsyncAppender">
-
 		<queueSize>512</queueSize>
 		<includeCallerData>false</includeCallerData>
 		<!--<neverBlock>true</neverBlock> -->
 		<appender-ref ref="indexbuild" />
-
 	</appender>
+	
+	<appender name="buildinfoLogger" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <includeCallerData>false</includeCallerData>
+        <!--<neverBlock>true</neverBlock> -->
+        <appender-ref ref="indexbuild" />
+    </appender>
+	
+	
 
 
 	<logger name="com.qlangtech.tis">
@@ -47,6 +54,7 @@
 	<root>
 		<level value="INFO" />
 		<appender-ref ref="STDOUT" />
+		
 	</root>
 
 </configuration>
