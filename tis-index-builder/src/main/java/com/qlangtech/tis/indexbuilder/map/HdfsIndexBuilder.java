@@ -186,15 +186,8 @@ public class HdfsIndexBuilder implements TaskMapper {
 				luceneDocMaker.setName(indexConf.getCoreName() + "-docMaker-" + docMakerCount + "-" + i);
 				resultFlagSet.add(luceneDocMaker.getResultFlag());
 				// threadList.add(luceneDocMaker.getSuccessFlag());
-				Thread t = new Thread(luceneDocMaker, "luceneDocMaker-" + i);
-				// if (loader != null && isTaskFromTis() // && getJarStatus()
-				// ) {
-				// logger.warn("loader is not null and is task from tis");
-				// t.setContextClassLoader(loader);
-				// }
-				t.setName(luceneDocMaker.getName());
-				// es.execute(t);
-				t.start();
+
+				executorService.submit(luceneDocMaker, luceneDocMaker.getResultFlag());
 			}
 			// merge线程
 			this.mergeExecResult = waitIndexMergeTask(indexConf, aliveIndexMakerCount, counters, messages, dirQueue,
@@ -207,10 +200,25 @@ public class HdfsIndexBuilder implements TaskMapper {
 				indexMaker.setName(indexConf.getCoreName() + "-indexMaker-" + indexMakerCount + "-" + i);
 				resultFlagSet.add(indexMaker.getResultFlag());
 				// threadList.add(indexMaker.getSuccessFlag());
-				Thread t = new Thread(indexMaker);
-				t.setName(indexMaker.getName());
-				t.start();
+//				Thread t = new Thread(indexMaker);
+//				t.setName(indexMaker.getName());
+//				t.start();
+				
+				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
+			
+			try {
+				for (int threadCount = 0; threadCount < resultFlagSet.size(); threadCount++) {
+					this.executorService.take().get();
+				}
+				// 之前的任何一个進程出錯都會短路
+			} catch (Exception e) {
+				logger.warn(indexConf.getCoreName() + " dump fail!!");
+				logger.error("[taskid:" + taskid + "]" + "dump fail!!" + e.getMessage());
+				messages.addMessage(Messages.Message.ERROR_MSG, e.getMessage());
+				return new TaskReturn(TaskReturn.ReturnCode.FAILURE, e.getMessage());
+			}
+			
 			SuccessFlag flag = mergeExecResult.get();
 			// 检查docmake 和index make 是否出错，出错的话要终止此次流程继续执行
 			for (SuccessFlag f : resultFlagSet) {
@@ -294,12 +302,14 @@ public class HdfsIndexBuilder implements TaskMapper {
 		IndexMetaConfig indexMetaConfig = new IndexMetaConfig();
 		// String configFile = context.getUserParam("configFile");
 		// 根据hdfs上的schema文件构造IndexSchema
-		String schemaPath = context.getUserParam("indexing.schemapath");
-		String normalizePath = schemaPath.replaceAll("\\\\", "/");
-		String schemaFileName = normalizePath.substring(normalizePath.lastIndexOf("/"));
+		// String schemaPath = context.getUserParam("indexing.schemapath");
+		// String normalizePath = schemaPath.replaceAll("\\\\", "/");
+		// String schemaFileName =
+		// normalizePath.substring(normalizePath.lastIndexOf("/"));
 		// File schemaFile = new File(context.getMapPath() + File.separator +
 		// "schema" + File.separator + schemaFileName);
-		logger.warn("[taskid:" + taskid + "]" + " schema path ==>" + schemaPath.toString());
+		// logger.warn("[taskid:" + taskid + "]" + " schema path ==>" +
+		// schemaPath.toString());
 		// }
 		try {
 			// try (BufferedInputStream in = new BufferedInputStream(new
@@ -425,17 +435,9 @@ public class HdfsIndexBuilder implements TaskMapper {
 		// indexMerger.setTaskAttemptId(taskAttemptId);
 		indexMerger.setName(indexConf.getCoreName());
 		// threadList.add(indexMerger.getSuccessFlag());
-		ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
 
-			public Thread newThread(Runnable r) {
-				Thread indexMergerThread = new Thread(r);
-				indexMergerThread.setName(indexConf.getCoreName());
-				indexMergerThread.setContextClassLoader(currentClassloader);
-				return indexMergerThread;
-			}
-		});
 		logger.warn("indexmergeloader:" + currentClassloader.getClass());
-		Future<SuccessFlag> mergeExecResult = executor.submit(indexMerger);
+		Future<SuccessFlag> mergeExecResult = executorService.submit(indexMerger);
 		return mergeExecResult;
 	}
 
