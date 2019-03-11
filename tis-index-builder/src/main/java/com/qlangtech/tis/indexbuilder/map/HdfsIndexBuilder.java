@@ -200,13 +200,13 @@ public class HdfsIndexBuilder implements TaskMapper {
 				indexMaker.setName(indexConf.getCoreName() + "-indexMaker-" + indexMakerCount + "-" + i);
 				resultFlagSet.add(indexMaker.getResultFlag());
 				// threadList.add(indexMaker.getSuccessFlag());
-//				Thread t = new Thread(indexMaker);
-//				t.setName(indexMaker.getName());
-//				t.start();
-				
+				// Thread t = new Thread(indexMaker);
+				// t.setName(indexMaker.getName());
+				// t.start();
+
 				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
-			
+
 			try {
 				for (int threadCount = 0; threadCount < resultFlagSet.size(); threadCount++) {
 					this.executorService.take().get();
@@ -218,7 +218,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 				messages.addMessage(Messages.Message.ERROR_MSG, e.getMessage());
 				return new TaskReturn(TaskReturn.ReturnCode.FAILURE, e.getMessage());
 			}
-			
+
 			SuccessFlag flag = mergeExecResult.get();
 			// 检查docmake 和index make 是否出错，出错的话要终止此次流程继续执行
 			for (SuccessFlag f : resultFlagSet) {
@@ -300,41 +300,24 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 	private IndexMetaConfig parseIndexMetadata(TaskContext context, IndexConf indexConf) {
 		IndexMetaConfig indexMetaConfig = new IndexMetaConfig();
-		// String configFile = context.getUserParam("configFile");
-		// 根据hdfs上的schema文件构造IndexSchema
-		// String schemaPath = context.getUserParam("indexing.schemapath");
-		// String normalizePath = schemaPath.replaceAll("\\\\", "/");
-		// String schemaFileName =
-		// normalizePath.substring(normalizePath.lastIndexOf("/"));
-		// File schemaFile = new File(context.getMapPath() + File.separator +
-		// "schema" + File.separator + schemaFileName);
-		// logger.warn("[taskid:" + taskid + "]" + " schema path ==>" +
-		// schemaPath.toString());
-		// }
+		
 		try {
-			// try (BufferedInputStream in = new BufferedInputStream(new
-			// FileInputStream(schemaFile))) {
 
-			try (InputStream inputStream = this.getClass().getClassLoader()
-					.getResourceAsStream("solr-config-template.xml")) {
-				SolrConfig solrConfig = new SolrConfig(createSolrResourceLoader(), "solrconfig",
-						new InputSource(inputStream));
+			getIndexSchema(indexConf, indexMetaConfig);
 
-				getIndexSchema(indexConf, indexMetaConfig);
-
-				List<ProcessorSchemaField> processorSchemas = indexMetaConfig.schemaParse.getProcessorSchemas();
-				final RawDataProcessor rawDataProcessor = new RawDataProcessor();
-				indexMetaConfig.rawDataProcessor = rawDataProcessor;
-				ExternalDataColumnProcessor processor = null;
-				for (ProcessorSchemaField ps : processorSchemas) {
-					processor = ExternalDataColumnProcessor.create(ps, indexMetaConfig.schemaParse);
-					if (ps.isTargetColumnEmpty()) {
-						rawDataProcessor.addRowProcessor(processor);
-					} else {
-						rawDataProcessor.addColumnProcessor(ps.getTargetColumn(), processor);
-					}
+			List<ProcessorSchemaField> processorSchemas = indexMetaConfig.schemaParse.getProcessorSchemas();
+			final RawDataProcessor rawDataProcessor = new RawDataProcessor();
+			indexMetaConfig.rawDataProcessor = rawDataProcessor;
+			ExternalDataColumnProcessor processor = null;
+			for (ProcessorSchemaField ps : processorSchemas) {
+				processor = ExternalDataColumnProcessor.create(ps, indexMetaConfig.schemaParse);
+				if (ps.isTargetColumnEmpty()) {
+					rawDataProcessor.addRowProcessor(processor);
+				} else {
+					rawDataProcessor.addColumnProcessor(ps.getTargetColumn(), processor);
 				}
 			}
+
 			// }
 		} catch (Exception e) {
 			throw new RuntimeException(e);
