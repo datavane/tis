@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import com.qlangtech.tis.build.task.TaskMapper;
 import com.qlangtech.tis.build.task.TaskReturn;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
+import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.IndexBuildParam;
 
@@ -57,6 +58,7 @@ public class HdfsIndexGetConfig implements TaskMapper {
 
 	public HdfsIndexGetConfig() throws IOException {
 		startTime = System.currentTimeMillis();
+		fs = TISHdfsUtils.getFileSystem();
 	}
 
 	public static IndexConf getIndexConf(TaskContext context) {
