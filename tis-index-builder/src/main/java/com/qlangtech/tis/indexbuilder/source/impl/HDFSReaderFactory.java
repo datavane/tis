@@ -47,6 +47,7 @@ import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.source.SourceReader;
 import com.qlangtech.tis.indexbuilder.source.SourceReaderFactory;
 import com.qlangtech.tis.indexbuilder.utils.Context;
+import com.qlangtech.tis.manage.common.IndexBuildParam;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -106,7 +107,7 @@ public class HDFSReaderFactory implements SourceReaderFactory {
 		this.context = context;
 		this.taskContext = ((TaskContext) context.get("taskcontext"));
 		this.indexConf = ((IndexConf) context.get("indexconf"));
-		String buildtabletitleitems = taskContext.getUserParam("indexing.buildtabletitleitems");
+		String buildtabletitleitems = taskContext.getUserParam(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS);
 		if (StringUtils.isBlank(buildtabletitleitems)) {
 			throw new IllegalStateException(" indexing.buildtabletitleitems shall be set in user param ");
 		}
