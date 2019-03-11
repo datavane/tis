@@ -23,9 +23,12 @@
  */
 package com.qlangtech.tis.indexbuilder.doc;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.schema.IndexSchema;
@@ -37,6 +40,7 @@ import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
 import com.qlangtech.tis.indexbuilder.exception.FieldException;
 import com.qlangtech.tis.indexbuilder.exception.RowException;
+import com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
 import com.qlangtech.tis.indexbuilder.source.SourceReader;
@@ -66,12 +70,9 @@ public class LuceneDocMaker implements Runnable {
 
 	private Messages messages;
 
-	// private DataProcessor dataprocessor;
 	private IInputDocCreator documentCreator;
 
 	private Map<String, SchemaField> fieldMap;
-
-	private float DEFAULT_DOCUMENT_BOOST;
 
 	// private int docPoolSize;
 	private IndexConf indexConf;
@@ -80,11 +81,12 @@ public class LuceneDocMaker implements Runnable {
 
 	// private final String uniqueKeyField;
 	// private final Set<String> schemaFields;
-	private boolean hashMutiValue;
 
 	public static String BOOST_NAME = "!$boost";
+	private final long newVersion;
 
-	int printInterval;
+	private static final AtomicLong allDocPutQueueTime = new AtomicLong();
+	private static final AtomicLong allDocPutCount = new AtomicLong();
 
 	// boolean filterDelete;
 	// private final long newVersion;
@@ -110,32 +112,31 @@ public class LuceneDocMaker implements Runnable {
 		this.indexConf = indexConf;
 		this.indexSchema = indexSchema;
 		this.documentCreator = documentCreator;
-		// this.uniqueKeyField = this.indexSchema.getUniqueKeyField().getName();
-		// this.rawDataProcessor = rawDataProcessor;
-		// this.hasRowProcessor = (rawDataProcessor.getRowProcess().size() > 0);
-		// this.schemaFields = indexSchema.getFields().keySet();
+
 		this.docPoolQueue = docPoolQueue;
 		this.aliveDocMakerCount = aliveDocMakerCount;
 		this.fieldMap = indexSchema.getFields();
-		this.DEFAULT_DOCUMENT_BOOST = indexConf.getDocBoost();
+
 		this.readerFactory = readerFactory;
-		this.printInterval = indexConf.getPrintInterval();
+
+		SimpleDateFormat dataFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		try {
+			this.newVersion = Long.parseLong(dataFormat.format(dataFormat.parse(indexConf.getIncrTime())));
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		}
 
 		init();
 	}
 
 	public void init() {
-		for (SchemaField field : fieldMap.values()) {
-			if (field.multiValued()) {
-				this.hashMutiValue = true;
-				break;
-			}
-		}
+
 	}
 
 	@Override
 	public void run() {
 		try {
+			HdfsIndexBuilder.setMdcAppName(this.indexConf.getCollectionName());
 			doRun();
 		} catch (Throwable e) {
 			messages.addMessage(Messages.Message.ERROR_MSG, "doc maker fatal error:" + e.toString());
@@ -147,9 +148,12 @@ public class LuceneDocMaker implements Runnable {
 		}
 	}
 
-	private static final AtomicInteger successCount = new AtomicInteger();
+	// private static final AtomicInteger successCount = new AtomicInteger();
 
 	private void doRun() throws Exception {
+
+		long startDocPushTimestamp;
+
 		// int count = 0;
 		int failureCount = 0;
 		int filteredCount = 0;
@@ -163,7 +167,7 @@ public class LuceneDocMaker implements Runnable {
 			SourceReader recordReader = readerFactory.nextReader();
 			if (recordReader == null) {
 				successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
-				counters.setCounterValue(Counters.Counter.DOCMAKE_COMPLETE, successCount.get());
+				
 				logger.warn(name + ":filtered:" + filteredCount);
 				// 已处理完成
 				return;
@@ -177,15 +181,14 @@ public class LuceneDocMaker implements Runnable {
 					if (solrDoc == null) {
 						break;
 					}
+					startDocPushTimestamp = System.currentTimeMillis();
 					docPoolQueue.put(solrDoc);
-					successCount.incrementAndGet();
+					counters.setCounterValue(Counters.Counter.DOCMAKE_COMPLETE, allDocPutCount.incrementAndGet());
+					counters.setCounterValue(Counters.Counter.DOCMAKE_QUEUE_PUT_TIME,
+							allDocPutQueueTime.addAndGet(System.currentTimeMillis() - startDocPushTimestamp));
 
-					if ((successCount.get() % 10000) == 0) {
-						counters.setCounterValue(Counters.Counter.DOCMAKE_COMPLETE, successCount.get());
-						logger.warn(name + ":success:" + successCount + "failure:" + failureCount);
-					}
 				} catch (Throwable e) {
-					logger.error("", e);
+					logger.error(e.getMessage(), e);
 					counters.incrCounter(Counters.Counter.DOCMAKE_FAIL, 1);
 					String errorMsg = "";
 					if (e instanceof RowException || e instanceof FieldException) {
@@ -201,7 +204,7 @@ public class LuceneDocMaker implements Runnable {
 					}
 				}
 			}
-			logger.info(recordReader.toString());
+
 		}
 	}
 

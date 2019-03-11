@@ -28,11 +28,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.hadoop.mapred.Task.Counter;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.index.LogByteSizeMergePolicy;
+import org.apache.lucene.index.NoMergePolicy;
 import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.solr.common.SolrInputDocument;
@@ -43,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
-import com.qlangtech.tis.build.task.Task;
 import com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
@@ -121,36 +119,29 @@ public class IndexMaker implements Runnable {
 		// this.makerAllocator = makerAllocator;
 	}
 
-	public static IndexWriter createRAMIndexWriter(IndexConf indexConf, IndexSchema schema) throws IOException {
+	public static IndexWriter createRAMIndexWriter(IndexConf indexConf, IndexSchema schema, boolean merge)
+			throws IOException {
 		RAMDirectory ramDirectory = new RAMDirectory();
-		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(// Version.LUCENE_5_3_0,
-				schema.getIndexAnalyzer());
-		// if (indexSchema.getSimilarity() != null) {
-		// indexWriterConfig.setSimilarity(indexSchema.getSimilarity());
-		// }
+		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(schema.getIndexAnalyzer());
 		indexWriterConfig.setMaxBufferedDocs(Integer.MAX_VALUE);
-		// indexWriterConfig.setRAMBufferSizeMB(indexConf.getMakerRAMBufferSizeMB());
-		indexWriterConfig.setRAMBufferSizeMB(IndexWriterConfig.DISABLE_AUTO_FLUSH);
+		indexWriterConfig.setRAMBufferSizeMB(32);
+
 		// indexWriterConfig.setTermIndexInterval(Integer.MAX_VALUE);
-		if (indexConf.getMakerMergePolicy().equals("TieredMergePolicy")) {
+		if (merge) {
+
 			TieredMergePolicy mergePolicy = new TieredMergePolicy();
 			mergePolicy.setNoCFSRatio(1.0);
 			// mergePolicy.setUseCompoundFile(indexConf.getMakerUseCompoundFile());
-			mergePolicy.setSegmentsPerTier(indexConf.getMakerSegmentsPerTier());
-			mergePolicy.setMaxMergeAtOnceExplicit(indexConf.getMakerMaxMergeAtOnce());
-			mergePolicy.setMaxMergeAtOnce(indexConf.getMakerMaxMergeAtOnce());
+
+			mergePolicy.setSegmentsPerTier(10);
+			mergePolicy.setMaxMergeAtOnceExplicit(50);
+			mergePolicy.setMaxMergeAtOnce(50);
 			indexWriterConfig.setMergePolicy(mergePolicy);
-		} else if (indexConf.getMakerMergePolicy().equals("LogByteSizeMergePolicy")) {
-			LogByteSizeMergePolicy mergePolicy = new LogByteSizeMergePolicy();
-			mergePolicy.setNoCFSRatio(1.0);
-			// mergePolicy.setUseCompoundFile(indexConf.getMakerUseCompoundFile());
-			// mergePolicy.setMergeFactor(indexConf.getMakerMergeFacotr());
-			indexWriterConfig.setMergePolicy(mergePolicy);
+
+		} else {
+			indexWriterConfig.setMergePolicy(NoMergePolicy.INSTANCE);
 		}
-		/*
-		 * indexWriterConfig.setIndexDeletionPolicy(initGeneration < 0 ? new
-		 * KeepOnlyLastCommitDeletionPolicy() : new MixedDeletionPolicy());
-		 */
+
 		indexWriterConfig.setOpenMode(OpenMode.CREATE);
 		IndexWriter addWriter = new IndexWriter(ramDirectory, indexWriterConfig);
 		// 必须commit一下才会产生segment*文件，如果不commit，indexReader读会报错。
@@ -160,22 +151,18 @@ public class IndexMaker implements Runnable {
 
 	private boolean needFlush(IndexWriter writer) {
 		int maxDoc = writer.maxDoc();
-		// .sizeInBytes();
+
 		long ramSize = ((RAMDirectory) writer.getDirectory()).ramBytesUsed();
 		boolean overNum = maxDoc >= this.indexConf.getFlushCountThreshold();
 		boolean overSize = ramSize >= this.indexConf.getFlushSizeThreshold();
 		if (overNum || overSize) {
-			logger.warn(
-					"内存索引到达控制阀值，需Flush到磁盘中,内存索引共有Doc数量{" + maxDoc + "},内存索引总大小 {" + ramSize / (1024 * 1024) + " M}");
+			logger.warn("ram has reach the threshold ，while Flush to disk,has Doc count{" + maxDoc + "},ram consume: {"
+					+ ramSize / (1024 * 1024) + " M}");
 			return true;
 		}
 		return false;
 	}
 
-	/*
-	 * public void addDocument(Document doc) throws CorruptIndexException,
-	 * IOException { writer.addDocument(doc); }
-	 */
 	private // Directory ramdir
 	void addRAMToMergeQueue(// Directory ramdir
 			IndexWriter indexWriter) throws Exception {
@@ -195,6 +182,7 @@ public class IndexMaker implements Runnable {
 
 	public void run() {
 		try {
+			HdfsIndexBuilder.setMdcAppName(this.indexConf.getCollectionName());
 			doRun();
 		} catch (Throwable e) {
 			logger.error("maker error" + e.toString(), e);
@@ -214,7 +202,7 @@ public class IndexMaker implements Runnable {
 		int failureCount = 0;
 		int indexMakeCount = 0;
 		// for (int i = 0; i < cores.length; i++) {
-		IndexWriter indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema);
+		IndexWriter indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema,false/* mrege */);
 		// }
 		// int printCount = 0;
 		SolrInputDocument solrDoc = null;
@@ -248,7 +236,7 @@ public class IndexMaker implements Runnable {
 				}
 				if (needFlush(indexWriter)) {
 					addRAMToMergeQueue(indexWriter);
-					indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema);
+					indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema,false/* mrege */);
 				}
 			} catch (Exception e) {
 				logger.error("IndexMaker+" + name, e);

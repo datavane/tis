@@ -50,6 +50,7 @@ import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.source.SourceReader;
 import com.qlangtech.tis.indexbuilder.utils.Context;
 import com.qlangtech.tis.indexbuilder.utils.SimpleStringTokenizer;
+import com.qlangtech.tis.manage.common.IndexBuildParam;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -93,11 +94,11 @@ public class HDFSReader implements SourceReader {
 	public void init() throws Exception {
 
 		TaskContext taskContext = ((TaskContext) context.get("taskcontext"));
-		String paramDelimiter = taskContext.getUserParam(IndexConf.KEY_COL_DELIMITER);
+		String paramDelimiter = taskContext.getUserParam(IndexBuildParam.INDEXING_DELIMITER);
 		if ("char001".equalsIgnoreCase(paramDelimiter)) {
 			this.delimiter = String.valueOf(DELIMITER_001);
 		}
-		logger.warn(IndexConf.KEY_COL_DELIMITER + ":" + paramDelimiter);
+		
 		openStream();
 		long start = this.split.getStart();
 		long end = start + this.split.getLength();
@@ -120,21 +121,9 @@ public class HDFSReader implements SourceReader {
 	/**
 	 * @return
 	 */
-	// protected String[] getTitles() {
-	// return (String[]) this.context.get("titletext");
-	// }
 	private void openStream() throws Exception {
-		this.fileIn = this.fs.open(this.split.getPath());
-		if (this.indexConf.get("indexing.codec") != null) {
-			Class codecClass = Class
-					.forName(this.indexConf.get("indexing.codec", "org.apache.hadoop.io.compress.GzipCodec"));
-			CompressionCodec codec = (CompressionCodec) ReflectionUtils.newInstance(codecClass, this.fs.getConf());
-			Decompressor decompressor = decompressor = CodecPool.getDecompressor(codec);
-			CompressionInputStream cin = codec.createInputStream(this.fileIn, decompressor);
-			this.in = new BufferedInputStream(this.fileIn);
-		} else {
-			this.in = new BufferedInputStream(this.fileIn);
-		}
+		this.fileIn = this.fs.open(this.split.getPath());		
+		this.in = new BufferedInputStream(this.fileIn);
 	}
 
 	public HDFSReader(Context context, FileSplit split) throws Exception {

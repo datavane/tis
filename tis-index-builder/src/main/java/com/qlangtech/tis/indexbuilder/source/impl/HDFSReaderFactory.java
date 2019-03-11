@@ -110,38 +110,21 @@ public class HDFSReaderFactory implements SourceReaderFactory {
 		if (StringUtils.isBlank(buildtabletitleitems)) {
 			throw new IllegalStateException(" indexing.buildtabletitleitems shall be set in user param ");
 		}
-		// readerContext.put("titletext",
-		// );
+
 		this.titleText = StringUtils.split(buildtabletitleitems, ",");
 		Counters counters = this.taskContext.getCounters();
 		Messages messages = this.taskContext.getMessages();
 		// Configuration conf = new Configuration();
 		String fsName = this.indexConf.getSourceFsName();
-		// conf.set("fs.default.name", fsName);
-		logger.warn("remote hdfs:" + fsName);
-		// conf.set("hadoop.job.ugi", this.indexConf.getIndexUserName());
-		logger.warn("user=" + this.indexConf.getIndexUserName());
-		try {
-			// FileSystem.get(conf);
-			this.fs = TISHdfsUtils.getFileSystem();
-		} catch (Exception e) {
-			ClassLoader loader = Thread.currentThread().getContextClassLoader();
-			throw new RuntimeException("current classloader:" + loader.getClass() + "==="
-					+ loader.getResource("org/apache/hadoop/ipc/Client.class"), e);
-		}
+		this.fs = TISHdfsUtils.getFileSystem();
+
 		context.put("filesystem", this.fs);
-		String fileSplitorClass = this.indexConf.getFileSplitor();
-		FileSplitor fileSplitor = null;
-		if (fileSplitorClass == null) {
-			fileSplitor = new DefaultFileSplitor(this.indexConf, this.fs);
-		} else {
-			fileSplitor = (FileSplitor) Class.forName(fileSplitorClass).newInstance();
-			fileSplitor.setFileSystem(this.fs);
-			fileSplitor.setIndexConf(this.indexConf);
-		}
+
+		FileSplitor fileSplitor = new DefaultFileSplitor(this.indexConf, this.fs);
+
 		this.fileSplits = fileSplitor.getSplits();
-		if (this.fileSplits.size() == 0) {
-			throw new Exception("源数据为空！");
+		if (this.fileSplits.size() < 1) {
+			throw new IllegalStateException("fileSplits size can not small than 1");
 		}
 		counters.setCounterValue(Counters.Counter.MAP_INPUT_BYTES, fileSplitor.getTotalSize());
 		counters.setCounterValue(Counters.Counter.MAP_ALL_RECORDS, getRecordCount());
@@ -150,7 +133,6 @@ public class HDFSReaderFactory implements SourceReaderFactory {
 	private int getRecordCount() throws IOException {
 		FileStatus[] arrayOfFileStatus;
 		if ((arrayOfFileStatus = this.fs.listStatus(new Path(this.indexConf.getSourcePath()), new PathFilter() {
-
 			public boolean accept(Path path) {
 				String name = path.getName();
 				return name.endsWith(".suc");

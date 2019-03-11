@@ -36,12 +36,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.solr.common.SolrInputDocument;
@@ -50,7 +56,9 @@ import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.schema.IndexSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
@@ -67,6 +75,7 @@ import com.qlangtech.tis.indexbuilder.map.SuccessFlag.Flag;
 import com.qlangtech.tis.indexbuilder.merger.IndexMergerImpl;
 import com.qlangtech.tis.indexbuilder.source.impl.HDFSReaderFactory;
 import com.qlangtech.tis.indexbuilder.utils.Context;
+import com.qlangtech.tis.manage.common.IndexBuildParam;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
@@ -80,8 +89,21 @@ import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 public class HdfsIndexBuilder implements TaskMapper {
 
 	public static final Logger logger = LoggerFactory.getLogger(HdfsIndexBuilder.class);
-
+	public static final String KEY_COLLECTION = "app";
 	long startTime;
+	private Integer allRowCount;
+	private final CompletionService<SuccessFlag> executorService = new ExecutorCompletionService<SuccessFlag>(
+			Executors.newCachedThreadPool(new ThreadFactory() {
+				@Override
+				public Thread newThread(Runnable r) {
+					Thread t = new Thread(r);
+					return t;
+				}
+			}));
+
+	public static void setMdcAppName(String appname) {
+		MDC.put(KEY_COLLECTION, appname);
+	}
 
 	// 由consel传入的taskid
 	private String taskid = "";
@@ -93,19 +115,29 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 	@Override
 	public TaskReturn map(TaskContext context) {
-		IndexConf indexConf = new IndexConf(false);
-		indexConf.addResource("config.xml");
+
+		IndexConf indexConf = HdfsIndexGetConfig.getIndexConf(context);
+
 		Counters counters = context.getCounters();
 		Messages messages = context.getMessages();
 		// indexConf.loadFrom(context);
 		IndexMetaConfig indexMetaConfig = parseIndexMetadata(context, indexConf);
 		try {
-			String taskAttemptId = context.getInnerParam("task.map.task.id");
-			String configFile = context.getUserParam("configFile");
+			// String taskAttemptId = context.getInnerParam("task.map.task.id");
+			// String configFile = context.getUserParam("configFile");
+
+			String rowCount = context.getUserParam(IndexBuildParam.INDEXING_ROW_COUNT);
+			if (StringUtils.isNotBlank(rowCount)) {
+				this.allRowCount = Integer.parseInt(rowCount);
+			}
+
 			taskid = context.getUserParam("indexing.taskid");
-			logger.warn("configFile=" + configFile);
+
 			logger.warn("indexMaker.flushCountThreshold:" + indexConf.getFlushCountThreshold()
 					+ ",indexMaker.flushSizeThreshold:" + indexConf.getFlushSizeThreshold());
+
+			// final IndexSchema indexSchema = getIndexSchema(indexConf);
+
 			String[] schemaFields = indexMetaConfig.indexSchema.getFields().keySet().toArray(new String[0]);
 			// 开始构建索引。。。
 			logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() + " indexing start......");
@@ -114,7 +146,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 			int indexMakerCount = indexConf.getIndexMakerThreadCount();
 			logger.warn("----indexMakerCount=" + indexMakerCount);
 			logger.warn("----docMakerCount=" + docMakerCount);
-			logger.warn("----docQueueSize=" + indexConf.getDocQueueSize());
+
 			AtomicInteger aliveIndexMakerCount = new AtomicInteger(indexMakerCount);
 			AtomicInteger aliveDocMakerCount = new AtomicInteger(docMakerCount);
 			// 存放document对象池的队列
@@ -167,9 +199,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 			// merge线程
 			this.mergeExecResult = waitIndexMergeTask(indexConf, aliveIndexMakerCount, counters, messages, dirQueue,
 					indexMetaConfig.indexSchema);
-			logger.warn("----" + indexConf.getIndexSmallCacheSize());
-			logger.warn("----" + indexConf.getIndexRamDirBufferSize());
-			logger.warn("----" + indexConf.getIndexLargeCacheSize());
+
 			// 多线程构建索引
 			for (int i = 0; i < indexMakerCount; i++) {
 				IndexMaker indexMaker = createIndexMaker(indexConf, counters, messages, indexMetaConfig.indexSchema,
@@ -212,6 +242,43 @@ public class HdfsIndexBuilder implements TaskMapper {
 	}
 
 	/**
+	 * 取得schema对象
+	 * 
+	 * @param indexConf
+	 * @return
+	 * @throws IOException
+	 * @throws ParserConfigurationException
+	 * @throws SAXException
+	 */
+	private void getIndexSchema(IndexConf indexConf, IndexMetaConfig indexMetaConfig) throws Exception {
+
+		InputStream schemaInputStream = null;
+		File schemaFile = HdfsIndexGetConfig.getLocalTmpSchemaFile();
+		logger.warn(" local schema path ==>" + schemaFile.getAbsolutePath());
+
+		try {
+
+			try (InputStream solrinputStream = this.getClass().getClassLoader()
+					.getResourceAsStream("solr-config-template.xml")) {
+				SolrConfig solrConfig = new SolrConfig(createSolrResourceLoader(), "solrconfig",
+						new InputSource(solrinputStream));
+
+				schemaInputStream = FileUtils.openInputStream(schemaFile);// new
+
+				indexMetaConfig.indexSchema = new IndexSchema(solrConfig, indexConf.getSchemaName(),
+						new InputSource(schemaInputStream));
+			}
+		} finally {
+			IOUtils.closeQuietly(schemaInputStream);
+		}
+
+		try (InputStream is = new FileInputStream(schemaFile)) {
+			SolrFieldsParser parse = new SolrFieldsParser();
+			indexMetaConfig.schemaParse = parse.parseSchema(is, false);
+		}
+	}
+
+	/**
 	 * 索引merge是否完成
 	 * 
 	 * @return
@@ -230,35 +297,35 @@ public class HdfsIndexBuilder implements TaskMapper {
 		String schemaPath = context.getUserParam("indexing.schemapath");
 		String normalizePath = schemaPath.replaceAll("\\\\", "/");
 		String schemaFileName = normalizePath.substring(normalizePath.lastIndexOf("/"));
-		File schemaFile = new File(context.getMapPath() + File.separator + "schema" + File.separator + schemaFileName);
+		// File schemaFile = new File(context.getMapPath() + File.separator +
+		// "schema" + File.separator + schemaFileName);
 		logger.warn("[taskid:" + taskid + "]" + " schema path ==>" + schemaPath.toString());
 		// }
 		try {
-			try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(schemaFile))) {
-				try (InputStream inputStream = this.getClass().getClassLoader()
-						.getResourceAsStream("solr-config-template.xml")) {
-					SolrConfig solrConfig = new SolrConfig(createSolrResourceLoader(), "solrconfig",
-							new InputSource(inputStream));
-					indexMetaConfig.indexSchema = new IndexSchema(solrConfig, indexConf.getSchemaName(),
-							new InputSource(in));
-					try (InputStream is = new FileInputStream(schemaFile)) {
-						SolrFieldsParser parse = new SolrFieldsParser();
-						indexMetaConfig.schemaParse = parse.parseSchema(is, false);
-					}
-					List<ProcessorSchemaField> processorSchemas = indexMetaConfig.schemaParse.getProcessorSchemas();
-					final RawDataProcessor rawDataProcessor = new RawDataProcessor();
-					indexMetaConfig.rawDataProcessor = rawDataProcessor;
-					ExternalDataColumnProcessor processor = null;
-					for (ProcessorSchemaField ps : processorSchemas) {
-						processor = ExternalDataColumnProcessor.create(ps, indexMetaConfig.schemaParse);
-						if (ps.isTargetColumnEmpty()) {
-							rawDataProcessor.addRowProcessor(processor);
-						} else {
-							rawDataProcessor.addColumnProcessor(ps.getTargetColumn(), processor);
-						}
+			// try (BufferedInputStream in = new BufferedInputStream(new
+			// FileInputStream(schemaFile))) {
+
+			try (InputStream inputStream = this.getClass().getClassLoader()
+					.getResourceAsStream("solr-config-template.xml")) {
+				SolrConfig solrConfig = new SolrConfig(createSolrResourceLoader(), "solrconfig",
+						new InputSource(inputStream));
+
+				getIndexSchema(indexConf, indexMetaConfig);
+
+				List<ProcessorSchemaField> processorSchemas = indexMetaConfig.schemaParse.getProcessorSchemas();
+				final RawDataProcessor rawDataProcessor = new RawDataProcessor();
+				indexMetaConfig.rawDataProcessor = rawDataProcessor;
+				ExternalDataColumnProcessor processor = null;
+				for (ProcessorSchemaField ps : processorSchemas) {
+					processor = ExternalDataColumnProcessor.create(ps, indexMetaConfig.schemaParse);
+					if (ps.isTargetColumnEmpty()) {
+						rawDataProcessor.addRowProcessor(processor);
+					} else {
+						rawDataProcessor.addColumnProcessor(ps.getTargetColumn(), processor);
 					}
 				}
 			}
+			// }
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

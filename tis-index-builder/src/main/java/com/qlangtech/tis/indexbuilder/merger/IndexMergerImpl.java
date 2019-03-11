@@ -54,6 +54,7 @@ import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.InterruptFlag;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag.Flag;
+import com.qlangtech.tis.manage.common.IndexBuildParam;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -273,9 +274,10 @@ public class IndexMergerImpl implements IndexMerger {
 	@Override
 	public SuccessFlag call() throws Exception {
 		try {
+			HdfsIndexBuilder.setMdcAppName(indexConf.getCollectionName());
 			logger.warn(name + " merge thread start!!!!!!!");
 			init();
-			IndexWriter writer = IndexMaker.createRAMIndexWriter(this.indexConf, this.schema);
+			IndexWriter writer = IndexMaker.createRAMIndexWriter(this.indexConf, this.schema, true/* merge */);
 			AtomicInteger asynMergerThreadAliveCount = new AtomicInteger();
 			RAMDirectory dir = null;
 			while (true) {
@@ -304,7 +306,7 @@ public class IndexMergerImpl implements IndexMerger {
 				// AtomicBoolean merging = new AtomicBoolean(true);
 				if (overSize) {
 					es.execute(new RamOptimizer(asynMergerThreadAliveCount, writer));
-					writer = IndexMaker.createRAMIndexWriter(this.indexConf, this.schema);
+					writer = IndexMaker.createRAMIndexWriter(this.indexConf, this.schema, true/* merge */);
 				}
 			}
 		} catch (Throwable e) {
@@ -377,7 +379,7 @@ public class IndexMergerImpl implements IndexMerger {
 	}
 
 	private void cleanRemoteOutPath() throws Exception {
-		String destOutPath = indexConf.get("indexing.outputpath");
+		String destOutPath = indexConf.getOutputPath();
 		if (destOutPath == null) {
 			throw new Exception("indexing.outputpath 参数没有配置");
 		}
@@ -395,9 +397,9 @@ public class IndexMergerImpl implements IndexMerger {
 
 	private static String getRemoteOutSegPath(IndexConf indexConf, FileSystem fs, AtomicInteger dirSeq)
 			throws Exception {
-		String destOutPath = indexConf.get("indexing.outputpath");
+		String destOutPath = indexConf.getOutputPath();
 		if (destOutPath == null) {
-			throw new Exception("indexing.outputpath 参数没有配置");
+			throw new IllegalStateException(IndexBuildParam.INDEXING_OUTPUT_PATH + " param have not been config");
 		}
 		destOutPath = destOutPath + File.separator + "index";
 		logger.warn("destOutPath1=" + destOutPath);

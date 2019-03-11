@@ -44,7 +44,8 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(BuildNodeMaster.class);
 
-	//private static final Logger buildinfologger = LoggerFactory.getLogger("buildinfoLogger");
+	// private static final Logger buildinfologger =
+	// LoggerFactory.getLogger("buildinfoLogger");
 
 	boolean isShutdown = false;
 
@@ -106,7 +107,7 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 
 	public void run(CommandLine commandLine) throws Exception {
 
-		setMdcAppName(commandLine.getOptionValue(IndexBuildParam.INDEXING_SERVICE_NAME));
+		HdfsIndexBuilder.setMdcAppName(commandLine.getOptionValue(IndexBuildParam.INDEXING_SERVICE_NAME));
 
 		this.conf = new YarnConfiguration();
 		final File yarnSite = new File(YarnConstant.PATH_YARN_SITE);
@@ -148,9 +149,9 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 		}
 	}
 
-	public static void setMdcAppName(String appname) {
-		MDC.put(AppnameAwareFlumeLogstashV1Appender.KEY_COLLECTION, appname);
-	}
+	// public static void setMdcAppName(String appname) {
+	// MDC.put(AppnameAwareFlumeLogstashV1Appender.KEY_COLLECTION, appname);
+	// }
 
 	protected void masterShutdown(FinalApplicationStatus appStatus, String msg) {
 		String m = "build master application shutdown.";
@@ -179,22 +180,27 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 	// return "-Xrunjdwp:transport=dt_socket,address=45687,suspend=n,server=y";
 	// }
 
-//	public static void setEnvironment(Map<String, String> environment, ContainerLaunchContext ctx,
-//			YarnConfiguration conf, boolean includeHadoopJars) throws IOException {
-//
-//		Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), Environment.PWD.$() + File.separator + "*",
-//				File.pathSeparator);
-//		if (includeHadoopJars) {
-//
-//			for (String c : conf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
-//					YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
-//				Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), c.trim(), File.pathSeparator);
-//			}
-//		}
-//
-//		ctx.setEnvironment(environment);
-//		System.out.println("classpath:" + environment.get(Environment.CLASSPATH.name()));
-//	}
+	// public static void setEnvironment(Map<String, String> environment,
+	// ContainerLaunchContext ctx,
+	// YarnConfiguration conf, boolean includeHadoopJars) throws IOException {
+	//
+	// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+	// Environment.PWD.$() + File.separator + "*",
+	// File.pathSeparator);
+	// if (includeHadoopJars) {
+	//
+	// for (String c :
+	// conf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
+	// YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
+	// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
+	// c.trim(), File.pathSeparator);
+	// }
+	// }
+	//
+	// ctx.setEnvironment(environment);
+	// System.out.println("classpath:" +
+	// environment.get(Environment.CLASSPATH.name()));
+	// }
 
 	public void onShutdownRequest() {
 		System.out.println("onShutdownRequest");

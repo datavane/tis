@@ -119,7 +119,7 @@ public abstract class FileSplitor {
 			}
 		}
 		int size = splits.size();
-		logger.warn("[" + this.indexConf.getServiceName() + "] 需要DUMP[" + this.totalSize / 1024L / 1024L
+		logger.warn("[" + this.indexConf.getCollectionName() + "] 需要DUMP[" + this.totalSize / 1024L / 1024L
 				+ "]MB的源数据-->索引数据，切分数据为: " + size + " 份");
 		for (FileSplit split : splits) {
 			logger.warn("split name=" + split.getPath() + ",offset=" + split.getStart());

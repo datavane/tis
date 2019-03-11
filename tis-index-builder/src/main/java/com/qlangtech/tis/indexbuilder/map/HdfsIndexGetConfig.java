@@ -26,16 +26,20 @@ package com.qlangtech.tis.indexbuilder.map;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.qlangtech.tis.build.task.TaskMapper;
 import com.qlangtech.tis.build.task.TaskReturn;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
-import com.qlangtech.tis.hdfs.TISHdfsUtils;
+import com.qlangtech.tis.manage.common.ConfigFileReader;
+import com.qlangtech.tis.manage.common.IndexBuildParam;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -55,52 +59,71 @@ public class HdfsIndexGetConfig implements TaskMapper {
 		startTime = System.currentTimeMillis();
 	}
 
+	public static IndexConf getIndexConf(TaskContext context) {
+		IndexConf indexConf;
+		indexConf = new IndexConf(context);
+
+		return indexConf;
+	}
+
 	@Override
 	public TaskReturn map(TaskContext context) {
-		IndexConf indexConf;
-		indexConf = new IndexConf(false);
-		indexConf.addResource("config.xml");
+		final IndexConf indexConf = getIndexConf(context);
 		try {
-			indexConf.loadFrom(context);
-			String fsName = indexConf.getSourceFsName();
-			logger.warn("remote hdfs host:" + fsName);
-			fs = TISHdfsUtils.getFileSystem();
-			taskid = context.getUserParam("indexing.taskid");
-			String serviceName = context.getUserParam("indexing.servicename");
-			final String taskOutPath = context.getMapPath();
 
-			String schemaPath = context.getUserParam("indexing.schemapath");
+			Path tmpDir = new Path(Environment.PWD.$(), YarnConfiguration.DEFAULT_CONTAINER_TEMP_DIR);
+			logger.info("tmp dir:" + tmpDir);
+			String fsName = indexConf.getSourceFsName();
+
+			taskid = context.getUserParam("indexing.taskid");
+
+			// 词典处理
+			String serviceName = context.getUserParam(// "indexing.servicename"
+					IndexBuildParam.INDEXING_SERVICE_NAME);
+
+			String schemaPath = context.getUserParam(IndexBuildParam.INDEXING_SCHEMA_PATH);
 			if (schemaPath == null) {
-				logger.error("[taskid:" + taskid + "]" + "indexing.schemapath param has not config");
-				return new TaskReturn(TaskReturn.ReturnCode.FAILURE, "indexing.schemapath param has not config");
+				logger.error("indexing.schemapath  param have not been config");
+				return new TaskReturn(TaskReturn.ReturnCode.FAILURE,
+						IndexBuildParam.INDEXING_SCHEMA_PATH + "  param have not been config");
 			}
-			String configPath = context.getUserParam("indexing.configpath");
+
+			String solrConfigPath = context.getUserParam(IndexBuildParam.INDEXING_SOLRCONFIG_PATH);
+			if (solrConfigPath == null) {
+				logger.error(IndexBuildParam.INDEXING_SOLRCONFIG_PATH + " param have not been config");
+				return new TaskReturn(TaskReturn.ReturnCode.FAILURE,
+						IndexBuildParam.INDEXING_SOLRCONFIG_PATH + " param have not been config");
+			}
+
 			try {
-				Path srcPath = new Path(schemaPath);
-				File dstP = new File(taskOutPath, "schema");
-				if (dstP.exists()) {
-					dstP.delete();
-				}
-				dstP.mkdirs();
-				Path dstPath = new Path(dstP.getAbsolutePath());
-				fs.copyToLocalFile(srcPath, dstPath);
-				logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() + " get schema done!");
-				if (configPath != null) {
-					srcPath = new Path(configPath);
-					dstP = new File(taskOutPath, "config");
-					if (dstP.exists()) {
-						dstP.delete();
+
+				// File dstP =
+				copyRemoteFile2Local(new PathStrategy() {
+					@Override
+					public String getRemotePath() {
+						return schemaPath;
 					}
-					dstP.mkdirs();
-					dstPath = new Path(dstP.getAbsolutePath());
-					fs.copyToLocalFile(srcPath, dstPath);
-					logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() + " get config done!");
-					String normalizePath = configPath.replaceAll("\\\\", "/");
-					String configFile = dstP.getAbsolutePath() + File.separator
-							+ normalizePath.substring(normalizePath.lastIndexOf("/") + 1);
-					context.setUserParam("configFile", configFile);
-				}
+
+					@Override
+					public File getLocalDestFile() {
+						return getLocalTmpSchemaFile();
+					}
+				});
+
+				copyRemoteFile2Local(new PathStrategy() {
+					@Override
+					public String getRemotePath() {
+						return solrConfigPath;
+					}
+
+					@Override
+					public File getLocalDestFile() {
+						return getLocalTmpSolrConfigFile();
+					}
+				});
+
 			} catch (IOException e) {
+
 				return new TaskReturn(TaskReturn.ReturnCode.FAILURE,
 						"get schema error:" + ExceptionUtils.getStackTrace(e));
 			}
@@ -108,6 +131,36 @@ public class HdfsIndexGetConfig implements TaskMapper {
 		} catch (Throwable e) {
 			return new TaskReturn(TaskReturn.ReturnCode.FAILURE, "get schema fail:" + ExceptionUtils.getStackTrace(e));
 		}
+	}
+
+	public static File getLocalTmpSchemaFile() {
+		return new File(getTmpConifgDir(), ConfigFileReader.FILE_SCHEMA.getFileName());
+	}
+
+	public static File getLocalTmpSolrConfigFile() {
+		return new File(getTmpConifgDir(), ConfigFileReader.FILE_SOLOR.getFileName());
+	}
+
+	private static final File getTmpConifgDir() {
+		return new File(Environment.PWD.$() + File.separator + YarnConfiguration.DEFAULT_CONTAINER_TEMP_DIR);
+	}
+
+	protected File copyRemoteFile2Local(PathStrategy pStrategy) throws IOException {
+		Path remotePath = new Path(pStrategy.getRemotePath());
+		File dstP = pStrategy.getLocalDestFile();// getLocalTmpSchemaFile();
+		FileUtils.forceMkdirParent(dstP);
+
+		Path dstPath = new Path(dstP.getParent());
+
+		fs.copyToLocalFile(remotePath, dstPath);
+		logger.info("remote:" + remotePath + " copy to local:" + dstP + " succsessful");
+		return dstP;
+	}
+
+	private static interface PathStrategy {
+		public String getRemotePath();
+
+		public File getLocalDestFile();
 	}
 
 }

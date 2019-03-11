@@ -41,26 +41,22 @@ import com.qlangtech.tis.indexbuilder.map.IndexConf;
  */
 public abstract class AbstratFileSystemDirectory extends Directory {
 
-    public static Directory createFileSystemDirectory(Directory dir, FileSystem fs, Path directory, boolean create, IndexConf indexconf) throws IOException {
-        // }else if("hdfs".equalsIgnoreCase(indexconf.getFileSystemType())){
-        return new FileSystemDirectory(fs, directory, true, fs.getConf());
-    // }else{
-    // throw new IllegalArgumentException(indexconf.getFileSystemType());
-    // }
-    }
+	public static Directory createFileSystemDirectory(Directory dir, FileSystem fs, Path directory, boolean create,
+			IndexConf indexconf) throws IOException {
+		return new FileSystemDirectory(fs, directory, true, fs.getConf());
+	}
 
-    public void copyTo(Directory to, String src, String dest, IndexInput in) throws IOException {
-        ;
-    }
+	public void copyTo(Directory to, String src, String dest, IndexInput in) throws IOException {
+		;
+	}
 
-    @Override
-    public void close() throws IOException {
-    // TODO Auto-generated method stub
-    }
+	@Override
+	public void close() throws IOException {
 
-    @Override
-    public String[] listAll() throws IOException {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	}
+
+	@Override
+	public String[] listAll() throws IOException {
+		return null;
+	}
 }
