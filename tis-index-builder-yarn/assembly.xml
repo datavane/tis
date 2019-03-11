@@ -40,7 +40,9 @@
 				<exclude>*:jetty*</exclude>
 				<exclude>*:javax.servlet*</exclude>
 				<exclude>*:servlet-api*</exclude>
+			<!-- 	
 				<exclude>*:metrics-*</exclude>
+			 -->
 			</excludes>
 			<outputDirectory>.</outputDirectory>
 		</dependencySet>
