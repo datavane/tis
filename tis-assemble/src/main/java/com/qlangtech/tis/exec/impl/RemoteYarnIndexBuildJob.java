@@ -215,7 +215,8 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 
 		InputStream yarnsiteStream = this.getClass().getResourceAsStream(YarnConstant.CLASSPATH_YARN_CONFIG_PATH);
 		if (yarnsiteStream == null) {
-			throw new IllegalStateException("yarn-site.xml is not exist in class path:" + YarnConstant.CLASSPATH_YARN_CONFIG_PATH);
+			throw new IllegalStateException(
+					"yarn-site.xml is not exist in class path:" + YarnConstant.CLASSPATH_YARN_CONFIG_PATH);
 		}
 
 		conf.addResource(yarnsiteStream);
@@ -314,6 +315,11 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		for (String c : YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH) {
 			Apps.addToEnvironment(environment, Environment.CLASSPATH.name(), c.trim(), File.pathSeparator);
 		}
+
+		Apps.addToEnvironment(environment //
+				, Environment.CLASSPATH.name() //
+				, ApplicationConstants.Environment.HADOOP_COMMON_HOME.$() + "/share/hadoop/mapreduce/*",
+				File.pathSeparator);
 
 		// if (includeHadoopJars) {
 		// Apps.addToEnvironment(environment, Environment.CLASSPATH.name(),
