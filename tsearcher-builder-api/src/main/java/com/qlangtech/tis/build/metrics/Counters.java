@@ -29,7 +29,8 @@ public class Counters {
 			synchronized (counters) {
 				aval = counters.get(type);
 				if (aval == null) {
-					aval = counters.put(type, new AtomicLong());
+					aval = new AtomicLong();
+					counters.put(type, aval);
 				}
 			}
 		}
