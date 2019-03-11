@@ -81,7 +81,8 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 	public static final String HDFS_USER = "hdfs_user";
 
 	public static final String KEY_INDEX_BACK_FLOW_STATUS = "index_back_flow_status";
-	public static final Pattern INDEX_DATA_PATTERN = Pattern.compile("(index\\d{14})(_(\\d+))?");
+	public static final Pattern INDEX_DATA_PATTERN = Pattern.compile("index(\\d{14})(_(\\d+))?");
+
 	/**
 	 * @param coreContainer
 	 */
@@ -146,8 +147,6 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 		}
 	}
 
-	
-
 	public static void main(String[] args) {
 		Matcher m = INDEX_DATA_PATTERN.matcher("index20160318001000");
 		if (m.matches()) {
@@ -199,51 +198,55 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 					order = Integer.parseInt(m.group(3));
 					order++;
 				}
-				newDir = new File(indexDirParent, m.group(1) + "_" + order);
-				
+				newDir = new File(indexDirParent, "index" + m.group(1) + "_" + order);
+
 			} else {
-//				throw new IllegalStateException("oldIndexDirName is not illegal:" + oldIndexDirName);
+				// throw new IllegalStateException("oldIndexDirName is not
+				// illegal:" + oldIndexDirName);
 				newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
 			}
 			log.info("newdir:" + newDir.getAbsolutePath());
-			
-//			File newDir = null;
-//			if (oldIndexDir.exists()) {
-//				Matcher m = INDEX_DATA_PATTERN.matcher(oldIndexDirName);
-//				if (m.matches()) {
-//					int order = 1;
-//					if (StringUtils.isNotBlank(m.group(3))) {
-//						order = Integer.parseInt(m.group(3));
-//						order++;
-//					}
-//					newDir = new File(indexDirParent, m.group(1) + "_" + order);
-//					log.info("newdir:" + newDir.getAbsolutePath());
-//				} else {
-//					throw new IllegalStateException("oldIndexDirName is not illegal:" + oldIndexDirName);
-//				}
-//			} else {
-//				newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
-//			}
-//
-//			if (newDir.exists()) {
-//				log.info("newdir:" + newDir.getAbsolutePath() + " is exist,will make a new dir");
-//				Matcher m = INDEX_DATA_PATTERN.matcher(newDir.getName());
-//				if (m.matches()) {
-//					int order = 1;
-//					if (StringUtils.isNotBlank(m.group(3))) {
-//						order = Integer.parseInt(m.group(3));
-//						order++;
-//					}
-//					newDir = new File(indexDirParent, m.group(1) + "_" + order);
-//					log.info("newdir:" + newDir.getAbsolutePath());
-//				} else {
-//					throw new IllegalStateException("newDir is not illegal:" + newDir.getAbsolutePath());
-//				}
-//			}
+
+			// File newDir = null;
+			// if (oldIndexDir.exists()) {
+			// Matcher m = INDEX_DATA_PATTERN.matcher(oldIndexDirName);
+			// if (m.matches()) {
+			// int order = 1;
+			// if (StringUtils.isNotBlank(m.group(3))) {
+			// order = Integer.parseInt(m.group(3));
+			// order++;
+			// }
+			// newDir = new File(indexDirParent, m.group(1) + "_" + order);
+			// log.info("newdir:" + newDir.getAbsolutePath());
+			// } else {
+			// throw new IllegalStateException("oldIndexDirName is not illegal:"
+			// + oldIndexDirName);
+			// }
+			// } else {
+			// newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
+			// }
+			//
+			// if (newDir.exists()) {
+			// log.info("newdir:" + newDir.getAbsolutePath() + " is exist,will
+			// make a new dir");
+			// Matcher m = INDEX_DATA_PATTERN.matcher(newDir.getName());
+			// if (m.matches()) {
+			// int order = 1;
+			// if (StringUtils.isNotBlank(m.group(3))) {
+			// order = Integer.parseInt(m.group(3));
+			// order++;
+			// }
+			// newDir = new File(indexDirParent, m.group(1) + "_" + order);
+			// log.info("newdir:" + newDir.getAbsolutePath());
+			// } else {
+			// throw new IllegalStateException("newDir is not illegal:" +
+			// newDir.getAbsolutePath());
+			// }
+			// }
 			long downloadStart = System.currentTimeMillis();
 			final String taskId = req.getParams().get(CommonAdminParams.ASYNC);
 			// 从hdfs上将build好的索引文件拉下来
-			downloadIndexFile2IndexDir(hdfsHome,hdfsTimeStamp, hdfsUser, core, newDir, rsp, taskId);
+			downloadIndexFile2IndexDir(hdfsHome, hdfsTimeStamp, hdfsUser, core, newDir, rsp, taskId);
 			// 更新index.properties中的index属性指向到新的文件夹目录
 			refreshIndexPropFile(core, newDir.getName(), indexDirParent);
 			if (newSnapshotId != null) {
