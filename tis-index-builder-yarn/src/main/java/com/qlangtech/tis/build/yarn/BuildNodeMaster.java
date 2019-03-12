@@ -79,7 +79,6 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 		if (indexBuilder == null || taskContext == null) {
 			return 0;
 		}
-
 		final long allRowCount = taskContext.getAllRowCount();
 		long indexMakeCounter = taskContext.getIndexMakerComplete();
 		logger.info("complete:" + indexMakeCounter + ",all:" + allRowCount);

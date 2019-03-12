@@ -58,8 +58,8 @@ public class TaskContext extends HashMap<String, String> {
 			try {
 				allRowCount = Integer.parseInt(getInnerParam(IndexBuildParam.INDEXING_ROW_COUNT));
 			} catch (Throwable e) {
+				allRowCount = Integer.MAX_VALUE;
 			}
-			allRowCount = Integer.MAX_VALUE;
 		}
 		return allRowCount;
 	}
