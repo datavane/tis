@@ -42,8 +42,6 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(BuildNodeMaster.class);
 
-	// private static final Logger buildinfologger =
-	// LoggerFactory.getLogger("buildinfoLogger");
 
 	boolean isShutdown = false;
 
