@@ -23,13 +23,15 @@
  */
 package com.qlangtech.tis.indexbuilder.source.impl;
 
-import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import java.util.List;
+
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.qlangtech.tis.indexbuilder.map.IndexConf;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -37,27 +39,27 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultFileSplitor extends FileSplitor {
 
-    public static final Logger logger = LoggerFactory.getLogger(DefaultFileSplitor.class);
+	public static final Logger logger = LoggerFactory.getLogger(DefaultFileSplitor.class);
 
-    public DefaultFileSplitor(IndexConf indexConf, FileSystem fileSystem) {
-        super(indexConf, fileSystem);
-    }
+	public DefaultFileSplitor(IndexConf indexConf, FileSystem fileSystem) {
+		super(indexConf, fileSystem);
+	}
 
-    public void getFiles(Path path, List<FileStatus> dataFiles) throws Exception {
-        FileStatus[] stats = this.fileSystem.listStatus(path);
-        if (stats == null) {
-            throw new Exception("源文件路径不存在！");
-        }
-        for (FileStatus stat : stats) {
-            logger.warn("【注意】需要Dump索引化的文件路径为：" + stat.getPath());
-            if (stat.isDir()) {
-                getFiles(stat.getPath(), dataFiles);
-            } else {
-                String name = stat.getPath().getName();
-                if ((!name.endsWith(".suc")) && (!name.endsWith(".ok"))) {
-                    dataFiles.add(stat);
-                }
-            }
-        }
-    }
+	public void getFiles(Path path, List<FileStatus> dataFiles) throws Exception {
+		FileStatus[] stats = this.fileSystem.listStatus(path);
+		if (stats == null) {
+			throw new Exception("path is not exist:" + path);
+		}
+		for (FileStatus stat : stats) {
+			logger.warn("dump path is:" + stat.getPath());
+			if (stat.isDir()) {
+				getFiles(stat.getPath(), dataFiles);
+			} else {
+				String name = stat.getPath().getName();
+				if ((!name.endsWith(".suc")) && (!name.endsWith(".ok"))) {
+					dataFiles.add(stat);
+				}
+			}
+		}
+	}
 }
