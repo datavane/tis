@@ -1,1 +1,0 @@
-mvn dependency:copy-dependencies -DexcludeScope=provided

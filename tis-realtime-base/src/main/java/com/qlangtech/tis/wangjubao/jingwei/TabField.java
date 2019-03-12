@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public class TabField {
 
-    public static final String TSEARCH_PACKAGE = "com.taobao.tsearcher";
+    public static final String TSEARCH_PACKAGE = "com.qlangtech.tis";
 
     private final String column;
 

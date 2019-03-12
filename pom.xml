@@ -47,9 +47,6 @@
 		<module>tis-taskflow</module>
 
 		<module>tis-assemble</module>
-
-		<module>tsearcher-dumpcenter</module>
-
 		<module>tis-solrcore-extend</module>
 
 		<module>tis-realtime-base</module>

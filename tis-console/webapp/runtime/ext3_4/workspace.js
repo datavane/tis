@@ -645,7 +645,7 @@ function getMyAnsyGrid(D, R) {
             text: "权限申请",
             iconCls: "editIcon2",
             handler: function () {
-                window.location = "http://askdba.corp.taobao.com/main#location=dbflow&menuId=145"
+                window.location = ""
             }
         }, "-", {
             text: "文本导出配置",
@@ -1421,11 +1421,11 @@ Dbmis.SearchPanel = function (K, J) {
 };
 Ext.extend(Dbmis.SearchPanel, Ext.Panel);
 Dbmis.HeaderPanel = function (F, G) {
-    var E = "http://sqldev.corp.taobao.com:8989/",
-        A = "http://dba.tools.taobao.com:9999/";
+    var E = "",
+        A = "";
     var C = (isTestEnv ? E : A);
     var D = new Dbmis.SearchPanel(F, G);
-    var H = '<img src="/statics/images/logo.png" alt="Web SQL Plus" align="left"/><a href="#" onclick="Dbmis.Utils.addEmptySqlConsole();"><img src="/statics/images/notepad.gif" alt="Web SQL Plus" title="Web SQL Plus"/></a>&nbsp;&nbsp;<a href="/tair.htm" target="_blank"><img src="/statics/images/cache_icon.png" alt="Tair Console" title="Tair Console"/></a>&nbsp;&nbsp;<a title="客服:钟隐" href="mailto:zhongyin.xy@taobao.com"><img src="/statics/images/email_go.png" alt="发送反馈" title="发送反馈"/></a>&nbsp;&nbsp;<a href="/statics/pages/help.html" target="_blank"><img src="/statics/images/help.png" alt="Help" title="Help"/></a><br/>Welcome <span id="visitor_nick">' + user_nick + '</span> <a href="https://backyard.seraph.taobao.com/login/?action=logout&url=' + C + '">退出</a></td>';
+    var H = '<img src="/statics/images/logo.png" alt="Web SQL Plus" align="left"/><a href="#" onclick="Dbmis.Utils.addEmptySqlConsole();"><img src="/statics/images/notepad.gif" alt="Web SQL Plus" title="Web SQL Plus"/></a>&nbsp;&nbsp;<a href="/tair.htm" target="_blank"><img src="/statics/images/cache_icon.png" alt="Tair Console" title="Tair Console"/></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="/statics/pages/help.html" target="_blank"><img src="/statics/images/help.png" alt="Help" title="Help"/></a><br/>Welcome <span id="visitor_nick">' + user_nick + '</span> </td>';
     var B = '<br/><span style="color:red;font-size:16px;font-weight:bold;">';
     if (isTestEnv) {
         B += ' Web SQL daily 环境</span><a href="' + A + '"> 到线上环境</a>'

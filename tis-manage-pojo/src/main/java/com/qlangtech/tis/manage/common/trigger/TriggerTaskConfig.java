@@ -6,8 +6,7 @@ package com.qlangtech.tis.manage.common.trigger;
 import com.alibaba.fastjson.JSON;
 
 /**
- * @author 百岁（baisui@taobao.com）
- * @date 2014年10月30日下午12:02:48
+ * @author 百岁
  */
 public class TriggerTaskConfig extends SourceType {
 
