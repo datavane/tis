@@ -353,7 +353,7 @@ to {left:300px;}
                 data:"event_submit_do_re_deploy_incr=y&action=incr_init_spe_action",
                 success:function(data){  
                   var biz =  data.bizresult ||{};
-                  console.info(biz);
+                 // console.info(biz);
                   if( biz.version > 0 ){
                     Chat.register('$appDomain.appName','incrdeploy-change:'+ biz.version);
                   }
@@ -946,7 +946,7 @@ $(function() {
             Chat.socket.onmessage = function (message) {
                 
                 var msg = jQuery.parseJSON(message.data);
-                 console.log(msg.logtype);
+               //  console.log(msg.logtype);
                 // addmessage(message.data);
                 // msg.logtype
                 if("mq_tags_status" === msg.logtype){
@@ -985,7 +985,7 @@ $(function() {
                }
              }else{
                // 已经连接上了
-               console.log("sendmsg:"+event);
+               // console.log("sendmsg:"+event);
                Chat.sendMessage(event); 
              }
         };

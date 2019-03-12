@@ -24,14 +24,14 @@
 package com.qlangtech.tis.trigger.module.screen;
 
 import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.manage.PermissionConstant;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */

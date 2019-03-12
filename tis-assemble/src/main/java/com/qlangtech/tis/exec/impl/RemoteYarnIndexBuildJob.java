@@ -99,8 +99,10 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		YarnClient yarnClient = YarnClient.createYarnClient();
 		yarnClient.init(getYarnConfig());
 		yarnClient.start();
+
 		YarnClientApplication app = yarnClient.createApplication();
 		ApplicationSubmissionContext submissionContext = app.getApplicationSubmissionContext();
+		submissionContext.setApplicationType(coreName);
 		submissionContext.setMaxAppAttempts(100);
 		submissionContext.setKeepContainersAcrossApplicationAttempts(false);
 		final ApplicationId appid = submissionContext.getApplicationId();
@@ -117,15 +119,6 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.BuildNodeMaster "
 						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
 						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
-
-		// amContainer.setCommands(
-		// Collections.singletonList(javaCommand + getMemorySpec(memoryConsume)
-		// + getRemoteDebugParam(runtime)
-		// + " -Druntime=" + runtime.getKeyName() + "
-		// com.qlangtech.tis.build.yarn.Main "
-		// + createLauncherParam() + " 1>" +
-		// ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
-		// + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
 
 		// setJarsLibs(amContainer, libs);
 
@@ -229,8 +222,9 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 	}
 
 	protected String getRemoteDebugParam(RunEnvironment runtime) {
-//		return (runtime == RunEnvironment.DAILY) ? " -Xrunjdwp:transport=dt_socket,address=9890,suspend=n,server=y "
-//				: StringUtils.EMPTY;
+		// return (runtime == RunEnvironment.DAILY) ? "
+		// -Xrunjdwp:transport=dt_socket,address=9890,suspend=n,server=y "
+		// : StringUtils.EMPTY;
 		return StringUtils.EMPTY;
 	}
 
