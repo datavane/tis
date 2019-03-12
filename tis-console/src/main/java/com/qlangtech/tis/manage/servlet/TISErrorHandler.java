@@ -38,18 +38,22 @@ public class TISErrorHandler extends ErrorHandler {
 		buffer.append("		 </tr>");
 		buffer.append("		 <tr>");
 		buffer.append("		 <td align=\"center\">");
-		 buffer.append(
+		buffer.append(
 				"		 <h1 style=\"margin:10px;font-size:800%;font-family:Arial Black,黑体;color:#999999\">404</h1>");
 		buffer.append("		 <h2 style=\"color:blue;\">系统发生错误,请联系统管理员</h2>");
 		buffer.append("\n<pre>");
-		buffer.append(ExceptionUtils.getRootCauseMessage(th));
+		if (th != null) {
+			buffer.append(ExceptionUtils.getRootCauseMessage(th));
+		}
 		buffer.append("\n</pre>");
 		buffer.append("		 </td>");
 		buffer.append("		 </tr>");
 		buffer.append("		 </tbody></table>");
 		buffer.append("		 </center>");
 		buffer.append("\n<pre style=\"display:none\">");
-		buffer.append(ExceptionUtils.getStackTrace(th));
+		if (th != null) {
+			buffer.append(ExceptionUtils.getStackTrace(th));
+		}
 		buffer.append("\n</pre>");
 		buffer.append("		 </body>");
 		buffer.append("		</html>");

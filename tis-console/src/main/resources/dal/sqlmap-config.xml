@@ -74,10 +74,10 @@
 
 	<sqlMap
 		resource="com/qlangtech/tis/manage/biz/dal/dao/sqlmap/rds_table_SqlMap.xml" />
- -->	
+ 
 	<sqlMap
 		resource="com/qlangtech/tis/manage/biz/dal/dao/sqlmap/application_extend_SqlMap.xml" />
-
+--> 
 	<!--end custom scheam define -->
 	<!-- <sqlMap resource="/com/qlangtech/tis/manage/biz/dal/dao/sqlmap/application_SqlMap.xml" 
 		/> <sqlMap resource="/com/qlangtech/tis/manage/biz/dal/dao/sqlmap/group_info_SqlMap.xml" 
