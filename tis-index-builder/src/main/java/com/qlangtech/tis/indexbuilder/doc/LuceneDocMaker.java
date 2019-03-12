@@ -74,13 +74,9 @@ public class LuceneDocMaker implements Runnable {
 
 	private Map<String, SchemaField> fieldMap;
 
-	// private int docPoolSize;
 	private IndexConf indexConf;
 
 	private IndexSchema indexSchema;
-
-	// private final String uniqueKeyField;
-	// private final Set<String> schemaFields;
 
 	public static String BOOST_NAME = "!$boost";
 	private final long newVersion;
@@ -88,10 +84,6 @@ public class LuceneDocMaker implements Runnable {
 	private static final AtomicLong allDocPutQueueTime = new AtomicLong();
 	private static final AtomicLong allDocPutCount = new AtomicLong();
 
-	// boolean filterDelete;
-	// private final long newVersion;
-	// private RawDataProcessor rawDataProcessor;
-	// private final boolean hasRowProcessor;
 	/**
 	 * 取得结果标记位
 	 *
@@ -167,7 +159,7 @@ public class LuceneDocMaker implements Runnable {
 			SourceReader recordReader = readerFactory.nextReader();
 			if (recordReader == null) {
 				successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
-				
+
 				logger.warn(name + ":filtered:" + filteredCount);
 				// 已处理完成
 				return;

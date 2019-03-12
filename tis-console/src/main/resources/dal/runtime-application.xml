@@ -4,18 +4,12 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
 	default-autowire="byName">
 
-<!-- 
-	<bean id="actionTool" class="com.qlangtech.tis.manage.common.ActionTool">
-		<property name="runContext" ref="daoContext" />
-	</bean>
-	 -->
 	 
 	<bean id="ocClient" class="com.qlangtech.tis.manage.spring.OpenshiftClinetFactory" lazy-init="true">
+        <property name="enable" value="${ocClient.enable}" />
         <property name="baseUrl" value="${ocClient.baseUrl}" />
         <property name="userName" value="${ocClient.userName}" />
         <property name="password" value="${ocClient.password}" />
     </bean>
-	 
-	 
-	 
+	 	 
 </beans>

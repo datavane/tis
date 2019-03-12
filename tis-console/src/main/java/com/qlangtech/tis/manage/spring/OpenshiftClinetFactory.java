@@ -23,68 +23,96 @@
  */
 package com.qlangtech.tis.manage.spring;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+
 import com.openshift.restclient.ClientBuilder;
 import com.openshift.restclient.IClient;
+import com.qlangtech.tis.pubhook.common.Nullable;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class OpenshiftClinetFactory implements FactoryBean<IClient>, InitializingBean {
 
-    private IClient ocClient;
+	/**
+	 * 是否启用
+	 */
+	private boolean enable;
 
-    private String baseUrl;
+	private IClient ocClient;
 
-    private String userName;
+	private String baseUrl;
 
-    private String password;
+	private String userName;
 
-    // private static final Logger logger =
-    // LoggerFactory.getLogger(IncrInitSpeAction.class);
-    public String getBaseUrl() {
-        return this.baseUrl;
-    }
+	private String password;
 
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
+	public String getBaseUrl() {
+		return this.baseUrl;
+	}
 
-    public String getUserName() {
-        return this.userName;
-    }
+	public void setBaseUrl(String baseUrl) {
+		this.baseUrl = baseUrl;
+	}
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
+	public String getUserName() {
+		return this.userName;
+	}
 
-    public String getPassword() {
-        return this.password;
-    }
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+	public String getPassword() {
+		return this.password;
+	}
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        this.ocClient = new ClientBuilder(baseUrl).withUserName(userName).withPassword(password).build();
-    }
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-    @Override
-    public IClient getObject() throws Exception {
-        return this.ocClient;
-    }
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (enable) {
+			this.ocClient = new ClientBuilder(baseUrl).withUserName(userName).withPassword(password).build();
+		} else {
+			// disabled
+			this.ocClient = (IClient) Proxy.newProxyInstance(this.getClass().getClassLoader(),
+					new Class<?>[] { IClient.class, Nullable.class }, new InvocationHandler() {
+						@Override
+						public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+							return null;
+						}
+					});
+		}
+	}
 
-    @Override
-    public Class<?> getObjectType() {
-        return IClient.class;
-    }
+	@Override
+	public IClient getObject() throws Exception {
+		return this.ocClient;
+	}
 
-    @Override
-    public boolean isSingleton() {
-        return true;
-    }
+	@Override
+	public Class<?> getObjectType() {
+		return IClient.class;
+	}
+
+	public boolean isEnable() {
+		return enable;
+	}
+
+	public void setEnable(boolean enable) {
+		this.enable = enable;
+	}
+
+	@Override
+	public boolean isSingleton() {
+		return true;
+	}
 }
