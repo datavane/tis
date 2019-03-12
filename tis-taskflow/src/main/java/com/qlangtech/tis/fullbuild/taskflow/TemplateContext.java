@@ -35,66 +35,61 @@ import java.util.Map;
  */
 public class TemplateContext {
 
-    public static final String COL_SPLIT_KEY = "colsplit";
+	public static final String COL_SPLIT_KEY = "colsplit";
 
-    public static final String COL_SPLIT_TAB = "\\t";
+	public static final String COL_SPLIT_TAB = "\\t";
 
-    public static final String COL_SPLIT_001 = "\\001";
+	public static final String COL_SPLIT_001 = "\\001";
 
-    private static final ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
+	private static final ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
 
-        @Override
-        protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("yyyyMMdd");
-        }
-    };
+		@Override
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat("yyyyMMdd");
+		}
+	};
 
-    public String datediff(int offset) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, offset);
-        return dateFormat.get().format(calendar.getTime());
-    }
+	public String datediff(int offset) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.DAY_OF_YEAR, offset);
+		return dateFormat.get().format(calendar.getTime());
+	}
 
-    public static void main(String[] args) {
-        TemplateContext context = new TemplateContext(null);
-        System.out.println(context.datediff(-365));
-    }
+	public static void main(String[] args) {
+		TemplateContext context = new TemplateContext(null);
+		System.out.println(context.datediff(-365));
+	}
 
-    private Map<String, Object> contextValues = new HashMap<>();
+	private Map<String, Object> contextValues = new HashMap<>();
 
-    // 用户提交的参数
-    private final IExecChainContext params;
+	// 用户提交的参数
+	private final IExecChainContext params;
 
-    public TemplateContext(IExecChainContext paramContext) {
-        // this.odpsPartition = System.getProperty("odpsPartition");
-        // if (StringUtils.isEmpty(this.odpsPartition)) {
-        // throw new IllegalArgumentException(
-        // "sys variable odpsPartition can not be null");
-        // }
-        this.params = paramContext;
-    }
+	public TemplateContext(IExecChainContext paramContext) {
+		this.params = paramContext;
+	}
 
-    public IExecChainContext getParams() {
-        return params;
-    }
+	public IExecChainContext getParams() {
+		return params;
+	}
 
-    public void putContextValue(String key, Object v) {
-        this.contextValues.put(key, v);
-    }
+	public void putContextValue(String key, Object v) {
+		this.contextValues.put(key, v);
+	}
 
-    /**
-     * @param key
-     * @return
-     */
-    @SuppressWarnings("all")
-    public <T> T getContextValue(String key) {
-        return (T) this.contextValues.get(key);
-    }
+	/**
+	 * @param key
+	 * @return
+	 */
+	@SuppressWarnings("all")
+	public <T> T getContextValue(String key) {
+		return (T) this.contextValues.get(key);
+	}
 
-    public String getDate() {
-        if (params == null) {
-            return null;
-        }
-        return params.getPartitionTimestamp();
-    }
+	public String getDate() {
+		if (params == null) {
+			return null;
+		}
+		return params.getPartitionTimestamp();
+	}
 }
