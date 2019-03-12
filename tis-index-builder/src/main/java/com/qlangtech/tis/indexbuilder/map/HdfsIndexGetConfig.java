@@ -79,7 +79,6 @@ public class HdfsIndexGetConfig implements TaskMapper {
 
 			taskid = context.getUserParam("indexing.taskid");
 
-			// 词典处理
 			String serviceName = context.getUserParam(// "indexing.servicename"
 					IndexBuildParam.INDEXING_SERVICE_NAME);
 

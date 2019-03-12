@@ -21,6 +21,7 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.qlangtech.tis.build.log.AppnameAwareFlumeLogstashV1Appender;
 import com.qlangtech.tis.build.task.TaskReturn;
 import com.qlangtech.tis.build.task.TaskReturn.ReturnCode;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
@@ -41,7 +42,6 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 	public static final String ENVIRONMENT_EXEC_INDEXS = "exec_indexs";
 
 	private static final Logger logger = LoggerFactory.getLogger(BuildNodeMaster.class);
-
 
 	boolean isShutdown = false;
 
@@ -82,6 +82,7 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 
 		final long allRowCount = taskContext.getAllRowCount();
 		long indexMakeCounter = taskContext.getIndexMakerComplete();
+		logger.info("complete:" + indexMakeCounter + ",all:" + allRowCount);
 		float mainProgress = (float) (((double) indexMakeCounter) / allRowCount);
 		return (float) (((mainProgress > 1.0) ? 1.0 : mainProgress) * 0.98)
 				+ ((indexBuilder.getMergeOver() ? 0.02f : 0.0f));
@@ -145,6 +146,8 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 			// logger.error(e.getMessage(), e);
 			logger.error(e.getMessage(), e);
 			masterShutdown(FinalApplicationStatus.FAILED, ExceptionUtils.getRootCauseMessage(e));
+		} finally {
+			AppnameAwareFlumeLogstashV1Appender.closeAllFlume();
 		}
 	}
 

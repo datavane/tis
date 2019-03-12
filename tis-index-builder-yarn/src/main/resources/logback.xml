@@ -26,7 +26,7 @@
 		<reportingWindow>1000</reportingWindow>
 		<additionalAvroHeaders>logtype=buildinfo</additionalAvroHeaders>
 		<layout class="ch.qos.logback.classic.PatternLayout">
-			<pattern><![CDATA[%d{HH:mm:ss.SSS} %-5level	%logger{36}-%message%n%ex]]></pattern>
+			<pattern><![CDATA[%d{HH:mm:ss} %level %logger{35} -%message%n]]></pattern>
 		</layout>
 	</appender>
 

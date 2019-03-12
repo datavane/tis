@@ -37,7 +37,7 @@
 					<maxHistory>10</maxHistory>
 				</rollingPolicy>
 				<encoder>
-					<pattern><![CDATA[%d{MM-dd HH:mm}%X{host} %msg%n]]></pattern>
+					<pattern><![CDATA[%d{HH:mm:ss}%X{host} %msg%n]]></pattern>
 				</encoder>
 			</appender>
 		</sift>

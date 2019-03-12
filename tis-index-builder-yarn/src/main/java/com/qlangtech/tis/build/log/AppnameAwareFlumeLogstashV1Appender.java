@@ -1,6 +1,8 @@
 package com.qlangtech.tis.build.log;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -19,9 +21,21 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
  */
 public class AppnameAwareFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
 
+	private static final Set<FlumeLogstashV1Appender> flumeAppenderSet = new HashSet<>();
+
+	public static void closeAllFlume() {
+		for (FlumeLogstashV1Appender appender : flumeAppenderSet) {
+			try {
+				appender.stop();
+			} catch (Throwable e) {
+			}
+		}
+	}
+
 	public AppnameAwareFlumeLogstashV1Appender() {
 		super();
 		super.setFlumeAgents(TSearcherConfigFetcher.get().getLogFlumeAddress());
+		flumeAppenderSet.add(this);
 	}
 
 	public void setFlumeAgents(String flumeAgents) {
