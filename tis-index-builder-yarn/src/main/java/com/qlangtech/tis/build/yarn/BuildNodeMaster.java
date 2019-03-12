@@ -20,9 +20,7 @@ import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
-import com.qlangtech.tis.build.log.AppnameAwareFlumeLogstashV1Appender;
 import com.qlangtech.tis.build.task.TaskReturn;
 import com.qlangtech.tis.build.task.TaskReturn.ReturnCode;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
@@ -53,6 +51,9 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 
 	public static void main(String[] args) throws Exception {
 		CommandLine commandLine = parseCommandLine(args);
+
+		HdfsIndexBuilder.setMdcAppName(commandLine.getOptionValue(IndexBuildParam.INDEXING_SERVICE_NAME));
+
 		logger.info("param:##############################");
 		for (String key : IndexBuildParam.getAllFieldName()) {
 			logger.info(key + ":" + commandLine.getOptionValue(key));
