@@ -102,7 +102,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 
 		YarnClientApplication app = yarnClient.createApplication();
 		ApplicationSubmissionContext submissionContext = app.getApplicationSubmissionContext();
-		submissionContext.setApplicationType(coreName);
+		submissionContext.setApplicationType(serviceName);
 		submissionContext.setMaxAppAttempts(100);
 		submissionContext.setKeepContainersAcrossApplicationAttempts(false);
 		final ApplicationId appid = submissionContext.getApplicationId();
@@ -119,7 +119,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.BuildNodeMaster "
 						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
 						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
-
+		
 		// setJarsLibs(amContainer, libs);
 
 		/* CLASSPATH 运行依賴的環境變量 */
