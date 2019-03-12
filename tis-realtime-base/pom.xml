@@ -31,7 +31,6 @@
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-hdfs-extends</artifactId>
-			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.hadoop</groupId>
@@ -43,6 +42,11 @@
 			<artifactId>logback-flume-appender</artifactId>
 			<groupId>com.gilt.logback</groupId>
 		</dependency>
+		 <dependency>
+            <groupId>org.apache.flume</groupId>
+            <artifactId>flume-ng-sdk</artifactId>
+            <version>1.5.0.1</version>
+        </dependency>
 <!-- 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>

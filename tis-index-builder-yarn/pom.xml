@@ -63,12 +63,17 @@
 			<artifactId>logback-flume-appender</artifactId>
 			<groupId>com.gilt.logback</groupId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.flume</groupId>
+			<artifactId>flume-ng-sdk</artifactId>
+			<version>1.5.0.1</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-client</artifactId>
 			<scope>provided</scope>
-			
+
 		</dependency>
 
 		<dependency>
