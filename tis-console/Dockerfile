@@ -1,7 +1,7 @@
 # s2i-java
 #DOCKER_HOST=tcp://<host>:2375
 FROM openjdk:8-jre
-MAINTAINER baisui <baisui@2dfire.com>
+MAINTAINER baisui 
 
 
 ENTRYPOINT ["/bin/bash", "/usr/share/launch.sh"]

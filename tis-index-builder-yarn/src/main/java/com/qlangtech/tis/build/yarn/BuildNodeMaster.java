@@ -33,7 +33,7 @@ import com.qlangtech.tis.yarn.common.YarnConstant;
 /**
  * build索引的master节点类
  * 
- * @author 百岁（baisui@2dfire.com）
+ * @author 百岁
  *
  * @date 2016年3月31日
  */
