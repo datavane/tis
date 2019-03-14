@@ -66,25 +66,18 @@ public class TSearcherConfigFetcher {
 
 	public static final String CONFIG_TIS_HDFS_ROOT_DIR = "tis_hdfs_root_dir";
 
-	// public static final String jobtracker_rpcserver = "jobtracker_rpcserver";
-	//
-	// public static final String jobtracker_transserver =
-	// "jobtracker_transserver";
-
 	public static final String LOG_SOURCE_ADDRESS = "log_source_address";
 
 	public static final String TIS_ASSEMBLE_HOST = "tis_assemble_host";
 
 	public static final String HIVE_HOST = "hivehost";
 
-	public static final String INDEX_BUILD_CENTER_HOST = "index_build_center_host";
-
 	// private List<String> mqStatisticsHost;
 
 	// 所有回流到hdfs的根目录
 	private final String tisHdfsRootDir;
 
-	private final String indexBuildCenterHost;
+	// private final String indexBuildCenterHost;
 
 	// 组装节点
 	private final String assembleHost;
@@ -120,7 +113,7 @@ public class TSearcherConfigFetcher {
 
 	public TSearcherConfigFetcher() {
 
-		this.indexBuildCenterHost = null;
+		// this.indexBuildCenterHost = null;
 		this.assembleHost = null;
 		this.tisConsoleHost = null;
 		this.zkAddress = null;
@@ -159,8 +152,10 @@ public class TSearcherConfigFetcher {
 			throw new RuntimeException(e1);
 		}
 		// build中心host地址
-		this.indexBuildCenterHost = servceConfig.getString(INDEX_BUILD_CENTER_HOST);
-		Assert.assertNotNull("indexBuildCenterHost can not be null,key:index_build_center_host", indexBuildCenterHost);
+		// this.indexBuildCenterHost =
+		// servceConfig.getString(INDEX_BUILD_CENTER_HOST);
+		// Assert.assertNotNull("indexBuildCenterHost can not be
+		// null,key:index_build_center_host", indexBuildCenterHost);
 
 		this.assembleHost = servceConfig.getString(TIS_ASSEMBLE_HOST);
 		this.logFlumeAgent = servceConfig.getString(CONFIG_LOG_FLUME_AGENT_ADDRESS);
@@ -273,9 +268,9 @@ public class TSearcherConfigFetcher {
 		return getInstance().onlineZkAddress;
 	}
 
-	public String getIndexBuildCenterHost() {
-		return getInstance().indexBuildCenterHost;
-	}
+	// public String getIndexBuildCenterHost() {
+	// return getInstance().indexBuildCenterHost;
+	// }
 
 	public String getHdfsAddress() {
 		return getInstance().hdfsAddress;
