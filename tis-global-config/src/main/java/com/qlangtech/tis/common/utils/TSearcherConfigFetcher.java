@@ -268,10 +268,6 @@ public class TSearcherConfigFetcher {
 		return getInstance().onlineZkAddress;
 	}
 
-	// public String getIndexBuildCenterHost() {
-	// return getInstance().indexBuildCenterHost;
-	// }
-
 	public String getHdfsAddress() {
 		return getInstance().hdfsAddress;
 	}
