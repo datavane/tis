@@ -60,6 +60,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.realtime.TisIncrLauncher;
@@ -80,7 +81,6 @@ public class TransferStart implements Runnable {
 	// 使用自己搭建的网络
 	// public static final String PATH_YARN_SITE =
 	// "/usr/share/hadoop-2.6.0/etc/hadoop/yarn-site.xml";
-	private static final MessageFormat HDFS_GROUP_LIB_DIR_FORMAT = new MessageFormat("/user/admin/{0}");
 
 	private static final Logger logger = LoggerFactory.getLogger(TransferStart.class);
 
@@ -193,7 +193,12 @@ public class TransferStart implements Runnable {
 	}
 
 	private static Path getLibRootPath(String incrGroupName, RunEnvironment runtime) {
-		return new Path(HDFS_GROUP_LIB_DIR_FORMAT.format(new Object[] { incrGroupName }) + "/" + runtime.getKeyName());
+
+		final MessageFormat HDFS_GROUP_LIB_DIR_FORMAT //
+				= new MessageFormat(TSearcherConfigFetcher.get().getHDFSRootDir() + "/{0}");
+
+		return new Path(HDFS_GROUP_LIB_DIR_FORMAT.format( //
+				new Object[] { incrGroupName }) + "/" + runtime.getKeyName());
 	}
 
 	private static List<Path> copyLibs2Hdfs(String localJarDir, Path libRootPath) throws Exception {
@@ -202,10 +207,7 @@ public class TransferStart implements Runnable {
 			throw new IllegalArgumentException("param localJarDir can not be null");
 		}
 		FileSystem fs = getFileSystem();
-		// getLibRootPath(commandLine,runtime);//
 		final Path path = libRootPath;
-		// new Path(HDFS_GROUP_LIB_DIR + "/" +
-		// runtime.getKeyName());
 		fs.delete(path, true);
 		File dir = new File(localJarDir);
 		String[] childs = null;

@@ -43,7 +43,7 @@ public class Config {
 	private final String tisOnlineRepository;
 
 	private final String assembleHostAddress;// =10.1.29.64
-	private final String jobTrackerHostAddress;
+	private final String yarnResourceManagerHost;
 
 	private final String projectName;
 
@@ -77,7 +77,8 @@ public class Config {
 		this.tisOnlineRepository = p.getString("tis.online.repository");
 
 		this.assembleHostAddress = p.getString("assemble.host");
-		this.jobTrackerHostAddress = p.getString("jobtracker.host");
+		
+		this.yarnResourceManagerHost = p.getString("yarn.resource.manager.host");
 
 		this.projectName = p.getString("project.name");
 
@@ -124,8 +125,8 @@ public class Config {
 		return getInstance().tisOnlineRepository;
 	}
 
-	public static String getJobtrackerHost() {
-		return getInstance().jobTrackerHostAddress;
+	public static String getYarnResourceManagerHost() {
+		return getInstance().yarnResourceManagerHost;
 	}
 
 	public static String getAssembleHostAddress() {

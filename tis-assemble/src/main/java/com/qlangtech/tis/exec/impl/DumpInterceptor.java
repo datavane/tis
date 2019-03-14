@@ -90,7 +90,7 @@ public class DumpInterceptor implements IExecuteInterceptor {
 	// FileNotFoundException {
 	// t.deleteMetadata(execConetxt);
 	// t.deleteHdfsFile(execConetxt, false/* isBuildFile */);
-	// // 索引数据: /user/admin/search4totalpay/all/0/output/20160104003306
+	// 
 	// t.deleteHdfsFile(execConetxt, true/* isBuildFile */);
 	// }
 	/**

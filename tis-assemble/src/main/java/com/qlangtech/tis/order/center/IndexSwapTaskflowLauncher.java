@@ -423,7 +423,7 @@ public class IndexSwapTaskflowLauncher implements // ApplicationContextAware,
 		// // ▼▼▼▼ 触发索引构建
 		// final HdfsSourcePathCreator pathCreator = new HdfsSourcePathCreator()
 		// {
-		// String hdfsPath = "/user/hive/db/totalpay_summary/pt=%s/pmod=%s";
+		//
 		//
 		// @Override
 		// public String build(String group) {

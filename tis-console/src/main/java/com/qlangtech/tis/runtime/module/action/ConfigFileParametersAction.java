@@ -165,6 +165,21 @@ public class ConfigFileParametersAction extends BasicModule {
 							this.insertDefault(m, p.getName(), "hdfs://cluster-cdh", p.getDesc());
 						}
 					}), //
+			new GlobalParam(TSearcherConfigFetcher.CONFIG_TIS_HDFS_ROOT_DIR, "分布式文件系统根路径" //
+					, new ParamValiate() {
+						@Override
+						public boolean validate(Context ctx, BasicModule module, Option p) {
+							if (!super.validate(ctx, module, p)) {
+								return false;
+							}
+							String prefix = "/";
+							if (!StringUtils.startsWith(p.getValue(), prefix)) {
+								module.addErrorMessage(ctx, p.getName() + "应以" + prefix + "作为前缀");
+								return false;
+							}
+							return true;
+						}
+					}, new ParamProcess()), //
 			new GlobalParam(TSearcherConfigFetcher.CONFIG_terminator_host_address, "TIS中控节点Host地址" //
 					, new ParamValiate() {
 						@Override
@@ -214,39 +229,45 @@ public class ConfigFileParametersAction extends BasicModule {
 							, "全量、增量flume日志收集地址");
 						}
 					}), //
-			new GlobalParam(TSearcherConfigFetcher.jobtracker_rpcserver, "TIS任务中心入口地址" //
-					, new ParamValiate() {
-						@Override
-						public boolean validate(Context ctx, BasicModule module, Option p) {
-							if (!super.validate(ctx, module, p)) {
-								return false;
-							}
-							if (!validateIP(ctx, module, p)) {
-								return false;
-							}
-							return true;
-						}
-					}, new ParamProcess() {
-						@Override
-						public void process(ConfigFileParametersAction m, GlobalParam p, Option option) {
-
-							this.insertDefault(m, p.getName() //
-							, Config.getJobtrackerHost() + ":8848" //
-							, p.getDesc());
-
-							this.insertDefault(m //
-							, TSearcherConfigFetcher.jobtracker_transserver //
-							, Config.getJobtrackerHost() + ":8849" //
-							, p.getDesc());
-
-							this.insertDefault(m //
-							, TSearcherConfigFetcher.INDEX_BUILD_CENTER_HOST //
-							, "http://" + Config.getJobtrackerHost() + ":9999/jobtracker.jsp" //
-							, p.getDesc() + " URL");
-
-						}
-					}) //
-			, new GlobalParam(TSearcherConfigFetcher.HIVE_HOST, "TIS 全量构建HIVE入口地址,格式:'10.1.127.105:10000'" //
+//			new GlobalParam(TSearcherConfigFetcher.jobtracker_rpcserver, "TIS任务中心入口地址" //
+//					, new ParamValiate() {
+//						@Override
+//						public boolean validate(Context ctx, BasicModule module, Option p) {
+//							if (!super.validate(ctx, module, p)) {
+//								return false;
+//							}
+//							if (!validateIP(ctx, module, p)) {
+//								return false;
+//							}
+//							return true;
+//						}
+//					}, new ParamProcess() {
+//						@Override
+//						public void process(ConfigFileParametersAction m, GlobalParam p, Option option) {
+//
+//							// this.insertDefault(m, p.getName() //
+//							// , Config.getYarnResourceManagerHost() + ":8848"
+//							// //
+//							// , p.getDesc());
+//							//
+//							// this.insertDefault(m //
+//							// , TSearcherConfigFetcher.jobtracker_transserver
+//							// //
+//							// , Config.getYarnResourceManagerHost() + ":8849"
+//							// //
+//							// , p.getDesc());
+//							//
+//							// this.insertDefault(m //
+//							// , TSearcherConfigFetcher.INDEX_BUILD_CENTER_HOST
+//							// //
+//							// , "http://" + Config.getYarnResourceManagerHost()
+//							// + ":9999/jobtracker.jsp" //
+//							// , p.getDesc() + " URL");
+//
+//						}
+//					}) //
+//			, 
+			new GlobalParam(TSearcherConfigFetcher.HIVE_HOST, "TIS 全量构建HIVE入口地址,格式:'10.1.127.105:10000'" //
 					, new ParamValiate() {
 						@Override
 						public boolean validate(Context ctx, BasicModule module, Option p) {
@@ -322,7 +343,6 @@ public class ConfigFileParametersAction extends BasicModule {
 		if (hasError) {
 			return;
 		}
-
 
 		// 添加一个系统管理员
 		this.getUsrDptRelationDAO().addAdminUser();

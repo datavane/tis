@@ -1,0 +1,174 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building tis-console 1.0.0
+[INFO] ------------------------------------------------------------------------
+[WARNING] The POM for velocity-tools:velocity-tools-view:jar:2.0-beta1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tis-console ---
+[INFO] com.qlangtech.tis:tis-console:jar:1.0.0
+[INFO] +- org.apache.hadoop:hadoop-yarn-client:jar:2.6.0:compile
+[INFO] |  +- com.google.guava:guava:jar:11.0.2:compile
+[INFO] |  |  \- com.google.code.findbugs:jsr305:jar:1.3.9:compile
+[INFO] |  +- commons-logging:commons-logging:jar:1.2:compile
+[INFO] |  +- commons-cli:commons-cli:jar:1.2:compile
+[INFO] |  +- org.apache.hadoop:hadoop-annotations:jar:2.6.0:compile
+[INFO] |  |  \- jdk.tools:jdk.tools:jar:1.6:system
+[INFO] |  +- org.apache.hadoop:hadoop-yarn-api:jar:2.6.0:compile
+[INFO] |  |  \- com.google.protobuf:protobuf-java:jar:2.5.0:compile
+[INFO] |  \- org.apache.hadoop:hadoop-yarn-common:jar:2.6.0:compile
+[INFO] |     +- javax.xml.bind:jaxb-api:jar:2.2.2:compile
+[INFO] |     |  \- javax.xml.stream:stax-api:jar:1.0-2:compile
+[INFO] |     +- org.mortbay.jetty:jetty-util:jar:6.1.26:compile
+[INFO] |     +- com.sun.jersey:jersey-core:jar:1.9:compile
+[INFO] |     +- com.sun.jersey:jersey-client:jar:1.9:compile
+[INFO] |     +- org.codehaus.jackson:jackson-core-asl:jar:1.9.13:compile
+[INFO] |     +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13:compile
+[INFO] |     +- org.codehaus.jackson:jackson-jaxrs:jar:1.9.13:compile
+[INFO] |     +- org.codehaus.jackson:jackson-xc:jar:1.9.13:compile
+[INFO] |     +- com.google.inject.extensions:guice-servlet:jar:3.0:compile
+[INFO] |     +- com.google.inject:guice:jar:3.0:compile
+[INFO] |     |  \- javax.inject:javax.inject:jar:1:compile
+[INFO] |     +- com.sun.jersey:jersey-server:jar:1.9:compile
+[INFO] |     |  \- asm:asm:jar:3.1:compile
+[INFO] |     +- com.sun.jersey:jersey-json:jar:1.9:compile
+[INFO] |     |  \- com.sun.xml.bind:jaxb-impl:jar:2.2.3-1:compile
+[INFO] |     \- com.sun.jersey.contribs:jersey-guice:jar:1.9:compile
+[INFO] +- com.qlangtech.tis:tis-trigger-dal:jar:1.0.0:compile
+[INFO] |  \- org.springframework:spring-orm:jar:3.0.6.RELEASE:compile
+[INFO] |     +- org.springframework:spring-jdbc:jar:3.0.6.RELEASE:compile
+[INFO] |     \- org.springframework:spring-tx:jar:3.0.6.RELEASE:compile
+[INFO] +- com.qlangtech.tis:tis-rpc:jar:1.0.0:compile
+[INFO] |  +- com.qlangtech.tis:tis-global-config:jar:1.0.0:compile
+[INFO] |  +- io.netty:netty-all:jar:5.0.0.Alpha1:compile
+[INFO] |  \- commons-io:commons-io:jar:2.5:compile
+[INFO] +- com.qlangtech.tis:tis-manage-pojo:jar:1.0.0:compile
+[INFO] |  +- org.springframework:spring-core:jar:3.0.6.RELEASE:compile
+[INFO] |  |  \- org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
+[INFO] |  +- org.springframework:spring-context:jar:3.0.6.RELEASE:compile
+[INFO] |  |  +- org.springframework:spring-aop:jar:3.0.6.RELEASE:compile
+[INFO] |  |  \- org.springframework:spring-expression:jar:3.0.6.RELEASE:compile
+[INFO] |  \- com.alibaba:fastjson:jar:1.1.43:compile
+[INFO] +- com.openshift:openshift-restclient-java:jar:7.0.0.Final:compile
+[INFO] |  +- com.squareup.okhttp3:okhttp:jar:3.11.0:compile
+[INFO] |  |  \- com.squareup.okio:okio:jar:1.14.0:compile
+[INFO] |  +- org.yaml:snakeyaml:jar:1.14:compile
+[INFO] |  +- org.jboss:jboss-dmr:jar:1.3.0.Final:compile
+[INFO] |  \- org.apache.commons:commons-compress:jar:1.18:compile
+[INFO] +- org.slf4j:slf4j-log4j12:jar:1.7.5:compile
+[INFO] +- org.slf4j:log4j-over-slf4j:jar:1.7.5:compile
+[INFO] +- org.eclipse.jetty:jetty-server:jar:9.4.10.RC1:compile
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.1.0:compile
+[INFO] |  +- org.eclipse.jetty:jetty-http:jar:9.4.10.RC1:compile
+[INFO] |  \- org.eclipse.jetty:jetty-io:jar:9.4.10.RC1:compile
+[INFO] +- org.eclipse.jetty:jetty-webapp:jar:9.4.10.RC1:compile
+[INFO] |  \- org.eclipse.jetty:jetty-xml:jar:9.4.10.RC1:compile
+[INFO] +- org.eclipse.jetty:jetty-servlet:jar:9.4.10.RC1:compile
+[INFO] |  \- org.eclipse.jetty:jetty-security:jar:9.4.10.RC1:compile
+[INFO] +- org.eclipse.jetty.websocket:websocket-servlet:jar:9.4.10.RC1:compile
+[INFO] |  \- org.eclipse.jetty.websocket:websocket-api:jar:9.4.10.RC1:compile
+[INFO] +- org.eclipse.jetty.websocket:websocket-server:jar:9.4.10.RC1:compile
+[INFO] |  +- org.eclipse.jetty.websocket:websocket-common:jar:9.4.10.RC1:compile
+[INFO] |  \- org.eclipse.jetty.websocket:websocket-client:jar:9.4.10.RC1:compile
+[INFO] |     \- org.eclipse.jetty:jetty-client:jar:9.4.10.RC1:compile
+[INFO] +- org.eclipse.jetty:jetty-annotations:jar:9.4.10.RC1:compile
+[INFO] |  +- org.eclipse.jetty:jetty-plus:jar:9.4.10.RC1:compile
+[INFO] |  |  \- org.eclipse.jetty:jetty-jndi:jar:9.4.10.RC1:compile
+[INFO] |  \- javax.annotation:javax.annotation-api:jar:1.2:compile
+[INFO] +- org.eclipse.jetty:apache-jsp:jar:9.4.10.RC1:compile
+[INFO] |  +- org.eclipse.jetty:jetty-util:jar:9.4.10.RC1:compile
+[INFO] |  +- org.eclipse.jetty.toolchain:jetty-schemas:jar:3.1:compile
+[INFO] |  \- org.mortbay.jasper:apache-jsp:jar:8.5.24.2:compile
+[INFO] |     +- org.mortbay.jasper:apache-el:jar:8.5.24.2:compile
+[INFO] |     \- org.eclipse.jdt:ecj:jar:3.12.3:compile
+[INFO] +- com.qlangtech.tis:tis-xmodifier:jar:1.0.0:compile
+[INFO] +- ch.qos.logback:logback-classic:jar:1.1.3:compile
+[INFO] |  \- ch.qos.logback:logback-core:jar:1.1.3:compile
+[INFO] +- com.qlangtech.tis:tis-hdfs-extends:jar:1.0.0:compile
+[INFO] |  +- org.apache.hadoop:hadoop-common:jar:2.6.0:compile
+[INFO] |  |  +- xmlenc:xmlenc:jar:0.52:compile
+[INFO] |  |  +- commons-httpclient:commons-httpclient:jar:3.1:compile
+[INFO] |  |  +- commons-net:commons-net:jar:3.1:compile
+[INFO] |  |  +- commons-el:commons-el:jar:1.0:runtime
+[INFO] |  |  +- commons-configuration:commons-configuration:jar:1.6:compile
+[INFO] |  |  |  +- commons-digester:commons-digester:jar:1.8:compile
+[INFO] |  |  |  |  \- commons-beanutils:commons-beanutils:jar:1.7.0:compile
+[INFO] |  |  |  \- commons-beanutils:commons-beanutils-core:jar:1.8.0:compile
+[INFO] |  |  +- org.apache.avro:avro:jar:1.7.4:compile
+[INFO] |  |  |  +- com.thoughtworks.paranamer:paranamer:jar:2.3:compile
+[INFO] |  |  |  \- org.xerial.snappy:snappy-java:jar:1.0.4.1:compile
+[INFO] |  |  +- com.google.code.gson:gson:jar:2.2.4:compile
+[INFO] |  |  +- org.apache.hadoop:hadoop-auth:jar:2.6.0:compile
+[INFO] |  |  |  +- org.apache.directory.server:apacheds-kerberos-codec:jar:2.0.0-M15:compile
+[INFO] |  |  |  |  +- org.apache.directory.server:apacheds-i18n:jar:2.0.0-M15:compile
+[INFO] |  |  |  |  +- org.apache.directory.api:api-asn1-api:jar:1.0.0-M20:compile
+[INFO] |  |  |  |  \- org.apache.directory.api:api-util:jar:1.0.0-M20:compile
+[INFO] |  |  |  \- org.apache.curator:curator-framework:jar:2.6.0:compile
+[INFO] |  |  +- com.jcraft:jsch:jar:0.1.42:compile
+[INFO] |  |  \- org.htrace:htrace-core:jar:3.0.4:compile
+[INFO] |  +- xerces:xercesImpl:jar:2.9.1:compile
+[INFO] |  |  \- xml-apis:xml-apis:jar:1.3.04:compile
+[INFO] |  \- xalan:xalan:jar:2.7.1:compile
+[INFO] |     \- xalan:serializer:jar:2.7.1:compile
+[INFO] +- com.qlangtech.tis:tis-servlet-monitor:jar:1.0.0:compile
+[INFO] +- junit:junit:jar:3.8.1:compile
+[INFO] +- org.quartz-scheduler:quartz:jar:2.1.5:compile
+[INFO] |  \- c3p0:c3p0:jar:0.9.1.1:compile
+[INFO] +- org.apache.solr:solr-solrj:jar:7.6.0:compile
+[INFO] |  +- org.apache.commons:commons-math3:jar:3.6.1:compile
+[INFO] |  +- org.apache.httpcomponents:httpclient:jar:4.5.3:compile
+[INFO] |  +- org.apache.httpcomponents:httpcore:jar:4.4.6:compile
+[INFO] |  +- org.apache.httpcomponents:httpmime:jar:4.5.3:compile
+[INFO] |  +- org.apache.zookeeper:zookeeper:jar:3.4.5:compile
+[INFO] |  +- org.codehaus.woodstox:stax2-api:jar:3.1.4:compile
+[INFO] |  +- org.codehaus.woodstox:woodstox-core-asl:jar:4.4.1:compile
+[INFO] |  \- org.noggit:noggit:jar:0.8:compile
+[INFO] +- com.qlangtech.tis:tis-solrj-client:jar:1.0.0:compile
+[INFO] +- javax.mail:mail:jar:1.4:compile
+[INFO] |  \- javax.activation:activation:jar:1.1:compile
+[INFO] +- org.codehaus.jettison:jettison:jar:1.3.1:compile
+[INFO] |  \- stax:stax-api:jar:1.0.1:compile
+[INFO] +- com.thoughtworks.xstream:xstream:jar:1.2.2:compile
+[INFO] |  \- xpp3:xpp3_min:jar:1.1.3.4.O:compile
+[INFO] +- com.qlangtech.tis:tis-common:jar:1.0.0:compile
+[INFO] +- com.qlangtech.tis:tis-solrconfig-parser:jar:1.0.0:compile
+[INFO] +- org.slf4j:slf4j-api:jar:1.7.5:compile
+[INFO] +- commons-dbcp:commons-dbcp:jar:1.4:compile
+[INFO] |  \- commons-pool:commons-pool:jar:1.5.4:compile
+[INFO] +- mysql:mysql-connector-java:jar:5.1.30:compile
+[INFO] +- org.apache.ibatis:ibatis-sqlmap:jar:2.3.4.726:compile
+[INFO] +- commons-codec:commons-codec:jar:1.5:compile
+[INFO] +- org.json:json:jar:20151123:compile
+[INFO] +- org.apache.velocity:velocity:jar:1.6.4:compile
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:compile
+[INFO] |  \- oro:oro:jar:2.0.8:compile
+[INFO] +- com.qlangtech.tis:tis-tags-pager:jar:1.0.0:compile
+[INFO] +- org.apache.hadoop:hadoop-client:jar:2.6.0:compile
+[INFO] |  \- org.apache.hadoop:hadoop-hdfs:jar:2.6.0:compile
+[INFO] |     \- io.netty:netty:jar:3.6.2.Final:compile
+[INFO] +- org.apache.struts:struts2-core:jar:2.5.17:compile
+[INFO] |  +- org.freemarker:freemarker:jar:2.3.26-incubating:compile
+[INFO] |  +- ognl:ognl:jar:3.1.15:compile
+[INFO] |  |  \- org.javassist:javassist:jar:3.20.0-GA:compile
+[INFO] |  +- org.apache.logging.log4j:log4j-api:jar:2.10.0:compile
+[INFO] |  +- commons-fileupload:commons-fileupload:jar:1.3.3:compile
+[INFO] |  \- org.apache.commons:commons-lang3:jar:3.6:compile
+[INFO] +- org.apache.struts:struts2-spring-plugin:jar:2.5.17:compile
+[INFO] |  +- org.springframework:spring-beans:jar:3.0.6.RELEASE:compile
+[INFO] |  \- org.springframework:spring-web:jar:3.0.6.RELEASE:compile
+[INFO] |     \- aopalliance:aopalliance:jar:1.0:compile
+[INFO] +- org.apache.struts:struts2-convention-plugin:jar:2.5.17:compile
+[INFO] +- velocity-tools:velocity-tools-view:jar:2.0-beta1:compile
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- org.ow2.asm:asm:jar:5.1:compile
+[INFO] +- org.ow2.asm:asm-commons:jar:5.1:compile
+[INFO] |  \- org.ow2.asm:asm-tree:jar:5.1:compile
+[INFO] +- org.jdom:jdom2:jar:2.0.5:compile
+[INFO] \- org.slf4j:jcl-over-slf4j:jar:1.7.5:compile
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 2.689 s
+[INFO] Finished at: 2019-03-13T16:09:03+08:00
+[INFO] Final Memory: 23M/208M
+[INFO] ------------------------------------------------------------------------

@@ -27,22 +27,21 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 /*
@@ -130,7 +129,7 @@ public class HdfsView extends BasicScreen {
 	 * @return
 	 */
 	protected Path getDefaultPath(String appName) {
-		return new Path("/user/admin/" + appName);
+		return new Path(TSearcherConfigFetcher.get().getHDFSRootDir()+"/" + appName);
 	}
 
 	private String parsePath(Path path) throws Exception {
@@ -174,7 +173,7 @@ public class HdfsView extends BasicScreen {
 	// FSDataInputStream reader = getFilesystem()
 	// .open(
 	// new Path(
-	// "/user/admin/search4pixUser/all/0/20120513220000/search4pixUser.suc"));
+	// 
 	//
 	// // 读取success文件
 	// System.out.println("dump count :" + IOUtils.toString(reader));

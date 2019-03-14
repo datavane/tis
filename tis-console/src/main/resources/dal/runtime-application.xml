@@ -11,5 +11,11 @@
         <property name="userName" value="${ocClient.userName}" />
         <property name="password" value="${ocClient.password}" />
     </bean>
+    
+
+    <bean id="yarnClient" class="com.qlangtech.tis.manage.yarn.YarnClientFactory" lazy-init="true">
+    </bean>
+    
+    
 	 	 
 </beans>

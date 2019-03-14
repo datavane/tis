@@ -1,3 +1,134 @@
-<h2>索引BUILD监控(<a target="_blank" href="$IndexBuildCenterUrl">$IndexBuildCenterUrl</a>)</h2>
-
+<h2>YARN容器任务一览</h2>
+#*
 <iframe frameborder="0" height="800" width="100%" src="$IndexBuildCenterUrl" ></iframe>
+*#
+
+<h3>Waiting</h3>
+<table class="table table-bordered table-hover" width="100%">
+  <thead>
+ <tr>
+  <td>名称</td>
+  <td>状态</td>
+  <td>触发时间</td>
+ </tr>
+  </thead>
+  <tbody>
+ #foreach($item in $rs.waiting)
+ <tr>
+  <td>$item.name</td>
+  <td>$item.sppState</td>
+  <td>$item.startTime</td>
+ </tr>
+ #end
+  </tbody>
+</table>
+
+<h3>Preparing</h3>
+<table class="table table-bordered table-hover" width="100%">
+  <thead>
+ <tr>
+  <td>名称</td>
+  <td>状态</td>
+  <td>触发时间</td>
+ </tr>
+  </thead>
+  <tbody>
+ #foreach($item in $rs.preparing)
+ <tr>
+  <td>$item.name</td>
+  <td>$item.sppState</td>
+  <td>$item.startTime</td>
+ </tr>
+ #end
+  </tbody>
+</table>
+
+<h3>Running</h3>
+<table class="table table-bordered table-hover" width="100%">
+  <thead>
+ <tr>
+  <td>名称</td>
+  <td>状态</td>
+  <td>触发时间</td>
+  <td>进度</td>
+ </tr>
+  </thead>
+  <tbody>
+ #foreach($item in $rs.running)
+ <tr>
+  <td>$item.name</td>
+  <td>$item.sppState</td>
+  <td>$item.startTime</td>
+  <td>$item.progress</td>
+ </tr>
+ #end
+  </tbody>
+</table>
+
+<h3>Finished</h3>
+<table class="table table-bordered table-hover" width="100%">
+  <thead>
+ <tr>
+  <td>名称</td>
+  <td>状态</td>
+  <td>触发时间</td>
+  <td>结束时间</td>
+ </tr>
+  </thead>
+  <tbody>
+ #foreach($item in $rs.finished)
+ <tr>
+  <td>$item.name</td>
+  <td>$item.finalStatus</td>
+  <td>$item.startTime</td>
+  <td>$item.endTime</td>
+ </tr>
+ #end
+  </tbody>
+</table>
+
+<h3>Failed</h3>
+<table class="table table-bordered table-hover" width="100%">
+  <thead>
+ <tr>
+  <td>名称</td>
+  <td>触发时间</td>
+  <td>结束时间</td>
+  <td>诊断</td>
+ </tr>
+  </thead>
+  <tbody>
+ #foreach($item in $rs.failed)
+ <tr>
+  <td>$item.name</td>
+  <td>$item.startTime</td>
+  <td>$item.endTime</td>
+  <td style="font-color:#666666;font-size:10px;">
+    $item.diagnostics
+  </td>
+ </tr>
+ #end
+  </tbody>
+</table>
+
+<h3>Killed</h3>
+<table class="table table-bordered table-hover" width="100%">
+  <thead>
+ <tr>
+  <td>名称</td>
+  <td>状态</td>
+  <td>触发时间</td>
+  <td>结束时间</td>
+ </tr>
+  </thead>
+  <tbody>
+ #foreach($item in $rs.killed)
+ <tr>
+  <td>$item.name</td>
+  <td>$item.sppState</td>
+  <td>$item.startTime</td>
+  <td>$item.endTime</td>
+ </tr>
+ #end
+  </tbody>
+</table>

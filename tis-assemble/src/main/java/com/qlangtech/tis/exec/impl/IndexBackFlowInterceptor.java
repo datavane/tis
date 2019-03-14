@@ -24,13 +24,16 @@
 package com.qlangtech.tis.exec.impl;
 
 import java.util.List;
+
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.exec.ActionInvocation;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -38,6 +41,7 @@ import com.qlangtech.tis.exec.IExecuteInterceptor;
 import com.qlangtech.tis.order.center.IndexBackflowManager;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
+import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo.HDFSRootDir;
 import com.qlangtech.tis.trigger.jst.impl.RemoteIndexBuildJob;
 import com.tis.zookeeper.ZkPathUtils;
 
@@ -87,7 +91,8 @@ public class IndexBackFlowInterceptor implements IExecuteInterceptor {
 					buildResult.setSuccess(true);
 					buildResult.setReplica(replic);
 					// 取得当前文件夹的size
-					String hdfsPath = state.getIndexBuildOutputPath(context.getContextUserName(),
+					String hdfsPath = state.getIndexBuildOutputPath(
+							new HDFSRootDir(TSearcherConfigFetcher.get().getHDFSRootDir()),
 							buildResult.getGroupIndex());
 					buildResult.setIndexSize(
 							RemoteIndexBuildJob.getSizeHdfsDir(context.getDistributeFileSystem(), hdfsPath));

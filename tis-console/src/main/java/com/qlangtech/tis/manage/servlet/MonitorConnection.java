@@ -23,55 +23,55 @@
  */
 package com.qlangtech.tis.manage.servlet;
 
-import javax.websocket.Session;
-import org.apache.commons.lang.StringUtils;
-import com.qlangtech.tis.trigger.socket.ExecuteState;
+//import javax.websocket.Session;
+//import org.apache.commons.lang.StringUtils;
+//import com.qlangtech.tis.trigger.socket.ExecuteState;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public abstract class MonitorConnection {
-
-    public final Session session;
-
-    MonitorConnection(Session session) {
-        super();
-        this.session = session;
-    }
-
-    public abstract boolean isAccept(ExecuteState stat);
-
-    public static class FucusIndex extends MonitorConnection {
-
-        private String serviceName;
-
-        public FucusIndex(Session session, String serviceName) {
-            super(session);
-            if (!StringUtils.startsWith(serviceName, "search4")) {
-                throw new IllegalArgumentException("serviceName:" + serviceName + " shall start with 'search4'");
-            }
-            this.serviceName = serviceName;
-        }
-
-        @Override
-        public boolean isAccept(ExecuteState stat) {
-            return StringUtils.equals(this.serviceName, stat.getCollectionName());
-        }
-    }
-
-    public static class FocusTask extends MonitorConnection {
-
-        private Integer taskid;
-
-        public FocusTask(Session session, Integer taskid) {
-            super(session);
-            this.taskid = taskid;
-        }
-
-        @Override
-        public boolean isAccept(ExecuteState stat) {
-            return (taskid + 0) == stat.getTaskId();
-        }
-    }
-}
+//public abstract class MonitorConnection {
+//
+//    public final Session session;
+//
+//    MonitorConnection(Session session) {
+//        super();
+//        this.session = session;
+//    }
+//
+//    public abstract boolean isAccept(ExecuteState stat);
+//
+//    public static class FucusIndex extends MonitorConnection {
+//
+//        private String serviceName;
+//
+//        public FucusIndex(Session session, String serviceName) {
+//            super(session);
+//            if (!StringUtils.startsWith(serviceName, "search4")) {
+//                throw new IllegalArgumentException("serviceName:" + serviceName + " shall start with 'search4'");
+//            }
+//            this.serviceName = serviceName;
+//        }
+//
+//        @Override
+//        public boolean isAccept(ExecuteState stat) {
+//            return StringUtils.equals(this.serviceName, stat.getCollectionName());
+//        }
+//    }
+//
+//    public static class FocusTask extends MonitorConnection {
+//
+//        private Integer taskid;
+//
+//        public FocusTask(Session session, Integer taskid) {
+//            super(session);
+//            this.taskid = taskid;
+//        }
+//
+//        @Override
+//        public boolean isAccept(ExecuteState stat) {
+//            return (taskid + 0) == stat.getTaskId();
+//        }
+//    }
+//}

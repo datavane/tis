@@ -68,7 +68,12 @@ public class ManageUtils {
 	// private IServerPoolDAO serverPoolDAO;
 	private HttpServletRequest request;
 
-	private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	private static final ThreadLocal<SimpleDateFormat> TIME_FORMAT = new ThreadLocal<SimpleDateFormat>() {
+		@Override
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		}
+	};
 
 	private static final SimpleDateFormat TIME_FORMAT2 = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -184,11 +189,11 @@ public class ManageUtils {
 		if (time == null) {
 			return StringUtils.EMPTY;
 		}
-		return TIME_FORMAT.format(time);
+		return TIME_FORMAT.get().format(time);
 	}
 
 	public String formatDateYYYYMMdd(long time) {
-		return TIME_FORMAT.format(new Date(time));
+		return TIME_FORMAT.get().format(new Date(time));
 	}
 
 	public String formatTodayYYYYMMdd() {
@@ -356,9 +361,9 @@ public class ManageUtils {
 			throw new IllegalStateException("record value:" + value + " is not illegal");
 		}
 	}
-	
-	public String left(String val,int size){
-		return  StringUtils.left(val, size);
+
+	public String left(String val, int size) {
+		return StringUtils.left(val, size);
 	}
 
 	// public String environment(Short runtEnvironment) {

@@ -83,7 +83,7 @@ public class TisManageBizDalDAOFacadeImpl implements ITisManageBizDalDAOFacade {
 
 	public TisManageBizDalDAOFacadeImpl(IUsrDptRelationDAO usrDptRelationDAO, IApplicationDAO applicationDAO,
 			IDepartmentDAO departmentDAO, IFuncRoleRelationDAO funcRoleRelationDAO, IRoleDAO roleDAO, IFuncDAO funcDAO,
-			IUsrApplyDptRecordDAO usrApplyDptRecordDAO // IIsvDAO isvDAO,
+			IUsrApplyDptRecordDAO usrApplyDptRecordDAO 
 	) {
 		this.usrDptRelationDAO = usrDptRelationDAO;
 		this.applicationDAO = applicationDAO;
@@ -92,6 +92,5 @@ public class TisManageBizDalDAOFacadeImpl implements ITisManageBizDalDAOFacade {
 		this.roleDAO = roleDAO;
 		this.funcDAO = funcDAO;
 		this.usrApplyDptRecordDAO = usrApplyDptRecordDAO;
-		// this.isvDAO = isvDAO;
 	}
 }

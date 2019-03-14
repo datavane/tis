@@ -37,8 +37,6 @@ public class YarnConstant {
 
 	public static final String PATH_YARN_SITE = "/opt/app/hadoop-2.6.1/etc/hadoop/" + YARN_CONFIG_FILE_NAME;
 
-	public static final String HDFS_GROUP_LIB_DIR = "/user/admin/";
-
 	public static final String INDEX_BUILD_JAR_DIR = "indexbuild";
 
 	// ===============================================

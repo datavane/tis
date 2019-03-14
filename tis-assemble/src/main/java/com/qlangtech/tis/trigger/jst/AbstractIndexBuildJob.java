@@ -51,6 +51,7 @@ import com.qlangtech.tis.manage.common.TISCollectionUtils.TisCoreName;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.feedback.DistributeLog;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
+import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo.HDFSRootDir;
 import com.qlangtech.tis.trigger.jst.impl.RemoteIndexBuildJob;
 
 /* *
@@ -149,7 +150,8 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 		// RunEnvironment.getEnum(config.getRunEnvironment());
 		RunEnvironment runtime = config.getRuntime();
 		long now = System.currentTimeMillis();
-		final String outPath = state.getIndexBuildOutputPath(this.userName, Integer.parseInt(this.groupNum));
+		final String outPath = state.getIndexBuildOutputPath(
+				new HDFSRootDir(TSearcherConfigFetcher.get().getHDFSRootDir()), Integer.parseInt(this.groupNum));
 		logger.info("build out path:" + outPath);
 		SnapshotDomain domain = HttpConfigFileReader.getResource(config.getTisConsoleHostAddress(),
 				state.getIndexName(), 0, runtime, ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLOR);
@@ -163,7 +165,8 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 		// ConfigFileReader.FILE_CORE_PROPERTIES, "config");
 		// TODO 为了兼容老的索引先加上，到时候要删除掉的
 		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, Constants.SCHEMA);
-		//writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_APPLICATION, "app");
+		// writeResource2Hdfs(coreName, domain,
+		// ConfigFileReader.FILE_APPLICATION, "app");
 		// writeResource2Hdfs(coreName, domain,
 		// ConfigFileReader.FILE_CORE_PROPERTIES, "core");
 		// TODO 为了兼容老的索引先加上，到时候要删除掉的 end

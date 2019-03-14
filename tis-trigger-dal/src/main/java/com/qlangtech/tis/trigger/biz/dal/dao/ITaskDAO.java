@@ -28,7 +28,7 @@ import com.qlangtech.tis.trigger.biz.dal.pojo.ErrorJob;
 import com.qlangtech.tis.trigger.biz.dal.pojo.Task;
 import com.qlangtech.tis.trigger.biz.dal.pojo.TaskCriteria;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */

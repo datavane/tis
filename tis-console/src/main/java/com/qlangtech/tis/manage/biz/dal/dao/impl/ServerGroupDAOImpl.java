@@ -29,107 +29,109 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
 import com.qlangtech.tis.manage.common.BasicDAO;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class ServerGroupDAOImpl extends BasicDAO<ServerGroup, ServerGroupCriteria> implements IServerGroupDAO {
 
-    @Override
-    public String getEntityName() {
-        return "server_group";
-    }
+	@Override
+	public String getEntityName() {
+		return "server_group";
+	}
 
-    public ServerGroupDAOImpl() {
-        super();
-    }
+	public ServerGroupDAOImpl() {
+		super();
+	}
 
-    public int countByExample(ServerGroupCriteria example) {
-        Integer count = (Integer) this.count("server_group.ibatorgenerated_countByExample", example);
-        return count;
-    }
+	public int countByExample(ServerGroupCriteria example) {
+		Integer count = (Integer) this.count("server_group.ibatorgenerated_countByExample", example);
+		return count;
+	}
 
-    public int countFromWriteDB(ServerGroupCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("server_group.ibatorgenerated_countByExample", example);
-        return count;
-    }
+	public int countFromWriteDB(ServerGroupCriteria example) {
+		Integer count = (Integer) this.countFromWriterDB("server_group.ibatorgenerated_countByExample", example);
+		return count;
+	}
 
-    public int deleteByExample(ServerGroupCriteria criteria) {
-        return this.deleteRecords("server_group.ibatorgenerated_deleteByExample", criteria);
-    }
+	public int deleteByExample(ServerGroupCriteria criteria) {
+		return this.deleteRecords("server_group.ibatorgenerated_deleteByExample", criteria);
+	}
 
-    public int deleteByPrimaryKey(Integer gid) {
-        ServerGroup key = new ServerGroup();
-        key.setGid(gid);
-        return this.deleteRecords("server_group.ibatorgenerated_deleteByPrimaryKey", key);
-    }
+	public int deleteByPrimaryKey(Integer gid) {
+		ServerGroup key = new ServerGroup();
+		key.setGid(gid);
+		return this.deleteRecords("server_group.ibatorgenerated_deleteByPrimaryKey", key);
+	}
 
-    public int insert(ServerGroup record) {
-        return (Integer) this.insert("server_group.ibatorgenerated_insert", record);
-    }
+	public int insert(ServerGroup record) {
+		return (Integer) this.insert("server_group.ibatorgenerated_insert", record);
+	}
 
-    public Integer insertSelective(ServerGroup record) {
-        return (Integer) this.insert("server_group.ibatorgenerated_insertSelective", record);
-    }
+	public Integer insertSelective(ServerGroup record) {
+		return (Integer) this.insert("server_group.ibatorgenerated_insertSelective", record);
+	}
 
-    public List<ServerGroup> selectByExample(ServerGroupCriteria criteria) {
-        return this.selectByExample(criteria, 1, 100);
-    }
+	public List<ServerGroup> selectByExample(ServerGroupCriteria criteria) {
+		return this.selectByExample(criteria, 1, 100);
+	}
 
-    @SuppressWarnings("unchecked")
-    public List<ServerGroup> selectByExample(ServerGroupCriteria example, int page, int pageSize) {
-        example.setPage(page);
-        example.setPageSize(pageSize);
-        List<ServerGroup> list = this.list("server_group.ibatorgenerated_selectByExample", example);
-        return list;
-    }
+	@SuppressWarnings("all")
+	public List<ServerGroup> selectByExample(ServerGroupCriteria example, int page, int pageSize) {
+		example.setPage(page);
+		example.setPageSize(pageSize);
+		List<ServerGroup> list = this.list("server_group.ibatorgenerated_selectByExample", example);
+		return list;
+	}
 
-    public ServerGroup selectByPrimaryKey(Integer gid) {
-        ServerGroup key = new ServerGroup();
-        key.setGid(gid);
-        ServerGroup record = (ServerGroup) this.load("server_group.ibatorgenerated_selectByPrimaryKey", key);
-        return record;
-    }
+	public ServerGroup selectByPrimaryKey(Integer gid) {
+		ServerGroup key = new ServerGroup();
+		key.setGid(gid);
+		ServerGroup record = (ServerGroup) this.load("server_group.ibatorgenerated_selectByPrimaryKey", key);
+		return record;
+	}
 
-    public int updateByExampleSelective(ServerGroup record, ServerGroupCriteria example) {
-        UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
-        return this.updateRecords("server_group.ibatorgenerated_updateByExampleSelective", parms);
-    }
+	public int updateByExampleSelective(ServerGroup record, ServerGroupCriteria example) {
+		UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
+		return this.updateRecords("server_group.ibatorgenerated_updateByExampleSelective", parms);
+	}
 
-    public int updateByExample(ServerGroup record, ServerGroupCriteria example) {
-        UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
-        return this.updateRecords("server_group.ibatorgenerated_updateByExample", parms);
-    }
+	public int updateByExample(ServerGroup record, ServerGroupCriteria example) {
+		UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
+		return this.updateRecords("server_group.ibatorgenerated_updateByExample", parms);
+	}
 
-    public ServerGroup loadFromWriteDB(Integer gid) {
-        ServerGroup key = new ServerGroup();
-        key.setGid(gid);
-        ServerGroup record = (ServerGroup) this.loadFromWriterDB("server_group.ibatorgenerated_selectByPrimaryKey", key);
-        return record;
-    }
+	public ServerGroup loadFromWriteDB(Integer gid) {
+		ServerGroup key = new ServerGroup();
+		key.setGid(gid);
+		ServerGroup record = (ServerGroup) this.loadFromWriterDB("server_group.ibatorgenerated_selectByPrimaryKey",
+				key);
+		return record;
+	}
 
-    /**
-     * 百岁添加20120502
-     */
-    public ServerGroup load(String appName, Short groupIndex, Short runtime) {
-        ServerGroup key = new ServerGroup();
-        key.setAppName(appName);
-        key.setGroupIndex(groupIndex);
-        key.setRuntEnvironment(runtime);
-        return (ServerGroup) this.loadFromWriterDB("server_group.ibatorgenerated_getBy_appName_groupIndex_runtime", key);
-    }
+	/**
+	 * 百岁添加20120502
+	 */
+	public ServerGroup load(String appName, Short groupIndex, Short runtime) {
+		ServerGroup key = new ServerGroup();
+		key.setAppName(appName);
+		key.setGroupIndex(groupIndex);
+		key.setRuntEnvironment(runtime);
+		return (ServerGroup) this.loadFromWriterDB("server_group.ibatorgenerated_getBy_appName_groupIndex_runtime",
+				key);
+	}
 
-    private static class UpdateByExampleParms extends ServerGroupCriteria {
+	private static class UpdateByExampleParms extends ServerGroupCriteria {
 
-        private Object record;
+		private Object record;
 
-        public UpdateByExampleParms(Object record, ServerGroupCriteria example) {
-            super(example);
-            this.record = record;
-        }
+		public UpdateByExampleParms(Object record, ServerGroupCriteria example) {
+			super(example);
+			this.record = record;
+		}
 
-        public Object getRecord() {
-            return record;
-        }
-    }
+		public Object getRecord() {
+			return record;
+		}
+	}
 }

@@ -4,6 +4,7 @@ package com.qlangtech.tis.hdfs;
 import org.apache.commons.cli.CommandLine;
 import org.apache.hadoop.fs.Path;
 
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.yarn.common.YarnConstant;
 
@@ -29,8 +30,8 @@ public class ThreadDeployJar implements Runnable {
 			System.setProperty(RunEnvironment.KEY_RUNTIME, runtime.getKeyName());
 			String localJarDir = commandLine.getOptionValue(YarnConstant.PARAM_OPTION_LOCAL_JAR_DIR);
 
-			final Path dest = new Path(
-					YarnConstant.HDFS_GROUP_LIB_DIR + YarnConstant.INDEX_BUILD_JAR_DIR + '/' + runtime.getKeyName());
+			final Path dest = new Path(TSearcherConfigFetcher.get().getHDFSRootDir() + "/"
+					+ YarnConstant.INDEX_BUILD_JAR_DIR + '/' + runtime.getKeyName());
 			TISHdfsUtils.copyLibs2Hdfs(localJarDir, dest);
 		} catch (Exception e) {
 			throw new RuntimeException(e);

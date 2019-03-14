@@ -67,6 +67,7 @@ import com.qlangtech.tis.manage.common.UISVersion;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
+import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo.HDFSRootDir;
 import com.qlangtech.tis.yarn.common.YarnConstant;
 
 /* 
@@ -119,7 +120,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.BuildNodeMaster "
 						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
 						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
-		
+
 		// setJarsLibs(amContainer, libs);
 
 		/* CLASSPATH 运行依賴的環境變量 */
@@ -180,8 +181,8 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
 		RunEnvironment runtime = config.getRuntime();
 
-		final Path dest = new Path(
-				YarnConstant.HDFS_GROUP_LIB_DIR + YarnConstant.INDEX_BUILD_JAR_DIR + '/' + runtime.getKeyName());
+		final Path dest = new Path(TSearcherConfigFetcher.get().getHDFSRootDir() + "/"
+				+ YarnConstant.INDEX_BUILD_JAR_DIR + '/' + runtime.getKeyName());
 		final File dataDir = new File(System.getProperty("data.dir"));
 		if (!dataDir.exists()) {
 			throw new IllegalStateException("data.dir has not been defined");
@@ -239,15 +240,26 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		}
 		jobConf.set(IndexBuildParam.INDEXING_SOURCE_FS_NAME, config.getHdfsAddress());
 		jobConf.set(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS, state.getBuildTableTitleItems());
-		String outPath = ImportDataProcessInfo.createIndexDir(username, state.getTimepoint(), groupNum,
-				state.getIndexName(), false);
+
+		final HDFSRootDir hdfsRootDir = new HDFSRootDir(//
+				TSearcherConfigFetcher.get().getHDFSRootDir());
+
+		String outPath = ImportDataProcessInfo.createIndexDir( //
+				hdfsRootDir, state.getTimepoint() //
+				, groupNum //
+				, state.getIndexName() //
+				, false);
 		jobConf.set(IndexBuildParam.INDEXING_OUTPUT_PATH, outPath);
-		String hdfsSourcePath = state.getHdfsSourcePath() == null ? ImportDataProcessInfo.createIndexDir(username,
-				state.getTimepoint(), groupNum, state.getIndexName(), true) : state.getHdfsSourcePath().build(groupNum);
+
+		String hdfsSourcePath = state.getHdfsSourcePath() == null //
+				? ImportDataProcessInfo.createIndexDir(hdfsRootDir, state.getTimepoint(), groupNum,
+						state.getIndexName(), true) //
+				: state.getHdfsSourcePath().build(groupNum);
+
 		jobConf.set(IndexBuildParam.INDEXING_SOURCE_PATH, hdfsSourcePath);
-		final String schemaPath = "/user/" + username + "/" + coreName + "/config/"
+		final String schemaPath = hdfsRootDir.getPath() + "/" + coreName + "/config/"
 				+ ConfigFileReader.FILE_SCHEMA.getFileName();
-		final String solrConifgPath = "/user/" + username + "/" + coreName + "/config/"
+		final String solrConifgPath = hdfsRootDir.getPath() + "/" + coreName + "/config/"
 				+ ConfigFileReader.FILE_SOLOR.getFileName();
 		jobConf.set(IndexBuildParam.INDEXING_SCHEMA_PATH, schemaPath);
 		jobConf.set(IndexBuildParam.INDEXING_SOLRCONFIG_PATH, solrConifgPath);

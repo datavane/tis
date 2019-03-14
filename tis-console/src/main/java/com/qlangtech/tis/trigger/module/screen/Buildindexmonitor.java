@@ -23,43 +23,126 @@
  */
 package com.qlangtech.tis.trigger.module.screen;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.Calendar;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.manage.yarn.ApplicationReportStatus;
+import com.qlangtech.tis.manage.yarn.YarnClient;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
 
-/* 
- * @author 百岁（baisui@qlangtech.com）
- * @date 2019年1月17日
- */
+//
+///* 
+// * @author 百岁（baisui@qlangtech.com）
+// * @date 2019年1月17日
+// */
 public class Buildindexmonitor extends BasicScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
+	private YarnClient yarnClient;
 
-    @Override
-    @Func(PermissionConstant.APP_BUILD_RESULT_VIEW)
-    public void execute(Context context) throws Exception {
-        // StringBuffer iframeurl = new StringBuffer(
-        // Config.getIndexBuildCenterUrl(this.getAppDomain()
-        // .getRunEnvironment()));
-        // index_build_center_host
-        StringBuffer iframeurl = new StringBuffer(TSearcherConfigFetcher.get().getIndexBuildCenterHost());
-        if (StringUtils.isNotBlank(this.getString("serviceName"))) {
-            iframeurl.append("?serviceName=").append(this.getString("serviceName"));
-        }
-        context.put("IndexBuildCenterUrl", iframeurl);
-    }
+	@Override
+	@Func(PermissionConstant.APP_BUILD_RESULT_VIEW)
+	public void execute(Context context) throws Exception {
 
-    @Override
-    public boolean isAppNameAware() {
-        return false;
-    }
+		// StringBuffer iframeurl = new
+		// StringBuffer(TSearcherConfigFetcher.get().getIndexBuildCenterHost());
+		String serviceName = null;
+		if (StringUtils.isNotBlank(serviceName = this.getString("serviceName"))) {
+			// iframeurl.append("?serviceName=").append(this.getString("serviceName"));
+		}
+		// context.put("IndexBuildCenterUrl", iframeurl);
+		// ApplicationReportStatusSet reportStatus = new
+		// ApplicationReportStatusSet();
+		// if (StringUtils.isNotBlank(serviceName)) {
+		//
+		// List<ApplicationReport> reports =
+		// yarnClient.getApplications(Sets.newHashSet(serviceName));
+		// for (ApplicationReport r : reports) {
+		// if (NEW == r.getYarnApplicationState() //
+		// || NEW_SAVING == r.getYarnApplicationState() //
+		// || SUBMITTED == r.getYarnApplicationState()) {
+		// reportStatus.waiting.add(new ApplicationReportStatus(r));
+		// } else if (ACCEPTED == r.getYarnApplicationState()) {
+		// reportStatus.preparing.add(new ApplicationReportStatus(r));
+		// } else if (RUNNING == r.getYarnApplicationState()) {
+		// reportStatus.running.add(new ApplicationReportStatus(r));
+		// } else if (FINISHED == r.getYarnApplicationState()) {
+		// reportStatus.finished.add(new ApplicationReportStatus(r));
+		// } else if (FAILED == r.getYarnApplicationState()) {
+		// reportStatus.failed.add(new ApplicationReportStatus(r));
+		// } else if (KILLED == r.getYarnApplicationState()) {
+		// reportStatus.killed.add(new ApplicationReportStatus(r));
+		// }
+		// }
+		//
+		// }
+		//
 
-    @Override
-    public boolean isEnableDomainView() {
-        return true;
-    }
+		Calendar calender = Calendar.getInstance();
+		// 倒推7天
+		calender.add(Calendar.DAY_OF_YEAR, -7);
+		context.put("rs", yarnClient.getCollectionBuildReports(serviceName, calender.getTime()));
+	}
+
+	public YarnClient getYarnClient() {
+		return yarnClient;
+	}
+
+	@Autowired
+	public void setYarnClient(YarnClient yarnClient) {
+		this.yarnClient = yarnClient;
+	}
+
+	public static class ApplicationReportStatusSet {
+
+		public final Set<ApplicationReportStatus> waiting = Sets.newHashSet();
+		public final Set<ApplicationReportStatus> preparing = Sets.newHashSet();
+		public final Set<ApplicationReportStatus> running = Sets.newHashSet();
+		public final Set<ApplicationReportStatus> finished = Sets.newHashSet();
+		public final Set<ApplicationReportStatus> failed = Sets.newHashSet();
+		public final Set<ApplicationReportStatus> killed = Sets.newHashSet();
+
+		public final Set<ApplicationReportStatus> getWaiting() {
+			return this.waiting;
+		}
+
+		public Set<ApplicationReportStatus> getPreparing() {
+			return this.preparing;
+		}
+
+		public Set<ApplicationReportStatus> getRunning() {
+			return this.running;
+		}
+
+		public Set<ApplicationReportStatus> getFinished() {
+			return this.finished;
+		}
+
+		public Set<ApplicationReportStatus> getFailed() {
+			return failed;
+		}
+
+		public Set<ApplicationReportStatus> getKilled() {
+			return this.killed;
+		}
+
+	}
+
+	@Override
+	public boolean isAppNameAware() {
+		return false;
+	}
+
+	@Override
+	public boolean isEnableDomainView() {
+		return true;
+	}
+
 }

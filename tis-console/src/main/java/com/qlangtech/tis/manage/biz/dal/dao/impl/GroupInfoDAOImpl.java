@@ -76,7 +76,7 @@ public class GroupInfoDAOImpl extends BasicDAO<GroupInfo, GroupInfoCriteria> imp
         return this.selectByExample(criteria, 1, 100);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("all")
     public List<GroupInfo> selectByExample(GroupInfoCriteria example, int page, int pageSize) {
         example.setPage(page);
         example.setPageSize(pageSize);

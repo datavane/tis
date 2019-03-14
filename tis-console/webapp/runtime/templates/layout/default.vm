@@ -212,6 +212,10 @@ function opendialog(title,src,width,height,callbackfunc){
 </script>
 <style type="text/css"><!--
 
+.table td {
+  font-size: 11px;
+}
+
 .tis-bg-info{
  background-color:#ede6e6;
  padding:7px;

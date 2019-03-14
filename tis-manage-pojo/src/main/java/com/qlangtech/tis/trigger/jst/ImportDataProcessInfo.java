@@ -26,7 +26,9 @@ package com.qlangtech.tis.trigger.jst;
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.commons.lang.StringUtils;
+
 import com.qlangtech.tis.common.LuceneVersion;
 
 /*
@@ -104,10 +106,24 @@ public class ImportDataProcessInfo implements Serializable {
 		return order.getAndIncrement() == 1;
 	}
 
-	public static String createIndexDir(String username, String timePoint, String groupNum, String serviceName,
+	public static String createIndexDir(HDFSRootDir rootDir, String timePoint, String groupNum, String serviceName,
 			boolean isSourceDir) {
-		return "/user/" + username + "/" + serviceName + "/all/" + groupNum
-				+ (!isSourceDir ? "/output" : StringUtils.EMPTY) + "/" + timePoint;
+		return rootDir.path + "/" + serviceName + "/all/" + groupNum + (!isSourceDir ? "/output" : StringUtils.EMPTY)
+				+ "/" + timePoint;
+	}
+
+	public static class HDFSRootDir {
+		private final String path;
+
+		public HDFSRootDir(String path) {
+			super();
+			this.path = path;
+		}
+
+		public String getPath() {
+			return path;
+		}
+
 	}
 
 	/**
@@ -132,8 +148,8 @@ public class ImportDataProcessInfo implements Serializable {
 		this.luceneVersion = luceneVersion;
 	}
 
-	public String getIndexBuildOutputPath(String username, int groupIndex) {
-		return createIndexDir(username, this.timepoint, String.valueOf(groupIndex), this.getIndexName(), false);
+	public String getIndexBuildOutputPath(HDFSRootDir root, int groupIndex) {
+		return createIndexDir(root, this.timepoint, String.valueOf(groupIndex), this.getIndexName(), false);
 	}
 
 	public String getHdfsdelimiter() {

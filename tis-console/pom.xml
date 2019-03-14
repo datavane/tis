@@ -17,8 +17,8 @@
 		<java.encoding>UTF-8</java.encoding>
 		<spring-version>3.0.6.RELEASE</spring-version>
 		<project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
-		<tomcat.version>7.0.47</tomcat.version>
-		<struts2.version>2.5.8</struts2.version>
+
+		<struts2.version>2.5.17</struts2.version>
 		<dockerfile-maven-version>1.4.4</dockerfile-maven-version>
 		<openshift-client.version>7.0.0.Final</openshift-client.version>
 	</properties>
@@ -54,6 +54,27 @@
 		</profile>
 	</profiles>
 	<dependencies>
+		<!--
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-yarn-client</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+                    <groupId>jdk.tools</groupId>
+                    <artifactId>jdk.tools</artifactId>
+                </exclusion>	
+			</exclusions>
+		</dependency>
+        -->
+
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-trigger-dal</artifactId>
@@ -69,17 +90,27 @@
 			<artifactId>tis-manage-pojo</artifactId>
 		</dependency>
 
-
-
 		<dependency>
 			<groupId>com.openshift</groupId>
 			<artifactId>openshift-restclient-java</artifactId>
 			<version>${openshift-client.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -129,9 +160,16 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-hdfs-extends</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -168,21 +206,10 @@
 			</exclusions>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-catalina</artifactId>
-			<version>${tomcat.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-websocket-api</artifactId>
-			<version>${tomcat.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
+		<!-- <dependency> <groupId>org.apache.tomcat</groupId> <artifactId>tomcat-catalina</artifactId> 
+			<version>${tomcat.version}</version> <scope>provided</scope> </dependency> 
+			<dependency> <groupId>org.apache.tomcat</groupId> <artifactId>tomcat-websocket-api</artifactId> 
+			<version>${tomcat.version}</version> <scope>provided</scope> </dependency> -->
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
@@ -458,6 +485,7 @@
 		</filters>
 
 		<plugins>
+
 
 			<plugin>
 				<groupId>com.qlangtech.tis</groupId>

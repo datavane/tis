@@ -36,37 +36,38 @@ import com.qlangtech.tis.trigger.rmi.JobDesc;
  */
 public class Triggermonitor extends TriggerBasicScreen {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Override
-    public void execute(Context context) throws Exception {
-        Integer jobid = this.getInt("jobid");
-        String indexname = this.getString("indexname");
-        // this.enableChangeDomain(context);
-        this.disableNavigationBar(context);
-        List<JobDesc> joblist = getJobList(indexname, jobid);
-        processJoblist(context, joblist);
-        forward();
-    }
+	@Override
+	public void execute(Context context) throws Exception {
+		Integer jobid = this.getInt("jobid");
+		String indexname = this.getString("indexname");
+		// this.enableChangeDomain(context);
+		this.disableNavigationBar(context);
+		List<JobDesc> joblist = getJobList(indexname, jobid);
+		processJoblist(context, joblist);
+		forward();
+	}
 
-    protected void forward() {
-        getRundataInstance().forwardTo(getTemplateName());
-    }
+	protected void forward() {
+		getRundataInstance().forwardTo(getTemplateName());
+	}
 
-    protected void processJoblist(Context context, List<JobDesc> joblist) throws Exception {
-        context.put("joblist", joblist);
-    }
+	protected void processJoblist(Context context, List<JobDesc> joblist) throws Exception {
+		context.put("joblist", joblist);
+	}
 
-    private List<JobDesc> getJobList(String indexname, Integer jobid) throws RemoteException {
-        return (jobid == null || indexname == null) ? this.getTriggerJobConsole().getAllJobsInServer() : this.getTriggerJobConsole().getJob(indexname, jobid.longValue());
-    }
+	private List<JobDesc> getJobList(String indexname, Integer jobid) throws RemoteException {
+		return (jobid == null || indexname == null) ? this.getTriggerJobConsole().getAllJobsInServer()
+				: this.getTriggerJobConsole().getJob(indexname, jobid.longValue());
+	}
 
-    @Override
-    public boolean isEnableDomainView() {
-        return false;
-    }
+	@Override
+	public boolean isEnableDomainView() {
+		return false;
+	}
 
-    protected String getTemplateName() {
-        return "triggermonitortemplate.vm";
-    }
+	protected String getTemplateName() {
+		return "triggermonitortemplate.vm";
+	}
 }

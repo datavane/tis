@@ -57,6 +57,7 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils.TisCoreName;
@@ -341,9 +342,11 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 		String coreName = tiscoreName.getName();//// coreNameMatcher.group(1);
 		// 需要减1
 		final int group = tiscoreName.getSharedNo() - 1;// Integer.parseInt(coreNameMatcher.group(2))
-														// - 1;
-		Path hdfsPath = new Path(
-				"/user/" + hdfsUser + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
+		// - 1;
+
+		Path hdfsPath = new Path( //
+				TSearcherConfigFetcher.get().getHDFSRootDir() + "/" + coreName + "/all/" + group
+				+ "/output/" + hdfsTimeStamp + "/index");
 		log.info("load from hdfs:" + hdfsHome + ",path:" + hdfsPath);
 		// InputStream segmentStream = null;
 		FileSystem filesystem = null;

@@ -64,9 +64,12 @@ public class TSearcherConfigFetcher {
 
 	public static final String CONFIG_terminator_host_address = "tis_host_address";
 
-	public static final String jobtracker_rpcserver = "jobtracker_rpcserver";
+	public static final String CONFIG_TIS_HDFS_ROOT_DIR = "tis_hdfs_root_dir";
 
-	public static final String jobtracker_transserver = "jobtracker_transserver";
+	// public static final String jobtracker_rpcserver = "jobtracker_rpcserver";
+	//
+	// public static final String jobtracker_transserver =
+	// "jobtracker_transserver";
 
 	public static final String LOG_SOURCE_ADDRESS = "log_source_address";
 
@@ -77,6 +80,9 @@ public class TSearcherConfigFetcher {
 	public static final String INDEX_BUILD_CENTER_HOST = "index_build_center_host";
 
 	// private List<String> mqStatisticsHost;
+
+	// 所有回流到hdfs的根目录
+	private final String tisHdfsRootDir;
 
 	private final String indexBuildCenterHost;
 
@@ -102,9 +108,9 @@ public class TSearcherConfigFetcher {
 	// private final String hbaseAddress;
 	private String logSourceAddress;
 
-	private final String job_rpcserver;
-
-	private final String job_transserver;
+	// private final String job_rpcserver;
+	//
+	// private final String job_transserver;
 
 	// online:10.162.48.129:10001
 	private final String hiveHost;
@@ -122,10 +128,11 @@ public class TSearcherConfigFetcher {
 		this.hdfsAddress = null;
 		this.logFlumeAgent = null;
 		this.logSourceAddress = null;
-		this.job_rpcserver = null;
-		this.job_transserver = null;
+		// this.job_rpcserver = null;
+		// this.job_transserver = null;
 		this.hiveHost = null;
 		this.maxDBDumpThreadCount = null;
+		this.tisHdfsRootDir = null;
 	}
 
 	private TSearcherConfigFetcher(String serviceName) {
@@ -157,14 +164,7 @@ public class TSearcherConfigFetcher {
 
 		this.assembleHost = servceConfig.getString(TIS_ASSEMBLE_HOST);
 		this.logFlumeAgent = servceConfig.getString(CONFIG_LOG_FLUME_AGENT_ADDRESS);
-
-		// try {
-		// this.mqStatisticsHost =
-		// Arrays.asList(StringUtils.split(servceConfig.getString("mq_statistics_host"),
-		// ","));
-		// } catch (Throwable e1) {
-		// this.mqStatisticsHost = Collections.emptyList();
-		// }
+		this.tisHdfsRootDir = servceConfig.getString(CONFIG_TIS_HDFS_ROOT_DIR);
 
 		this.maxDBDumpThreadCount = servceConfig.getInteger("max_db_dump_thread_count");
 		this.hiveHost = servceConfig.getString(HIVE_HOST);
@@ -182,25 +182,10 @@ public class TSearcherConfigFetcher {
 			this.onlineZkAddress = servceConfig.getString("online_zkaddress");
 		} catch (Throwable e) {
 		}
-		this.job_rpcserver = servceConfig.getString(jobtracker_rpcserver);
-		this.job_transserver = servceConfig.getString(jobtracker_transserver);
-		// cnetnernode地址
-		// this.cnaddress = servceConfig.getString(CONFIG_cnaddress);
-		// try {
-		// this.tisHost = servceConfig.getString("tis_host");
-		// } catch (Throwable e) {
-		//
-		// }
-		// } catch (JSONException e) {
-		// throw new RuntimeException("TERMINAOTR_BEAN_CONFIG:"
-		// + TERMINAOTR_BEAN_CONFIG, e);
-		// }
-		// Assert.assertNotNull("hbase can not be null", hbaseAddress);
+
 		Assert.assertNotNull("zkaddress can not be null", zkAddress);
 		Assert.assertNotNull("hdfsAddress can not be null", hdfsAddress);
-		// Assert.assertNotNull("runEnvironment can not be null",
-		// runEnvironment);
-		// Assert.assertNotNull("cnaddress can not be null", this.cnaddress);
+		Assert.assertNotNull("hdfs_root_dir can not be null", this.tisHdfsRootDir);
 	}
 
 	private static class ServiceConfig {
@@ -246,6 +231,15 @@ public class TSearcherConfigFetcher {
 		return assembleHost;
 	}
 
+	/**
+	 * HDFS 的根路径
+	 * 
+	 * @return
+	 */
+	public String getHDFSRootDir() {
+		return getInstance().tisHdfsRootDir;
+	}
+
 	public String getHiveHost() {
 		return getInstance().hiveHost;
 	}
@@ -256,14 +250,6 @@ public class TSearcherConfigFetcher {
 
 	public String getLogFlumeAddress() {
 		return getInstance().logFlumeAgent;
-	}
-
-	public String getJobRpcserver() {
-		return getInstance().job_rpcserver;
-	}
-
-	public String getJobTransserver() {
-		return getInstance().job_transserver;
 	}
 
 	public Integer getMaxDBDumpThreadCount() {
@@ -279,15 +265,6 @@ public class TSearcherConfigFetcher {
 		return getInstance().tisConsoleHost;
 	}
 
-	// public String getHbaseAddress() {
-	// return hbaseAddress;
-	// }
-	// public String getCnAddress() {
-	// return getInstance().cnaddress;
-	// }
-	// public int getSolrExportPort() {
-	// return getInstance().searcherServerPort;
-	// }
 	public String getZkAddress() {
 		return getInstance().zkAddress;
 	}
@@ -295,20 +272,6 @@ public class TSearcherConfigFetcher {
 	public String getOnlineZkAddress() {
 		return getInstance().onlineZkAddress;
 	}
-
-	// /**
-	// * 南星的MQ访问查询服務端地址
-	// *
-	// * @return
-	// */
-	// public List<String> getMQStatisticsHost() {
-	// List<String> mqStatisticsHost = getInstance().mqStatisticsHost;
-	// if (mqStatisticsHost.size() < 1) {
-	// throw new IllegalStateException("mqStatisticsHost size can not small than
-	// 1");
-	// }
-	// return mqStatisticsHost;
-	// }
 
 	public String getIndexBuildCenterHost() {
 		return getInstance().indexBuildCenterHost;
@@ -318,25 +281,12 @@ public class TSearcherConfigFetcher {
 		return getInstance().hdfsAddress;
 	}
 
-	// public String getRunEnvironment() {
-	// return getInstance().runEnvironment;
-	// }
-
 	public String getLogSourceAddress() {
 		return logSourceAddress;
 	}
 
 	private TSearcherConfigFetcher getInstance() {
 		return this;
-		// if (configFetcher == null) {
-		// synchronized (TSearcherConfigFetcher.class) {
-		// if (configFetcher == null) {
-		// configFetcher = new TSearcherConfigFetcher();
-		// }
-		// }
-		// }
-		//
-		// return configFetcher;
 	}
 
 	private static final Map<String, TSearcherConfigFetcher> /* indexName */
@@ -354,6 +304,11 @@ public class TSearcherConfigFetcher {
 	private static class NullTSearcherConfigFetcher extends TSearcherConfigFetcher implements Nullable {
 		public NullTSearcherConfigFetcher() {
 			super();
+		}
+
+		@Override
+		public String getHDFSRootDir() {
+			throw new UnsupportedOperationException();
 		}
 	}
 
