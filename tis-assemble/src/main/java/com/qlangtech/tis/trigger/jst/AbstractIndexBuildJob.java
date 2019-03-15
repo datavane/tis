@@ -164,7 +164,8 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 		// writeResource2Hdfs(coreName, domain,
 		// ConfigFileReader.FILE_CORE_PROPERTIES, "config");
 		// TODO 为了兼容老的索引先加上，到时候要删除掉的
-		writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, Constants.SCHEMA);
+		// writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA,
+		// Constants.SCHEMA);
 		// writeResource2Hdfs(coreName, domain,
 		// ConfigFileReader.FILE_APPLICATION, "app");
 		// writeResource2Hdfs(coreName, domain,
@@ -299,8 +300,8 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 	 */
 	private void writeResource2Hdfs(String coreName, SnapshotDomain domain, PropteryGetter getter, String subdir)
 			throws IndexDumpFatalException {
-		Path dst = new Path(config.getHdfsAddress() + Path.SEPARATOR + Constants.USER + Path.SEPARATOR + userName
-				+ Path.SEPARATOR + coreName + Path.SEPARATOR + subdir + Path.SEPARATOR + getter.getFileName());
+		Path dst = new Path(TSearcherConfigFetcher.get().getHDFSRootDir() + Path.SEPARATOR + coreName + Path.SEPARATOR
+				+ subdir + Path.SEPARATOR + getter.getFileName());
 		OutputStream dstoutput = null;
 		try {
 			dstoutput = fileSystem.create(dst, true);

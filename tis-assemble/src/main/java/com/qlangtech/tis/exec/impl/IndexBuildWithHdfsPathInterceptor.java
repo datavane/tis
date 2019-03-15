@@ -44,64 +44,68 @@ import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo.HdfsSourcePathCreator
  */
 public final class IndexBuildWithHdfsPathInterceptor extends IndexBuildInterceptor {
 
-    private static final String COMPONENT_NAME = "directbuild";
+	private static final String COMPONENT_NAME = "directbuild";
 
-    private static final String HDFS_PATH = "hdfspath";
+	private static final String HDFS_PATH = "hdfspath";
 
-    private static final Logger logger = LoggerFactory.getLogger(IndexBuildWithHdfsPathInterceptor.class);
+	private static final Logger logger = LoggerFactory.getLogger(IndexBuildWithHdfsPathInterceptor.class);
 
-    @Override
-    public ExecuteResult intercept(ActionInvocation invocation) throws Exception {
-        IExecChainContext execContext = invocation.getContext();
-        // 删除历史build索引文件
-        HiveRemoveHistoryDataTask removeHistoryDataTask = new HiveRemoveHistoryDataTask(execContext.getIndexName(), execContext.getContextUserName(), execContext.getDistributeFileSystem());
-        removeHistoryDataTask.removeHistoryBuildFile();
-        return super.intercept(invocation);
-    }
+	@Override
+	public ExecuteResult intercept(ActionInvocation invocation) throws Exception {
+		IExecChainContext execContext = invocation.getContext();
+		// 删除历史build索引文件
+		HiveRemoveHistoryDataTask removeHistoryDataTask = new HiveRemoveHistoryDataTask(execContext.getIndexName(),
+				execContext.getContextUserName(), execContext.getDistributeFileSystem());
+		removeHistoryDataTask.removeHistoryBuildFile();
+		return super.intercept(invocation);
+	}
 
-    @Override
-    protected HdfsSourcePathCreator createIndexBuildSourceCreator(final IExecChainContext execContext) {
-        return new HdfsSourcePathCreator() {
+	@Override
+	protected HdfsSourcePathCreator createIndexBuildSourceCreator(final IExecChainContext execContext) {
+		return new HdfsSourcePathCreator() {
 
-            @Override
-            public String build(String group) {
-                final String hdfspath = execContext.getString(HDFS_PATH);
-                FileSystem fs = execContext.getDistributeFileSystem();
-                String path = hdfspath + "/pmod=" + group;
-                try {
-                    if (fs.exists(new Path(path))) {
-                        return path;
-                    }
-                    logger.info("sourcepath not exist:" + path);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                final String targetPath = "0".equals(group) ? hdfspath : path;
-                logger.info("source hdfs path:" + targetPath);
-                return targetPath;
-            }
-        };
-    }
+			@Override
+			public String build(String group) {
+				final String hdfspath = execContext.getString(HDFS_PATH);
+				FileSystem fs = execContext.getDistributeFileSystem();
+				String path = hdfspath + "/pmod=" + group;
+				try {
+					if (fs.exists(new Path(path))) {
+						return path;
+					}
+					logger.info("sourcepath not exist:" + path);
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+				final String targetPath = "0".equals(group) ? hdfspath : path;
+				logger.info("source hdfs path:" + targetPath);
+				return targetPath;
+			}
+		};
+	}
 
-    @Override
-    protected void setBuildTableTitleItems(String indexName, ImportDataProcessInfo processinfo, IExecChainContext execContext) {
-        processinfo.setBuildTableTitleItems(execContext.getString(BuildTriggerServlet.KEY_COLS));
-        // if( execContext.getString(ImportDataProcessInfo.KEY_DELIMITER)){
-        // 
-        // }
-        // 
-        processinfo.setHdfsdelimiter(StringUtils.defaultIfEmpty(execContext.getString(ImportDataProcessInfo.KEY_DELIMITER), ImportDataProcessInfo.DELIMITER_001));
-    }
+	@Override
+	protected void setBuildTableTitleItems(String indexName, ImportDataProcessInfo processinfo,
+			IExecChainContext execContext) {
+		processinfo.setBuildTableTitleItems(execContext.getString(BuildTriggerServlet.KEY_COLS));
+		// if( execContext.getString(ImportDataProcessInfo.KEY_DELIMITER)){
+		//
+		// }
+		//
+		processinfo.setHdfsdelimiter(//
+				StringUtils.defaultIfEmpty(execContext.getString(ImportDataProcessInfo.KEY_DELIMITER),
+						ImportDataProcessInfo.DELIMITER_001));
+	}
 
-    // @Override
-    // protected int getGroupSize(String indexName,
-    // HdfsSourcePathCreator pathCreator, FileSystem fileSystem)
-    // throws Exception {
-    // 
-    // return GROUP_SIZE;
-    // }
-    @Override
-    public String getName() {
-        return COMPONENT_NAME;
-    }
+	// @Override
+	// protected int getGroupSize(String indexName,
+	// HdfsSourcePathCreator pathCreator, FileSystem fileSystem)
+	// throws Exception {
+	//
+	// return GROUP_SIZE;
+	// }
+	@Override
+	public String getName() {
+		return COMPONENT_NAME;
+	}
 }
