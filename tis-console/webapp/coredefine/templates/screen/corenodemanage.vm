@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="/runtime/css/font-awesome/css/font-awesome.min.css">
 <link rel="stylesheet" href="/runtime/xterm/xterm.css" />
 <script src="/runtime/xterm/xterm.js"></script>
 <script src="/runtime/xterm/addons/fit/fit.js"></script>

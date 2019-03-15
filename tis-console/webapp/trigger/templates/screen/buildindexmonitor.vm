@@ -1,8 +1,13 @@
-<h2>YARN容器任务一览</h2>
+
 #*
 <iframe frameborder="0" height="800" width="100%" src="$IndexBuildCenterUrl" ></iframe>
 *#
 
+<div>
+<div style="float:right;"> <button click="window.location.reload();" class="btn btn-default"><i class="fa fa-refresh" aria-hidden="true"></i></button> </div>
+<h2>YARN容器任务一览</h2>
+</div>
+<divs style="clear:both;"></div>
 <h3>Waiting</h3>
 <table class="table table-bordered table-hover" width="100%">
   <thead>
@@ -16,7 +21,7 @@
  #foreach($item in $rs.waiting)
  <tr>
   <td>$item.name</td>
-  <td>$item.sppState</td>
+  <td>$item.state</td>
   <td>$item.startTime</td>
  </tr>
  #end
@@ -29,6 +34,7 @@
  <tr>
   <td>名称</td>
   <td>状态</td>
+  
   <td>触发时间</td>
  </tr>
   </thead>
@@ -36,19 +42,21 @@
  #foreach($item in $rs.preparing)
  <tr>
   <td>$item.name</td>
-  <td>$item.sppState</td>
+  <td>$item.state</td>
   <td>$item.startTime</td>
  </tr>
  #end
   </tbody>
 </table>
 
-<h3>Running</h3>
+<h3 style="background-color:#8ee08e;"> <i class="fa fa-cog fa-spin" aria-hidden="true"></i> Running</h3>
 <table class="table table-bordered table-hover" width="100%">
   <thead>
  <tr>
   <td>名称</td>
   <td>状态</td>
+  <td>详细</td>
+  
   <td>触发时间</td>
   <td>进度</td>
  </tr>
@@ -58,6 +66,7 @@
  <tr>
   <td>$item.name</td>
   <td>$item.sppState</td>
+   <td><a target="_blank" href="$item.amContainerLogs">日志</a> </td>
   <td>$item.startTime</td>
   <td>$item.progress</td>
  </tr>
@@ -65,12 +74,13 @@
   </tbody>
 </table>
 
-<h3>Finished</h3>
+<h3 style="background-color:#8b8bf1;"><i class="fa fa-smile-o" aria-hidden="true"></i> Finished</h3>
 <table class="table table-bordered table-hover" width="100%">
   <thead>
  <tr>
   <td>名称</td>
   <td>状态</td>
+   <td>详细</td>
   <td>触发时间</td>
   <td>结束时间</td>
  </tr>
@@ -80,6 +90,7 @@
  <tr>
   <td>$item.name</td>
   <td>$item.finalStatus</td>
+  <td><a target="_blank" href="$item.amContainerLogs">日志</a> </td>
   <td>$item.startTime</td>
   <td>$item.endTime</td>
  </tr>
@@ -87,13 +98,15 @@
   </tbody>
 </table>
 
-<h3>Failed</h3>
+<h3 style="background-color:pink;"><i class="fa fa-times" aria-hidden="true"></i>Failed</h3>
 <table class="table table-bordered table-hover" width="100%">
   <thead>
  <tr>
   <td>名称</td>
   <td>触发时间</td>
+  
   <td>结束时间</td>
+   <td width="40">详细</td>
   <td>诊断</td>
  </tr>
   </thead>
@@ -103,6 +116,7 @@
   <td>$item.name</td>
   <td>$item.startTime</td>
   <td>$item.endTime</td>
+   <td><a target="_blank" href="$item.amContainerLogs">日志</a> </td>
   <td style="font-color:#666666;font-size:10px;">
     $item.diagnostics
   </td>
@@ -111,7 +125,7 @@
   </tbody>
 </table>
 
-<h3>Killed</h3>
+<h3 style="background-color:#e8cb66;"><i class="fa fa-hand-paper-o" aria-hidden="true"></i>Killed</h3>
 <table class="table table-bordered table-hover" width="100%">
   <thead>
  <tr>
@@ -119,15 +133,17 @@
   <td>状态</td>
   <td>触发时间</td>
   <td>结束时间</td>
+  <td>详细</td>
  </tr>
   </thead>
   <tbody>
  #foreach($item in $rs.killed)
  <tr>
   <td>$item.name</td>
-  <td>$item.sppState</td>
+  <td>$item.state</td>
   <td>$item.startTime</td>
   <td>$item.endTime</td>
+  <td><a target="_blank" href="$item.amContainerLogs">日志</a> </td>
  </tr>
  #end
   </tbody>

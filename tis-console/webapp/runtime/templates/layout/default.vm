@@ -19,7 +19,7 @@
 <script src="/runtime/js/jquery-ui-1.9.2/js/jquery-ui-1.9.2.custom.min.js"></script>
 
 <script src="/runtime/js/layer/layer.js"></script>
-
+<link rel="stylesheet" href="/runtime/css/font-awesome/css/font-awesome.min.css">
 <!--▼▼▼Bootstrap-->
 <link rel="stylesheet" href="/runtime/boot/css/bootstrap.min.css">
 <link rel="stylesheet" href="/runtime/boot/css/bootstrap-theme.min.css">
