@@ -49,3 +49,5 @@ TIS是一款为用户提供一站式搜索引擎服务的企业化产品，它�
 ## 许可协议
 
  TIS is under the MIT license. See the [LICENSE](https://github.com/qlangtech/tis-solr/blob/master/LICENSE) file for details.
+ 
+## 反馈
