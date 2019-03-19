@@ -29,9 +29,9 @@ TIS是一款为用户提供一站式搜索引擎服务的企业化产品，它�
 
 ## 安装说明
 
-   TIS是基于分布式环境下运行的产品，TIS团队希望安装过程尽量简单，因此为TIS产品安装编写了一个基于基于[Ansible](https://docs.ansible.com/)的安装脚本[详细](https://github.com/qlangtech/tis-ansible)
+   TIS是基于分布式环境下运行的产品，TIS团队希望安装过程尽量简单，因此为TIS产品安装编写了一个基于基于[Ansible](https://docs.ansible.com/)的安装脚本[https://github.com/qlangtech/tis-ansible](https://github.com/qlangtech/tis-ansible)
    
-   安装分为两种模式 [详细安装说明](http://tis.pub/posts/install/):
+   安装分为两种模式,[详细安装说明](http://tis.pub/posts/install/):
 
 - 基于源码的安装
   
@@ -42,12 +42,10 @@ TIS是一款为用户提供一站式搜索引擎服务的企业化产品，它�
   TIS会将正式发布版本放在网上的镜像仓库中，执行该安装模式会直接将网上发布的镜像文件拖到本地进行安装。对于初次安装的用户来说比较适用。
   
 
-  
- 
- 
-
-
-
 ## 架构
 
+![tis](docs/tis-synoptic.png)
+
 ## 许可协议
+
+ TIS is under the MIT license. See the [LICENSE](https://github.com/qlangtech/tis-solr/blob/master/LICENSE) file for details.
