@@ -129,8 +129,8 @@ public class TSearcherConfigFetcher {
 		this.tisHdfsRootDir = null;
 	}
 
-	private TSearcherConfigFetcher(String serviceName) {
-		final RunEnvironment runtime = RunEnvironment.getSysRuntime();
+	private TSearcherConfigFetcher(RunEnvironment runtime, String serviceName) {
+
 		ServiceConfig servceConfig = null;
 		try {
 			URL url = new URL(runtime.getInnerRepositoryURL()
@@ -285,8 +285,9 @@ public class TSearcherConfigFetcher {
 	indexsConfig = new HashMap<String, TSearcherConfigFetcher>();
 
 	public static TSearcherConfigFetcher get() {
+		final RunEnvironment runtime = RunEnvironment.getSysRuntime();
 		try {
-			return getInstance("search4");
+			return getInstance("search4", runtime);
 		} catch (Throwable e) {
 			logger.warn(e.getMessage(), e);
 			e.printStackTrace();
@@ -310,7 +311,7 @@ public class TSearcherConfigFetcher {
 		}
 	}
 
-	private static TSearcherConfigFetcher getInstance(String serviceName) {
+	private static TSearcherConfigFetcher getInstance(String serviceName, RunEnvironment runtime) {
 		Assert.assertTrue(StringUtils.startsWith(serviceName, "search4"));
 		TSearcherConfigFetcher config = null;
 		config = indexsConfig.get(serviceName);
@@ -318,7 +319,7 @@ public class TSearcherConfigFetcher {
 			synchronized (indexsConfig) {
 				config = indexsConfig.get(serviceName);
 				if (config == null) {
-					config = new TSearcherConfigFetcher(serviceName);
+					config = new TSearcherConfigFetcher(runtime, serviceName);
 					indexsConfig.put(serviceName, config);
 				}
 			}
@@ -333,16 +334,4 @@ public class TSearcherConfigFetcher {
 
 	}
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		TSearcherConfigFetcher config = TSearcherConfigFetcher.getInstance("search4sucainew");
-		System.out.println(config.getZkAddress());
-		// int i = 0;
-		// while (i++ < 20) {
-		// System.out.println((int) (Math.random() * 5));
-		//
-		// }
-	}
 }

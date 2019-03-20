@@ -91,7 +91,8 @@ public class Config {
 
 		this.maxYarnCPUCores = p.getInt("max.yarn.cpu.cores");
 		this.maxYarnHeapMemory = p.getInt("max.yarn.heap.memory");
-		this.maxDocMakeFaildLimit = p.getInt("max.doc.make.faild.limit");
+
+		this.maxDocMakeFaildLimit = p.getInt("max.doc.make.faild.limit", 300);
 	}
 
 	private class P {
@@ -112,12 +113,20 @@ public class Config {
 		}
 
 		public final int getInt(String key) {
+			return getInt(key, -1);
+		}
+
+		public final int getInt(String key, int dft) {
 			String val = null;
 			try {
 				val = bundle.getString(key);
 				return Integer.parseInt(val);
 			} catch (Throwable e) {
-				throw new IllegalStateException("key:" + key + ",val:" + val + ", is illegal", e);
+				if (dft > 0) {
+					return dft;
+				} else {
+					throw new IllegalStateException("key:" + key + ",val:" + val + ", is illegal", e);
+				}
 			}
 		}
 	}
