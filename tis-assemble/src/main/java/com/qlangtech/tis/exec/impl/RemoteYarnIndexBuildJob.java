@@ -220,8 +220,8 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 	}
 
 	protected String getRemoteDebugParam(RunEnvironment runtime) {
-		return (runtime == RunEnvironment.DAILY) ? "-Xrunjdwp:transport=dt_socket,address=9890,suspend="
-				+ (state.isRemoteDebugSuspend() ? "y" : "n") + ",server=y " : StringUtils.EMPTY;
+		return (runtime == RunEnvironment.DAILY && state.isRemoteDebugSuspend())
+				? " -Xrunjdwp:transport=dt_socket,address=9890,suspend=y,server=y " : StringUtils.EMPTY;
 	}
 
 	private StringBuffer createLauncherParam() {
