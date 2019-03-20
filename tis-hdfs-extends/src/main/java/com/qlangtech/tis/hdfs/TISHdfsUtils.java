@@ -170,20 +170,6 @@ public class TISHdfsUtils {
 						conf.addResource(url);
 						logger.info("add hdfs:" + hdfsAddress + " resource:" + url);
 
-						// if (runtime == RunEnvironment.ONLINE) {
-						// URL url =
-						// TISHdfsUtils.class.getResource("/online-hdfs-site.xml");
-						// conf.addResource(url);
-						// logger.info("add hdfs:" + config.getHdfsAddress() + "
-						// resource:" + url);
-						// } else {
-						// URL url =
-						// TISHdfsUtils.class.getResource("/daily-hdfs-site.xml");
-						// conf.addResource(url);
-						// logger.info("add hdfs:" + config.getHdfsAddress() + "
-						// resource:" + url);
-						// }
-
 						conf.setBoolean("fs.hdfs.impl.disable.cache", true);
 						fileSystem = new FilterFileSystem(FileSystem.get(conf)) {
 

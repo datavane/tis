@@ -69,6 +69,8 @@ public class BuildTriggerServlet extends TisServlet {
     private static final String KEY_DUMP_START = "dumpstart";
 
     public static final String KEY_DUMP_ROW_COUNT = "rowcount";
+    
+    public static final String KEY_REMOTE_DEBUG_SYSPEND = "taskdebugsuspend";
 
     private static final Logger logger = LoggerFactory.getLogger(BuildTriggerServlet.class);
 

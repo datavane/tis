@@ -53,6 +53,9 @@ public class ImportDataProcessInfo implements Serializable {
 
 	private String indexBuilder;
 
+	// 远程任务是否要启动暂停，等到debug连接，该参数在测试时候使用
+	private boolean remoteDebugSuspend = false;
+
 	// 编译索引使用的Lucene版本
 	private LuceneVersion luceneVersion;
 
@@ -226,6 +229,14 @@ public class ImportDataProcessInfo implements Serializable {
 
 	public Integer getTaskId() {
 		return taskId;
+	}
+
+	public boolean isRemoteDebugSuspend() {
+		return this.remoteDebugSuspend;
+	}
+
+	public void setRemoteDebugSuspend(boolean remoteDebugSuspend) {
+		this.remoteDebugSuspend = remoteDebugSuspend;
 	}
 
 	public static interface HdfsSourcePathCreator {

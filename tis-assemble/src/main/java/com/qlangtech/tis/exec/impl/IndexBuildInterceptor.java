@@ -159,17 +159,17 @@ public class IndexBuildInterceptor implements IExecuteInterceptor {
 
 		ImportDataProcessInfo processInfo = new ImportDataProcessInfo(999);
 		IIndexMetaData indexMetaData = execContext.getIndexMetaData();
-		// 读取schema的内容,取得配置信息
-		// byte[] schemaContent =
-		// ConfigFileReader.FILE_SCHEMA.getContent(domain);
-		// ByteArrayInputStream stream = new
-		// ByteArrayInputStream(schemaContent);
-		// new
+
 		String indexBuilder = indexMetaData.getSchemaParseResult().getIndexBuilder();
 		// SolrFieldsParser().readSchema(stream).getIndexBuilder();
 		if (indexBuilder != null) {
 			processInfo.setIndexBuilder(indexBuilder);
 		}
+
+		// 容器中的任务是否启动suspend，等待debug连接
+		processInfo.setRemoteDebugSuspend( //
+				execContext.getBoolean(BuildTriggerServlet.KEY_REMOTE_DEBUG_SYSPEND));
+
 		processInfo.setTimepoint(timepoint);
 		processInfo.setIndexName(indexName);
 		processInfo.setHdfsSourcePathCreator(hdfsSourcePathCreator);
@@ -313,14 +313,15 @@ public class IndexBuildInterceptor implements IExecuteInterceptor {
 	protected final AbstractIndexBuildJob createRemoteIndexBuildJob(ImportDataProcessInfo processinfo, int grouIndex,
 			String username) {
 		return new RemoteYarnIndexBuildJob(processinfo, grouIndex, username);
-		
+
 		// 暂时全部提交到32G机器上构建索引吧
-//		try {
-//			return new RemoteIndexBuildJob(processinfo, grouIndex, RemoteBuildCenterUtils.remoteJobTriggerFactory,
-//					RemoteBuildCenterUtils.taskPool, username);
-//		} catch (Exception e) {
-//			throw new RuntimeException(e);
-//		}
+		// try {
+		// return new RemoteIndexBuildJob(processinfo, grouIndex,
+		// RemoteBuildCenterUtils.remoteJobTriggerFactory,
+		// RemoteBuildCenterUtils.taskPool, username);
+		// } catch (Exception e) {
+		// throw new RuntimeException(e);
+		// }
 		// }
 	}
 
