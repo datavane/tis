@@ -34,6 +34,7 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -316,7 +317,14 @@ public class TSearcherConfigFetcher {
 				}
 			}
 		}
+		logger.info("get global from tis repositroy:" + config.toString());
 		return config;
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
+
 	}
 
 	/**
