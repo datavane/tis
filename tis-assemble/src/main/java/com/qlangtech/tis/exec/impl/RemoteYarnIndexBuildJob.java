@@ -280,7 +280,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		jobConf.set(IndexBuildParam.INDEXING_SOLR_VERSION, UISVersion.SOLR_VERSION_7);
 		jobConf.set(IndexBuildParam.INDEXING_SOURCE_TYPE, "HDFS");
 
-		jobConf.set(IndexBuildParam.INDEX_MAX_DOC_FAILD_LIMIT, String.valueOf(Config.getMaxDocMakeFaildLimit()));
+		jobConf.set(IndexBuildParam.INDEXING_MAX_DOC_FAILD_LIMIT, String.valueOf(Config.getMaxDocMakeFaildLimit()));
 		return jobConf.paramSerialize();
 	}
 

@@ -100,7 +100,7 @@ public class IndexConf {
 	}
 
 	public int getMaxFailCount() {
-		return getInt(IndexBuildParam.INDEX_MAX_DOC_FAILD_LIMIT);
+		return getInt(IndexBuildParam.INDEXING_MAX_DOC_FAILD_LIMIT);
 	}
 
 	public long getOptimizeSizeThreshold() {
