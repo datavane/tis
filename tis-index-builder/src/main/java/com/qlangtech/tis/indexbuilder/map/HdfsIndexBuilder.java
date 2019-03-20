@@ -23,7 +23,6 @@
  */
 package com.qlangtech.tis.indexbuilder.map;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,16 +30,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -205,10 +201,10 @@ public class HdfsIndexBuilder implements TaskMapper {
 			}
 
 			try {
-				int allTaskCount = indexMakerCount + docMakerCount + 1;
+				int allTaskCount = indexMakerCount + docMakerCount + 1;// merge
+																		// task;
 				SuccessFlag result = null;
 				for (int threadCount = 0; threadCount < allTaskCount //
-						+ 1 // merge task
 				; threadCount++) {
 					result = this.executorService.take().get();
 					logger.info("({}/{})taskcomplete name:{},state:{},msg:{}", (threadCount + 1), allTaskCount,
