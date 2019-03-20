@@ -72,7 +72,7 @@ public class IndexMaker implements Runnable {
 
 	private String name;
 
-	private final SuccessFlag successFlag = new SuccessFlag();
+	private final SuccessFlag successFlag;
 
 	private Counters counters;
 
@@ -90,12 +90,13 @@ public class IndexMaker implements Runnable {
 	// 存活的文档生成器
 	private final AtomicInteger aliveIndexMakerCount;
 
-	public IndexMaker(IndexConf indexConf, IndexSchema indexSchema, Messages messages, Counters counters, // 这个是下游的产出结果
+	public IndexMaker(String name, IndexConf indexConf, IndexSchema indexSchema, Messages messages, Counters counters, // 这个是下游的产出结果
 			BlockingQueue<RAMDirectory> ramDirQueue, // 这个是上游管道
 			BlockingQueue<SolrInputDocument> docPoolQueues, AtomicInteger aliveDocMakerCount, // ,
-			AtomicInteger aliveIndexMakerCount) // ArrayAllocator
+			AtomicInteger aliveIndexMakerCount)
 	// makerAllocator
 	{
+		this.successFlag = new SuccessFlag(name);
 		this.counters = counters;
 		this.messages = messages;
 		this.aliveDocMakerCount = aliveDocMakerCount;
@@ -202,7 +203,7 @@ public class IndexMaker implements Runnable {
 		int failureCount = 0;
 		int indexMakeCount = 0;
 		// for (int i = 0; i < cores.length; i++) {
-		IndexWriter indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema,false/* mrege */);
+		IndexWriter indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema, false/* mrege */);
 		// }
 		// int printCount = 0;
 		SolrInputDocument solrDoc = null;
@@ -236,7 +237,7 @@ public class IndexMaker implements Runnable {
 				}
 				if (needFlush(indexWriter)) {
 					addRAMToMergeQueue(indexWriter);
-					indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema,false/* mrege */);
+					indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema, false/* mrege */);
 				}
 			} catch (Exception e) {
 				logger.error("IndexMaker+" + name, e);

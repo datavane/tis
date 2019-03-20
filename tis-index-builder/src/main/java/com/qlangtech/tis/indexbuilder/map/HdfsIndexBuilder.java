@@ -178,14 +178,13 @@ public class HdfsIndexBuilder implements TaskMapper {
 				 * SourceRecordReader srreader = new HdfsSourceRecordReader(fs,
 				 * splitQueues, fieldSequence, indexConf.getDelimiter());
 				 */
-				LuceneDocMaker luceneDocMaker = new LuceneDocMaker(indexConf, indexMetaConfig.indexSchema,
-						inputDocCreator, messages, counters, docPoolQueues, // clearDocPoolQueues,
+				LuceneDocMaker luceneDocMaker = new LuceneDocMaker("docMaker-" + i, indexConf,
+						indexMetaConfig.indexSchema, inputDocCreator, messages, counters, docPoolQueues, // clearDocPoolQueues,
 						readerFactory, aliveDocMakerCount);
 				initialDataprocess(luceneDocMaker);
 				// luceneDocMaker.setConfigFile(configFile);
 				luceneDocMaker.setName(indexConf.getCoreName() + "-docMaker-" + docMakerCount + "-" + i);
 				resultFlagSet.add(luceneDocMaker.getResultFlag());
-				// threadList.add(luceneDocMaker.getSuccessFlag());
 
 				executorService.submit(luceneDocMaker, luceneDocMaker.getResultFlag());
 			}
@@ -195,21 +194,22 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 			// 多线程构建索引
 			for (int i = 0; i < indexMakerCount; i++) {
-				IndexMaker indexMaker = createIndexMaker(indexConf, counters, messages, indexMetaConfig.indexSchema,
-						aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues, dirQueue);
+				IndexMaker indexMaker = createIndexMaker("indexMaker-" + i, indexConf, counters, messages,
+						indexMetaConfig.indexSchema, aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues, dirQueue);
 				indexMaker.setName(indexConf.getCoreName() + "-indexMaker-" + indexMakerCount + "-" + i);
 				resultFlagSet.add(indexMaker.getResultFlag());
-				// threadList.add(indexMaker.getSuccessFlag());
-				// Thread t = new Thread(indexMaker);
-				// t.setName(indexMaker.getName());
-				// t.start();
-
 				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
 
 			try {
+				SuccessFlag result = null;
 				for (int threadCount = 0; threadCount < resultFlagSet.size(); threadCount++) {
-					this.executorService.take().get();
+					result = this.executorService.take().get();
+					logger.info("({}/{})taskcomplete name:{},state:{},msg:{}", (threadCount + 1), resultFlagSet.size(),
+							result.getName(), result.getFlag(), result.getMsg());
+					if (result.getFlag() != Flag.SUCCESS) {
+						return new TaskReturn(TaskReturn.ReturnCode.FAILURE, result.getMsg());
+					}
 				}
 				// 之前的任何一个進程出錯都會短路
 			} catch (Exception e) {
@@ -300,7 +300,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 	private IndexMetaConfig parseIndexMetadata(TaskContext context, IndexConf indexConf) {
 		IndexMetaConfig indexMetaConfig = new IndexMetaConfig();
-		
+
 		try {
 
 			getIndexSchema(indexConf, indexMetaConfig);
@@ -358,11 +358,11 @@ public class HdfsIndexBuilder implements TaskMapper {
 		}
 	}
 
-	protected IndexMaker createIndexMaker(IndexConf indexConf, Counters counters, Messages messages,
+	protected IndexMaker createIndexMaker(String name, IndexConf indexConf, Counters counters, Messages messages,
 			final IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount,
 			final BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) {
-		return new IndexMaker(indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues, aliveDocMakerCount,
-				aliveIndexMakerCount);
+		return new IndexMaker(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
+				aliveDocMakerCount, aliveIndexMakerCount);
 	}
 
 	/**
@@ -394,7 +394,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 		if (StringUtils.isBlank(buildtabletitleitems)) {
 			throw new IllegalStateException(" indexing.buildtabletitleitems shall be set in user param ");
 		}
-		logger.info(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS+":" + buildtabletitleitems);
+		logger.info(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS + ":" + buildtabletitleitems);
 		readerContext.put("titletext", StringUtils.split(buildtabletitleitems, ","));
 	}
 
@@ -431,19 +431,19 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 	}
 
-	protected SuccessFlag checkSuccessFlag(List<SuccessFlag> threadList) {
-		SuccessFlag flag = new SuccessFlag();
-		flag.setFlag(Flag.SUCCESS);
-		for (SuccessFlag sf : threadList) {
-			if (sf.getFlag() == SuccessFlag.Flag.FAILURE) {
-				return sf;
-			}
-			if (sf.getFlag() == SuccessFlag.Flag.RUNNING) {
-				flag.setFlag(Flag.RUNNING);
-			}
-		}
-		return flag;
-	}
+	// protected SuccessFlag checkSuccessFlag(List<SuccessFlag> threadList) {
+	// SuccessFlag flag = new SuccessFlag();
+	// flag.setFlag(Flag.SUCCESS);
+	// for (SuccessFlag sf : threadList) {
+	// if (sf.getFlag() == SuccessFlag.Flag.FAILURE) {
+	// return sf;
+	// }
+	// if (sf.getFlag() == SuccessFlag.Flag.RUNNING) {
+	// flag.setFlag(Flag.RUNNING);
+	// }
+	// }
+	// return flag;
+	// }
 
 	public static void main(String[] args) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");

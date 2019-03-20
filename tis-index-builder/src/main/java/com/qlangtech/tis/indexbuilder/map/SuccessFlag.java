@@ -28,8 +28,18 @@ package com.qlangtech.tis.indexbuilder.map;
  * @date 2019年1月17日
  */
 public class SuccessFlag {
+	private final String name;
 
-    public enum Flag {
+	// 持有这个任务的task名称
+	public SuccessFlag(String name){
+		this.name = name;
+	}
+	
+    public String getName() {
+		return name;
+	}
+
+	public enum Flag {
         RUNNING,SUCCESS,KILL,FAILURE
     }
 

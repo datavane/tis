@@ -62,7 +62,7 @@ public class LuceneDocMaker implements Runnable {
 
 	private AtomicInteger aliveDocMakerCount;
 
-	private final SuccessFlag successFlag = new SuccessFlag();
+	private final SuccessFlag successFlag;
 
 	private String name;
 
@@ -93,12 +93,14 @@ public class LuceneDocMaker implements Runnable {
 		return this.successFlag;
 	}
 
-	public LuceneDocMaker(//
+	public LuceneDocMaker(String name,
+			//
 			IndexConf indexConf, //
 			IndexSchema indexSchema, //
 			IInputDocCreator documentCreator, //
 			Messages messages, Counters counters, BlockingQueue<SolrInputDocument> docPoolQueue,
 			SourceReaderFactory readerFactory, AtomicInteger aliveDocMakerCount) {
+		this.successFlag = new SuccessFlag(name);
 		this.messages = messages;
 		this.counters = counters;
 		this.indexConf = indexConf;

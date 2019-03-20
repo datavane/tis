@@ -73,7 +73,7 @@ public class IndexMergerImpl implements IndexMerger {
 		this.schema = schema;
 	}
 
-	public static final Logger logger = LoggerFactory.getLogger(IndexMerger.class);
+	public static final Logger logger = LoggerFactory.getLogger(IndexMergerImpl.class);
 
 	// private MergeScheduler mergeScheduler;
 	private BlockingQueue<RAMDirectory> dirQueue;
