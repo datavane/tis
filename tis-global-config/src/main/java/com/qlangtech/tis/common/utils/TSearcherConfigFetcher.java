@@ -289,6 +289,7 @@ public class TSearcherConfigFetcher {
 			return getInstance("search4");
 		} catch (Throwable e) {
 			logger.warn(e.getMessage(), e);
+			e.printStackTrace();
 			return new NullTSearcherConfigFetcher();
 		}
 	}
