@@ -32,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -40,6 +41,7 @@ import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.qlangtech.tis.dump.hive.HiveColumn;
 import com.qlangtech.tis.dump.hive.HiveRemoveHistoryDataTask;
 import com.qlangtech.tis.exec.ActionInvocation;
@@ -52,13 +54,11 @@ import com.qlangtech.tis.fullbuild.servlet.BuildTriggerServlet;
 import com.qlangtech.tis.fullbuild.taskflow.TaskConfigParser;
 import com.qlangtech.tis.fullbuild.taskflow.hive.HiveInsertFromSelectParser;
 import com.qlangtech.tis.order.center.IndexBackflowManager;
-import com.qlangtech.tis.order.center.RemoteBuildCenterUtils;
 import com.qlangtech.tis.trigger.feedback.DistributeLog;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo.HdfsSourcePathCreator;
-import com.qlangtech.tis.trigger.jst.impl.RemoteIndexBuildJob;
 import com.qlangtech.tis.trigger.socket.InfoType;
 
 /*

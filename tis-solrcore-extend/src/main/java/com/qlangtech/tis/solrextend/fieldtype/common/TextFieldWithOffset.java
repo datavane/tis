@@ -25,6 +25,8 @@ package com.qlangtech.tis.solrextend.fieldtype.common;
 
 //import org.apache.lucene.index.IndexOptions;
 //import org.apache.solr.schema.SchemaField;
+//import org.apache.lucene.index.IndexOptions;
+//import org.apache.solr.schema.SchemaField;
 import org.apache.solr.schema.TextField;
 
 /* *

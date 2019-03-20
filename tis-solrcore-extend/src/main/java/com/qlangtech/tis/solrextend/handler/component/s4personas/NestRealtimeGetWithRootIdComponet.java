@@ -26,8 +26,6 @@ package com.qlangtech.tis.solrextend.handler.component.s4personas;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;

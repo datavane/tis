@@ -55,7 +55,7 @@ public class TextHasValIndexField extends TextField {
 			@Override
 			public boolean incrementToken() throws IOException {
 				this.clearAttributes();
-				termAtt.setEmpty().append(StringUtils.isEmpty(val) ? 'f' : 'T');
+				termAtt.setEmpty().append(StringUtils.isEmpty(val) ? 'f' : 't');
 				return incrable.getAndSet(false);
 			}
 		});

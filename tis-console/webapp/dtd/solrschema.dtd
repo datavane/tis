@@ -159,7 +159,7 @@
 <!ATTLIST dynamicField  multiValued (true|false) #IMPLIED>
 <!ATTLIST dynamicField  required (true|false) #IMPLIED>
 <!ATTLIST dynamicField  docValues    (true|false)  #IMPLIED>
-
+<!ATTLIST dynamicField  default CDATA #IMPLIED>
 
 <!ELEMENT copyField EMPTY>
 <!ATTLIST copyField  source CDATA #REQUIRED>

@@ -1,76 +1,53 @@
-/* 
- * The MIT License
- *
- * Copyright (c) 2018-2022, qinglangtech Ltd
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 package org.apache.solr.response;
 
-//import com.qlangtech.tis.solrextend.transformer.s4supplyCommodity.ParentDocTransformerFactory;
-//import org.apache.lucene.index.LeafReader;
-//import org.apache.lucene.index.LeafReaderContext;
-//import org.apache.lucene.index.SortedDocValues;
-//import org.apache.lucene.search.DocIdSetIterator;
-//import org.apache.lucene.search.Query;
-//import org.apache.lucene.search.Sort;
-//import org.apache.lucene.search.SortField;
-//import org.apache.lucene.util.BitSetIterator;
-//import org.apache.lucene.util.FixedBitSet;
-//import org.apache.solr.common.SolrDocument;
-//import org.apache.solr.common.params.ModifiableSolrParams;
-//import org.apache.solr.common.params.SolrParams;
-//import org.apache.solr.request.SolrQueryRequest;
-//import org.apache.solr.request.SolrRequestInfo;
-//import org.apache.solr.response.transform.DocTransformer;
-//import org.apache.solr.response.transform.DocTransformers;
-//import org.apache.solr.response.transform.TransformerFactory;
-//import org.apache.solr.schema.FieldType;
-//import org.apache.solr.schema.IndexSchema;
-//import org.apache.solr.schema.SchemaField;
-//import org.apache.solr.schema.StrField;
-//import org.apache.solr.schema.TrieDoubleField;
-//import org.apache.solr.schema.TrieFloatField;
-//import org.apache.solr.schema.TrieIntField;
-//import org.apache.solr.schema.TrieLongField;
-//import org.apache.solr.search.DocList;
-//import org.apache.solr.search.QueryParsing;
-//import org.apache.solr.search.ReturnFields;
-//import org.apache.solr.search.SolrIndexSearcher;
-//import org.apache.solr.search.SolrReturnFields;
-//import org.apache.solr.search.SortSpec;
-//import org.apache.solr.search.StrParser;
-//import org.apache.solr.search.SyntaxError;
-//import java.io.IOException;
-//import java.io.StringWriter;
-//import java.io.Writer;
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.regex.Matcher;
-//import java.util.regex.Pattern;
+import com.qlangtech.tis.solrextend.transformer.s4supplyCommodity.ParentDocTransformerFactory;
+import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.SortedDocValues;
+import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.util.BitSetIterator;
+import org.apache.lucene.util.FixedBitSet;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.request.SolrRequestInfo;
+import org.apache.solr.response.transform.DocTransformer;
+import org.apache.solr.response.transform.DocTransformers;
+import org.apache.solr.response.transform.TransformerFactory;
+import org.apache.solr.schema.FieldType;
+import org.apache.solr.schema.IndexSchema;
+import org.apache.solr.schema.SchemaField;
+import org.apache.solr.schema.StrField;
+import org.apache.solr.schema.TrieDoubleField;
+import org.apache.solr.schema.TrieFloatField;
+import org.apache.solr.schema.TrieIntField;
+import org.apache.solr.schema.TrieLongField;
+import org.apache.solr.search.DocList;
+import org.apache.solr.search.QueryParsing;
+import org.apache.solr.search.ReturnFields;
+import org.apache.solr.search.SolrIndexSearcher;
+import org.apache.solr.search.SolrReturnFields;
+import org.apache.solr.search.SortSpec;
+import org.apache.solr.search.StrParser;
+import org.apache.solr.search.SyntaxError;
 
-/* *
- * FIXME:原始代码都已经移到了org.apache.solr.handler.export.ExportWriter 大部分逻辑需要修改
- * 先把这个类注释掉了
- * 
- * @author 百岁（baisui@qlangtech.com）
- * @date 2019年1月17日
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * 输入子文档的过程中取通过子文档取得到父文档的属性
+ * @author 百岁
+ *
+ * @date 2019年3月19日
  */
 //public class ParentColumnResponseWriter extends SortingResponseWriter {
 //
@@ -80,14 +57,18 @@ package org.apache.solr.response;
 //        if (o == null) {
 //            return "";
 //        }
+//
 //        if (!(o instanceof org.apache.lucene.document.Field)) {
 //            return String.valueOf(o);
 //        }
+//
 //        org.apache.lucene.document.Field f = (org.apache.lucene.document.Field) o;
+//
 //        return f.stringValue();
 //    }
 //
-//    private static SolrDocument createSolrDocument(SortDoc sortDoc, List<LeafReaderContext> leaves, FieldWriter[] fieldWriters, FixedBitSet[] sets, String[] fields) throws IOException {
+//    private static SolrDocument createSolrDocument(SortDoc sortDoc, List<LeafReaderContext> leaves,
+//                                                   FieldWriter[] fieldWriters, FixedBitSet[] sets, String[] fields) throws IOException {
 //        SolrDocument doc = new SolrDocument();
 //        int ord = sortDoc.ord;
 //        FixedBitSet set = sets[ord];
@@ -95,6 +76,7 @@ package org.apache.solr.response;
 //        LeafReaderContext context = leaves.get(ord);
 //        int fieldIndex = 0;
 //        int i = 0;
+//
 //        for (FieldWriter fieldWriter : fieldWriters) {
 //            StringWriter out = new StringWriter();
 //            if (fieldWriter.write(sortDoc.docId, context.reader(), out, fieldIndex)) {
@@ -110,7 +92,8 @@ package org.apache.solr.response;
 //        return doc;
 //    }
 //
-//    public static String[] getFields(String fl, DocTransformers augmenters, List<String> extraParams, SolrQueryRequest req) throws IOException {
+//    public static String[] getFields(String fl, DocTransformers augmenters, List<String> extraParams,
+//                                     SolrQueryRequest req) throws IOException {
 //        String[] fields = null;
 //        StrParser sp = new StrParser(fl);
 //        List<String> fieldsList = new ArrayList<>();
@@ -119,11 +102,14 @@ package org.apache.solr.response;
 //            sp.eatws();
 //            if (sp.pos >= sp.end)
 //                break;
+//
 //            int start = sp.pos;
+//
 //            // short circuit test for a really simple field name
 //            String key = null;
 //            String field = SolrReturnFields.getFieldName(sp);
 //            char ch = sp.ch();
+//
 //            if (field != null) {
 //                if (sp.opt(':')) {
 //                    // this was a key, not a field name
@@ -142,7 +128,13 @@ package org.apache.solr.response;
 //                    field = null;
 //                }
 //            }
+//
 //            if (field == null) {
+//                // We didn't find a simple name, so let's see if it's a globbed
+//                // field name.
+//                // Globbing only works with field names of the recommended form
+//                // (roughly like java identifiers)
+//
 //                try {
 //                    field = sp.getGlobbedId(null);
 //                } catch (SyntaxError e) {
@@ -152,6 +144,7 @@ package org.apache.solr.response;
 //                if (field != null && (Character.isWhitespace(ch) || ch == ',' || ch == 0)) {
 //                    continue;
 //                }
+//
 //                // an invalid glob
 //                sp.pos = start;
 //            }
@@ -165,12 +158,14 @@ package org.apache.solr.response;
 //                    e.printStackTrace();
 //                }
 //                sp.pos += end;
+//
 //                String augmenterName = augmenterParams.get("type");
 //                augmenterParams.remove("type");
 //                String disp = key;
 //                if (disp == null) {
 //                    disp = '[' + augmenterName + ']';
 //                }
+//
 //                TransformerFactory factory = req.getCore().getTransformerFactory(augmenterName);
 //                if (factory != null) {
 //                    DocTransformer t = factory.create(disp, augmenterParams, req);
@@ -188,8 +183,8 @@ package org.apache.solr.response;
 //                        augmenters.addTransformer(t);
 //                    }
 //                } else {
-//                // throw new SolrException(ErrorCode.BAD_REQUEST, "Unknown
-//                // DocTransformer: "+augmenterName);
+//                    // throw new SolrException(ErrorCode.BAD_REQUEST, "Unknown
+//                    // DocTransformer: "+augmenterName);
 //                }
 //                // fieldsList.add(disp);
 //                continue;
@@ -208,47 +203,62 @@ package org.apache.solr.response;
 //            }
 //            return;
 //        }
+//
 //        SolrRequestInfo info = SolrRequestInfo.getRequestInfo();
 //        SortSpec sortSpec = info.getResponseBuilder().getSortSpec();
 //        Exception exception = null;
+//
 //        if (sortSpec == null) {
 //            exception = new IOException(new SyntaxError("No sort criteria was provided."));
 //        }
+//
 //        SolrIndexSearcher searcher = req.getSearcher();
 //        Sort sort = searcher.weightSort(sortSpec.getSort());
+//
 //        if (sort == null) {
 //            exception = new IOException(new SyntaxError("No sort criteria was provided."));
 //        }
+//
 //        if (sort != null && sort.needsScores()) {
 //            exception = new IOException(new SyntaxError("Scoring is not currently supported with xsort."));
 //        }
+//
 //        FixedBitSet[] sets = (FixedBitSet[]) req.getContext().get("export");
 //        Integer th = (Integer) req.getContext().get("totalHits");
+//
 //        if (sets == null) {
 //            exception = new IOException(new SyntaxError("xport RankQuery is required for xsort: rq={!xport}"));
 //        }
+//
 //        int totalHits = th.intValue();
 //        SolrParams params = req.getParams();
 //        String fl = params.get("fl");
+//
 //        String[] fields = null;
 //        DocTransformers augmenters = new DocTransformers();
 //        List<String> extraParams = new ArrayList<>();
+//
 //        if (fl == null) {
 //            exception = new IOException(new SyntaxError("export field list (fl) must be specified."));
 //        } else {
 //            fields = getFields(fl, augmenters, extraParams, req);
 //        }
+//
 //        FieldWriter[] fieldWriters = null;
+//
 //        try {
 //            fieldWriters = getFieldWriters(fields, req.getSearcher());
 //        } catch (Exception e) {
 //            exception = e;
 //        }
+//
 //        if (exception != null) {
 //            writeException(exception, writer, true);
 //            return;
 //        }
+//
 //        writer.write("{\"responseHeader\": {\"status\": 0}, \"response\":{\"numFound\":" + totalHits + ", \"docs\":[");
+//
 //        // Write the data.
 //        List<LeafReaderContext> leaves = req.getSearcher().getTopReaderContext().leaves();
 //        SortDoc sortDoc = getSortDoc(req.getSearcher(), sort.getSort());
@@ -256,6 +266,7 @@ package org.apache.solr.response;
 //        int queueSize = 30000;
 //        SortQueue queue = new SortQueue(queueSize, sortDoc);
 //        SortDoc[] outDocs = new SortDoc[queueSize];
+//
 //        final ResultContext context = new ResultContext() {
 //
 //            @Override
@@ -283,6 +294,7 @@ package org.apache.solr.response;
 //                return null;
 //            }
 //        };
+//
 //        boolean commaNeeded = false;
 //        while (count < totalHits) {
 //            queue.reset();
@@ -301,7 +313,9 @@ package org.apache.solr.response;
 //                    }
 //                }
 //            }
+//
 //            int outDocsIndex = -1;
+//
 //            for (int i = 0; i < queueSize; i++) {
 //                SortDoc s = queue.pop();
 //                if (s.docId > -1) {
@@ -309,6 +323,7 @@ package org.apache.solr.response;
 //                }
 //            }
 //            count += (outDocsIndex + 1);
+//
 //            try {
 //                // initial transformer
 //                DocTransformer transformer = null;
@@ -322,6 +337,7 @@ package org.apache.solr.response;
 //                    if (extraParam != null)
 //                        extraFields = extraParam.split(",");
 //                }
+//
 //                for (int i = outDocsIndex; i >= 0; --i) {
 //                    SortDoc s = outDocs[i];
 //                    if (commaNeeded) {
@@ -329,10 +345,12 @@ package org.apache.solr.response;
 //                    }
 //                    writer.write('{');
 //                    writeDoc(s, leaves, fieldWriters, sets, writer);
+//
 //                    // add parent's columns
 //                    if (needTransform) {
 //                        SolrDocument childDoc = createSolrDocument(s, leaves, fieldWriters, sets, fields);
 //                        transformer.transform(childDoc, s.docId + leaves.get(s.ord).docBase, 0);
+//
 //                        if (extraFields != null && extraFields.length > 0) {
 //                            for (String fName : extraFields) {
 //                                String fValue = val(childDoc.getFieldValue(fName));
@@ -359,6 +377,7 @@ package org.apache.solr.response;
 //                    }
 //                    ex = ex.getCause();
 //                }
+//
 //                if (e instanceof IOException) {
 //                    throw ((IOException) e);
 //                } else {
@@ -366,6 +385,7 @@ package org.apache.solr.response;
 //                }
 //            }
 //        }
+//
 //        // System.out.println("Sort Time 2:"+Long.toString(total/1000000));
 //        writer.write("]}}");
 //        writer.flush();
@@ -380,9 +400,11 @@ package org.apache.solr.response;
 //            boolean reverse = sf.getReverse();
 //            SchemaField schemaField = schema.getField(field);
 //            FieldType ft = schemaField.getType();
+//
 //            if (!schemaField.hasDocValues()) {
 //                throw new IOException(field + " must have DocValues to use this feature.");
 //            }
+//
 //            if (ft instanceof TrieIntField) {
 //                if (reverse) {
 //                    sortValues[i] = new IntValue(field, new IntDesc());
@@ -419,6 +441,7 @@ package org.apache.solr.response;
 //                throw new IOException("Sort fields must be one of the following types: int,float,long,double,string");
 //            }
 //        }
+//
 //        if (sortValues.length == 1) {
 //            return new SingleValueSortDoc(sortValues[0]);
 //        } else if (sortValues.length == 2) {
@@ -435,7 +458,6 @@ package org.apache.solr.response;
 //    class SortQueue extends PriorityQueue<SortDoc> {
 //
 //        private SortDoc proto;
-//
 //        private Object[] cache;
 //
 //        public SortQueue(int len, SortDoc proto) {

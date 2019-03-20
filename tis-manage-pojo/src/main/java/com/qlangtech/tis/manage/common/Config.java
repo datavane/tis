@@ -42,7 +42,7 @@ public class Config {
 	// 线上同步地址
 	private final String tisOnlineRepository;
 
-	private final String assembleHostAddress;// =10.1.29.64
+	private final String assembleHostAddress;
 	private final String yarnResourceManagerHost;
 
 	private final String projectName;
@@ -50,6 +50,11 @@ public class Config {
 	private final List<FuncGroup> funcGroup = new ArrayList<FuncGroup>();
 
 	private static String bundlePath;
+
+	// 最大yarn堆内存大小,单位为M
+	private final int maxYarnHeapMemory;
+	// 单个任务CPU内核大小
+	private final int maxYarnCPUCores;
 
 	public static int getDptTisId() {
 		return 1;
@@ -70,18 +75,19 @@ public class Config {
 	private Config() {
 		ResourceBundle bundle = ResourceBundle.getBundle(
 				StringUtils.defaultIfEmpty(bundlePath, System.getProperty("tis_config", "tis-web-config/config")));
-		// localRepository = bundle.getString("local.repository");
 		P p = new P(bundle);
 
 		this.tisHostIp = p.getString("tis.host");
 		this.tisOnlineRepository = p.getString("tis.online.repository");
 
 		this.assembleHostAddress = p.getString("assemble.host");
-		
+
 		this.yarnResourceManagerHost = p.getString("yarn.resource.manager.host");
 
 		this.projectName = p.getString("project.name");
 
+		this.maxYarnCPUCores = p.getInt("max.yarn.cpu.cores");
+		this.maxYarnHeapMemory = p.getInt("max.yarn.heap.memory");
 	}
 
 	private class P {
@@ -100,6 +106,16 @@ public class Config {
 			}
 			return StringUtils.EMPTY;
 		}
+
+		public final int getInt(String key) {
+			String val = null;
+			try {
+				val = bundle.getString(key);
+				return Integer.parseInt(val);
+			} catch (Throwable e) {
+				throw new IllegalStateException("key:" + key + ",val:" + val + ", is illegal", e);
+			}
+		}
 	}
 
 	public static List<FuncGroup> getFuncGroup() {
@@ -115,6 +131,14 @@ public class Config {
 			}
 		}
 		return config;
+	}
+
+	public static int getMaxYarnHeapMemory() {
+		return getInstance().maxYarnHeapMemory;
+	}
+
+	public static int getMaxYarnCPUCores() {
+		return getInstance().maxYarnCPUCores;
 	}
 
 	public static String getProjectName() {

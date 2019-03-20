@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 import com.qlangtech.tis.cloud.dump.DumpJobStatus;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.IndexBuildParam;
 import com.qlangtech.tis.manage.common.UISVersion;
@@ -71,13 +72,11 @@ import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo.HDFSRootDir;
 import com.qlangtech.tis.yarn.common.YarnConstant;
 
 /* 
+ * 触发YARN容器中的任务
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
-
-	// private static final Logger logger =
-	// LoggerFactory.getLogger(RemoteYarnIndexBuildJob.class);
 	private static final Logger logger = LoggerFactory.getLogger(RemoteYarnIndexBuildJob.class);
 
 	/**
@@ -114,14 +113,12 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 
 		String javaCommand = StringUtils.isEmpty(JAVA_HOME) ? "java" : (JAVA_HOME + "/bin/java ");
 
-		final int memoryConsume = 500;
+		final int memoryConsume = Config.getMaxYarnHeapMemory();
 		amContainer.setCommands(
 				Collections.singletonList(javaCommand + getMemorySpec(memoryConsume) + getRemoteDebugParam(runtime)
 						+ " -Druntime=" + runtime.getKeyName() + " com.qlangtech.tis.build.yarn.BuildNodeMaster "
 						+ createLauncherParam() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
 						+ ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
-
-		// setJarsLibs(amContainer, libs);
 
 		/* CLASSPATH 运行依賴的環境變量 */
 		Map<String, String> environment = new HashMap<String, String>();
@@ -130,7 +127,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		// 使用4核10G的节点，原则上越大越好
 		Resource capability = Records.newRecord(Resource.class);
 		capability.setMemory(memoryConsume);
-		capability.setVirtualCores(3);
+		capability.setVirtualCores(Config.getMaxYarnCPUCores());
 		// submissionContext.setNodeLabelExpression(nodeLabelExpression);
 		submissionContext.setResource(capability);
 		submissionContext.setQueue("default");
