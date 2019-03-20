@@ -299,6 +299,11 @@ public class TSearcherConfigFetcher {
 		}
 
 		@Override
+		public String getHdfsAddress() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
 		public String getHDFSRootDir() {
 			throw new UnsupportedOperationException();
 		}
