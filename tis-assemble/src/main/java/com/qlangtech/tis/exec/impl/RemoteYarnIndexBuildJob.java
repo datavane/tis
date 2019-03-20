@@ -221,7 +221,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 
 	protected String getRemoteDebugParam(RunEnvironment runtime) {
 		return (runtime == RunEnvironment.DAILY && state.isRemoteDebugSuspend())
-				? " -Xrunjdwp:transport=dt_socket,address=9890,suspend=y,server=y " : StringUtils.EMPTY;
+				? " -Xrunjdwp:transport=dt_socket,address=50001,suspend=y,server=y " : StringUtils.EMPTY;
 	}
 
 	private StringBuffer createLauncherParam() {
