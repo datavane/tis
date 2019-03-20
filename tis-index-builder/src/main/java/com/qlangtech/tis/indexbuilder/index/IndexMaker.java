@@ -54,6 +54,8 @@ public class IndexMaker implements Runnable {
 
 	public static final Logger logger = LoggerFactory.getLogger(IndexMaker.class);
 
+	private static final AtomicInteger failureCount = new AtomicInteger();
+
 	// private GroupRAMDirectory[] addRamDirectorys;
 	protected final IndexSchema indexSchema;
 
@@ -195,12 +197,7 @@ public class IndexMaker implements Runnable {
 	}
 
 	public void doRun() throws IOException, InterruptedException {
-		// AttributeSource.tl1.set(new IdentityHashMap<Class<? extends
-		// Attribute>, Class<? extends AttributeImpl>>());
-		// AttributeSource.tl2.set(new IdentityHashMap<Class<? extends
-		// AttributeImpl>,LinkedList<Class<? extends Attribute>>>());
-		// int[] successCounts = new int[cores.length];
-		int failureCount = 0;
+
 		int indexMakeCount = 0;
 		// for (int i = 0; i < cores.length; i++) {
 		IndexWriter indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema, false/* mrege */);
@@ -244,7 +241,7 @@ public class IndexMaker implements Runnable {
 				counters.incrCounter(Counters.Counter.INDEXMAKE_FAIL, 1);
 				messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error:" + e.toString());
 				messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error, solrDoc:" + solrDoc);
-				if (++failureCount > indexConf.getMaxFailCount()) {
+				if (failureCount.incrementAndGet() > indexConf.getMaxFailCount()) {
 					successFlag.setFlag(SuccessFlag.Flag.FAILURE);
 					successFlag.setMsg("LuceneDocMaker error:failureCount>" + indexConf.getMaxFailCount());
 					return;

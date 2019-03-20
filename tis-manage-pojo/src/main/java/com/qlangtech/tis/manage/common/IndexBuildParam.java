@@ -70,6 +70,9 @@ public class IndexBuildParam {
 
     // 记录数count
     public static final String INDEXING_ROW_COUNT = "indexing_row_count";
+    
+    // 构建索引最大错误上限，超过这个上限之后索引构建会失败
+    public static final String INDEX_MAX_DOC_FAILD_LIMIT = "indexing_maxfail_limit";
 
     private static final List<String> allfields;
 

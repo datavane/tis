@@ -23,17 +23,10 @@
  */
 package com.qlangtech.tis.indexbuilder.source.impl;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.mapred.FileSplit;
 import org.apache.solr.schema.IndexSchema;
 import org.slf4j.Logger;
@@ -109,7 +102,8 @@ public class HDFSReaderFactory implements SourceReaderFactory {
 		this.indexConf = ((IndexConf) context.get("indexconf"));
 		String buildtabletitleitems = taskContext.getUserParam(IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS);
 		if (StringUtils.isBlank(buildtabletitleitems)) {
-			throw new IllegalStateException(" indexing.buildtabletitleitems shall be set in user param ");
+			throw new IllegalStateException(
+					IndexBuildParam.INDEXING_BUILD_TABLE_TITLE_ITEMS + " shall be set in user param ");
 		}
 
 		this.titleText = StringUtils.split(buildtabletitleitems, ",");
@@ -128,52 +122,52 @@ public class HDFSReaderFactory implements SourceReaderFactory {
 			throw new IllegalStateException("fileSplits size can not small than 1");
 		}
 		counters.setCounterValue(Counters.Counter.MAP_INPUT_BYTES, fileSplitor.getTotalSize());
-		counters.setCounterValue(Counters.Counter.MAP_ALL_RECORDS, getRecordCount());
+		//counters.setCounterValue(Counters.Counter.MAP_ALL_RECORDS, getRecordCount());
 	}
 
-	private int getRecordCount() throws IOException {
-		FileStatus[] arrayOfFileStatus;
-		if ((arrayOfFileStatus = this.fs.listStatus(new Path(this.indexConf.getSourcePath()), new PathFilter() {
-			public boolean accept(Path path) {
-				String name = path.getName();
-				return name.endsWith(".suc");
-			}
-		})).length != 0) {
-			FileStatus stat = arrayOfFileStatus[0];
-			BufferedInputStream in = null;
-			FSDataInputStream fileIn = null;
-			try {
-				fileIn = this.fs.open(stat.getPath());
-				stat.getLen();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			in = new BufferedInputStream(fileIn);
-			return readInt(in, '\n');
-		}
-		return 0;
-	}
+//	private int getRecordCount() throws IOException {
+//		FileStatus[] arrayOfFileStatus;
+//		if ((arrayOfFileStatus = this.fs.listStatus(new Path(this.indexConf.getSourcePath()), new PathFilter() {
+//			public boolean accept(Path path) {
+//				String name = path.getName();
+//				return name.endsWith(".suc");
+//			}
+//		})).length != 0) {
+//			FileStatus stat = arrayOfFileStatus[0];
+//			BufferedInputStream in = null;
+//			FSDataInputStream fileIn = null;
+//			try {
+//				fileIn = this.fs.open(stat.getPath());
+//				stat.getLen();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			in = new BufferedInputStream(fileIn);
+//			return readInt(in, '\n');
+//		}
+//		return 0;
+//	}
 
-	private int readInt(InputStream in, char delimiter) throws IOException {
-		int i = 0;
-		byte[] bytes = new byte[10];
-		while (true) {
-			int b = in.read();
-			if (b == -1) {
-				break;
-			}
-			byte c = (byte) b;
-			if ((c == 10) || (c == delimiter)) {
-				break;
-			}
-			bytes[(i++)] = c;
-		}
-		byte[] t = new byte[i];
-		for (int j = 0; j < i; j++) {
-			t[j] = bytes[j];
-		}
-		return Integer.valueOf(new String(t)).intValue();
-	}
+//	private int readInt(InputStream in, char delimiter) throws IOException {
+//		int i = 0;
+//		byte[] bytes = new byte[10];
+//		while (true) {
+//			int b = in.read();
+//			if (b == -1) {
+//				break;
+//			}
+//			byte c = (byte) b;
+//			if ((c == 10) || (c == delimiter)) {
+//				break;
+//			}
+//			bytes[(i++)] = c;
+//		}
+//		byte[] t = new byte[i];
+//		for (int j = 0; j < i; j++) {
+//			t[j] = bytes[j];
+//		}
+//		return Integer.valueOf(new String(t)).intValue();
+//	}
 	// public SuccessFlag getSuccessFlag() throws Exception {
 	// SuccessFlag flag = new SuccessFlag();
 	// flag.setFlag(SuccessFlag.Flag.SUCCESS);

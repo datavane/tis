@@ -46,6 +46,16 @@ public class IndexConf {
 		return this.context.getUserParam(key);
 	}
 
+	private int getInt(String key) {
+		String val = null;
+		try {
+			val = this.context.getUserParam(key);
+			return Integer.parseInt(val);
+		} catch (Throwable e) {
+			throw new IllegalStateException("key:" + key + ",val:" + val, e);
+		}
+	}
+
 	public String getSchemaName() {
 		return "schema.xml";
 	}
@@ -90,8 +100,7 @@ public class IndexConf {
 	}
 
 	public int getMaxFailCount() {
-		// return getInt("indexing.maxfailcount", 100);
-		return 20;
+		return getInt(IndexBuildParam.INDEX_MAX_DOC_FAILD_LIMIT);
 	}
 
 	public long getOptimizeSizeThreshold() {

@@ -56,6 +56,9 @@ public class Config {
 	// 单个任务CPU内核大小
 	private final int maxYarnCPUCores;
 
+	// 构建索引过程中最大允许失败索引条数，超过这个阀值构建索引流程就失败
+	private final int maxDocMakeFaildLimit;
+
 	public static int getDptTisId() {
 		return 1;
 	}
@@ -88,6 +91,7 @@ public class Config {
 
 		this.maxYarnCPUCores = p.getInt("max.yarn.cpu.cores");
 		this.maxYarnHeapMemory = p.getInt("max.yarn.heap.memory");
+		this.maxDocMakeFaildLimit = p.getInt("max.doc.make.faild.limit");
 	}
 
 	private class P {
@@ -116,6 +120,10 @@ public class Config {
 				throw new IllegalStateException("key:" + key + ",val:" + val + ", is illegal", e);
 			}
 		}
+	}
+
+	public static int getMaxDocMakeFaildLimit() {
+		return getInstance().maxDocMakeFaildLimit;
 	}
 
 	public static List<FuncGroup> getFuncGroup() {
