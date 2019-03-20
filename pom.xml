@@ -119,6 +119,7 @@
 				<groupId>com.qlangtech.tis</groupId>
 				<artifactId>tis-hdfs-extends</artifactId>
 				<version>${project.version}</version>
+
 			</dependency>
 
 			<dependency>
@@ -423,6 +424,12 @@
 				<groupId>org.apache.hadoop</groupId>
 				<artifactId>hadoop-yarn-client</artifactId>
 				<version>${hadoop-version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>jdk.tools</groupId>
+						<artifactId>jdk.tools</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 
 			<dependency>
@@ -485,6 +492,12 @@
 					<exclusion>
 						<groupId>org.apache.curator</groupId>
 						<artifactId>curator-recipes</artifactId>
+					</exclusion>
+
+
+					<exclusion>
+						<groupId>jdk.tools</groupId>
+						<artifactId>jdk.tools</artifactId>
 					</exclusion>
 				</exclusions>
 			</dependency>

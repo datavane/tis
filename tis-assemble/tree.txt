@@ -1,0 +1,20 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building tis-assemble 1.0.0
+[INFO] ------------------------------------------------------------------------
+[WARNING] The POM for velocity-tools:velocity-tools-view:jar:2.0-beta1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 3.259 s
+[INFO] Finished at: 2019-03-20T15:13:31+08:00
+[INFO] Final Memory: 21M/72M
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal on project tis-assemble: Could not resolve dependencies for project com.qlangtech.tis:tis-assemble:jar:1.0.0: Could not find artifact jdk.tools:jdk.tools:jar:1.6 at specified path D:\j2ee_solution\jdk9/../lib/tools.jar -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
