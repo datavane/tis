@@ -107,7 +107,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 	// 由consel传入的taskid
 	private String taskid = "";
-	private Future<SuccessFlag> mergeExecResult;
+	// private Future<SuccessFlag> mergeExecResult;
 
 	public HdfsIndexBuilder() throws IOException {
 		startTime = System.currentTimeMillis();
@@ -168,7 +168,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 			setDumpFileTitles(context, readerContext);
 			logger.info("----------readerContext:" + readerContext.toString());
 			readerFactory.init(readerContext);
-			List<SuccessFlag> resultFlagSet = new ArrayList<SuccessFlag>();
+			// List<SuccessFlag> resultFlagSet = new ArrayList<SuccessFlag>();
 			final IInputDocCreator inputDocCreator = AbstractInputDocCreator.createDocumentCreator(
 					indexMetaConfig.schemaParse.getDocumentCreatorType(), indexMetaConfig.rawDataProcessor,
 					indexMetaConfig.indexSchema, createNewDocVersion(indexConf));
@@ -184,28 +184,34 @@ public class HdfsIndexBuilder implements TaskMapper {
 				initialDataprocess(luceneDocMaker);
 				// luceneDocMaker.setConfigFile(configFile);
 				luceneDocMaker.setName(indexConf.getCoreName() + "-docMaker-" + docMakerCount + "-" + i);
-				resultFlagSet.add(luceneDocMaker.getResultFlag());
+				// resultFlagSet.add(luceneDocMaker.getResultFlag());
 
 				executorService.submit(luceneDocMaker, luceneDocMaker.getResultFlag());
 			}
 			// merge线程
-			this.mergeExecResult = waitIndexMergeTask(indexConf, aliveIndexMakerCount, counters, messages, dirQueue,
+			// this.mergeExecResult =
+
+			waitIndexMergeTask("mergetask-1", indexConf, aliveIndexMakerCount, counters, messages, dirQueue,
 					indexMetaConfig.indexSchema);
 
 			// 多线程构建索引
 			for (int i = 0; i < indexMakerCount; i++) {
 				IndexMaker indexMaker = createIndexMaker("indexMaker-" + i, indexConf, counters, messages,
 						indexMetaConfig.indexSchema, aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues, dirQueue);
-				indexMaker.setName(indexConf.getCoreName() + "-indexMaker-" + indexMakerCount + "-" + i);
-				resultFlagSet.add(indexMaker.getResultFlag());
+				// indexMaker.setName(indexConf.getCoreName() + "-indexMaker-" +
+				// indexMakerCount + "-" + i);
+				// resultFlagSet.add(indexMaker.getResultFlag());
 				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
 
 			try {
+				int allTaskCount = indexMakerCount + docMakerCount + 1;
 				SuccessFlag result = null;
-				for (int threadCount = 0; threadCount < resultFlagSet.size(); threadCount++) {
+				for (int threadCount = 0; threadCount < allTaskCount //
+						+ 1 // merge task
+				; threadCount++) {
 					result = this.executorService.take().get();
-					logger.info("({}/{})taskcomplete name:{},state:{},msg:{}", (threadCount + 1), resultFlagSet.size(),
+					logger.info("({}/{})taskcomplete name:{},state:{},msg:{}", (threadCount + 1), allTaskCount,
 							result.getName(), result.getFlag(), result.getMsg());
 					if (result.getFlag() != Flag.SUCCESS) {
 						return new TaskReturn(TaskReturn.ReturnCode.FAILURE, result.getMsg());
@@ -219,27 +225,30 @@ public class HdfsIndexBuilder implements TaskMapper {
 				return new TaskReturn(TaskReturn.ReturnCode.FAILURE, e.getMessage());
 			}
 
-			SuccessFlag flag = mergeExecResult.get();
-			// 检查docmake 和index make 是否出错，出错的话要终止此次流程继续执行
-			for (SuccessFlag f : resultFlagSet) {
-				if (f.getFlag() == SuccessFlag.Flag.FAILURE) {
-					return new TaskReturn(TaskReturn.ReturnCode.FAILURE, f.getMsg());
-				}
-			}
+			// SuccessFlag flag = mergeExecResult.get();
+			// // 检查docmake 和index make 是否出错，出错的话要终止此次流程继续执行
+			// for (SuccessFlag f : resultFlagSet) {
+			// if (f.getFlag() == SuccessFlag.Flag.FAILURE) {
+			// return new TaskReturn(TaskReturn.ReturnCode.FAILURE, f.getMsg());
+			// }
+			// }
 			// 检查各个线程的运行状态
-			if (flag.getFlag() == SuccessFlag.Flag.SUCCESS) {
-				logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() + " dump done!!");
-				logger.warn("[taskid:" + taskid + "]" + "indexing done,take "
-						+ (System.currentTimeMillis() + 1 - startTime) / (1000 * 60) + " minutes!");
-				messages.addMessage(Messages.Message.ALL_TIME,
-						(System.currentTimeMillis() - startTime) / 1000 + " seconds");
-				return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
-			}
+			// if (flag.getFlag() == SuccessFlag.Flag.SUCCESS) {
+			// logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() +
+			// " dump done!!");
+			// logger.warn("[taskid:" + taskid + "]" + "indexing done,take "
+			// + (System.currentTimeMillis() + 1 - startTime) / (1000 * 60) + "
+			// minutes!");
+			// messages.addMessage(Messages.Message.ALL_TIME,
+			// (System.currentTimeMillis() - startTime) / 1000 + " seconds");
+			// return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
+			// }
 
-			logger.warn(indexConf.getCoreName() + " dump fail!!");
-			logger.error("[taskid:" + taskid + "]" + "dump fail!!" + flag.getMsg());
-			messages.addMessage(Messages.Message.ERROR_MSG, flag.getMsg());
-			return new TaskReturn(TaskReturn.ReturnCode.FAILURE, flag.getMsg());
+			// logger.warn(indexConf.getCoreName() + " dump fail!!");
+			// logger.error("[taskid:" + taskid + "]" + "dump fail!!" +
+			// flag.getMsg());
+			// messages.addMessage(Messages.Message.ERROR_MSG, flag.getMsg());
+			return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
 
 		} catch (Throwable e1) {
 			logger.error("[taskid:" + taskid + "]" + "build error:", e1);
@@ -286,17 +295,17 @@ public class HdfsIndexBuilder implements TaskMapper {
 		}
 	}
 
-	/**
-	 * 索引merge是否完成
-	 * 
-	 * @return
-	 */
-	public boolean getMergeOver() {
-		if (mergeExecResult == null) {
-			return false;
-		}
-		return mergeExecResult.isDone();
-	}
+	// /**
+	// * 索引merge是否完成
+	// *
+	// * @return
+	// */
+	// public boolean getMergeOver() {
+	// if (mergeExecResult == null) {
+	// return false;
+	// }
+	// return mergeExecResult.isDone();
+	// }
 
 	private IndexMetaConfig parseIndexMetadata(TaskContext context, IndexConf indexConf) {
 		IndexMetaConfig indexMetaConfig = new IndexMetaConfig();
@@ -398,7 +407,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 		readerContext.put("titletext", StringUtils.split(buildtabletitleitems, ","));
 	}
 
-	private Future<SuccessFlag> waitIndexMergeTask(final IndexConf indexConf, AtomicInteger aliveIndexMakerCount,
+	private void waitIndexMergeTask(String name, final IndexConf indexConf, AtomicInteger aliveIndexMakerCount,
 			Counters counters, Messages messages, BlockingQueue<RAMDirectory> dirQueue, IndexSchema schema)
 			throws Exception {
 		if (schema == null) {
@@ -406,7 +415,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 		}
 		final ClassLoader currentClassloader = Thread.currentThread().getContextClassLoader();
 		// (IndexMerger)
-		IndexMerger indexMerger = new IndexMergerImpl(schema);
+		IndexMerger indexMerger = new IndexMergerImpl(name, schema);
 		// clazz.newInstance();
 		indexMerger.setAtomicInteger(aliveIndexMakerCount);
 		indexMerger.setCounters(counters);
@@ -415,13 +424,10 @@ public class HdfsIndexBuilder implements TaskMapper {
 		indexMerger.setIndexConf(indexConf);
 		// indexMerger.setMergerAllocator(mergerAllocator);
 		indexMerger.setDirQueue(dirQueue);
-		// indexMerger.setTaskAttemptId(taskAttemptId);
-		indexMerger.setName(indexConf.getCoreName());
-		// threadList.add(indexMerger.getSuccessFlag());
 
 		logger.warn("indexmergeloader:" + currentClassloader.getClass());
-		Future<SuccessFlag> mergeExecResult = executorService.submit(indexMerger);
-		return mergeExecResult;
+		executorService.submit(indexMerger);
+
 	}
 
 	/**

@@ -54,13 +54,4 @@ public interface IndexMerger extends Callable<SuccessFlag> {
 
 	public void setIndexConf(IndexConf indexConf);
 
-	/**
-	 * @return
-	 */
-	public String getName();
-
-	/**
-	 * @param coreName
-	 */
-	public void setName(String coreName);
 }

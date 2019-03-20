@@ -43,14 +43,17 @@ import com.qlangtech.tis.indexbuilder.map.IndexConf;
  */
 public class NestDocIndexBuilder extends HdfsIndexBuilder {
 
-    /**
-     * @throws IOException
-     */
-    public NestDocIndexBuilder() throws IOException {
-        super();
-    }
+	/**
+	 * @throws IOException
+	 */
+	public NestDocIndexBuilder() throws IOException {
+		super();
+	}
 
-    protected IndexMaker createIndexMaker(IndexConf indexConf, Counters counters, Messages messages, final IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount, final BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) {
-        return new NestIndexMaker(indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues, aliveDocMakerCount, aliveIndexMakerCount);
-    }
+	protected IndexMaker createIndexMaker(String name, IndexConf indexConf, Counters counters, Messages messages,
+			final IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount,
+			final BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) {
+		return new NestIndexMaker(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
+				aliveDocMakerCount, aliveIndexMakerCount);
+	}
 }

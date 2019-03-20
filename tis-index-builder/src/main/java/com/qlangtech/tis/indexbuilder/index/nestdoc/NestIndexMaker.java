@@ -61,10 +61,10 @@ public class NestIndexMaker extends IndexMaker {
 	 * @param aliveDocMakerCount
 	 * @param aliveIndexMakerCount
 	 */
-	public NestIndexMaker(IndexConf indexConf, IndexSchema indexSchema, Messages messages, Counters counters,
+	public NestIndexMaker(String  name,IndexConf indexConf, IndexSchema indexSchema, Messages messages, Counters counters,
 			BlockingQueue<RAMDirectory> ramDirQueue, BlockingQueue<SolrInputDocument> docPoolQueues,
 			AtomicInteger aliveDocMakerCount, AtomicInteger aliveIndexMakerCount) {
-		super(indexConf, indexSchema, messages, counters, ramDirQueue, docPoolQueues, aliveDocMakerCount,
+		super(name,indexConf, indexSchema, messages, counters, ramDirQueue, docPoolQueues, aliveDocMakerCount,
 				aliveIndexMakerCount);
 	}
 

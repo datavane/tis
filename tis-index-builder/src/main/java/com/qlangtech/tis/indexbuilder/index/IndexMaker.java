@@ -70,7 +70,7 @@ public class IndexMaker implements Runnable {
 	// 这个maker的产出物
 	private BlockingQueue<RAMDirectory> ramDirQueue;
 
-	private String name;
+	// private String name;
 
 	private final SuccessFlag successFlag;
 
@@ -226,7 +226,7 @@ public class IndexMaker implements Runnable {
 					return;
 				}
 			} catch (Exception e1) {
-				logger.error("IndexMaker+" + name, e1);
+				logger.error("IndexMaker+" + this.successFlag.getName(), e1);
 				counters.incrCounter(Counters.Counter.INDEXMAKE_FAIL, 1);
 				messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error:" + e1.toString());
 			}
@@ -240,7 +240,7 @@ public class IndexMaker implements Runnable {
 					indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema, false/* mrege */);
 				}
 			} catch (Exception e) {
-				logger.error("IndexMaker+" + name, e);
+				logger.error("IndexMaker+" + successFlag.getName(), e);
 				counters.incrCounter(Counters.Counter.INDEXMAKE_FAIL, 1);
 				messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error:" + e.toString());
 				messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error, solrDoc:" + solrDoc);
@@ -265,11 +265,4 @@ public class IndexMaker implements Runnable {
 		counters.incrCounter(Counters.Counter.MAP_INPUT_RECORDS, indexMakeCount);
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
 }

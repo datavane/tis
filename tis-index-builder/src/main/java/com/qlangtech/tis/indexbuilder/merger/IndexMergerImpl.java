@@ -68,8 +68,10 @@ public class IndexMergerImpl implements IndexMerger {
 	}
 
 	private final IndexSchema schema;
+	private final SuccessFlag successFlag;
 
-	public IndexMergerImpl(IndexSchema schema) {
+	public IndexMergerImpl(String name, IndexSchema schema) {
+		this.successFlag = new SuccessFlag(name);
 		this.schema = schema;
 	}
 
@@ -90,7 +92,7 @@ public class IndexMergerImpl implements IndexMerger {
 
 	private IndexConf indexConf;
 
-	private String name;
+	// private String name;
 
 	private Counters counters;
 
@@ -108,8 +110,6 @@ public class IndexMergerImpl implements IndexMerger {
 	private FileSystem fs;
 
 	final AtomicInteger dirSeq = new AtomicInteger(0);
-
-	final SuccessFlag successFlag = new SuccessFlag();
 
 	public void init() throws Throwable {
 		// logger.warn("11-------------------------1------------");
@@ -275,7 +275,7 @@ public class IndexMergerImpl implements IndexMerger {
 	public SuccessFlag call() throws Exception {
 		try {
 			HdfsIndexBuilder.setMdcAppName(indexConf.getCollectionName());
-			logger.warn(name + " merge thread start!!!!!!!");
+			logger.warn(this.successFlag.getName() + " merge thread start!!!!!!!");
 			init();
 			IndexWriter writer = IndexMaker.createRAMIndexWriter(this.indexConf, this.schema, true/* merge */);
 			AtomicInteger asynMergerThreadAliveCount = new AtomicInteger();
@@ -319,7 +319,8 @@ public class IndexMergerImpl implements IndexMerger {
 
 	private void printSuccessMessage() {
 		messages.addMessage(Messages.Message.INDEX_TIME, (System.currentTimeMillis() - startTime) / 1000 + " seconds");
-		logger.warn(name + " end index!!!!!!!!!take:" + (System.currentTimeMillis() - startTime) / 1000 + " seconds");
+		logger.warn(successFlag.getName() + " end index!!!!!!!!!take:" + (System.currentTimeMillis() - startTime) / 1000
+				+ " seconds");
 		successFlag.setFlag(Flag.SUCCESS);
 	}
 
@@ -412,14 +413,6 @@ public class IndexMergerImpl implements IndexMerger {
 		e.printStackTrace(wrt);
 		wrt.close();
 		return stm.toString();
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	@Override

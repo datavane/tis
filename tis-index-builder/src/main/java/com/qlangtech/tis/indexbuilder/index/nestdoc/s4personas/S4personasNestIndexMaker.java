@@ -43,10 +43,10 @@ import com.qlangtech.tis.indexbuilder.map.IndexConf;
  */
 public class S4personasNestIndexMaker extends NestIndexMaker {
 
-	public S4personasNestIndexMaker(IndexConf indexConf, IndexSchema indexSchema, Messages messages, Counters counters,
-			BlockingQueue<RAMDirectory> ramDirQueue, BlockingQueue<SolrInputDocument> docPoolQueues,
+	public S4personasNestIndexMaker(String name, IndexConf indexConf, IndexSchema indexSchema, Messages messages,
+			Counters counters, BlockingQueue<RAMDirectory> ramDirQueue, BlockingQueue<SolrInputDocument> docPoolQueues,
 			AtomicInteger aliveDocMakerCount, AtomicInteger aliveIndexMakerCount) {
-		super(indexConf, indexSchema, messages, counters, ramDirQueue, docPoolQueues, aliveDocMakerCount,
+		super(name, indexConf, indexSchema, messages, counters, ramDirQueue, docPoolQueues, aliveDocMakerCount,
 				aliveIndexMakerCount);
 	}
 

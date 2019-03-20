@@ -48,10 +48,10 @@ public class S4personasNestDocIndexBuilder extends NestDocIndexBuilder {
 	}
 
 	@Override
-	protected IndexMaker createIndexMaker(IndexConf indexConf, Counters counters, Messages messages,
+	protected IndexMaker createIndexMaker(String name, IndexConf indexConf, Counters counters, Messages messages,
 			IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount,
 			BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) {
-		return new S4personasNestIndexMaker(indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
+		return new S4personasNestIndexMaker(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
 				aliveDocMakerCount, aliveIndexMakerCount);
 	}
 }
