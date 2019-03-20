@@ -148,6 +148,9 @@ public class TISHdfsUtils {
 
 	public static FileSystem getFileSystem(String hdfsAddress) {
 		try {
+			if (StringUtils.isBlank(hdfsAddress)) {
+				throw new IllegalArgumentException("param hdfsAddress can not be null");
+			}
 			FileSystem fileSystem = fileSys.get(hdfsAddress);
 			if (fileSystem == null) {
 				synchronized (TISHdfsUtils.class) {
@@ -155,8 +158,9 @@ public class TISHdfsUtils {
 					if (fileSystem == null) {
 						Configuration conf = new Configuration();
 						conf.set(FsPermission.UMASK_LABEL, "000");
-						TSearcherConfigFetcher config = TSearcherConfigFetcher.get();
-						conf.set("fs.default.name", config.getHdfsAddress());
+						// TSearcherConfigFetcher config =
+						// TSearcherConfigFetcher.get();
+						conf.set("fs.default.name", hdfsAddress);
 						conf.set("hadoop.job.ugi", "admin");
 
 						RunEnvironment runtime = RunEnvironment.getSysRuntime();
@@ -164,7 +168,7 @@ public class TISHdfsUtils {
 
 						URL url = TISHdfsUtils.class.getResource("/tis-web-config/hdfs-site.xml");
 						conf.addResource(url);
-						logger.info("add hdfs:" + config.getHdfsAddress() + " resource:" + url);
+						logger.info("add hdfs:" + hdfsAddress + " resource:" + url);
 
 						// if (runtime == RunEnvironment.ONLINE) {
 						// URL url =
