@@ -2,7 +2,7 @@
 
 <!ATTLIST schema name CDATA #REQUIRED>
 <!ATTLIST schema version CDATA #REQUIRED>
-<!ATTLIST schema indexBuilder CDATA #IMPLIED>
+<!ATTLIST schema indexMaker CDATA #IMPLIED>
 <!ATTLIST schema docMaker CDATA #IMPLIED>
 
 <!ELEMENT types (fieldType+)>

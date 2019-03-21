@@ -21,13 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.qlangtech.tis.indexbuilder.map;
+package com.qlangtech.tis.indexbuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -67,6 +68,10 @@ import com.qlangtech.tis.indexbuilder.doc.LuceneDocMaker;
 import com.qlangtech.tis.indexbuilder.doc.impl.AbstractInputDocCreator;
 import com.qlangtech.tis.indexbuilder.index.IndexMaker;
 import com.qlangtech.tis.indexbuilder.index.IndexMerger;
+import com.qlangtech.tis.indexbuilder.map.HdfsIndexGetConfig;
+import com.qlangtech.tis.indexbuilder.map.IndexConf;
+import com.qlangtech.tis.indexbuilder.map.RawDataProcessor;
+import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag.Flag;
 import com.qlangtech.tis.indexbuilder.merger.IndexMergerImpl;
 import com.qlangtech.tis.indexbuilder.source.impl.HDFSReaderFactory;
@@ -134,7 +139,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 			// final IndexSchema indexSchema = getIndexSchema(indexConf);
 
-			String[] schemaFields = indexMetaConfig.indexSchema.getFields().keySet().toArray(new String[0]);
+			String[] schemaFields = indexMetaConfig.getSchemaFields();
 			// 开始构建索引。。。
 			logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() + " indexing start......");
 
@@ -192,8 +197,9 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 			// 多线程构建索引
 			for (int i = 0; i < indexMakerCount; i++) {
-				IndexMaker indexMaker = createIndexMaker("indexMaker-" + i, indexConf, counters, messages,
-						indexMetaConfig.indexSchema, aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues, dirQueue);
+				IndexMaker indexMaker = createIndexMaker(indexMetaConfig, "indexMaker-" + i, indexConf, counters,
+						messages, indexMetaConfig.indexSchema, aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues,
+						dirQueue);
 				// indexMaker.setName(indexConf.getCoreName() + "-indexMaker-" +
 				// indexMakerCount + "-" + i);
 				// resultFlagSet.add(indexMaker.getResultFlag());
@@ -221,29 +227,6 @@ public class HdfsIndexBuilder implements TaskMapper {
 				return new TaskReturn(TaskReturn.ReturnCode.FAILURE, e.getMessage());
 			}
 
-			// SuccessFlag flag = mergeExecResult.get();
-			// // 检查docmake 和index make 是否出错，出错的话要终止此次流程继续执行
-			// for (SuccessFlag f : resultFlagSet) {
-			// if (f.getFlag() == SuccessFlag.Flag.FAILURE) {
-			// return new TaskReturn(TaskReturn.ReturnCode.FAILURE, f.getMsg());
-			// }
-			// }
-			// 检查各个线程的运行状态
-			// if (flag.getFlag() == SuccessFlag.Flag.SUCCESS) {
-			// logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() +
-			// " dump done!!");
-			// logger.warn("[taskid:" + taskid + "]" + "indexing done,take "
-			// + (System.currentTimeMillis() + 1 - startTime) / (1000 * 60) + "
-			// minutes!");
-			// messages.addMessage(Messages.Message.ALL_TIME,
-			// (System.currentTimeMillis() - startTime) / 1000 + " seconds");
-			// return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
-			// }
-
-			// logger.warn(indexConf.getCoreName() + " dump fail!!");
-			// logger.error("[taskid:" + taskid + "]" + "dump fail!!" +
-			// flag.getMsg());
-			// messages.addMessage(Messages.Message.ERROR_MSG, flag.getMsg());
 			return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
 
 		} catch (Throwable e1) {
@@ -291,18 +274,6 @@ public class HdfsIndexBuilder implements TaskMapper {
 		}
 	}
 
-	// /**
-	// * 索引merge是否完成
-	// *
-	// * @return
-	// */
-	// public boolean getMergeOver() {
-	// if (mergeExecResult == null) {
-	// return false;
-	// }
-	// return mergeExecResult.isDone();
-	// }
-
 	private IndexMetaConfig parseIndexMetadata(TaskContext context, IndexConf indexConf) {
 		IndexMetaConfig indexMetaConfig = new IndexMetaConfig();
 
@@ -339,14 +310,13 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 		private RawDataProcessor rawDataProcessor;
 
-		// private List<IIndexBuildLifeCycleHook> indexBuildLifeCycleHooks;
+		public String[] getSchemaFields() {
+			return this.indexSchema.getFields().keySet().toArray(new String[0]);
+		}
+
 		private void validate() {
 			logger.info(rawDataProcessor.toString());
-			if (indexSchema == null || schemaParse == null || rawDataProcessor == null) // ||
-																						// indexBuildLifeCycleHooks
-																						// ==
-																						// null
-			{
+			if (indexSchema == null || schemaParse == null || rawDataProcessor == null) {
 				throw new IllegalStateException(
 						"indexSchema == null || schemaParse == null || rawDataProcessor == null	");
 			}
@@ -363,11 +333,26 @@ public class HdfsIndexBuilder implements TaskMapper {
 		}
 	}
 
-	protected IndexMaker createIndexMaker(String name, IndexConf indexConf, Counters counters, Messages messages,
-			final IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount,
-			final BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) {
-		return new IndexMaker(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
-				aliveDocMakerCount, aliveIndexMakerCount);
+	@SuppressWarnings("all")
+	private final IndexMaker createIndexMaker(IndexMetaConfig indexMetaConfig //
+			, String name, IndexConf indexConf, Counters counters, Messages messages, final IndexSchema indexSchema,
+			AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount,
+			final BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue)
+			throws Exception {
+
+		String indexMakerClassName = indexMetaConfig.schemaParse.getIndexMakerClassName();
+		if (ParseResult.DEFAULT.equals(indexMakerClassName)) {
+			return new IndexMaker(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
+					aliveDocMakerCount, aliveIndexMakerCount);
+		} else {
+			Class<IndexMaker> clazz = (Class<IndexMaker>) Class.forName(indexMakerClassName);
+			Constructor<IndexMaker> cnstrt = (Constructor<IndexMaker>) clazz.getConstructor(String.class,
+					IndexConf.class, IndexSchema.class, Messages.class, Counters.class, BlockingQueue.class,
+					BlockingQueue.class, AtomicInteger.class, AtomicInteger.class);
+			return cnstrt.newInstance(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
+					aliveDocMakerCount, aliveIndexMakerCount);
+		}
+
 	}
 
 	/**

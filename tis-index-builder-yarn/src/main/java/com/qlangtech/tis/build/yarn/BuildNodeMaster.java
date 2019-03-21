@@ -25,7 +25,7 @@ import com.qlangtech.tis.build.log.AppnameAwareFlumeLogstashV1Appender;
 import com.qlangtech.tis.build.task.TaskReturn;
 import com.qlangtech.tis.build.task.TaskReturn.ReturnCode;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
-import com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder;
+import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.HdfsIndexGetConfig;
 import com.qlangtech.tis.manage.common.IndexBuildParam;
 import com.qlangtech.tis.yarn.common.YarnConstant;

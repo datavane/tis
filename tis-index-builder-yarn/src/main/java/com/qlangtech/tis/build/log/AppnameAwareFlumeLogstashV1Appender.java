@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.gilt.logback.flume.FlumeLogstashV1Appender;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
-import com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder;
+import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 

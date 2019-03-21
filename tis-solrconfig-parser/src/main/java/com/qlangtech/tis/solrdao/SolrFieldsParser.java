@@ -76,6 +76,8 @@ import com.qlangtech.tis.solrdao.pojo.PSchemaField;
  */
 public class SolrFieldsParser {
 
+
+
 	static final XPathFactory xpathFactory = XPathFactory.newInstance();
 
 	public static XPath createXPath() {
@@ -90,7 +92,7 @@ public class SolrFieldsParser {
 		File f = new File("D:/workspace/solrhome/supplyGoods/conf/ccc.xml");
 		InputStream is = new FileInputStream(f);
 		ParseResult result = parse.parseSchema(is, false);
-		System.out.println(result.getIndexBuilder());
+		System.out.println(result.getIndexMakerClassName());
 	}
 
 	public static boolean hasMultiValuedField(ArrayList<PSchemaField> fields) {
@@ -261,9 +263,9 @@ public class SolrFieldsParser {
 		parseResult.setUniqueKey(uniqueKey);
 		parseResult.setSharedKey(sharedKey);
 		final NodeList schemaNodes = (NodeList) xpath.evaluate("/schema", document, XPathConstants.NODESET);
-		final String indexBuilder = getIndexBuilder(schemaNodes);
-		if (!StringUtils.isBlank(indexBuilder)) {
-			parseResult.setIndexBuilder(indexBuilder);
+		final String indexMakerClassName = getIndexMakerClassName(schemaNodes);
+		if (!StringUtils.isBlank(indexMakerClassName)) {
+			parseResult.setIndexMakerClassName(indexMakerClassName);
 		}
 		// 构建全量索引doc构建工厂
 		parseResult.setDocumentCreatorType(getDocMaker(schemaNodes));
@@ -295,8 +297,14 @@ public class SolrFieldsParser {
 		}
 	}
 
-	private String getIndexBuilder(NodeList nodes) {
-		return getFirstNodeAtt(nodes, "indexBuilder");
+	/**
+	 * 设置 com.qlangtech.tis.indexbuilder.index.indexMaker的扩展类
+	 * 
+	 * @param nodes
+	 * @return
+	 */
+	private String getIndexMakerClassName(NodeList nodes) {
+		return getFirstNodeAtt(nodes, "indexMaker");
 	}
 
 	/**
@@ -507,7 +515,7 @@ public class SolrFieldsParser {
 	}
 
 	public static class ParseResult {
-
+		public static final String DEFAULT = "default";
 		public SchemaFields dFields = new SchemaFields();
 
 		private final Map<String, SolrType> types = new HashMap<String, SolrType>();
@@ -523,11 +531,10 @@ public class SolrFieldsParser {
 		private final List<IndexBuildHook> indexBuildHooks = new LinkedList<IndexBuildHook>();
 
 		// 索引构建的实现类
-		private String indexBuilderClass;
+		private String indexMakerClassName = DEFAULT;
 
 		// 对应接口的实现类
-		// = "default";
-		private String documentCreatorType;
+		private String documentCreatorType = DEFAULT;
 
 		public List<ProcessorSchemaField> getProcessorSchemas() {
 			return Collections.unmodifiableList(processorSchemas);
@@ -614,27 +621,20 @@ public class SolrFieldsParser {
 			this.uniqueKey = uniqueKey;
 		}
 
-		/**
-		 * @return the sharedkey
-		 */
 		public String getSharedKey() {
 			return sharedKey;
 		}
 
-		/**
-		 * @param sharedkey
-		 *            the sharedkey to set
-		 */
 		public void setSharedKey(String sharedkey) {
 			this.sharedKey = sharedkey;
 		}
 
-		public String getIndexBuilder() {
-			return indexBuilderClass;
+		public String getIndexMakerClassName() {
+			return this.indexMakerClassName;
 		}
 
-		public void setIndexBuilder(String indexBuilder) {
-			this.indexBuilderClass = indexBuilder;
+		public void setIndexMakerClassName(String indexMakerClassName) {
+			this.indexMakerClassName = indexMakerClassName;
 		}
 
 		public String getDocumentCreatorType() {
@@ -642,7 +642,6 @@ public class SolrFieldsParser {
 		}
 
 		public void setDocumentCreatorType(String documentCreatorType) {
-			// documentCreatorType;
 			this.documentCreatorType = StringUtils.defaultIfBlank(documentCreatorType, "default");
 		}
 	}

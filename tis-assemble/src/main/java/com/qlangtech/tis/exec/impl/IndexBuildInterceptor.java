@@ -160,7 +160,7 @@ public class IndexBuildInterceptor implements IExecuteInterceptor {
 		ImportDataProcessInfo processInfo = new ImportDataProcessInfo(999);
 		IIndexMetaData indexMetaData = execContext.getIndexMetaData();
 
-		String indexBuilder = indexMetaData.getSchemaParseResult().getIndexBuilder();
+		String indexBuilder = indexMetaData.getSchemaParseResult().getIndexMakerClassName();
 		// SolrFieldsParser().readSchema(stream).getIndexBuilder();
 		if (indexBuilder != null) {
 			processInfo.setIndexBuilder(indexBuilder);

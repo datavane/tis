@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
-import com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder;
+import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
 
@@ -56,23 +56,16 @@ public class IndexMaker implements Runnable {
 
 	private static final AtomicInteger failureCount = new AtomicInteger();
 
-	// private GroupRAMDirectory[] addRamDirectorys;
 	protected final IndexSchema indexSchema;
 
 	private final AtomicInteger aliveDocMakerCount;
 
-	// private AtomicInteger aliveIndexMakerCount;
 	private IndexConf indexConf;
 
-	// private SimpleStack<Document> docPool;
-	// private SimpleStack<Document> clearDocPool;
 	BlockingQueue<SolrInputDocument> docPoolQueues;
 
-	// BlockingQueue<SimpleStack<Document>> clearDocPoolQueues;
 	// 这个maker的产出物
 	private BlockingQueue<RAMDirectory> ramDirQueue;
-
-	// private String name;
 
 	private final SuccessFlag successFlag;
 

@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
+import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
 import com.qlangtech.tis.indexbuilder.exception.FieldException;
 import com.qlangtech.tis.indexbuilder.exception.RowException;
-import com.qlangtech.tis.indexbuilder.map.HdfsIndexBuilder;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
 import com.qlangtech.tis.indexbuilder.source.SourceReader;
