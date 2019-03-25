@@ -23,11 +23,16 @@
  */
 package com.qlangtech.tis.manage.yarn;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import com.qlangtech.tis.manage.common.ManageUtils;
 
 public class ApplicationReportStatus {
+
+	public static void main(String[] args) {
+		System.out.println(percentFormat.format(0.002666f));
+	}
 
 	// "id": "application_1552283947750_0013",
 	// "user": "spring-boot",
@@ -58,6 +63,8 @@ public class ApplicationReportStatus {
 	// "preemptedResourceVCores": 0,
 	// "numNonAMContainerPreempted": 0,
 	// "numAMContainerPreempted": 0
+
+	private static final DecimalFormat percentFormat = new DecimalFormat("#0.##%");
 
 	private String id;// : "application_1552283947750_0013",
 	private String user; // "user": "spring-boot",
@@ -137,8 +144,8 @@ public class ApplicationReportStatus {
 		this.finalStatus = finalStatus;
 	}
 
-	public float getProgress() {
-		return progress;
+	public String getProgress() {
+		return percentFormat.format(progress);
 	}
 
 	public void setProgress(float progress) {

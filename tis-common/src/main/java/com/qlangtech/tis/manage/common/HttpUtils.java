@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 
-/* *
+/* 
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */

@@ -1,71 +1,60 @@
-
-#*
-<iframe frameborder="0" height="800" width="100%" src="$IndexBuildCenterUrl" ></iframe>
-*#
-
 <div>
-<div style="float:right;"> <button click="window.location.reload();" class="btn btn-default"><i class="fa fa-refresh" aria-hidden="true"></i></button> </div>
+<div style="float:right;"> <button onclick="window.location.reload();" class="btn btn-default"><i class="fa fa-refresh" aria-hidden="true"></i></button> </div>
 <h2>YARN容器任务一览</h2>
 </div>
 <divs style="clear:both;"></div>
+<form id="containerTasks">
+<input type="hidden" name="event_submit_do_stop_yarn_task" value="y" />
+<input type="hidden" name="action" value="core_action" />
+
 <h3>Waiting</h3>
-<table class="table table-bordered table-hover" width="100%">
+<table id="waitingtab"  class="table table-bordered table-hover" width="100%">
   <thead>
  <tr>
+  <td width="80px"><input type="checkbox" name="all" onclick="waitStopChkClick(this)"  /> 
+   <button class="btn btn-default btn-xs" onclick="stopClick('waiting');return false;">终止</button> </td>
+  <td>编号</td>
   <td>名称</td>
   <td>状态</td>
   <td>触发时间</td>
  </tr>
   </thead>
   <tbody>
- #foreach($item in $rs.waiting)
+#foreach($item in $rs.waiting)
  <tr>
+  <td><input type="checkbox" class="chk" name="waiting" value="$item.id" /></td>
+  <td>$item.id</td>
   <td>$item.name</td>
   <td>$item.state</td>
   <td>$item.startTime</td>
  </tr>
- #end
+#end
   </tbody>
 </table>
 
-<h3>Preparing</h3>
-<table class="table table-bordered table-hover" width="100%">
-  <thead>
- <tr>
-  <td>名称</td>
-  <td>状态</td>
-  
-  <td>触发时间</td>
- </tr>
-  </thead>
-  <tbody>
- #foreach($item in $rs.preparing)
- <tr>
-  <td>$item.name</td>
-  <td>$item.state</td>
-  <td>$item.startTime</td>
- </tr>
- #end
-  </tbody>
-</table>
 
-<h3 style="background-color:#8ee08e;"> <i class="fa fa-cog fa-spin" aria-hidden="true"></i> Running</h3>
-<table class="table table-bordered table-hover" width="100%">
-  <thead>
- <tr>
-  <td>名称</td>
-  <td>状态</td>
-  <td>详细</td>
-  
-  <td>触发时间</td>
-  <td>进度</td>
- </tr>
-  </thead>
+<h3 style="background-color:#8ee08e;"> <i class="fa fa-cog fa-spin" aria-hidden="true"></i>Running</h3>
+<table id="runningtab" class="table table-bordered table-hover" width="100%">
+ <thead>
+  <tr>
+   <td width="80px"><input type="checkbox" name="all" onclick="runningStopChkClick(this)" /> 
+    <button class="btn btn-default btn-xs" onclick="stopClick('running');return false;">终止</button> </td>
+   <td>编号</td>
+   <td>名称</td>
+   <td>状态</td>
+   <td>详细</td>
+   <td>触发时间</td>
+   <td>进度</td>
+  </tr>
+ </thead>
   <tbody>
  #foreach($item in $rs.running)
  <tr>
+ <td><input class="chk" type="checkbox" name="running" value="$item.id" /></td>
+  <td>$item.id</td>
+  
   <td>$item.name</td>
-  <td>$item.sppState</td>
+  <td>$item.state</td>
    <td><a target="_blank" href="$item.amContainerLogs">日志</a> </td>
   <td>$item.startTime</td>
   <td>$item.progress</td>
@@ -104,9 +93,8 @@
  <tr>
   <td>名称</td>
   <td>触发时间</td>
-  
   <td>结束时间</td>
-   <td width="40">详细</td>
+  <td width="40">详细</td>
   <td>诊断</td>
  </tr>
   </thead>
@@ -148,3 +136,36 @@
  #end
   </tbody>
 </table>
+</form>
+<script>
+ function waitStopChkClick(chk){
+  $("#waitingtab .chk").prop("checked",$(chk).prop("checked"));
+ }
+ 
+ // 终止等待
+ function waitStopClick(){
+ 
+ }
+ 
+ // Running checkbox 点击
+ function runningStopChkClick(chk){
+   $("#runningtab .chk").prop("checked",$(chk).prop("checked"));
+ }
+ 
+ // 终止正在运行的任务
+ function stopClick(chkParamName){
+    
+    TIS.ajax({url: '$coredefine.setTarget('corenodemanage.ajax')', 
+                type:'POST',
+                dataType:"json",
+                data:  $('#containerTasks').serialize()+"&checkparamname="+chkParamName,
+                success:function(data){
+                  showMessageDialog(data);
+                 
+                  setTimeout(function(){
+                   window.location.reload();
+                  },3000);
+                }
+            });
+ }
+</script>

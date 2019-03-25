@@ -342,10 +342,12 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 		String indexMakerClassName = indexMetaConfig.schemaParse.getIndexMakerClassName();
 		if (ParseResult.DEFAULT.equals(indexMakerClassName)) {
+			logger.info("indexMakerClassName:{}", IndexMaker.class);
 			return new IndexMaker(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues,
 					aliveDocMakerCount, aliveIndexMakerCount);
 		} else {
 			Class<IndexMaker> clazz = (Class<IndexMaker>) Class.forName(indexMakerClassName);
+			logger.info("indexMakerClassName:{}", clazz);
 			Constructor<IndexMaker> cnstrt = (Constructor<IndexMaker>) clazz.getConstructor(String.class,
 					IndexConf.class, IndexSchema.class, Messages.class, Counters.class, BlockingQueue.class,
 					BlockingQueue.class, AtomicInteger.class, AtomicInteger.class);

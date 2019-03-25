@@ -59,6 +59,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import com.alibaba.citrus.turbine.Context;
@@ -80,6 +81,7 @@ import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.manage.spring.aop.OperationIgnore;
+import com.qlangtech.tis.manage.yarn.YarnClient;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
@@ -106,6 +108,7 @@ public class CoreAction extends CoreDefineModule {
 	private static final Logger log = LoggerFactory.getLogger(CoreAction.class);
 
 	private static final Pattern placehold_pattern = Pattern.compile("\\$\\{(.+)\\}");
+	private YarnClient yarnClient;
 
 	public static final String getYuntiTimePattern(String path) {
 		Matcher m = placehold_pattern.matcher(path);
@@ -117,6 +120,40 @@ public class CoreAction extends CoreDefineModule {
 	}
 
 	public static final String CREATE_CORE_SELECT_COREINFO = "selectCoreinfo";
+
+	/*
+	 * 终止容器中的构建工作执行
+	 * 
+	 * @param context
+	 */
+	public void doStopYarnTask(Context context) throws Exception {
+
+		final String[] appids = this.getRequest().getParameterValues(this.getString("checkparamname"));
+		if (appids == null || appids.length < 1) {
+			this.addErrorMessage(context, "请选择要终止的任务");
+			return;
+		}
+		String stopappid = null;
+		boolean hasErr = false;
+		StringBuffer errs = new StringBuffer();
+		for (String appid : appids) {
+			stopappid = appid;
+			// 执行终止
+			if (!yarnClient.stopTask(appid)) {
+				hasErr = true;
+				errs.append("[").append(appid).append("]");
+			}
+		}
+		if (hasErr) {
+			this.addErrorMessage(context, "任务没有正常终止" + errs.toString());
+		} else {
+			if (appids.length == 1) {
+				this.addActionMessage(context, "任务已经终止任务" + stopappid);
+			} else if (appids.length > 1) {
+				this.addActionMessage(context, "任务已经终止" + stopappid + "等"+ appids.length+"条任务");
+			}
+		}
+	}
 
 	/**
 	 * 控制增量任务暂停继续，當增量任務需要重啟或者過載的情况下需要重启增量执行节点，需要先将管道中的数据全部排空
@@ -793,7 +830,7 @@ public class CoreAction extends CoreDefineModule {
 	// }
 	//
 	// } catch (Exception e) {
-	// 
+	//
 	// }
 	// return result;
 	// }
@@ -1502,6 +1539,16 @@ public class CoreAction extends CoreDefineModule {
 		}
 		return result;
 	}
+
+	public YarnClient getYarnClient() {
+		return yarnClient;
+	}
+
+	@Autowired
+	public void setYarnClient(YarnClient yarnClient) {
+		this.yarnClient = yarnClient;
+	}
+
 	// private static abstract class ReplicaUpdate {
 	// /**
 	// * @param request

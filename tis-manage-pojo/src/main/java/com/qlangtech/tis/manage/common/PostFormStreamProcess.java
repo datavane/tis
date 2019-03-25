@@ -36,12 +36,22 @@ import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
  */
 public abstract class PostFormStreamProcess<T> extends StreamProcess<T> {
 
-    public static final List<Header> HEADERS_application_x_www_form_urlencoded = Collections.singletonList(new Header("content-type", "application/x-www-form-urlencoded"));
+	public static final List<Header> HEADERS_application_x_www_form_urlencoded = Collections
+			.singletonList(new Header("content-type", "application/x-www-form-urlencoded"));
 
-    public static final List<Header> HEADERS_multipart_byteranges = Collections.singletonList(new Header("content-type", "multipart/byteranges"));
+	public static final List<Header> HEADERS_multipart_byteranges = Collections
+			.singletonList(new Header("content-type", "multipart/byteranges"));
 
-    @Override
-    public List<Header> getHeaders() {
-        return HEADERS_application_x_www_form_urlencoded;
-    }
+	// private static final String[] methods = {
+	// "GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "TRACE"
+	// };
+
+	public String getHttpMethod() {
+		return HTTP_METHOD_POST;
+	}
+
+	@Override
+	public List<Header> getHeaders() {
+		return HEADERS_application_x_www_form_urlencoded;
+	}
 }

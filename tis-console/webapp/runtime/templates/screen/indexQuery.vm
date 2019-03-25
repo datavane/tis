@@ -24,13 +24,16 @@
 
 <form method="post" id="queryForm" action="$manageModule.setTarget("indexQuery")">
   <a id="btnserverSelect" href="#" onclick="return btnserverSelectClick();">节点</a>
-  &nbsp;<a target='_blank' href='/runtime/view_pojo.htm'  onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()>$(window).height()?$(document).height():$(window).height())-15,function(){}); return false;">POJO</a>
+  &nbsp;
+  <a target='_blank' href='/runtime/view_pojo.htm'  
+   onclick="opendialog(null,this.href,$(window).width()-15,($(document).height()>$(window).height()?$(document).height():$(window).height())-15,function(){}); return false;">POJO</a>
 <div>
 <div id="serverSelectDialog">
 
   <table width="100%">
   <tr><td width="50%"><button onclick="return btnHideServerSelectClick()">关闭</button></td>
-      <td align="right"><button id="selectall" onclick="selectallClick();return false;">全选</button><button  id="unselectall">全不选</button></td></tr>
+      <td align="right"><button id="selectall" onclick="selectallClick();return false;">全选</button>
+      <button  id="unselectall">全不选</button></td></tr>
   </table>
   <table width="100%" border="1">
   #foreach($i in $querySelectServerCandiate.entrySet())     

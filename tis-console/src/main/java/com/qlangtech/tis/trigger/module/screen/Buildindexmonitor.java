@@ -103,7 +103,8 @@ public class Buildindexmonitor extends BasicScreen {
 	public static class ApplicationReportStatusSet {
 
 		public final Set<ApplicationReportStatus> waiting = Sets.newHashSet();
-		public final Set<ApplicationReportStatus> preparing = Sets.newHashSet();
+		// public final Set<ApplicationReportStatus> preparing =
+		// Sets.newHashSet();
 		public final Set<ApplicationReportStatus> running = Sets.newHashSet();
 		public final Set<ApplicationReportStatus> finished = Sets.newHashSet();
 		public final Set<ApplicationReportStatus> failed = Sets.newHashSet();
@@ -111,10 +112,6 @@ public class Buildindexmonitor extends BasicScreen {
 
 		public final Set<ApplicationReportStatus> getWaiting() {
 			return this.waiting;
-		}
-
-		public Set<ApplicationReportStatus> getPreparing() {
-			return this.preparing;
 		}
 
 		public Set<ApplicationReportStatus> getRunning() {
