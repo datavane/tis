@@ -59,7 +59,6 @@ public class JettyTISRunner {
 
 	Server server;
 
-	// FilterHolder dispatchFilter;
 	String context;
 
 	/**

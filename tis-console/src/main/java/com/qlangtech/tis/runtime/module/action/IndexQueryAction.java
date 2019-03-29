@@ -24,15 +24,22 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
+import com.qlangtech.tis.manage.servlet.DownloadResource;
+import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
 import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
 import com.qlangtech.tis.manage.spring.aop.OperationIgnore;
 import com.qlangtech.tis.runtime.module.screen.IndexQuery.QueryRequestContext;
 import com.qlangtech.tis.runtime.module.screen.IndexQuery.QueryRequestWrapper;
+import com.qlangtech.tis.runtime.module.screen.ViewPojo;
+import com.qlangtech.tis.runtime.module.screen.ViewPojo.ResourcePrep;
+import com.qlangtech.tis.solrdao.IBuilderContext;
 
 /*
  * 查询索引
@@ -42,56 +49,80 @@ import com.qlangtech.tis.runtime.module.screen.IndexQuery.QueryRequestWrapper;
  */
 public class IndexQueryAction extends BasicModule {
 
-    /**
-     */
-    private static final long serialVersionUID = 1L;
+	/**
+	 */
+	private static final long serialVersionUID = 1L;
 
-    // private static final long serialVersionUID = 1L;
-    // private static final Log log = LogFactory.getLog(IndexQueryAction.class);
-    // 
-    // /**
-    // * 在主查询页面上进行查询
-    // *
-    // * @param context
-    // * @throws Exception
-    // */
-    // public void doMainQuery(Context context) throws Exception {
-    // 
-    // }
-    // 
-    // //
-    @OperationIgnore
-    public void doQuery(Context context) throws Exception {
-        List<String> sfields = Lists.newArrayList(this.getRequest().getParameterValues("sfields"));
-        final String query = StringUtils.defaultIfBlank((this.getString("q")).replaceAll("\r|\n", StringUtils.EMPTY), "*:*");
-        Integer shownum = null;
-        // Integer.parseInt(request.getParameter("shownum"));
-        shownum = this.getInt("shownum");
-        if (shownum == null) {
-            shownum = 3;
-        }
-        QueryRequestWrapper request = new QueryRequestWrapper(this.getRequest(), context);
-        QueryRequestContext requestContext = new QueryRequestContext(request);
-        // 是否需要打印scoreexplain信息
-        // requestContext.queryDebug =
-        // "true".equalsIgnoreCase(this.getString("debugQuery"));
-        final String sort = getString("sort");
-        final String fq = getString("fq");
-        final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(this.getAppDomain(), request, getResponse(), getDaoContext());
-        final List<ServerJoinGroup> serverlist = queryResutStrategy.queryProcess();
-        // this.setSfields(request, domain, requestContext, queryResutStrategy,
-        // serverlist);
-        // try {
-        // this.forward(request, resp);
-        // } catch (Exception e) {
-        // log.error(e.getMessage(), e);
-        // throw new ServletException(e);
-        // }
-        // if (true || queryResutStrategy.isResultAware()) {
-        // final String querystr, final String sort, final String fq, final Integer
-        // shownumf,
-        // final List<String> showFields
-        QueryIndexServlet.execuetQuery(this.getAppDomain(), requestContext, this.getDaoContext(), queryResutStrategy, serverlist, query, sort, fq, shownum, sfields);
-    // }
-    }
+	// private static final long serialVersionUID = 1L;
+	// private static final Log log = LogFactory.getLog(IndexQueryAction.class);
+	//
+	// /**
+	// * 在主查询页面上进行查询
+	// *
+	// * @param context
+	// * @throws Exception
+	// */
+	// public void doMainQuery(Context context) throws Exception {
+	//
+	// }
+	//
+	// //
+	@OperationIgnore
+	public void doQuery(Context context) throws Exception {
+		List<String> sfields = Lists.newArrayList(this.getRequest().getParameterValues("sfields"));
+		final String query = StringUtils.defaultIfBlank((this.getString("q")).replaceAll("\r|\n", StringUtils.EMPTY),
+				"*:*");
+		Integer shownum = null;
+		// Integer.parseInt(request.getParameter("shownum"));
+		shownum = this.getInt("shownum");
+		if (shownum == null) {
+			shownum = 3;
+		}
+		QueryRequestWrapper request = new QueryRequestWrapper(this.getRequest(), context);
+		QueryRequestContext requestContext = new QueryRequestContext(request);
+		// 是否需要打印scoreexplain信息
+		// requestContext.queryDebug =
+		// "true".equalsIgnoreCase(this.getString("debugQuery"));
+		final String sort = getString("sort");
+		final String fq = getString("fq");
+		final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(this.getAppDomain(),
+				request, getResponse(), getDaoContext());
+		final List<ServerJoinGroup> serverlist = queryResutStrategy.queryProcess();
+		// this.setSfields(request, domain, requestContext, queryResutStrategy,
+		// serverlist);
+		// try {
+		// this.forward(request, resp);
+		// } catch (Exception e) {
+		// log.error(e.getMessage(), e);
+		// throw new ServletException(e);
+		// }
+		// if (true || queryResutStrategy.isResultAware()) {
+		// final String querystr, final String sort, final String fq, final
+		// Integer
+		// shownumf,
+		// final List<String> showFields
+		QueryIndexServlet.execuetQuery(this.getAppDomain(), requestContext, this.getDaoContext(), queryResutStrategy,
+				serverlist, query, sort, fq, shownum, sfields);
+		// }
+	}
+
+	/**
+	 * 下载POJO
+	 */
+	public void doDownloadPojo(Context context) throws Exception {
+
+		ResourcePrep resourcePrep = new ResourcePrep() {
+			@Override
+			public void prepare(IBuilderContext builderContext) {
+				getResponse().setContentType(DownloadResource.JAR_CONTENT_TYPE);
+				DownloadServlet.setDownloadName(getResponse(), builderContext.getPojoName() + ".java");
+			}
+		};
+
+		if (!(ViewPojo.downloadResource(this.getAppDomain(), this, getResponse().getWriter(), resourcePrep))) {
+			return;
+		}
+
+	}
+
 }
