@@ -87,11 +87,23 @@ public class NestAtomicUpdateProcessorFactory extends UpdateRequestProcessorFact
 						searchHolder.decref();
 					}
 				}
+
+				if (solrDoc == null) {
+					super.processAdd(cmd);
+					return;
+				}
+
 				d.removeField(NEST_ATOMIC_UPDATE_TOKEN);
+				boolean merged = false;
 				for (SolrInputDocument dd : solrDoc.getChildDocuments()) {
 					if (d.getFieldValue(idField.getName()).equals(dd.getField(idField.getName()))) {
+						merged = true;
 						docMerger.merge(dd, d);
 					}
+				}
+
+				if (!merged) {
+					solrDoc.addChildDocument(d);
 				}
 
 				cmd.solrDoc = solrDoc;
