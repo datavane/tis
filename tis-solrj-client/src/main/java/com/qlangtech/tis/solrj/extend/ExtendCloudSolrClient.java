@@ -323,7 +323,7 @@ public class ExtendCloudSolrClient extends CloudSolrClient {
 				String leaderUrl = urls.get(0);
 				UpdateRequest urequest = new UpdateRequest();
 				urequest.setParams(params);
-				urequest.deleteById(id, shareid);
+				urequest.deleteById(id, shareid, (version));
 				urequest.setParam(ShardParams._ROUTE_, shareid);
 				urequest.setParam("_version_", String.valueOf(version));
 				LBHttpSolrClient.Req request = new LBHttpSolrClient.Req(urequest, urls);

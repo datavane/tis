@@ -116,7 +116,8 @@ public class TisDistributedUpdateProcessor extends UpdateRequestProcessor {
 	public static final String DISTRIB_INPLACE_PREVVERSION = "distrib.inplace.prevversion";
 	private static final String TEST_DISTRIB_SKIP_SERVERS = "test.distrib.skip.servers";
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+	// baisui add
+	public static final String VERSION_FIELD = "_version_";
 	/**
 	 * Request forwarded to a leader of a different shard will be retried up to
 	 * this amount of times by default
@@ -1632,6 +1633,9 @@ public class TisDistributedUpdateProcessor extends UpdateRequestProcessor {
 					: DistribPhase.TOLEADER.toString()));
 			params.set(DISTRIB_FROM, ZkCoreNodeProps.getCoreUrl(zkController.getBaseUrl(), req.getCore().getName()));
 
+			// baisui add 2015/11/14
+			params.set(VERSION_FIELD, String.valueOf(cmd.getVersion()));
+			
 			if (req.getParams().get(UpdateRequest.MIN_REPFACT) != null) {
 				// TODO: Kept for rolling upgrades only. Remove in Solr 9
 				params.add(UpdateRequest.MIN_REPFACT, req.getParams().get(UpdateRequest.MIN_REPFACT));
