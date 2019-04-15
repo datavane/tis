@@ -24,7 +24,7 @@
 package com.qlangtech.tis;
 
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
-import com.qlangtech.tis.web.start.JettyTISRunner;
+import com.qlangtech.tis.web.start.TisApp;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -36,6 +36,7 @@ public class Application {
 		AbstractTisCloudSolrClient.initHashcodeRouter();
 		// JettyTISRunner.main(args);
 
-		JettyTISRunner.start("/tiscollect", 8080);
+		TisApp app = new TisApp("/tiscollect", 8080);
+		app.start(args);
 	}
 }

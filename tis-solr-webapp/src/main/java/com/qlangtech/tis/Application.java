@@ -23,7 +23,7 @@
  */
 package com.qlangtech.tis;
 
-import com.qlangtech.tis.web.start.JettyTISRunner;
+import com.qlangtech.tis.web.start.TisApp;
 
 /*
  *
@@ -35,7 +35,9 @@ public class Application {
 	public static void main(String[] args) throws Exception {
 		System.setProperty("solr.solr.home", "/opt/data/solrhome");
 		System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
-		JettyTISRunner.start("/solr", 8080);
 
+		TisApp app = new TisApp("/solr", 8080);
+		app.start(args);
 	}
+
 }

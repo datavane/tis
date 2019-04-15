@@ -23,7 +23,7 @@
  */
 package com.qlangtech.tis;
 
-import com.qlangtech.tis.web.start.JettyTISRunner;
+import com.qlangtech.tis.web.start.TisApp;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -32,6 +32,17 @@ import com.qlangtech.tis.web.start.JettyTISRunner;
 public class Application {
 
 	public static void main(String[] args) throws Exception {
-		JettyTISRunner.start("/", 8080);
+		
+		TisApp app = new TisApp("/",8080);
+		app.start(args);
+		
+//		if (TriggerStop.isStopCommand(args)) {
+//			int port = Integer.parseInt(System.getProperty("STOP.PORT"));
+//			final String key = System.getProperty("STOP.KEY");
+//			TriggerStop.stop("127.0.0.1", port, key, 5);
+//			return;
+//		}
+//
+//		JettyTISRunner.start("/", 8080);
 	}
 }
