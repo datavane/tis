@@ -66,7 +66,8 @@ public class JettyTISRunner {
 	private static final Logger logger = LoggerFactory.getLogger(JettyTISRunner.class);
 
 	public static void start(String contextPath, int port) throws Exception {
-		start(contextPath, port, null);
+		start(contextPath, port, (c) -> {
+		});
 	}
 
 	/**
