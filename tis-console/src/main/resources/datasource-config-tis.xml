@@ -5,8 +5,7 @@
 	<bean id="clusterStatusDatasource" class="org.apache.commons.dbcp.BasicDataSource"
 		destroy-method="close">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
-		<property name="url"
-			value="jdbc:mysql://${tis.datasource.url}:${tis.datasource.port}/${tis.datasource.dbname}?useUnicode=yes&amp;characterEncoding=utf8" />
+		<property name="url" value="${tis.datasource.url}" />
 		<property name="username" value="${tis.datasource.username}" />
 		<property name="password" value="${tis.datasource.password}" />
 		<property name="validationQuery" value="select 1" />
