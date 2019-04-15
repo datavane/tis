@@ -331,7 +331,7 @@ public class ExtendCloudSolrClient extends CloudSolrClient {
 				return routes;
 			}
 		};
-		req.deleteById(id, shareid);
+		req.deleteById(id, shareid, version);
 		req.setCommitWithin(-1);
 		return req.process(this, collection);
 	}

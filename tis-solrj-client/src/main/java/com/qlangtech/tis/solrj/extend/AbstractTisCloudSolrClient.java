@@ -31,9 +31,6 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -51,13 +48,11 @@ import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.ZkCoreNodeProps;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.ShardParams;
-import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.params.UpdateParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
-import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.solrj.extend.router.HashcodeRouter;
 import com.qlangtech.tis.solrj.tracker.ISpan;
 import com.qlangtech.tis.solrj.tracker.ITracker;

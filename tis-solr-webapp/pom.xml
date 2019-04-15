@@ -19,9 +19,14 @@
 		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
 		<assembly-include.base.directory>true</assembly-include.base.directory>
 		<springboot.version>1.4.0.RELEASE</springboot.version>
-		
+
 	</properties>
 	<dependencies>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-start</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>

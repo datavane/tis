@@ -53,10 +53,11 @@ import com.qlangtech.tis.checkhealth.TlogFileStatusChecker;
  */
 public class JettyTISRunner {
 
-	Server server;
-
+	private Server server;
 	// FilterHolder dispatchFilter;
 	String context;
+
+	private static JettyTISRunner jetty;
 
 	/**
 	 * A main class that starts jetty+solr This is useful for debugging
@@ -65,7 +66,10 @@ public class JettyTISRunner {
 		// System.setProperty("solr.solr.home", "/home/solr");
 		System.setProperty("solr.solr.home", "/opt/data/solrhome");
 		System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
-		JettyTISRunner jetty = new JettyTISRunner("/solr", 8080);
+		if (jetty != null) {
+			throw new IllegalStateException("instance jetty shall be null");
+		}
+		jetty = new JettyTISRunner("/solr", 8080);
 		// jetty.addServlet(new VersionServlet(), "/version");
 		//
 		// FilterHolder filter = new FilterHolder(TisSolrDispatchFilter.class);
@@ -74,6 +78,18 @@ public class JettyTISRunner {
 		// filter.setName("SolrRequestFilter");
 		// jetty.addFilter(filter, "/*");
 		jetty.start();
+	}
+
+	/**
+	 * 关闭jetty
+	 * 
+	 * @throws Exception
+	 */
+	public static void stopJetty() throws Exception {
+		if (jetty == null) {
+			throw new IllegalStateException("instance jetty have not been initialize");
+		}
+		jetty.stop();
 	}
 
 	public JettyTISRunner(String context, int port) {
@@ -191,6 +207,15 @@ public class JettyTISRunner {
 
 		@Override
 		public void service(HttpServletRequest req, HttpServletResponse res) throws IOException {
+			try {
+				if ("true".equals(req.getParameter("stop"))) {
+					stopJetty();
+					res.getWriter().write("stop_success");
+					return;
+				}
+			} catch (Exception e) {
+				new IOException(e);
+			}
 			StatusModel model = tlogFileStatusChecker.check();
 			if (model.level == StatusLevel.OK) {
 				res.getWriter().write("ok");
@@ -253,7 +278,7 @@ public class JettyTISRunner {
 	public void stop() throws Exception {
 		if (server.isRunning()) {
 			server.stop();
-			server.join();
+			// server.join();
 		}
 	}
 
