@@ -22,7 +22,11 @@
 
 	</properties>
 	<dependencies>
-
+	
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-web-start</artifactId>
+		</dependency>
 
 
 		<dependency>
@@ -74,12 +78,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
+<!-- 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-servlet-monitor</artifactId>
 		</dependency>
-
+ -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>

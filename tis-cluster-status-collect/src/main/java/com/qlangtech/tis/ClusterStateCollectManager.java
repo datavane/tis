@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.CronScheduleBuilder;
@@ -60,14 +61,14 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+
+import com.qlangtech.tis.ClusterStateCollectManager.HistoryAvarage.CountGetter;
+import com.qlangtech.tis.collectinfo.api.ICoreStatistics;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.dataplatform.dao.IClusterSnapshotPreDayDAO;
 import com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotCriteria;
 import com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDay;
 import com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDayCriteria;
-import com.qlangtech.tis.ClusterStateCollectManager.HistoryAvarage.CountGetter;
-import com.qlangtech.tis.collectinfo.api.ICoreStatistics;
-import com.qlangtech.tis.common.utils.Assert;
-import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.email.SendMail;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 

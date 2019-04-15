@@ -21,17 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.qlangtech.tis;
+package com.qlangtech.tis.web.start;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.NetworkTrafficServerConnector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -47,54 +49,63 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.qlangtech.tis.common.utils.Assert;
-import com.qlangtech.tis.manage.servlet.TISErrorHandler;
+import com.qlangtech.tis.health.check.IStatusChecker;
+import com.qlangtech.tis.health.check.StatusLevel;
+import com.qlangtech.tis.health.check.StatusModel;
 
-/* 
+/* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class JettyTISRunner {
 
+	private Server server;
+	// FilterHolder dispatchFilter;
+	String context;
+
+	private static JettyTISRunner jetty;
 	private static final Logger logger = LoggerFactory.getLogger(JettyTISRunner.class);
 
-	Server server;
-
-	String context;
+	public static void start(String contextPath, int port) throws Exception {
+		start(contextPath, port, null);
+	}
 
 	/**
 	 * A main class that starts jetty+solr This is useful for debugging
 	 */
-	public static void main(String[] args) throws Exception {
+	public static void start(String contextPath, int port, IWebAppContextSetter contextSetter) throws Exception {
 		// System.setProperty("solr.solr.home", "/home/solr");
 		// System.setProperty("solr.solr.home", "/opt/data/solrhome");
 		// System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH",
 		// "true");
-		JettyTISRunner jetty = new JettyTISRunner("/", 8080);
-		// jetty.addServlet(new VersionServlet(), "/version");
-		//
-		// FilterHolder filter = new FilterHolder(TisSolrDispatchFilter.class);
-		// filter.setInitParameter("excludePatterns",
-		// "/css/.+,/js/.+,/img/.+,/tpl/.+");
-		// filter.setName("SolrRequestFilter");
-		// jetty.addFilter(filter, "/*");
+		if (jetty != null) {
+			throw new IllegalStateException("instance jetty shall be null");
+		}
+		jetty = new JettyTISRunner(contextPath, port, contextSetter);
+
 		jetty.start();
 	}
 
-	public JettyTISRunner(String context, int port) {
-		try {
-			this.init(context, port);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+	/**
+	 * 关闭jetty
+	 * 
+	 * @throws Exception
+	 */
+	public static void stopJetty() throws Exception {
+		if (jetty == null) {
+			throw new IllegalStateException("instance jetty have not been initialize");
 		}
+		jetty.stop();
 	}
 
-	private void init(String context, int port) throws Exception {
+	private JettyTISRunner(String context, int port, IWebAppContextSetter contextSetter) {
+		this.init(context, port, contextSetter);
+	}
+
+	private void init(String context, int port,  final IWebAppContextSetter contextSetter) {
 		this.context = context;
 		server = new Server(new QueuedThreadPool(450));
-		// Configuration.ClassList classlist =
-		// Configuration.ClassList.setServerDefault(server);
-		// classlist.addBefore("org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
-		// "org.eclipse.jetty.annotations.AnnotationConfiguration");
+
 		NetworkTrafficServerConnector connector = new NetworkTrafficServerConnector(server);
 		connector.setPort(port);
 		// NetworkTrafficServerConnector healthConnector = new
@@ -104,30 +115,86 @@ public class JettyTISRunner {
 				connector });
 		server.setStopAtShutdown(true);
 
-		// URL url =
-		// server.getClass().getResource("/org/eclipse/jetty/webapp/WebAppContext.class");
-		// System.out.println(url);
-		// ServletContextHandler
 		final File webappDir = new File("webapp");
 		Assert.assertTrue("file is illegal:" + webappDir.getAbsolutePath(),
 				webappDir.exists() && webappDir.isDirectory());
 		Resource webContentResource = Resource.newResource(webappDir);
+
 		WebAppContext webAppContext = new WebAppContext(webContentResource, context);
 		webAppContext.setDescriptor("/WEB-INF/web.xml");
 		webAppContext.setDisplayName("jetty");
-		webAppContext.setWelcomeFiles(new String[] { "index.htm" });
 		webAppContext.setClassLoader(Thread.currentThread().getContextClassLoader());
 		webAppContext.setConfigurationDiscovered(true);
 		webAppContext.setParentLoaderPriority(true);
-		webAppContext.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
-		webAppContext.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
-
-		webAppContext.setErrorHandler(new TISErrorHandler());
-		// webAppContext.addServlet(servlet, pathSpec);
-		// webAppContext.setServletHandler(servletHandler);
-
 		webAppContext.setThrowUnavailableOnStartupException(true);
+		webAppContext.addServlet(CheckHealth.class, "/check_health");
+		webAppContext.addServlet(StopServlet.class, "/stop");
+
+		contextSetter.process(webAppContext);
+
 		server.setHandler(webAppContext);
+	}
+
+	public interface IWebAppContextSetter {
+		void process(WebAppContext context);
+	}
+
+	public static class StopServlet extends HttpServlet {
+
+		private static final long serialVersionUID = 1L;
+		private final ScheduledExecutorService stopThread = Executors.newSingleThreadScheduledExecutor();
+
+		@Override
+		public void service(HttpServletRequest req, HttpServletResponse res) throws IOException {
+			try {
+				if ("true".equals(req.getParameter("stop"))) {
+
+					stopThread.schedule(() -> {
+						try {
+							JettyTISRunner.stopJetty();
+							logger.info("trigger jetty stop process");
+						} catch (Exception e) {
+							logger.error(e.getMessage(), e);
+						}
+					}, 3, TimeUnit.SECONDS);
+
+					res.getWriter().write("stop_success");
+					return;
+				}
+			} catch (Exception e) {
+				new IOException(e);
+			}
+
+			throw new IllegalArgumentException("invalid command");
+		}
+	}
+
+	public static class CheckHealth extends HttpServlet {
+
+		private static final long serialVersionUID = 1L;
+
+		private List<IStatusChecker> checks;
+
+		@Override
+		public void init() throws ServletException {
+			this.checks = new ArrayList<>();
+			ServiceLoader.load(IStatusChecker.class).forEach((r) -> {
+				checks.add(r);
+			});
+		}
+
+		@Override
+		public void service(HttpServletRequest req, HttpServletResponse res) throws IOException {
+
+			for (IStatusChecker check : checks) {
+				StatusModel model = check.check();
+				if (model.level != StatusLevel.OK) {
+					res.getWriter().print("Check[" + check.getClass() + "] fail:" + model.message);
+					return;
+				}
+			}
+			res.getWriter().write("ok");
+		}
 	}
 
 	public void addServlet(HttpServlet servlet, String pathSpec) {
@@ -148,43 +215,43 @@ public class JettyTISRunner {
 		// return registrationBean;
 	}
 
-	public static class InnerFilter implements Filter {
-
-		@Override
-		public void init(FilterConfig filterConfig) throws ServletException {
-		}
-
-		@Override
-		public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-				throws IOException, ServletException {
-			chain.doFilter(request, response);
-		}
-
-		@Override
-		public void destroy() {
-		}
-	}
+	// public static class InnerFilter implements Filter {
+	//
+	// @Override
+	// public void init(FilterConfig filterConfig) throws ServletException {
+	// }
+	//
+	// @Override
+	// public void doFilter(ServletRequest request, ServletResponse response,
+	// FilterChain chain)
+	// throws IOException, ServletException {
+	// chain.doFilter(request, response);
+	// }
+	//
+	// @Override
+	// public void destroy() {
+	// }
+	// }
 
 	// ------------------------------------------------------------------------------------------------
 	// ------------------------------------------------------------------------------------------------
-	public void start() throws Exception {
+	private void start() throws Exception {
 		start(true);
 	}
 
-	public void start(boolean waitForSolr) throws Exception {
+	private void start(boolean waitForSolr) throws Exception {
 		if (!server.isRunning()) {
 			server.start();
-			logger.info("jetty server launch successful");
-			server.join();
+			// server.join();
 		}
 		// if (waitForSolr)
 		// waitForSolr(context);
 	}
 
-	public void stop() throws Exception {
+	private void stop() throws Exception {
 		if (server.isRunning()) {
 			server.stop();
-			server.join();
+			// server.join();
 		}
 	}
 

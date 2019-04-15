@@ -81,9 +81,7 @@
 		
 		
 		
-		<!--
-		<outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
--->
+
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -130,6 +128,11 @@
 
 	<dependencies>
 	
+	    <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-web-start</artifactId>
+        </dependency>
+	
 	   <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
@@ -154,10 +157,6 @@
 			</exclusions>
 		</dependency>
 
-		<dependency>
-			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>tis-servlet-monitor</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>ch.qos.logback</groupId>

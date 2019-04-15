@@ -54,6 +54,12 @@
 		</profile>
 	</profiles>
 	<dependencies>
+	   <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-web-start</artifactId>
+        </dependency>
+	
+	
 		<!--
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>

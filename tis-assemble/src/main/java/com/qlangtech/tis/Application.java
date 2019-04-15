@@ -23,13 +23,15 @@
  */
 package com.qlangtech.tis;
 
+import com.qlangtech.tis.web.start.JettyTISRunner;
+
 /* *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class Application {
 
-    public static void main(String[] args) throws Exception {
-        JettyTISRunner.main(args);
-    }
+	public static void main(String[] args) throws Exception {
+		JettyTISRunner.start("/", 8080);
+	}
 }

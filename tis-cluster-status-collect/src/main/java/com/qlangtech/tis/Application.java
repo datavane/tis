@@ -24,6 +24,7 @@
 package com.qlangtech.tis;
 
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
+import com.qlangtech.tis.web.start.JettyTISRunner;
 
 /* *
  * @author 百岁（baisui@qlangtech.com）
@@ -31,8 +32,10 @@ import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
  */
 public class Application {
 
-    public static void main(String[] args) throws Exception {
-        AbstractTisCloudSolrClient.initHashcodeRouter();
-        JettyTISRunner.main(args);
-    }
+	public static void main(String[] args) throws Exception {
+		AbstractTisCloudSolrClient.initHashcodeRouter();
+		// JettyTISRunner.main(args);
+
+		JettyTISRunner.start("/tiscollect", 8080);
+	}
 }

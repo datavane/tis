@@ -22,6 +22,10 @@
 
 	<dependencies>
 	
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-web-start</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
@@ -55,10 +59,6 @@
                 <artifactId>hadoop-hdfs</artifactId>
         </dependency>
 
-		<dependency>
-			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>tis-servlet-monitor</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-manage-pojo</artifactId>

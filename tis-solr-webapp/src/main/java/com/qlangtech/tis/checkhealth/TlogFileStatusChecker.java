@@ -32,14 +32,16 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.core.SolrResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.dihuo.app.common.monitor.StatusChecker;
-import com.dihuo.app.common.monitor.enums.Mode;
-import com.dihuo.app.common.monitor.enums.StatusLevel;
-import com.dihuo.app.common.monitor.model.StatusModel;
+
+import com.qlangtech.tis.health.check.IStatusChecker;
+import com.qlangtech.tis.health.check.Mode;
+import com.qlangtech.tis.health.check.StatusLevel;
+import com.qlangtech.tis.health.check.StatusModel;
 import com.qlangtech.tis.manage.common.SendSMSUtils;
 
 /*
@@ -49,7 +51,7 @@ import com.qlangtech.tis.manage.common.SendSMSUtils;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TlogFileStatusChecker implements StatusChecker {
+public class TlogFileStatusChecker implements IStatusChecker {
 
     private static final int CHECK_ORDER = 10;
 

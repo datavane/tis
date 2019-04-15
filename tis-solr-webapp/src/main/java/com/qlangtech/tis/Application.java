@@ -23,21 +23,19 @@
  */
 package com.qlangtech.tis;
 
-import com.qlangtech.tis.servlet.JettyTISRunner;
+import com.qlangtech.tis.web.start.JettyTISRunner;
 
 /*
-@EnableAutoConfiguration
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class Application {
 
-   // private static CheckHealthJettyRunner checkHealth;
+	public static void main(String[] args) throws Exception {
+		System.setProperty("solr.solr.home", "/opt/data/solrhome");
+		System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
+		JettyTISRunner.start("/solr", 8080);
 
-    public static void main(String[] args) throws Exception {
-        JettyTISRunner.main(args);
-//        checkHealth = new CheckHealthJettyRunner("/solr", 8088);
-//        checkHealth.start();
-    }
+	}
 }

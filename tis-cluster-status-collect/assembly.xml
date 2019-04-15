@@ -48,9 +48,9 @@
 			</includes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
-		
-		<fileSet>
-            <directory>${basedir}/src/main/webapp</directory>
+		    
+        <fileSet>
+            <directory>${basedir}/webapp</directory>
             <excludes>
                 <exclude>WEB-INF/classes/**</exclude>
             </excludes>
