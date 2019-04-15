@@ -178,10 +178,7 @@
 			</exclusions>
 		</dependency>
 
-		<dependency>
-			<groupId>com.qlangtech.tis</groupId>
-			<artifactId>tis-servlet-monitor</artifactId>
-		</dependency>
+		
 
 		<dependency>
 			<groupId>junit</groupId>

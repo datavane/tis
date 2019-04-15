@@ -40,7 +40,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.NetworkTrafficServerConnector;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -102,7 +101,7 @@ public class JettyTISRunner {
 		this.init(context, port, contextSetter);
 	}
 
-	private void init(String context, int port,  final IWebAppContextSetter contextSetter) {
+	private void init(String context, int port, final IWebAppContextSetter contextSetter) {
 		this.context = context;
 		server = new Server(new QueuedThreadPool(450));
 
@@ -177,8 +176,12 @@ public class JettyTISRunner {
 
 		@Override
 		public void init() throws ServletException {
+
 			this.checks = new ArrayList<>();
 			ServiceLoader.load(IStatusChecker.class).forEach((r) -> {
+				if (r instanceof IServletContextAware) {
+					((IServletContextAware) r).setServletContext(getServletContext());
+				}
 				checks.add(r);
 			});
 		}

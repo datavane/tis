@@ -24,25 +24,26 @@
 package com.qlangtech.tis.checkhealth;
 
 import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Map;
+
 import javax.servlet.ServletContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.IncrMonitorIndexs;
+import com.qlangtech.tis.health.check.IStatusChecker;
+import com.qlangtech.tis.health.check.Mode;
+import com.qlangtech.tis.health.check.StatusLevel;
+import com.qlangtech.tis.health.check.StatusModel;
 import com.qlangtech.tis.order.center.AssembleConfig;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
-import com.dihuo.app.common.monitor.ServletContextAware;
-import com.dihuo.app.common.monitor.StatusChecker;
-import com.dihuo.app.common.monitor.enums.Mode;
-import com.dihuo.app.common.monitor.enums.StatusLevel;
-import com.dihuo.app.common.monitor.model.StatusModel;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.web.start.IServletContextAware;
 
 /*
  * 监控增量执行任务是否在执行是否有增量,是否正常执行
@@ -50,7 +51,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class TISIncrStatusChecker implements StatusChecker, ServletContextAware {
+public class TISIncrStatusChecker implements IStatusChecker, IServletContextAware {
 
 	private ServletContext servletContext;
 
@@ -162,10 +163,10 @@ public class TISIncrStatusChecker implements StatusChecker, ServletContextAware 
 	}
 
 	public static void main(String[] args) throws Exception {
-		ClassLoader loader = Thread.currentThread().getContextClassLoader();
-		Enumeration<URL> urls = loader.getResources("META-INF/services/" + StatusChecker.class.getName());
-		while (urls.hasMoreElements()) {
-			System.out.println(urls.nextElement());
-		}
+//		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+//		Enumeration<URL> urls = loader.getResources("META-INF/services/" + StatusChecker.class.getName());
+//		while (urls.hasMoreElements()) {
+//			System.out.println(urls.nextElement());
+//		}
 	}
 }

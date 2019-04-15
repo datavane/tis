@@ -69,21 +69,6 @@
 
 
 
-	<!-- baisui add 20160612 -->
-	<filter>
-		<filter-name>monitorFilter</filter-name>
-		<filter-class>com.qlangtech.tis.checkhealth.TisMonitorFilter</filter-class>
-	</filter>
-
-	<filter-mapping>
-		<filter-name>monitorFilter</filter-name>
-		<url-pattern>/check_health</url-pattern>
-	</filter-mapping>
-
-	<!-- baisui add end -->
-
-
-
 	<servlet-mapping>
 		<servlet-name>tisServlet</servlet-name>
 		<url-pattern>/trigger</url-pattern>
