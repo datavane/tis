@@ -30,15 +30,6 @@
 	</servlet-mapping>
 
 
-	<servlet>
-		<servlet-name>monitorServlet</servlet-name>
-		<servlet-class>com.dihuo.app.common.monitor.MonitorServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>monitorServlet</servlet-name>
-		<url-pattern>/check_health</url-pattern>
-	</servlet-mapping>
-
 
 
 </web-app>

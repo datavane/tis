@@ -64,17 +64,6 @@
 
 
 
-	<servlet>
-		<servlet-name>monitorServlet</servlet-name>
-		<servlet-class>com.dihuo.app.common.monitor.MonitorServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>monitorServlet</servlet-name>
-		<url-pattern>/tis/check_health</url-pattern>
-	</servlet-mapping>
-
-
-
 	<!-- websocket推送服务集群 中的日志 -->
 	<servlet>
 		<servlet-name>logfeedback</servlet-name>
