@@ -13,7 +13,7 @@
     <result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP" />
     <result column="gmt_update" property="gmtUpdate" jdbcType="TIMESTAMP" />
     
-    <result column="desc" property="desc" jdbcType="VARCHAR" />
+    <result column="param_desc" property="desc" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
@@ -48,7 +48,7 @@
     <!--
       
     -->
-    select aa.rp_id, key_name, daily_value, ready_value, online_value, gmt_create, gmt_update,`desc`
+    select aa.rp_id, key_name, daily_value, ready_value, online_value, gmt_create, gmt_update,`param_desc`
      from ( select rp_id from resource_parameters 
     <isParameterPresent >
       <include refid="resource_parameters.ibatorgenerated_Example_Where_Clause" />
@@ -63,7 +63,7 @@
     <!--
       
     -->
-    select rp_id,key_name,daily_value,ready_value, online_value, gmt_create, gmt_update,`desc`
+    select rp_id,key_name,daily_value,ready_value, online_value, gmt_create, gmt_update,`param_desc`
     from resource_parameters
     where rp_id = #rpId:BIGINT#
   </select>
@@ -86,7 +86,7 @@
       
     -->
     insert into resource_parameters (rp_id, key_name, daily_value, ready_value, online_value,
-      gmt_create, gmt_update,`desc`)
+      gmt_create, gmt_update,`param_desc`)
     values (#rpId:BIGINT#, #keyName:VARCHAR#, #dailyValue:VARCHAR#, #readyValue:VARCHAR#,
       #onlineValue:VARCHAR#, #gmtCreate:TIMESTAMP#, #gmtUpdate:TIMESTAMP#,#desc:VARCHAR#)
     <selectKey resultClass="LONG" >
@@ -121,7 +121,7 @@
         gmt_update
       </isNotNull>
       <isNotNull prepend="," property="desc" >
-        `desc`
+        `param_desc`
       </isNotNull>
       )
     </dynamic>
@@ -193,7 +193,7 @@
       </isNotNull>
       
       <isNotNull prepend="," property="record.desc" >
-        `desc` = #record.desc:VARCHAR#
+        `param_desc` = #record.desc:VARCHAR#
       </isNotNull>
     </dynamic>
     <isParameterPresent >
@@ -212,7 +212,7 @@
       online_value = #record.onlineValue:VARCHAR#,
       gmt_create = #record.gmtCreate:TIMESTAMP#,
       gmt_update = #record.gmtUpdate:TIMESTAMP# ,
-      `desc` = #record.desc:VARCHAR#
+      `param_desc` = #record.desc:VARCHAR#
     <isParameterPresent >
       <include refid="resource_parameters.ibatorgenerated_Example_Where_Clause" />
     </isParameterPresent>
