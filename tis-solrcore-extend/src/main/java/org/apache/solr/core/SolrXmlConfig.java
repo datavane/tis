@@ -369,8 +369,11 @@ public class SolrXmlConfig {
     CloudConfig.CloudConfigBuilder builder = new CloudConfig.CloudConfigBuilder(hostName, hostPort, hostContext);
     
     // ▼▼ baisui add 2019/01/31
-    TSearcherConfigFetcher configFetcher = TSearcherConfigFetcher.get();
-    builder.setZkHost(configFetcher.getZkAddress());
+    boolean zkEnable = !Boolean.parseBoolean(  System.getProperty("config.load.local","false") );
+    if(zkEnable){
+      TSearcherConfigFetcher configFetcher = TSearcherConfigFetcher.get();
+      builder.setZkHost(configFetcher.getZkAddress());
+    }
     for (Map.Entry<String, Object> entry : nl) {
       String name = entry.getKey();
       if (entry.getValue() == null)
