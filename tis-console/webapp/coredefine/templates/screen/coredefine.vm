@@ -98,6 +98,10 @@
          serial+="&selectedServer${index}="+opts[i].value;
        }
     }
+    
+    #if( $selectCoreinfo.shardSpecificNode)
+     #break
+    #end
    #end
    TIS.ajax({url:'$coredefine.setTarget('coredefine.ajax')', 
          		type:'POST',
