@@ -305,6 +305,8 @@ public final class ResSynManager {
 		UploadResource resource = new UploadResource();
 		resource.setContent(uploadContent);
 		resource.setCreateTime(new Date());
+		// 更新时间
+		resource.setUpdateTime(new Date());
 		resource.setResourceType(fileGetter.getFileName());
 		resource.setMd5Code(md5);
 		ConfigFileValidateResult validateResult = fileGetter.validate(resource);
