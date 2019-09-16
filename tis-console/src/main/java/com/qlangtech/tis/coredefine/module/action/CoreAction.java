@@ -335,7 +335,9 @@ public class CoreAction extends CoreDefineModule {
 		if (arr.length < 3) {
 			throw new IllegalStateException("overseer ephemeral node id:" + id + " is illegal");
 		}
-		String routerName = "search4personas".equals(collectionName) ? "strhash" : "plain";
+		//String routerName = "search4contact".equals(collectionName) ||  ? "strhash" : "plain";
+		// 先固定死使用strhash
+		final String routerName =  "strhash";// : "plain";
 		StringBuffer urlBuffer = new StringBuffer("http://" + StringUtils.substringBefore(arr[1], "_") //
 				+ "/solr/admin/collections?action=CREATE&name=" + collectionName + "&router.name=" + routerName //
 				+ "&router.field=" + routerField + "&replicationFactor=" + repliation + "&numShards=" + groupNum //
