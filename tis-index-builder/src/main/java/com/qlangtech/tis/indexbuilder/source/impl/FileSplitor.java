@@ -66,16 +66,42 @@ public abstract class FileSplitor {
 	public FileSplitor() {
 	}
 
+	/**
+	 * 根据路径中是否是否含有括号来判断 创建的splitor的类型
+	 * 
+	 * @param indexConf
+	 * @param fileSystem
+	 * @return
+	 */
+	public static FileSplitor create(IndexConf indexConf, FileSystem fileSystem) {
+		final String sourcePath = indexConf.getSourcePath();
+		if (AllHistoryPtFileSplitor.notContainPattern(sourcePath)) {
+			logger.info("sourcePath:{},create 'DefaultFileSplitor'", sourcePath);
+			return new DefaultFileSplitor(indexConf, fileSystem);
+		} else {
+			logger.info("sourcePath:{},create 'AllHistoryPtFileSplitor'", sourcePath);
+			return new AllHistoryPtFileSplitor(indexConf, fileSystem);
+		}
+	}
+
 	public FileSplitor(IndexConf indexConf, FileSystem fileSystem) {
 		this.indexConf = indexConf;
 		this.fileSystem = fileSystem;
 	}
 
-	protected abstract void getFiles(Path paramPath, List<FileStatus> paramList) throws Exception;
+	/**
+	 * 为了实现小全量的路径样例,将参数paramPath的类型改成string<br>
+	 * /user/hive/warehouse/olap_member_marketing.db/cust_mgt_label_new_new/pt=20(\d{6})/pmod=0
+	 * 
+	 * @param paramPath
+	 * @param paramList
+	 * @throws Exception
+	 */
+	protected abstract void getFiles(String paramPath, List<FileStatus> paramList) throws Exception;
 
 	public List<FileSplit> getSplits() throws Exception {
 		List<FileStatus> files = new ArrayList<FileStatus>();
-		getFiles(new Path(this.indexConf.getSourcePath()), files);
+		getFiles(this.indexConf.getSourcePath(), files);
 		for (FileStatus file : files) {
 			if (file.isDir()) {
 				continue;
@@ -274,7 +300,7 @@ public abstract class FileSplitor {
 		this.totalSize = totalSize;
 	}
 
-	protected long computeSplitSize(long goalSize, long minSize, long blockSize) {
+	protected static long computeSplitSize(long goalSize, long minSize, long blockSize) {
 		if (goalSize / blockSize <= 4L) {
 			return Math.max(minSize, Math.min(goalSize, blockSize));
 		}

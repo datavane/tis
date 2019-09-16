@@ -23,11 +23,14 @@
  */
 package com.qlangtech.tis.indexbuilder.source.impl;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,21 +48,28 @@ public class DefaultFileSplitor extends FileSplitor {
 		super(indexConf, fileSystem);
 	}
 
-	public void getFiles(Path path, List<FileStatus> dataFiles) throws Exception {
+	protected void getFiles(String p, List<FileStatus> dataFiles) throws Exception {
+		Path path = new Path(p);
+		this.getFiles(path, dataFiles, (pp) -> true);
+	}
+
+	protected final void getFiles(Path path, List<FileStatus> dataFiles, PathFilter pathFilter)
+			throws FileNotFoundException, IOException, Exception {
 		FileStatus[] stats = this.fileSystem.listStatus(path);
 		if (stats == null) {
 			throw new Exception("path is not exist:" + path);
 		}
 		for (FileStatus stat : stats) {
 			logger.warn("dump path is:" + stat.getPath());
-			if (stat.isDir()) {
-				getFiles(stat.getPath(), dataFiles);
+			if (!stat.isFile()) {
+				getFiles(stat.getPath(), dataFiles, pathFilter);
 			} else {
 				String name = stat.getPath().getName();
-				if ((!name.endsWith(".suc")) && (!name.endsWith(".ok"))) {
+				if (pathFilter.accept(path) && (!name.endsWith(".suc")) && (!name.endsWith(".ok"))) {
 					dataFiles.add(stat);
 				}
 			}
 		}
 	}
+
 }
