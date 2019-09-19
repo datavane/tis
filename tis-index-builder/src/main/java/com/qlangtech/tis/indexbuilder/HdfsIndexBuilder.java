@@ -37,8 +37,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -93,14 +95,16 @@ public class HdfsIndexBuilder implements TaskMapper {
 	public static final String KEY_COLLECTION = "app";
 	long startTime;
 	private Integer allRowCount;
+
+	private final ExecutorService execService = Executors.newCachedThreadPool(new ThreadFactory() {
+		@Override
+		public Thread newThread(Runnable r) {
+			Thread t = new Thread(r);
+			return t;
+		}
+	});
 	private final CompletionService<SuccessFlag> executorService = new ExecutorCompletionService<SuccessFlag>(
-			Executors.newCachedThreadPool(new ThreadFactory() {
-				@Override
-				public Thread newThread(Runnable r) {
-					Thread t = new Thread(r);
-					return t;
-				}
-			}));
+			execService);
 
 	public static void setMdcAppName(String appname) {
 		MDC.put(KEY_COLLECTION, appname);
@@ -206,31 +210,32 @@ public class HdfsIndexBuilder implements TaskMapper {
 				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
 
-			try {
-				int allTaskCount = indexMakerCount + docMakerCount + 1;// merge
-																		// task;
-				SuccessFlag result = null;
-				for (int threadCount = 0; threadCount < allTaskCount //
-				; threadCount++) {
-					result = this.executorService.take().get();
-					logger.info("({}/{})taskcomplete name:{},state:{},msg:{}", (threadCount + 1), allTaskCount,
-							result.getName(), result.getFlag(), result.getMsg());
-					if (result.getFlag() != Flag.SUCCESS) {
-						return new TaskReturn(TaskReturn.ReturnCode.FAILURE, result.getMsg());
-					}
+			// try {
+			int allTaskCount = indexMakerCount + docMakerCount + 1;// merge
+																	// task;
+			SuccessFlag result = null;
+			for (int threadCount = 0; threadCount < allTaskCount //
+			; threadCount++) {
+				result = this.executorService.take().get();
+				logger.info("({}/{})taskcomplete name:{},state:{},msg:{}", (threadCount + 1), allTaskCount,
+						result.getName(), result.getFlag(), result.getMsg());
+				if (result.getFlag() != Flag.SUCCESS) {
+					return new TaskReturn(TaskReturn.ReturnCode.FAILURE, result.getMsg());
 				}
-				// 之前的任何一个進程出錯都會短路
-			} catch (Exception e) {
-				logger.warn(indexConf.getCoreName() + " dump fail!!");
-				logger.error("[taskid:" + taskid + "]" + "dump fail!!" + e.getMessage());
-				messages.addMessage(Messages.Message.ERROR_MSG, e.getMessage());
-				return new TaskReturn(TaskReturn.ReturnCode.FAILURE, e.getMessage());
 			}
 
 			return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
 
 		} catch (Throwable e1) {
-			logger.error("[taskid:" + taskid + "]" + "build error:", e1);
+
+			try {
+				// 终止所有线程执行
+				execService.shutdownNow();
+				execService.awaitTermination(10l, TimeUnit.SECONDS);
+			} catch (InterruptedException e) {
+			}
+
+			logger.error("[taskid:" + taskid + "] build error:", e1);
 			context.getMessages().addMessage(Messages.Message.ERROR_MSG, e1.toString());
 			TaskReturn tr = new TaskReturn(TaskReturn.ReturnCode.FAILURE, e1.toString());
 			return tr;
