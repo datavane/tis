@@ -31,35 +31,43 @@ public class SuccessFlag {
 	private final String name;
 
 	// 持有这个任务的task名称
-	public SuccessFlag(String name){
+	public SuccessFlag(String name) {
 		this.name = name;
 	}
-	
-    public String getName() {
+
+	public String getName() {
 		return name;
 	}
 
 	public enum Flag {
-        RUNNING,SUCCESS,KILL,FAILURE
-    }
+		RUNNING, SUCCESS, KILL, FAILURE
+	}
 
-    private Flag flag = Flag.RUNNING;
+	private Flag flag = Flag.RUNNING;
 
-    public Flag getFlag() {
-        return flag;
-    }
+	public Flag getFlag() {
+		return flag;
+	}
 
-    public void setFlag(Flag flag) {
-        this.flag = flag;
-    }
+	public void setFlag(Flag flag) {
+		this.flag = flag;
+	}
 
-    public String getMsg() {
-        return msg;
-    }
+	public String getMsg() {
+		return msg;
+	}
 
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
+	public void setMsg(String msg) {
+		this.msg = msg;
+	}
 
-    private String msg;
+	private String msg;
+
+	@Override
+	public String toString() {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("name:").append(this.name).append(",flag:").append(flag).append(",msg:").append(this.getMsg());
+		return buffer.toString();
+	}
+
 }

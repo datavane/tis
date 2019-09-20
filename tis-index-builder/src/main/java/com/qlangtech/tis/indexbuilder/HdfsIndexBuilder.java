@@ -238,7 +238,9 @@ public class HdfsIndexBuilder implements TaskMapper {
 				// 终止所有线程执行
 				execService.shutdownNow();
 				execService.awaitTermination(10l, TimeUnit.SECONDS);
+				logger.info("execService shutdown successful");
 			} catch (InterruptedException e) {
+				logger.warn(e.getMessage(), e);
 			}
 		}
 	}

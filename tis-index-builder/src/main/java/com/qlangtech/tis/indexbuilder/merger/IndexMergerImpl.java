@@ -140,8 +140,9 @@ public class IndexMergerImpl implements IndexMerger {
 		this.es.shutdownNow();
 		try {
 			this.es.awaitTermination(3, TimeUnit.SECONDS);
+			logger.info("merge task has shutdow,successFlag:" + successFlag);
 		} catch (InterruptedException e) {
-
+			logger.warn(e.getMessage(), e);
 		}
 	}
 
