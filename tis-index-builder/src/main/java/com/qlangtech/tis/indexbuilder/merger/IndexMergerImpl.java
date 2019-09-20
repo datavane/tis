@@ -131,25 +131,20 @@ public class IndexMergerImpl implements IndexMerger {
 		// conf);
 		// 清理远程目标目录的旧索引
 		cleanRemoteOutPath();
-		/*
-		 * ClassLoadUtil mapclu = new ClassLoadUtil();
-		 * mapclu.loadJar(indexConf.getHdfsjarpath(),null);
-		 * Thread.currentThread().setContextClassLoader(mapclu.getLoader());
-		 * FileSystemUtils fsu = new FileSystemUtils(); fs =
-		 * fsu.getFileSystem(indexConf.getFsName(),null);
-		 */
 		this.startTime = System.currentTimeMillis();
-		// cores = indexConf.getCores();
-		// dirSeq = 0;
-		// this.diskIndexDirs = new Directory[cores.length];
-		// this.ramDirectorys = new RAMDirectory[cores.length];
-		// this.setRamWriters(new IndexWriter[cores.length]);
-		// this.writers = new IndexWriter[cores.length];call
 		this.es = Executors.newFixedThreadPool(indexConf.getMergeThreads());
-		
 	}
 
-	
+	@Override
+	public void shutdown() {
+		this.es.shutdownNow();
+		try {
+			this.es.awaitTermination(3, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+
+		}
+	}
+
 	@Override
 	public SuccessFlag call() throws Exception {
 		try {

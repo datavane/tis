@@ -53,5 +53,8 @@ public interface IndexMerger extends Callable<SuccessFlag> {
 	public void setAtomicInteger(AtomicInteger aliveIndexMakerCount);
 
 	public void setIndexConf(IndexConf indexConf);
+	
+	// 停止执行
+	public void shutdown();
 
 }

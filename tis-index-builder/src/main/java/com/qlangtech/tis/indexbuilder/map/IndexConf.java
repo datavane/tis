@@ -110,7 +110,7 @@ public class IndexConf {
 	}
 
 	public int getMergeThreads() {
-		return 1;
+		return 2;
 	}
 
 	/**

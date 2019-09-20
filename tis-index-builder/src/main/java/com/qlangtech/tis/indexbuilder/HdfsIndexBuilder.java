@@ -122,7 +122,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 	public TaskReturn map(TaskContext context) {
 
 		IndexConf indexConf = HdfsIndexGetConfig.getIndexConf(context);
-
+		IndexMerger mergeTask = null;
 		Counters counters = context.getCounters();
 		Messages messages = context.getMessages();
 		// indexConf.loadFrom(context);
@@ -196,7 +196,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 			// merge线程
 			// this.mergeExecResult =
 
-			waitIndexMergeTask("mergetask-1", indexConf, aliveIndexMakerCount, counters, messages, dirQueue,
+			mergeTask = waitIndexMergeTask("mergetask-1", indexConf, aliveIndexMakerCount, counters, messages, dirQueue,
 					indexMetaConfig.indexSchema);
 
 			// 多线程构建索引
@@ -204,15 +204,13 @@ public class HdfsIndexBuilder implements TaskMapper {
 				IndexMaker indexMaker = createIndexMaker(indexMetaConfig, "indexMaker-" + i, indexConf, counters,
 						messages, indexMetaConfig.indexSchema, aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues,
 						dirQueue);
-				// indexMaker.setName(indexConf.getCoreName() + "-indexMaker-" +
-				// indexMakerCount + "-" + i);
-				// resultFlagSet.add(indexMaker.getResultFlag());
+
 				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
 
 			// try {
-			int allTaskCount = indexMakerCount + docMakerCount + 1;// merge
-																	// task;
+			int mergeTaskCount = 1;
+			int allTaskCount = indexMakerCount + docMakerCount + mergeTaskCount;
 			SuccessFlag result = null;
 			for (int threadCount = 0; threadCount < allTaskCount //
 			; threadCount++) {
@@ -228,17 +226,20 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 		} catch (Throwable e1) {
 
+			logger.error("[taskid:" + taskid + "] build error:", e1);
+			context.getMessages().addMessage(Messages.Message.ERROR_MSG, e1.toString());
+			TaskReturn tr = new TaskReturn(TaskReturn.ReturnCode.FAILURE, e1.toString());
+			return tr;
+		} finally {
+			if (mergeTask != null) {
+				mergeTask.shutdown();
+			}
 			try {
 				// 终止所有线程执行
 				execService.shutdownNow();
 				execService.awaitTermination(10l, TimeUnit.SECONDS);
 			} catch (InterruptedException e) {
 			}
-
-			logger.error("[taskid:" + taskid + "] build error:", e1);
-			context.getMessages().addMessage(Messages.Message.ERROR_MSG, e1.toString());
-			TaskReturn tr = new TaskReturn(TaskReturn.ReturnCode.FAILURE, e1.toString());
-			return tr;
 		}
 	}
 
@@ -395,7 +396,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 		readerContext.put("titletext", StringUtils.split(buildtabletitleitems, ","));
 	}
 
-	private void waitIndexMergeTask(String name, final IndexConf indexConf, AtomicInteger aliveIndexMakerCount,
+	private IndexMerger waitIndexMergeTask(String name, final IndexConf indexConf, AtomicInteger aliveIndexMakerCount,
 			Counters counters, Messages messages, BlockingQueue<RAMDirectory> dirQueue, IndexSchema schema)
 			throws Exception {
 		if (schema == null) {
@@ -415,6 +416,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 		logger.warn("indexmergeloader:" + currentClassloader.getClass());
 		executorService.submit(indexMerger);
+		return indexMerger;
 
 	}
 
@@ -425,118 +427,9 @@ public class HdfsIndexBuilder implements TaskMapper {
 
 	}
 
-	// protected SuccessFlag checkSuccessFlag(List<SuccessFlag> threadList) {
-	// SuccessFlag flag = new SuccessFlag();
-	// flag.setFlag(Flag.SUCCESS);
-	// for (SuccessFlag sf : threadList) {
-	// if (sf.getFlag() == SuccessFlag.Flag.FAILURE) {
-	// return sf;
-	// }
-	// if (sf.getFlag() == SuccessFlag.Flag.RUNNING) {
-	// flag.setFlag(Flag.RUNNING);
-	// }
-	// }
-	// return flag;
-	// }
-
 	public static void main(String[] args) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
 		System.out.println(sdf.format(new Date(System.currentTimeMillis())));
 	}
-	// private boolean downloadJar() throws Exception {
-	// logger.info("downloadJar start");
-	// // 使用HttpConfigFileReader 工具类取得终搜后台仓库中的配置文件
-	// SnapshotDomain domain = HttpConfigFileReader.getResource(
-	// indexConf.getRemoteJarHost(), indexConf.getServiceName(), 0,
-	// indexConf.getRunEnvironment(), ConfigFileReader.FILE_JAR);
-	// logger.info("appId=" + domain.getAppId());
-	// UploadResource resource = domain.getJarFile();
-	// if (resource != null) {
-	// logger.info("upload_resource:ur_id=" + resource.getUrId());
-	// FileOutputStream fos = null;
-	// FileChannel fc = null;
-	// try {
-	// File jarPath = new File(indexConf.getServicejarpath());
-	// if (!jarPath.exists()) {
-	// jarPath.mkdirs();
-	// }
-	// File jarFile = new File(jarPath, indexConf.getServiceName()
-	// + "." + "jar");
-	// if (jarFile.exists()) {
-	// jarFile.delete();
-	// }
-	// jarFile.createNewFile();
-	// fos = new FileOutputStream(jarFile);
-	// fc = fos.getChannel();
-	// if (null == resource.getContent()) {
-	// logger.error("resource.getContent() is null,ur_id="
-	// + resource.getUrId());
-	// }
-	// ByteBuffer bb = ByteBuffer.wrap(resource.getContent());
-	// fc.write(bb);
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// return false;
-	// } finally {
-	// if (fos != null)
-	// fos.close();
-	// if (fc != null)
-	// fc.close();
-	// }
-	// return true;
-	// } else {
-	// logger.warn("no user jar file!");
-	// }
-	// return false;
-	// }
-	// private boolean downloadTisJar() throws Exception {
-	// if (!getJarStatus()) {
-	// return false;
-	// }
-	// StringBuffer ossKey = new StringBuffer();
-	// ossKey.append(JarOssClient.OSS_ROOT_KEY)
-	// .append(indexConf.getRunEnvironment().getKeyName()).append("_")
-	// .append(indexConf.getServiceName());
-	// StringBuffer destPath = new StringBuffer();
-	// destPath.append(indexConf.getServicejarpath()).append(File.separator)
-	// .append(indexConf.getServiceName()).append(".jar");
-	//
-	// logger.info("downloadTisJar start");
-	//
-	// try {
-	// File jarPath = new File(indexConf.getServicejarpath());
-	// if (!jarPath.exists()) {
-	// jarPath.mkdirs();
-	// }
-	// File jarFile = new File(jarPath, indexConf.getServiceName() + "."
-	// + "jar");
-	// if (jarFile.exists()) {
-	// jarFile.delete();
-	// }
-	// jarOssClient.download(ossKey.toString(), destPath.toString());
-	// logger.info("ossKey : " + ossKey + " ---- destPath : " + destPath);
-	//
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// return false;
-	// }
-	// return true;
-	//
-	// }
-	// private boolean getJarStatus() {
-	// try {
-	// StringBuffer ossKey = new StringBuffer();
-	// ossKey.append(JarOssClient.OSS_ROOT_KEY)
-	// .append(indexConf.getRunEnvironment().getKeyName())
-	// .append("_").append(indexConf.getServiceName());
-	// StringBuffer ossStatus = new StringBuffer();
-	// ossStatus.append(ossKey).append("_status");
-	// if (!jarOssClient.getJarStatus(ossStatus.toString())) {
-	// return false;
-	// }
-	// } catch (Exception e) {
-	// return false;
-	// }
-	// return true;
-	// }
+
 }
