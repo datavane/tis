@@ -1,16 +1,29 @@
 package com.qlangtech.tis.solrextend.handler.component;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.SortedDocValues;
 import org.apache.lucene.search.SimpleCollector;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.cloud.CloudDescriptor;
+import org.apache.solr.cloud.ZkController;
+import org.apache.solr.common.SolrException;
 import org.apache.solr.common.StringUtils;
+import org.apache.solr.common.cloud.Replica;
+import org.apache.solr.common.cloud.Slice;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
+import org.apache.solr.handler.component.ShardRequest;
+import org.apache.solr.handler.component.ShardResponse;
 import org.apache.solr.search.DocListAndSet;
 
 import com.google.common.collect.Maps;
@@ -55,6 +68,94 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 
 		rb.rsp.add(NAME, ResultUtils.writeMap(collector.getGroupByCount()));
 
+	}
+
+	@Override
+	public int distributedProcess(ResponseBuilder rb) throws IOException {
+		if (!rb.req.getParams().getBool(NAME, false)) {
+			return ResponseBuilder.STAGE_DONE;
+		}
+
+		if (rb.stage == ResponseBuilder.STAGE_GET_FIELDS) {
+			createSubRequests(rb);
+		}
+		return ResponseBuilder.STAGE_DONE;
+	}
+
+	@Override
+	@SuppressWarnings("all")
+	public void handleResponses(ResponseBuilder rb, ShardRequest sreq) {
+		if (!rb.req.getParams().getBool(NAME, false)) {
+			return;
+		}
+		if (rb.stage != ResponseBuilder.STAGE_EXECUTE_QUERY) {
+			return;
+		}
+		// super.handleResponses(rb, sreq);
+		// logger.info("handleResponses,response size:" +
+		// sreq.responses.size());
+		SimpleOrderedMap<String> shardResult = null;
+		Map<String, AtomicInteger> mergeResult = new HashMap<>();
+		AtomicInteger val = null;
+		String key = null;
+		for (ShardResponse sr : sreq.responses) {
+			shardResult = (SimpleOrderedMap<String>) sr.getSolrResponse().getResponse().get(NAME);
+			for (int i = 0; i < shardResult.size(); i++) {
+				key = shardResult.getName(i);
+				if ((val = mergeResult.get(key)) == null) {
+					val = new AtomicInteger();
+					mergeResult.put(key, val);
+				}
+				val.addAndGet(Integer.parseInt(shardResult.getVal(i)));
+			}
+		}
+
+		rb.rsp.add(NAME, ResultUtils.writeMap(mergeResult));
+	}
+
+	private void createSubRequests(ResponseBuilder rb) throws IOException {
+		SolrParams params = rb.req.getParams();
+		CloudDescriptor cloudDescriptor = rb.req.getCore().getCoreDescriptor().getCloudDescriptor();
+		ZkController zkController = rb.req.getCore().getCoreContainer().getZkController();
+		String collection = cloudDescriptor.getCollectionName();
+
+		for (Slice slice : zkController.getClusterState().getCollection(cloudDescriptor.getCollectionName())
+				.getActiveSlices()) {
+			String shard = slice.getName();
+			ShardRequest sreq = new ShardRequest();
+
+			sreq.purpose = 1;
+			sreq.shards = sliceToShards(rb, collection, slice);
+			sreq.actualShards = sreq.shards;
+
+			SolrQuery squery = new SolrQuery();
+			squery.set(ShardParams.SHARDS_QT, "/select");
+			squery.set(TIS_GROUP_FIELD, this.groupBy);
+			squery.set(NAME, true);
+			squery.setStart(0);
+			squery.setRows(0);
+			// String fields = params.get(CommonParams.FL);
+			// if (fields != null) {
+			// squery.set(CommonParams.FL, fields);
+			// }
+			// squery.set(CommonParams.DISTRIB, false);
+			squery.setQuery(params.get(CommonParams.Q));
+			sreq.params = squery;
+			// sreq.params.set(CommonParams.DISTRIB, false);
+
+			rb.addRequest(this, sreq);
+		}
+	}
+
+	private String[] sliceToShards(ResponseBuilder rb, String collection, Slice slice) {
+
+		Optional<Replica> replics = slice.getReplicas().stream().findFirst();
+		if (!replics.isPresent()) {
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+					"Can't find shard '" + slice.getName() + "',all slice[" + rb.slices.length + "]");
+		}
+
+		return new String[] { replics.get().getCoreUrl() };
 	}
 
 	private static class CountCollector extends SimpleCollector {
