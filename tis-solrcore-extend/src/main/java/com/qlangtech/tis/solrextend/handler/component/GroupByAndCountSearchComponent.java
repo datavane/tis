@@ -32,7 +32,7 @@ import com.google.common.collect.Maps;
  * 对命中结果集进行group by count(1) 操作 <br>
  * 可以通用
  * 
- * @author 百岁（baisui@2dfire.com）
+ * @author 百岁
  *
  * @date 2019年9月17日
  */
