@@ -146,6 +146,11 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 			logger.error(e.getMessage(), e);
 			masterShutdown(FinalApplicationStatus.FAILED, ExceptionUtils.getRootCauseMessage(e));
 		} finally {
+			try {
+				rmClient.close();
+			} catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+			}
 			AppnameAwareFlumeLogstashV1Appender.closeAllFlume();
 		}
 	}
@@ -169,6 +174,7 @@ public class BuildNodeMaster implements AMRMClientAsync.CallbackHandler {
 					, msg, "");
 		} catch (Exception exc) {
 			// safe to ignore ... this usually fails anyway
+			logger.error(exc.getMessage(), exc);
 		}
 	}
 

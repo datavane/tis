@@ -99,7 +99,7 @@
        }
     }
     
-    #if( $selectCoreinfo.shardSpecificNode)
+    #if(!$selectCoreinfo.shardSpecificNode)
      #break
     #end
    #end
