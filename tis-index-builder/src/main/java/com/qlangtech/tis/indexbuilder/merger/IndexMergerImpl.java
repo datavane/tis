@@ -27,8 +27,9 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -103,7 +104,7 @@ public class IndexMergerImpl implements IndexMerger {
 	// private String[] cores;
 	// private boolean mergings[];
 	// private String taskAttemptId;
-	private ExecutorService es;
+	private ThreadPoolExecutor es;
 
 	// ArrayAllocator mergerAllocator;
 	// private String taskAttemptId;
@@ -132,7 +133,11 @@ public class IndexMergerImpl implements IndexMerger {
 		// 清理远程目标目录的旧索引
 		cleanRemoteOutPath();
 		this.startTime = System.currentTimeMillis();
-		this.es = Executors.newFixedThreadPool(indexConf.getMergeThreads());
+		// this.es = Executors.newFixedThreadPool(indexConf.getMergeThreads());
+
+		this.es = new BlockThreadPoolExecutor(indexConf.getMergeThreads(), indexConf.getMergeThreads(), 0L,
+				TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(4));
+		//this.es.setRejectedExecutionHandler(new CallerRunsPolicy());
 	}
 
 	@Override

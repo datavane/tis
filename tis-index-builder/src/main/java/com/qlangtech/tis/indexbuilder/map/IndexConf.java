@@ -106,11 +106,11 @@ public class IndexConf {
 	public long getOptimizeSizeThreshold() {
 		// return 1000000000L;
 		// return getLong("indexing.optimze.optimizeSizeThreshold", );
-		return 500 * 1024 * 1024;
+		return 1000 * 1024 * 1024;
 	}
 
 	public int getMergeThreads() {
-		return 2;
+		return 6;
 	}
 
 	/**
