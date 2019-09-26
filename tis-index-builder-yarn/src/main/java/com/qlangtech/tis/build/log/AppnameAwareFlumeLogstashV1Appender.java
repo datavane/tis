@@ -21,21 +21,41 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
  */
 public class AppnameAwareFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
 
-	private static final Set<FlumeLogstashV1Appender> flumeAppenderSet = new HashSet<>();
+	private static final Set<AppnameAwareFlumeLogstashV1Appender> flumeAppenderSet = new HashSet<>();
+
+	private boolean closed = false;
 
 	public static void closeAllFlume() {
+		int closeCount = 0;
 		for (FlumeLogstashV1Appender appender : flumeAppenderSet) {
 			try {
 				appender.stop();
+				closeCount++;
 			} catch (Throwable e) {
 			}
 		}
+		System.out.println("closeFlumeClientCount:" + closeCount);
 	}
 
 	public AppnameAwareFlumeLogstashV1Appender() {
 		super();
 		super.setFlumeAgents(TSearcherConfigFetcher.get().getLogFlumeAddress());
+		// super.setFlumeAgents("10.1.21.48:41414");
 		flumeAppenderSet.add(this);
+	}
+
+	@Override
+	public void stop() {
+		this.closed = true;
+		super.stop();
+	}
+
+	@Override
+	protected void append(ILoggingEvent eventObject) {
+		if (closed) {
+			return;
+		}
+		super.append(eventObject);
 	}
 
 	public void setFlumeAgents(String flumeAgents) {

@@ -103,7 +103,7 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		YarnClientApplication app = yarnClient.createApplication();
 		ApplicationSubmissionContext submissionContext = app.getApplicationSubmissionContext();
 		submissionContext.setApplicationType(serviceName);
-		submissionContext.setMaxAppAttempts(100);
+		submissionContext.setMaxAppAttempts(2);
 		submissionContext.setKeepContainersAcrossApplicationAttempts(false);
 		final ApplicationId appid = submissionContext.getApplicationId();
 		submissionContext.setApplicationName(coreName + "-indexbuild");
@@ -132,10 +132,10 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 		submissionContext.setResource(capability);
 		submissionContext.setQueue("default");
 		Priority p = Records.newRecord(Priority.class);
-		p.setPriority(1000);
+		p.setPriority(2);
 		submissionContext.setPriority(p);
 		yarnClient.submitApplication(submissionContext);
-		logger.info("success to submit");
+		logger.info("success to submit,apply yarn resource:{}", capability.toString());
 		ApplicationReport appReport = yarnClient.getApplicationReport(appid);
 		logger.info("get app report,appid:" + appid);
 		YarnApplicationState appState = appReport.getYarnApplicationState();

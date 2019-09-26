@@ -186,10 +186,6 @@ public class Config {
 		return hostIp;
 	}
 
-	// public static RunEnvironment getRunEnvironment() {
-	// return RunEnvironment.DAILY;
-	// }
-
 	/**
 	 * @param args
 	 */
