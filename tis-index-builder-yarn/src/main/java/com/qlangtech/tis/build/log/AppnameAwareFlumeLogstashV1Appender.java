@@ -47,6 +47,11 @@ public class AppnameAwareFlumeLogstashV1Appender extends FlumeLogstashV1Appender
 	@Override
 	public void stop() {
 		this.closed = true;
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 		super.stop();
 	}
 
