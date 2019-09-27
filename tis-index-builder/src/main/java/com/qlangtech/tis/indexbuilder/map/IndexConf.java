@@ -1,5 +1,8 @@
 package com.qlangtech.tis.indexbuilder.map;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +64,11 @@ public class IndexConf {
 	}
 
 	public String getSourcePath() {
-		return get(IndexBuildParam.INDEXING_SOURCE_PATH);
+		try {
+			return URLDecoder.decode(get(IndexBuildParam.INDEXING_SOURCE_PATH), "utf8");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public int getFlushCountThreshold() {

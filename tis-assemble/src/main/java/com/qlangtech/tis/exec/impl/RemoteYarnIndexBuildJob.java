@@ -26,6 +26,8 @@ package com.qlangtech.tis.exec.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -251,27 +253,26 @@ public class RemoteYarnIndexBuildJob extends AbstractIndexBuildJob {
 						state.getIndexName(), true) //
 				: state.getHdfsSourcePath().build(groupNum);
 
-		jobConf.set(IndexBuildParam.INDEXING_SOURCE_PATH, hdfsSourcePath);
+		try {
+			jobConf.set(IndexBuildParam.INDEXING_SOURCE_PATH, URLEncoder.encode(hdfsSourcePath, "utf8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
 		final String schemaPath = hdfsRootDir.getPath() + "/" + coreName + "/config/"
 				+ ConfigFileReader.FILE_SCHEMA.getFileName();
 		final String solrConifgPath = hdfsRootDir.getPath() + "/" + coreName + "/config/"
 				+ ConfigFileReader.FILE_SOLOR.getFileName();
 		jobConf.set(IndexBuildParam.INDEXING_SCHEMA_PATH, schemaPath);
 		jobConf.set(IndexBuildParam.INDEXING_SOLRCONFIG_PATH, solrConifgPath);
-		// "indexing.servicename"
+
 		jobConf.set(IndexBuildParam.INDEXING_SERVICE_NAME, state.getIndexName());
-		// "indexing.corename"
+
 		jobConf.set(IndexBuildParam.INDEXING_CORE_NAME, coreName);
-		// "indexing.maxNumSegments"
 		jobConf.set(IndexBuildParam.INDEXING_MAX_NUM_SEGMENTS, String.valueOf(1));
-		// "indexing.username"
 		jobConf.set(IndexBuildParam.INDEXING_USER_NAME, username);
-		// "indexing.incrtime"
 		jobConf.set(IndexBuildParam.INDEXING_INCR_TIME, state.getTimepoint());
-		// "indexing.groupnum"
 		jobConf.set(IndexBuildParam.INDEXING_GROUP_NUM, groupNum);
 		if (StringUtils.isNotBlank(state.getHdfsdelimiter())) {
-			// "indexing.delimiter"
 			jobConf.set(IndexBuildParam.INDEXING_DELIMITER, state.getHdfsdelimiter());
 		}
 

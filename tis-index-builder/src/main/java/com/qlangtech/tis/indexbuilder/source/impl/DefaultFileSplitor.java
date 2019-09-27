@@ -60,12 +60,12 @@ public class DefaultFileSplitor extends FileSplitor {
 			throw new Exception("path is not exist:" + path);
 		}
 		for (FileStatus stat : stats) {
-			logger.warn("dump path is:" + stat.getPath());
 			if (!stat.isFile()) {
 				getFiles(stat.getPath(), dataFiles, pathFilter);
 			} else {
 				String name = stat.getPath().getName();
-				if (pathFilter.accept(path) && (!name.endsWith(".suc")) && (!name.endsWith(".ok"))) {
+				if (pathFilter.accept(stat.getPath()) && (!name.endsWith(".suc")) && (!name.endsWith(".ok"))) {
+					logger.info("dump path is:" + stat.getPath());
 					dataFiles.add(stat);
 				}
 			}

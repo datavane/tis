@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -108,13 +109,15 @@ public abstract class FileSplitor {
 			}
 			this.totalSize += file.getLen();
 		}
-		if (this.totalSize == 0L) {
-			throw new Exception("源文件大小为0！");
+		if (this.totalSize < 1) {
+			throw new Exception("files size:" + files.size() + ",source file size:0 bytes！");
 		}
 		int numSplits = this.indexConf.getDocMakerThreadCount() * 5;
 		logger.warn("[numSplits]==>" + numSplits);
 		long goalSize = this.totalSize / (numSplits == 0 ? 1 : numSplits);
-		logger.warn("[goalSize]==>" + goalSize);
+		logger.warn("[goalSize]==>{},totalSize:{}" //
+				, FileUtils.byteCountToDisplaySize(goalSize) //
+				, FileUtils.byteCountToDisplaySize(totalSize));
 		long minSize = this.indexConf.getMinSplitSize();
 		logger.warn("[minSize]==>" + minSize);
 		ArrayList<FileSplit> splits = new ArrayList<FileSplit>(numSplits);
