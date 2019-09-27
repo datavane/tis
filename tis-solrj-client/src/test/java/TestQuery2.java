@@ -28,7 +28,9 @@
  */
 public class TestQuery2 {
 
-    public static void main(String[] args) throws Exception {
-       
-    }
+	public static void main(String[] args) throws Exception {
+		System.out.println("-2484999841597578613".hashCode() % 3);
+		Long l = -2484999841597578613l;
+		System.out.println(l.hashCode() % 3);
+	}
 }

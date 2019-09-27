@@ -6,14 +6,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.index.SortedDocValues;
 import org.apache.lucene.search.SimpleCollector;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.cloud.CloudDescriptor;
 import org.apache.solr.cloud.ZkController;
 import org.apache.solr.common.SolrException;
-import org.apache.solr.common.StringUtils;
+//import org.apache.solr.common.StringUtils;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.params.CommonParams;
@@ -42,16 +44,23 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 	private static final String TIS_GROUP_FIELD = "tis.group.field";
 
 	private String groupBy;
+	private DVType dvType;
 
 	@Override
 	public void prepare(ResponseBuilder rb) throws IOException {
 		if (rb.req.getParams().getBool(NAME, false)) {
 			rb.setNeedDocSet(true);
 			SolrParams params = rb.req.getParams();
-			this.groupBy = params.get(TIS_GROUP_FIELD);
-			if (StringUtils.isEmpty(groupBy)) {
+			String groupField = params.get(TIS_GROUP_FIELD);
+			if (StringUtils.isEmpty(groupField)) {
 				throw new IllegalArgumentException("param:" + TIS_GROUP_FIELD + " can not be empty");
 			}
+			String[] groupFieldArg = StringUtils.split(groupField, ":");
+			if (groupFieldArg.length != 2) {
+				throw new IllegalArgumentException("param:" + TIS_GROUP_FIELD + " is not illegal");
+			}
+			this.groupBy = groupFieldArg[0];
+			dvType = DVType.parse(groupFieldArg[1]);
 		}
 	}
 
@@ -63,7 +72,7 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 
 		DocListAndSet results = rb.getResults();
 
-		CountCollector collector = new CountCollector(groupBy);
+		CountCollector collector = new CountCollector(groupBy, this.dvType);
 		rb.req.getSearcher().search(results.docSet.getTopFilter(), collector);
 
 		rb.rsp.add(NAME, ResultUtils.writeMap(collector.getGroupByCount()));
@@ -130,7 +139,7 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 
 			SolrQuery squery = new SolrQuery();
 			squery.set(ShardParams.SHARDS_QT, "/select");
-			squery.set(TIS_GROUP_FIELD, this.groupBy);
+			squery.set(TIS_GROUP_FIELD, this.groupBy+":"+dvType.type);
 			squery.set(NAME, true);
 			squery.setStart(0);
 			squery.setRows(0);
@@ -160,16 +169,22 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 
 	private static class CountCollector extends SimpleCollector {
 		private final String groupByField;
-		private SortedDocValues groupFieldDV = null;
+		// private SortedDocValues groupFieldDV = null;
+
+		private DVProcess dvProcessor;
 		private Map<Order/* order */, AtomicInteger> groupByCountSegment;
 
 		private final Map<String/* groupField */, AtomicInteger> groupByCount = Maps.newHashMap();
-
+		private final DVType dvType;
 		private final Order offset = new Order();
 
-		public CountCollector(String groupByField) {
+		public CountCollector(String groupByField, DVType dvType) {
 			super();
 			this.groupByField = groupByField;
+			if (dvType == null) {
+				throw new IllegalArgumentException("param dvType can not be null");
+			}
+			this.dvType = dvType;
 		}
 
 		public Map<String, AtomicInteger> getGroupByCount() {
@@ -187,18 +202,18 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 
 		protected void doSetNextReader(LeafReaderContext context) throws IOException {
 			mergeResult();
-			this.groupFieldDV = org.apache.lucene.index.DocValues.getSorted(context.reader(), groupByField);
+			this.dvProcessor = dvType.createDVProcess(context, groupByField);
 			this.groupByCountSegment = Maps.newHashMap();
 		}
 
 		private void mergeResult() throws IOException {
 
-			if (groupFieldDV != null) {
+			if (dvProcessor != null) {
 				String fieldVal = null;
 				AtomicInteger groupCount = null;
 				for (Map.Entry<Order, AtomicInteger> entry : groupByCountSegment.entrySet()) {
 
-					fieldVal = this.groupFieldDV.lookupOrd(entry.getKey().val).utf8ToString();
+					fieldVal = this.dvProcessor.getValByOrder(entry.getKey().val);
 
 					groupCount = groupByCount.get(fieldVal);
 					if (groupCount == null) {
@@ -207,14 +222,14 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 					}
 					groupCount.addAndGet(entry.getValue().get());
 				}
-				this.groupFieldDV = null;
+				this.dvProcessor = null;
 			}
 		}
 
 		@Override
 		public void collect(int doc) throws IOException {
-			groupFieldDV.advance(doc);
-			Order order = offset.setVal(this.groupFieldDV.ordValue());
+
+			Order order = offset.setVal(dvProcessor.ordValue(doc));
 			AtomicInteger count = groupByCountSegment.get(order);
 			if (count == null) {
 				count = new AtomicInteger();
@@ -227,9 +242,9 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 	}
 
 	private static class Order {
-		private int val;
+		private long val;
 
-		private Order setVal(int order) {
+		private Order setVal(long order) {
 			this.val = order;
 			return this;
 		}
@@ -240,7 +255,7 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 
 		@Override
 		public int hashCode() {
-			return val;
+			return Long.hashCode(val);
 		}
 
 		@Override
@@ -252,6 +267,69 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 	@Override
 	public String getDescription() {
 		return NAME;
+	}
+
+	public enum DVType {
+		Numeric("numeric", (context, fname) -> {
+			final NumericDocValues numericGroupDV = org.apache.lucene.index.DocValues.getNumeric(context.reader(),
+					fname);
+
+			return new DVProcess() {
+				public long ordValue(int docId) throws IOException {
+					numericGroupDV.advance(docId);
+					return numericGroupDV.longValue();
+				}
+
+				public String getValByOrder(long ord) throws IOException {
+					return String.valueOf(ord);
+				}
+			};
+		}), Str("string", (context, fname) -> {
+
+			final SortedDocValues groupFieldDV = org.apache.lucene.index.DocValues.getSorted(context.reader(), fname);
+
+			return new DVProcess() {
+				public long ordValue(int docId) throws IOException {
+					groupFieldDV.advance(docId);
+					return groupFieldDV.ordValue();
+				}
+
+				public String getValByOrder(long ord) throws IOException {
+					return groupFieldDV.lookupOrd((int) ord).utf8ToString();
+				}
+			};
+		});
+		private final String type;
+		private final DVProcessCreator dvProcessCreator;
+
+		private DVType(String type, DVProcessCreator dvProcessCreator) {
+			this.type = type;
+			this.dvProcessCreator = dvProcessCreator;
+		}
+
+		public DVProcess createDVProcess(LeafReaderContext context, String fieldName) throws IOException {
+			return dvProcessCreator.createDVProcess(context, fieldName);
+		}
+
+		public static DVType parse(String type) {
+			if (Numeric.type.equals(type)) {
+				return Numeric;
+			} else if (Str.type.equals(type)) {
+				return Str;
+			}
+
+			throw new IllegalStateException("type:" + type + " is illegal");
+		}
+	}
+
+	private interface DVProcess {
+		long ordValue(int docId) throws IOException;
+
+		String getValByOrder(long ord) throws IOException;
+	}
+
+	private interface DVProcessCreator {
+		public DVProcess createDVProcess(LeafReaderContext context, String fieldName) throws IOException;
 	}
 
 }
