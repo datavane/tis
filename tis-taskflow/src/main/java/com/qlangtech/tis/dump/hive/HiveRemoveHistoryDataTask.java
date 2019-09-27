@@ -339,7 +339,7 @@ public class HiveRemoveHistoryDataTask {
 	}
 
 	public String getPt() {
-		return pt;
+		return this.pt;
 	}
 	// /**
 	// * 这个标记位表示在绑定表的时候 是否需要绑定hive表，因为宽表是不需要绑定的

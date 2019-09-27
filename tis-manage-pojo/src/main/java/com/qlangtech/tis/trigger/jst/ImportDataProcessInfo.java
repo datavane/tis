@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 import com.qlangtech.tis.common.LuceneVersion;
 
@@ -239,8 +241,24 @@ public class ImportDataProcessInfo implements Serializable {
 		this.remoteDebugSuspend = remoteDebugSuspend;
 	}
 
-	public static interface HdfsSourcePathCreator {
+	public static abstract class HdfsSourcePathCreator {
+		public final String name;
 
-		String build(String group);
+		public HdfsSourcePathCreator(String name) {
+			this.name = name;
+		}
+
+		public abstract String build(String group);
+
+		public int getGroupSize(FileSystem hdfs) throws Exception {
+
+			int groupIndex = 0;
+			while (true) {
+				if (!hdfs.exists(new Path(build(String.valueOf(groupIndex++))))) {
+					break;
+				}
+			}
+			return groupIndex - 1;
+		}
 	}
 }

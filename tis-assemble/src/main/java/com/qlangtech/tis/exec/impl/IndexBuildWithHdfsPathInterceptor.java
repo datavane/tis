@@ -23,11 +23,15 @@
  */
 package com.qlangtech.tis.exec.impl;
 
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.qlangtech.tis.dump.hive.HiveRemoveHistoryDataTask;
 import com.qlangtech.tis.exec.ActionInvocation;
 import com.qlangtech.tis.exec.ExecuteResult;
@@ -50,6 +54,12 @@ public final class IndexBuildWithHdfsPathInterceptor extends IndexBuildIntercept
 
 	private static final Logger logger = LoggerFactory.getLogger(IndexBuildWithHdfsPathInterceptor.class);
 
+	// 小全量触发相关参数
+	public static String KEY_PARTIAL = "dump.partial";
+	public static String KEY_PARTIAL_SWITCH = KEY_PARTIAL + ".build";
+	public static String KEY_PARTIAL_PT_PATTERN = KEY_PARTIAL + ".pt.pattern";
+	public static String KEY_PARTIAL_PMOD_SIZE = KEY_PARTIAL + ".pmod.size";
+
 	@Override
 	public ExecuteResult intercept(ActionInvocation invocation) throws Exception {
 		IExecChainContext execContext = invocation.getContext();
@@ -62,48 +72,90 @@ public final class IndexBuildWithHdfsPathInterceptor extends IndexBuildIntercept
 
 	@Override
 	protected HdfsSourcePathCreator createIndexBuildSourceCreator(final IExecChainContext execContext) {
-		return new HdfsSourcePathCreator() {
 
-			@Override
-			public String build(String group) {
-				final String hdfspath = execContext.getString(HDFS_PATH);
-				FileSystem fs = execContext.getDistributeFileSystem();
-				String path = hdfspath + "/pmod=" + group;
-				try {
-					if (fs.exists(new Path(path))) {
-						return path;
-					}
-					logger.info("sourcepath not exist:" + path);
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-				final String targetPath = "0".equals(group) ? hdfspath : path;
-				logger.info("source hdfs path:" + targetPath);
-				return targetPath;
+		boolean buildWithDumpPartial = execContext.getBoolean(KEY_PARTIAL_SWITCH);
+		final String hdfspath = execContext.getString(HDFS_PATH);
+		final FileSystem fs = execContext.getDistributeFileSystem();
+		if (buildWithDumpPartial) {
+
+			// 执行小全量
+			String partialPattern = execContext.getString(KEY_PARTIAL_PT_PATTERN);
+			if (StringUtils.isBlank(partialPattern)) {
+				throw new IllegalStateException("partialPattern can not be blank");
 			}
-		};
+			if (StringUtils.indexOf(partialPattern, "/") > -1) {
+				throw new IllegalStateException("partialPattern:" + partialPattern + " can not contain split char '/'");
+			}
+
+			if (StringUtils.indexOf(partialPattern, "(") < 0 || StringUtils.indexOf(partialPattern, ")") < 0) {
+				throw new IllegalStateException(
+						"partialPattern:" + partialPattern + " can not contain parentheses '(' and ')'");
+			}
+
+			try {
+				Pattern.compile(partialPattern);
+			} catch (PatternSyntaxException e) {
+				throw new RuntimeException("partialPattern:" + partialPattern, e);
+			}
+
+			return new HdfsSourcePathCreator("buildWithDumpPartial") {
+				@Override
+				public String build(String groupOrd) {
+					final String path = hdfspath + "/" + partialPattern + "/pmod=" + groupOrd;
+					logger.info("source hdfs path:" + path);
+					return path;
+				}
+
+				@Override
+				public int getGroupSize(FileSystem hdfs) {
+					try {
+						int partialPmodSize = execContext.getInt(KEY_PARTIAL_PMOD_SIZE);
+						if (partialPmodSize < 1) {
+							throw new IllegalStateException(
+									KEY_PARTIAL_PMOD_SIZE + ":" + partialPmodSize + " can not small than 1");
+						}
+						return partialPmodSize;
+					} catch (IllegalStateException e) {
+						throw e;
+					} catch (Exception e) {
+						throw new IllegalArgumentException(
+								"buildWithDumpPartial shall set param '" + KEY_PARTIAL_PMOD_SIZE + "'", e);
+					}
+				}
+
+			};
+
+		} else {
+
+			return new HdfsSourcePathCreator("buildAll") {
+				@Override
+				public String build(String group) {
+					String path = hdfspath + "/pmod=" + group;
+					try {
+						if (fs.exists(new Path(path))) {
+							return path;
+						}
+						logger.info("sourcepath not exist:" + path);
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+					final String targetPath = "0".equals(group) ? hdfspath : path;
+					logger.info("source hdfs path:" + targetPath);
+					return targetPath;
+				}
+			};
+		}
 	}
 
 	@Override
 	protected void setBuildTableTitleItems(String indexName, ImportDataProcessInfo processinfo,
 			IExecChainContext execContext) {
 		processinfo.setBuildTableTitleItems(execContext.getString(BuildTriggerServlet.KEY_COLS));
-		// if( execContext.getString(ImportDataProcessInfo.KEY_DELIMITER)){
-		//
-		// }
-		//
 		processinfo.setHdfsdelimiter(//
 				StringUtils.defaultIfEmpty(execContext.getString(ImportDataProcessInfo.KEY_DELIMITER),
 						ImportDataProcessInfo.DELIMITER_001));
 	}
 
-	// @Override
-	// protected int getGroupSize(String indexName,
-	// HdfsSourcePathCreator pathCreator, FileSystem fileSystem)
-	// throws Exception {
-	//
-	// return GROUP_SIZE;
-	// }
 	@Override
 	public String getName() {
 		return COMPONENT_NAME;

@@ -69,13 +69,12 @@ import com.qlangtech.tis.trigger.socket.InfoType;
  */
 public class IndexBuildInterceptor implements IExecuteInterceptor {
 
-	public static final String NAME = "indexBuild";
+	private static final Logger logger = LoggerFactory.getLogger(IndexBuildInterceptor.class);
 
+	public static final String NAME = "indexBuild";
 	public static final String KEY_INDEX_BACK_FLOW_QUEUE = "indexBackFlowQueue";
 
 	protected static final ExecutorService executorService = Executors.newCachedThreadPool();
-
-	private static final Logger logger = LoggerFactory.getLogger(IndexBuildInterceptor.class);
 
 	/**
 	 * 判断是否从索引build流程調用傳播過來的
@@ -102,8 +101,9 @@ public class IndexBuildInterceptor implements IExecuteInterceptor {
 		final String ps = execContext.getPartitionTimestamp();
 		// ▼▼▼▼ 触发索引构建
 		final HdfsSourcePathCreator pathCreator = createIndexBuildSourceCreator(execContext);
-		final int groupSize = getGroupSize(execContext.getIndexName(), pathCreator,
-				execContext.getDistributeFileSystem());
+
+		final int groupSize = pathCreator.getGroupSize(execContext.getDistributeFileSystem());
+		logger.info("pathCreator:{},groupSize:{}", pathCreator.name, groupSize);
 		if (groupSize < 1) {
 			ExecuteResult faild = ExecuteResult.createFaild();
 			// "target tab:" + sqlAST.getTargetTableName()
@@ -126,17 +126,13 @@ public class IndexBuildInterceptor implements IExecuteInterceptor {
 		return invocation.invoke();
 	}
 
-	protected HdfsSourcePathCreator createIndexBuildSourceCreator(final IExecChainContext execContext) // final
-																										// HiveInsertFromSelectParser
-																										// sqlAST
-	{
+	protected HdfsSourcePathCreator createIndexBuildSourceCreator(final IExecChainContext execContext) {
 		final HiveInsertFromSelectParser sqlAST = TaskConfigParser.getLastJoinTaskSQLAST(execContext);
 		final String hdfsPath = HiveRemoveHistoryDataTask.getJoinTableStorePath(execContext.getContextUserName(), // TODO
 																													// 如果找不到宽表就应该找和该索引同名的表
 				sqlAST.getTargetTableName()) + "/pt=%s/pmod=%s";
 		logger.info("hdfs sourcepath:" + hdfsPath);
-		return new HdfsSourcePathCreator() {
-
+		return new HdfsSourcePathCreator("triggerFromTIS") {
 			@Override
 			public String build(String group) {
 				return String.format(hdfsPath, execContext.getPartitionTimestamp(), group);
@@ -325,21 +321,23 @@ public class IndexBuildInterceptor implements IExecuteInterceptor {
 		// }
 	}
 
-	/**
-	 * @param indexName
-	 * @return
-	 */
-	protected int getGroupSize(String indexName, HdfsSourcePathCreator pathCreator, FileSystem fileSystem)
-			throws Exception {
-		FileSystem hdfs = fileSystem;
-		int groupIndex = 0;
-		while (true) {
-			if (!hdfs.exists(new Path(pathCreator.build(String.valueOf(groupIndex++))))) {
-				break;
-			}
-		}
-		return groupIndex - 1;
-	}
+	// /**
+	// * @param indexName
+	// * @return
+	// */
+	// protected int getGroupSize(IExecChainContext execContext,
+	// HdfsSourcePathCreator pathCreator, FileSystem fileSystem)
+	// throws Exception {
+	// FileSystem hdfs = fileSystem;
+	// int groupIndex = 0;
+	// while (true) {
+	// if (!hdfs.exists(new
+	// Path(pathCreator.build(String.valueOf(groupIndex++))))) {
+	// break;
+	// }
+	// }
+	// return groupIndex - 1;
+	// }
 
 	@Override
 	public String getName() {
