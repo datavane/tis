@@ -43,6 +43,7 @@ import java.util.Set;
 
 //
 import org.apache.http.client.HttpClient;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 //import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -119,30 +120,18 @@ public class ExtendCloudSolrClient extends CloudSolrClient {
 	// private final List<OnReconnect> clusterStateChangeListener = new
 	// ArrayList<OnReconnect>();
 	//
-	private TisZkClient tisZkClient;
+	// private TisZkClient tisZkClient;
 
 	//
 	public ExtendCloudSolrClient(String zkHost, HttpClient httpClient) {
-		// super(zkHost, httpClient);
-		super(new CloudSolrClient.Builder(Collections.singletonList(zkHost), emptyOptional));
-		// this.addStateChageEvent(new OnReconnect() {
-		// @Override
-		// public void command() {
-		// synchronized (collectionShardMap) {
-		// collectionShardMap.clear();
-		// }
-		// }
-		// });
+		super(new SolrClientBuilder(Collections.singletonList(zkHost)));
 	}
 
-	//
-	public TisZkClient getTisZkClient() {
-		return this.tisZkClient;
-	}
-
-	//
-	private void setTisZkClient(TisZkClient tisZkClient) {
-		this.tisZkClient = tisZkClient;
+	private static class SolrClientBuilder extends CloudSolrClient.Builder {
+		public SolrClientBuilder(List<String> zkHosts) {
+			super(zkHosts, emptyOptional);
+			this.solrUrls = null;
+		}
 	}
 
 	// @Override

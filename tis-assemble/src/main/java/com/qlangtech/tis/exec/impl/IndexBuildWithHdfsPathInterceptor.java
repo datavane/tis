@@ -89,7 +89,7 @@ public final class IndexBuildWithHdfsPathInterceptor extends IndexBuildIntercept
 
 			if (StringUtils.indexOf(partialPattern, "(") < 0 || StringUtils.indexOf(partialPattern, ")") < 0) {
 				throw new IllegalStateException(
-						"partialPattern:" + partialPattern + " can not contain parentheses '(' and ')'");
+						"partialPattern:" + partialPattern + " must contain parentheses '(' and ')'");
 			}
 
 			try {

@@ -50,11 +50,11 @@ public class TisSolrZkClient extends SolrZkClient {
         super(zkServerAddress, zkClientTimeout, clientConnectTimeout, strat, onReconnect);
     }
 
-    @Override
-    void updateKeeper(SolrZooKeeper keeper) throws InterruptedException {
-        if (this.isClosed()) {
-            throw new RuntimeException("solr zk has been closed");
-        }
+//    @Override
+//    void updateKeeper(SolrZooKeeper keeper) throws InterruptedException {
+//        if (this.isClosed()) {
+//            throw new RuntimeException("solr zk has been closed");
+//        }
     // try {
     // if (this.isClosed()) {
     // if (this.getSolrZooKeeper() != null) {
@@ -70,5 +70,5 @@ public class TisSolrZkClient extends SolrZkClient {
     // }
     // 
     // super.updateKeeper(keeper);
-    }
+   // }
 }
