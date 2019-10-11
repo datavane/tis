@@ -89,7 +89,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 		}
 	}
 
-	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(RecoveryStrategy.class);
 
 	private int waitForUpdatesWithStaleStatePauseMilliSeconds = Integer
 			.getInteger("solr.cloud.wait-for-updates-with-stale-state-pause", 2500);

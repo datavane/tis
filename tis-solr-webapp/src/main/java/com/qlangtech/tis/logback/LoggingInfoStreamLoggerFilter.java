@@ -46,9 +46,9 @@ public class LoggingInfoStreamLoggerFilter extends Filter<ILoggingEvent> {
 
     @Override
     public FilterReply decide(ILoggingEvent event) {
-        if (event.getLevel().isGreaterOrEqual(Level.WARN)) {
-            return FilterReply.ACCEPT;
-        }
+//        if (event.getLevel().isGreaterOrEqual(Level.WARN)) {
+//            return FilterReply.ACCEPT;
+//        }
         if (requestFilter.decide(event) == FilterReply.ACCEPT && event.getLevel() != Level.ERROR) {
             return FilterReply.DENY;
         }
