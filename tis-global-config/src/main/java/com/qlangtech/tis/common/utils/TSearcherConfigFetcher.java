@@ -323,8 +323,9 @@ public class TSearcherConfigFetcher {
 					indexsConfig.put(serviceName, config);
 				}
 			}
+			logger.info("get global from tis repositroy:" + config.toString());
 		}
-		logger.info("get global from tis repositroy:" + config.toString());
+	
 		return config;
 	}
 

@@ -317,11 +317,11 @@ public class RecoveryStrategy implements Runnable, Closeable {
 	}
 
 	final public void doRecovery(SolrCore core) throws Exception {
-		if (core.getCoreDescriptor().getCloudDescriptor().requiresTransactionLog()) {
+		//if (core.getCoreDescriptor().getCloudDescriptor().requiresTransactionLog()) {
 			doSyncOrReplicateRecovery(core);
-		} else {
-			doReplicateOnlyRecovery(core);
-		}
+//		} else {
+//			doReplicateOnlyRecovery(core);
+//		}
 	}
 
 	final private void doReplicateOnlyRecovery(SolrCore core) throws InterruptedException {
@@ -494,7 +494,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 		}
 
 		// we temporary ignore peersync for tlog replicas
-		boolean firstTime = replicaType != Replica.Type.TLOG;
+		boolean firstTime = true;// replicaType != Replica.Type.TLOG;
 
 		// List<Long> recentVersions;
 		// try (UpdateLog.RecentUpdates recentUpdates = ulog.getRecentUpdates())
@@ -587,6 +587,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 				if (isLeader && !cloudDesc.isLeader()) {
 					throw new SolrException(ErrorCode.SERVER_ERROR, "Cloud state still says we are leader.");
 				}
+				// baisui modify
 				if (!this.isForceRecoveryIgnoreWetherIAmLeader() && cloudDesc.isLeader()) {
 					// we are now the leader - no one else must have been
 					// suitable
@@ -639,42 +640,42 @@ public class RecoveryStrategy implements Runnable, Closeable {
 				}
 
 				// first thing we just try to sync
-				if (firstTime) {
-					firstTime = false; // only try sync the first time through
-										// the loop
-					log.info("Attempting to PeerSync from [{}] - recoveringAfterStartup=[{}]", leader.getCoreUrl(),
-							recoveringAfterStartup);
-					// System.out.println("Attempting to PeerSync from " +
-					// leaderUrl
-					// + " i am:" + zkController.getNodeName());
-					// ▼▼▼▼ 百岁 baisui comment 禁止到leader节点上去同步tlog文件
-					// PeerSyncWithLeader peerSyncWithLeader = new
-					// PeerSyncWithLeader(core, leader.getCoreUrl(),
-					// ulog.getNumRecordsToKeep());
-					// boolean syncSuccess =
-					// peerSyncWithLeader.sync(recentVersions).isSuccess();
-					// ▲▲▲▲
-					boolean syncSuccess = true;
-					if (syncSuccess) {
-						SolrQueryRequest req = new LocalSolrQueryRequest(core, new ModifiableSolrParams());
-						// 强行进行一次Commit force open a new searcher
-						core.getUpdateHandler().commit(new CommitUpdateCommand(req, false));
-						req.close();
-						log.info("PeerSync stage of recovery was successful.");
-
-						// solrcloud_debug
-						cloudDebugLog(core, "synced");
-
-						log.info("Replaying updates buffered during PeerSync.");
-						replay(core);
-
-						// sync success
-						successfulRecovery = true;
-						return;
-					}
-
-					log.info("PeerSync Recovery was not successful - trying replication.");
-				}
+//				if (firstTime) {
+//					firstTime = false; // only try sync the first time through
+//										// the loop
+//					log.info("Attempting to PeerSync from [{}] - recoveringAfterStartup=[{}]", leader.getCoreUrl(),
+//							recoveringAfterStartup);
+//					// System.out.println("Attempting to PeerSync from " +
+//					// leaderUrl
+//					// + " i am:" + zkController.getNodeName());
+//					// ▼▼▼▼ 百岁 baisui comment 禁止到leader节点上去同步tlog文件
+//					// PeerSyncWithLeader peerSyncWithLeader = new
+//					// PeerSyncWithLeader(core, leader.getCoreUrl(),
+//					// ulog.getNumRecordsToKeep());
+//					// boolean syncSuccess =
+//					// peerSyncWithLeader.sync(recentVersions).isSuccess();
+//					// ▲▲▲▲
+//					boolean syncSuccess = true;
+//					if (syncSuccess) {
+//						SolrQueryRequest req = new LocalSolrQueryRequest(core, new ModifiableSolrParams());
+//						// 强行进行一次Commit force open a new searcher
+//						core.getUpdateHandler().commit(new CommitUpdateCommand(req, false));
+//						req.close();
+//						log.info("PeerSync stage of recovery was successful.");
+//
+//						// solrcloud_debug
+//						cloudDebugLog(core, "synced");
+//
+//						log.info("Replaying updates buffered during PeerSync.");
+//						replay(core);
+//
+//						// sync success
+//						successfulRecovery = true;
+//						return;
+//					}
+//
+//					log.info("PeerSync Recovery was not successful - trying replication.");
+//				}
 
 				if (isClosed()) {
 					log.info("RecoveryStrategy has been closed");
@@ -685,7 +686,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 
 				try {
 
-					replicate(zkController.getNodeName(), core, leader);
+					//replicate(zkController.getNodeName(), core, leader);
 
 					if (isClosed()) {
 						log.info("RecoveryStrategy has been closed");

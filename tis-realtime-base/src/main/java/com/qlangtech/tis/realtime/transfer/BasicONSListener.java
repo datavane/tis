@@ -270,7 +270,8 @@ public abstract class BasicONSListener extends ConsumerHandle implements Initial
     }
 
     public static TisZkClient getTisZkClient() {
-        return solrClient.getTisZkClient();
+      //  return solrClient.getTisZkClient();
+    return null;
     }
 
     public static void addOnReconnect(OnReconnect onReconnectEvent) {
