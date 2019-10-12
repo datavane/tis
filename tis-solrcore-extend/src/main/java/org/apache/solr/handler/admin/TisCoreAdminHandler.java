@@ -205,13 +205,12 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 				if (childFile.isDirectory() && (m = INDEX_DATA_PATTERN.matcher(childFile.getName())).matches()
 						&& m.matches()) {
 					historyDirs.add(childFile);
-					order = Integer.MIN_VALUE;
+					order = 0;
 					if (m.group(1).equals(hdfsTimeStamp)) {
 						try {
 							order = Integer.parseInt(m.group(3));
 						} catch (Throwable e) {
 						}
-
 						if (order > maxOrder) {
 							maxOrder = order;
 						}
