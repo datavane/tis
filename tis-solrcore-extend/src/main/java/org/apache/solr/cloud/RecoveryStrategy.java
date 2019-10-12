@@ -854,14 +854,22 @@ public class RecoveryStrategy implements Runnable, Closeable {
 		if (testing_beforeReplayBufferingUpdates != null) {
 			testing_beforeReplayBufferingUpdates.run();
 		}
-		if (replicaType == Replica.Type.TLOG) {
-			// roll over all updates during buffering to new tlog, make RTG
-			// available
-			SolrQueryRequest req = new LocalSolrQueryRequest(core, new ModifiableSolrParams());
-			core.getUpdateHandler().getUpdateLog().copyOverBufferingUpdates(new CommitUpdateCommand(req, false));
-			req.close();
+
+		if ((1 + 1) == 2) {
+			// baisui ,skip do not execute
+			log.warn("skip replay phase do not execute");
 			return null;
 		}
+		// if (replicaType == Replica.Type.TLOG) {
+		// // roll over all updates during buffering to new tlog, make RTG
+		// // available
+		// SolrQueryRequest req = new LocalSolrQueryRequest(core, new
+		// ModifiableSolrParams());
+		// core.getUpdateHandler().getUpdateLog().copyOverBufferingUpdates(new
+		// CommitUpdateCommand(req, false));
+		// req.close();
+		// return null;
+		// }
 
 		UpdateLog ulog = core.getUpdateHandler().getUpdateLog();
 		if (!(ulog instanceof TisUpdateLog)) {
@@ -891,9 +899,11 @@ public class RecoveryStrategy implements Runnable, Closeable {
 			// 重新加载
 			// TODO 是否可以使用searcher的last commitinfo中的时间戳来截断
 			future = tisUpdateLog.applyBufferedUpdates(fulldumptimePoint);
+			log.info("applyBufferedUpdates:{}", fulldumptimePoint);
 		} else {
 			// 重新启动
 			future = tisUpdateLog.applyBufferedUpdates();
+			log.info("applyBufferedUpdates without fulldumptimePoint");
 		}
 
 		if (future == null) {
@@ -903,6 +913,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 			log.info("Replaying buffered documents.");
 			// wait for replay
 			RecoveryInfo report = future.get();
+			log.info("report.failed:{}", report.failed);
 			if (report.failed) {
 				SolrException.log(log, "Replay failed");
 				throw new SolrException(ErrorCode.SERVER_ERROR, "Replay failed");
@@ -915,7 +926,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 
 		// solrcloud_debug
 		cloudDebugLog(core, "replayed");
-
+		log.info("return future");
 		return future;
 	}
 
