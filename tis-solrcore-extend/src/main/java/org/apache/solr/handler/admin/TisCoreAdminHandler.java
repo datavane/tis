@@ -26,12 +26,15 @@ package org.apache.solr.handler.admin;
 // import org.apache.solr.common.params.SolrParams;
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.FileStatus;
@@ -57,6 +60,7 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.hdfs.TISHdfsUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
@@ -190,23 +194,64 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 			String oldIndexDirName = oldIndexDir.getName();
 			log.info("oldIndexDirName:" + oldIndexDirName + ",abstractPath:" + oldIndexDir.getAbsolutePath());
 			final File indexDirParent = oldIndexDir.getParentFile();
+			File newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
+			File childFile = null;
+			Matcher m = null;
+			List<File> historyDirs = Lists.newArrayList();
+			int maxOrder = -1;
+			int order;
+			for (String child : indexDirParent.list()) {
+				childFile = new File(indexDirParent, child);
+				if (childFile.isDirectory() && (m = INDEX_DATA_PATTERN.matcher(childFile.getName())).matches()
+						&& m.matches()) {
+					historyDirs.add(childFile);
+					order = Integer.MIN_VALUE;
+					if (m.group(1).equals(hdfsTimeStamp)) {
+						try {
+							order = Integer.parseInt(m.group(3));
+						} catch (Throwable e) {
+						}
 
-			Matcher m = INDEX_DATA_PATTERN.matcher(oldIndexDirName);
-			File newDir = null;
-			if (m.matches()) {
-				int order = 1;
-				if (StringUtils.isNotBlank(m.group(3))) {
-					order = Integer.parseInt(m.group(3));
-					order++;
+						if (order > maxOrder) {
+							maxOrder = order;
+						}
+					}
 				}
-				newDir = new File(indexDirParent, "index" + m.group(1) + "_" + order);
-
-			} else {
-				// throw new IllegalStateException("oldIndexDirName is not
-				// illegal:" + oldIndexDirName);
-				newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
 			}
-			log.info("newdir:" + newDir.getAbsolutePath());
+
+			if (maxOrder > -1) {
+				newDir = new File(indexDirParent, "index" + hdfsTimeStamp + "_" + (maxOrder + 1));
+			}
+
+			// int mxOrder = 1;
+			// int order;
+			// while (samePrefixDirs.hasNext()) {
+			// order =
+			// Integer.parseInt(StringUtils.substringAfterLast(samePrefixDirs.next().getName(),
+			// "_"));
+			// }
+
+			// if (newDir.exists()) {
+			//
+			// Matcher m = INDEX_DATA_PATTERN.matcher(oldIndexDirName);
+			//
+			// if (m.matches()) {
+			// int order = 1;
+			// if (StringUtils.isNotBlank(m.group(3))) {
+			// order = Integer.parseInt(m.group(3));
+			// order++;
+			// }
+			// newDir = new File(indexDirParent, "index" + m.group(1) + "_" +
+			// order);
+			//
+			// } else {
+			// // throw new IllegalStateException("oldIndexDirName is not
+			// // illegal:" + oldIndexDirName);
+			// newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
+			// }
+			// log.info("newdir:" + newDir.getAbsolutePath());
+			//
+			// }
 
 			// File newDir = null;
 			// if (oldIndexDir.exists()) {
@@ -263,7 +308,13 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 			}
 			log.info("start to reload core");
 			this.handReloadOperation(req, rsp);
-			FileUtils.forceDelete(oldIndexDir);
+
+			for (File delete : historyDirs) {
+				try {
+					FileUtils.forceDelete(delete);
+				} catch (Throwable e) {
+				}
+			}
 		}
 		CoreContainer container = (CoreContainer) this.coreContainer;
 		try (SolrCore core = coreContainer.getCore(cname)) {
@@ -345,8 +396,8 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 		// - 1;
 
 		Path hdfsPath = new Path( //
-				TSearcherConfigFetcher.get().getHDFSRootDir() + "/" + coreName + "/all/" + group
-				+ "/output/" + hdfsTimeStamp + "/index");
+				TSearcherConfigFetcher.get().getHDFSRootDir() + "/" + coreName + "/all/" + group + "/output/"
+						+ hdfsTimeStamp + "/index");
 		log.info("load from hdfs:" + hdfsHome + ",path:" + hdfsPath);
 		// InputStream segmentStream = null;
 		FileSystem filesystem = null;

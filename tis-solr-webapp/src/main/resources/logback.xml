@@ -21,7 +21,9 @@
 
 	<appender name="solr-appender"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- 
 		<filter class="com.qlangtech.tis.logback.LoggingInfoStreamLoggerFilter" />
+		 -->
 		<file>${log.dir}/solr.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-solr.log

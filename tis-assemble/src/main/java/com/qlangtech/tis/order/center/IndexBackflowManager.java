@@ -287,7 +287,7 @@ public class IndexBackflowManager {
 						+ replica.getStr(CORE_NAME_PROP) + "&property.hdfs_timestamp=" + timestamp
 						+ "&property.hdfs_user=" + userName + "&" + CommonAdminParams.ASYNC + "=" + requestId
 						+ "&property.core_reload_sleep_time=" + (coreReloadSleepTime > 0 ? coreReloadSleepTime : 0));
-		log.debug("apply swap index url :" + url);
+		log.info("apply_swap_index_url :" + url);
 		BackflowResult result = HttpUtils.processContent(url, new StreamProcess<BackflowResult>() {
 
 			@Override

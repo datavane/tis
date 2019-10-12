@@ -317,11 +317,10 @@ public class RecoveryStrategy implements Runnable, Closeable {
 	}
 
 	final public void doRecovery(SolrCore core) throws Exception {
-		//if (core.getCoreDescriptor().getCloudDescriptor().requiresTransactionLog()) {
-			doSyncOrReplicateRecovery(core);
-//		} else {
-//			doReplicateOnlyRecovery(core);
-//		}
+
+		log.warn("doSyncOrReplicateRecovery");
+		doSyncOrReplicateRecovery(core);
+
 	}
 
 	final private void doReplicateOnlyRecovery(SolrCore core) throws InterruptedException {
@@ -602,7 +601,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 				// 百岁2019/01/30 更新进来的数据向缓冲区中写入，不会进行SoftCommit
 				ulog.bufferUpdates();
 
-				log.info("Publishing state of core [{}] as recovering, leader is [{}] and I am [{}]", core.getName(),
+				log.warn("Publishing state of core [{}] as recovering, leader is [{}] and I am [{}]", core.getName(),
 						leader.getCoreUrl(), ourUrl);
 				zkController.publish(core.getCoreDescriptor(), Replica.State.RECOVERING);
 
@@ -640,42 +639,46 @@ public class RecoveryStrategy implements Runnable, Closeable {
 				}
 
 				// first thing we just try to sync
-//				if (firstTime) {
-//					firstTime = false; // only try sync the first time through
-//										// the loop
-//					log.info("Attempting to PeerSync from [{}] - recoveringAfterStartup=[{}]", leader.getCoreUrl(),
-//							recoveringAfterStartup);
-//					// System.out.println("Attempting to PeerSync from " +
-//					// leaderUrl
-//					// + " i am:" + zkController.getNodeName());
-//					// ▼▼▼▼ 百岁 baisui comment 禁止到leader节点上去同步tlog文件
-//					// PeerSyncWithLeader peerSyncWithLeader = new
-//					// PeerSyncWithLeader(core, leader.getCoreUrl(),
-//					// ulog.getNumRecordsToKeep());
-//					// boolean syncSuccess =
-//					// peerSyncWithLeader.sync(recentVersions).isSuccess();
-//					// ▲▲▲▲
-//					boolean syncSuccess = true;
-//					if (syncSuccess) {
-//						SolrQueryRequest req = new LocalSolrQueryRequest(core, new ModifiableSolrParams());
-//						// 强行进行一次Commit force open a new searcher
-//						core.getUpdateHandler().commit(new CommitUpdateCommand(req, false));
-//						req.close();
-//						log.info("PeerSync stage of recovery was successful.");
-//
-//						// solrcloud_debug
-//						cloudDebugLog(core, "synced");
-//
-//						log.info("Replaying updates buffered during PeerSync.");
-//						replay(core);
-//
-//						// sync success
-//						successfulRecovery = true;
-//						return;
-//					}
-//
-//					log.info("PeerSync Recovery was not successful - trying replication.");
-//				}
+				// if (firstTime) {
+				// firstTime = false; // only try sync the first time through
+				// // the loop
+				// log.info("Attempting to PeerSync from [{}] -
+				// recoveringAfterStartup=[{}]", leader.getCoreUrl(),
+				// recoveringAfterStartup);
+				// // System.out.println("Attempting to PeerSync from " +
+				// // leaderUrl
+				// // + " i am:" + zkController.getNodeName());
+				// // ▼▼▼▼ 百岁 baisui comment 禁止到leader节点上去同步tlog文件
+				// // PeerSyncWithLeader peerSyncWithLeader = new
+				// // PeerSyncWithLeader(core, leader.getCoreUrl(),
+				// // ulog.getNumRecordsToKeep());
+				// // boolean syncSuccess =
+				// // peerSyncWithLeader.sync(recentVersions).isSuccess();
+				// // ▲▲▲▲
+				// boolean syncSuccess = true;
+				// if (syncSuccess) {
+				// SolrQueryRequest req = new LocalSolrQueryRequest(core, new
+				// ModifiableSolrParams());
+				// // 强行进行一次Commit force open a new searcher
+				// core.getUpdateHandler().commit(new CommitUpdateCommand(req,
+				// false));
+				// req.close();
+				// log.info("PeerSync stage of recovery was successful.");
+				//
+				// // solrcloud_debug
+				// cloudDebugLog(core, "synced");
+				//
+				// log.info("Replaying updates buffered during PeerSync.");
+				// replay(core);
+				//
+				// // sync success
+				// successfulRecovery = true;
+				// return;
+				// }
+				//
+				// log.info("PeerSync Recovery was not successful - trying
+				// replication.");
+				// }
 
 				if (isClosed()) {
 					log.info("RecoveryStrategy has been closed");
@@ -686,7 +689,7 @@ public class RecoveryStrategy implements Runnable, Closeable {
 
 				try {
 
-					//replicate(zkController.getNodeName(), core, leader);
+					// replicate(zkController.getNodeName(), core, leader);
 
 					if (isClosed()) {
 						log.info("RecoveryStrategy has been closed");
@@ -868,7 +871,8 @@ public class RecoveryStrategy implements Runnable, Closeable {
 		File indexDir = new File(core.getIndexDir());
 		long fulldumptimePoint = 0;
 		try {
-			// bugfix:20190221 by baisui, incr log recovery not work,when full build once
+			// bugfix:20190221 by baisui, incr log recovery not work,when full
+			// build once
 			// with same hdfstimestamp
 			Matcher m = TisCoreAdminHandler.INDEX_DATA_PATTERN.matcher(indexDir.getName());
 			if (m.matches()) {

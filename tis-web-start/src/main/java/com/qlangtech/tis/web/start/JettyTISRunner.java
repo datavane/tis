@@ -108,6 +108,7 @@ public class JettyTISRunner {
 
 		NetworkTrafficServerConnector connector = new NetworkTrafficServerConnector(server);
 		connector.setPort(port);
+		//connector.setIdleTimeout(idleTimeout);
 		// NetworkTrafficServerConnector healthConnector = new
 		// NetworkTrafficServerConnector(server);
 		// connector.setPort(8088);
