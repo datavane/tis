@@ -601,8 +601,8 @@ public class RecoveryStrategy implements Runnable, Closeable {
 				// 百岁2019/01/30 更新进来的数据向缓冲区中写入，不会进行SoftCommit
 				ulog.bufferUpdates();
 
-				log.warn("Publishing state of core [{}] as recovering, leader is [{}] and I am [{}]", core.getName(),
-						leader.getCoreUrl(), ourUrl);
+				log.warn("Publishing state of core [{}] as recovering, leader is [{}] and I am [{}],isLeader:{}",
+						core.getName(), leader.getCoreUrl(), ourUrl, isLeader);
 				zkController.publish(core.getCoreDescriptor(), Replica.State.RECOVERING);
 
 				final Slice slice = zkStateReader.getClusterState().getCollection(cloudDesc.getCollectionName())

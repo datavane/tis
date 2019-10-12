@@ -206,7 +206,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 						&& m.matches()) {
 					historyDirs.add(childFile);
 					order = 0;
-					if (m.group(1).equals(hdfsTimeStamp)) {
+					if (m.group(1).equals(String.valueOf(hdfsTimeStamp))) {
 						try {
 							order = Integer.parseInt(m.group(3));
 						} catch (Throwable e) {
@@ -221,7 +221,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 			if (maxOrder > -1) {
 				newDir = new File(indexDirParent, "index" + hdfsTimeStamp + "_" + (maxOrder + 1));
 			}
-
+			log.info("newDir:{}", newDir.getAbsolutePath());
 			// int mxOrder = 1;
 			// int order;
 			// while (samePrefixDirs.hasNext()) {
