@@ -39,7 +39,8 @@ import org.wltea.analyzer.lucene.IKTokenizer;
 public class IKAnalyzer extends Analyzer {
 
     public boolean useSmart() {
-        return true;
+    	// 多生成一些term
+        return false;
     }
 
     public IKAnalyzer() {

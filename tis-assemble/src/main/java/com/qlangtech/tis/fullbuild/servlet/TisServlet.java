@@ -304,8 +304,9 @@ public class TisServlet extends HttpServlet {
 				try {
 					Path tokenPath = new Path(
 							TSearcherConfigFetcher.get().getHDFSRootDir() + "/" + indexName + "/fullbuildtoken");
-					FSDataOutputStream output = TISHdfsUtils.getFileSystem().create(tokenPath, true);
-					IOUtils.write(String.valueOf(current), output);
+					try (FSDataOutputStream output = TISHdfsUtils.getFileSystem().create(tokenPath, true)) {
+						IOUtils.write(String.valueOf(current), output);
+					}
 				} catch (Throwable e) {
 					log.warn(e.getMessage(), e);
 				}
