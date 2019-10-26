@@ -1,0 +1,9 @@
+language: java
+
+cache:
+  timeout: 600
+  directories:
+  - $HOME/.m2
+
+
+script: mvn compile package -Dmaven.test.skip=true -Dappname=all
