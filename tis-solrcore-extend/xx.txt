@@ -1,0 +1,32 @@
+[INFO] Scanning for projects...
+[WARNING] The POM for com.qlangtech.tis:tiswar-maven-plugin:jar:1.4 is missing, no dependency information available
+[WARNING] Failed to retrieve plugin descriptor for com.qlangtech.tis:tiswar-maven-plugin:1.4: Plugin com.qlangtech.tis:tiswar-maven-plugin:1.4 or one of its dependencies could not be resolved: Failure to find com.qlangtech.tis:tiswar-maven-plugin:jar:1.4 in http://nexus.2dfire-dev.com/repository/maven-public/ was cached in the local repository, resolution will not be reattempted until the update interval of releases has elapsed or updates are forced
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building tis-solrcore-extend 1.0.0
+[INFO] ------------------------------------------------------------------------
+[WARNING] The POM for com.qlangtech.tis:tiswar-maven-plugin:jar:1.4 is missing, no dependency information available
+[WARNING] Failed to retrieve plugin descriptor for com.qlangtech.tis:tiswar-maven-plugin:1.4: Plugin com.qlangtech.tis:tiswar-maven-plugin:1.4 or one of its dependencies could not be resolved: Failure to find com.qlangtech.tis:tiswar-maven-plugin:jar:1.4 in http://nexus.2dfire-dev.com/repository/maven-public/ was cached in the local repository, resolution will not be reattempted until the update interval of releases has elapsed or updates are forced
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ tis-solrcore-extend ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 3 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.3:compile (default-compile) @ tis-solrcore-extend ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 114 source files to D:\j2ee_solution\eclipse-java-oxygen-mars-develop\workspace\tis-solr\tis-solrcore-extend\target\classes
+[INFO] /D:/j2ee_solution/eclipse-java-oxygen-mars-develop/workspace/tis-solr/tis-solrcore-extend/src/main/java/com/qlangtech/tis/solrextend/fieldtype/s4shop/FirstCharacterField.java: ???????????????? API?
+[INFO] /D:/j2ee_solution/eclipse-java-oxygen-mars-develop/workspace/tis-solr/tis-solrcore-extend/src/main/java/com/qlangtech/tis/solrextend/fieldtype/s4shop/FirstCharacterField.java: ??????, ??? -Xlint:deprecation ?????
+[INFO] /D:/j2ee_solution/eclipse-java-oxygen-mars-develop/workspace/tis-solr/tis-solrcore-extend/src/main/java/com/qlangtech/tis/solrextend/handler/component/GroupByAndCountSearchComponent.java: ?????????????????????
+[INFO] /D:/j2ee_solution/eclipse-java-oxygen-mars-develop/workspace/tis-solr/tis-solrcore-extend/src/main/java/com/qlangtech/tis/solrextend/handler/component/GroupByAndCountSearchComponent.java: ??????, ??? -Xlint:unchecked ?????
+[INFO] 
+[INFO] --- exec-maven-plugin:1.6.0:java (default-cli) @ tis-solrcore-extend ---
+???????yagu/tis_dict.dic
+?????????yagu/tis_stopword.dic
+??,??,?,?,??,?,?,?,?,?,?,?,??,?,[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 8.685 s
+[INFO] Finished at: 2019-10-26T11:10:11+08:00
+[INFO] Final Memory: 71M/349M
+[INFO] ------------------------------------------------------------------------

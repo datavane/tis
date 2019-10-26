@@ -32,6 +32,7 @@
 					<include>**/*.xml</include>
 					<include>**/*.sh</include>
 					<include>**/*.vm</include>
+					<include>**/*.dic</include>
 				</includes>
 			</resource>
 		</resources>

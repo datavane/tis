@@ -28,9 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -40,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.NetworkTrafficServerConnector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -84,6 +82,7 @@ public class JettyTISRunner {
 		jetty = new JettyTISRunner(contextPath, port, contextSetter);
 
 		jetty.start();
+
 	}
 
 	/**
@@ -108,7 +107,7 @@ public class JettyTISRunner {
 
 		NetworkTrafficServerConnector connector = new NetworkTrafficServerConnector(server);
 		connector.setPort(port);
-		//connector.setIdleTimeout(idleTimeout);
+		// connector.setIdleTimeout(idleTimeout);
 		// NetworkTrafficServerConnector healthConnector = new
 		// NetworkTrafficServerConnector(server);
 		// connector.setPort(8088);
@@ -129,46 +128,51 @@ public class JettyTISRunner {
 		webAppContext.setParentLoaderPriority(true);
 		webAppContext.setThrowUnavailableOnStartupException(true);
 		webAppContext.addServlet(CheckHealth.class, "/check_health");
-//		webAppContext.addServlet(StopServlet.class, "/stop");
+		// webAppContext.addServlet(StopServlet.class, "/stop");
 
 		contextSetter.process(webAppContext);
 
-		server.setHandler(webAppContext);
+		HandlerList handlers = new HandlerList();
+		handlers.addHandler(webAppContext);
+
+		server.setHandler(handlers);
 	}
 
 	public interface IWebAppContextSetter {
 		void process(WebAppContext context);
 	}
 
-//	public static class StopServlet extends HttpServlet {
-//
-//		private static final long serialVersionUID = 1L;
-//		private final ScheduledExecutorService stopThread = Executors.newSingleThreadScheduledExecutor();
-//
-//		@Override
-//		public void service(HttpServletRequest req, HttpServletResponse res) throws IOException {
-//			try {
-//				if ("true".equals(req.getParameter("stop"))) {
-//
-//					stopThread.schedule(() -> {
-//						try {
-//							JettyTISRunner.stopJetty();
-//							logger.info("trigger jetty stop process");
-//						} catch (Exception e) {
-//							logger.error(e.getMessage(), e);
-//						}
-//					}, 3, TimeUnit.SECONDS);
-//
-//					res.getWriter().write("stop_success");
-//					return;
-//				}
-//			} catch (Exception e) {
-//				new IOException(e);
-//			}
-//
-//			throw new IllegalArgumentException("invalid command");
-//		}
-//	}
+	// public static class StopServlet extends HttpServlet {
+	//
+	// private static final long serialVersionUID = 1L;
+	// private final ScheduledExecutorService stopThread =
+	// Executors.newSingleThreadScheduledExecutor();
+	//
+	// @Override
+	// public void service(HttpServletRequest req, HttpServletResponse res)
+	// throws IOException {
+	// try {
+	// if ("true".equals(req.getParameter("stop"))) {
+	//
+	// stopThread.schedule(() -> {
+	// try {
+	// JettyTISRunner.stopJetty();
+	// logger.info("trigger jetty stop process");
+	// } catch (Exception e) {
+	// logger.error(e.getMessage(), e);
+	// }
+	// }, 3, TimeUnit.SECONDS);
+	//
+	// res.getWriter().write("stop_success");
+	// return;
+	// }
+	// } catch (Exception e) {
+	// new IOException(e);
+	// }
+	//
+	// throw new IllegalArgumentException("invalid command");
+	// }
+	// }
 
 	public static class CheckHealth extends HttpServlet {
 
