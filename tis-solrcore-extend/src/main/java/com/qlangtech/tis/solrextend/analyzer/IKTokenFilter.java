@@ -29,7 +29,7 @@ public class IKTokenFilter extends TokenFilter {
 				if (!this.input.incrementToken()) {
 					return false;
 				}
-				System.out.println("============================" + this.termAtt.toString());
+				//System.out.println("============================" + this.termAtt.toString());
 				ikSeg = new IKSegmenter(new StringReader(this.termAtt.toString()), false /* smart */);
 			}
 
@@ -37,7 +37,7 @@ public class IKTokenFilter extends TokenFilter {
 
 			if ((l = ikSeg.next()) != null) {
 				content = l.getLexemeText();
-				System.out.println("+++++++" + content);
+				//System.out.println("+++++++" + content);
 				this.clearAttributes();
 				this.termAtt.copyBuffer(content.toCharArray(), 0, content.length());
 

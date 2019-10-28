@@ -73,7 +73,7 @@ import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
  * 'http://localhost:8080/trigger?component.start=indexBuild&ps=20160811001000&
  * appname=search4shop' <br>
  *
- * @author 百岁（baisui@qlangtech.com）
+or 百 * @auth岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class TisServlet extends HttpServlet {
