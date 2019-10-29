@@ -127,11 +127,13 @@ public class TSearcherConfigFetcher {
 		this.hiveHost = null;
 		this.maxDBDumpThreadCount = null;
 		this.tisHdfsRootDir = null;
+		this.servceConfig = null;
 	}
+
+	private final ServiceConfig servceConfig;
 
 	private TSearcherConfigFetcher(RunEnvironment runtime, String serviceName) {
 
-		ServiceConfig servceConfig = null;
 		try {
 			URL url = new URL(runtime.getInnerRepositoryURL()
 					+ "/config/config.ajax?action=global_parameters_config_action&event_submit_do_get_all=y&runtime="
@@ -225,6 +227,10 @@ public class TSearcherConfigFetcher {
 			throw new IllegalStateException("param assembleHost can not be null");
 		}
 		return assembleHost;
+	}
+
+	public String getProp(String key, String dftVal) {
+		return StringUtils.defaultIfEmpty(this.getInstance().servceConfig.getString(key), dftVal);
 	}
 
 	/**
@@ -325,7 +331,7 @@ public class TSearcherConfigFetcher {
 			}
 			logger.info("get global from tis repositroy:" + config.toString());
 		}
-	
+
 		return config;
 	}
 

@@ -39,6 +39,7 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,6 +60,7 @@ import org.slf4j.MDC;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
 import com.qlangtech.tis.build.task.TaskMapper;
@@ -127,6 +129,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 		Messages messages = context.getMessages();
 		// indexConf.loadFrom(context);
 		IndexMetaConfig indexMetaConfig = parseIndexMetadata(context, indexConf);
+		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 		try {
 			// String taskAttemptId = context.getInnerParam("task.map.task.id");
 			// String configFile = context.getUserParam("configFile");
@@ -199,15 +202,25 @@ public class HdfsIndexBuilder implements TaskMapper {
 			mergeTask = waitIndexMergeTask("mergetask-1", indexConf, aliveIndexMakerCount, counters, messages, dirQueue,
 					indexMetaConfig.indexSchema);
 
+			List<IndexMaker> indexMakers = Lists.newArrayList();
 			// 多线程构建索引
 			for (int i = 0; i < indexMakerCount; i++) {
 				IndexMaker indexMaker = createIndexMaker(indexMetaConfig, "indexMaker-" + i, indexConf, counters,
 						messages, indexMetaConfig.indexSchema, aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues,
 						dirQueue);
-
+				indexMakers.add(indexMaker);
 				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
-
+			
+			final int[] preCount = new int[1];
+			scheduler.scheduleAtFixedRate(() -> {
+				int current = indexMakers.stream().mapToInt((r) -> r.docMakeCount).sum();
+				if (preCount[0] >= 0) {
+					logger.info("docMaker rate:{}r/s", (current - preCount[0]) / 5);
+				}
+				preCount[0] = current;
+			}, 20, 5, TimeUnit.SECONDS);
+			
 			// try {
 			int mergeTaskCount = 1;
 			int allTaskCount = indexMakerCount + docMakerCount + mergeTaskCount;
@@ -233,6 +246,11 @@ public class HdfsIndexBuilder implements TaskMapper {
 		} finally {
 			if (mergeTask != null) {
 				mergeTask.shutdown();
+			}
+			try {
+				scheduler.shutdownNow();
+			} catch (Throwable e) {
+
 			}
 			try {
 				// 终止所有线程执行

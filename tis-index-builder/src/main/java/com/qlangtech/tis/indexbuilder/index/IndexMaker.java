@@ -72,6 +72,8 @@ public class IndexMaker implements Runnable {
 	private Counters counters;
 
 	private Messages messages;
+	
+	public int docMakeCount;
 
 	/**
 	 * 取得结果运行标记
@@ -212,7 +214,7 @@ public class IndexMaker implements Runnable {
 					addRAMToMergeQueue(indexWriter);
 					successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
 					successFlag.setMsg("LuceneDocMaker success");
-					printIndexMakeCount(indexMakeCount);
+					//printIndexMakeCount(indexMakeCount);
 					return;
 				}
 			} catch (Exception e1) {
@@ -223,7 +225,7 @@ public class IndexMaker implements Runnable {
 			try {
 				appendDocument(indexWriter, solrDoc);
 				if ((indexMakeCount++) % 10000 == 0) {
-					printIndexMakeCount(indexMakeCount);
+					//printIndexMakeCount(indexMakeCount);
 				}
 				if (needFlush(indexWriter)) {
 					addRAMToMergeQueue(indexWriter);
@@ -245,14 +247,15 @@ public class IndexMaker implements Runnable {
 
 	protected void appendDocument(IndexWriter indexWriter, SolrInputDocument solrDoc) throws IOException {
 		indexWriter.addDocument(DocumentBuilder.toDocument(solrDoc, this.indexSchema));
+		this.docMakeCount++;
 	}
 
-	/**
-	 * @param indexMakeCount
-	 */
-	private void printIndexMakeCount(int indexMakeCount) {
-		counters.incrCounter(Counters.Counter.INDEXMAKE_COMPLETE, indexMakeCount);
-		counters.incrCounter(Counters.Counter.MAP_INPUT_RECORDS, indexMakeCount);
-	}
+//	/**
+//	 * @param indexMakeCount
+//	 */
+//	private void printIndexMakeCount(int indexMakeCount) {
+//		counters.incrCounter(Counters.Counter.INDEXMAKE_COMPLETE, indexMakeCount);
+//		counters.incrCounter(Counters.Counter.MAP_INPUT_RECORDS, indexMakeCount);
+//	}
 
 }

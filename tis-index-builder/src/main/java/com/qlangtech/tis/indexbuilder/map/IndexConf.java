@@ -94,15 +94,15 @@ public class IndexConf {
 	}
 
 	public int getDocMakerThreadCount() {
-		return 4;
+		return 16;
 	}
 
 	public int getIndexMakerThreadCount() {
-		return 8;
+		return 10;
 	}
 
 	public int getRamDirQueueSize() {
-		return 2;
+		return 4;
 	}
 
 	public int getMaxFailCount() {
@@ -112,7 +112,7 @@ public class IndexConf {
 	public long getOptimizeSizeThreshold() {
 		// return 1000000000L;
 		// return getLong("indexing.optimze.optimizeSizeThreshold", );
-		return 1000 * 1024 * 1024;
+		return 1300 * 1024 * 1024;
 	}
 
 	public int getMergeThreads() {

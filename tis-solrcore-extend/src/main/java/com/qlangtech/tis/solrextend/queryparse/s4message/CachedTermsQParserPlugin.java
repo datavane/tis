@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
 
@@ -118,7 +119,8 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 	}
 
 	private static final MessageFormat FORMAT_URL_GET_IDS //
-			= new MessageFormat("http://business.aim:10901/abroadIntelligence/queryCachedTerms?key={0}&v={1}");
+			= new MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligence",
+					"http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
 
 	public static void main(String[] args) {
 		System.out.println(FORMAT_URL_GET_IDS.format(new Object[] { "key", "lastver" }));
