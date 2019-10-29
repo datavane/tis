@@ -4,12 +4,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefBuilder;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.FieldType;
@@ -25,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
 
@@ -59,6 +61,12 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 		if (version == null) {
 			throw new IllegalStateException("param 'v' can not be null");
 		}
+
+		boolean debug = localParams.getBool(CommonParams.DEBUG, false);
+		if (debug) {
+			logger.info("qstr:{},localParams:{},params:{}", qstr, localParams, params);
+		}
+
 		TermInSetQueryContext termsQuery = queryCache.getIfPresent(key);
 		if (termsQuery == null || (version > termsQuery.version)) {
 
@@ -80,9 +88,12 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 						bytesRefs[i] = term.toBytesRef();
 					}
 
-					logger.info("create queryCache relevant key:{} vals size:{},version:{},consume:{}ms", key,
-							splitVals.length, version, (System.currentTimeMillis() - startTime));
-
+					if (debug) {
+						logger.info("create queryCache relevant key:{} vals size:{},version:{},consume:{}ms", key,
+								splitVals.length, version, (System.currentTimeMillis() - startTime));
+						logger.info("ids:[{}]",
+								(Lists.newArrayList(splitVals)).stream().collect(Collectors.joining(",")));
+					}
 					return new TermInSetQueryContext(new TermInSetQuery(fname, bytesRefs) {
 						@Override
 						public int hashCode() {
@@ -118,17 +129,21 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 
 	}
 
+	// private static final MessageFormat FORMAT_URL_GET_IDS //
+	// = new
+	// MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligence",
+	// "http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
+
 	private static final MessageFormat FORMAT_URL_GET_IDS //
-			= new MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligence",
-					"http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
+			= new MessageFormat("http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}");
 
 	public static void main(String[] args) {
-		System.out.println(FORMAT_URL_GET_IDS.format(new Object[] { "key", "lastver" }));
+		System.out.println(FORMAT_URL_GET_IDS.format(new Object[] { "key", 1 }));
 	}
 
 	private String[] getVals(String key, int version) throws Exception {
 
-		URL url = new URL(FORMAT_URL_GET_IDS.format(new Object[] { key, version }));
+		URL url = new URL(FORMAT_URL_GET_IDS.format(new Object[] { key, String.valueOf(version) }));
 		return HttpUtils.processContent(url, new StreamProcess<String[]>() {
 			@Override
 			public String[] p(int status, InputStream stream, String md5) {
