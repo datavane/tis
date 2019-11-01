@@ -94,11 +94,11 @@ public class IndexConf {
 	}
 
 	public int getDocMakerThreadCount() {
-		return 16;
+		return 6;
 	}
 
 	public int getIndexMakerThreadCount() {
-		return 10;
+		return 60;
 	}
 
 	public int getRamDirQueueSize() {

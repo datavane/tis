@@ -89,26 +89,26 @@ public class TestEmbeddedSolrServer extends TestCase {
 		// // 我爱北京天安门
 		//
 
-//		 SolrInputDocument doc = new SolrInputDocument();
-//		
-//		 doc.setField("id", "98765");
-//		 doc.setField("entity_id", "999999");
-//		 doc.setField("name_agile", "黑皮狗黑皮狗黑皮狗");
-//		 doc.setField("comma_split", "abcd");
-//		
-//		 server.add("shop", doc);
-//		
-//		 doc = new SolrInputDocument();
-//		
-//		 doc.setField("id", "98766");
-//		 doc.setField("entity_id", "888888");
-//		 doc.setField("name_agile", "大人的黑皮衣的男人带着一条狗");
-//		 doc.setField("comma_split", "efgh");
-//		 server.add("shop", doc);
-//		
-//		 server.commit();
-//		
-//		 Thread.sleep(5000);
+		 SolrInputDocument doc = new SolrInputDocument();
+		
+		 doc.setField("id", "98765");
+		 doc.setField("entity_id", "999999");
+		 doc.setField("name_agile", "黑皮狗黑皮狗黑皮狗");
+		 doc.setField("comma_split", "abcd");
+		
+		 server.add("shop", doc);
+		
+		 doc = new SolrInputDocument();
+		
+		 doc.setField("id", "98766");
+		 doc.setField("entity_id", "888888");
+		 doc.setField("name_agile", "大人的黑皮衣的男人带着一条狗");
+		 doc.setField("comma_split", "efgh");
+		 server.add("shop", doc);
+		
+		 server.commit();
+		
+		 Thread.sleep(5000);
 		SolrQuery query = new SolrQuery();
 		// query.setQuery("name_agile:天安門");
 		// query.setQuery("*:*");

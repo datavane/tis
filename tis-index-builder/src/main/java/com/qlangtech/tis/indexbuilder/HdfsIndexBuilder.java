@@ -69,6 +69,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.indexbuilder.columnProcessor.ExternalDataColumnProcessor;
 import com.qlangtech.tis.indexbuilder.doc.IInputDocCreator;
 import com.qlangtech.tis.indexbuilder.doc.LuceneDocMaker;
+import com.qlangtech.tis.indexbuilder.doc.SolrDocPack;
 import com.qlangtech.tis.indexbuilder.doc.impl.AbstractInputDocCreator;
 import com.qlangtech.tis.indexbuilder.index.IndexMaker;
 import com.qlangtech.tis.indexbuilder.index.IndexMerger;
@@ -158,8 +159,9 @@ public class HdfsIndexBuilder implements TaskMapper {
 			AtomicInteger aliveIndexMakerCount = new AtomicInteger(indexMakerCount);
 			AtomicInteger aliveDocMakerCount = new AtomicInteger(docMakerCount);
 			// 存放document对象池的队列
-			final BlockingQueue<SolrInputDocument> docPoolQueues = new ArrayBlockingQueue<SolrInputDocument>(
-					indexConf.getDocQueueSize());
+			int docQueueSize = indexConf.getDocQueueSize();
+			final BlockingQueue<SolrDocPack> docPoolQueues //
+					= new ArrayBlockingQueue<SolrDocPack>(docQueueSize);
 			// 已清空内容的可重用的document的对象池队列
 			// BlockingQueue<SimpleStack<Document>> clearDocPoolQueues = new
 			// ArrayBlockingQueue<SimpleStack<Document>>(
@@ -187,8 +189,8 @@ public class HdfsIndexBuilder implements TaskMapper {
 				 * splitQueues, fieldSequence, indexConf.getDelimiter());
 				 */
 				LuceneDocMaker luceneDocMaker = new LuceneDocMaker("docMaker-" + i, indexConf,
-						indexMetaConfig.indexSchema, inputDocCreator, messages, counters, docPoolQueues, // clearDocPoolQueues,
-						readerFactory, aliveDocMakerCount);
+						indexMetaConfig.indexSchema, inputDocCreator, messages, counters, docPoolQueues, readerFactory,
+						aliveDocMakerCount);
 				initialDataprocess(luceneDocMaker);
 				// luceneDocMaker.setConfigFile(configFile);
 				luceneDocMaker.setName(indexConf.getCoreName() + "-docMaker-" + docMakerCount + "-" + i);
@@ -211,16 +213,17 @@ public class HdfsIndexBuilder implements TaskMapper {
 				indexMakers.add(indexMaker);
 				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
-			
+
 			final int[] preCount = new int[1];
 			scheduler.scheduleAtFixedRate(() -> {
 				int current = indexMakers.stream().mapToInt((r) -> r.docMakeCount).sum();
 				if (preCount[0] >= 0) {
-					logger.info("docMaker rate:{}r/s", (current - preCount[0]) / 5);
+					logger.info("docMaker rate:{}r/s,queue:[used:{}/all:{}]", (current - preCount[0]) / 5,
+							(docQueueSize - docPoolQueues.remainingCapacity()), docQueueSize);
 				}
 				preCount[0] = current;
 			}, 20, 5, TimeUnit.SECONDS);
-			
+
 			// try {
 			int mergeTaskCount = 1;
 			int allTaskCount = indexMakerCount + docMakerCount + mergeTaskCount;
@@ -261,6 +264,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 				logger.warn(e.getMessage(), e);
 			}
 		}
+
 	}
 
 	/**
@@ -363,7 +367,7 @@ public class HdfsIndexBuilder implements TaskMapper {
 	private final IndexMaker createIndexMaker(IndexMetaConfig indexMetaConfig //
 			, String name, IndexConf indexConf, Counters counters, Messages messages, final IndexSchema indexSchema,
 			AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount,
-			final BlockingQueue<SolrInputDocument> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue)
+			final BlockingQueue<SolrDocPack> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue)
 			throws Exception {
 
 		String indexMakerClassName = indexMetaConfig.schemaParse.getIndexMakerClassName();

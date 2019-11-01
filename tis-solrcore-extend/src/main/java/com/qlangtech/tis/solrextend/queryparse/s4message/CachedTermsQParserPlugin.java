@@ -131,13 +131,13 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 
 	}
 
-	private static final MessageFormat FORMAT_URL_GET_IDS //
-			= new MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligenceUrl",
-					"http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
+//	private static final MessageFormat FORMAT_URL_GET_IDS //
+//			= new MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligenceUrl",
+//					"http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
 
-	// private static final MessageFormat FORMAT_URL_GET_IDS //
-	// = new
-	// MessageFormat("http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}");
+	 private static final MessageFormat FORMAT_URL_GET_IDS //
+	 = new
+	 MessageFormat("http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}");
 
 	public static void main(String[] args) {
 		System.out.println(FORMAT_URL_GET_IDS.format(new Object[] { "key", 1 }));

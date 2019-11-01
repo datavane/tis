@@ -58,7 +58,7 @@ public class LuceneDocMaker implements Runnable {
 
 	private SourceReaderFactory readerFactory;
 
-	BlockingQueue<SolrInputDocument> docPoolQueue;
+	BlockingQueue<SolrDocPack> docPoolQueue;
 
 	private AtomicInteger aliveDocMakerCount;
 
@@ -98,7 +98,7 @@ public class LuceneDocMaker implements Runnable {
 			IndexConf indexConf, //
 			IndexSchema indexSchema, //
 			IInputDocCreator documentCreator, //
-			Messages messages, Counters counters, BlockingQueue<SolrInputDocument> docPoolQueue,
+			Messages messages, Counters counters, BlockingQueue<SolrDocPack> docPoolQueue,
 			SourceReaderFactory readerFactory, AtomicInteger aliveDocMakerCount) {
 		this.successFlag = new SuccessFlag(name);
 		this.messages = messages;
@@ -132,6 +132,7 @@ public class LuceneDocMaker implements Runnable {
 		try {
 			HdfsIndexBuilder.setMdcAppName(this.indexConf.getCollectionName());
 			doRun();
+			successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
 		} catch (Throwable e) {
 			messages.addMessage(Messages.Message.ERROR_MSG, "doc maker fatal error:" + e.toString());
 			logger.error("LuceneDocMaker ", e);
@@ -146,7 +147,7 @@ public class LuceneDocMaker implements Runnable {
 
 	private void doRun() throws Exception {
 
-		long startDocPushTimestamp;
+		// long startDocPushTimestamp;
 
 		// int count = 0;
 		int failureCount = 0;
@@ -155,18 +156,22 @@ public class LuceneDocMaker implements Runnable {
 		// boolean[] coreFull = new boolean[cores.length];
 		// int index = 0;
 		// docPool是否已经放到了queue中。
-		Map<String, String> row = null;
+		// Map<String, String> row = null;
+		SolrDocPack docPack = new SolrDocPack();
 		while (true) {
 
 			SourceReader recordReader = readerFactory.nextReader();
 			if (recordReader == null) {
-				successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
-
+				//successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
 				logger.warn(name + ":filtered:" + filteredCount);
 				// 已处理完成
+				if (docPack.isNotEmpty()) {
+					docPoolQueue.put(docPack);
+				}
 				return;
 			}
 			// }
+
 			SolrInputDocument solrDoc = null;
 			while (true) {
 				try {
@@ -175,11 +180,19 @@ public class LuceneDocMaker implements Runnable {
 					if (solrDoc == null) {
 						break;
 					}
-					startDocPushTimestamp = System.currentTimeMillis();
-					docPoolQueue.put(solrDoc);
-					counters.setCounterValue(Counters.Counter.DOCMAKE_COMPLETE, allDocPutCount.incrementAndGet());
-					counters.setCounterValue(Counters.Counter.DOCMAKE_QUEUE_PUT_TIME,
-							allDocPutQueueTime.addAndGet(System.currentTimeMillis() - startDocPushTimestamp));
+
+					if (docPack.add(solrDoc)) {
+						// PACK已经装满了
+						docPoolQueue.put(docPack);
+						docPack = new SolrDocPack();
+					}
+					// startDocPushTimestamp = System.currentTimeMillis();
+
+					// counters.setCounterValue(Counters.Counter.DOCMAKE_COMPLETE,
+					// allDocPutCount.incrementAndGet());
+					// counters.setCounterValue(Counters.Counter.DOCMAKE_QUEUE_PUT_TIME,
+					// allDocPutQueueTime.addAndGet(System.currentTimeMillis() -
+					// startDocPushTimestamp));
 
 				} catch (Throwable e) {
 					logger.error(e.getMessage(), e);
