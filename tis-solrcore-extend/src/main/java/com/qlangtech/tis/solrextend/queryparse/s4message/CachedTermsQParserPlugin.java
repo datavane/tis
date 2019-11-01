@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.common.utils.TSearcherConfigFetcher;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
 
@@ -53,9 +54,9 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 	@Override
 	public QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
 
-		String key = StringUtils.trimToNull(qstr);
+		String key = localParams.get("key");
 		if (StringUtils.isBlank(key)) {
-			throw new IllegalStateException("param 'qstr' can not be null");
+			throw new IllegalStateException("param 'key' can not be null");
 		}
 		final Integer version = localParams.getInt(QueryParsing.V);
 		if (version == null) {
@@ -64,7 +65,8 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 
 		boolean debug = localParams.getBool(CommonParams.DEBUG, false);
 		if (debug) {
-			logger.info("qstr:{},localParams:{},params:{}", qstr, localParams, params);
+			queryCache.invalidate(key);
+			logger.info("key:{},localParams:{},params:{}", key, localParams, params);
 		}
 
 		TermInSetQueryContext termsQuery = queryCache.getIfPresent(key);
@@ -129,13 +131,13 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 
 	}
 
+	private static final MessageFormat FORMAT_URL_GET_IDS //
+			= new MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligenceUrl",
+					"http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
+
 	// private static final MessageFormat FORMAT_URL_GET_IDS //
 	// = new
-	// MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligence",
-	// "http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
-
-	private static final MessageFormat FORMAT_URL_GET_IDS //
-			= new MessageFormat("http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}");
+	// MessageFormat("http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}");
 
 	public static void main(String[] args) {
 		System.out.println(FORMAT_URL_GET_IDS.format(new Object[] { "key", 1 }));
@@ -151,6 +153,10 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 				JSONObject json = new JSONObject(tokener);
 				json.getInt("version");
 				JSONArray ids = json.getJSONArray("values");
+				if (ids.length() < 1) {
+					throw new IllegalStateException(
+							"key:" + key + ",version:" + version + " relevant values can not be empty");
+				}
 				String[] idsResult = new String[ids.length()];
 				for (int i = 0; i < ids.length(); i++) {
 					idsResult[i] = ids.getString(i);

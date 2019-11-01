@@ -25,6 +25,7 @@ package com.qlangtech.tis.solrextend.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -88,52 +89,61 @@ public class TestEmbeddedSolrServer extends TestCase {
 		// // 我爱北京天安门
 		//
 
-//		SolrInputDocument doc = new SolrInputDocument();
-//
-//		doc.setField("id", "98765");
-//		doc.setField("entity_id", "999999");
-//		doc.setField("name_agile", "外婆家");
-//
-//		server.add("shop", doc);
-//
-//		doc = new SolrInputDocument();
-//
-//		doc.setField("id", "98766");
-//		doc.setField("entity_id", "888888");
-//		doc.setField("name_agile", "杭州新白鹿");
-//
-//		server.add("shop", doc);
-//
-//		server.commit();
-//
-//		Thread.sleep(5000);
+//		 SolrInputDocument doc = new SolrInputDocument();
+//		
+//		 doc.setField("id", "98765");
+//		 doc.setField("entity_id", "999999");
+//		 doc.setField("name_agile", "黑皮狗黑皮狗黑皮狗");
+//		 doc.setField("comma_split", "abcd");
+//		
+//		 server.add("shop", doc);
+//		
+//		 doc = new SolrInputDocument();
+//		
+//		 doc.setField("id", "98766");
+//		 doc.setField("entity_id", "888888");
+//		 doc.setField("name_agile", "大人的黑皮衣的男人带着一条狗");
+//		 doc.setField("comma_split", "efgh");
+//		 server.add("shop", doc);
+//		
+//		 server.commit();
+//		
+//		 Thread.sleep(5000);
 		SolrQuery query = new SolrQuery();
 		// query.setQuery("name_agile:天安門");
 		// query.setQuery("*:*");
+		query.setShowDebugInfo(true);
 
-		query.setQuery("*:*");
-		query.addFilterQuery("{!cachedTerms f=entity_id v=1}123456");
+		// query.setQuery("{!complexphrase df=name_agile}黑皮狗");
 
-		queryResult(query);
-		
-		
-		query = new SolrQuery();
-		// query.setQuery("name_agile:天安門");
+		query.setQuery("name_agile:\"黑皮狗\"~6");
 		// query.setQuery("*:*");
-
-		query.setQuery("*:*");
-		query.addFilterQuery("{!cachedTerms f=entity_id v=2}123456");
-
+		// query.addFilterQuery("{!cachedTerms f=entity_id v=1}123456");
+		System.out.println("start to query=======================================");
 		queryResult(query);
+
+		// query = new SolrQuery();
+		// // query.setQuery("name_agile:天安門");
+		// // query.setQuery("*:*");
+		//
+		// query.setQuery("*:*");
+		// query.addFilterQuery("{!cachedTerms f=entity_id v=2}123456");
+		//
+		// queryResult(query);
 
 	}
 
 	private void queryResult(SolrQuery query) throws SolrServerException, IOException {
 		QueryResponse response = server.query("shop", query);
+		System.out.println(">>debuginfo>>>>>>>>>>>>>>>>>>>>>>>>>");
+		for (Map.Entry<String, Object> entry : response.getDebugMap().entrySet()) {
+			System.out.println(entry.getKey() + "==>" + entry.getValue());
+		}
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
 		System.out.println("getNumFound:" + response.getResults().getNumFound());
 		for (SolrDocument d : response.getResults()) {
-			System.out.println(d);
+			System.out.println(d.getFieldValue("name_agile"));
 		}
 	}
 
