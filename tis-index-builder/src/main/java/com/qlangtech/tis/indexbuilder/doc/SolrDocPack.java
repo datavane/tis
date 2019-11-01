@@ -4,12 +4,8 @@ import org.apache.solr.common.SolrInputDocument;
 
 public class SolrDocPack // implements Iterable<SolrInputDocument>
 {
-	private SolrInputDocument[] docs = new SolrInputDocument[100];
+	private final SolrInputDocument[] docs = new SolrInputDocument[1000];
 	int index = -1;
-
-	// public void refresh() {
-	// this.index = 0;
-	// }
 
 	public SolrInputDocument getDoc(int index) {
 		return this.docs[index];
