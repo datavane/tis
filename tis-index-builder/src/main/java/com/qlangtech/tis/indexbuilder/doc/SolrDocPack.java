@@ -4,7 +4,9 @@ import org.apache.solr.common.SolrInputDocument;
 
 public class SolrDocPack // implements Iterable<SolrInputDocument>
 {
-	private final SolrInputDocument[] docs = new SolrInputDocument[1000];
+	
+	public static final int BUFFER_PACK_SIZE = 100;
+	private final SolrInputDocument[] docs = new SolrInputDocument[BUFFER_PACK_SIZE];
 	int index = -1;
 
 	public SolrInputDocument getDoc(int index) {
@@ -26,6 +28,6 @@ public class SolrDocPack // implements Iterable<SolrInputDocument>
 	 */
 	public boolean add(SolrInputDocument doc) {
 		this.docs[++index] = doc;
-		return (index + 1) >= docs.length;
+		return (index + 1) >= BUFFER_PACK_SIZE;
 	}
 }

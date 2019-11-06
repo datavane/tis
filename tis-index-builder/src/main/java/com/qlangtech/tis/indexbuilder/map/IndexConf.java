@@ -81,7 +81,7 @@ public class IndexConf {
 	}
 
 	public int getDocQueueSize() {
-		return 1000;
+		return 100;
 	}
 
 	public int getMinSplitSize() {
@@ -94,11 +94,11 @@ public class IndexConf {
 	}
 
 	public int getDocMakerThreadCount() {
-		return 6;
+		return 5;
 	}
 
 	public int getIndexMakerThreadCount() {
-		return 60;
+		return 20;
 	}
 
 	public int getRamDirQueueSize() {

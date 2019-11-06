@@ -42,6 +42,7 @@ import org.apache.solr.update.DocumentBuilder;
 
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
+import com.qlangtech.tis.indexbuilder.doc.SolrDocPack;
 import com.qlangtech.tis.indexbuilder.index.IndexMaker;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 
@@ -61,28 +62,73 @@ public class NestIndexMaker extends IndexMaker {
 	 * @param aliveDocMakerCount
 	 * @param aliveIndexMakerCount
 	 */
-	public NestIndexMaker(String  name,IndexConf indexConf, IndexSchema indexSchema, Messages messages, Counters counters,
-			BlockingQueue<RAMDirectory> ramDirQueue, BlockingQueue<SolrInputDocument> docPoolQueues,
+	public NestIndexMaker(String name, IndexConf indexConf, IndexSchema indexSchema, Messages messages,
+			Counters counters, BlockingQueue<RAMDirectory> ramDirQueue, BlockingQueue<SolrDocPack> docPoolQueues,
 			AtomicInteger aliveDocMakerCount, AtomicInteger aliveIndexMakerCount) {
-		super(name,indexConf, indexSchema, messages, counters, ramDirQueue, docPoolQueues, aliveDocMakerCount,
+		super(name, indexConf, indexSchema, messages, counters, ramDirQueue, docPoolQueues, aliveDocMakerCount,
 				aliveIndexMakerCount);
 	}
 
-	@Override
-	protected void appendDocument(IndexWriter indexWriter, SolrInputDocument solrDoc) throws IOException {
-		List<Document> docs = getLuceneDocument(solrDoc, this.indexSchema);
-		for (Document doc : docs) {
+	protected void writeSolrInputDocument(IndexWriter indexWriter, SolrInputDocument inputDoc) throws IOException {
+		List<Document> docs = getLuceneDocument(inputDoc, this.indexSchema);
+
+		// indexWriter.addDocument(DocumentBuilder.toDocument(docPack.getDoc(i),
+		// this.indexSchema));
+
+		for (Document d : docs) {
 			try {
-				indexWriter.addDocument(doc);
+				indexWriter.addDocument(d);
+				this.docMakeCount++;
 			} catch (Exception e) {
 				StringBuffer docDesc = new StringBuffer();
-				for (IndexableField f : doc.getFields()) {
+				for (IndexableField f : d.getFields()) {
 					docDesc.append(f.name()).append(":").append(f.stringValue()).append(",");
 				}
 				throw new RuntimeException(docDesc.toString(), e);
 			}
 		}
 	}
+
+	// @Override
+	// protected void appendDocument(IndexWriter indexWriter, SolrDocPack
+	// docPack) throws IOException {
+	// // SolrInputDocument doc = null;
+	// List<Document> docs = null;
+	// for (int i = 0; i <= docPack.getCurrentIndex(); i++) {
+	//
+	// docs = getLuceneDocument(docPack.getDoc(i), this.indexSchema);
+	//
+	// // indexWriter.addDocument(DocumentBuilder.toDocument(docPack.getDoc(i),
+	// // this.indexSchema));
+	//
+	// for (Document d : docs) {
+	// try {
+	// indexWriter.addDocument(d);
+	// this.docMakeCount++;
+	// } catch (Exception e) {
+	// StringBuffer docDesc = new StringBuffer();
+	// for (IndexableField f : d.getFields()) {
+	// docDesc.append(f.name()).append(":").append(f.stringValue()).append(",");
+	// }
+	// throw new RuntimeException(docDesc.toString(), e);
+	// }
+	// }
+	//
+	// }
+
+	// List<Document> docs = getLuceneDocument(solrDoc, this.indexSchema);
+	// for (Document doc : docs) {
+	// try {
+	// indexWriter.addDocument(doc);
+	// } catch (Exception e) {
+	// StringBuffer docDesc = new StringBuffer();
+	// for (IndexableField f : doc.getFields()) {
+	// docDesc.append(f.name()).append(":").append(f.stringValue()).append(",");
+	// }
+	// throw new RuntimeException(docDesc.toString(), e);
+	// }
+	// }
+	// }
 
 	protected List<Document> getLuceneDocument(SolrInputDocument doc, IndexSchema schema) {
 		try {

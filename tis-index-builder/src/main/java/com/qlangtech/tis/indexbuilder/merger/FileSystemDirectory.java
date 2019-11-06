@@ -45,286 +45,274 @@ import org.apache.lucene.store.NoLockFactory;
  */
 public class FileSystemDirectory extends Directory {
 
-    private final FileSystem fs;
+	private final FileSystem fs;
 
-    private final Path directory;
+	private final Path directory;
 
-    private final int ioFileBufferSize;
+	private final int ioFileBufferSize;
 
-    public FileSystemDirectory(FileSystem fs, Path directory, boolean create, Configuration conf) throws IOException {
-        this.fs = fs;
-        this.directory = directory;
-        this.ioFileBufferSize = conf.getInt("io.file.buffer.size", 4096);
-        if (create) {
-            create();
-        }
-        // boolean isDir = false;
-        FileStatus status = fs.getFileStatus(directory);
-        if (status != null && !status.isDir()) {
-            throw new IOException(directory + " is not a directory");
-        }
-    }
+	public FileSystemDirectory(FileSystem fs, Path directory, boolean create, Configuration conf) throws IOException {
+		this.fs = fs;
+		this.directory = directory;
+		this.ioFileBufferSize = conf.getInt("io.file.buffer.size", 4096);
+		if (create) {
+			create();
+		}
 
-    @Override
-    public IndexOutput createTempOutput(String prefix, String suffix, IOContext context) throws IOException {
-        throw new UnsupportedOperationException();
-    }
+		FileStatus status = fs.getFileStatus(directory);
+		if (status != null && !status.isDir()) {
+			throw new IOException(directory + " is not a directory");
+		}
+	}
 
-    @Override
-    public IndexOutput createOutput(String name, IOContext context) throws IOException {
-        Path file = new Path(this.directory, name);
-        if ((this.fs.exists(file)) && (!this.fs.delete(file))) {
-            throw new IOException("Cannot overwrite index file " + file);
-        }
-        return new FileSystemIndexOutput(file, this.ioFileBufferSize);
-    // return null;
-    }
+	@Override
+	public IndexOutput createTempOutput(String prefix, String suffix, IOContext context) throws IOException {
+		throw new UnsupportedOperationException();
+	}
 
-    @Override
-    public void sync(Collection<String> names) throws IOException {
-    }
+	@Override
+	public IndexOutput createOutput(String name, IOContext context) throws IOException {
+		Path file = new Path(this.directory, name);
+		if ((this.fs.exists(file)) && (!this.fs.delete(file))) {
+			throw new IOException("Cannot overwrite index file " + file);
+		}
+		return new FileSystemIndexOutput(file, this.ioFileBufferSize);
+	}
 
-    @Override
-    public IndexInput openInput(String name, IOContext context) throws IOException {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public void sync(Collection<String> names) throws IOException {
+	}
 
-    @Override
-    public Lock obtainLock(String name) throws IOException {
-        return NoLockFactory.INSTANCE.obtainLock(this, name);
-    }
+	@Override
+	public IndexInput openInput(String name, IOContext context) throws IOException {
+		throw new UnsupportedOperationException();
+	}
 
-    private void create() throws IOException {
-        if (!this.fs.exists(this.directory)) {
-            this.fs.mkdirs(this.directory);
-        }
-        boolean isDir = false;
-        try {
-            FileStatus status = this.fs.getFileStatus(this.directory);
-            if (status != null)
-                isDir = status.isDir();
-        } catch (IOException e) {
-        }
-        if (!isDir) {
-            throw new IOException(this.directory + " is not a directory");
-        }
-        FileStatus[] fileStatus = this.fs.listStatus(this.directory, LuceneIndexFileNameFilter.getFilter());
-        for (int i = 0; i < fileStatus.length; i++) {
-            if (!this.fs.delete(fileStatus[i].getPath())) {
-                throw new IOException("Cannot delete index file " + fileStatus[i].getPath());
-            }
-        }
-    }
+	@Override
+	public Lock obtainLock(String name) throws IOException {
+		return NoLockFactory.INSTANCE.obtainLock(this, name);
+	}
 
-    public String[] listAll() throws IOException {
-        FileStatus[] fileStatus = this.fs.listStatus(this.directory, LuceneIndexFileNameFilter.getFilter());
-        String[] result = new String[fileStatus.length];
-        for (int i = 0; i < fileStatus.length; i++) {
-            result[i] = fileStatus[i].getPath().getName();
-        }
-        return result;
-    }
+	private void create() throws IOException {
+		if (!this.fs.exists(this.directory)) {
+			this.fs.mkdirs(this.directory);
+		}
+		boolean isDir = false;
+		try {
+			FileStatus status = this.fs.getFileStatus(this.directory);
+			if (status != null)
+				isDir = status.isDir();
+		} catch (IOException e) {
+		}
+		if (!isDir) {
+			throw new IOException(this.directory + " is not a directory");
+		}
+		FileStatus[] fileStatus = this.fs.listStatus(this.directory, LuceneIndexFileNameFilter.getFilter());
+		for (int i = 0; i < fileStatus.length; i++) {
+			if (!this.fs.delete(fileStatus[i].getPath())) {
+				throw new IOException("Cannot delete index file " + fileStatus[i].getPath());
+			}
+		}
+	}
 
-    public boolean fileExists(String name) throws IOException {
-        return this.fs.exists(new Path(this.directory, name));
-    }
+	public String[] listAll() throws IOException {
+		FileStatus[] fileStatus = this.fs.listStatus(this.directory, LuceneIndexFileNameFilter.getFilter());
+		String[] result = new String[fileStatus.length];
+		for (int i = 0; i < fileStatus.length; i++) {
+			result[i] = fileStatus[i].getPath().getName();
+		}
+		return result;
+	}
 
-    public long fileModified(String name) {
-        throw new UnsupportedOperationException();
-    }
+	public boolean fileExists(String name) throws IOException {
+		return this.fs.exists(new Path(this.directory, name));
+	}
 
-    public void touchFile(String name) {
-        throw new UnsupportedOperationException();
-    }
+	public long fileModified(String name) {
+		throw new UnsupportedOperationException();
+	}
 
-    public long fileLength(String name) throws IOException {
-        return this.fs.getFileStatus(new Path(this.directory, name)).getLen();
-    }
+	public void touchFile(String name) {
+		throw new UnsupportedOperationException();
+	}
 
-    public void deleteFile(String name) throws IOException {
-    // if (!this.fs.delete(new Path(this.directory, name)))
-    // throw new IOException("Cannot delete index file " + name);
-    }
+	public long fileLength(String name) throws IOException {
+		return this.fs.getFileStatus(new Path(this.directory, name)).getLen();
+	}
 
-    public void renameFile(String from, String to) throws IOException {
-        this.fs.rename(new Path(this.directory, from), new Path(this.directory, to));
-    }
+	public void deleteFile(String name) throws IOException {
+		// if (!this.fs.delete(new Path(this.directory, name)))
+		// throw new IOException("Cannot delete index file " + name);
+	}
 
-    // public IndexOutput createOutput(String name) throws IOException {
-    // 
-    // }
-    public IndexInput openInput(String name) throws IOException {
-        return openInput(name, this.ioFileBufferSize);
-    }
+	public void renameFile(String from, String to) throws IOException {
+		this.fs.rename(new Path(this.directory, from), new Path(this.directory, to));
+	}
 
-    public IndexInput openInput(String name, int bufferSize) throws IOException {
-        return new FileSystemIndexInput(new Path(this.directory, name), bufferSize);
-    }
+	// public IndexOutput createOutput(String name) throws IOException {
+	//
+	// }
+	public IndexInput openInput(String name) throws IOException {
+		return openInput(name, this.ioFileBufferSize);
+	}
 
-    /*
-	 * public Lock makeLock(String name) { return new Lock(name) { public
-	 * boolean obtain() { return true; }
-	 * 
-	 * public void release() { }
-	 * 
-	 * public boolean isLocked() { throw new UnsupportedOperationException(); }
-	 * 
-	 * public String toString() { return "Lock@" + new
-	 * Path(FileSystemDirectory.this.directory, this.val$name); } }; }
-	 */
-    public void close() throws IOException {
-    }
+	public IndexInput openInput(String name, int bufferSize) throws IOException {
+		return new FileSystemIndexInput(new Path(this.directory, name), bufferSize);
+	}
 
-    public String toString() {
-        return getClass().getName() + "@" + this.directory;
-    }
+	public void close() throws IOException {
+	}
 
-    private class FileSystemIndexOutput extends IndexOutput {
+	public String toString() {
+		return getClass().getName() + "@" + this.directory;
+	}
 
-        private final Path filePath;
+	private class FileSystemIndexOutput extends IndexOutput {
 
-        private final FSDataOutputStream out;
+		private final Path filePath;
 
-        private boolean isOpen;
+		private final FSDataOutputStream out;
 
-        public FileSystemIndexOutput(Path path, int ioFileBufferSize) throws IOException {
-            super(path.getName(), path.getName());
-            this.filePath = path;
-            this.out = FileSystemDirectory.this.fs.create(path, true, ioFileBufferSize);
-            this.isOpen = true;
-        }
+		private boolean isOpen;
 
-        @Override
-        public void close() throws IOException {
-            if (this.isOpen) {
-                this.out.close();
-                this.isOpen = false;
-            } else {
-                throw new IOException("Index file " + this.filePath + " already closed");
-            }
-        }
+		public FileSystemIndexOutput(Path path, int ioFileBufferSize) throws IOException {
+			super(path.getName(), path.getName());
+			this.filePath = path;
+			this.out = FileSystemDirectory.this.fs.create(path, true, ioFileBufferSize);
+			this.isOpen = true;
+		}
 
-        // public void seek(long pos) throws IOException {
-        // throw new UnsupportedOperationException();
-        // }
-        // 
-        // public long length() throws IOException {
-        // return this.out.getPos();
-        // }
-        @Override
-        public long getFilePointer() {
-            try {
-                return this.out.getPos();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+		@Override
+		public void close() throws IOException {
+			if (this.isOpen) {
+				this.out.close();
+				this.isOpen = false;
+			} else {
+				throw new IOException("Index file " + this.filePath + " already closed");
+			}
+		}
 
-        @Override
-        public long getChecksum() throws IOException {
-            return this.out.getPos();
-        }
+		// public void seek(long pos) throws IOException {
+		// throw new UnsupportedOperationException();
+		// }
+		//
+		// public long length() throws IOException {
+		// return this.out.getPos();
+		// }
+		@Override
+		public long getFilePointer() {
+			try {
+				return this.out.getPos();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
-        // public void flushBuffer(byte[] b, int offset, int size)
-        // throws IOException {
-        // this.out.write(b, offset, size);
-        // }
-        @Override
-        public void writeByte(byte b) throws IOException {
-            this.out.write(b);
-        }
+		@Override
+		public long getChecksum() throws IOException {
+			return this.out.getPos();
+		}
 
-        @Override
-        public void writeBytes(byte[] b, int offset, int length) throws IOException {
-            this.out.write(b, offset, length);
-        }
+		// public void flushBuffer(byte[] b, int offset, int size)
+		// throws IOException {
+		// this.out.write(b, offset, size);
+		// }
+		@Override
+		public void writeByte(byte b) throws IOException {
+			this.out.write(b);
+		}
 
-        protected void finalize() throws IOException {
-            if (this.isOpen) {
-                close();
-            }
-        }
-    }
+		@Override
+		public void writeBytes(byte[] b, int offset, int length) throws IOException {
+			this.out.write(b, offset, length);
+		}
 
-    private class FileSystemIndexInput extends BufferedIndexInput {
+		protected void finalize() throws IOException {
+			if (this.isOpen) {
+				close();
+			}
+		}
+	}
 
-        private final Path filePath;
+	private class FileSystemIndexInput extends BufferedIndexInput {
 
-        private final Descriptor descriptor;
+		private final Path filePath;
 
-        private final long length;
+		private final Descriptor descriptor;
 
-        private boolean isOpen;
+		private final long length;
 
-        private boolean isClone;
+		private boolean isOpen;
 
-        public FileSystemIndexInput(Path path, int ioFileBufferSize) throws IOException {
-            super(path.getName());
-            this.filePath = path;
-            this.descriptor = new Descriptor(path, ioFileBufferSize);
-            this.length = FileSystemDirectory.this.fs.getFileStatus(path).getLen();
-            this.isOpen = true;
-        }
+		private boolean isClone;
 
-        protected void readInternal(byte[] b, int offset, int len) throws IOException {
-            synchronized (this.descriptor) {
-                long position = getFilePointer();
-                if (position != this.descriptor.position) {
-                    this.descriptor.in.seek(position);
-                    this.descriptor.position = position;
-                }
-                int total = 0;
-                do {
-                    int i = this.descriptor.in.read(b, offset + total, len - total);
-                    if (i == -1) {
-                        throw new IOException("Read past EOF");
-                    }
-                    this.descriptor.position += i;
-                    total += i;
-                } while (total < len);
-            }
-        }
+		public FileSystemIndexInput(Path path, int ioFileBufferSize) throws IOException {
+			super(path.getName());
+			this.filePath = path;
+			this.descriptor = new Descriptor(path, ioFileBufferSize);
+			this.length = FileSystemDirectory.this.fs.getFileStatus(path).getLen();
+			this.isOpen = true;
+		}
 
-        public void close() throws IOException {
-            if (!this.isClone)
-                if (this.isOpen) {
-                    this.descriptor.in.close();
-                    this.isOpen = false;
-                } else {
-                    throw new IOException("Index file " + this.filePath + " already closed");
-                }
-        }
+		protected void readInternal(byte[] b, int offset, int len) throws IOException {
+			synchronized (this.descriptor) {
+				long position = getFilePointer();
+				if (position != this.descriptor.position) {
+					this.descriptor.in.seek(position);
+					this.descriptor.position = position;
+				}
+				int total = 0;
+				do {
+					int i = this.descriptor.in.read(b, offset + total, len - total);
+					if (i == -1) {
+						throw new IOException("Read past EOF");
+					}
+					this.descriptor.position += i;
+					total += i;
+				} while (total < len);
+			}
+		}
 
-        protected void seekInternal(long position) {
-        }
+		public void close() throws IOException {
+			if (!this.isClone)
+				if (this.isOpen) {
+					this.descriptor.in.close();
+					this.isOpen = false;
+				} else {
+					throw new IOException("Index file " + this.filePath + " already closed");
+				}
+		}
 
-        public long length() {
-            return this.length;
-        }
+		protected void seekInternal(long position) {
+		}
 
-        protected void finalize() throws IOException {
-            if ((!this.isClone) && (this.isOpen)) {
-                close();
-            }
-        }
+		public long length() {
+			return this.length;
+		}
 
-        public BufferedIndexInput clone() {
-            FileSystemIndexInput clone = (FileSystemIndexInput) super.clone();
-            clone.isClone = true;
-            return clone;
-        }
+		protected void finalize() throws IOException {
+			if ((!this.isClone) && (this.isOpen)) {
+				close();
+			}
+		}
 
-        private class Descriptor {
+		public BufferedIndexInput clone() {
+			FileSystemIndexInput clone = (FileSystemIndexInput) super.clone();
+			clone.isClone = true;
+			return clone;
+		}
 
-            public final FSDataInputStream in;
+		private class Descriptor {
 
-            public long position;
+			public final FSDataInputStream in;
 
-            public Descriptor(Path file, int ioFileBufferSize) throws IOException {
-                this.in = FileSystemDirectory.this.fs.open(file, ioFileBufferSize);
-            }
-        }
-    }
+			public long position;
+
+			public Descriptor(Path file, int ioFileBufferSize) throws IOException {
+				this.in = FileSystemDirectory.this.fs.open(file, ioFileBufferSize);
+			}
+		}
+	}
 
 	@Override
 	public void syncMetaData() throws IOException {

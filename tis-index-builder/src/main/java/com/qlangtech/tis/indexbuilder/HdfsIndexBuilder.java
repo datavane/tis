@@ -50,7 +50,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.SolrConfig;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.schema.IndexSchema;
@@ -214,15 +213,33 @@ public class HdfsIndexBuilder implements TaskMapper {
 				executorService.submit(indexMaker, indexMaker.getResultFlag());
 			}
 
+//			final int[] preCount = new int[1];
+//			scheduler.scheduleAtFixedRate(() -> {
+//				int current = indexMakers.stream().mapToInt((r) -> r.docMakeCount).sum();
+//				if (preCount[0] >= 0) {
+//					logger.info("docMake:{}r/s,queue:[used:{}/all:{}]", (current - preCount[0]) / 5,
+//							(docQueueSize - docPoolQueues.remainingCapacity()), docQueueSize);
+//				}
+//				preCount[0] = current;
+//			}, 20, 5, TimeUnit.SECONDS);
+			
+			
 			final int[] preCount = new int[1];
+			final long[] preSubmitConsume = new long[1];
 			scheduler.scheduleAtFixedRate(() -> {
 				int current = indexMakers.stream().mapToInt((r) -> r.docMakeCount).sum();
-				if (preCount[0] >= 0) {
-					logger.info("docMaker rate:{}r/s,queue:[used:{}/all:{}]", (current - preCount[0]) / 5,
-							(docQueueSize - docPoolQueues.remainingCapacity()), docQueueSize);
+				long allConsume = indexMakers.stream().mapToLong((r) -> r.allConsumeTimemillis).sum();
+				int allcount;
+				if (preCount[0] >= 0 && (allcount = (current - preCount[0])) > 0) {
+
+					long submitConsume = (allConsume - preSubmitConsume[0]);
+					logger.info("docMaker rate:{}r/s,queue:[used:{}/all:{}],adddoc RT:{}ms/r", (allcount) / 10,
+							(docQueueSize - docPoolQueues.remainingCapacity()), docQueueSize,
+							(submitConsume / allcount));
 				}
 				preCount[0] = current;
-			}, 20, 5, TimeUnit.SECONDS);
+				preSubmitConsume[0] = allConsume;
+			}, 1, 10, TimeUnit.SECONDS);
 
 			// try {
 			int mergeTaskCount = 1;

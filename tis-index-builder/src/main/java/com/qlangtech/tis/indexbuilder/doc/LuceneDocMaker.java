@@ -162,37 +162,30 @@ public class LuceneDocMaker implements Runnable {
 
 			SourceReader recordReader = readerFactory.nextReader();
 			if (recordReader == null) {
-				//successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
 				logger.warn(name + ":filtered:" + filteredCount);
-				// 已处理完成
 				if (docPack.isNotEmpty()) {
+					logger.info("add package,currentIndex:{}", docPack.getCurrentIndex());
 					docPoolQueue.put(docPack);
 				}
 				return;
 			}
-			// }
 
 			SolrInputDocument solrDoc = null;
 			while (true) {
 				try {
-					// createSolrInputDocument(recordReader);
+
 					solrDoc = this.documentCreator.createSolrInputDocument(recordReader);
 					if (solrDoc == null) {
 						break;
 					}
 
 					if (docPack.add(solrDoc)) {
-						// PACK已经装满了
+						// PACK已经装满
+						// logger.info("add package,currentIndex:{}",
+						// docPack.getCurrentIndex());
 						docPoolQueue.put(docPack);
 						docPack = new SolrDocPack();
 					}
-					// startDocPushTimestamp = System.currentTimeMillis();
-
-					// counters.setCounterValue(Counters.Counter.DOCMAKE_COMPLETE,
-					// allDocPutCount.incrementAndGet());
-					// counters.setCounterValue(Counters.Counter.DOCMAKE_QUEUE_PUT_TIME,
-					// allDocPutQueueTime.addAndGet(System.currentTimeMillis() -
-					// startDocPushTimestamp));
 
 				} catch (Throwable e) {
 					logger.error(e.getMessage(), e);

@@ -63,7 +63,7 @@ public class IndexMaker implements Runnable {
 
 	private IndexConf indexConf;
 
-	BlockingQueue<SolrDocPack> docPoolQueues;
+	private final BlockingQueue<SolrDocPack> docPoolQueues;
 
 	// 这个maker的产出物
 	private BlockingQueue<RAMDirectory> ramDirQueue;
@@ -75,6 +75,9 @@ public class IndexMaker implements Runnable {
 	private Messages messages;
 
 	public int docMakeCount;
+	public int preDocMakeCount;
+	// 所以提交时间总和
+	public long allConsumeTimemillis;
 
 	/**
 	 * 取得结果运行标记
@@ -104,26 +107,38 @@ public class IndexMaker implements Runnable {
 			throw new IllegalArgumentException("indexSchema can not be null");
 		}
 		this.indexSchema = indexSchema;
-		// this.docPoolSize = indexConf.getDocPoolSize();
 		this.docPoolQueues = docPoolQueues;
-		// this.clearDocPoolQueues = clearDocPoolQueues;
 		this.ramDirQueue = ramDirQueue;
-		// this.clearDocPool = new SimpleStack<Document>(docPoolSize);
-		// this.flushCheckInterval = indexConf.getFlushCheckInterval();
-		// this.printInterval = indexConf.getPrintInterval();
-		// this.routeKey = indexConf.getRouteKey();
-		// cores = indexConf.getCores();
-		// this.addWriter = new IndexWriter();
-		// this.addRamDirectorys = new GroupRAMDirectory[cores.length];
-		// this.makerAllocator = makerAllocator;
 	}
+
+	// private IndexWriter getRAMIndexWriter(IndexConf indexConf, IndexSchema
+	// schema, IndexWriter oldWriter,
+	// boolean create) throws Exception {
+	// if (create) {
+	// return createRAMIndexWriter(indexConf, schema, false/* mrege */);
+	// } else {
+	// if ((this.docMakeCount % 5000 == 0) && needFlush(oldWriter)) {
+	// synchronized (oldWriter) {
+	// if ((this.docMakeCount % 5000 == 0) && needFlush(oldWriter)) {
+	// addRAMToMergeQueue(oldWriter);
+	// return createRAMIndexWriter(this.indexConf, this.indexSchema, false/*
+	// mrege */);
+	// } else {
+	// return oldWriter;
+	// }
+	// }
+	// } else {
+	// return oldWriter;
+	// }
+	// }
+	// }
 
 	public static IndexWriter createRAMIndexWriter(IndexConf indexConf, IndexSchema schema, boolean merge)
 			throws IOException {
 		RAMDirectory ramDirectory = new RAMDirectory();
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(schema.getIndexAnalyzer());
 		indexWriterConfig.setMaxBufferedDocs(Integer.MAX_VALUE);
-		indexWriterConfig.setRAMBufferSizeMB(32);
+		indexWriterConfig.setRAMBufferSizeMB(IndexWriterConfig.DISABLE_AUTO_FLUSH);
 
 		// indexWriterConfig.setTermIndexInterval(Integer.MAX_VALUE);
 		if (merge) {
@@ -138,6 +153,7 @@ public class IndexMaker implements Runnable {
 			indexWriterConfig.setMergePolicy(mergePolicy);
 
 		} else {
+			indexWriterConfig.setUseCompoundFile(false);
 			indexWriterConfig.setMergePolicy(NoMergePolicy.INSTANCE);
 		}
 
@@ -194,11 +210,9 @@ public class IndexMaker implements Runnable {
 
 	public void doRun() throws IOException, InterruptedException {
 
-		// int indexMakeCount = 0;
-		// for (int i = 0; i < cores.length; i++) {
+		int[] failureCount = new int[1];
 		IndexWriter indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema, false/* mrege */);
-		// }
-		// int printCount = 0;
+
 		SolrDocPack docPack = null;
 		while (true) {
 			/*
@@ -215,7 +229,6 @@ public class IndexMaker implements Runnable {
 					addRAMToMergeQueue(indexWriter);
 					successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
 					successFlag.setMsg("LuceneDocMaker success");
-					// printIndexMakeCount(indexMakeCount);
 					return;
 				}
 			} catch (Exception e1) {
@@ -224,18 +237,25 @@ public class IndexMaker implements Runnable {
 				messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error:" + e1.toString());
 			}
 			try {
-				appendDocument(indexWriter, docPack);
 
-				if ((this.docMakeCount % 5000 == 0) && needFlush(indexWriter)) {
+				if (!appendDocument(indexWriter, docPack, failureCount)) {
+					// 有错误中断了
+					return;
+				}
+
+				if ((this.docMakeCount > (this.preDocMakeCount + 5000)) && needFlush(indexWriter)) {
 					addRAMToMergeQueue(indexWriter);
 					indexWriter = createRAMIndexWriter(this.indexConf, this.indexSchema, false/* mrege */);
+					preDocMakeCount = this.docMakeCount;
 				}
+
 			} catch (Exception e) {
 				logger.error("IndexMaker+" + successFlag.getName(), e);
 				counters.incrCounter(Counters.Counter.INDEXMAKE_FAIL, 1);
 				messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error:" + e.toString());
-				messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error, solrDoc:" + docPack);
-				if (failureCount.incrementAndGet() > indexConf.getMaxFailCount()) {
+				// messages.addMessage(Messages.Message.ERROR_MSG, "index maker
+				// index error, solrDoc:" + docPack);
+				if (failureCount[0]++ > indexConf.getMaxFailCount()) {
 					successFlag.setFlag(SuccessFlag.Flag.FAILURE);
 					successFlag.setMsg("LuceneDocMaker error:failureCount>" + indexConf.getMaxFailCount());
 					return;
@@ -244,21 +264,36 @@ public class IndexMaker implements Runnable {
 		}
 	}
 
-	protected void appendDocument(IndexWriter indexWriter, SolrDocPack docPack) throws IOException {
-		for (int i = 0; i <= docPack.getCurrentIndex(); i++) {
-			indexWriter.addDocument(DocumentBuilder.toDocument(docPack.getDoc(i), this.indexSchema));
-			this.docMakeCount++;
-		}
+	private final boolean appendDocument(final IndexWriter indexWriter, SolrDocPack docPack, int[] failureCount)
+			throws Exception {
+		long current = System.currentTimeMillis();
+		try {
+			SolrInputDocument inputDoc = null;
+			for (int i = 0; i <= docPack.getCurrentIndex(); i++) {
+				inputDoc = docPack.getDoc(i);
+				try {
+					writeSolrInputDocument(indexWriter, inputDoc);
+					this.docMakeCount++;
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+					messages.addMessage(Messages.Message.ERROR_MSG, "index maker index error, solrDoc:" + inputDoc);
+					if (++failureCount[0] > indexConf.getMaxFailCount()) {
+						successFlag.setFlag(SuccessFlag.Flag.FAILURE);
+						successFlag.setMsg("LuceneDocMaker error:failureCount>" + indexConf.getMaxFailCount());
+						return false;
+					}
+				}
 
+			}
+		} finally {
+			this.allConsumeTimemillis += (System.currentTimeMillis() - current);
+		}
+		return true;
 	}
 
-	// /**
-	// * @param indexMakeCount
-	// */
-	// private void printIndexMakeCount(int indexMakeCount) {
-	// counters.incrCounter(Counters.Counter.INDEXMAKE_COMPLETE,
-	// indexMakeCount);
-	// counters.incrCounter(Counters.Counter.MAP_INPUT_RECORDS, indexMakeCount);
-	// }
+	protected void writeSolrInputDocument(IndexWriter indexWriter, SolrInputDocument inputDoc) throws IOException {
 
+		indexWriter.addDocument(DocumentBuilder.toDocument(inputDoc, this.indexSchema));
+
+	}
 }

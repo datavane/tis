@@ -29,7 +29,6 @@ import java.io.StringWriter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -57,7 +56,7 @@ import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag.Flag;
 import com.qlangtech.tis.manage.common.IndexBuildParam;
 
-/* *
+/*
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
@@ -121,23 +120,14 @@ public class IndexMergerImpl implements IndexMerger {
 		// conf.set("fs.default.name", fsName);
 		// logger.warn("conf:"+conf.toString());
 		successFlag.setFlag(Flag.SUCCESS);
-		/*
-		 * for(Iterator<Map.Entry<String, String>> it =
-		 * conf.iterator();it.hasNext();) { Map.Entry<String, String> entry =
-		 * it.next();
-		 * logger.warn("name="+entry.getKey()+",value="+entry.getValue()); }
-		 */
-		// FileSystem.get(FileSystem.getDefaultUri(conf),
+
 		fs = TISHdfsUtils.getFileSystem();
-		// conf);
 		// 清理远程目标目录的旧索引
 		cleanRemoteOutPath();
 		this.startTime = System.currentTimeMillis();
-		// this.es = Executors.newFixedThreadPool(indexConf.getMergeThreads());
 
 		this.es = new BlockThreadPoolExecutor(indexConf.getMergeThreads(), indexConf.getMergeThreads(), 0L,
 				TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(4));
-		//this.es.setRejectedExecutionHandler(new CallerRunsPolicy());
 	}
 
 	@Override
