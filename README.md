@@ -1,4 +1,4 @@
-![tis](docs/tis-logo.png)
+![tis](https://qmisc.oss-cn-shanghai.aliyuncs.com/tis-logo.png)
 
 ## 产品特性
 
@@ -44,7 +44,7 @@ TIS是一款为用户提供一站式搜索引擎服务的企业化产品，它�
 
 ## 架构
 
-![tis](docs/tis-synoptic.png)
+![tis](https://qmisc.oss-cn-shanghai.aliyuncs.com/tis-synoptic.png)
 
 ## 许可协议
 
