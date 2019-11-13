@@ -33,6 +33,7 @@ import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SolrIndexSearcher;
 
 import junit.framework.TestCase;
@@ -150,6 +151,11 @@ public class TestEmbeddedSolrServer extends TestCase {
 	}
 
 	private void queryResult(SolrQuery query) throws SolrServerException, IOException {
+
+		query.set(QueryParsing.OP, "and");
+
+		// query.set
+
 		QueryResponse response = server.query("shop", query);
 		System.out.println(">>debuginfo>>>>>>>>>>>>>>>>>>>>>>>>>");
 		for (Map.Entry<String, Object> entry : response.getDebugMap().entrySet()) {

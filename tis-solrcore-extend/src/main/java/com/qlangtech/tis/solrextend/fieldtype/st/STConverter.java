@@ -17,6 +17,9 @@ public class STConverter {
     private Properties revCharMap = new Properties();
     private Set<String> conflictingSets  = new HashSet<String>();
     private static STConverter instance=new STConverter();
+    public static void main(String[] args){
+    	//STConverter.getInstance().convert(, convertType);
+    }
     
     public STConverter(){
 

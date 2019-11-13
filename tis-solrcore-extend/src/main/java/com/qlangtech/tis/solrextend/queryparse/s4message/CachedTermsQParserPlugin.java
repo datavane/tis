@@ -13,6 +13,7 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefBuilder;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.FieldType;
 import org.apache.solr.search.QParser;
@@ -50,6 +51,15 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 			.maximumSize(CACHE_LIMIT)//
 			.expireAfterWrite(3, TimeUnit.HOURS)//
 			.build();
+
+	private MessageFormat FORMAT_URL_GET_IDS;//
+
+	@Override
+	public void init(NamedList args) {
+		super.init(args);
+		FORMAT_URL_GET_IDS = new MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligenceUrl",
+				"http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
+	}
 
 	@Override
 	public QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
@@ -131,17 +141,13 @@ public class CachedTermsQParserPlugin extends QParserPlugin {
 
 	}
 
-//	private static final MessageFormat FORMAT_URL_GET_IDS //
-//			= new MessageFormat(TSearcherConfigFetcher.get().getProp("abroadIntelligenceUrl",
-//					"http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}"));
+	// private static final MessageFormat FORMAT_URL_GET_IDS //
+	// = new
+	// MessageFormat("http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}");
 
-	 private static final MessageFormat FORMAT_URL_GET_IDS //
-	 = new
-	 MessageFormat("http://192.168.3.35:9002/abroadIntelligence/queryCachedTerms?key={0}&v={1}");
-
-	public static void main(String[] args) {
-		System.out.println(FORMAT_URL_GET_IDS.format(new Object[] { "key", 1 }));
-	}
+//	public static void main(String[] args) {
+//		System.out.println(FORMAT_URL_GET_IDS.format(new Object[] { "key", 1 }));
+//	}
 
 	private String[] getVals(String key, int version) throws Exception {
 

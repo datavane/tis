@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -89,12 +88,12 @@ public class IKTokenFilter extends TokenFilter {
 	}
 
 	public static void main(String[] args) throws Exception {
-		IKSegmenter ikSeg = new IKSegmenter(new StringReader("马尼拉二手交易市场"), true /* smart */);
+		IKSegmenter ikSeg = new IKSegmenter(new StringReader("我爱北京天安门"), false /* smart */);
 		Lexeme l = null;
-		while ((l = ikSeg.next()) != null) {
-			System.out.println(
-					l + ",begin:" + l.getBeginPosition() + ",end:" + l.getEndPosition() + ",offset:" + l.getOffset());
-		}
+//		while ((l = ikSeg.next()) != null) {
+//			System.out.println(
+//					l + ",begin:" + l.getBeginPosition() + ",end:" + l.getEndPosition() + ",offset:" + l.getOffset());
+//		}
 
 		System.out.println("=========================================");
 
