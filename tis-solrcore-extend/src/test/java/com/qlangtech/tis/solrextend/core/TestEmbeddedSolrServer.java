@@ -30,11 +30,12 @@ import java.util.Map;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.search.QueryParsing;
-import org.apache.solr.search.SolrIndexSearcher;
 
 import junit.framework.TestCase;
 
@@ -89,52 +90,66 @@ public class TestEmbeddedSolrServer extends TestCase {
 		// // 我爱北京天安门
 		//
 
-		SolrInputDocument doc = new SolrInputDocument();
-
-		doc.setField("id", "98765");
-		doc.setField("entity_id", "999999");
-		doc.setField("name_agile", "黑皮狗黑皮狗黑皮狗");
-		doc.setField("comma_split", "abcd");
-
-		server.add("shop", doc);
-
-		doc = new SolrInputDocument();
-
-		doc.setField("id", "98766");
-		doc.setField("entity_id", "888888");
-		doc.setField("name_agile", "大人的黑皮衣的男人带着一条狗");
-		doc.setField("comma_split", "efgh");
-		server.add("shop", doc);
-
-		doc = new SolrInputDocument();
-
-		doc.setField("id", "98767");
-		doc.setField("entity_id", "888888");
-		doc.setField("name_agile", "马尼拉二手交易市场");
-		doc.setField("comma_split", "efgh");
-		server.add("shop", doc);
-
-		server.commit();
-
-		Thread.sleep(5000);
+		 SolrInputDocument doc = new SolrInputDocument();
+		
+		 doc.setField("id", "98765");
+		 doc.setField("entity_id", "999999");
+		 doc.setField("name_agile", "黑皮狗黑皮狗黑皮狗");
+		 doc.setField("comma_split", "abcd");
+		
+		 server.add("shop", doc);
+		
+		 doc = new SolrInputDocument();
+		
+		 doc.setField("id", "98766");
+		 doc.setField("entity_id", "888888");
+		 doc.setField("name_agile", "大人的黑皮衣的男人带着一条狗");
+		 doc.setField("comma_split", "efgh");
+		 server.add("shop", doc);
+		
+		 doc = new SolrInputDocument();
+		
+		 doc.setField("id", "98767");
+		 doc.setField("entity_id", "888888");
+		 doc.setField("name_agile", "马尼拉二手交易市场");
+		 doc.setField("comma_split", "efgh");
+		 server.add("shop", doc);
+		
+		 server.commit();
+		
+		 Thread.sleep(5000);
 		SolrQuery query = new SolrQuery();
 		// query.setQuery("name_agile:天安門");
 		// query.setQuery("*:*");
 		query.setShowDebugInfo(true);
 
+//		query.setFacet(true);
+//		query.addFacetField("name_agile");
+//		query.setFacetLimit(10);
 		// query.setQuery("{!complexphrase df=name_agile}黑皮狗");
+		query.set(QueryParsing.OP, "and");
+		//query.setQuery("name_agile:\"黑皮狗\"");
+		query.setQuery("name_agile:黑皮狗");
 
-		query.setQuery("name_agile:\"黑皮狗\"");
+		QueryResponse response = server.query("shop", query);
+
+		for (FacetField ff : response.getFacetFields()) {
+			for (Count c : ff.getValues()) {
+				System.out.println(c.getName() + ":" + c.getCount());
+			}
+		}
+
 		// query.setQuery("*:*");
 		// query.addFilterQuery("{!cachedTerms f=entity_id v=1}123456");
-		queryResult(query);
+		// queryResult(query);
 
-		System.out.println("start to query=======================================");
+		// System.out.println("start to
+		// query=======================================");
 
-		query.setQuery("name_agile:\"马尼拉二手\"");
+		// query.setQuery("name_agile:\"马尼拉二手\"");
 		// query.setQuery("*:*");
 		// query.addFilterQuery("{!cachedTerms f=entity_id v=1}123456");
-		queryResult(query);
+		// queryResult(query);
 
 		// SolrIndexSearcher searcher =
 		// server.getCoreContainer().getCore("shop").getSearcher().get().getIndexReader().getem

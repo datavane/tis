@@ -248,6 +248,7 @@ public class ImportDataProcessInfo implements Serializable {
 			this.name = name;
 		}
 
+		//source hdfs path
 		public abstract String build(String group);
 
 		public int getGroupSize(FileSystem hdfs) throws Exception {

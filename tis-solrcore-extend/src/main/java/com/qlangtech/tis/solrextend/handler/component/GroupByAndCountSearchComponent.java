@@ -85,7 +85,7 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 		CountCollector collector = new CountCollector(countContext);
 		rb.req.getSearcher().search(results.docSet.getTopFilter(), collector);
 
-		//log("process," + collector.segmentSummary.toString());
+		// log("process," + collector.segmentSummary.toString());
 		rb.rsp.add(NAME, ResultUtils.writeMap(collector.getGroupByCount()));
 	}
 
@@ -100,10 +100,9 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 	// }
 	// return ResponseBuilder.STAGE_DONE;
 	// }
-
 	@Override
 	@SuppressWarnings("all")
-	public void handleResponses(ResponseBuilder rb, ShardRequest sreq) {
+	public void finishStage(ResponseBuilder rb) {
 		GroupByCountContext countContext = null;
 		if ((countContext = (GroupByCountContext) rb.req.getContext().get(NAME)) == null) {
 			return;
@@ -116,18 +115,20 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 		Map<String /* group key */, AtomicInteger> mergeResult = new HashMap<>();
 		AtomicInteger val = null;
 		String key = null;
-		// 将几个分片数据合并
-		for (ShardResponse sr : sreq.responses) {
-			shardResult = (SimpleOrderedMap<String>) sr.getSolrResponse().getResponse().get(NAME);
-			for (int i = 0; i < shardResult.size(); i++) {
-				key = shardResult.getName(i);
-				if ((val = mergeResult.get(key)) == null) {
-					val = new AtomicInteger();
-					mergeResult.put(key, val);
+		for (ShardRequest srequest : rb.finished) {
+			for (ShardResponse sr : srequest.responses) {
+				shardResult = (SimpleOrderedMap<String>) sr.getSolrResponse().getResponse().get(NAME);
+				for (int i = 0; i < shardResult.size(); i++) {
+					key = shardResult.getName(i);
+					if ((val = mergeResult.get(key)) == null) {
+						val = new AtomicInteger();
+						mergeResult.put(key, val);
+					}
+					val.addAndGet(Integer.parseInt(shardResult.getVal(i)));
 				}
-				val.addAndGet(Integer.parseInt(shardResult.getVal(i)));
 			}
 		}
+		//super.finishStage(rb);
 		DocVal top = null;
 		int hitCount;
 		SortQueue sortQueue = new SortQueue(countContext.groupLimit);
@@ -149,6 +150,53 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 		rb.rsp.add(NAME, ResultUtils.writeMap(mergeResult));
 	}
 
+//	@Override
+//	@SuppressWarnings("all")
+//	public void handleResponses(ResponseBuilder rb, ShardRequest sreq) {
+//		GroupByCountContext countContext = null;
+//		if ((countContext = (GroupByCountContext) rb.req.getContext().get(NAME)) == null) {
+//			return;
+//		}
+//		if (rb.stage != ResponseBuilder.STAGE_EXECUTE_QUERY) {
+//			return;
+//		}
+//
+//		SimpleOrderedMap<String> shardResult = null;
+//		Map<String /* group key */, AtomicInteger> mergeResult = new HashMap<>();
+//		AtomicInteger val = null;
+//		String key = null;
+//		// 将几个分片数据合并
+//		for (ShardResponse sr : sreq.responses) {
+//			shardResult = (SimpleOrderedMap<String>) sr.getSolrResponse().getResponse().get(NAME);
+//			for (int i = 0; i < shardResult.size(); i++) {
+//				key = shardResult.getName(i);
+//				if ((val = mergeResult.get(key)) == null) {
+//					val = new AtomicInteger();
+//					mergeResult.put(key, val);
+//				}
+//				val.addAndGet(Integer.parseInt(shardResult.getVal(i)));
+//			}
+//		}
+//		DocVal top = null;
+//		int hitCount;
+//		SortQueue sortQueue = new SortQueue(countContext.groupLimit);
+//		for (Map.Entry<String /* group key */, AtomicInteger> entry : mergeResult.entrySet()) {
+//			if ((hitCount = entry.getValue().get()) > (top = sortQueue.top()).count) {
+//				top.count = hitCount;
+//				top.keyVal = entry.getKey();
+//				sortQueue.updateTop();
+//			}
+//		}
+//
+//		mergeResult.clear();
+//		while ((top = sortQueue.pop()) != null) {
+//			mergeResult.put(top.keyVal, new AtomicInteger(top.count));
+//		}
+//
+//		log("handleResponses,mergeResult.size:" + mergeResult.size());
+//
+//		rb.rsp.add(NAME, ResultUtils.writeMap(mergeResult));
+//	}
 
 	private static class CountCollector extends SimpleCollector {
 		private final String groupByField;
@@ -164,8 +212,8 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 		// private final Order offset = new Order();
 		private SortQueue sortQueue;
 
-		//private int segmentCount;
-		//private StringBuffer segmentSummary = new StringBuffer();
+		// private int segmentCount;
+		// private StringBuffer segmentSummary = new StringBuffer();
 
 		public CountCollector(GroupByCountContext countContext) {
 			super();
@@ -196,8 +244,8 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 			this.groupByCountSegment = new int[context.reader().maxDoc()];
 			this.dvProcessor = dvType.createDVProcess(context, groupByField);
 			this.sortQueue = new SortQueue(this.sortQueueLimit);
-//			segmentSummary.append("\nsegment_").append(++segmentCount).append(",length:")
-//					.append(this.groupByCountSegment.length);
+			// segmentSummary.append("\nsegment_").append(++segmentCount).append(",length:")
+			// .append(this.groupByCountSegment.length);
 
 		}
 
@@ -207,7 +255,7 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 				AtomicInteger groupCount = null;
 				int hitCount;
 				DocVal top = null;
-				//int[] count = new int[1];
+				// int[] count = new int[1];
 				for (int i = 0; i < this.groupByCountSegment.length; i++) {
 					if ((hitCount = groupByCountSegment[i]) > 0) {
 						if (hitCount > (top = sortQueue.top()).count) {
@@ -217,7 +265,7 @@ public class GroupByAndCountSearchComponent extends SearchComponent {
 						}
 					}
 				}
-				//segmentSummary.append(",hit:").append(count[0]);
+				// segmentSummary.append(",hit:").append(count[0]);
 				while ((top = this.sortQueue.pop()) != null) {
 					groupCount = groupByCount.get(top.keyVal);
 					if (groupCount == null) {
