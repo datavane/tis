@@ -151,32 +151,44 @@ public class IndexMergerImpl implements IndexMerger {
 			AtomicInteger asynMergerThreadAliveCount = new AtomicInteger();
 			RAMDirectory dir = null;
 			while (true) {
-				dir = this.dirQueue.poll(20, TimeUnit.SECONDS);
-				if (Flag.FAILURE == this.successFlag.getFlag()) {
-					return successFlag;
-				}
-				if (dir == null) {
-					if (aliveIndexMakerCount.get() > 0) {
-						continue;
+				try {
+					dir = this.dirQueue.poll(20, TimeUnit.SECONDS);
+					if (Flag.FAILURE == this.successFlag.getFlag()) {
+						return successFlag;
 					}
-					copy2Output(fs, indexConf, writer, dirSeq);
-					while (asynMergerThreadAliveCount.get() > 0) {
-						// 全部异步执行的输出节点 还没有全部执行完成
-						logger.info("waitting for thread merge for index merge:" + asynMergerThreadAliveCount.get());
-						Thread.sleep(2000);
+					if (dir == null) {
+						if (aliveIndexMakerCount.get() > 0) {
+							continue;
+						}
+						copy2Output(fs, indexConf, writer, dirSeq);
+						while (asynMergerThreadAliveCount.get() > 0) {
+							// 全部异步执行的输出节点 还没有全部执行完成
+							logger.info(
+									"waitting for thread merge for index merge:" + asynMergerThreadAliveCount.get());
+							Thread.sleep(2000);
+						}
+						printSuccessMessage();
+						return successFlag;
 					}
-					printSuccessMessage();
-					return successFlag;
-				}
-				writer.addIndexes(dir);
-				writer.commit();
-				long ramSize = ((RAMDirectory) writer.getDirectory()).ramBytesUsed();
-				boolean overSize = (ramSize >= this.indexConf.getOptimizeSizeThreshold());
-				logger.warn("ramSize=" + FileUtils.byteCountToDisplaySize(ramSize) + ",overSize:" + overSize);
-				// AtomicBoolean merging = new AtomicBoolean(true);
-				if (overSize) {
-					es.execute(new RamOptimizer(asynMergerThreadAliveCount, writer));
-					writer = IndexMaker.createRAMIndexWriter(this.indexConf, this.schema, true/* merge */);
+					writer.addIndexes(dir);
+					writer.commit();
+					long ramSize = ((RAMDirectory) writer.getDirectory()).ramBytesUsed();
+					boolean overSize = (ramSize >= this.indexConf.getOptimizeSizeThreshold());
+					logger.warn("ramSize=" + FileUtils.byteCountToDisplaySize(ramSize) + ",overSize:" + overSize);
+					// AtomicBoolean merging = new AtomicBoolean(true);
+					if (overSize) {
+						es.execute(new RamOptimizer(asynMergerThreadAliveCount, writer));
+						writer = IndexMaker.createRAMIndexWriter(this.indexConf, this.schema, true/* merge */);
+					}
+				} finally {
+					try {
+						if (dir != null) {
+
+							dir.close();
+						}
+					} catch (Throwable e) {
+
+					}
 				}
 			}
 		} catch (Throwable e) {
