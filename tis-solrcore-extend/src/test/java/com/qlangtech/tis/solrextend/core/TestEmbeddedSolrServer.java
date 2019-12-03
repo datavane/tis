@@ -25,6 +25,7 @@ package com.qlangtech.tis.solrextend.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrQuery;
@@ -48,6 +49,16 @@ public class TestEmbeddedSolrServer extends TestCase {
 	public static final EmbeddedSolrServer server;
 
 	public static final File solrHome;
+
+	public TestEmbeddedSolrServer() {
+		super();
+
+	}
+
+	public TestEmbeddedSolrServer(String name) {
+		super(name);
+
+	}
 
 	static {
 		// solrHome = new File("D:\\workspace\\solrhome");
@@ -77,6 +88,48 @@ public class TestEmbeddedSolrServer extends TestCase {
 	//
 	// }
 
+	public void testHight() throws Exception {
+
+		SolrInputDocument doc = new SolrInputDocument();
+
+		doc.setField("id", "98765");
+		doc.setField("contact_id", "9527");
+		doc.setField("contact_account", "894054764");
+		doc.setField("extend_info", "{k_nickname:\"tnk 松哥\",k_phone:\"8618582185643\"}");
+		doc.setField("_version_", "1");
+
+		server.add("shop", doc);
+
+		// server.add("shop", doc);
+
+		server.commit();
+
+		Thread.sleep(5000);
+
+		SolrQuery query = new SolrQuery();
+		query.setQuery(
+				" (ex_k_name:\"松哥\" OR ex_k_phone:\"松哥\" OR ex_k_nickname:\"松哥\" OR contact_account:\"松哥\" OR ex_k_name:8618582185643 OR ex_k_phone:8618582185643 OR ex_k_nickname:8618582185643 OR contact_account:8618582185643)");
+
+		query.setHighlight(true);
+		query.set("hl.fl", "*");
+		
+		query.set("f.ex_k_nickname.hl.mergeContiguous", true);
+
+		QueryResponse response = server.query("shop", query);
+
+		for (Map.Entry<String, Map<String, List<String>>> e : response.getHighlighting().entrySet()) {
+			System.out.println(e.getKey());
+
+			for (Map.Entry<String, List<String>> ee : e.getValue().entrySet()) {
+				System.out.println(ee.getKey() + ":" + ee.getValue().stream().findFirst().get());
+			}
+
+			System.out.println(">>>>>>>>>>>>>>>>>>>");
+
+		}
+
+	}
+
 	public void testRecord() throws Exception {
 
 		//
@@ -90,45 +143,45 @@ public class TestEmbeddedSolrServer extends TestCase {
 		// // 我爱北京天安门
 		//
 
-		 SolrInputDocument doc = new SolrInputDocument();
-		
-		 doc.setField("id", "98765");
-		 doc.setField("entity_id", "999999");
-		 doc.setField("name_agile", "黑皮狗黑皮狗黑皮狗");
-		 doc.setField("comma_split", "abcd");
-		
-		 server.add("shop", doc);
-		
-		 doc = new SolrInputDocument();
-		
-		 doc.setField("id", "98766");
-		 doc.setField("entity_id", "888888");
-		 doc.setField("name_agile", "大人的黑皮衣的男人带着一条狗");
-		 doc.setField("comma_split", "efgh");
-		 server.add("shop", doc);
-		
-		 doc = new SolrInputDocument();
-		
-		 doc.setField("id", "98767");
-		 doc.setField("entity_id", "888888");
-		 doc.setField("name_agile", "马尼拉二手交易市场");
-		 doc.setField("comma_split", "efgh");
-		 server.add("shop", doc);
-		
-		 server.commit();
-		
-		 Thread.sleep(5000);
+		SolrInputDocument doc = new SolrInputDocument();
+
+		doc.setField("id", "98765");
+		doc.setField("entity_id", "999999");
+		doc.setField("name_agile", "黑皮狗黑皮狗黑皮狗");
+		doc.setField("comma_split", "abcd");
+
+		server.add("shop", doc);
+
+		doc = new SolrInputDocument();
+
+		doc.setField("id", "98766");
+		doc.setField("entity_id", "888888");
+		doc.setField("name_agile", "大人的黑皮衣的男人带着一条狗");
+		doc.setField("comma_split", "efgh");
+		server.add("shop", doc);
+
+		doc = new SolrInputDocument();
+
+		doc.setField("id", "98767");
+		doc.setField("entity_id", "888888");
+		doc.setField("name_agile", "马尼拉二手交易市场");
+		doc.setField("comma_split", "efgh");
+		server.add("shop", doc);
+
+		server.commit();
+
+		Thread.sleep(5000);
 		SolrQuery query = new SolrQuery();
 		// query.setQuery("name_agile:天安門");
 		// query.setQuery("*:*");
 		query.setShowDebugInfo(true);
 
-//		query.setFacet(true);
-//		query.addFacetField("name_agile");
-//		query.setFacetLimit(10);
+		// query.setFacet(true);
+		// query.addFacetField("name_agile");
+		// query.setFacetLimit(10);
 		// query.setQuery("{!complexphrase df=name_agile}黑皮狗");
 		query.set(QueryParsing.OP, "and");
-		//query.setQuery("name_agile:\"黑皮狗\"");
+		// query.setQuery("name_agile:\"黑皮狗\"");
 		query.setQuery("name_agile:黑皮狗");
 
 		QueryResponse response = server.query("shop", query);

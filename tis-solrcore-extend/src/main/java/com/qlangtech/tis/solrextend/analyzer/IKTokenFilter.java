@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.wltea.analyzer.core.IKSegmenter;
 import org.wltea.analyzer.core.Lexeme;
@@ -19,6 +20,7 @@ public class IKTokenFilter extends TokenFilter {
 
 	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 	private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
+	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
 
 	static final Comparator<Lexeme> compar = new Comparator<Lexeme>() {
 		public int compare(Lexeme o1, Lexeme o2) {
@@ -64,7 +66,7 @@ public class IKTokenFilter extends TokenFilter {
 				content = l.getLexemeText();
 				// 必须是普通word
 				if ((l.getBeginPosition() > preBegin)) {
-					//System.out.println(content);
+					// System.out.println(content);
 					// if (StringUtils.length(content) > 1) {
 					this.posIncrAtt.setPositionIncrement(1);
 					this.preBegin = l.getBeginPosition();
@@ -72,7 +74,7 @@ public class IKTokenFilter extends TokenFilter {
 				} else {
 					this.posIncrAtt.setPositionIncrement(0);
 				}
-
+				offsetAtt.setOffset(l.getBegin(), l.getEndPosition());
 				this.termAtt.copyBuffer(content.toCharArray(), 0, content.length());
 				return true;
 			} else {
@@ -90,10 +92,11 @@ public class IKTokenFilter extends TokenFilter {
 	public static void main(String[] args) throws Exception {
 		IKSegmenter ikSeg = new IKSegmenter(new StringReader("我爱北京天安门"), false /* smart */);
 		Lexeme l = null;
-//		while ((l = ikSeg.next()) != null) {
-//			System.out.println(
-//					l + ",begin:" + l.getBeginPosition() + ",end:" + l.getEndPosition() + ",offset:" + l.getOffset());
-//		}
+		// while ((l = ikSeg.next()) != null) {
+		// System.out.println(
+		// l + ",begin:" + l.getBeginPosition() + ",end:" + l.getEndPosition() +
+		// ",offset:" + l.getOffset());
+		// }
 
 		System.out.println("=========================================");
 
