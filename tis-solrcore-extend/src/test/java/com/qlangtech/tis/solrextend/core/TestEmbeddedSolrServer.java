@@ -111,10 +111,18 @@ public class TestEmbeddedSolrServer extends TestCase {
 				" (ex_k_name:\"松哥\" OR ex_k_phone:\"松哥\" OR ex_k_nickname:\"松哥\" OR contact_account:\"松哥\" OR ex_k_name:8618582185643 OR ex_k_phone:8618582185643 OR ex_k_nickname:8618582185643 OR contact_account:8618582185643)");
 
 		query.setHighlight(true);
-		query.set("hl.fl", "*");
+		query.set("hl.fl", "ex_k_nickname,contact_account");
+		//query.set("hl.fl", "contact_account");
 		
 		query.set("f.ex_k_nickname.hl.mergeContiguous", true);
-
+		query.set("f.contact_account.hl.requireFieldMatch", true);
+		query.set("hl.usePhraseHighlighter", true);
+		
+		
+		//query.set("f.contact_account.hl.mergeContiguous", true);
+		//query.set("f.contact_account.hl.usePhraseHighlighter", false);
+		
+		
 		QueryResponse response = server.query("shop", query);
 
 		for (Map.Entry<String, Map<String, List<String>>> e : response.getHighlighting().entrySet()) {
