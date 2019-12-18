@@ -3,7 +3,7 @@
 <properties>  
     <comment>yaguIK Analyzer 扩展配置</comment>
     <!--用户可以在这里配置自己的扩展字典 --> 
-    <entry key="ext_dict">yagu/1.dic;yagu/2.dic;yagu/3.dic;yagu/4.dic;yagu/5.dic;yagu/6.dic;</entry> 
+    <entry key="ext_dict">yagu/sensitive.dic</entry> 
     
     <!--用户可以在这里配置自己的扩展停止词字典-->
     <entry key="ext_stopwords">tis_stopword.dic;</entry> 

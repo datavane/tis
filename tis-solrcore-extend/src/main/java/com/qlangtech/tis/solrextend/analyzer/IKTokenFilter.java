@@ -51,6 +51,9 @@ public class IKTokenFilter extends TokenFilter {
 				List<Lexeme> ls = Lists.newArrayList();
 				Lexeme l = null;
 				while ((l = ikSeg.next()) != null) {
+					if(l.getOffset()> 0 ){
+						continue;
+					}
 					// if (StringUtils.length(l.getLexemeText()) > 1) {
 					ls.add(l);
 					// }
