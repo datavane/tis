@@ -20,7 +20,7 @@ public class TestEmbedded extends TestCase {
 
 		TestSuite suite = new TestSuite();
 
-		suite.addTest(new TestEmbeddedSolrServer("testHight"));
+		suite.addTest(new TestEmbeddedSolrServer("testRecord2"));
 
 		return suite;
 	}

@@ -22,6 +22,12 @@ public class IKTokenFilter extends TokenFilter {
 	private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
 	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
 
+	private static final TisIKConfiguration tisConfig;
+	static {
+		tisConfig = new TisIKConfiguration();
+		tisConfig.setUseSmart(false);
+	}
+
 	static final Comparator<Lexeme> compar = new Comparator<Lexeme>() {
 		public int compare(Lexeme o1, Lexeme o2) {
 			int r = o1.getBegin() - o2.getBegin();
@@ -47,11 +53,11 @@ public class IKTokenFilter extends TokenFilter {
 				if (!this.input.incrementToken()) {
 					return false;
 				}
-				IKSegmenter ikSeg = new IKSegmenter(new StringReader(this.termAtt.toString()), false /* smart */);
+				IKSegmenter ikSeg = new IKSegmenter(new StringReader(this.termAtt.toString()), tisConfig);
 				List<Lexeme> ls = Lists.newArrayList();
 				Lexeme l = null;
 				while ((l = ikSeg.next()) != null) {
-					if(l.getOffset()> 0 ){
+					if (l.getOffset() > 0) {
 						continue;
 					}
 					// if (StringUtils.length(l.getLexemeText()) > 1) {

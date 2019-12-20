@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -37,6 +39,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.search.QueryParsing;
+import org.restlet.engine.io.IoUtils;
 
 import junit.framework.TestCase;
 
@@ -112,17 +115,15 @@ public class TestEmbeddedSolrServer extends TestCase {
 
 		query.setHighlight(true);
 		query.set("hl.fl", "ex_k_nickname,contact_account");
-		//query.set("hl.fl", "contact_account");
-		
+		// query.set("hl.fl", "contact_account");
+
 		query.set("f.ex_k_nickname.hl.mergeContiguous", true);
 		query.set("f.contact_account.hl.requireFieldMatch", true);
 		query.set("hl.usePhraseHighlighter", true);
-		
-		
-		//query.set("f.contact_account.hl.mergeContiguous", true);
-		//query.set("f.contact_account.hl.usePhraseHighlighter", false);
-		
-		
+
+		// query.set("f.contact_account.hl.mergeContiguous", true);
+		// query.set("f.contact_account.hl.usePhraseHighlighter", false);
+
 		QueryResponse response = server.query("shop", query);
 
 		for (Map.Entry<String, Map<String, List<String>>> e : response.getHighlighting().entrySet()) {
@@ -136,6 +137,46 @@ public class TestEmbeddedSolrServer extends TestCase {
 
 		}
 
+	}
+
+	public void testRecord2() throws Exception {
+		SolrInputDocument doc = new SolrInputDocument();
+
+		doc.setField("id", "98765");
+		doc.setField("contact_id", "9527");
+		doc.setField("contact_account", "894054764");
+		doc.setField("extend_info", "{k_nickname:\"tnk 松哥\",k_phone:\"8618582185643\"}");
+		doc.setField("_version_", "1");
+
+		String content = IOUtils.toString(this.getClass().getResourceAsStream("msg_content.txt"), "utf8");
+		System.out.println(content);
+		doc.setField("message_content", content);
+
+		server.add("shop", doc);
+
+		// server.add("shop", doc);
+
+		server.commit();
+
+		Thread.sleep(5000);
+
+		DirectoryReader reader = server.getCoreContainer().getCore("shop").getSearcher().get().getIndexReader();
+
+		TestTerms.readTerms(reader);
+
+		SolrQuery query = new SolrQuery();
+		query.set(QueryParsing.OP, "and");
+		
+		//query.setQuery("message_content:欺壓百姓作威作福的共產黨");
+		
+		query.setQuery("message_content:的");
+
+		QueryResponse response = server.query("shop", query);
+		System.out.println(response.getResults().getNumFound());
+
+		for (SolrDocument d : response.getResults()) {
+			System.out.println(d);
+		}
 	}
 
 	public void testRecord() throws Exception {

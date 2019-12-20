@@ -23,9 +23,12 @@
  */
 package com.qlangtech.tis.solrj.extend;
 
+import java.io.File;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
+
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient.SimpleQueryResult;
 
 /* *
@@ -35,6 +38,8 @@ import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient.SimpleQueryResu
 public class TestWaitOrder extends BasicTestCase {
 
     public void testQuery() throws Exception {
+    	
+    	
         SolrQuery query = new SolrQuery();
         query.setRows(0);
         StringBuffer q = new StringBuffer();
