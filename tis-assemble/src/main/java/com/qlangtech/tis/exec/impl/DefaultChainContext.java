@@ -150,8 +150,8 @@ public class DefaultChainContext implements IExecChainContext {
     @Override
     public String getPartitionTimestamp() {
         String ps = StringUtils.defaultIfEmpty(getString(KEY_PARTITION), this.ps);
-        if (!ps.startsWith("201")) {
-            throw new IllegalArgumentException("ps:" + ps + " shall start with 201");
+        if (!ps.startsWith("20")) {
+            throw new IllegalArgumentException("ps:" + ps + " shall start with 20");
         }
         return ps;
     }
