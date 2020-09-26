@@ -10,13 +10,7 @@
   -->
   <bean id="datasourceTableDAO" class="com.qlangtech.tis.workflow.dao.impl.DatasourceTableDAOImpl" parent="comDfireTisWorkflowDAO" />
   <bean id="datasourceDbDAO" class="com.qlangtech.tis.workflow.dao.impl.DatasourceDbDAOImpl" parent="comDfireTisWorkflowDAO" />
-  <!--<bean id="comDfireTisWorkflowDatasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >-->
-    <!--<property name="driverClassName" value="com.mysql.jdbc.Driver" />-->
-    <!--<property name="url" value="${tis.datasource.jdbc.url}" />-->
-    <!--<property name="username" value="${tis.datasource.username}" />-->
-    <!--<property name="password" value="${tis.datasource.password}" />-->
-    <!--<property name="validationQuery" value="select 1" />-->
-  <!--</bean>-->
+
   <bean id="comDfireTisWorkflowDAO" class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport" abstract="true" >
     <property name="dataSource" ref="clusterStatusDatasource" />
     <property name="sqlMapClient" >
