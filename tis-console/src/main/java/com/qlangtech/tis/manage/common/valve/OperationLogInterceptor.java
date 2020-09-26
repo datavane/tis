@@ -1,0 +1,124 @@
+/**
+ * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *
+ * This program is free software: you can use, redistribute, and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3
+ * or later ("AGPL"), as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.qlangtech.tis.manage.common.valve;
+
+import com.alibaba.citrus.turbine.Context;
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.ActionProxy;
+import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
+import com.qlangtech.tis.manage.biz.dal.dao.IOperationLogDAO;
+import com.qlangtech.tis.manage.biz.dal.pojo.OperationLog;
+import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.pubhook.common.Nullable;
+import com.qlangtech.tis.runtime.module.action.BasicModule;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.ServletActionContext;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
+import java.util.Date;
+import java.util.Map;
+
+/**
+ * @author 百岁（baisui@qlangtech.com）
+ * @create: 2020-07-13 13:21
+ */
+public class OperationLogInterceptor extends MethodFilterInterceptor {
+
+    private IOperationLogDAO operationLogDAO;
+
+    private RunContext daoContext;
+
+    @Override
+    protected String doIntercept(ActionInvocation invocation) throws Exception {
+        final String result = invocation.invoke();
+        BasicModule action = (BasicModule) invocation.getAction();
+        final Method method = action.getExecuteMethod();
+        Func func = method.getAnnotation(Func.class);
+        if (func != null && !func.sideEffect()) {
+            return result;
+        }
+        AppDomainInfo appDomain = CheckAppDomainExistValve.getAppDomain(daoContext);
+        OperationLog log = new OperationLog();
+        log.setOpType(BasicModule.parseMehtodName());
+        if (StringUtils.startsWith(log.getOpType(), "doGet")) {
+            return result;
+        }
+        log.setCreateTime(new Date());
+        if (!(appDomain instanceof Nullable)) {
+            log.setAppName(appDomain.getAppName());
+        }
+        ActionProxy proxy = invocation.getProxy();
+        // log.setOpType(proxy.getMethod());
+        HttpServletRequest request = ServletActionContext.getRequest();
+        IUser user = UserUtils.getUser(request, daoContext);
+        if (user == null) {
+            throw new IllegalStateException("user can not be null");
+        }
+        StringBuffer jsonObject = new StringBuffer();
+        JSONObject params = null;
+        Map<String, String[]> paramsMap = null;
+        String url = request.getRequestURL().toString();
+        jsonObject.append("request:");
+        jsonObject.append(url).append("\n");
+        String requestBody = null;
+        if (!ConfigFileContext.HTTPMethod.GET.name().equals(request.getMethod())) {
+            paramsMap = request.getParameterMap();
+            if (paramsMap.size() > 0) {
+                params = new JSONObject();
+                for (Map.Entry<String, String[]> entry : paramsMap.entrySet()) {
+                    if (entry.getValue().length == 1) {
+                        params.put(entry.getKey(), entry.getValue()[0]);
+                    } else {
+                        params.put(entry.getKey(), entry.getValue());
+                    }
+                }
+                jsonObject.append("params:").append("\n");
+                jsonObject.append(params.toString(1)).append("\n");
+            }
+            try (ServletInputStream input = request.getInputStream()) {
+                if (!input.isFinished()) {
+                    requestBody = IOUtils.toString(input, TisUTF8.get());
+                    jsonObject.append("body:").append("\n");
+                    jsonObject.append(requestBody).append("\n");
+                }
+            }
+        }
+        Context context = new MockContext();
+        jsonObject.append("\n=================================");
+        jsonObject.append("response:").append("\n");
+        jsonObject.append(AjaxValve.buildResultStruct(context));
+        log.setTabName(proxy.getActionName());
+        log.setUsrId(user.getId());
+        log.setUsrName(user.getName());
+        log.setOpDesc(jsonObject.toString());
+        operationLogDAO.insertSelective(log);
+        return result;
+    }
+
+    @Autowired
+    public void setOperationLogDAO(IOperationLogDAO operationLogDAO) {
+        this.operationLogDAO = operationLogDAO;
+    }
+
+    @Autowired
+    public final void setRunContextGetter(RunContextGetter daoContextGetter) {
+        this.daoContext = daoContextGetter.get();
+    }
+}

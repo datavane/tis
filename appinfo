@@ -1,0 +1,3 @@
+app_language=java
+app_container=jetty
+app_packagetype=war

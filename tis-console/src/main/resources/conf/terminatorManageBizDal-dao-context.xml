@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans>
+	<bean id="schemaConfigResourceFieldDAO"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.SchemaConfigResourceFieldDAOImpl"
+		parent="basicEndSearchDao" />
+	<bean id="schemaFieldRelationDAO"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.SchemaFieldRelationDAOImpl"
+		parent="basicEndSearchDao" />
+	<bean id="schemaConfigResourceDAO"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.SchemaConfigResourceDAOImpl"
+		parent="basicEndSearchDao" />
+	<bean id="uploadResourceSchemaRelationDAO"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.UploadResourceSchemaRelationDAOImpl"
+		parent="basicEndSearchDao" />
+
+	<bean id="schemaSysFieldTypesDAO"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.SchemaSysFieldTypesDAOImpl"
+		parent="basicEndSearchDao" />
+
+	<bean id="customScheamDAOFacade"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.CustomScheamDAOFacadeImpl">
+		<constructor-arg index="0" ref="schemaConfigResourceFieldDAO" />
+		<constructor-arg index="1" ref="schemaFieldRelationDAO" />
+		<constructor-arg index="2" ref="schemaConfigResourceDAO" />
+		<constructor-arg index="3"
+			ref="uploadResourceSchemaRelationDAO" />
+		<constructor-arg index="4" ref="schemaSysFieldTypesDAO" />
+	</bean>
+</beans>

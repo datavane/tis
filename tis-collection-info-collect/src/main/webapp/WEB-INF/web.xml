@@ -1,0 +1,43 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app metadata-complete="true">
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:/conf/cluster-application-context.xml,classpath:/conf/cluster-snapshot-dao-context.xml,classpath:/conf/terminatorBizDal-dao-context.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+
+
+
+	<servlet>
+		<servlet-name>exportReport</servlet-name>
+		<servlet-class>com.qlangtech.tis.collect.servlet.FullReportCreateServlet</servlet-class>
+	</servlet>
+	<!-- <servlet> <servlet-name>dailyReport</servlet-name> <servlet-class>com.qlangtech.tis.collect.servlet.DailyReportCreateServlet</servlet-class>
+		</servlet> <servlet-mapping> <servlet-name>dailyReport</servlet-name> <url-pattern>/dailyReport</url-pattern> 
+		</servlet-mapping> -->
+
+	<servlet-mapping>
+		<servlet-name>exportReport</servlet-name>
+		<url-pattern>/export_report</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>monitorServlet</servlet-name>
+		<servlet-class>com.dihuo.app.common.monitor.MonitorServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>monitorServlet</servlet-name>
+		<url-pattern>/check_health</url-pattern>
+	</servlet-mapping>
+
+
+
+</web-app>

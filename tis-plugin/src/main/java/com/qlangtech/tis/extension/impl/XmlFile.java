@@ -1,0 +1,289 @@
+/**
+ * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *
+ * This program is free software: you can use, redistribute, and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3
+ * or later ("AGPL"), as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.qlangtech.tis.extension.impl;
+
+import com.qlangtech.tis.util.AtomicFileWriter;
+import com.qlangtech.tis.util.XStream2;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.XStreamException;
+import com.thoughtworks.xstream.converters.DataHolder;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.io.StreamException;
+import com.thoughtworks.xstream.io.xml.XppDriver;
+import org.apache.commons.io.IOUtils;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.Locator;
+import org.xml.sax.SAXException;
+import org.xml.sax.ext.Locator2;
+import org.xml.sax.helpers.DefaultHandler;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.*;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * @author 百岁（baisui@qlangtech.com）
+ * @date 2020/04/13
+ */
+public final class XmlFile {
+
+    private final XStream2 xs;
+
+    private final File file;
+
+    public XmlFile(File file) {
+        this(DEFAULT_XSTREAM, file);
+    }
+
+    public XmlFile(XStream2 xs, File file) {
+        this.xs = xs;
+        this.file = file;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public XStream getXStream() {
+        return xs;
+    }
+
+    /**
+     * Loads the contents of this file into a new object.
+     */
+    public Object read() throws IOException {
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Reading " + file);
+        }
+        InputStream in = new BufferedInputStream(new FileInputStream(file));
+        try {
+            return xs.fromXML(in);
+        } catch (XStreamException e) {
+            throw new IOException("Unable to read " + file, e);
+        } catch (Error e) {
+            // mostly reflection errors
+            throw new IOException("Unable to read " + file, e);
+        } finally {
+            in.close();
+        }
+    }
+
+    /**
+     * Loads the contents of this file into an existing object.
+     *
+     * @return The unmarshalled object. Usually the same as <tt>o</tt>, but would be different
+     * if the XML representation is completely new.
+     */
+    public Object unmarshal(Object o) throws IOException {
+        InputStream in = new BufferedInputStream(new FileInputStream(file));
+        try {
+            // TODO: expose XStream the driver from XStream
+            return xs.unmarshal(DEFAULT_DRIVER.createReader(in), o);
+        } catch (Throwable e) {
+            // mostly reflection errors
+            throw new IOException("Unable to read " + file, e);
+        } finally {
+            in.close();
+        }
+    }
+
+    public void write(Object o, Set<XStream2.PluginMeta> pluginsMeta) throws IOException {
+        mkdirs();
+        AtomicFileWriter w = new AtomicFileWriter(file);
+        try {
+            w.write("<?xml version='1.0' encoding='UTF-8'?>\n");
+            DefaultDataHolder dataHolder = new DefaultDataHolder(pluginsMeta);
+            HierarchicalStreamWriter writer = xs.createHierarchicalStreamWriter(w);
+            try {
+                xs.marshal(o, writer, dataHolder);
+            } finally {
+                writer.flush();
+            }
+            // xs.toXML(o, w);
+            w.commit();
+        } catch (StreamException e) {
+            throw new IOException(e);
+        } finally {
+            w.abort();
+        }
+    }
+
+    private static class DefaultDataHolder implements DataHolder {
+
+        // Map<Object, Object> map = new HashMap<>();
+        private final Set<XStream2.PluginMeta> pluginsMeta;
+
+        public DefaultDataHolder(Set<XStream2.PluginMeta> pluginsMeta) {
+            this.pluginsMeta = pluginsMeta;
+        }
+
+        @Override
+        public Object get(Object key) {
+            // return map.get(key);
+            if (key == XStream2.PluginMeta.class) {
+                return pluginsMeta;
+            }
+            return null;
+        }
+
+        @Override
+        public void put(Object key, Object value) {
+        // map.put(key, value);
+        }
+
+        @Override
+        public Iterator keys() {
+            // return map.keySet().iterator();
+            return null;
+        }
+    }
+
+    public boolean exists() {
+        return file.exists();
+    }
+
+    public void delete() {
+        file.delete();
+    }
+
+    public void mkdirs() {
+        file.getParentFile().mkdirs();
+    }
+
+    @Override
+    public String toString() {
+        return file.toString();
+    }
+
+    /**
+     * Opens a {@link Reader} that loads XML.
+     * This method uses {@link #sniffEncoding() the right encoding},
+     * not just the system default encoding.
+     */
+    public Reader readRaw() throws IOException {
+        return new InputStreamReader(new FileInputStream(file), sniffEncoding());
+    }
+
+    /**
+     * Returns the XML file read as a string.
+     */
+    public String asString() throws IOException {
+        StringWriter w = new StringWriter();
+        writeRawTo(w);
+        return w.toString();
+    }
+
+    /**
+     * Writes the raw XML to the given {@link Writer}.
+     * Writer will not be closed by the implementation.
+     */
+    public void writeRawTo(Writer w) throws IOException {
+        Reader r = readRaw();
+        try {
+            // Util.copyStream(r,w);
+            IOUtils.copy(r, w);
+        } finally {
+            r.close();
+        }
+    }
+
+    /**
+     * Parses the beginning of the file and determines the encoding.
+     *
+     * @return always non-null.
+     * @throws IOException if failed to detect encoding.
+     */
+    public String sniffEncoding() throws IOException {
+        class Eureka extends SAXException {
+
+            final String encoding;
+
+            public Eureka(String encoding) {
+                this.encoding = encoding;
+            }
+        }
+        InputSource input = new InputSource(file.toURI().toASCIIString());
+        input.setByteStream(new FileInputStream(file));
+        try {
+            JAXP.newSAXParser().parse(input, new DefaultHandler() {
+
+                private Locator loc;
+
+                @Override
+                public void setDocumentLocator(Locator locator) {
+                    this.loc = locator;
+                }
+
+                @Override
+                public void startDocument() throws SAXException {
+                    attempt();
+                }
+
+                @Override
+                public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+                    attempt();
+                    // if we still haven't found it at the first start element, then we are not going to find it.
+                    throw new Eureka(null);
+                }
+
+                private void attempt() throws Eureka {
+                    if (loc == null)
+                        return;
+                    if (loc instanceof Locator2) {
+                        Locator2 loc2 = (Locator2) loc;
+                        String e = loc2.getEncoding();
+                        if (e != null)
+                            throw new Eureka(e);
+                    }
+                }
+            });
+            // can't reach here
+            throw new AssertionError();
+        } catch (Eureka e) {
+            if (e.encoding != null)
+                return e.encoding;
+            // in such a case, assume UTF-8 rather than fail, since Jenkins internally always write XML in UTF-8
+            return "UTF-8";
+        } catch (SAXException e) {
+            throw new IOException("Failed to detect encoding of " + file, e);
+        } catch (ParserConfigurationException e) {
+            // impossible
+            throw new AssertionError(e);
+        } finally {
+            // some JAXP implementations appear to leak the file handle if we just call parse(File,DefaultHandler)
+            input.getByteStream().close();
+        }
+    }
+
+    /**
+     * {@link XStream} instance is supposed to be thread-safe.
+     */
+    // new XStream2();
+    private static final Logger LOGGER = Logger.getLogger(XmlFile.class.getName());
+
+    private static final SAXParserFactory JAXP = SAXParserFactory.newInstance();
+
+    public static final XppDriver DEFAULT_DRIVER = new XppDriver();
+
+    public static final XStream2 DEFAULT_XSTREAM = new XStream2(DEFAULT_DRIVER);
+
+    static {
+        JAXP.setNamespaceAware(true);
+    }
+}

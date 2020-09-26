@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="card" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.realtime.test.member.pojo.Card" >
+    <result column="id" property="id" jdbcType="VARCHAR" />
+    <result column="kind_card_id" property="kindCardId" jdbcType="VARCHAR" />
+    <result column="customer_id" property="customerId" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="inner_code" property="innerCode" jdbcType="VARCHAR" />
+    <result column="pwd" property="pwd" jdbcType="VARCHAR" />
+    <result column="pay" property="pay" jdbcType="DECIMAL" />
+    <result column="active_date" property="activeDate" jdbcType="BIGINT" />
+    <result column="pre_fee" property="preFee" jdbcType="DECIMAL" />
+    <result column="balance" property="balance" jdbcType="DECIMAL" />
+    <result column="gift_balance" property="giftBalance" jdbcType="DECIMAL" />
+    <result column="real_balance" property="realBalance" jdbcType="DECIMAL" />
+    <result column="degree" property="degree" jdbcType="DECIMAL" />
+    <result column="pay_amount" property="payAmount" jdbcType="DECIMAL" />
+    <result column="consume_amount" property="consumeAmount" jdbcType="DECIMAL" />
+    <result column="ratio_amount" property="ratioAmount" jdbcType="DECIMAL" />
+    <result column="status" property="status" jdbcType="SMALLINT" />
+    <result column="get_status" property="getStatus" jdbcType="SMALLINT" />
+    <result column="active_id" property="activeId" jdbcType="VARCHAR" />
+    <result column="entity_id" property="entityId" jdbcType="VARCHAR" />
+    <result column="is_valid" property="isValid" jdbcType="BIT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="op_time" property="opTime" jdbcType="BIGINT" />
+    <result column="last_ver" property="lastVer" jdbcType="BIGINT" />
+    <result column="seller_id" property="sellerId" jdbcType="VARCHAR" />
+    <result column="last_consume_time" property="lastConsumeTime" jdbcType="BIGINT" />
+    <result column="consume_num" property="consumeNum" jdbcType="INTEGER" />
+    <result column="extend_fields" property="extendFields" jdbcType="VARCHAR" />
+    <result column="kind_card_type" property="kindCardType" jdbcType="BIT" />
+    <result column="give_balance" property="giveBalance" jdbcType="DECIMAL" />
+    <result column="card_source" property="cardSource" jdbcType="SMALLINT" />
+    <result column="shop_member_system_id" property="shopMemberSystemId" jdbcType="VARCHAR" />
+    <result column="transfer_flg" property="transferFlg" jdbcType="BIT" />
+    <result column="is_effective" property="isEffective" jdbcType="TINYINT" />
+    <result column="source" property="source" jdbcType="VARCHAR" />
+    <result column="activity_source" property="activitySource" jdbcType="SMALLINT" />
+    <result column="activity_id" property="activityId" jdbcType="VARCHAR" />
+    <result column="freeze_balance" property="freezeBalance" jdbcType="DECIMAL" />
+    <result column="freeze_give_balance" property="freezeGiveBalance" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.realtime.test.member.pojo.CardCriteria" >
+    select aa.id AS idkind_card_id, customer_id, code, inner_code, pwd, pay, active_date, pre_fee,
+      balance, gift_balance, real_balance, degree, pay_amount, consume_amount, ratio_amount, status,
+      get_status, active_id, entity_id, is_valid, create_time, op_time, last_ver, seller_id,
+      last_consume_time, consume_num, extend_fields, kind_card_type, give_balance, card_source,
+      shop_member_system_id, transfer_flg, is_effective, source, activity_source, activity_id,
+      freeze_balance, freeze_give_balance
+     from ( select id from card 
+    <isParameterPresent >
+      <include refid="card.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join card aa on aa.id=bb.id
+  </select>
+  <select id="ibatorgenerated_selectTargetColsByExample" resultClass="com.qlangtech.tis.ibatis.RowMap" parameterClass="com.qlangtech.tis.realtime.test.member.pojo.CardCriteria" >
+    select aa.id AS id
+<iterate property="cols" conjunction="," prepend=",">$cols[].name$</iterate>
+     from ( select id from card 
+    <isParameterPresent >
+      <include refid="card.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join card aa on aa.id=bb.id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.realtime.test.member.pojo.Card" >
+    select id, kind_card_id, customer_id, code, inner_code, pwd, pay, active_date, pre_fee, balance,
+      gift_balance, real_balance, degree, pay_amount, consume_amount, ratio_amount, status,
+      get_status, active_id, entity_id, is_valid, create_time, op_time, last_ver, seller_id,
+      last_consume_time, consume_num, extend_fields, kind_card_type, give_balance, card_source,
+      shop_member_system_id, transfer_flg, is_effective, source, activity_source, activity_id,
+      freeze_balance, freeze_give_balance
+    from card
+    where id = #id:VARCHAR#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.realtime.test.member.pojo.Card" >
+    delete from card
+    where id = #id:VARCHAR#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.realtime.test.member.pojo.CardCriteria" >
+    delete from card
+    <include refid="card.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.realtime.test.member.pojo.Card" >
+    insert into card (id, kind_card_id, customer_id, code, inner_code, pwd, pay, active_date,
+      pre_fee, balance, gift_balance, real_balance, degree, pay_amount, consume_amount,
+      ratio_amount, status, get_status, active_id, entity_id, is_valid, create_time, op_time,
+      last_ver, seller_id, last_consume_time, consume_num, extend_fields, kind_card_type,
+      give_balance, card_source, shop_member_system_id, transfer_flg, is_effective, source,
+      activity_source, activity_id, freeze_balance, freeze_give_balance)
+    values (#id:VARCHAR#, #kindCardId:VARCHAR#, #customerId:VARCHAR#, #code:VARCHAR#,
+      #innerCode:VARCHAR#, #pwd:VARCHAR#, #pay:DECIMAL#, #activeDate:BIGINT#, #preFee:DECIMAL#,
+      #balance:DECIMAL#, #giftBalance:DECIMAL#, #realBalance:DECIMAL#, #degree:DECIMAL#,
+      #payAmount:DECIMAL#, #consumeAmount:DECIMAL#, #ratioAmount:DECIMAL#, #status:SMALLINT#,
+      #getStatus:SMALLINT#, #activeId:VARCHAR#, #entityId:VARCHAR#, #isValid:BIT#,
+      #createTime:BIGINT#, #opTime:BIGINT#, #lastVer:BIGINT#, #sellerId:VARCHAR#,
+      #lastConsumeTime:BIGINT#, #consumeNum:INTEGER#, #extendFields:VARCHAR#, #kindCardType:BIT#,
+      #giveBalance:DECIMAL#, #cardSource:SMALLINT#, #shopMemberSystemId:VARCHAR#, #transferFlg:BIT#,
+      #isEffective:TINYINT#, #source:VARCHAR#, #activitySource:SMALLINT#, #activityId:VARCHAR#,
+      #freezeBalance:DECIMAL#, #freezeGiveBalance:DECIMAL#)
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.realtime.test.member.pojo.Card" >
+    insert into card
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="kindCardId" >
+        kind_card_id
+      </isNotNull>
+      <isNotNull prepend="," property="customerId" >
+        customer_id
+      </isNotNull>
+      <isNotNull prepend="," property="code" >
+        code
+      </isNotNull>
+      <isNotNull prepend="," property="innerCode" >
+        inner_code
+      </isNotNull>
+      <isNotNull prepend="," property="pwd" >
+        pwd
+      </isNotNull>
+      <isNotNull prepend="," property="pay" >
+        pay
+      </isNotNull>
+      <isNotNull prepend="," property="activeDate" >
+        active_date
+      </isNotNull>
+      <isNotNull prepend="," property="preFee" >
+        pre_fee
+      </isNotNull>
+      <isNotNull prepend="," property="balance" >
+        balance
+      </isNotNull>
+      <isNotNull prepend="," property="giftBalance" >
+        gift_balance
+      </isNotNull>
+      <isNotNull prepend="," property="realBalance" >
+        real_balance
+      </isNotNull>
+      <isNotNull prepend="," property="degree" >
+        degree
+      </isNotNull>
+      <isNotNull prepend="," property="payAmount" >
+        pay_amount
+      </isNotNull>
+      <isNotNull prepend="," property="consumeAmount" >
+        consume_amount
+      </isNotNull>
+      <isNotNull prepend="," property="ratioAmount" >
+        ratio_amount
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        status
+      </isNotNull>
+      <isNotNull prepend="," property="getStatus" >
+        get_status
+      </isNotNull>
+      <isNotNull prepend="," property="activeId" >
+        active_id
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        entity_id
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        is_valid
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        op_time
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        last_ver
+      </isNotNull>
+      <isNotNull prepend="," property="sellerId" >
+        seller_id
+      </isNotNull>
+      <isNotNull prepend="," property="lastConsumeTime" >
+        last_consume_time
+      </isNotNull>
+      <isNotNull prepend="," property="consumeNum" >
+        consume_num
+      </isNotNull>
+      <isNotNull prepend="," property="extendFields" >
+        extend_fields
+      </isNotNull>
+      <isNotNull prepend="," property="kindCardType" >
+        kind_card_type
+      </isNotNull>
+      <isNotNull prepend="," property="giveBalance" >
+        give_balance
+      </isNotNull>
+      <isNotNull prepend="," property="cardSource" >
+        card_source
+      </isNotNull>
+      <isNotNull prepend="," property="shopMemberSystemId" >
+        shop_member_system_id
+      </isNotNull>
+      <isNotNull prepend="," property="transferFlg" >
+        transfer_flg
+      </isNotNull>
+      <isNotNull prepend="," property="isEffective" >
+        is_effective
+      </isNotNull>
+      <isNotNull prepend="," property="source" >
+        source
+      </isNotNull>
+      <isNotNull prepend="," property="activitySource" >
+        activity_source
+      </isNotNull>
+      <isNotNull prepend="," property="activityId" >
+        activity_id
+      </isNotNull>
+      <isNotNull prepend="," property="freezeBalance" >
+        freeze_balance
+      </isNotNull>
+      <isNotNull prepend="," property="freezeGiveBalance" >
+        freeze_give_balance
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="kindCardId" >
+        #kindCardId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="customerId" >
+        #customerId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="code" >
+        #code:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="innerCode" >
+        #innerCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="pwd" >
+        #pwd:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="pay" >
+        #pay:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="activeDate" >
+        #activeDate:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="preFee" >
+        #preFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="balance" >
+        #balance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="giftBalance" >
+        #giftBalance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="realBalance" >
+        #realBalance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="degree" >
+        #degree:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="payAmount" >
+        #payAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="consumeAmount" >
+        #consumeAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="ratioAmount" >
+        #ratioAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        #status:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="getStatus" >
+        #getStatus:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="activeId" >
+        #activeId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        #entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        #isValid:BIT#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        #opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        #lastVer:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="sellerId" >
+        #sellerId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="lastConsumeTime" >
+        #lastConsumeTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="consumeNum" >
+        #consumeNum:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="extendFields" >
+        #extendFields:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="kindCardType" >
+        #kindCardType:BIT#
+      </isNotNull>
+      <isNotNull prepend="," property="giveBalance" >
+        #giveBalance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="cardSource" >
+        #cardSource:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="shopMemberSystemId" >
+        #shopMemberSystemId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="transferFlg" >
+        #transferFlg:BIT#
+      </isNotNull>
+      <isNotNull prepend="," property="isEffective" >
+        #isEffective:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="source" >
+        #source:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="activitySource" >
+        #activitySource:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="activityId" >
+        #activityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="freezeBalance" >
+        #freezeBalance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="freezeGiveBalance" >
+        #freezeGiveBalance:DECIMAL#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.realtime.test.member.pojo.CardCriteria" resultClass="java.lang.Integer" >
+    select count(*) from card
+    <include refid="card.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    update card
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.id" >
+        id = #record.id:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.kindCardId" >
+        kind_card_id = #record.kindCardId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.customerId" >
+        customer_id = #record.customerId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.code" >
+        code = #record.code:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.innerCode" >
+        inner_code = #record.innerCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.pwd" >
+        pwd = #record.pwd:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.pay" >
+        pay = #record.pay:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.activeDate" >
+        active_date = #record.activeDate:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.preFee" >
+        pre_fee = #record.preFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.balance" >
+        balance = #record.balance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.giftBalance" >
+        gift_balance = #record.giftBalance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.realBalance" >
+        real_balance = #record.realBalance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.degree" >
+        degree = #record.degree:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.payAmount" >
+        pay_amount = #record.payAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.consumeAmount" >
+        consume_amount = #record.consumeAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ratioAmount" >
+        ratio_amount = #record.ratioAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.status" >
+        status = #record.status:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.getStatus" >
+        get_status = #record.getStatus:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.activeId" >
+        active_id = #record.activeId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.entityId" >
+        entity_id = #record.entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isValid" >
+        is_valid = #record.isValid:BIT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.createTime" >
+        create_time = #record.createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.opTime" >
+        op_time = #record.opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.lastVer" >
+        last_ver = #record.lastVer:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.sellerId" >
+        seller_id = #record.sellerId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.lastConsumeTime" >
+        last_consume_time = #record.lastConsumeTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.consumeNum" >
+        consume_num = #record.consumeNum:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.extendFields" >
+        extend_fields = #record.extendFields:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.kindCardType" >
+        kind_card_type = #record.kindCardType:BIT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.giveBalance" >
+        give_balance = #record.giveBalance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.cardSource" >
+        card_source = #record.cardSource:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.shopMemberSystemId" >
+        shop_member_system_id = #record.shopMemberSystemId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.transferFlg" >
+        transfer_flg = #record.transferFlg:BIT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isEffective" >
+        is_effective = #record.isEffective:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.source" >
+        source = #record.source:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.activitySource" >
+        activity_source = #record.activitySource:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.activityId" >
+        activity_id = #record.activityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.freezeBalance" >
+        freeze_balance = #record.freezeBalance:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.freezeGiveBalance" >
+        freeze_give_balance = #record.freezeGiveBalance:DECIMAL#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="card.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    update card
+    set id = #record.id:VARCHAR#,
+      kind_card_id = #record.kindCardId:VARCHAR#,
+      customer_id = #record.customerId:VARCHAR#,
+      code = #record.code:VARCHAR#,
+      inner_code = #record.innerCode:VARCHAR#,
+      pwd = #record.pwd:VARCHAR#,
+      pay = #record.pay:DECIMAL#,
+      active_date = #record.activeDate:BIGINT#,
+      pre_fee = #record.preFee:DECIMAL#,
+      balance = #record.balance:DECIMAL#,
+      gift_balance = #record.giftBalance:DECIMAL#,
+      real_balance = #record.realBalance:DECIMAL#,
+      degree = #record.degree:DECIMAL#,
+      pay_amount = #record.payAmount:DECIMAL#,
+      consume_amount = #record.consumeAmount:DECIMAL#,
+      ratio_amount = #record.ratioAmount:DECIMAL#,
+      status = #record.status:SMALLINT#,
+      get_status = #record.getStatus:SMALLINT#,
+      active_id = #record.activeId:VARCHAR#,
+      entity_id = #record.entityId:VARCHAR#,
+      is_valid = #record.isValid:BIT#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      last_ver = #record.lastVer:BIGINT#,
+      seller_id = #record.sellerId:VARCHAR#,
+      last_consume_time = #record.lastConsumeTime:BIGINT#,
+      consume_num = #record.consumeNum:INTEGER#,
+      extend_fields = #record.extendFields:VARCHAR#,
+      kind_card_type = #record.kindCardType:BIT#,
+      give_balance = #record.giveBalance:DECIMAL#,
+      card_source = #record.cardSource:SMALLINT#,
+      shop_member_system_id = #record.shopMemberSystemId:VARCHAR#,
+      transfer_flg = #record.transferFlg:BIT#,
+      is_effective = #record.isEffective:TINYINT#,
+      source = #record.source:VARCHAR#,
+      activity_source = #record.activitySource:SMALLINT#,
+      activity_id = #record.activityId:VARCHAR#,
+      freeze_balance = #record.freezeBalance:DECIMAL#,
+      freeze_give_balance = #record.freezeGiveBalance:DECIMAL#
+    <isParameterPresent >
+      <include refid="card.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

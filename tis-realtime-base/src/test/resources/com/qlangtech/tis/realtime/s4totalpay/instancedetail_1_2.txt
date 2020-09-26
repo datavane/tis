@@ -1,0 +1,59 @@
+         instance_id: 999331865f13e2a2015f15055a790076
+            order_id: 992276506761f406016771fcf711022c
+           batch_msg: 20:32|已婚男士|15253653555|8f931168c2b44f7bb05e77e27286cccc
+                type: 0
+                 ext: {"isWait":0,"optionalType":0}
+  waitinginstance_id: 999331865f13e2a2015f15055a790076
+                kind: 5
+           parent_id: 999331865f13e2a2015f15055a790075
+           pricemode: 1
+                name: 打包盒
+            makename: NULL
+               taste: NULL
+    spec_detail_name: NULL
+                 num: 1.00
+         account_num: 1.0000
+                unit: 份
+        account_unit: 份
+               price: 2.00
+        member_price: 2.00
+                 fee: 2.00
+               ratio: 100.00
+           ratio_fee: 2.00
+         ratio_cause: NULL
+              status: 2
+         kindmenu_id: 0
+       kindmenu_name: -已删除-
+             menu_id: 0
+                memo: NULL
+            is_ratio: 0
+           entity_id: 99227650
+            is_valid: 1
+         create_time: 1507886196093
+             op_time: 1507886196107
+            last_ver: 6
+           load_time: 1507886197
+         modify_time: 1507886197
+         draw_status: 0
+         bookmenu_id:
+             make_id:
+          make_price: 0.00
+         prodplan_id:
+             is_wait: 0
+       specdetail_id:
+    specdetail_price: 0.00
+      makeprice_mode: 1
+      original_price: 2.0
+is_buynumber_changed: 1
+   ratio_operator_id:
+            child_id:
+    kind_bookmenu_id:
+      specprice_mode: 2
+           worker_id: 4904f67f0b614dafa6d9e03518d61c23
+         is_backauth: 1
+    service_fee_mode: 0
+         service_fee: 0.0
+            orign_id:
+      addition_price: 0.00
+        has_addition: 0
+             seat_id:

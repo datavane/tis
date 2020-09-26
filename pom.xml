@@ -1,0 +1,822 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+        xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.qlangtech.tis</groupId>
+        <artifactId>tis-parent</artifactId>
+        <version>1.0.3</version>
+    </parent>
+
+    <groupId>com.qlangtech.tis</groupId>
+    <artifactId>tis-solr-parent</artifactId>
+    <version>saturn-1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>terminator-job-trigger-parent</name>
+    <url>http://maven.apache.org</url>
+    <properties>
+
+        <java.version>1.8</java.version>
+        <spring-version>3.0.6.RELEASE</spring-version>
+        <solr.version>8.6.1</solr.version>
+        <jetty.version>9.4.27.v20200227</jetty.version>
+        <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
+
+        <scala.version>2.13.0</scala.version>
+        <scala.binary.version>2.13</scala.binary.version>
+        <tisasm-maven-plugin.version>1.0.2</tisasm-maven-plugin.version>
+    </properties>
+
+
+    <modules>
+        <module>xmodifier</module>
+        <module>tis-manage-pojo</module>
+
+
+        <module>tis-hadoop-rpc</module>
+        <module>tis-solrconfig-parser</module>
+        <module>tis-solrj-client</module>
+
+
+        <module>tis-common</module>
+        <!--
+        <module>tis-rpc</module>
+-->
+        <module>tis-builder-api</module>
+        <!--
+        <module>tis-client-standalone</module>
+-->
+        <module>tis-web-start</module>
+        <module>tis-assemble</module>
+
+        <module>tis-ds-dump</module>
+
+        <module>tis-plugin</module>
+
+        <module>tis-solrcore-extend</module>
+
+        <module>tis-index-builder</module>
+        <!--
+       <module>tis-index-builder-yarn</module>
+
+               <module>terminator-job-trigger-server</module>
+       -->
+        <module>tis-realtime-base</module>
+        <module>tis-sql-parser</module>
+
+        <!---->
+        <module>tis-collection-info-collect</module>
+
+        <module>tis-console</module>
+        <module>solr-webapp</module>
+        <module>tis-scala-compiler</module>
+        <module>tis-scala-compiler-dependencies</module>
+
+        <module>maven-tpi-plugin</module>
+
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>${log4j-to-slf4j.version}</version>
+            </dependency>
+            <!--
+                       <dependency>
+                           <groupId>org.apache.logging.log4j</groupId>
+                           <artifactId>log4j-slf4j-impl</artifactId>
+                           <version>${log4j-to-slf4j.version}</version>
+                       </dependency>
+            -->
+            <dependency>
+                <groupId>com.gilt.logback</groupId>
+                <artifactId>logback-flume-appender</artifactId>
+                <version>1.0.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-configuration</groupId>
+                <artifactId>commons-configuration</artifactId>
+                <version>1.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.easymock</groupId>
+                <artifactId>easymock</artifactId>
+                <version>4.2</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-hadoop-rpc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-ds-dump</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-web-start</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-index-builder</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>${spring-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>${spring-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jdbc</artifactId>
+                <version>${spring-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-orm</artifactId>
+                <version>${spring-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring-version}</version>
+            </dependency>
+            <!--
+                        <dependency>
+                            <groupId>com.qlangtech.tis</groupId>
+                            <artifactId>tis-rpc</artifactId>
+                            <version>${project.version}</version>
+                        </dependency>
+            -->
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-ibatis</artifactId>
+                <version>2.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-solrcore-extend</artifactId>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-context</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-context</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <!--
+
+-->
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-builder-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-sql-parser</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jenkins-ci</groupId>
+                <artifactId>task-reactor</artifactId>
+                <version>1.5</version>
+            </dependency>
+
+
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-plugin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-exec</artifactId>
+                <version>1.3</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.thoughtworks.xstream</groupId>
+                <artifactId>xstream</artifactId>
+                <version>1.4.10</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>1.9.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>20.0</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-manage-pojo</artifactId>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jetty.http2</groupId>
+                <artifactId>http2-client</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jetty.http2</groupId>
+                <artifactId>http2-common</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jetty.http2</groupId>
+                <artifactId>http2-hpack</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jetty.http2</groupId>
+                <artifactId>http2-http-client-transport</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jetty.http2</groupId>
+                <artifactId>http2-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>${jetty.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jetty.websocket</groupId>
+                <artifactId>websocket-servlet</artifactId>
+                <version>${jetty.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.websocket</groupId>
+                <artifactId>websocket-server</artifactId>
+                <version>${jetty.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>${jetty.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-solrconfig-parser</artifactId>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-analyzers-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-analyzers-kuromoji</artifactId>
+                    </exclusion>
+
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-analyzers-phonetic</artifactId>
+                    </exclusion>
+
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-backward-codecs</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-codecs</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-expressions</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-expressions</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-expressions</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-grouping</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-highlighter</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-join</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-memory</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-misc</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-queries</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-queryparser</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-sandbox</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-spatial</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-suggest</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm-commons</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.1.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>1.7.7</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.7</version>
+                <!--
+                <scope>provided</scope>
+              -->
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>20151123</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.apache.solr</groupId>
+                <artifactId>solr-solrj</artifactId>
+                <version>${solr.version}</version>
+            </dependency>
+
+            <!--
+            refer: https://github.com/apache/lucene-solr/blob/releases/lucene-solr/8.6.1/
+
+                        <dependency>
+                            <groupId>org.apache.solr</groupId>
+                            <artifactId>solr-core</artifactId>
+                            <version>${solr.version}</version>
+                            <exclusions>
+                                <exclusion>
+                                    <groupId>org.apache.hadoop</groupId>
+                                    <artifactId>hadoop-auth</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                    <groupId>org.apache.hadoop</groupId>
+                                    <artifactId>hadoop-annotations</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                    <groupId>org.apache.hadoop</groupId>
+                                    <artifactId>hadoop-hdfs-client</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                    <groupId>org.apache.htrace</groupId>
+                                    <artifactId>htrace-core4</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                    <groupId>org.apache.hadoop</groupId>
+                                    <artifactId>hadoop-common</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                    <groupId>org.apache.hadoop</groupId>
+                                    <artifactId>hadoop-hdfs</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                    <groupId>org.apache.logging.log4j</groupId>
+                                    <artifactId>log4j-slf4j-impl</artifactId>
+                                </exclusion>
+                            </exclusions>
+                        </dependency>
+            -->
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-solr-core</artifactId>
+                <version>${solr.version}-fix</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-analyzers-phonetic</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-auth</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-hdfs-client</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.htrace</groupId>
+                        <artifactId>htrace-core4</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-hdfs</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-slf4j-impl</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>3.8.1</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.5</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>2.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.7</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>1.13</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>3.4.5</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.jms</groupId>
+                        <artifactId>jms</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.jdmk</groupId>
+                        <artifactId>jmxtools</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.jmx</groupId>
+                        <artifactId>jmxri</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jboss.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>5.1.30</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jdom</groupId>
+                <artifactId>jdom</artifactId>
+                <version>1.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-solrj-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-reflect</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-compiler</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-realtime-base</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>1.23</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.8</version>
+                <configuration>
+                    <!--
+                    <test>TestAll</test>
+                    -->
+                    <classpathDependencyExcludes>
+                        <classpathDependencyExclude>log4j:log4j</classpathDependencyExclude>
+                        <classpathDependencyExclude>org.slf4j:slf4j-log4j12</classpathDependencyExclude>
+                        <classpathDependencyExclude>commons-logging:commons-logging</classpathDependencyExclude>
+                        <!--
+                         <classpathDependencyExclude>commons-lang:commons-lang</classpathDependencyExclude>
+                         -->
+                        <classpathDependencyExclude>org.apache.tomcat:tomcat-catalina</classpathDependencyExclude>
+                    </classpathDependencyExcludes>
+                </configuration>
+            </plugin>
+
+            <!-- set scala maven plugin version -->
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <args>
+                        <arg>-nobootcp</arg>
+                    </args>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.scalastyle</groupId>
+                <artifactId>scalastyle-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>env.conf</exclude>
+                        <exclude>*.yml</exclude>
+                        <exclude>**/*.xml</exclude>
+                        <exclude>**/*.properties</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+
+                <plugin>
+                    <groupId>com.qlangtech.tis</groupId>
+                    <artifactId>tisasm-maven-plugin</artifactId>
+                    <version>${tisasm-maven-plugin.version}</version>
+                    <configuration>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>make-assembly</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>tisasm</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>make-deploy</id>
+                            <phase>deploy</phase>
+                            <goals>
+                                <goal>put</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.0.2</version>
+                </plugin>
+
+                <!-- configure scala style -->
+                <plugin>
+                    <groupId>org.scalastyle</groupId>
+                    <artifactId>scalastyle-maven-plugin</artifactId>
+                    <version>1.0.0</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <verbose>false</verbose>
+                        <failOnViolation>true</failOnViolation>
+                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                        <failOnWarning>false</failOnWarning>
+                        <sourceDirectory>${basedir}/src/main/scala</sourceDirectory>
+                        <testSourceDirectory>${basedir}/src/test/scala</testSourceDirectory>
+                        <outputFile>${project.basedir}/target/scalastyle-output.xml</outputFile>
+                        <inputEncoding>${project.build.sourceEncoding}</inputEncoding>
+                        <outputEncoding>${project.build.sourceEncoding}</outputEncoding>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.7</version>
+                </plugin>
+
+            </plugins>
+
+
+        </pluginManagement>
+
+    </build>
+</project>

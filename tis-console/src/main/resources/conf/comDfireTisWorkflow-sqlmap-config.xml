@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd" >
+<sqlMapConfig >
+  <settings useStatementNamespaces="true" />
+  <sqlMap resource="com/qlangtech/tis/workflow/dao/sqlmap/work_flow_publish_history_SqlMap.xml" />
+  <sqlMap resource="com/qlangtech/tis/manage/biz/dal/dao/sqlmap/application_SqlMap.xml" />
+  <sqlMap resource="com/qlangtech/tis/workflow/dao/sqlmap/work_flow_SqlMap.xml" />
+  <sqlMap resource="com/qlangtech/tis/workflow/dao/sqlmap/work_flow_build_history_SqlMap.xml" />
+  <sqlMap resource="com/qlangtech/tis/workflow/dao/sqlmap/table_dump_SqlMap.xml" />
+  <sqlMap resource="com/qlangtech/tis/workflow/dao/sqlmap/work_flow_build_phase_SqlMap.xml" />
+  <sqlMap resource="com/qlangtech/tis/workflow/dao/sqlmap/datasource_table_SqlMap.xml" />
+  <sqlMap resource="com/qlangtech/tis/workflow/dao/sqlmap/datasource_db_SqlMap.xml" />
+  <sqlMap resource="com/qlangtech/tis/manage/biz/dal/dao/sqlmap/usr_dpt_relation_SqlMap.xml" />
+</sqlMapConfig>

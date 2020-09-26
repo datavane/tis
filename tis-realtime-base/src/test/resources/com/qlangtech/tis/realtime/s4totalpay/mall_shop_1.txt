@@ -1,0 +1,11 @@
+            id: 9d40924d530e41f3a09aa5bb7c9fc249
+shop_entity_id: 99227650
+mall_entity_id: 99229084
+     mall_type: 2001
+        status: 1
+       area_id:
+     cash_type: 0
+   create_time: 1583405671
+       op_time: 1583405671
+      last_ver: 0
+      is_valid: 1

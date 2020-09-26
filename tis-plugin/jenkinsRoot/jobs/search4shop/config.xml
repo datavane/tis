@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<com.qlangtech.tis.plugin.CollectionPluginConfig>
+  <fieldTypeFactories>
+    <com.qlangtech.tis.fieldtype.MobileFieldFactory plugin="tis-mobile-fieldtype@2.7.4">
+      <minGramSize>66</minGramSize>
+      <maxGramSize>66</maxGramSize>
+      <displayName>mobile2</displayName>
+    </com/qlangtech/tis.fieldtype.MobileFieldFactory>
+    <com.qlangtech.tis.fieldtype.MobileFieldFactory plugin="tis-mobile-fieldtype@2.7.4">
+      <minGramSize>3</minGramSize>
+      <maxGramSize>888</maxGramSize>
+      <displayName>mobileField</displayName>
+    </com/qlangtech/tis.fieldtype.MobileFieldFactory>
+  </fieldTypeFactories>
+</com/qlangtech/tis.plugin.CollectionPluginConfig>

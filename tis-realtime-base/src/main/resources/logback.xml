@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false">
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <target>System.out</target>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern>
+        </layout>
+    </appender>
+
+
+    <appender name="statis"
+              class="com.qlangtech.tis.realtime.utils.TisFlumeLogstashV1Appender">
+        <flumeAgents>${log_flume_agent}</flumeAgents>
+        <flumeProperties>
+            connect-timeout=4000;
+            request-timeout=8000
+        </flumeProperties>
+        <batchSize>100</batchSize>
+        <reportingWindow>1000</reportingWindow>
+        <additionalAvroHeaders>
+            logtype=statis
+        </additionalAvroHeaders>
+        <application>incr</application>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[%d{HH:mm:ss.SSS} %-5level %logger{36}-%message%n%ex]]></pattern>
+        </layout>
+    </appender>
+
+    <appender name="statis-async" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <includeCallerData>false</includeCallerData>
+        <!--<neverBlock>true</neverBlock>-->
+        <appender-ref ref="statis" />
+    </appender>
+
+
+    <appender name="sendinfo"
+              class="com.qlangtech.tis.realtime.utils.TisFlumeLogstashV1Appender">
+        <flumeAgents>${log_flume_agent}</flumeAgents>
+        <flumeProperties>
+            connect-timeout=4000;
+            request-timeout=8000
+        </flumeProperties>
+        <batchSize>100</batchSize>
+        <reportingWindow>1000</reportingWindow>
+        <additionalAvroHeaders>
+            logtype=sendinfo
+        </additionalAvroHeaders>
+        <application>incr</application>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[%d{HH:mm:ss.SSS} %-5level	%logger{36}-%message%n%ex]]></pattern>
+        </layout>
+    </appender>
+
+    <appender name="sendinfo-async" class="ch.qos.logback.classic.AsyncAppender">
+
+        <queueSize>512</queueSize>
+        <includeCallerData>false</includeCallerData>
+        <!--<neverBlock>true</neverBlock>-->
+        <appender-ref ref="sendinfo" />
+
+    </appender>
+
+    <appender name="rmcount-appender"
+              class="com.qlangtech.tis.realtime.utils.TisFlumeLogstashV1Appender">
+        <flumeAgents>${log_flume_agent}</flumeAgents>
+        <flumeProperties>
+            connect-timeout=4000;
+            request-timeout=8000
+        </flumeProperties>
+        <batchSize>100</batchSize>
+        <reportingWindow>1000</reportingWindow>
+        <additionalAvroHeaders>
+            logtype=rmcount
+        </additionalAvroHeaders>
+        <application>incr</application>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+        </layout>
+    </appender>
+
+    <appender name="rmcount-appender-async" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <includeCallerData>false</includeCallerData>
+        <!--<neverBlock>true</neverBlock>-->
+        <appender-ref ref="rmcount-appender" />
+    </appender>
+
+    <appender name="receive-appender"
+              class="com.qlangtech.tis.realtime.utils.TisFlumeLogstashV1Appender">
+        <flumeAgents>${log_flume_agent}</flumeAgents>
+        <flumeProperties>
+            connect-timeout=4000;
+            request-timeout=8000
+        </flumeProperties>
+        <batchSize>100</batchSize>
+        <reportingWindow>1000</reportingWindow>
+        <additionalAvroHeaders>
+            logtype=receive
+        </additionalAvroHeaders>
+        <application>incr</application>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+        </layout>
+    </appender>
+
+    <appender name="receive-appender-async" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <includeCallerData>false</includeCallerData>
+        <!--<neverBlock>true</neverBlock>-->
+        <appender-ref ref="receive-appender" />
+    </appender>
+
+    <!--RM sendrecord
+        <logger name="count">
+            <level value="ERROR" />
+            <appender-ref ref="rmcount-appender-async" />
+        </logger>
+     -->
+    <!--指定一个包的日志打印级别-->
+    <logger name="com.qlangtech.tis.realtime">
+        <level value="INFO" />
+        <appender-ref ref="statis-async" />
+    </logger>
+
+
+    <logger name="sendRecored">
+        <level value="INFO" />
+        <appender-ref ref="sendinfo-async" />
+    </logger>
+
+    <logger name="receive">
+        <level value="INFO" />
+        <appender-ref ref="receive-appender-async" />
+    </logger>
+
+
+    <root>
+        <level value="INFO" />
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

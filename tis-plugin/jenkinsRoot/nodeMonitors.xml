@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.util.DescribableList>
+  <hudson.node__monitors.DiskSpaceMonitor>
+    <ignored>false</ignored>
+    <freeSpaceThreshold>1GB</freeSpaceThreshold>
+  </hudson.node__monitors.DiskSpaceMonitor>
+  <hudson.node__monitors.SwapSpaceMonitor>
+    <ignored>false</ignored>
+  </hudson.node__monitors.SwapSpaceMonitor>
+  <hudson.node__monitors.TemporarySpaceMonitor>
+    <ignored>false</ignored>
+    <freeSpaceThreshold>1GB</freeSpaceThreshold>
+  </hudson.node__monitors.TemporarySpaceMonitor>
+  <hudson.node__monitors.ResponseTimeMonitor>
+    <ignored>false</ignored>
+  </hudson.node__monitors.ResponseTimeMonitor>
+</hudson.util.DescribableList>

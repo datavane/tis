@@ -1,0 +1,691 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="waitinginstanceinfo" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.realtime.test.order.pojo.Waitinginstanceinfo" >
+    <result column="waitinginstance_id" property="waitinginstanceId" jdbcType="VARCHAR" />
+    <result column="waitingorder_id" property="waitingorderId" jdbcType="VARCHAR" />
+    <result column="kind" property="kind" jdbcType="SMALLINT" />
+    <result column="kindmenu_id" property="kindmenuId" jdbcType="VARCHAR" />
+    <result column="kindmenu_name" property="kindmenuName" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="menu_id" property="menuId" jdbcType="VARCHAR" />
+    <result column="make_id" property="makeId" jdbcType="VARCHAR" />
+    <result column="makename" property="makename" jdbcType="VARCHAR" />
+    <result column="make_price" property="makePrice" jdbcType="DECIMAL" />
+    <result column="make_pricemode" property="makePricemode" jdbcType="SMALLINT" />
+    <result column="spec_detail_name" property="specDetailName" jdbcType="VARCHAR" />
+    <result column="spec_detail_id" property="specDetailId" jdbcType="VARCHAR" />
+    <result column="spec_pricemode" property="specPricemode" jdbcType="SMALLINT" />
+    <result column="spec_detail_price" property="specDetailPrice" jdbcType="DECIMAL" />
+    <result column="num" property="num" jdbcType="DECIMAL" />
+    <result column="account_num" property="accountNum" jdbcType="DECIMAL" />
+    <result column="unit" property="unit" jdbcType="VARCHAR" />
+    <result column="account_unit" property="accountUnit" jdbcType="VARCHAR" />
+    <result column="memo" property="memo" jdbcType="VARCHAR" />
+    <result column="original_price" property="originalPrice" jdbcType="DECIMAL" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="member_price" property="memberPrice" jdbcType="DECIMAL" />
+    <result column="fee" property="fee" jdbcType="DECIMAL" />
+    <result column="is_ratio" property="isRatio" jdbcType="SMALLINT" />
+    <result column="taste" property="taste" jdbcType="VARCHAR" />
+    <result column="ratio" property="ratio" jdbcType="DECIMAL" />
+    <result column="ratio_fee" property="ratioFee" jdbcType="DECIMAL" />
+    <result column="is_backauth" property="isBackauth" jdbcType="SMALLINT" />
+    <result column="parent_id" property="parentId" jdbcType="VARCHAR" />
+    <result column="price_mode" property="priceMode" jdbcType="SMALLINT" />
+    <result column="child_id" property="childId" jdbcType="VARCHAR" />
+    <result column="service_feemode" property="serviceFeemode" jdbcType="SMALLINT" />
+    <result column="service_fee" property="serviceFee" jdbcType="DECIMAL" />
+    <result column="status" property="status" jdbcType="SMALLINT" />
+    <result column="error_msg" property="errorMsg" jdbcType="VARCHAR" />
+    <result column="entity_id" property="entityId" jdbcType="VARCHAR" />
+    <result column="is_valid" property="isValid" jdbcType="SMALLINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="op_time" property="opTime" jdbcType="BIGINT" />
+    <result column="last_ver" property="lastVer" jdbcType="BIGINT" />
+    <result column="batch_msg" property="batchMsg" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="SMALLINT" />
+    <result column="addition_price" property="additionPrice" jdbcType="DECIMAL" />
+  </resultMap>
+  <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.qlangtech.tis.realtime.test.order.pojo.Waitinginstanceinfo" extends="waitinginstanceinfo.ibatorgenerated_BaseResultMap" >
+    <result column="ext" property="ext" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExampleWithBLOBs" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.WaitinginstanceinfoCriteria" >
+    select waitinginstance_id, waitingorder_id, kind, kindmenu_id, kindmenu_name, name, menu_id,
+      make_id, makename, make_price, make_pricemode, spec_detail_name, spec_detail_id,
+      spec_pricemode, spec_detail_price, num, account_num, unit, account_unit, memo, original_price,
+      price, member_price, fee, is_ratio, taste, ratio, ratio_fee, is_backauth, parent_id,
+      price_mode, child_id, service_feemode, service_fee, status, error_msg, entity_id, is_valid,
+      create_time, op_time, last_ver, batch_msg, type, addition_price, ext
+    from waitinginstanceinfo
+    <isParameterPresent >
+      <include refid="waitinginstanceinfo.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+    </isParameterPresent>
+  </select>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.WaitinginstanceinfoCriteria" >
+    select aa.waitinginstance_id AS waitinginstance_idwaitingorder_id, kind, kindmenu_id,
+      kindmenu_name, name, menu_id, make_id, makename, make_price, make_pricemode, spec_detail_name,
+      spec_detail_id, spec_pricemode, spec_detail_price, num, account_num, unit, account_unit, memo,
+      original_price, price, member_price, fee, is_ratio, taste, ratio, ratio_fee, is_backauth,
+      parent_id, price_mode, child_id, service_feemode, service_fee, status, error_msg, entity_id,
+      is_valid, create_time, op_time, last_ver, batch_msg, type, addition_price
+     from ( select waitinginstance_id from waitinginstanceinfo 
+    <isParameterPresent >
+      <include refid="waitinginstanceinfo.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join waitinginstanceinfo aa on aa.waitinginstance_id=bb.waitinginstance_id
+  </select>
+  <select id="ibatorgenerated_selectTargetColsByExample" resultClass="com.qlangtech.tis.ibatis.RowMap" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.WaitinginstanceinfoCriteria" >
+    select aa.waitinginstance_id AS waitinginstance_id
+<iterate property="cols" conjunction=","
+      prepend=",">$cols[].name$</iterate>
+     from ( select waitinginstance_id from waitinginstanceinfo 
+    <isParameterPresent >
+      <include refid="waitinginstanceinfo.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join waitinginstanceinfo aa on aa.waitinginstance_id=bb.waitinginstance_id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Waitinginstanceinfo" >
+    select waitinginstance_id, waitingorder_id, kind, kindmenu_id, kindmenu_name, name, menu_id,
+      make_id, makename, make_price, make_pricemode, spec_detail_name, spec_detail_id,
+      spec_pricemode, spec_detail_price, num, account_num, unit, account_unit, memo, original_price,
+      price, member_price, fee, is_ratio, taste, ratio, ratio_fee, is_backauth, parent_id,
+      price_mode, child_id, service_feemode, service_fee, status, error_msg, entity_id, is_valid,
+      create_time, op_time, last_ver, batch_msg, type, addition_price, ext
+    from waitinginstanceinfo
+    where waitinginstance_id = #waitinginstanceId:VARCHAR#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Waitinginstanceinfo" >
+    delete from waitinginstanceinfo
+    where waitinginstance_id = #waitinginstanceId:VARCHAR#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.WaitinginstanceinfoCriteria" >
+    delete from waitinginstanceinfo
+    <include refid="waitinginstanceinfo.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Waitinginstanceinfo" >
+    insert into waitinginstanceinfo (waitinginstance_id, waitingorder_id, kind, kindmenu_id,
+      kindmenu_name, name, menu_id, make_id, makename, make_price, make_pricemode, spec_detail_name,
+      spec_detail_id, spec_pricemode, spec_detail_price, num, account_num, unit, account_unit, memo,
+      original_price, price, member_price, fee, is_ratio, taste, ratio, ratio_fee, is_backauth,
+      parent_id, price_mode, child_id, service_feemode, service_fee, status, error_msg, entity_id,
+      is_valid, create_time, op_time, last_ver, batch_msg, type, addition_price, ext)
+    values (#waitinginstanceId:VARCHAR#, #waitingorderId:VARCHAR#, #kind:SMALLINT#,
+      #kindmenuId:VARCHAR#, #kindmenuName:VARCHAR#, #name:VARCHAR#, #menuId:VARCHAR#,
+      #makeId:VARCHAR#, #makename:VARCHAR#, #makePrice:DECIMAL#, #makePricemode:SMALLINT#,
+      #specDetailName:VARCHAR#, #specDetailId:VARCHAR#, #specPricemode:SMALLINT#,
+      #specDetailPrice:DECIMAL#, #num:DECIMAL#, #accountNum:DECIMAL#, #unit:VARCHAR#,
+      #accountUnit:VARCHAR#, #memo:VARCHAR#, #originalPrice:DECIMAL#, #price:DECIMAL#,
+      #memberPrice:DECIMAL#, #fee:DECIMAL#, #isRatio:SMALLINT#, #taste:VARCHAR#, #ratio:DECIMAL#,
+      #ratioFee:DECIMAL#, #isBackauth:SMALLINT#, #parentId:VARCHAR#, #priceMode:SMALLINT#,
+      #childId:VARCHAR#, #serviceFeemode:SMALLINT#, #serviceFee:DECIMAL#, #status:SMALLINT#,
+      #errorMsg:VARCHAR#, #entityId:VARCHAR#, #isValid:SMALLINT#, #createTime:BIGINT#,
+      #opTime:BIGINT#, #lastVer:BIGINT#, #batchMsg:VARCHAR#, #type:SMALLINT#,
+      #additionPrice:DECIMAL#, #ext:LONGVARCHAR#)
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Waitinginstanceinfo" >
+    insert into waitinginstanceinfo
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="waitinginstanceId" >
+        waitinginstance_id
+      </isNotNull>
+      <isNotNull prepend="," property="waitingorderId" >
+        waitingorder_id
+      </isNotNull>
+      <isNotNull prepend="," property="kind" >
+        kind
+      </isNotNull>
+      <isNotNull prepend="," property="kindmenuId" >
+        kindmenu_id
+      </isNotNull>
+      <isNotNull prepend="," property="kindmenuName" >
+        kindmenu_name
+      </isNotNull>
+      <isNotNull prepend="," property="name" >
+        name
+      </isNotNull>
+      <isNotNull prepend="," property="menuId" >
+        menu_id
+      </isNotNull>
+      <isNotNull prepend="," property="makeId" >
+        make_id
+      </isNotNull>
+      <isNotNull prepend="," property="makename" >
+        makename
+      </isNotNull>
+      <isNotNull prepend="," property="makePrice" >
+        make_price
+      </isNotNull>
+      <isNotNull prepend="," property="makePricemode" >
+        make_pricemode
+      </isNotNull>
+      <isNotNull prepend="," property="specDetailName" >
+        spec_detail_name
+      </isNotNull>
+      <isNotNull prepend="," property="specDetailId" >
+        spec_detail_id
+      </isNotNull>
+      <isNotNull prepend="," property="specPricemode" >
+        spec_pricemode
+      </isNotNull>
+      <isNotNull prepend="," property="specDetailPrice" >
+        spec_detail_price
+      </isNotNull>
+      <isNotNull prepend="," property="num" >
+        num
+      </isNotNull>
+      <isNotNull prepend="," property="accountNum" >
+        account_num
+      </isNotNull>
+      <isNotNull prepend="," property="unit" >
+        unit
+      </isNotNull>
+      <isNotNull prepend="," property="accountUnit" >
+        account_unit
+      </isNotNull>
+      <isNotNull prepend="," property="memo" >
+        memo
+      </isNotNull>
+      <isNotNull prepend="," property="originalPrice" >
+        original_price
+      </isNotNull>
+      <isNotNull prepend="," property="price" >
+        price
+      </isNotNull>
+      <isNotNull prepend="," property="memberPrice" >
+        member_price
+      </isNotNull>
+      <isNotNull prepend="," property="fee" >
+        fee
+      </isNotNull>
+      <isNotNull prepend="," property="isRatio" >
+        is_ratio
+      </isNotNull>
+      <isNotNull prepend="," property="taste" >
+        taste
+      </isNotNull>
+      <isNotNull prepend="," property="ratio" >
+        ratio
+      </isNotNull>
+      <isNotNull prepend="," property="ratioFee" >
+        ratio_fee
+      </isNotNull>
+      <isNotNull prepend="," property="isBackauth" >
+        is_backauth
+      </isNotNull>
+      <isNotNull prepend="," property="parentId" >
+        parent_id
+      </isNotNull>
+      <isNotNull prepend="," property="priceMode" >
+        price_mode
+      </isNotNull>
+      <isNotNull prepend="," property="childId" >
+        child_id
+      </isNotNull>
+      <isNotNull prepend="," property="serviceFeemode" >
+        service_feemode
+      </isNotNull>
+      <isNotNull prepend="," property="serviceFee" >
+        service_fee
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        status
+      </isNotNull>
+      <isNotNull prepend="," property="errorMsg" >
+        error_msg
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        entity_id
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        is_valid
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        op_time
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        last_ver
+      </isNotNull>
+      <isNotNull prepend="," property="batchMsg" >
+        batch_msg
+      </isNotNull>
+      <isNotNull prepend="," property="type" >
+        type
+      </isNotNull>
+      <isNotNull prepend="," property="additionPrice" >
+        addition_price
+      </isNotNull>
+      <isNotNull prepend="," property="ext" >
+        ext
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="waitinginstanceId" >
+        #waitinginstanceId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="waitingorderId" >
+        #waitingorderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="kind" >
+        #kind:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="kindmenuId" >
+        #kindmenuId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="kindmenuName" >
+        #kindmenuName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="name" >
+        #name:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="menuId" >
+        #menuId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="makeId" >
+        #makeId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="makename" >
+        #makename:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="makePrice" >
+        #makePrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="makePricemode" >
+        #makePricemode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="specDetailName" >
+        #specDetailName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="specDetailId" >
+        #specDetailId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="specPricemode" >
+        #specPricemode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="specDetailPrice" >
+        #specDetailPrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="num" >
+        #num:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="accountNum" >
+        #accountNum:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="unit" >
+        #unit:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="accountUnit" >
+        #accountUnit:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="memo" >
+        #memo:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="originalPrice" >
+        #originalPrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="price" >
+        #price:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="memberPrice" >
+        #memberPrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="fee" >
+        #fee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="isRatio" >
+        #isRatio:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="taste" >
+        #taste:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="ratio" >
+        #ratio:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="ratioFee" >
+        #ratioFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="isBackauth" >
+        #isBackauth:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="parentId" >
+        #parentId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="priceMode" >
+        #priceMode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="childId" >
+        #childId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="serviceFeemode" >
+        #serviceFeemode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="serviceFee" >
+        #serviceFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        #status:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="errorMsg" >
+        #errorMsg:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        #entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        #isValid:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        #opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        #lastVer:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="batchMsg" >
+        #batchMsg:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="type" >
+        #type:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="additionPrice" >
+        #additionPrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="ext" >
+        #ext:LONGVARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.WaitinginstanceinfoCriteria" resultClass="java.lang.Integer" >
+    select count(*) from waitinginstanceinfo
+    <include refid="waitinginstanceinfo.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    update waitinginstanceinfo
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.waitinginstanceId" >
+        waitinginstance_id = #record.waitinginstanceId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.waitingorderId" >
+        waitingorder_id = #record.waitingorderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.kind" >
+        kind = #record.kind:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.kindmenuId" >
+        kindmenu_id = #record.kindmenuId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.kindmenuName" >
+        kindmenu_name = #record.kindmenuName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.name" >
+        name = #record.name:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.menuId" >
+        menu_id = #record.menuId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.makeId" >
+        make_id = #record.makeId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.makename" >
+        makename = #record.makename:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.makePrice" >
+        make_price = #record.makePrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.makePricemode" >
+        make_pricemode = #record.makePricemode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.specDetailName" >
+        spec_detail_name = #record.specDetailName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.specDetailId" >
+        spec_detail_id = #record.specDetailId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.specPricemode" >
+        spec_pricemode = #record.specPricemode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.specDetailPrice" >
+        spec_detail_price = #record.specDetailPrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.num" >
+        num = #record.num:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.accountNum" >
+        account_num = #record.accountNum:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.unit" >
+        unit = #record.unit:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.accountUnit" >
+        account_unit = #record.accountUnit:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.memo" >
+        memo = #record.memo:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.originalPrice" >
+        original_price = #record.originalPrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.price" >
+        price = #record.price:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.memberPrice" >
+        member_price = #record.memberPrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.fee" >
+        fee = #record.fee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isRatio" >
+        is_ratio = #record.isRatio:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.taste" >
+        taste = #record.taste:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ratio" >
+        ratio = #record.ratio:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ratioFee" >
+        ratio_fee = #record.ratioFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isBackauth" >
+        is_backauth = #record.isBackauth:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.parentId" >
+        parent_id = #record.parentId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.priceMode" >
+        price_mode = #record.priceMode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.childId" >
+        child_id = #record.childId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.serviceFeemode" >
+        service_feemode = #record.serviceFeemode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.serviceFee" >
+        service_fee = #record.serviceFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.status" >
+        status = #record.status:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.errorMsg" >
+        error_msg = #record.errorMsg:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.entityId" >
+        entity_id = #record.entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isValid" >
+        is_valid = #record.isValid:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.createTime" >
+        create_time = #record.createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.opTime" >
+        op_time = #record.opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.lastVer" >
+        last_ver = #record.lastVer:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.batchMsg" >
+        batch_msg = #record.batchMsg:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.type" >
+        type = #record.type:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.additionPrice" >
+        addition_price = #record.additionPrice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ext" >
+        ext = #record.ext:LONGVARCHAR#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="waitinginstanceinfo.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExampleWithBLOBs" >
+    update waitinginstanceinfo
+    set waitinginstance_id = #record.waitinginstanceId:VARCHAR#,
+      waitingorder_id = #record.waitingorderId:VARCHAR#,
+      kind = #record.kind:SMALLINT#,
+      kindmenu_id = #record.kindmenuId:VARCHAR#,
+      kindmenu_name = #record.kindmenuName:VARCHAR#,
+      name = #record.name:VARCHAR#,
+      menu_id = #record.menuId:VARCHAR#,
+      make_id = #record.makeId:VARCHAR#,
+      makename = #record.makename:VARCHAR#,
+      make_price = #record.makePrice:DECIMAL#,
+      make_pricemode = #record.makePricemode:SMALLINT#,
+      spec_detail_name = #record.specDetailName:VARCHAR#,
+      spec_detail_id = #record.specDetailId:VARCHAR#,
+      spec_pricemode = #record.specPricemode:SMALLINT#,
+      spec_detail_price = #record.specDetailPrice:DECIMAL#,
+      num = #record.num:DECIMAL#,
+      account_num = #record.accountNum:DECIMAL#,
+      unit = #record.unit:VARCHAR#,
+      account_unit = #record.accountUnit:VARCHAR#,
+      memo = #record.memo:VARCHAR#,
+      original_price = #record.originalPrice:DECIMAL#,
+      price = #record.price:DECIMAL#,
+      member_price = #record.memberPrice:DECIMAL#,
+      fee = #record.fee:DECIMAL#,
+      is_ratio = #record.isRatio:SMALLINT#,
+      taste = #record.taste:VARCHAR#,
+      ratio = #record.ratio:DECIMAL#,
+      ratio_fee = #record.ratioFee:DECIMAL#,
+      is_backauth = #record.isBackauth:SMALLINT#,
+      parent_id = #record.parentId:VARCHAR#,
+      price_mode = #record.priceMode:SMALLINT#,
+      child_id = #record.childId:VARCHAR#,
+      service_feemode = #record.serviceFeemode:SMALLINT#,
+      service_fee = #record.serviceFee:DECIMAL#,
+      status = #record.status:SMALLINT#,
+      error_msg = #record.errorMsg:VARCHAR#,
+      entity_id = #record.entityId:VARCHAR#,
+      is_valid = #record.isValid:SMALLINT#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      last_ver = #record.lastVer:BIGINT#,
+      batch_msg = #record.batchMsg:VARCHAR#,
+      type = #record.type:SMALLINT#,
+      addition_price = #record.additionPrice:DECIMAL#,
+      ext = #record.ext:LONGVARCHAR#
+    <isParameterPresent >
+      <include refid="waitinginstanceinfo.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    update waitinginstanceinfo
+    set waitinginstance_id = #record.waitinginstanceId:VARCHAR#,
+      waitingorder_id = #record.waitingorderId:VARCHAR#,
+      kind = #record.kind:SMALLINT#,
+      kindmenu_id = #record.kindmenuId:VARCHAR#,
+      kindmenu_name = #record.kindmenuName:VARCHAR#,
+      name = #record.name:VARCHAR#,
+      menu_id = #record.menuId:VARCHAR#,
+      make_id = #record.makeId:VARCHAR#,
+      makename = #record.makename:VARCHAR#,
+      make_price = #record.makePrice:DECIMAL#,
+      make_pricemode = #record.makePricemode:SMALLINT#,
+      spec_detail_name = #record.specDetailName:VARCHAR#,
+      spec_detail_id = #record.specDetailId:VARCHAR#,
+      spec_pricemode = #record.specPricemode:SMALLINT#,
+      spec_detail_price = #record.specDetailPrice:DECIMAL#,
+      num = #record.num:DECIMAL#,
+      account_num = #record.accountNum:DECIMAL#,
+      unit = #record.unit:VARCHAR#,
+      account_unit = #record.accountUnit:VARCHAR#,
+      memo = #record.memo:VARCHAR#,
+      original_price = #record.originalPrice:DECIMAL#,
+      price = #record.price:DECIMAL#,
+      member_price = #record.memberPrice:DECIMAL#,
+      fee = #record.fee:DECIMAL#,
+      is_ratio = #record.isRatio:SMALLINT#,
+      taste = #record.taste:VARCHAR#,
+      ratio = #record.ratio:DECIMAL#,
+      ratio_fee = #record.ratioFee:DECIMAL#,
+      is_backauth = #record.isBackauth:SMALLINT#,
+      parent_id = #record.parentId:VARCHAR#,
+      price_mode = #record.priceMode:SMALLINT#,
+      child_id = #record.childId:VARCHAR#,
+      service_feemode = #record.serviceFeemode:SMALLINT#,
+      service_fee = #record.serviceFee:DECIMAL#,
+      status = #record.status:SMALLINT#,
+      error_msg = #record.errorMsg:VARCHAR#,
+      entity_id = #record.entityId:VARCHAR#,
+      is_valid = #record.isValid:SMALLINT#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      last_ver = #record.lastVer:BIGINT#,
+      batch_msg = #record.batchMsg:VARCHAR#,
+      type = #record.type:SMALLINT#,
+      addition_price = #record.additionPrice:DECIMAL#
+    <isParameterPresent >
+      <include refid="waitinginstanceinfo.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+    <luceneMatchVersion>7.6.0</luceneMatchVersion>
+    <dataDir>./data</dataDir>
+    <directoryFactory name="DirectoryFactory"
+                      class="solr.NRTCachingDirectoryFactory">
+    </directoryFactory>
+    <codecFactory class="solr.SchemaCodecFactory"/>
+
+    <schemaFactory class="ClassicIndexSchemaFactory"/>
+    <indexConfig>
+        <lockType>native</lockType>
+        <infoStream>true</infoStream>
+    </indexConfig>
+
+    <updateHandler class="solr.DirectUpdateHandler2">
+
+        <updateLog>
+            <str name="dir">tlog</str>
+        </updateLog>
+
+        <autoCommit>
+            <maxTime>35000</maxTime>
+            <openSearcher>false</openSearcher>
+        </autoCommit>
+
+
+        <autoSoftCommit>
+            <maxTime>2000</maxTime>
+        </autoSoftCommit>
+
+
+    </updateHandler>
+
+
+    <query>
+
+        <maxBooleanClauses>1024</maxBooleanClauses>
+
+
+        <filterCache class="solr.FastLRUCache" size="512"
+                     initialSize="512" autowarmCount="0"/>
+
+
+        <queryResultCache class="solr.LRUCache" size="512"
+                          initialSize="512" autowarmCount="0"/>
+
+        <documentCache class="solr.LRUCache" size="512"
+                       initialSize="512" autowarmCount="0"/>
+
+
+        <cache name="perSegFilter" class="solr.search.LRUCache" size="10"
+               initialSize="0" autowarmCount="10" regenerator="solr.NoOpRegenerator"/>
+
+        <enableLazyFieldLoading>true</enableLazyFieldLoading>
+
+
+        <queryResultWindowSize>20</queryResultWindowSize>
+
+
+        <queryResultMaxDocsCached>200</queryResultMaxDocsCached>
+
+        <listener event="newSearcher" class="solr.QuerySenderListener">
+            <arr name="queries">
+            </arr>
+        </listener>
+        <listener event="firstSearcher" class="solr.QuerySenderListener">
+            <arr name="queries">
+                <lst>
+                    <str name="q">static firstSearcher warming in solrconfig.xml</str>
+                </lst>
+            </arr>
+        </listener>
+
+
+        <useColdSearcher>false</useColdSearcher>
+
+
+        <maxWarmingSearchers>2</maxWarmingSearchers>
+
+    </query>
+
+
+    <requestDispatcher handleSelect="false">
+
+        <requestParsers enableRemoteStreaming="true"
+                        multipartUploadLimitInKB="2048000" formdataUploadLimitInKB="2048"
+                        addHttpRequestToContext="false"/>
+
+
+        <httpCaching never304="true"/>
+
+    </requestDispatcher>
+
+
+    <requestHandler name="/select" class="solr.SearchHandler">
+
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <int name="rows">10</int>
+            <str name="df">text</str>
+        </lst>
+
+    </requestHandler>
+
+    <!-- A request handler that returns indented JSON by default -->
+    <requestHandler name="/query" class="solr.SearchHandler">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <str name="wt">json</str>
+            <str name="indent">true</str>
+            <str name="df">text</str>
+        </lst>
+    </requestHandler>
+
+
+    <requestHandler name="/browse" class="solr.SearchHandler">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+
+            <!-- VelocityResponseWriter settings -->
+            <str name="wt">velocity</str>
+            <str name="v.template">browse</str>
+            <str name="v.layout">layout</str>
+
+            <!-- Query settings -->
+            <str name="defType">edismax</str>
+            <str name="q.alt">*:*</str>
+            <str name="rows">10</str>
+            <str name="fl">*,score</str>
+
+            <!-- Faceting defaults -->
+            <str name="facet">on</str>
+            <str name="facet.mincount">1</str>
+        </lst>
+    </requestHandler>
+
+
+    <initParams path="/update/**,/query,/select,/tvrh,/elevate,/spell,/browse">
+        <lst name="defaults">
+            <str name="df">text</str>
+        </lst>
+    </initParams>
+
+
+    <requestHandler name="/update/extract" startup="lazy"
+                    class="solr.extraction.ExtractingRequestHandler">
+        <lst name="defaults">
+            <str name="lowernames">true</str>
+            <str name="uprefix">ignored_</str>
+
+            <!-- capture link hrefs but ignore div attributes -->
+            <str name="captureAttr">true</str>
+            <str name="fmap.a">links</str>
+            <str name="fmap.div">ignored_</str>
+        </lst>
+    </requestHandler>
+
+
+    <requestHandler name="/analysis/field" startup="lazy"
+                    class="solr.FieldAnalysisRequestHandler"/>
+
+
+    <requestHandler name="/analysis/document"
+                    class="solr.DocumentAnalysisRequestHandler" startup="lazy"/>
+
+
+    <requestHandler name="/debug/dump" class="solr.DumpRequestHandler">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <str name="echoHandler">true</str>
+        </lst>
+    </requestHandler>
+
+
+    <admin>
+        <defaultQuery>*:*</defaultQuery>
+    </admin>
+
+</config>

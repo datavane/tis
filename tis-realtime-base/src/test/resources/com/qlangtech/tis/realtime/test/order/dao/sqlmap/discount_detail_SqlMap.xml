@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="discount_detail" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetail" >
+    <result column="id" property="id" jdbcType="VARCHAR" />
+    <result column="instance_id" property="instanceId" jdbcType="VARCHAR" />
+    <result column="order_id" property="orderId" jdbcType="VARCHAR" />
+    <result column="discount_id" property="discountId" jdbcType="VARCHAR" />
+    <result column="discount_name" property="discountName" jdbcType="VARCHAR" />
+    <result column="discount_type" property="discountType" jdbcType="INTEGER" />
+    <result column="discount_sub_type" property="discountSubType" jdbcType="INTEGER" />
+    <result column="discount_fee" property="discountFee" jdbcType="DECIMAL" />
+    <result column="discount_ratio" property="discountRatio" jdbcType="DECIMAL" />
+    <result column="order_discount_fee" property="orderDiscountFee" jdbcType="DECIMAL" />
+    <result column="ratio_fee" property="ratioFee" jdbcType="DECIMAL" />
+    <result column="origin_fee" property="originFee" jdbcType="DECIMAL" />
+    <result column="entity_id" property="entityId" jdbcType="VARCHAR" />
+    <result column="last_ver" property="lastVer" jdbcType="INTEGER" />
+    <result column="is_valid" property="isValid" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="op_time" property="opTime" jdbcType="BIGINT" />
+    <result column="op_user_id" property="opUserId" jdbcType="VARCHAR" />
+    <result column="activity_id" property="activityId" jdbcType="VARCHAR" />
+    <result column="load_time" property="loadTime" jdbcType="INTEGER" />
+    <result column="modify_time" property="modifyTime" jdbcType="INTEGER" />
+    <result column="order_promotion_id" property="orderPromotionId" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetail" extends="discount_detail.ibatorgenerated_BaseResultMap" >
+    <result column="ext" property="ext" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExampleWithBLOBs" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetailCriteria" >
+    select id, instance_id, order_id, discount_id, discount_name, discount_type, discount_sub_type,
+      discount_fee, discount_ratio, order_discount_fee, ratio_fee, origin_fee, entity_id, last_ver,
+      is_valid, create_time, op_time, op_user_id, activity_id, load_time, modify_time,
+      order_promotion_id, ext
+    from discount_detail
+    <isParameterPresent >
+      <include refid="discount_detail.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+    </isParameterPresent>
+  </select>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetailCriteria" >
+    select aa.id AS idinstance_id, order_id, discount_id, discount_name, discount_type,
+      discount_sub_type, discount_fee, discount_ratio, order_discount_fee, ratio_fee, origin_fee,
+      entity_id, last_ver, is_valid, create_time, op_time, op_user_id, activity_id, load_time,
+      modify_time, order_promotion_id
+     from ( select id from discount_detail 
+    <isParameterPresent >
+      <include refid="discount_detail.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join discount_detail aa on aa.id=bb.id
+  </select>
+  <select id="ibatorgenerated_selectTargetColsByExample" resultClass="com.qlangtech.tis.ibatis.RowMap" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetailCriteria" >
+    select aa.id AS id
+<iterate property="cols" conjunction="," prepend=",">$cols[].name$</iterate>
+     from ( select id from discount_detail 
+    <isParameterPresent >
+      <include refid="discount_detail.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join discount_detail aa on aa.id=bb.id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetail" >
+    select id, instance_id, order_id, discount_id, discount_name, discount_type, discount_sub_type,
+      discount_fee, discount_ratio, order_discount_fee, ratio_fee, origin_fee, entity_id, last_ver,
+      is_valid, create_time, op_time, op_user_id, activity_id, load_time, modify_time,
+      order_promotion_id, ext
+    from discount_detail
+    where id = #id:VARCHAR#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetail" >
+    delete from discount_detail
+    where id = #id:VARCHAR#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetailCriteria" >
+    delete from discount_detail
+    <include refid="discount_detail.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetail" >
+    insert into discount_detail (id, instance_id, order_id, discount_id, discount_name,
+      discount_type, discount_sub_type, discount_fee, discount_ratio, order_discount_fee, ratio_fee,
+      origin_fee, entity_id, last_ver, is_valid, create_time, op_time, op_user_id, activity_id,
+      load_time, modify_time, order_promotion_id, ext)
+    values (#id:VARCHAR#, #instanceId:VARCHAR#, #orderId:VARCHAR#, #discountId:VARCHAR#,
+      #discountName:VARCHAR#, #discountType:INTEGER#, #discountSubType:INTEGER#,
+      #discountFee:DECIMAL#, #discountRatio:DECIMAL#, #orderDiscountFee:DECIMAL#,
+      #ratioFee:DECIMAL#, #originFee:DECIMAL#, #entityId:VARCHAR#, #lastVer:INTEGER#,
+      #isValid:INTEGER#, #createTime:BIGINT#, #opTime:BIGINT#, #opUserId:VARCHAR#,
+      #activityId:VARCHAR#, #loadTime:INTEGER#, #modifyTime:INTEGER#, #orderPromotionId:VARCHAR#,
+      #ext:LONGVARCHAR#)
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetail" >
+    insert into discount_detail
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="instanceId" >
+        instance_id
+      </isNotNull>
+      <isNotNull prepend="," property="orderId" >
+        order_id
+      </isNotNull>
+      <isNotNull prepend="," property="discountId" >
+        discount_id
+      </isNotNull>
+      <isNotNull prepend="," property="discountName" >
+        discount_name
+      </isNotNull>
+      <isNotNull prepend="," property="discountType" >
+        discount_type
+      </isNotNull>
+      <isNotNull prepend="," property="discountSubType" >
+        discount_sub_type
+      </isNotNull>
+      <isNotNull prepend="," property="discountFee" >
+        discount_fee
+      </isNotNull>
+      <isNotNull prepend="," property="discountRatio" >
+        discount_ratio
+      </isNotNull>
+      <isNotNull prepend="," property="orderDiscountFee" >
+        order_discount_fee
+      </isNotNull>
+      <isNotNull prepend="," property="ratioFee" >
+        ratio_fee
+      </isNotNull>
+      <isNotNull prepend="," property="originFee" >
+        origin_fee
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        entity_id
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        last_ver
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        is_valid
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        op_time
+      </isNotNull>
+      <isNotNull prepend="," property="opUserId" >
+        op_user_id
+      </isNotNull>
+      <isNotNull prepend="," property="activityId" >
+        activity_id
+      </isNotNull>
+      <isNotNull prepend="," property="loadTime" >
+        load_time
+      </isNotNull>
+      <isNotNull prepend="," property="modifyTime" >
+        modify_time
+      </isNotNull>
+      <isNotNull prepend="," property="orderPromotionId" >
+        order_promotion_id
+      </isNotNull>
+      <isNotNull prepend="," property="ext" >
+        ext
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="instanceId" >
+        #instanceId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="orderId" >
+        #orderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="discountId" >
+        #discountId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="discountName" >
+        #discountName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="discountType" >
+        #discountType:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="discountSubType" >
+        #discountSubType:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="discountFee" >
+        #discountFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="discountRatio" >
+        #discountRatio:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="orderDiscountFee" >
+        #orderDiscountFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="ratioFee" >
+        #ratioFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="originFee" >
+        #originFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        #entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        #lastVer:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        #isValid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        #opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="opUserId" >
+        #opUserId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="activityId" >
+        #activityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="loadTime" >
+        #loadTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="modifyTime" >
+        #modifyTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="orderPromotionId" >
+        #orderPromotionId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="ext" >
+        #ext:LONGVARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.DiscountDetailCriteria" resultClass="java.lang.Integer" >
+    select count(*) from discount_detail
+    <include refid="discount_detail.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    update discount_detail
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.id" >
+        id = #record.id:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.instanceId" >
+        instance_id = #record.instanceId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.orderId" >
+        order_id = #record.orderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountId" >
+        discount_id = #record.discountId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountName" >
+        discount_name = #record.discountName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountType" >
+        discount_type = #record.discountType:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountSubType" >
+        discount_sub_type = #record.discountSubType:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountFee" >
+        discount_fee = #record.discountFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountRatio" >
+        discount_ratio = #record.discountRatio:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.orderDiscountFee" >
+        order_discount_fee = #record.orderDiscountFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ratioFee" >
+        ratio_fee = #record.ratioFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.originFee" >
+        origin_fee = #record.originFee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.entityId" >
+        entity_id = #record.entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.lastVer" >
+        last_ver = #record.lastVer:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isValid" >
+        is_valid = #record.isValid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.createTime" >
+        create_time = #record.createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.opTime" >
+        op_time = #record.opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.opUserId" >
+        op_user_id = #record.opUserId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.activityId" >
+        activity_id = #record.activityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.loadTime" >
+        load_time = #record.loadTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.modifyTime" >
+        modify_time = #record.modifyTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.orderPromotionId" >
+        order_promotion_id = #record.orderPromotionId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ext" >
+        ext = #record.ext:LONGVARCHAR#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="discount_detail.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExampleWithBLOBs" >
+    update discount_detail
+    set id = #record.id:VARCHAR#,
+      instance_id = #record.instanceId:VARCHAR#,
+      order_id = #record.orderId:VARCHAR#,
+      discount_id = #record.discountId:VARCHAR#,
+      discount_name = #record.discountName:VARCHAR#,
+      discount_type = #record.discountType:INTEGER#,
+      discount_sub_type = #record.discountSubType:INTEGER#,
+      discount_fee = #record.discountFee:DECIMAL#,
+      discount_ratio = #record.discountRatio:DECIMAL#,
+      order_discount_fee = #record.orderDiscountFee:DECIMAL#,
+      ratio_fee = #record.ratioFee:DECIMAL#,
+      origin_fee = #record.originFee:DECIMAL#,
+      entity_id = #record.entityId:VARCHAR#,
+      last_ver = #record.lastVer:INTEGER#,
+      is_valid = #record.isValid:INTEGER#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      op_user_id = #record.opUserId:VARCHAR#,
+      activity_id = #record.activityId:VARCHAR#,
+      load_time = #record.loadTime:INTEGER#,
+      modify_time = #record.modifyTime:INTEGER#,
+      order_promotion_id = #record.orderPromotionId:VARCHAR#,
+      ext = #record.ext:LONGVARCHAR#
+    <isParameterPresent >
+      <include refid="discount_detail.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    update discount_detail
+    set id = #record.id:VARCHAR#,
+      instance_id = #record.instanceId:VARCHAR#,
+      order_id = #record.orderId:VARCHAR#,
+      discount_id = #record.discountId:VARCHAR#,
+      discount_name = #record.discountName:VARCHAR#,
+      discount_type = #record.discountType:INTEGER#,
+      discount_sub_type = #record.discountSubType:INTEGER#,
+      discount_fee = #record.discountFee:DECIMAL#,
+      discount_ratio = #record.discountRatio:DECIMAL#,
+      order_discount_fee = #record.orderDiscountFee:DECIMAL#,
+      ratio_fee = #record.ratioFee:DECIMAL#,
+      origin_fee = #record.originFee:DECIMAL#,
+      entity_id = #record.entityId:VARCHAR#,
+      last_ver = #record.lastVer:INTEGER#,
+      is_valid = #record.isValid:INTEGER#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      op_user_id = #record.opUserId:VARCHAR#,
+      activity_id = #record.activityId:VARCHAR#,
+      load_time = #record.loadTime:INTEGER#,
+      modify_time = #record.modifyTime:INTEGER#,
+      order_promotion_id = #record.orderPromotionId:VARCHAR#
+    <isParameterPresent >
+      <include refid="discount_detail.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

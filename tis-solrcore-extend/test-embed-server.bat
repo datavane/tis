@@ -1,0 +1,1 @@
+mvn  test -Dtest=TestEmbeddedSolrServer -DargLine="-Dconfig.load.local=true -Xrunjdwp:transport=dt_socket,address=9990,suspend=n,server=y"

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false">
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<target>System.out</target>
+		<encoding>${loggingCharset}</encoding>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern>
+		</layout>
+	</appender>
+
+	<appender name="tis"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/tis.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-tis.log</fileNamePattern>
+			<maxHistory>15</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{32}:%L- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+	<root>
+		<level value="ERROR" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="tis" />
+	</root>
+
+</configuration>

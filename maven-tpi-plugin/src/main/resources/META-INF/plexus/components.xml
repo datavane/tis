@@ -1,0 +1,61 @@
+<component-set>
+    <!-- this defines a custom life cycle for .hpi -->
+    <components>
+        <!-- Jenkins plugin -->
+        <component>
+            <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+            <role-hint>tpi</role-hint>
+            <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+            <configuration>
+                <lifecycles>
+                    <lifecycle>
+                        <id>default</id>
+                        <phases>
+                            <!--
+                            <validate>org.jenkins-ci.tools:maven-hpi-plugin:validate</validate>
+                            -->
+                            <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources
+                            </process-resources>
+                            <compile>org.apache.maven.plugins:maven-compiler-plugin:compile</compile>
+
+                            <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources
+                            </process-test-resources>
+                            <!--
+                            <generate-test-sources>org.jenkins-ci.tools:maven-hpi-plugin:insert-test
+                            </generate-test-sources>
+                            -->
+
+                            <test-compile>
+                                org.apache.maven.plugins:maven-compiler-plugin:testCompile
+                            </test-compile>
+                            <!--
+                            <test-compile>
+                                org.apache.maven.plugins:maven-compiler-plugin:testCompile,org.jenkins-ci.tools:maven-hpi-plugin:test-hpl,org.jenkins-ci.tools:maven-hpi-plugin:resolve-test-dependencies
+                            </test-compile>
+                            -->
+                            <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
+                            <package>com.qlangtech.tis:maven-tpi-plugin:tpi</package>
+                            <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+                            <!--
+                            <deploy>com.qlangtech.tis:tis-plugin-deploy-maven-plugin:deploy</deploy>
+                            -->
+                            <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+                        </phases>
+                    </lifecycle>
+                </lifecycles>
+            </configuration>
+        </component>
+        <component>
+            <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+            <role-hint>tpi</role-hint>
+            <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+            <configuration>
+                <extension>tpi</extension>
+                <type>tis-plugin</type>
+                <packaging>tpi</packaging>
+                <language>java</language>
+                <addedToClasspath>true</addedToClasspath>
+            </configuration>
+        </component>
+    </components>
+</component-set>

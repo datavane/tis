@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<com.qlangtech.tis.plugin.CollectionPluginStore>
+  <plugins>
+    <com.qlangtech.async.message.client.consumer.RocketMQListenerFactory plugin="tis-asyncmsg-rocketmq-plugin@saturn-1.0.0-SNAPSHOT">
+      <consumeName>test</consumeName>
+      <mqTopic>test</mqTopic>
+      <namesrvAddr>127.0.0.1:8080</namesrvAddr>
+      <deserialize class="com.qlangtech.async.message.client.to.impl.HessianDeserialize" plugin="tis-asyncmsg-rocketmq-plugin@saturn-1.0.0-SNAPSHOT"/>
+      <consumerHandle>default</consumerHandle>
+    </com.qlangtech.async.message.client.consumer.RocketMQListenerFactory>
+  </plugins>
+  <serializeFileName>search4totalpay/com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory</serializeFileName>
+</com.qlangtech.tis.plugin.CollectionPluginStore>

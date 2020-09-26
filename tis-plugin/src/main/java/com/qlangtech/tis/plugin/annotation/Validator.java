@@ -1,0 +1,276 @@
+/**
+ * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *
+ * This program is free software: you can use, redistribute, and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3
+ * or later ("AGPL"), as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.qlangtech.tis.plugin.annotation;
+
+import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.qlangtech.tis.plugin.ValidatorCommons;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+
+/**
+ * @author 百岁（baisui@qlangtech.com）
+ * @date 2020/04/13
+ */
+public enum Validator {
+
+    require((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isBlank(fieldData)) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+            return false;
+        }
+        return true;
+    }),
+    // 
+    identity((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.pattern_identity.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_IDENTITY_ERROR);
+            return false;
+        }
+        return true;
+    }),
+    // 
+    integer((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.pattern_integer.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_INTEGER_ERROR);
+            return false;
+        }
+        return true;
+    }),
+    // 
+    host((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.host_pattern.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_HOST_IP_ERROR);
+            return false;
+        }
+        return true;
+    }),
+    // 
+    url((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.PATTERN_URL.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_URL_ERROR);
+            return false;
+        }
+        return true;
+    });
+
+    private final IFieldValidator fieldValidator;
+
+    public static final String FORM_ERROR_SUMMARY = "提交表单内容有错误";
+
+    /**
+     * @param msgHandler
+     * @param context
+     * @param fieldKey
+     * @param fieldData
+     * @return false 校验失败
+     */
+    public boolean validate(// 
+    IFieldErrorHandler msgHandler, // 
+    Context context, String fieldKey, String fieldData) {
+        return this.fieldValidator.validate(msgHandler, context, fieldKey, fieldData);
+    }
+
+    /**
+     * 开始校验
+     *
+     * @param handler
+     * @param context
+     * @param fieldKey
+     * @param
+     * @return
+     */
+    private static // 
+    FieldValidatorResult validate(// 
+    IControlMsgHandler handler, // 
+    Context context, String fieldKey, FieldValidators fvalidator) {
+        FieldValidatorResult fieldData = new FieldValidatorResult(handler.getString(fieldKey));
+        for (IFieldValidator v : fvalidator.validators) {
+            if (!v.validate(handler, context, fieldKey, fieldData.fieldData)) {
+                return fieldData.faild();
+            }
+        }
+        fvalidator.setFieldVal(fieldData.fieldData);
+        return fieldData.success();
+    }
+
+    /**
+     * String:fieldName , FieldValidators：利用现有的枚举校验规则 , IFieldValidator 自定义校验规则
+     * 构建form校验规则
+     *
+     * @param p
+     * @return
+     */
+    public static Map<String, FieldValidators> fieldsValidator(Object... p) {
+        // }
+        if (p.length < 1 || !(p[0] instanceof String)) {
+            throw new IllegalArgumentException();
+        }
+        String fieldName = null;
+        List<Object> rules = null;
+        Map<String, FieldValidators> result = Maps.newHashMap();
+        for (int i = 0; i < p.length; i++) {
+            if (p[i] instanceof String) {
+                if (fieldName != null) {
+                    processPreFieldValidateRule(result, fieldName, rules);
+                }
+                fieldName = (String) p[i];
+                rules = Lists.newArrayList();
+            // 开始定义一个新的Validator
+            // result.put(fieldName,fieldValidators);
+            } else {
+                // fieldValidators.validators
+                rules.add(p[i]);
+            }
+        // result.put((String) p[i], (FieldValidators) p[i + 1]);
+        }
+        processPreFieldValidateRule(result, fieldName, rules);
+        return result;
+    }
+
+    private static void processPreFieldValidateRule(Map<String, FieldValidators> result, String fieldName, List<Object> rules) {
+        if (StringUtils.isEmpty(fieldName)) {
+            throw new IllegalArgumentException("param fieldName can not be null");
+        }
+        if (CollectionUtils.isEmpty(rules)) {
+            throw new IllegalArgumentException("param rules can not be empty");
+        }
+        List<FieldValidators> validatContainer = rules.stream().filter((r) -> r instanceof FieldValidators).map((r) -> (FieldValidators) r).collect(Collectors.toList());
+        FieldValidators validator = null;
+        int validatContainerSize = validatContainer.size();
+        if (validatContainerSize == 1) {
+            validator = validatContainer.stream().findFirst().get();
+        } else if (validatContainerSize < 1) {
+            validator = new FieldValidators() {
+            };
+        } else {
+            throw new IllegalStateException("field:" + fieldName + " relevant rules must contain one 'FieldValidators' but now the size is " + validatContainer.size());
+        }
+        List<IFieldValidator> fieldValidators = rules.stream().filter((r) -> {
+            boolean isFieldValidator = false;
+            if (!((isFieldValidator = (r instanceof IFieldValidator)) || r instanceof FieldValidators)) {
+                throw new IllegalStateException("rule type:" + r.getClass() + " is not valid");
+            }
+            return isFieldValidator;
+        }).map((r) -> (IFieldValidator) r).collect(Collectors.toList());
+        validator.validators.addAll(fieldValidators);
+        result.put(fieldName, validator);
+    }
+
+    /**
+     * @param handler
+     * @param context
+     * @param fieldsValidator
+     * @return false: 失败
+     */
+    public static // 
+    boolean validate(// 
+    IControlMsgHandler handler, // 
+    Context context, Map<String, FieldValidators> fieldsValidator) {
+        String fieldKey = null;
+        FieldValidators fvalidator = null;
+        FieldValidatorResult vresult = null;
+        boolean faild = false;
+        for (Map.Entry<String, FieldValidators> entry : fieldsValidator.entrySet()) {
+            fieldKey = entry.getKey();
+            fvalidator = entry.getValue();
+            vresult = validate(handler, context, fieldKey, fvalidator);
+            if (!vresult.valid) {
+                faild = true;
+            }
+        }
+        if (faild) {
+            // 判断提交的plugin表单是否有错误？错误则退出
+            handler.addErrorMessage(context, FORM_ERROR_SUMMARY);
+        }
+        return !faild;
+    }
+
+    public abstract static class FieldValidators {
+
+        final List<IFieldValidator> validators = Lists.newArrayList();
+
+        public FieldValidators(Validator... validators) {
+            for (Validator validator : validators) {
+                this.validators.add(validator.fieldValidator);
+            }
+        }
+
+        public void setFieldVal(String val) {
+        }
+    }
+
+    public static class FieldValidatorResult {
+
+        public boolean valid;
+
+        public final String fieldData;
+
+        public FieldValidatorResult(String fieldData) {
+            this.fieldData = fieldData;
+        }
+
+        public FieldValidatorResult faild() {
+            this.valid = false;
+            return this;
+        }
+
+        public FieldValidatorResult success() {
+            this.valid = true;
+            return this;
+        }
+    }
+
+    private Validator(IFieldValidator fv) {
+        this.fieldValidator = fv;
+    }
+
+    public interface IFieldValidator {
+
+        /**
+         * @param msgHandler
+         * @param context
+         * @param fieldKey
+         * @param fieldData
+         * @return false：校验失败有错误
+         */
+        boolean validate(// 
+        IFieldErrorHandler msgHandler, // 
+        Context context, String fieldKey, String fieldData);
+    }
+}

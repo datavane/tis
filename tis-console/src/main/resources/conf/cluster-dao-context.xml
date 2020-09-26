@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans>
+	<!-- cluster status -->
+	<bean id="clusterSnapshotDAO"
+		class="com.qlangtech.tis.manage.biz.dal.dao.impl.ClusterSnapshotDAOImpl"
+		parent="clusterDAO" />
+
+
+
+	<bean id="clusterDAO"
+		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
+		abstract="true">
+		<property name="dataSource" ref="endSearchDatasource" />
+		<property name="sqlMapClient">
+			<bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+				<property name="configLocation" value="classpath:/conf/cluster-sqlmap-config.xml" />
+			</bean>
+		</property>
+	</bean>
+</beans>

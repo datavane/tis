@@ -1,0 +1,73 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.qlangtech.tis</groupId>
+        <artifactId>tis-solr-parent</artifactId>
+        <version>saturn-1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <groupId>com.qlangtech.tis</groupId>
+    <artifactId>tis-hadoop-rpc</artifactId>
+    <version>saturn-1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>tis-hadoop-rpc</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <grpc.version>1.29.0</grpc.version>
+    </properties>
+
+    <dependencies>
+
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>3.11.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+            <version>${grpc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+            <version>${grpc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+            <version>${grpc.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-solrj-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-solrj</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-manage-pojo</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+
+
+    </build>
+
+
+</project>

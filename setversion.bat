@@ -1,0 +1,1 @@
+mvn versions:set -DnewVersion=saturn-1.0.0-SNAPSHOT  -DprocessDependencies=true -DgenerateBackupPoms=false

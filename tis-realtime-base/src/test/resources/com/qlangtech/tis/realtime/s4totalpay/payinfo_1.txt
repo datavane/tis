@@ -1,0 +1,35 @@
+          pay_id: 00340013elev1WSJknd89T3LY5Mpmz
+     totalpay_id: 003400136cb9a483016cbcef13f80dce
+      kindpay_id: 009
+     kindpayname:
+             fee: 5.012
+        operator: 49f69d64730044adae3e71057a3beef1
+   operator_name:
+        pay_time: 1566915684103
+             pay: 5.00
+          charge: 0.00
+        is_valid: 0
+       entity_id: 99227650
+     create_time: 1566915684113
+         op_time: 1566915726758
+        last_ver: 1
+       opuser_id: 49f69d64730044adae3e71057a3beef1
+         card_id: 003400136adabacb016af82208e55db1
+  card_entity_id: 00340013
+  online_bill_id: NULL
+            type: 103
+            code: 00340013elev1WSJknd89T3LY5Mpmz
+   waitingpay_id: 003400136c8ef08a016cd373e6fc168d
+       load_time: 1566915715
+     modify_time: 1566915715
+       is_dealed: 0
+       type_name:
+      coupon_fee: 10.00
+     coupon_cost: 2.50
+      coupon_num: 2
+             ext: {"aliasName":"95折卡","effectOnPromotion":0,"giveFee":0}
+        pay_from: 0
+parent_entity_id:
+       parent_id:
+     parent_code:
+    kind_card_id:

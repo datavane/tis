@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="totalpayinfo" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.realtime.test.order.pojo.Totalpayinfo" >
+    <result column="totalpay_id" property="totalpayId" jdbcType="VARCHAR" />
+    <result column="curr_date" property="currDate" jdbcType="DATE" />
+    <result column="outfee" property="outfee" jdbcType="DECIMAL" />
+    <result column="source_amount" property="sourceAmount" jdbcType="DECIMAL" />
+    <result column="discount_amount" property="discountAmount" jdbcType="DECIMAL" />
+    <result column="result_amount" property="resultAmount" jdbcType="DECIMAL" />
+    <result column="recieve_amount" property="recieveAmount" jdbcType="DECIMAL" />
+    <result column="ratio" property="ratio" jdbcType="DECIMAL" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="entity_id" property="entityId" jdbcType="VARCHAR" />
+    <result column="is_valid" property="isValid" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="op_time" property="opTime" jdbcType="BIGINT" />
+    <result column="last_ver" property="lastVer" jdbcType="BIGINT" />
+    <result column="op_user_id" property="opUserId" jdbcType="VARCHAR" />
+    <result column="discount_plan_id" property="discountPlanId" jdbcType="VARCHAR" />
+    <result column="operator" property="operator" jdbcType="VARCHAR" />
+    <result column="operate_date" property="operateDate" jdbcType="BIGINT" />
+    <result column="card_id" property="cardId" jdbcType="VARCHAR" />
+    <result column="card" property="card" jdbcType="VARCHAR" />
+    <result column="card_entity_id" property="cardEntityId" jdbcType="VARCHAR" />
+    <result column="is_full_ratio" property="isFullRatio" jdbcType="TINYINT" />
+    <result column="is_minconsume_ratio" property="isMinconsumeRatio" jdbcType="TINYINT" />
+    <result column="is_servicefee_ratio" property="isServicefeeRatio" jdbcType="TINYINT" />
+    <result column="invoice_code" property="invoiceCode" jdbcType="VARCHAR" />
+    <result column="invoice_memo" property="invoiceMemo" jdbcType="VARCHAR" />
+    <result column="invoice" property="invoice" jdbcType="DECIMAL" />
+    <result column="over_status" property="overStatus" jdbcType="TINYINT" />
+    <result column="is_hide" property="isHide" jdbcType="TINYINT" />
+    <result column="load_time" property="loadTime" jdbcType="INTEGER" />
+    <result column="modify_time" property="modifyTime" jdbcType="INTEGER" />
+    <result column="printnum1" property="printnum1" jdbcType="INTEGER" />
+    <result column="printnum2" property="printnum2" jdbcType="INTEGER" />
+    <result column="coupon_discount" property="couponDiscount" jdbcType="DECIMAL" />
+    <result column="discount_amount_receivables" property="discountAmountReceivables" jdbcType="DECIMAL" />
+    <result column="result_amount_receivables" property="resultAmountReceivables" jdbcType="DECIMAL" />
+  </resultMap>
+  <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.qlangtech.tis.realtime.test.order.pojo.Totalpayinfo" extends="totalpayinfo.ibatorgenerated_BaseResultMap" >
+    <result column="ext" property="ext" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExampleWithBLOBs" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.TotalpayinfoCriteria" >
+    select totalpay_id, curr_date, outfee, source_amount, discount_amount, result_amount,
+      recieve_amount, ratio, status, entity_id, is_valid, create_time, op_time, last_ver,
+      op_user_id, discount_plan_id, operator, operate_date, card_id, card, card_entity_id,
+      is_full_ratio, is_minconsume_ratio, is_servicefee_ratio, invoice_code, invoice_memo, invoice,
+      over_status, is_hide, load_time, modify_time, printnum1, printnum2, coupon_discount,
+      discount_amount_receivables, result_amount_receivables, ext
+    from totalpayinfo
+    <isParameterPresent >
+      <include refid="totalpayinfo.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+    </isParameterPresent>
+  </select>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.TotalpayinfoCriteria" >
+    select aa.totalpay_id AS totalpay_idcurr_date, outfee, source_amount, discount_amount,
+      result_amount, recieve_amount, ratio, status, entity_id, is_valid, create_time, op_time,
+      last_ver, op_user_id, discount_plan_id, operator, operate_date, card_id, card, card_entity_id,
+      is_full_ratio, is_minconsume_ratio, is_servicefee_ratio, invoice_code, invoice_memo, invoice,
+      over_status, is_hide, load_time, modify_time, printnum1, printnum2, coupon_discount,
+      discount_amount_receivables, result_amount_receivables
+     from ( select totalpay_id from totalpayinfo 
+    <isParameterPresent >
+      <include refid="totalpayinfo.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join totalpayinfo aa on aa.totalpay_id=bb.totalpay_id
+  </select>
+  <select id="ibatorgenerated_selectTargetColsByExample" resultClass="com.qlangtech.tis.ibatis.RowMap" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.TotalpayinfoCriteria" >
+    select aa.totalpay_id AS totalpay_id
+<iterate property="cols" conjunction=","
+      prepend=",">$cols[].name$</iterate>
+     from ( select totalpay_id from totalpayinfo 
+    <isParameterPresent >
+      <include refid="totalpayinfo.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join totalpayinfo aa on aa.totalpay_id=bb.totalpay_id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Totalpayinfo" >
+    select totalpay_id, curr_date, outfee, source_amount, discount_amount, result_amount,
+      recieve_amount, ratio, status, entity_id, is_valid, create_time, op_time, last_ver,
+      op_user_id, discount_plan_id, operator, operate_date, card_id, card, card_entity_id,
+      is_full_ratio, is_minconsume_ratio, is_servicefee_ratio, invoice_code, invoice_memo, invoice,
+      over_status, is_hide, load_time, modify_time, printnum1, printnum2, coupon_discount,
+      discount_amount_receivables, result_amount_receivables, ext
+    from totalpayinfo
+    where totalpay_id = #totalpayId:VARCHAR#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Totalpayinfo" >
+    delete from totalpayinfo
+    where totalpay_id = #totalpayId:VARCHAR#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.TotalpayinfoCriteria" >
+    delete from totalpayinfo
+    <include refid="totalpayinfo.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Totalpayinfo" >
+    insert into totalpayinfo (totalpay_id, curr_date, outfee, source_amount, discount_amount,
+      result_amount, recieve_amount, ratio, status, entity_id, is_valid, create_time, op_time,
+      last_ver, op_user_id, discount_plan_id, operator, operate_date, card_id, card, card_entity_id,
+      is_full_ratio, is_minconsume_ratio, is_servicefee_ratio, invoice_code, invoice_memo, invoice,
+      over_status, is_hide, load_time, modify_time, printnum1, printnum2, coupon_discount,
+      discount_amount_receivables, result_amount_receivables, ext)
+    values (#totalpayId:VARCHAR#, #currDate:DATE#, #outfee:DECIMAL#, #sourceAmount:DECIMAL#,
+      #discountAmount:DECIMAL#, #resultAmount:DECIMAL#, #recieveAmount:DECIMAL#, #ratio:DECIMAL#,
+      #status:TINYINT#, #entityId:VARCHAR#, #isValid:TINYINT#, #createTime:BIGINT#, #opTime:BIGINT#,
+      #lastVer:BIGINT#, #opUserId:VARCHAR#, #discountPlanId:VARCHAR#, #operator:VARCHAR#,
+      #operateDate:BIGINT#, #cardId:VARCHAR#, #card:VARCHAR#, #cardEntityId:VARCHAR#,
+      #isFullRatio:TINYINT#, #isMinconsumeRatio:TINYINT#, #isServicefeeRatio:TINYINT#,
+      #invoiceCode:VARCHAR#, #invoiceMemo:VARCHAR#, #invoice:DECIMAL#, #overStatus:TINYINT#,
+      #isHide:TINYINT#, #loadTime:INTEGER#, #modifyTime:INTEGER#, #printnum1:INTEGER#,
+      #printnum2:INTEGER#, #couponDiscount:DECIMAL#, #discountAmountReceivables:DECIMAL#,
+      #resultAmountReceivables:DECIMAL#, #ext:LONGVARCHAR#)
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Totalpayinfo" >
+    insert into totalpayinfo
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="totalpayId" >
+        totalpay_id
+      </isNotNull>
+      <isNotNull prepend="," property="currDate" >
+        curr_date
+      </isNotNull>
+      <isNotNull prepend="," property="outfee" >
+        outfee
+      </isNotNull>
+      <isNotNull prepend="," property="sourceAmount" >
+        source_amount
+      </isNotNull>
+      <isNotNull prepend="," property="discountAmount" >
+        discount_amount
+      </isNotNull>
+      <isNotNull prepend="," property="resultAmount" >
+        result_amount
+      </isNotNull>
+      <isNotNull prepend="," property="recieveAmount" >
+        recieve_amount
+      </isNotNull>
+      <isNotNull prepend="," property="ratio" >
+        ratio
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        status
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        entity_id
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        is_valid
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        op_time
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        last_ver
+      </isNotNull>
+      <isNotNull prepend="," property="opUserId" >
+        op_user_id
+      </isNotNull>
+      <isNotNull prepend="," property="discountPlanId" >
+        discount_plan_id
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator
+      </isNotNull>
+      <isNotNull prepend="," property="operateDate" >
+        operate_date
+      </isNotNull>
+      <isNotNull prepend="," property="cardId" >
+        card_id
+      </isNotNull>
+      <isNotNull prepend="," property="card" >
+        card
+      </isNotNull>
+      <isNotNull prepend="," property="cardEntityId" >
+        card_entity_id
+      </isNotNull>
+      <isNotNull prepend="," property="isFullRatio" >
+        is_full_ratio
+      </isNotNull>
+      <isNotNull prepend="," property="isMinconsumeRatio" >
+        is_minconsume_ratio
+      </isNotNull>
+      <isNotNull prepend="," property="isServicefeeRatio" >
+        is_servicefee_ratio
+      </isNotNull>
+      <isNotNull prepend="," property="invoiceCode" >
+        invoice_code
+      </isNotNull>
+      <isNotNull prepend="," property="invoiceMemo" >
+        invoice_memo
+      </isNotNull>
+      <isNotNull prepend="," property="invoice" >
+        invoice
+      </isNotNull>
+      <isNotNull prepend="," property="overStatus" >
+        over_status
+      </isNotNull>
+      <isNotNull prepend="," property="isHide" >
+        is_hide
+      </isNotNull>
+      <isNotNull prepend="," property="loadTime" >
+        load_time
+      </isNotNull>
+      <isNotNull prepend="," property="modifyTime" >
+        modify_time
+      </isNotNull>
+      <isNotNull prepend="," property="printnum1" >
+        printnum1
+      </isNotNull>
+      <isNotNull prepend="," property="printnum2" >
+        printnum2
+      </isNotNull>
+      <isNotNull prepend="," property="couponDiscount" >
+        coupon_discount
+      </isNotNull>
+      <isNotNull prepend="," property="discountAmountReceivables" >
+        discount_amount_receivables
+      </isNotNull>
+      <isNotNull prepend="," property="resultAmountReceivables" >
+        result_amount_receivables
+      </isNotNull>
+      <isNotNull prepend="," property="ext" >
+        ext
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="totalpayId" >
+        #totalpayId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="currDate" >
+        #currDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="outfee" >
+        #outfee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="sourceAmount" >
+        #sourceAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="discountAmount" >
+        #discountAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="resultAmount" >
+        #resultAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="recieveAmount" >
+        #recieveAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="ratio" >
+        #ratio:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        #status:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        #entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        #isValid:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        #opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        #lastVer:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="opUserId" >
+        #opUserId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="discountPlanId" >
+        #discountPlanId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        #operator:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="operateDate" >
+        #operateDate:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="cardId" >
+        #cardId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="card" >
+        #card:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardEntityId" >
+        #cardEntityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isFullRatio" >
+        #isFullRatio:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="isMinconsumeRatio" >
+        #isMinconsumeRatio:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="isServicefeeRatio" >
+        #isServicefeeRatio:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="invoiceCode" >
+        #invoiceCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="invoiceMemo" >
+        #invoiceMemo:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="invoice" >
+        #invoice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="overStatus" >
+        #overStatus:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="isHide" >
+        #isHide:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="loadTime" >
+        #loadTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="modifyTime" >
+        #modifyTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="printnum1" >
+        #printnum1:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="printnum2" >
+        #printnum2:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="couponDiscount" >
+        #couponDiscount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="discountAmountReceivables" >
+        #discountAmountReceivables:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="resultAmountReceivables" >
+        #resultAmountReceivables:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="ext" >
+        #ext:LONGVARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.TotalpayinfoCriteria" resultClass="java.lang.Integer" >
+    select count(*) from totalpayinfo
+    <include refid="totalpayinfo.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    update totalpayinfo
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.totalpayId" >
+        totalpay_id = #record.totalpayId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.currDate" >
+        curr_date = #record.currDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="record.outfee" >
+        outfee = #record.outfee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.sourceAmount" >
+        source_amount = #record.sourceAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountAmount" >
+        discount_amount = #record.discountAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.resultAmount" >
+        result_amount = #record.resultAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.recieveAmount" >
+        recieve_amount = #record.recieveAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ratio" >
+        ratio = #record.ratio:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.status" >
+        status = #record.status:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.entityId" >
+        entity_id = #record.entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isValid" >
+        is_valid = #record.isValid:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.createTime" >
+        create_time = #record.createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.opTime" >
+        op_time = #record.opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.lastVer" >
+        last_ver = #record.lastVer:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.opUserId" >
+        op_user_id = #record.opUserId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountPlanId" >
+        discount_plan_id = #record.discountPlanId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.operator" >
+        operator = #record.operator:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.operateDate" >
+        operate_date = #record.operateDate:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.cardId" >
+        card_id = #record.cardId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.card" >
+        card = #record.card:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.cardEntityId" >
+        card_entity_id = #record.cardEntityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isFullRatio" >
+        is_full_ratio = #record.isFullRatio:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isMinconsumeRatio" >
+        is_minconsume_ratio = #record.isMinconsumeRatio:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isServicefeeRatio" >
+        is_servicefee_ratio = #record.isServicefeeRatio:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.invoiceCode" >
+        invoice_code = #record.invoiceCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.invoiceMemo" >
+        invoice_memo = #record.invoiceMemo:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.invoice" >
+        invoice = #record.invoice:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.overStatus" >
+        over_status = #record.overStatus:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isHide" >
+        is_hide = #record.isHide:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.loadTime" >
+        load_time = #record.loadTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.modifyTime" >
+        modify_time = #record.modifyTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.printnum1" >
+        printnum1 = #record.printnum1:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.printnum2" >
+        printnum2 = #record.printnum2:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.couponDiscount" >
+        coupon_discount = #record.couponDiscount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.discountAmountReceivables" >
+        discount_amount_receivables = #record.discountAmountReceivables:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.resultAmountReceivables" >
+        result_amount_receivables = #record.resultAmountReceivables:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ext" >
+        ext = #record.ext:LONGVARCHAR#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="totalpayinfo.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExampleWithBLOBs" >
+    update totalpayinfo
+    set totalpay_id = #record.totalpayId:VARCHAR#,
+      curr_date = #record.currDate:DATE#,
+      outfee = #record.outfee:DECIMAL#,
+      source_amount = #record.sourceAmount:DECIMAL#,
+      discount_amount = #record.discountAmount:DECIMAL#,
+      result_amount = #record.resultAmount:DECIMAL#,
+      recieve_amount = #record.recieveAmount:DECIMAL#,
+      ratio = #record.ratio:DECIMAL#,
+      status = #record.status:TINYINT#,
+      entity_id = #record.entityId:VARCHAR#,
+      is_valid = #record.isValid:TINYINT#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      last_ver = #record.lastVer:BIGINT#,
+      op_user_id = #record.opUserId:VARCHAR#,
+      discount_plan_id = #record.discountPlanId:VARCHAR#,
+      operator = #record.operator:VARCHAR#,
+      operate_date = #record.operateDate:BIGINT#,
+      card_id = #record.cardId:VARCHAR#,
+      card = #record.card:VARCHAR#,
+      card_entity_id = #record.cardEntityId:VARCHAR#,
+      is_full_ratio = #record.isFullRatio:TINYINT#,
+      is_minconsume_ratio = #record.isMinconsumeRatio:TINYINT#,
+      is_servicefee_ratio = #record.isServicefeeRatio:TINYINT#,
+      invoice_code = #record.invoiceCode:VARCHAR#,
+      invoice_memo = #record.invoiceMemo:VARCHAR#,
+      invoice = #record.invoice:DECIMAL#,
+      over_status = #record.overStatus:TINYINT#,
+      is_hide = #record.isHide:TINYINT#,
+      load_time = #record.loadTime:INTEGER#,
+      modify_time = #record.modifyTime:INTEGER#,
+      printnum1 = #record.printnum1:INTEGER#,
+      printnum2 = #record.printnum2:INTEGER#,
+      coupon_discount = #record.couponDiscount:DECIMAL#,
+      discount_amount_receivables = #record.discountAmountReceivables:DECIMAL#,
+      result_amount_receivables = #record.resultAmountReceivables:DECIMAL#,
+      ext = #record.ext:LONGVARCHAR#
+    <isParameterPresent >
+      <include refid="totalpayinfo.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    update totalpayinfo
+    set totalpay_id = #record.totalpayId:VARCHAR#,
+      curr_date = #record.currDate:DATE#,
+      outfee = #record.outfee:DECIMAL#,
+      source_amount = #record.sourceAmount:DECIMAL#,
+      discount_amount = #record.discountAmount:DECIMAL#,
+      result_amount = #record.resultAmount:DECIMAL#,
+      recieve_amount = #record.recieveAmount:DECIMAL#,
+      ratio = #record.ratio:DECIMAL#,
+      status = #record.status:TINYINT#,
+      entity_id = #record.entityId:VARCHAR#,
+      is_valid = #record.isValid:TINYINT#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      last_ver = #record.lastVer:BIGINT#,
+      op_user_id = #record.opUserId:VARCHAR#,
+      discount_plan_id = #record.discountPlanId:VARCHAR#,
+      operator = #record.operator:VARCHAR#,
+      operate_date = #record.operateDate:BIGINT#,
+      card_id = #record.cardId:VARCHAR#,
+      card = #record.card:VARCHAR#,
+      card_entity_id = #record.cardEntityId:VARCHAR#,
+      is_full_ratio = #record.isFullRatio:TINYINT#,
+      is_minconsume_ratio = #record.isMinconsumeRatio:TINYINT#,
+      is_servicefee_ratio = #record.isServicefeeRatio:TINYINT#,
+      invoice_code = #record.invoiceCode:VARCHAR#,
+      invoice_memo = #record.invoiceMemo:VARCHAR#,
+      invoice = #record.invoice:DECIMAL#,
+      over_status = #record.overStatus:TINYINT#,
+      is_hide = #record.isHide:TINYINT#,
+      load_time = #record.loadTime:INTEGER#,
+      modify_time = #record.modifyTime:INTEGER#,
+      printnum1 = #record.printnum1:INTEGER#,
+      printnum2 = #record.printnum2:INTEGER#,
+      coupon_discount = #record.couponDiscount:DECIMAL#,
+      discount_amount_receivables = #record.discountAmountReceivables:DECIMAL#,
+      result_amount_receivables = #record.resultAmountReceivables:DECIMAL#
+    <isParameterPresent >
+      <include refid="totalpayinfo.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

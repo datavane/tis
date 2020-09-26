@@ -1,0 +1,20 @@
+<PersonList>
+    <Person>
+
+        <Age>24</Age>
+        <Gender>M</Gender>
+        <PostalCode>1234</PostalCode>
+    </Person>
+    <Person>
+        <Name>Name2</Name>
+        <Age>28</Age>
+        <Gender>F</Gender>
+        <PostalCode>12345</PostalCode>
+    </Person>
+    <Person>
+        <Name>Name3</Name>
+        <Age>22</Age>
+        <Gender>F</Gender>
+        <PostalCode>123456</PostalCode>
+    </Person>
+</PersonList>

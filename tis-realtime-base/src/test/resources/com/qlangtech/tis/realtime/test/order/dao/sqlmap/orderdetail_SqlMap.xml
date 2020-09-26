@@ -1,0 +1,792 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="orderdetail" >
+  <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.realtime.test.order.pojo.Orderdetail" >
+    <result column="order_id" property="orderId" jdbcType="VARCHAR" />
+    <result column="global_code" property="globalCode" jdbcType="VARCHAR" />
+    <result column="simple_code" property="simpleCode" jdbcType="VARCHAR" />
+    <result column="seat_code" property="seatCode" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="INTEGER" />
+    <result column="curr_date" property="currDate" jdbcType="DATE" />
+    <result column="totalpay_id" property="totalpayId" jdbcType="VARCHAR" />
+    <result column="seat_id" property="seatId" jdbcType="VARCHAR" />
+    <result column="people_count" property="peopleCount" jdbcType="BIGINT" />
+    <result column="open_time" property="openTime" jdbcType="BIGINT" />
+    <result column="status" property="status" jdbcType="SMALLINT" />
+    <result column="memo" property="memo" jdbcType="VARCHAR" />
+    <result column="inner_code" property="innerCode" jdbcType="VARCHAR" />
+    <result column="menutime_id" property="menutimeId" jdbcType="VARCHAR" />
+    <result column="worker_id" property="workerId" jdbcType="VARCHAR" />
+    <result column="end_time" property="endTime" jdbcType="BIGINT" />
+    <result column="feeplan_id" property="feeplanId" jdbcType="VARCHAR" />
+    <result column="op_user_id" property="opUserId" jdbcType="VARCHAR" />
+    <result column="order_from" property="orderFrom" jdbcType="SMALLINT" />
+    <result column="order_kind" property="orderKind" jdbcType="SMALLINT" />
+    <result column="area_id" property="areaId" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="mobile" property="mobile" jdbcType="VARCHAR" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="is_autocommit" property="isAutocommit" jdbcType="SMALLINT" />
+    <result column="send_time" property="sendTime" jdbcType="BIGINT" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="paymode" property="paymode" jdbcType="SMALLINT" />
+    <result column="outfee" property="outfee" jdbcType="DECIMAL" />
+    <result column="sender_id" property="senderId" jdbcType="VARCHAR" />
+    <result column="customerregister_id" property="customerregisterId" jdbcType="VARCHAR" />
+    <result column="waitingorder_id" property="waitingorderId" jdbcType="VARCHAR" />
+    <result column="send_status" property="sendStatus" jdbcType="SMALLINT" />
+    <result column="audit_status" property="auditStatus" jdbcType="SMALLINT" />
+    <result column="is_hide" property="isHide" jdbcType="TINYINT" />
+    <result column="entity_id" property="entityId" jdbcType="VARCHAR" />
+    <result column="is_valid" property="isValid" jdbcType="SMALLINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="op_time" property="opTime" jdbcType="BIGINT" />
+    <result column="last_ver" property="lastVer" jdbcType="BIGINT" />
+    <result column="load_time" property="loadTime" jdbcType="INTEGER" />
+    <result column="modify_time" property="modifyTime" jdbcType="INTEGER" />
+    <result column="is_limittime" property="isLimittime" jdbcType="BIT" />
+    <result column="scan_url" property="scanUrl" jdbcType="VARCHAR" />
+    <result column="seat_mark" property="seatMark" jdbcType="VARCHAR" />
+    <result column="reservetime_id" property="reservetimeId" jdbcType="VARCHAR" />
+    <result column="is_wait" property="isWait" jdbcType="TINYINT" />
+    <result column="is_print" property="isPrint" jdbcType="TINYINT" />
+    <result column="book_id" property="bookId" jdbcType="VARCHAR" />
+    <result column="reserve_id" property="reserveId" jdbcType="VARCHAR" />
+    <result column="orign_id" property="orignId" jdbcType="VARCHAR" />
+    <result column="reserve_status" property="reserveStatus" jdbcType="TINYINT" />
+  </resultMap>
+  <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.qlangtech.tis.realtime.test.order.pojo.Orderdetail" extends="orderdetail.ibatorgenerated_BaseResultMap" >
+    <result column="ext" property="ext" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="ibatorgenerated_Example_Where_Clause" >
+    <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
+      <isEqual property="oredCriteria[].valid" compareValue="true" >
+        (
+        <iterate prepend="and" property="oredCriteria[].criteriaWithoutValue" conjunction="and" >
+          $oredCriteria[].criteriaWithoutValue[]$
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue" conjunction="and" >
+          $oredCriteria[].criteriaWithSingleValue[].condition$
+            #oredCriteria[].criteriaWithSingleValue[].value#
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithListValue" conjunction="and" >
+          $oredCriteria[].criteriaWithListValue[].condition$
+          <iterate property="oredCriteria[].criteriaWithListValue[].values" open="(" close=")" conjunction="," >
+            #oredCriteria[].criteriaWithListValue[].values[]#
+          </iterate>
+        </iterate>
+        <iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue" conjunction="and" >
+          $oredCriteria[].criteriaWithBetweenValue[].condition$
+          #oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+          #oredCriteria[].criteriaWithBetweenValue[].values[1]#
+        </iterate>
+        )
+      </isEqual>
+    </iterate>
+  </sql>
+  <select id="ibatorgenerated_selectByExampleWithBLOBs" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.OrderdetailCriteria" >
+    select order_id, global_code, simple_code, seat_code, code, curr_date, totalpay_id, seat_id,
+      people_count, open_time, status, memo, inner_code, menutime_id, worker_id, end_time,
+      feeplan_id, op_user_id, order_from, order_kind, area_id, name, mobile, tel, is_autocommit,
+      send_time, address, paymode, outfee, sender_id, customerregister_id, waitingorder_id,
+      send_status, audit_status, is_hide, entity_id, is_valid, create_time, op_time, last_ver,
+      load_time, modify_time, is_limittime, scan_url, seat_mark, reservetime_id, is_wait, is_print,
+      book_id, reserve_id, orign_id, reserve_status, ext
+    from orderdetail
+    <isParameterPresent >
+      <include refid="orderdetail.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+    </isParameterPresent>
+  </select>
+  <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.OrderdetailCriteria" >
+    select aa.order_id AS order_idglobal_code, simple_code, seat_code, code, curr_date, totalpay_id,
+      seat_id, people_count, open_time, status, memo, inner_code, menutime_id, worker_id, end_time,
+      feeplan_id, op_user_id, order_from, order_kind, area_id, name, mobile, tel, is_autocommit,
+      send_time, address, paymode, outfee, sender_id, customerregister_id, waitingorder_id,
+      send_status, audit_status, is_hide, entity_id, is_valid, create_time, op_time, last_ver,
+      load_time, modify_time, is_limittime, scan_url, seat_mark, reservetime_id, is_wait, is_print,
+      book_id, reserve_id, orign_id, reserve_status
+     from ( select order_id from orderdetail 
+    <isParameterPresent >
+      <include refid="orderdetail.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join orderdetail aa on aa.order_id=bb.order_id
+  </select>
+  <select id="ibatorgenerated_selectTargetColsByExample" resultClass="com.qlangtech.tis.ibatis.RowMap" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.OrderdetailCriteria" >
+    select aa.order_id AS order_id
+<iterate property="cols" conjunction=","
+      prepend=",">$cols[].name$</iterate>
+     from ( select order_id from orderdetail 
+    <isParameterPresent >
+      <include refid="orderdetail.ibatorgenerated_Example_Where_Clause" />
+      <isNotNull property="orderByClause" >
+        order by $orderByClause$
+      </isNotNull>
+      limit #skip#,#pageSize#
+    </isParameterPresent>
+       ) bb inner join orderdetail aa on aa.order_id=bb.order_id
+  </select>
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Orderdetail" >
+    select order_id, global_code, simple_code, seat_code, code, curr_date, totalpay_id, seat_id,
+      people_count, open_time, status, memo, inner_code, menutime_id, worker_id, end_time,
+      feeplan_id, op_user_id, order_from, order_kind, area_id, name, mobile, tel, is_autocommit,
+      send_time, address, paymode, outfee, sender_id, customerregister_id, waitingorder_id,
+      send_status, audit_status, is_hide, entity_id, is_valid, create_time, op_time, last_ver,
+      load_time, modify_time, is_limittime, scan_url, seat_mark, reservetime_id, is_wait, is_print,
+      book_id, reserve_id, orign_id, reserve_status, ext
+    from orderdetail
+    where order_id = #orderId:VARCHAR#
+  </select>
+  <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Orderdetail" >
+    delete from orderdetail
+    where order_id = #orderId:VARCHAR#
+  </delete>
+  <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.OrderdetailCriteria" >
+    delete from orderdetail
+    <include refid="orderdetail.ibatorgenerated_Example_Where_Clause" />
+  </delete>
+  <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Orderdetail" >
+    insert into orderdetail (order_id, global_code, simple_code, seat_code, code, curr_date,
+      totalpay_id, seat_id, people_count, open_time, status, memo, inner_code, menutime_id,
+      worker_id, end_time, feeplan_id, op_user_id, order_from, order_kind, area_id, name, mobile,
+      tel, is_autocommit, send_time, address, paymode, outfee, sender_id, customerregister_id,
+      waitingorder_id, send_status, audit_status, is_hide, entity_id, is_valid, create_time,
+      op_time, last_ver, load_time, modify_time, is_limittime, scan_url, seat_mark, reservetime_id,
+      is_wait, is_print, book_id, reserve_id, orign_id, reserve_status, ext)
+    values (#orderId:VARCHAR#, #globalCode:VARCHAR#, #simpleCode:VARCHAR#, #seatCode:VARCHAR#,
+      #code:INTEGER#, #currDate:DATE#, #totalpayId:VARCHAR#, #seatId:VARCHAR#, #peopleCount:BIGINT#,
+      #openTime:BIGINT#, #status:SMALLINT#, #memo:VARCHAR#, #innerCode:VARCHAR#,
+      #menutimeId:VARCHAR#, #workerId:VARCHAR#, #endTime:BIGINT#, #feeplanId:VARCHAR#,
+      #opUserId:VARCHAR#, #orderFrom:SMALLINT#, #orderKind:SMALLINT#, #areaId:VARCHAR#,
+      #name:VARCHAR#, #mobile:VARCHAR#, #tel:VARCHAR#, #isAutocommit:SMALLINT#, #sendTime:BIGINT#,
+      #address:VARCHAR#, #paymode:SMALLINT#, #outfee:DECIMAL#, #senderId:VARCHAR#,
+      #customerregisterId:VARCHAR#, #waitingorderId:VARCHAR#, #sendStatus:SMALLINT#,
+      #auditStatus:SMALLINT#, #isHide:TINYINT#, #entityId:VARCHAR#, #isValid:SMALLINT#,
+      #createTime:BIGINT#, #opTime:BIGINT#, #lastVer:BIGINT#, #loadTime:INTEGER#,
+      #modifyTime:INTEGER#, #isLimittime:BIT#, #scanUrl:VARCHAR#, #seatMark:VARCHAR#,
+      #reservetimeId:VARCHAR#, #isWait:TINYINT#, #isPrint:TINYINT#, #bookId:VARCHAR#,
+      #reserveId:VARCHAR#, #orignId:VARCHAR#, #reserveStatus:TINYINT#, #ext:LONGVARCHAR#)
+  </insert>
+  <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.Orderdetail" >
+    insert into orderdetail
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="orderId" >
+        order_id
+      </isNotNull>
+      <isNotNull prepend="," property="globalCode" >
+        global_code
+      </isNotNull>
+      <isNotNull prepend="," property="simpleCode" >
+        simple_code
+      </isNotNull>
+      <isNotNull prepend="," property="seatCode" >
+        seat_code
+      </isNotNull>
+      <isNotNull prepend="," property="code" >
+        code
+      </isNotNull>
+      <isNotNull prepend="," property="currDate" >
+        curr_date
+      </isNotNull>
+      <isNotNull prepend="," property="totalpayId" >
+        totalpay_id
+      </isNotNull>
+      <isNotNull prepend="," property="seatId" >
+        seat_id
+      </isNotNull>
+      <isNotNull prepend="," property="peopleCount" >
+        people_count
+      </isNotNull>
+      <isNotNull prepend="," property="openTime" >
+        open_time
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        status
+      </isNotNull>
+      <isNotNull prepend="," property="memo" >
+        memo
+      </isNotNull>
+      <isNotNull prepend="," property="innerCode" >
+        inner_code
+      </isNotNull>
+      <isNotNull prepend="," property="menutimeId" >
+        menutime_id
+      </isNotNull>
+      <isNotNull prepend="," property="workerId" >
+        worker_id
+      </isNotNull>
+      <isNotNull prepend="," property="endTime" >
+        end_time
+      </isNotNull>
+      <isNotNull prepend="," property="feeplanId" >
+        feeplan_id
+      </isNotNull>
+      <isNotNull prepend="," property="opUserId" >
+        op_user_id
+      </isNotNull>
+      <isNotNull prepend="," property="orderFrom" >
+        order_from
+      </isNotNull>
+      <isNotNull prepend="," property="orderKind" >
+        order_kind
+      </isNotNull>
+      <isNotNull prepend="," property="areaId" >
+        area_id
+      </isNotNull>
+      <isNotNull prepend="," property="name" >
+        name
+      </isNotNull>
+      <isNotNull prepend="," property="mobile" >
+        mobile
+      </isNotNull>
+      <isNotNull prepend="," property="tel" >
+        tel
+      </isNotNull>
+      <isNotNull prepend="," property="isAutocommit" >
+        is_autocommit
+      </isNotNull>
+      <isNotNull prepend="," property="sendTime" >
+        send_time
+      </isNotNull>
+      <isNotNull prepend="," property="address" >
+        address
+      </isNotNull>
+      <isNotNull prepend="," property="paymode" >
+        paymode
+      </isNotNull>
+      <isNotNull prepend="," property="outfee" >
+        outfee
+      </isNotNull>
+      <isNotNull prepend="," property="senderId" >
+        sender_id
+      </isNotNull>
+      <isNotNull prepend="," property="customerregisterId" >
+        customerregister_id
+      </isNotNull>
+      <isNotNull prepend="," property="waitingorderId" >
+        waitingorder_id
+      </isNotNull>
+      <isNotNull prepend="," property="sendStatus" >
+        send_status
+      </isNotNull>
+      <isNotNull prepend="," property="auditStatus" >
+        audit_status
+      </isNotNull>
+      <isNotNull prepend="," property="isHide" >
+        is_hide
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        entity_id
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        is_valid
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        op_time
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        last_ver
+      </isNotNull>
+      <isNotNull prepend="," property="loadTime" >
+        load_time
+      </isNotNull>
+      <isNotNull prepend="," property="modifyTime" >
+        modify_time
+      </isNotNull>
+      <isNotNull prepend="," property="isLimittime" >
+        is_limittime
+      </isNotNull>
+      <isNotNull prepend="," property="scanUrl" >
+        scan_url
+      </isNotNull>
+      <isNotNull prepend="," property="seatMark" >
+        seat_mark
+      </isNotNull>
+      <isNotNull prepend="," property="reservetimeId" >
+        reservetime_id
+      </isNotNull>
+      <isNotNull prepend="," property="isWait" >
+        is_wait
+      </isNotNull>
+      <isNotNull prepend="," property="isPrint" >
+        is_print
+      </isNotNull>
+      <isNotNull prepend="," property="bookId" >
+        book_id
+      </isNotNull>
+      <isNotNull prepend="," property="reserveId" >
+        reserve_id
+      </isNotNull>
+      <isNotNull prepend="," property="orignId" >
+        orign_id
+      </isNotNull>
+      <isNotNull prepend="," property="reserveStatus" >
+        reserve_status
+      </isNotNull>
+      <isNotNull prepend="," property="ext" >
+        ext
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="orderId" >
+        #orderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="globalCode" >
+        #globalCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="simpleCode" >
+        #simpleCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="seatCode" >
+        #seatCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="code" >
+        #code:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="currDate" >
+        #currDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="totalpayId" >
+        #totalpayId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="seatId" >
+        #seatId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="peopleCount" >
+        #peopleCount:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="openTime" >
+        #openTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        #status:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="memo" >
+        #memo:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="innerCode" >
+        #innerCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="menutimeId" >
+        #menutimeId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="workerId" >
+        #workerId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="endTime" >
+        #endTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="feeplanId" >
+        #feeplanId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="opUserId" >
+        #opUserId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="orderFrom" >
+        #orderFrom:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="orderKind" >
+        #orderKind:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="areaId" >
+        #areaId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="name" >
+        #name:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="mobile" >
+        #mobile:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="tel" >
+        #tel:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isAutocommit" >
+        #isAutocommit:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="sendTime" >
+        #sendTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="address" >
+        #address:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="paymode" >
+        #paymode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="outfee" >
+        #outfee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="senderId" >
+        #senderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="customerregisterId" >
+        #customerregisterId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="waitingorderId" >
+        #waitingorderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="sendStatus" >
+        #sendStatus:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="auditStatus" >
+        #auditStatus:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="isHide" >
+        #isHide:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="entityId" >
+        #entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isValid" >
+        #isValid:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="opTime" >
+        #opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        #lastVer:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="loadTime" >
+        #loadTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="modifyTime" >
+        #modifyTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="isLimittime" >
+        #isLimittime:BIT#
+      </isNotNull>
+      <isNotNull prepend="," property="scanUrl" >
+        #scanUrl:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="seatMark" >
+        #seatMark:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="reservetimeId" >
+        #reservetimeId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isWait" >
+        #isWait:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="isPrint" >
+        #isPrint:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="bookId" >
+        #bookId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="reserveId" >
+        #reserveId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="orignId" >
+        #orignId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="reserveStatus" >
+        #reserveStatus:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="ext" >
+        #ext:LONGVARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.realtime.test.order.pojo.OrderdetailCriteria" resultClass="java.lang.Integer" >
+    select count(*) from orderdetail
+    <include refid="orderdetail.ibatorgenerated_Example_Where_Clause" />
+  </select>
+  <update id="ibatorgenerated_updateByExampleSelective" >
+    update orderdetail
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="record.orderId" >
+        order_id = #record.orderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.globalCode" >
+        global_code = #record.globalCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.simpleCode" >
+        simple_code = #record.simpleCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.seatCode" >
+        seat_code = #record.seatCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.code" >
+        code = #record.code:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.currDate" >
+        curr_date = #record.currDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="record.totalpayId" >
+        totalpay_id = #record.totalpayId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.seatId" >
+        seat_id = #record.seatId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.peopleCount" >
+        people_count = #record.peopleCount:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.openTime" >
+        open_time = #record.openTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.status" >
+        status = #record.status:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.memo" >
+        memo = #record.memo:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.innerCode" >
+        inner_code = #record.innerCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.menutimeId" >
+        menutime_id = #record.menutimeId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.workerId" >
+        worker_id = #record.workerId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.endTime" >
+        end_time = #record.endTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.feeplanId" >
+        feeplan_id = #record.feeplanId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.opUserId" >
+        op_user_id = #record.opUserId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.orderFrom" >
+        order_from = #record.orderFrom:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.orderKind" >
+        order_kind = #record.orderKind:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.areaId" >
+        area_id = #record.areaId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.name" >
+        name = #record.name:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.mobile" >
+        mobile = #record.mobile:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.tel" >
+        tel = #record.tel:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isAutocommit" >
+        is_autocommit = #record.isAutocommit:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.sendTime" >
+        send_time = #record.sendTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.address" >
+        address = #record.address:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.paymode" >
+        paymode = #record.paymode:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.outfee" >
+        outfee = #record.outfee:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="record.senderId" >
+        sender_id = #record.senderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.customerregisterId" >
+        customerregister_id = #record.customerregisterId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.waitingorderId" >
+        waitingorder_id = #record.waitingorderId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.sendStatus" >
+        send_status = #record.sendStatus:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.auditStatus" >
+        audit_status = #record.auditStatus:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isHide" >
+        is_hide = #record.isHide:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.entityId" >
+        entity_id = #record.entityId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isValid" >
+        is_valid = #record.isValid:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.createTime" >
+        create_time = #record.createTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.opTime" >
+        op_time = #record.opTime:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.lastVer" >
+        last_ver = #record.lastVer:BIGINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.loadTime" >
+        load_time = #record.loadTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.modifyTime" >
+        modify_time = #record.modifyTime:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isLimittime" >
+        is_limittime = #record.isLimittime:BIT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.scanUrl" >
+        scan_url = #record.scanUrl:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.seatMark" >
+        seat_mark = #record.seatMark:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.reservetimeId" >
+        reservetime_id = #record.reservetimeId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isWait" >
+        is_wait = #record.isWait:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.isPrint" >
+        is_print = #record.isPrint:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.bookId" >
+        book_id = #record.bookId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.reserveId" >
+        reserve_id = #record.reserveId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.orignId" >
+        orign_id = #record.orignId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.reserveStatus" >
+        reserve_status = #record.reserveStatus:TINYINT#
+      </isNotNull>
+      <isNotNull prepend="," property="record.ext" >
+        ext = #record.ext:LONGVARCHAR#
+      </isNotNull>
+    </dynamic>
+    <isParameterPresent >
+      <include refid="orderdetail.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExampleWithBLOBs" >
+    update orderdetail
+    set order_id = #record.orderId:VARCHAR#,
+      global_code = #record.globalCode:VARCHAR#,
+      simple_code = #record.simpleCode:VARCHAR#,
+      seat_code = #record.seatCode:VARCHAR#,
+      code = #record.code:INTEGER#,
+      curr_date = #record.currDate:DATE#,
+      totalpay_id = #record.totalpayId:VARCHAR#,
+      seat_id = #record.seatId:VARCHAR#,
+      people_count = #record.peopleCount:BIGINT#,
+      open_time = #record.openTime:BIGINT#,
+      status = #record.status:SMALLINT#,
+      memo = #record.memo:VARCHAR#,
+      inner_code = #record.innerCode:VARCHAR#,
+      menutime_id = #record.menutimeId:VARCHAR#,
+      worker_id = #record.workerId:VARCHAR#,
+      end_time = #record.endTime:BIGINT#,
+      feeplan_id = #record.feeplanId:VARCHAR#,
+      op_user_id = #record.opUserId:VARCHAR#,
+      order_from = #record.orderFrom:SMALLINT#,
+      order_kind = #record.orderKind:SMALLINT#,
+      area_id = #record.areaId:VARCHAR#,
+      name = #record.name:VARCHAR#,
+      mobile = #record.mobile:VARCHAR#,
+      tel = #record.tel:VARCHAR#,
+      is_autocommit = #record.isAutocommit:SMALLINT#,
+      send_time = #record.sendTime:BIGINT#,
+      address = #record.address:VARCHAR#,
+      paymode = #record.paymode:SMALLINT#,
+      outfee = #record.outfee:DECIMAL#,
+      sender_id = #record.senderId:VARCHAR#,
+      customerregister_id = #record.customerregisterId:VARCHAR#,
+      waitingorder_id = #record.waitingorderId:VARCHAR#,
+      send_status = #record.sendStatus:SMALLINT#,
+      audit_status = #record.auditStatus:SMALLINT#,
+      is_hide = #record.isHide:TINYINT#,
+      entity_id = #record.entityId:VARCHAR#,
+      is_valid = #record.isValid:SMALLINT#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      last_ver = #record.lastVer:BIGINT#,
+      load_time = #record.loadTime:INTEGER#,
+      modify_time = #record.modifyTime:INTEGER#,
+      is_limittime = #record.isLimittime:BIT#,
+      scan_url = #record.scanUrl:VARCHAR#,
+      seat_mark = #record.seatMark:VARCHAR#,
+      reservetime_id = #record.reservetimeId:VARCHAR#,
+      is_wait = #record.isWait:TINYINT#,
+      is_print = #record.isPrint:TINYINT#,
+      book_id = #record.bookId:VARCHAR#,
+      reserve_id = #record.reserveId:VARCHAR#,
+      orign_id = #record.orignId:VARCHAR#,
+      reserve_status = #record.reserveStatus:TINYINT#,
+      ext = #record.ext:LONGVARCHAR#
+    <isParameterPresent >
+      <include refid="orderdetail.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+  <update id="ibatorgenerated_updateByExample" >
+    update orderdetail
+    set order_id = #record.orderId:VARCHAR#,
+      global_code = #record.globalCode:VARCHAR#,
+      simple_code = #record.simpleCode:VARCHAR#,
+      seat_code = #record.seatCode:VARCHAR#,
+      code = #record.code:INTEGER#,
+      curr_date = #record.currDate:DATE#,
+      totalpay_id = #record.totalpayId:VARCHAR#,
+      seat_id = #record.seatId:VARCHAR#,
+      people_count = #record.peopleCount:BIGINT#,
+      open_time = #record.openTime:BIGINT#,
+      status = #record.status:SMALLINT#,
+      memo = #record.memo:VARCHAR#,
+      inner_code = #record.innerCode:VARCHAR#,
+      menutime_id = #record.menutimeId:VARCHAR#,
+      worker_id = #record.workerId:VARCHAR#,
+      end_time = #record.endTime:BIGINT#,
+      feeplan_id = #record.feeplanId:VARCHAR#,
+      op_user_id = #record.opUserId:VARCHAR#,
+      order_from = #record.orderFrom:SMALLINT#,
+      order_kind = #record.orderKind:SMALLINT#,
+      area_id = #record.areaId:VARCHAR#,
+      name = #record.name:VARCHAR#,
+      mobile = #record.mobile:VARCHAR#,
+      tel = #record.tel:VARCHAR#,
+      is_autocommit = #record.isAutocommit:SMALLINT#,
+      send_time = #record.sendTime:BIGINT#,
+      address = #record.address:VARCHAR#,
+      paymode = #record.paymode:SMALLINT#,
+      outfee = #record.outfee:DECIMAL#,
+      sender_id = #record.senderId:VARCHAR#,
+      customerregister_id = #record.customerregisterId:VARCHAR#,
+      waitingorder_id = #record.waitingorderId:VARCHAR#,
+      send_status = #record.sendStatus:SMALLINT#,
+      audit_status = #record.auditStatus:SMALLINT#,
+      is_hide = #record.isHide:TINYINT#,
+      entity_id = #record.entityId:VARCHAR#,
+      is_valid = #record.isValid:SMALLINT#,
+      create_time = #record.createTime:BIGINT#,
+      op_time = #record.opTime:BIGINT#,
+      last_ver = #record.lastVer:BIGINT#,
+      load_time = #record.loadTime:INTEGER#,
+      modify_time = #record.modifyTime:INTEGER#,
+      is_limittime = #record.isLimittime:BIT#,
+      scan_url = #record.scanUrl:VARCHAR#,
+      seat_mark = #record.seatMark:VARCHAR#,
+      reservetime_id = #record.reservetimeId:VARCHAR#,
+      is_wait = #record.isWait:TINYINT#,
+      is_print = #record.isPrint:TINYINT#,
+      book_id = #record.bookId:VARCHAR#,
+      reserve_id = #record.reserveId:VARCHAR#,
+      orign_id = #record.orignId:VARCHAR#,
+      reserve_status = #record.reserveStatus:TINYINT#
+    <isParameterPresent >
+      <include refid="orderdetail.ibatorgenerated_Example_Where_Clause" />
+    </isParameterPresent>
+  </update>
+</sqlMap>

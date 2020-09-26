@@ -1,0 +1,31 @@
+// kkk  $tabName hasParent $parentTabRef.isPresent()
+#if($parentTabRef.isPresent())
+    #set($parentTabRelation=$parentTabRef.get())
+// llll $parentTabRelation.parent.name
+    #if($config.isPrimaryTable($parentTabRelation.parent.name))
+    #*return new CompositePK(row, parentTabRef.getKey() /**子表列*/, sharedId); *#
+        $parentTabRelation.createParentPKLiteria($config);
+    #else
+    #* Optional<TableRelation>*#
+        #set($tabName=$parentTabRelation.parent.name)
+        #set($parentTabRef=$config.getFirstParent($tabName))
+    #* List<TableRelation> *#
+        #set($childTabRef=$config.getChildTabReference($tabName))
+        $config.pushRel($parentTabRelation,true)
+        #parse("/com/qlangtech/tis/classtpl/parsePKGetter.vm")
+    #end
+#else
+    #foreach($rel in $childTabRef)
+        #if( $config.isPrimaryTable( $rel.child.name) )
+            $rel.createChildPKLiteria($config)
+        #else
+        #* Optional<TableRelation>*#
+            #set($tabName= $rel.child.name)
+            #set($parentTabRef=$config.getFirstParent($tabName))
+        #* List<TableRelation> *#
+            #set($childTabRef=$config.getChildTabReference($tabName))
+            $config.pushRel($rel,false)
+            #parse("/com/qlangtech/tis/classtpl/parsePKGetter.vm")
+        #end
+    #end
+#end

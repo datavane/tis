@@ -1,0 +1,35 @@
+          pay_id: 003400136cd36c1d016cd373758508ab
+     totalpay_id: 003400136cb9a483016cbcef13f80dce
+      kindpay_id: 008
+     kindpayname:
+             fee: 6.180
+        operator: 49f69d64730044adae3e71057a3beef1
+   operator_name:
+        pay_time: 1566915655045
+             pay: 5.00
+          charge: 0.00
+        is_valid: 1
+       entity_id: 99227650
+     create_time: 1566915655045
+         op_time: 1566915668079
+        last_ver: 1
+       opuser_id: 6052da360f1a4f0fa0c5c22bd6411d80
+         card_id: NULL
+  card_entity_id: NULL
+  online_bill_id: NULL
+            type: 8
+            code: 00340013fKvYXJUfkqGbze6Am65erF
+   waitingpay_id: 003400136c8ef146016cd373757a307c
+       load_time: 1566915715
+     modify_time: 1566915715
+       is_dealed: 0
+       type_name:
+      coupon_fee: 20.00
+     coupon_cost: 8.01
+      coupon_num: 2
+             ext: {"aliasName":"全场现金券： 5.0元","customerRegisterId":"6052da360f1a4f0fa0c5c22bd6411d80","effectOnPromotion":0,"giveFee":0,"promotionId":"003400131JySSDp84r0a4nfftG0LdU"}
+        pay_from: 0
+parent_entity_id:
+       parent_id:
+     parent_code:
+    kind_card_id:

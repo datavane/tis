@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="mvn_dependency">
+	<resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.dataplatform.pojo.MvnDependency">
+		<result column="id" property="id" jdbcType="BIGINT" />
+		<result column="nobel_app_id" property="nobelAppId" jdbcType="BIGINT" />
+		<result column="tis_app_id" property="tisAppId" jdbcType="BIGINT" />
+		<result column="group_id" property="groupId" jdbcType="VARCHAR" />
+		<result column="artifact_id" property="artifactId" jdbcType="VARCHAR" />
+		<result column="version" property="version" jdbcType="VARCHAR" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="runtime" property="runtime" jdbcType="VARCHAR" />
+	</resultMap>
+
+
+	<resultMap id="ibatorgenerated_BaseResultMap_mvn_dependency" class="com.qlangtech.tis.dataplatform.pojo.MvnDependency">
+		<result column="id" property="id" jdbcType="BIGINT" />
+		<result column="from" property="from" jdbcType="VARCHAR" />
+		<result column="group_id" property="groupId" jdbcType="VARCHAR" />
+		<result column="artifact_id" property="artifactId" jdbcType="VARCHAR" />
+		<result column="version" property="version" jdbcType="VARCHAR" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="runtime" property="runtime" jdbcType="VARCHAR" />
+		<result column="tis_app_name" property="tisAppName" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="ibatorgenerated_Example_Where_Clause">
+		<iterate property="oredCriteria" conjunction="or" prepend="where"
+			removeFirstPrepend="iterate">
+			<isEqual property="oredCriteria[].valid" compareValue="true">
+				(
+				<iterate prepend="and" property="oredCriteria[].criteriaWithoutValue"
+					conjunction="and">
+					$oredCriteria[].criteriaWithoutValue[]$
+				</iterate>
+				<iterate prepend="and" property="oredCriteria[].criteriaWithSingleValue"
+					conjunction="and">
+					$oredCriteria[].criteriaWithSingleValue[].condition$
+					#oredCriteria[].criteriaWithSingleValue[].value#
+				</iterate>
+				<iterate prepend="and" property="oredCriteria[].criteriaWithListValue"
+					conjunction="and">
+					$oredCriteria[].criteriaWithListValue[].condition$
+					<iterate property="oredCriteria[].criteriaWithListValue[].values"
+						open="(" close=")" conjunction=",">
+						#oredCriteria[].criteriaWithListValue[].values[]#
+					</iterate>
+				</iterate>
+				<iterate prepend="and" property="oredCriteria[].criteriaWithBetweenValue"
+					conjunction="and">
+					$oredCriteria[].criteriaWithBetweenValue[].condition$
+					#oredCriteria[].criteriaWithBetweenValue[].values[0]# and
+					#oredCriteria[].criteriaWithBetweenValue[].values[1]#
+				</iterate>
+				)
+			</isEqual>
+		</iterate>
+	</sql>
+
+	  <select id="ibatorgenerated_get_aLL_dependency_ByNobleAppId"
+		parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependency"
+		resultMap="ibatorgenerated_BaseResultMap_mvn_dependency">
+	SELECT 'tis'  AS `from`, a.project_name  as tis_app_name,m.id,  m.group_id, m.artifact_id,m.version, m.modify_time, m.runtime
+	  FROM application a
+		   INNER JOIN mvn_dependency m ON(a.app_id = m.tis_app_id )
+		 WHERE m.runtime=#runtime:VARCHAR# AND a.nobel_app_id = #nobelAppId:BIGINT#
+   UNION ALL
+     SELECT 'noble' AS `from`, '' as tis_app_name ,mvn.id,  mvn.group_id, mvn.artifact_id,mvn.version, mvn.modify_time, mvn.runtime
+	  FROM nobel_app n
+		   INNER JOIN mvn_dependency mvn ON(n.id = mvn.nobel_app_id )
+		 WHERE mvn.runtime=#runtime:VARCHAR# AND n.id = #nobelAppId:BIGINT#
+	</select>
+
+	<select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap"
+		parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependencyCriteria">
+		select aa.id, nobel_app_id, tis_app_id, group_id, artifact_id,
+		version, modify_time,
+		create_time, runtime
+		from ( select id from mvn_dependency
+		<isParameterPresent>
+			<include refid="mvn_dependency.ibatorgenerated_Example_Where_Clause" />
+			<isNotNull property="orderByClause">
+				order by $orderByClause$
+			</isNotNull>
+			limit #skip#,#pageSize#
+		</isParameterPresent>
+		) bb inner join mvn_dependency aa on aa.id=bb.id
+	</select>
+	<select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap"
+		parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependency">
+		select id, nobel_app_id, tis_app_id, group_id, artifact_id, version,
+		modify_time, create_time,
+		runtime
+		from mvn_dependency
+		where id = #id:BIGINT#
+	</select>
+	<delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependency">
+		delete from mvn_dependency
+		where id = #id:BIGINT#
+	</delete>
+	<delete id="ibatorgenerated_deleteByExample"
+		parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependencyCriteria">
+		delete from mvn_dependency
+		<include refid="mvn_dependency.ibatorgenerated_Example_Where_Clause" />
+	</delete>
+	<insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependency">
+		insert into mvn_dependency (id, nobel_app_id, tis_app_id, group_id,
+		artifact_id, version,
+		modify_time, create_time, runtime)
+		values (#id:BIGINT#, #nobelAppId:BIGINT#, #tisAppId:BIGINT#,
+		#groupId:VARCHAR#,
+		#artifactId:VARCHAR#, #version:VARCHAR#, #modifyTime:TIMESTAMP#, #createTime:TIMESTAMP#,
+		#runtime:VARCHAR#)
+		<selectKey resultClass="java.lang.Long">
+			SELECT LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+	<insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependency">
+		insert into mvn_dependency
+		<dynamic prepend="(">
+			<isNotNull prepend="," property="id">
+				id
+			</isNotNull>
+			<isNotNull prepend="," property="nobelAppId">
+				nobel_app_id
+			</isNotNull>
+			<isNotNull prepend="," property="tisAppId">
+				tis_app_id
+			</isNotNull>
+			<isNotNull prepend="," property="groupId">
+				group_id
+			</isNotNull>
+			<isNotNull prepend="," property="artifactId">
+				artifact_id
+			</isNotNull>
+			<isNotNull prepend="," property="version">
+				version
+			</isNotNull>
+			<isNotNull prepend="," property="modifyTime">
+				modify_time
+			</isNotNull>
+			<isNotNull prepend="," property="createTime">
+				create_time
+			</isNotNull>
+			<isNotNull prepend="," property="runtime">
+				runtime
+			</isNotNull>
+			)
+		</dynamic>
+		values
+		<dynamic prepend="(">
+			<isNotNull prepend="," property="id">
+				#id:BIGINT#
+			</isNotNull>
+			<isNotNull prepend="," property="nobelAppId">
+				#nobelAppId:BIGINT#
+			</isNotNull>
+			<isNotNull prepend="," property="tisAppId">
+				#tisAppId:BIGINT#
+			</isNotNull>
+			<isNotNull prepend="," property="groupId">
+				#groupId:VARCHAR#
+			</isNotNull>
+			<isNotNull prepend="," property="artifactId">
+				#artifactId:VARCHAR#
+			</isNotNull>
+			<isNotNull prepend="," property="version">
+				#version:VARCHAR#
+			</isNotNull>
+			<isNotNull prepend="," property="modifyTime">
+				#modifyTime:TIMESTAMP#
+			</isNotNull>
+			<isNotNull prepend="," property="createTime">
+				#createTime:TIMESTAMP#
+			</isNotNull>
+			<isNotNull prepend="," property="runtime">
+				#runtime:VARCHAR#
+			</isNotNull>
+			)
+		</dynamic>
+		<selectKey resultClass="java.lang.Long">
+			SELECT LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+	<select id="ibatorgenerated_countByExample"
+		parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependencyCriteria"
+		resultClass="java.lang.Integer">
+		select count(*) from mvn_dependency
+		<include refid="mvn_dependency.ibatorgenerated_Example_Where_Clause" />
+	</select>
+
+
+
+
+
+
+	<select id="ibatorgenerated_countByCollectionExample"
+		parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependency"
+		resultClass="java.lang.Integer">
+
+		SELECT count(1)
+		  FROM application a
+		   INNER JOIN mvn_dependency m ON(a.app_id = m.tis_app_id )
+		 WHERE m.artifact_id=#artifactId:VARCHAR# AND m.group_id=#groupId:VARCHAR#
+		       AND m.runtime=#runtime:VARCHAR# AND a.nobel_app_id = #nobelAppId:BIGINT#
+	</select>
+
+	<select id="ibatorgenerated_countByNobleExample"
+		parameterClass="com.qlangtech.tis.dataplatform.pojo.MvnDependency"
+		resultClass="java.lang.Integer">
+
+		SELECT count(1)
+		  FROM application a
+		   INNER JOIN mvn_dependency m ON(a.nobel_app_id = m.nobel_app_id )
+		 WHERE m.artifact_id=#artifactId:VARCHAR# AND m.group_id=#groupId:VARCHAR#
+		       AND m.runtime=#runtime:VARCHAR# AND a.app_id = #tisAppId:BIGINT#
+	</select>
+
+	<update id="ibatorgenerated_updateByExampleSelective">
+		update mvn_dependency
+		<dynamic prepend="set">
+			<isNotNull prepend="," property="record.id">
+				id = #record.id:BIGINT#
+			</isNotNull>
+			<isNotNull prepend="," property="record.nobelAppId">
+				nobel_app_id = #record.nobelAppId:BIGINT#
+			</isNotNull>
+			<isNotNull prepend="," property="record.tisAppId">
+				tis_app_id = #record.tisAppId:BIGINT#
+			</isNotNull>
+			<isNotNull prepend="," property="record.groupId">
+				group_id = #record.groupId:VARCHAR#
+			</isNotNull>
+			<isNotNull prepend="," property="record.artifactId">
+				artifact_id = #record.artifactId:VARCHAR#
+			</isNotNull>
+			<isNotNull prepend="," property="record.version">
+				version = #record.version:VARCHAR#
+			</isNotNull>
+			<isNotNull prepend="," property="record.modifyTime">
+				modify_time = #record.modifyTime:TIMESTAMP#
+			</isNotNull>
+			<isNotNull prepend="," property="record.createTime">
+				create_time = #record.createTime:TIMESTAMP#
+			</isNotNull>
+			<isNotNull prepend="," property="record.runtime">
+				runtime = #record.runtime:VARCHAR#
+			</isNotNull>
+		</dynamic>
+		<isParameterPresent>
+			<include refid="mvn_dependency.ibatorgenerated_Example_Where_Clause" />
+		</isParameterPresent>
+	</update>
+	<update id="ibatorgenerated_updateByExample">
+		update mvn_dependency
+		set id = #record.id:BIGINT#,
+		nobel_app_id = #record.nobelAppId:BIGINT#,
+		tis_app_id = #record.tisAppId:BIGINT#,
+		group_id = #record.groupId:VARCHAR#,
+		artifact_id = #record.artifactId:VARCHAR#,
+		version = #record.version:VARCHAR#,
+		modify_time = #record.modifyTime:TIMESTAMP#,
+		create_time = #record.createTime:TIMESTAMP#,
+		runtime = #record.runtime:VARCHAR#
+		<isParameterPresent>
+			<include refid="mvn_dependency.ibatorgenerated_Example_Where_Clause" />
+		</isParameterPresent>
+	</update>
+</sqlMap>

@@ -1,0 +1,14 @@
+specialfee_id: 992295486bf99027016c0990267d0133
+  totalpay_id: 003400136cb9a483016cbcef13f80dce
+     order_id: 992295486be4e9d4016c099002b50081
+         kind: 3
+ feedetail_id: NULL
+          fee: 5.00
+    entity_id: 00340013
+     is_valid: 1
+  create_time: 1563528537834
+      op_time: 1563528537834
+     last_ver: 0
+   op_user_id: 34a4ff547c53474894edaf39acc5c3a7
+    load_time: 1563528537
+  modify_time: 1563528537

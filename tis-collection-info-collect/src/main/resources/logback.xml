@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false">
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<target>System.out</target>
+		<encoding>${loggingCharset}</encoding>
+		<!-- <filter class="com.alibaba.citrus.logconfig.logback.LevelRangeFilter"> 
+			<levelMax>INFO</levelMax> </filter> -->
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern>
+		</layout>
+	</appender>
+
+	<appender name="FILE-appender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/cluster_monitor/monitor.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/cluster_monitor/bak/%d{yyyy-MM-dd}-monitor.log
+			</fileNamePattern>
+			<maxHistory>8</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+	<appender name="check-health-appender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/cluster_monitor/checkhealth.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/cluster_monitor/bak/%d{yyyy-MM-dd}-checkhealth.log
+			</fileNamePattern>
+			<maxHistory>8</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+	<appender name="zookeeper"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/cluster_monitor/zookeeper.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/cluster_monitor/bak/%d{yyyy-MM-dd}-zookeeper.log
+			</fileNamePattern>
+			<maxHistory>8</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+		</encoder>
+	</appender>
+
+
+	<logger name="org.apache.solr.common.cloud.ConnectionManager">
+		<level value="INFO" />
+		<appender-ref ref="zookeeper" />
+	</logger>
+
+	<logger name="com.qlangtech.tis">
+		<level value="INFO" />
+		<appender-ref ref="FILE-appender" />
+	</logger>
+
+
+	<logger name="check_health">
+		<level value="INFO" />
+		<appender-ref ref="check-health-appender" />
+	</logger>
+
+
+	<root level="WARN">
+	<!-- 
+		<appender-ref ref="FILE-appender" />
+	 -->
+	</root>
+
+</configuration>

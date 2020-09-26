@@ -1,0 +1,30 @@
+                                 id: 992276506761f406016771fcf711022c
+                           order_id: 992276506761f406016771fcf711022c
+                             status: 1
+                           paid_fee: 1008.00
+                             outfee: 0.00
+                      origin_amount: 1008.00
+              origin_service_charge: 0.00
+                origin_least_amount: 0.00
+                        agio_amount: 1008.00
+                agio_service_charge: 0.00
+                  agio_least_amount: 0.00
+          origin_receivables_amount: 1008.00
+            agio_receivables_amount: 1008.00
+                          entity_id: 99227650
+                                ext: {"outFeeTaxFee":0.0,"platformFee":0.0,"serviceChargeTaxFee":0.0,"taxFee":0.0,"tipFee":0.0}
+                           is_valid: 1
+                         agio_total: 1008.00
+                           last_ver: 5
+                         op_user_id:
+                     reserve_amount: 0.00
+                       origin_total: 1008.00
+                       final_amount: 1008.00
+                 use_cash_promotion: 0
+                        create_time: 1543805663372
+                        modify_time: 1543805672
+                            op_time: 1543805672787
+                          load_time: 1543805663
+             agio_total_receivables: 0.00
+agio_receivables_amount_receivables: 0.00
+           final_amount_receivables: 0.00
