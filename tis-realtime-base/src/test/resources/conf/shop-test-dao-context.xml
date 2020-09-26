@@ -2,13 +2,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
 <beans >
   <bean id="mallShopDAO" class="com.qlangtech.tis.realtime.test.shop.dao.impl.MallShopDAOImpl" parent="shopDAO" />
-<!--  <bean id="shopDatasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >-->
-<!--    <property name="driverClassName" value="com.mysql.jdbc.Driver" />-->
-<!--    <property name="url" value="jdbc:mysql://common101.my.2dfire-daily.com:3306/shop?useUnicode=true&amp;characterEncoding=utf-8&amp;zeroDateTimeBehavior=convertToNull&amp;autoReconnect=true" />-->
-<!--    <property name="username" value="order" />-->
-<!--    <property name="password" value="order@552208" />-->
-<!--    <property name="validationQuery" value="select 1" />-->
-<!--  </bean>-->
+
   <bean id="shopDAO" class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport" abstract="true" >
     <property name="dataSource" ref="shopDatasource" />
     <property name="sqlMapClient" >

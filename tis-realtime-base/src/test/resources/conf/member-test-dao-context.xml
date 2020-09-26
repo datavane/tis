@@ -3,13 +3,7 @@
 <beans >
   <bean id="cardDAO" class="com.qlangtech.tis.realtime.test.member.dao.impl.CardDAOImpl" parent="memberDAO" />
   <bean id="customerDAO" class="com.qlangtech.tis.realtime.test.member.dao.impl.CustomerDAOImpl" parent="memberDAO" />
-<!--  <bean id="memberDatasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >-->
-<!--    <property name="driverClassName" value="com.mysql.jdbc.Driver" />-->
-<!--    <property name="url" value="jdbc:mysql://10.1.6.101:3306/member1?useUnicode=yes&amp;characterEncoding=utf8" />-->
-<!--    <property name="username" value="order" />-->
-<!--    <property name="password" value="order@552208" />-->
-<!--    <property name="validationQuery" value="select 1" />-->
-<!--  </bean>-->
+
   <bean id="memberDAO" class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport" abstract="true" >
     <property name="dataSource" ref="memberDatasource" />
     <property name="sqlMapClient" >

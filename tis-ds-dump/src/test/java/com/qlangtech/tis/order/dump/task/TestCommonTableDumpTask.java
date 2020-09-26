@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  */
 public class TestCommonTableDumpTask extends TestCase {
 
-    private static final String DS_CONFIG = "db.member.enum=10.1.6.101\n" + "db.member.dbname=member\n" + "db.member.username=order\n" + "db.member.password=order@552208";
+    private static final String DS_CONFIG = "db.member.enum=10.1.6.101\n" + "db.member.dbname=member\n" + "db.member.username=order\n" + "db.member.password=xxxxxx";
 
     private static final Pattern DB_HOST_ENUM = Pattern.compile("db\\.(.+?)\\.enum");
 

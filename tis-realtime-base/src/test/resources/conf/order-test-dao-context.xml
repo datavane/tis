@@ -1,79 +1,95 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
-<beans >
-  <bean id="waitinginstanceinfoDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.WaitinginstanceinfoDAOImpl" parent="orderDAO" />
-  <bean id="orderRefundDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderRefundDAOImpl" parent="orderDAO" />
-  <bean id="instanceAssetDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.InstanceAssetDAOImpl" parent="orderDAO" />
-  <bean id="orderTagDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderTagDAOImpl" parent="orderDAO" />
-  <bean id="paydetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.PaydetailDAOImpl" parent="orderDAO" />
-  <bean id="payinfoDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.PayinfoDAOImpl" parent="orderDAO" />
-  <bean id="waitingordercridDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.WaitingordercridDAOImpl" parent="orderDAO" />
-  <bean id="waitingPayDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.WaitingPayDAOImpl" parent="orderDAO" />
-  <bean id="discountDetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.DiscountDetailDAOImpl" parent="orderDAO" />
-  <bean id="orderPromotionDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderPromotionDAOImpl" parent="orderDAO" />
-  <bean id="queuestatusDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.QueuestatusDAOImpl" parent="orderDAO" />
-  <bean id="orderBillDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderBillDAOImpl" parent="orderDAO" />
-  <bean id="orderSnapshotDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderSnapshotDAOImpl" parent="orderDAO" />
-  <bean id="instancedetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.InstancedetailDAOImpl" parent="orderDAO" />
-  <bean id="customerOrderRelationDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.CustomerOrderRelationDAOImpl" parent="orderDAO" />
-  <bean id="totalpayinfoDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.TotalpayinfoDAOImpl" parent="orderDAO" />
-  <bean id="presellOrderExtraDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.PresellOrderExtraDAOImpl" parent="orderDAO" />
-  <bean id="specialfeeDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.SpecialfeeDAOImpl" parent="orderDAO" />
-  <bean id="refundPayItemDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.RefundPayItemDAOImpl" parent="orderDAO" />
-  <bean id="takeoutOrderExtraDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.TakeoutOrderExtraDAOImpl" parent="orderDAO" />
-  <bean id="waitingorderdetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.WaitingorderdetailDAOImpl" parent="orderDAO" />
-  <bean id="gridFieldDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.GridFieldDAOImpl" parent="orderDAO" />
-  <bean id="servicebillinfoDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.ServicebillinfoDAOImpl" parent="orderDAO" />
-  <bean id="simplecodeorderDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.SimplecodeorderDAOImpl" parent="orderDAO" />
-  <bean id="userDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.UserDAOImpl" parent="orderDAO" />
-  <bean id="globalcodeorderDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.GlobalcodeorderDAOImpl" parent="orderDAO" />
-  <bean id="orderdetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderdetailDAOImpl" parent="orderDAO" />
-  <bean id="promotionDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.PromotionDAOImpl" parent="orderDAO" />
-  <bean id="queueopDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.QueueopDAOImpl" parent="orderDAO" />
-<!--  <bean id="orderDatasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >-->
-<!--    <property name="driverClassName" value="com.mysql.jdbc.Driver" />-->
-<!--    <property name="url" value="jdbc:mysql://10.1.6.101:3306/order1?useUnicode=true&amp;characterEncoding=utf-8&amp;zeroDateTimeBehavior=convertToNull&amp;autoReconnect=true" />-->
-<!--    <property name="username" value="order" />-->
-<!--    <property name="password" value="order@552208" />-->
-<!--    <property name="validationQuery" value="select 1" />-->
-<!--  </bean>-->
-  <bean id="orderDAO" class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport" abstract="true" >
-    <property name="dataSource" ref="orderDatasource" />
-    <property name="sqlMapClient" >
-      <bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean" >
-        <property name="configLocation" value="classpath:/conf/order-test-sqlmap-config.xml" />
-      </bean>
-    </property>
-  </bean>
-  <bean id="orderDAOFacade" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderDAOFacadeImpl" >
-    <constructor-arg index="0" ref="waitinginstanceinfoDAO" />
-    <constructor-arg index="1" ref="orderRefundDAO" />
-    <constructor-arg index="2" ref="instanceAssetDAO" />
-    <constructor-arg index="3" ref="orderTagDAO" />
-    <constructor-arg index="4" ref="paydetailDAO" />
-    <constructor-arg index="5" ref="payinfoDAO" />
-    <constructor-arg index="6" ref="waitingordercridDAO" />
-    <constructor-arg index="7" ref="waitingPayDAO" />
-    <constructor-arg index="8" ref="discountDetailDAO" />
-    <constructor-arg index="9" ref="orderPromotionDAO" />
-    <constructor-arg index="10" ref="queuestatusDAO" />
-    <constructor-arg index="11" ref="orderBillDAO" />
-    <constructor-arg index="12" ref="orderSnapshotDAO" />
-    <constructor-arg index="13" ref="instancedetailDAO" />
-    <constructor-arg index="14" ref="customerOrderRelationDAO" />
-    <constructor-arg index="15" ref="totalpayinfoDAO" />
-    <constructor-arg index="16" ref="presellOrderExtraDAO" />
-    <constructor-arg index="17" ref="specialfeeDAO" />
-    <constructor-arg index="18" ref="refundPayItemDAO" />
-    <constructor-arg index="19" ref="takeoutOrderExtraDAO" />
-    <constructor-arg index="20" ref="waitingorderdetailDAO" />
-    <constructor-arg index="21" ref="gridFieldDAO" />
-    <constructor-arg index="22" ref="servicebillinfoDAO" />
-    <constructor-arg index="23" ref="simplecodeorderDAO" />
-    <constructor-arg index="24" ref="userDAO" />
-    <constructor-arg index="25" ref="globalcodeorderDAO" />
-    <constructor-arg index="26" ref="orderdetailDAO" />
-    <constructor-arg index="27" ref="promotionDAO" />
-    <constructor-arg index="28" ref="queueopDAO" />
-  </bean>
+<beans>
+    <bean id="waitinginstanceinfoDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.WaitinginstanceinfoDAOImpl"
+          parent="orderDAO"/>
+    <bean id="orderRefundDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderRefundDAOImpl"
+          parent="orderDAO"/>
+    <bean id="instanceAssetDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.InstanceAssetDAOImpl"
+          parent="orderDAO"/>
+    <bean id="orderTagDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderTagDAOImpl" parent="orderDAO"/>
+    <bean id="paydetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.PaydetailDAOImpl" parent="orderDAO"/>
+    <bean id="payinfoDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.PayinfoDAOImpl" parent="orderDAO"/>
+    <bean id="waitingordercridDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.WaitingordercridDAOImpl"
+          parent="orderDAO"/>
+    <bean id="waitingPayDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.WaitingPayDAOImpl"
+          parent="orderDAO"/>
+    <bean id="discountDetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.DiscountDetailDAOImpl"
+          parent="orderDAO"/>
+    <bean id="orderPromotionDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderPromotionDAOImpl"
+          parent="orderDAO"/>
+    <bean id="queuestatusDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.QueuestatusDAOImpl"
+          parent="orderDAO"/>
+    <bean id="orderBillDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderBillDAOImpl" parent="orderDAO"/>
+    <bean id="orderSnapshotDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderSnapshotDAOImpl"
+          parent="orderDAO"/>
+    <bean id="instancedetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.InstancedetailDAOImpl"
+          parent="orderDAO"/>
+    <bean id="customerOrderRelationDAO"
+          class="com.qlangtech.tis.realtime.test.order.dao.impl.CustomerOrderRelationDAOImpl" parent="orderDAO"/>
+    <bean id="totalpayinfoDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.TotalpayinfoDAOImpl"
+          parent="orderDAO"/>
+    <bean id="presellOrderExtraDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.PresellOrderExtraDAOImpl"
+          parent="orderDAO"/>
+    <bean id="specialfeeDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.SpecialfeeDAOImpl"
+          parent="orderDAO"/>
+    <bean id="refundPayItemDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.RefundPayItemDAOImpl"
+          parent="orderDAO"/>
+    <bean id="takeoutOrderExtraDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.TakeoutOrderExtraDAOImpl"
+          parent="orderDAO"/>
+    <bean id="waitingorderdetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.WaitingorderdetailDAOImpl"
+          parent="orderDAO"/>
+    <bean id="gridFieldDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.GridFieldDAOImpl" parent="orderDAO"/>
+    <bean id="servicebillinfoDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.ServicebillinfoDAOImpl"
+          parent="orderDAO"/>
+    <bean id="simplecodeorderDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.SimplecodeorderDAOImpl"
+          parent="orderDAO"/>
+    <bean id="userDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.UserDAOImpl" parent="orderDAO"/>
+    <bean id="globalcodeorderDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.GlobalcodeorderDAOImpl"
+          parent="orderDAO"/>
+    <bean id="orderdetailDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderdetailDAOImpl"
+          parent="orderDAO"/>
+    <bean id="promotionDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.PromotionDAOImpl" parent="orderDAO"/>
+    <bean id="queueopDAO" class="com.qlangtech.tis.realtime.test.order.dao.impl.QueueopDAOImpl" parent="orderDAO"/>
+
+    <!--  </bean>-->
+    <bean id="orderDAO" class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport" abstract="true">
+        <property name="dataSource" ref="orderDatasource"/>
+        <property name="sqlMapClient">
+            <bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+                <property name="configLocation" value="classpath:/conf/order-test-sqlmap-config.xml"/>
+            </bean>
+        </property>
+    </bean>
+    <bean id="orderDAOFacade" class="com.qlangtech.tis.realtime.test.order.dao.impl.OrderDAOFacadeImpl">
+        <constructor-arg index="0" ref="waitinginstanceinfoDAO"/>
+        <constructor-arg index="1" ref="orderRefundDAO"/>
+        <constructor-arg index="2" ref="instanceAssetDAO"/>
+        <constructor-arg index="3" ref="orderTagDAO"/>
+        <constructor-arg index="4" ref="paydetailDAO"/>
+        <constructor-arg index="5" ref="payinfoDAO"/>
+        <constructor-arg index="6" ref="waitingordercridDAO"/>
+        <constructor-arg index="7" ref="waitingPayDAO"/>
+        <constructor-arg index="8" ref="discountDetailDAO"/>
+        <constructor-arg index="9" ref="orderPromotionDAO"/>
+        <constructor-arg index="10" ref="queuestatusDAO"/>
+        <constructor-arg index="11" ref="orderBillDAO"/>
+        <constructor-arg index="12" ref="orderSnapshotDAO"/>
+        <constructor-arg index="13" ref="instancedetailDAO"/>
+        <constructor-arg index="14" ref="customerOrderRelationDAO"/>
+        <constructor-arg index="15" ref="totalpayinfoDAO"/>
+        <constructor-arg index="16" ref="presellOrderExtraDAO"/>
+        <constructor-arg index="17" ref="specialfeeDAO"/>
+        <constructor-arg index="18" ref="refundPayItemDAO"/>
+        <constructor-arg index="19" ref="takeoutOrderExtraDAO"/>
+        <constructor-arg index="20" ref="waitingorderdetailDAO"/>
+        <constructor-arg index="21" ref="gridFieldDAO"/>
+        <constructor-arg index="22" ref="servicebillinfoDAO"/>
+        <constructor-arg index="23" ref="simplecodeorderDAO"/>
+        <constructor-arg index="24" ref="userDAO"/>
+        <constructor-arg index="25" ref="globalcodeorderDAO"/>
+        <constructor-arg index="26" ref="orderdetailDAO"/>
+        <constructor-arg index="27" ref="promotionDAO"/>
+        <constructor-arg index="28" ref="queueopDAO"/>
+    </bean>
 </beans>
