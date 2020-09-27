@@ -38,32 +38,31 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- */
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/09/25
  */
 public class IndexQuery {
 
-    // 
+    //
     // private static final long serialVersionUID = 1L;
-    // 
+    //
     private static final Logger logger = LoggerFactory.getLogger(IndexQuery.class);
 
-    // 
+    //
     private static final Cache<String, SolrFieldsParser.SchemaFields> /* collection name */
     schemaFieldsCache;
 
-    // 
+    //
     static {
         schemaFieldsCache = CacheBuilder.newBuilder().expireAfterWrite(6, TimeUnit.MINUTES).build();
     }
 
-    // 
+    //
     // public IndexQuery() {
     // super();
     // }
-    // 
+    //
     public static List<PSchemaField> getSfields(HttpServletRequest request, QueryResutStrategy queryStrategy, List<ServerJoinGroup> nodes) throws Exception {
         // return getRequest().getParameterValues("sfields");
         final String collection = queryStrategy.domain.getAppName();
@@ -83,7 +82,7 @@ public class IndexQuery {
         return fieldList;
     }
 
-    // 
+    //
     public static class QueryRequestWrapper extends HttpServletRequestWrapper {
 
         private final Context context;
@@ -99,7 +98,7 @@ public class IndexQuery {
         }
     }
 
-    // 
+    //
     private static void getSchemaFrom1Server(String collection, QueryRequestContext requestContext, final QueryResutStrategy queryResutStrategy, final List<ServerJoinGroup> serverlist) throws ServletException {
         // boolean isSuccessGet = false;
         for (ServerJoinGroup server : serverlist) {
@@ -116,13 +115,13 @@ public class IndexQuery {
     // StringBuffer servers = new StringBuffer();
     // for (ServerJoinGroup server : serverlist) {
     // servers.append("[").append(server.getIpAddress()).append("]");
-    // 
+    //
     // }
     // throw new ServletException("remote server faild,remote servers:" +
     // servers.toString());
     }
 
-    // 
+    //
     public static class QueryRequestContext {
 
         // final ResultCount count = new ResultCount();
@@ -144,7 +143,7 @@ public class IndexQuery {
         public final boolean queryDebug = false;
     }
 
-    // 
+    //
     private static SolrFieldsParser.ParseResult processSchema(final QueryIndexServlet.SolrQueryModuleCreator creator, final String url) throws MalformedURLException {
         return ConfigFileContext.processContent(new URL(url + "/admin/file/?file=schema.xml"), new ConfigFileContext.StreamProcess<SolrFieldsParser.ParseResult>() {
 

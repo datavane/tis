@@ -24,31 +24,29 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- */
- *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/09/25
  */
 public class SelectableServer {
 
-    // 
+    //
     static final String key = SelectableServer.class.getName() + ".candidateServer";
 
-    // 
+    //
     // private static final long serialVersionUID = -3919176682810058692L;
-    // 
+    //
     // private Integer contextid;
-    // 
+    //
     // private String service;
-    // 
+    //
     // private Boolean excludeHaveAppServers = false;
-    // 
+    //
     // private Boolean canidateServerNameAware = false;
-    // 
+    //
     // private Boolean showselect;
-    // 
+    //
     // private String ownserversKey;
-    // 
+    //
     // /**
     // * @return
     // * @throws KeeperException
@@ -58,11 +56,11 @@ public class SelectableServer {
         return stateReader.getSelectTableNodes();
     }
 
-    // 
+    //
     // private static String getHostNameFromUrl(String name) {
     // return StringUtils.substringBefore(name, ":");
     // }
-    // 
+    //
     // /**
     // * @param request
     // * @param coreDefineScreen
@@ -98,7 +96,7 @@ public class SelectableServer {
         }
     }
 
-    // 
+    //
     public static class ServerNodeTopology {
 
         private int shardCount;
@@ -132,7 +130,7 @@ public class SelectableServer {
         }
     }
 
-    // 
+    //
     public static class CoreNode {
 
         private String nodeName;

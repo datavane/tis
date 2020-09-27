@@ -21,31 +21,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 
 /**
- */
- *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/09/25
  */
 public class HdfsAction {
 
-    // 
-    // private static final long serialVersionUID = 1L;
-    // 
-    // public void doDownload(Context context) {
-    // // final Path path = new Path(this.getString("path"));
-    // final IPath path = this.getFilesystem().getPath(this.getString("path"));
-    // InputStream inputStream = null;
-    // try {
-    // inputStream = this.getFilesystem().open(path);
-    // HttpServletResponse response = getDownloadResponse(path.getName());
-    // IOUtils.copyLarge(inputStream, response.getOutputStream());
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // } finally {
-    // IOUtils.closeQuietly(inputStream);
-    // }
-    // }
-    // 
+
     public static HttpServletResponse getDownloadResponse(String pathName) {
         HttpServletResponse response = (HttpServletResponse) DefaultFilter.getRespone();
         response.setContentType("application/text");
