@@ -147,6 +147,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
             });
         }
 
+
         /**
          * 接收客户端发送的消息
          *
@@ -365,7 +366,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     }
 
     public static List<TopicTagIncrStatus.FocusTags> getFocusTags(String collectionName) throws MalformedURLException {
-        // 
+        //
         JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(collectionName, Collections.emptyList(), TopicInfo.class);
         if (topicInfo.biz.getTopicWithTags().size() < 1) {
             // 返回为空的话可以证明没有正常启动
