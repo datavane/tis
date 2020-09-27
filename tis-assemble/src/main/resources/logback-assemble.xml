@@ -36,7 +36,7 @@
         <sift>
             <appender name="full-${taskid}"
                       class="com.qlangtech.tis.log.RealtimeLoggerCollectorAppender">
-                <File>${log.dir}/assemble/task/full-${taskid}.log</File>
+                <File>${assemble.task.dir}/full-${taskid}.log</File>
                 <encoder>
                     <pattern><![CDATA[%d{MM-dd HH:mm}%X{host} %msg%n]]></pattern>
                 </encoder>

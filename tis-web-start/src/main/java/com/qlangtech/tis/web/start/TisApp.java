@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,6 +18,7 @@ import com.qlangtech.tis.web.start.JettyTISRunner.IWebAppContextSetter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.Objects;
@@ -28,9 +29,17 @@ import java.util.Objects;
  */
 public class TisApp {
 
+    public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
+
     static {
         // System.setProperty("logback.ContextSelector", "com.qlangtech.tis.web.start.TISContextSelector");
         System.setProperty("logback.ContextSelector", "JNDI");
+//${log.dir}/assemble/task
+        System.setProperty(KEY_ASSEMBLE_TASK_DIR, System.getProperty("log.dir") + "/assemble/task");
+    }
+
+    public static final File getAssebleTaskDir() {
+        return new File(System.getProperty(KEY_ASSEMBLE_TASK_DIR));
     }
 
     public static final String KEY_WEB_ROOT_DIR = "web.root.dir";

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,6 +16,8 @@ package com.qlangtech.tis.log;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.FileAppender;
+import com.qlangtech.tis.web.start.TisApp;
+
 import java.io.File;
 import java.util.*;
 
@@ -74,16 +76,16 @@ public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> 
         }
         // cb.add(eventObject);
         appenderListener.process(this.name, eventObject);
-    // LoggerCollectorAppenderListener l = null;
-    // Iterator<LoggerCollectorAppenderListener> it = appenderListener.iterator();
-    // while (it.hasNext()) {
-    // l = it.next();
-    // if (l.isClosed()) {
-    // it.remove();
-    // } else {
-    // l.process(eventObject);
-    // }
-    // }
+        // LoggerCollectorAppenderListener l = null;
+        // Iterator<LoggerCollectorAppenderListener> it = appenderListener.iterator();
+        // while (it.hasNext()) {
+        // l = it.next();
+        // if (l.isClosed()) {
+        // it.remove();
+        // } else {
+        // l.process(eventObject);
+        // }
+        // }
     }
 
     public interface LoggerCollectorAppenderListener {
@@ -138,15 +140,14 @@ public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> 
                     targetAppenderLister.put(targetAppenderName, listeners);
                 }
                 RealtimeLoggerCollectorAppender appender = bufferAppenderMap.get(targetAppenderName);
+                File file = null;
                 if (appender != null) {
-                    File file = new File(appender.getFile());
-                    if (file.exists()) {
-                        l.readLogTailer(mtarget, file);
-                    }
-                // 先把缓存里面的东西全都向监听者排出
-                // for (LoggingEvent e : appender.cb.asList()) {
-                // l.process(mtarget, e);
-                // }
+                    file = new File(appender.getFile());
+                } else {
+                    file = new File(TisApp.getAssebleTaskDir(), targetAppenderName + ".log");
+                }
+                if (file.exists()) {
+                    l.readLogTailer(mtarget, file);
                 }
                 listeners.listeners.add(l);
             }
