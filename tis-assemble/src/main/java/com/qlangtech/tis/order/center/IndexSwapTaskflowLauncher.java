@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -43,6 +43,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -167,8 +168,8 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         });
         // "/tis/incr-transfer-group/incr-state-collect"
         ZkUtils.registerAddress2ZK(// "/tis/incr-transfer-group/incr-state-collect"
-        this.zkClient, // "/tis/incr-transfer-group/incr-state-collect"
-        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, exportPort);
+                this.zkClient, // "/tis/incr-transfer-group/incr-state-collect"
+                ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, exportPort);
         IncrStatusUmbilicalProtocolImpl.getInstance().startLogging();
         return incrChannels;
     }
@@ -226,6 +227,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     }
 
     // private ITISFileSystemFactory indexBuildFileSystem;
+
     /**
      * 由servlet接收到命令之后触发
      *
@@ -263,36 +265,36 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         return SolrFieldsParser.parse(() -> {
             return ConfigFileReader.FILE_SCHEMA.getContent(domain);
         });
-    // SolrFieldsParser solrFieldsParser = new SolrFieldsParser();
-    // SolrFieldsParser.ParseResult schemaParseResult;
-    // try (ByteArrayInputStream reader = new ByteArrayInputStream(ConfigFileReader.FILE_SCHEMA.getContent(domain))) {
-    // schemaParseResult = solrFieldsParser.parseSchema(reader, false);
-    // }
-    // 
-    // return new IIndexMetaData() {
-    // 
-    // @Override
-    // public SolrFieldsParser.ParseResult getSchemaParseResult() {
-    // return schemaParseResult;
-    // }
-    // 
-    // @Override
-    // public IIndexBuildLifeCycleHook getIndexBuildLifeCycleHook() {
-    // return AdapterIndexBuildLifeCycleHook.create(schemaParseResult);
-    // }
-    // 
-    // @Override
-    // public LuceneVersion getLuceneVersion() {
-    // 
-    // return LuceneVersion.LUCENE_7;
-    // //                Version ver = getTISLuceneVersion(domain);
-    // //                if (ver.equals(Version.LUCENE_7_6_0)) {
-    // //                    return LuceneVersion.LUCENE_7;
-    // //                }
-    // //
-    // //                throw new IllegalStateException("illegal version ver:" + ver);
-    // }
-    // };
+        // SolrFieldsParser solrFieldsParser = new SolrFieldsParser();
+        // SolrFieldsParser.ParseResult schemaParseResult;
+        // try (ByteArrayInputStream reader = new ByteArrayInputStream(ConfigFileReader.FILE_SCHEMA.getContent(domain))) {
+        // schemaParseResult = solrFieldsParser.parseSchema(reader, false);
+        // }
+        //
+        // return new IIndexMetaData() {
+        //
+        // @Override
+        // public SolrFieldsParser.ParseResult getSchemaParseResult() {
+        // return schemaParseResult;
+        // }
+        //
+        // @Override
+        // public IIndexBuildLifeCycleHook getIndexBuildLifeCycleHook() {
+        // return AdapterIndexBuildLifeCycleHook.create(schemaParseResult);
+        // }
+        //
+        // @Override
+        // public LuceneVersion getLuceneVersion() {
+        //
+        // return LuceneVersion.LUCENE_7;
+        // //                Version ver = getTISLuceneVersion(domain);
+        // //                if (ver.equals(Version.LUCENE_7_6_0)) {
+        // //                    return LuceneVersion.LUCENE_7;
+        // //                }
+        // //
+        // //                throw new IllegalStateException("illegal version ver:" + ver);
+        // }
+        // };
     }
 
     // private Version getTISLuceneVersion(SnapshotDomain domain) {
@@ -579,10 +581,10 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
                     return result;
                 }
                 if (result == null) {
-                    result = new PhaseStatusCollection(taskid);
+                    result = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
                 }
                 phaseStatus = BasicPhaseStatus.statusWriter.loadPhase(localFile);
-                switch(phase) {
+                switch (phase) {
                     case FullDump:
                         result.setDumpPhase((DumpPhaseStatus) phaseStatus);
                         break;

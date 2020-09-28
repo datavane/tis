@@ -1,19 +1,21 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.fullbuild.phasestatus;
 
+import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
@@ -32,18 +34,23 @@ public class PhaseStatusCollection {
     private BuildPhaseStatus buildPhase;
 
     private IndexBackFlowPhaseStatus indexBackFlowPhaseStatus;
+    private ExecutePhaseRange executePhaseRange;
 
     /**
      * @return
      */
     public boolean isComplete() {
-        return dumpPhase.isComplete() && joinPhase.isComplete() && buildPhase.isComplete() && indexBackFlowPhaseStatus.isComplete();
+        return (!executePhaseRange.contains(FullbuildPhase.FullDump) || dumpPhase.isComplete())
+                && (!executePhaseRange.contains(FullbuildPhase.JOIN) || joinPhase.isComplete())
+                && (!executePhaseRange.contains(FullbuildPhase.BUILD) || buildPhase.isComplete())
+                && (!executePhaseRange.contains(FullbuildPhase.IndexBackFlow) || indexBackFlowPhaseStatus.isComplete());
     }
 
     private Integer taskid;
 
-    public PhaseStatusCollection(Integer taskid) {
+    public PhaseStatusCollection(Integer taskid, ExecutePhaseRange executePhaseRange) {
         super();
+        this.executePhaseRange = executePhaseRange;
         this.taskid = taskid;
         this.dumpPhase = new DumpPhaseStatus(taskid);
         this.joinPhase = new JoinPhaseStatus(taskid);
@@ -52,7 +59,7 @@ public class PhaseStatusCollection {
     }
 
     public Integer getTaskid() {
-        return taskid;
+        return this.taskid;
     }
 
     public DumpPhaseStatus getDumpPhase() {

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,16 +19,13 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.impl.*;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
-import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -55,12 +52,12 @@ public class AbstractActionInvocation implements ActionInvocation {
     // new IndexBuildInterceptor(), //////////
     // new IndexBackFlowInterceptor() };
     // 由数据中心触发的直接進入索引build階段
-    private static final IExecuteInterceptor[] directBuild = new IExecuteInterceptor[] { // /////
-    new IndexBuildWithHdfsPathInterceptor(), new IndexBackFlowInterceptor() };
+    private static final IExecuteInterceptor[] directBuild = new IExecuteInterceptor[]{ // /////
+            new IndexBuildWithHdfsPathInterceptor(), new IndexBackFlowInterceptor()};
 
     // 工作流執行方式
-    public static final IExecuteInterceptor[] workflowBuild = new IExecuteInterceptor[] { // new WorkflowTableJoinInterceptor(),
-    new WorkflowDumpAndJoinInterceptor(), new WorkflowIndexBuildInterceptor(), new IndexBackFlowInterceptor() };
+    public static final IExecuteInterceptor[] workflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
+            new WorkflowDumpAndJoinInterceptor(), new WorkflowIndexBuildInterceptor(), new IndexBackFlowInterceptor()};
 
     /**
      * 创建执行链
@@ -73,26 +70,18 @@ public class AbstractActionInvocation implements ActionInvocation {
         if (chainContext.getWorkflowId() != null) {
             ints = workflowBuild;
             Integer workflowId = chainContext.getWorkflowId();
-            // LocalDateTime dateTime = LocalDateTime.parse(chainContext.getPartitionTimestamp(), SingleTableDump.DATE_TIME_FORMATTER);
-            // long currentTime = dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            // SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName());
             SqlDataFlowTopology workflowDetail = chainContext.getTopology();
             Objects.requireNonNull(workflowDetail, "workflowDetail can not be null");
             SqlTaskNodeMeta finalN = workflowDetail.getFinalNode();
             chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, EntityName.parse(finalN.getExportName()));
             Integer taskid = chainContext.getTaskId();
-            TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid));
+            TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange()));
             chainContext.setAttribute(IFullBuildContext.KEY_WORKFLOW_ID, workflowDetail);
             Optional<ERRules> erRule = ERRules.getErRule(workflowDetail.getName());
             if (!erRule.isPresent()) {
                 throw new IllegalStateException("can not find erRule relevant topology:" + workflowDetail.getName() + ",workflowid:" + workflowId);
             }
             chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, erRule.get());
-        // chainContext.setAttribute("currentTime", currentTime);
-        // if (chainContext.getExecutePhaseRange().contains(FullbuildPhase.JOIN)) {
-        // // 包含了join节点吗？
-        // chainContext.setAttribute(IFullBuildContext.KEY_APP_SHARD_COUNT);
-        // }
         } else {
             if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
                 ints = directBuild;

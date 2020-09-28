@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,6 +16,8 @@ package com.qlangtech.tis.rpc.grpc.log;
 
 import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableMap;
+import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.JobLog;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
@@ -35,7 +37,7 @@ import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.net.InetAddress;
+
 import java.util.Map;
 
 /**
@@ -81,27 +83,27 @@ public class LogCollectorClient implements ILogReporter {
                     // An iterator is used so we can pause and resume iteration of the request data.
                     @Override
                     public void run() {
-                    // try {
-                    // while (requestStream.isReady()) {
-                    // MonotorTarget focus = focusTarget.take();
-                    // 
-                    // if (RegisterMonotorTarget.isPoisonPill(focus)) {
-                    // requestStream.onCompleted();
-                    // return;
-                    // } else {
-                    // PMonotorTarget.Builder t = PMonotorTarget.newBuilder();
-                    // t.setLogtype(convert(focus.logType.typeKind));
-                    // t.setCollection(focus.getCollection());
-                    // if (focus.getTaskid() != null) {
-                    // t.setTaskid(focus.getTaskid());
-                    // }
-                    // requestStream.onNext(t.build());
-                    // }
-                    // }
-                    // } catch (InterruptedException e) {
-                    // requestStream.onCompleted();
-                    // throw new RuntimeException(e);
-                    // }
+                        // try {
+                        // while (requestStream.isReady()) {
+                        // MonotorTarget focus = focusTarget.take();
+                        //
+                        // if (RegisterMonotorTarget.isPoisonPill(focus)) {
+                        // requestStream.onCompleted();
+                        // return;
+                        // } else {
+                        // PMonotorTarget.Builder t = PMonotorTarget.newBuilder();
+                        // t.setLogtype(convert(focus.logType.typeKind));
+                        // t.setCollection(focus.getCollection());
+                        // if (focus.getTaskid() != null) {
+                        // t.setTaskid(focus.getTaskid());
+                        // }
+                        // requestStream.onNext(t.build());
+                        // }
+                        // }
+                        // } catch (InterruptedException e) {
+                        // requestStream.onCompleted();
+                        // throw new RuntimeException(e);
+                        // }
                     }
                 });
             }
@@ -116,7 +118,7 @@ public class LogCollectorClient implements ILogReporter {
                 try {
                     // logListener.read(convert(value));
                     logListener.read((value));
-                // requestStream.request(1);
+                    // requestStream.request(1);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -125,13 +127,13 @@ public class LogCollectorClient implements ILogReporter {
             @Override
             public void onError(Throwable t) {
                 t.printStackTrace();
-            // done.countDown();
+                // done.countDown();
             }
 
             @Override
             public void onCompleted() {
                 logger.info("All Done");
-            // done.countDown();
+                // done.countDown();
             }
         };
         StreamObserver<PMonotorTarget> pMonotorTargetStreamObserver = this.stub.registerMonitorEvent(clientResponseObserver);
@@ -175,7 +177,7 @@ public class LogCollectorClient implements ILogReporter {
     }
 
     private InfoType convert(com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState.InfoType itype) {
-        switch(itype) {
+        switch (itype) {
             case INFO:
                 return InfoType.INFO;
             case WARN:
@@ -190,7 +192,7 @@ public class LogCollectorClient implements ILogReporter {
     }
 
     public static LogType convert(com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState.LogType logtype) {
-        switch(logtype) {
+        switch (logtype) {
             case MQ_TAGS_STATUS:
                 return LogType.MQ_TAGS_STATUS;
             case INCR_SEND:
@@ -224,38 +226,40 @@ public class LogCollectorClient implements ILogReporter {
             throw new IllegalStateException("in valid logtype:" + logtypeKind);
         }
         return type;
-    // switch (logtypeKind) {
-    // case LogType.MQ_TAGS_STATUS.typeKind:
-    // return PExecuteState.LogType.MQ_TAGS_STATUS;
-    // case LogType.INCR_SEND.typeKind:
-    // return PExecuteState.LogType.INCR_SEND;
-    // case LogType.INCR_DEPLOY_STATUS_CHANGE.typeKind:
-    // return PExecuteState.LogType.INCR_DEPLOY_STATUS_CHANGE;
-    // case LogType.FULL.typeKind:
-    // return PExecuteState.LogType.FULL;
-    // case LogType.INCR.typeKind:
-    // return PExecuteState.LogType.INCR;
-    // default:
-    // throw new IllegalStateException("in valid logtype:" + logtypeKind);
-    // }
+        // switch (logtypeKind) {
+        // case LogType.MQ_TAGS_STATUS.typeKind:
+        // return PExecuteState.LogType.MQ_TAGS_STATUS;
+        // case LogType.INCR_SEND.typeKind:
+        // return PExecuteState.LogType.INCR_SEND;
+        // case LogType.INCR_DEPLOY_STATUS_CHANGE.typeKind:
+        // return PExecuteState.LogType.INCR_DEPLOY_STATUS_CHANGE;
+        // case LogType.FULL.typeKind:
+        // return PExecuteState.LogType.FULL;
+        // case LogType.INCR.typeKind:
+        // return PExecuteState.LogType.INCR;
+        // default:
+        // throw new IllegalStateException("in valid logtype:" + logtypeKind);
+        // }
     }
 
     @Override
     public java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> buildPhraseStatus(// , final IPhaseStatusCollectionListener slistener
-    Integer taskid) throws Exception {
+                                                                                                              Integer taskid) throws Exception {
         PBuildPhaseStatusParam statusParam = PBuildPhaseStatusParam.newBuilder().setTaskid(taskid).build();
         return blockStub.buildPhraseStatus(statusParam);
-    // responseObserver.onCompleted();
-    // finishLatch.await();
+        // responseObserver.onCompleted();
+        // finishLatch.await();
     }
 
-    public static PhaseStatusCollection convert(PPhaseStatusCollection stat) {
+    public static PhaseStatusCollection convert(PPhaseStatusCollection stat, ExecutePhaseRange executePhaseRange) {
+
+
         PDumpPhaseStatus dumpPhase = stat.getDumpPhase();
         PJoinPhaseStatus joinPhase = stat.getJoinPhase();
         PBuildPhaseStatus buildPhase = stat.getBuildPhase();
         PIndexBackFlowPhaseStatus backflow = stat.getIndexBackFlowPhaseStatus();
-        PhaseStatusCollection result = new PhaseStatusCollection(stat.getTaskId());
-        if (dumpPhase != null) {
+        PhaseStatusCollection result = new PhaseStatusCollection(stat.getTaskId(), executePhaseRange);
+        if (executePhaseRange.contains(FullbuildPhase.FullDump) && dumpPhase != null) {
             DumpPhaseStatus dump = result.getDumpPhase();
             dumpPhase.getTablesDumpMap().forEach((k, v) -> {
                 DumpPhaseStatus.TableDumpStatus s = new DumpPhaseStatus.TableDumpStatus(v.getTableName(), v.getTaskid());
@@ -267,7 +271,7 @@ public class LogCollectorClient implements ILogReporter {
                 dump.tablesDump.put(k, s);
             });
         }
-        if (joinPhase != null) {
+        if (executePhaseRange.contains(FullbuildPhase.JOIN) && joinPhase != null) {
             JoinPhaseStatus join = result.getJoinPhase();
             Map<String, JoinPhaseStatus.JoinTaskStatus> sm = join.taskStatus;
             joinPhase.getTaskStatusMap().forEach((k, v) -> {
@@ -285,7 +289,7 @@ public class LogCollectorClient implements ILogReporter {
                 sm.put(k, s);
             });
         }
-        if (buildPhase != null) {
+        if (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase != null) {
             BuildPhaseStatus build = result.getBuildPhase();
             buildPhase.getNodeBuildStatusMap().forEach((k, v) -> {
                 com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus s = new com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus();
@@ -299,7 +303,7 @@ public class LogCollectorClient implements ILogReporter {
                 build.nodeBuildStatus.put(k, s);
             });
         }
-        if (backflow != null) {
+        if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && backflow != null) {
             IndexBackFlowPhaseStatus bf = result.getIndexBackFlowPhaseStatus();
             backflow.getNodesStatusMap().forEach((k, v) -> {
                 IndexBackFlowPhaseStatus.NodeBackflowStatus s = new IndexBackFlowPhaseStatus.NodeBackflowStatus(v.getNodeName());
