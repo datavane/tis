@@ -6,6 +6,7 @@
     #*return new CompositePK(row, parentTabRef.getKey() /**子表列*/, sharedId); *#
         $parentTabRelation.createParentPKLiteria($config);
     #else
+// bbb $parentTabRelation.parent.name is not ptable
     #* Optional<TableRelation>*#
         #set($tabName=$parentTabRelation.parent.name)
         #set($parentTabRef=$config.getFirstParent($tabName))
@@ -15,10 +16,12 @@
         #parse("/com/qlangtech/tis/classtpl/parsePKGetter.vm")
     #end
 #else
+    //qqq childTabRef.size():$childTabRef.size()
     #foreach($rel in $childTabRef)
         #if( $config.isPrimaryTable( $rel.child.name) )
             $rel.createChildPKLiteria($config)
         #else
+        //xxx $rel.child.name is is not ptable
         #* Optional<TableRelation>*#
             #set($tabName= $rel.child.name)
             #set($parentTabRef=$config.getFirstParent($tabName))
@@ -27,5 +30,6 @@
             $config.pushRel($rel,false)
             #parse("/com/qlangtech/tis/classtpl/parsePKGetter.vm")
         #end
+        #break
     #end
 #end

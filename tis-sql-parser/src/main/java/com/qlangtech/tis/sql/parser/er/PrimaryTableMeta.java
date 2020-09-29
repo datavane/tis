@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,6 +19,7 @@ import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
 import com.qlangtech.tis.sql.parser.stream.generate.FlatTableRelation;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -88,7 +89,11 @@ public class PrimaryTableMeta extends TableMeta {
         return buffer;
     }
 
-    public String createCompositePK(String colTransferToekn, String valToken, FlatTableRelation... tabRels) {
+    public String createCompositePK(String colTransferToken, String valToken, FlatTableRelation... tabRels) {
+        return createCompositePK(colTransferToken, valToken, false, tabRels);
+    }
+
+    public String createCompositePK(String colTransferToken, String valToken, boolean force,FlatTableRelation... tabRels) {
         if (tabRels.length > 1) {
             EntityName first = tabRels[0].getHeaderEntity();
             if (!StringUtils.equals(first.getTabName(), this.getTabName())) {
@@ -100,8 +105,26 @@ public class PrimaryTableMeta extends TableMeta {
                 }
             }
         }
-        String pkGetterLiteria = EntityName.createColValLiteria(colTransferToekn, FlatTableRelation.getFinalLinkKey(this.getDBPrimayKeyName().getName(), tabRels).linkKeyName, valToken);
-        return " new CompositePK(" + pkGetterLiteria + " " + this.createPKPlayloadParams(valToken, tabRels).toString() + ")";
+
+        PrimaryLinkKey pk = this.getDBPrimayKeyName();
+
+        TableRelation.FinalLinkKey finalLinkKey = FlatTableRelation.getFinalLinkKey(pk.getName(), tabRels);
+        if (force || finalLinkKey.success) {
+            String pkGetterLiteria = EntityName.createColValLiteria(colTransferToken, finalLinkKey.linkKeyName, valToken);
+
+            return " new CompositePK(" + pkGetterLiteria + " " + this.createPKPlayloadParams(valToken, tabRels).toString() + ")";
+        } else {
+//            // 例如：orderDetail是主表，以order_id作为pk，外表totalpayinfo 为外表（连接键为: totalpay_id -> totalpay_id,所以连接过程会中断
+//            if (tabRels.length > 1) {
+//                throw new IllegalStateException("linkKeyName:" + finalLinkKey.linkKeyName + ",tabRels size " + tabRels.length + " can not large than 1");
+//            }
+//            return finalLinkKey.interruptedTableRelation.createSelectParentByChild(context, , , this);
+            throw new IllegalStateException("header:" + finalLinkKey.interruptedTableRelation.getHeaderEntity() + ",tailer:" + finalLinkKey.interruptedTableRelation.getTailerEntity()
+                    + " can not find key:" + pk.getName() + ",cols:"
+                    + finalLinkKey.interruptedTableRelation.getHeaderKeys().stream().map((r) -> "[" + r.getHeadLinkKey() + "->" + r.getTailerLinkKey() + "]")
+                    .collect(Collectors.joining(",")));
+        }
+
     }
 
     public String createCompositePK(FlatTableRelation... tabRels) {

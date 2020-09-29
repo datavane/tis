@@ -58,7 +58,8 @@ public class StreamCodeContext {
     }
 
     public static File getScalaStreamScriptDir(String collectionName, long timestamp) throws Exception {
-        File dir = new File(StreamContextConstant.getStreamScriptRootDir(collectionName, timestamp), "/src/main/scala/" + StringUtils.replace(Config.getGenerateParentPackage(), ".", "/") + "/" + collectionName);
+        File dir = new File(StreamContextConstant.getStreamScriptRootDir(collectionName, timestamp)
+                , "/src/main/scala/" + StringUtils.replace(Config.getGenerateParentPackage(), ".", "/") + "/" + collectionName);
         return dir;
     }
 }

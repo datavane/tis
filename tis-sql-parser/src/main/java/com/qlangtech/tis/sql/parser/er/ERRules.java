@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -35,6 +35,7 @@ import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,7 @@ public class ERRules implements IPrimaryTabFinder {
     private Map<String, DependencyNode> /**
      * TODO 先用String，将来再改成EntityName
      */
-    dumpNodesMap;
+            dumpNodesMap;
 
     private List<String> ignoreIncrTriggerEntities;
 
@@ -244,6 +245,12 @@ public class ERRules implements IPrimaryTabFinder {
                 childRefs.add(relation);
             }
         }
+        // 排序：要将子表为主表的实体排序在前面
+        childRefs.sort((r1, r2) -> {
+            Optional<TableMeta> r1p = getPrimaryTab(r1.getChild().parseEntityName());
+            Optional<TableMeta> r2p = getPrimaryTab(r2.getChild().parseEntityName());
+            return (r2p.isPresent() ? 1 : 0) - (r1p.isPresent() ? 1 : 0);
+        });
         return childRefs;
     }
 
@@ -342,7 +349,7 @@ public class ERRules implements IPrimaryTabFinder {
         Map<String, DependencyNode> /**
          * table name
          */
-        dumpNodesMap = topology.getDumpNodesMap();
+                dumpNodesMap = topology.getDumpNodesMap();
         return new TableRelation(id, dumpNodesMap.get(parent), dumpNodesMap.get(child), c);
     }
 }

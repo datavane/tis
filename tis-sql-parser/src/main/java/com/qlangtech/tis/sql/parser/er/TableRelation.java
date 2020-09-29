@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,6 +23,7 @@ import com.qlangtech.tis.sql.parser.stream.generate.MergeData;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -128,12 +129,27 @@ public class TableRelation {
 
     public static class FinalLinkKey {
 
+        final boolean success;
+
         // 两个rel之间是否是连通的
         // boolean breakthrough;
         public final String linkKeyName;
+        //public final int tabRelsSize;
+        public final FlatTableRelation interruptedTableRelation;
 
         public FinalLinkKey(String linkKeyName) {
+            this(true, linkKeyName, null);
+        }
+
+        /**
+         * @param success
+         * @param linkKeyName
+         * @param interruptedTableRelation 连接被中断的连接关系
+         */
+        public FinalLinkKey(boolean success, String linkKeyName, FlatTableRelation interruptedTableRelation) {
+            this.success = success;
             this.linkKeyName = linkKeyName;
+            this.interruptedTableRelation = interruptedTableRelation;
         }
     }
 
@@ -159,10 +175,12 @@ public class TableRelation {
                 // 连接栈不为空
                 un = unprocessed.pop();
                 if (!unprocessed.empty()) {
-                    // FIXME 或许将来支持更加复杂的增量流式处理，可以支持外表连接
-                    throw new IllegalStateException("un process rel can not exceed 2,but now size:" + unprocessed.size() + "pre:" + un.toString() + ",others:" + unprocessed.stream().map((r) -> r.toString()).collect(Collectors.joining(",")));
+                    // FIXME: 或许将来支持更加复杂的增量流式处理，可以支持外表连接
+                    throw new IllegalStateException("un process rel can not exceed 2,but now size:"
+                            + unprocessed.size() + "pre:" + un.toString() + ",others:"
+                            + unprocessed.stream().map((r) -> r.toString()).collect(Collectors.joining(",")));
                 }
-                // FinalLinkKey breakThough = this.getBreakthrough(true, un, primary);
+
                 if (currentTableRelation.isLinkable(un)) {
                     return primary.createCompositePK(currentTableRelation, un) + "/*gencode1*/";
                 } else {
@@ -170,8 +188,17 @@ public class TableRelation {
                     return createSelectParentByChild(context, currentTableRelation, un, primary);
                 }
             } else {
-                // 连接栈为空
-                return "return " + primary.createCompositePK(currentTableRelation) + "/*gencode2*/";
+
+                TableRelation.FinalLinkKey finalLinkKey = FlatTableRelation.getFinalLinkKey(primary.getDBPrimayKeyName().getName(), currentTableRelation);
+                if (finalLinkKey.success) {
+                    // 连接栈为空
+                    return "return " + primary.createCompositePK(currentTableRelation) + "/*gencode2*/";
+                } else {
+                    // baisui 修改 2020/9/29
+                    // 例如：orderDetail是主表，以orderid作为pk，外表totalpayinfo 为外表（连接键为: totalpay_id -> totalpay_id,所以连接过程会中断
+                    return createSelectParentByChild(context, currentTableRelation, currentTableRelation, primary);
+                }
+
             }
         } catch (Exception e) {
             throw new RuntimeException("parent:" + this.getParent().parseEntityName() + ",child:" + this.getChild().parseEntityName(), e);
@@ -196,24 +223,22 @@ public class TableRelation {
      *
      * @param context
      */
-    private String createSelectParentByChild(MergeData context, FlatTableRelation currentTableRelation, FlatTableRelation nextRelation, PrimaryTableMeta primary) {
-        // SqlTaskNodeMeta.DependencyNode headerTab = nextRelation.getHeader();
-        // SqlTaskNodeMeta.DependencyNode tailerTab = nextRelation.getTailer();
-        // List<LinkKeys> tailerLinkKeys = currentTableRelation.getTailerKeys();
-        // tailerTab.parseEntityName();
-        EntityName tailerEntityName = nextRelation.getTailerEntity();
-        // headerTab.parseEntityName();
-        EntityName haderEntityName = nextRelation.getHeaderEntity();
+    public String createSelectParentByChild(
+            MergeData context, FlatTableRelation currentTableRelation, FlatTableRelation nextRelation, PrimaryTableMeta primary) {
+
         String methodToken = nextRelation.getJoinerKeysQueryMethodToken();
-        // });
-        ;
-        context.addGlobalScript(methodToken, nextRelation.buildQueryHeaderByTailerInfo(currentTableRelation.getTailerKeys().stream().map((rr) -> rr.getHeadLinkKey()).collect(Collectors.toSet())));
+
+        context.addGlobalScript(methodToken
+                , nextRelation.buildQueryHeaderByTailerInfo(
+                        currentTableRelation.getTailerKeys().stream().map((rr) -> rr.getHeadLinkKey()).collect(Collectors.toSet())));
+
         FunctionVisitor.FuncFormat f = nextRelation.buildInvokeQueryHeaderByTailerInfo();
         // 执行处理结果
         FunctionVisitor.FuncFormat p = nextRelation.buildInvokeQueryHeaderByTailerInfoResultProcess(primary, currentTableRelation);
         f.appendLine(p);
         return f.toString();
     }
+
 
     /**
      * 当子表为主表的时候

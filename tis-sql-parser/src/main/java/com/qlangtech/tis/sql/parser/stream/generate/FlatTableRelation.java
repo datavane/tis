@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,6 +24,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -140,19 +141,22 @@ public class FlatTableRelation {
         // TableRelation.FinalLinkKey finalLinkKey = getFinalLinkKey(primary.getDBPrimayKeyName().getName(), preTableRelation);
         // final String pkColGetter = headerEntity.createColGetterLiteria(finalLinkKey.linkKeyName);
         // headerEntity.getJavaEntityName() + "Meta.getColMeta(\"" + finalLinkKey.linkKeyName + "\")";
-        final String createCompositePKLiteria = primary.createCompositePK(headerEntity.getJavaEntityName() + "Meta", this.isHeaderMulti() ? "r" : headerEntity.getJavaEntityName(), preTableRelation);
+        final String createCompositePKLiteria
+                = primary.createCompositePK(headerEntity.getJavaEntityName() + "Meta"
+                , this.isHeaderMulti() ? "r" : headerEntity.getJavaEntityName(), true, preTableRelation);
+
         if (this.isHeaderMulti()) {
             // 遍历结果集
             f.buildRowMapTraverseLiteria(headerEntity, (mm) -> {
                 mm.startLine("pushPojo2Queue(" + createCompositePKLiteria + ", row)").append("/*gencode3*/");
-            // mm.startLine("pushPojo2Queue(new CompositePK("
-            // + headerEntity.createColValLiteria(finalLinkKey.linkKeyName, "r") + ", r), row)");
+                // mm.startLine("pushPojo2Queue(new CompositePK("
+                // + headerEntity.createColValLiteria(finalLinkKey.linkKeyName, "r") + ", r), row)");
             });
         } else {
             f.methodBody("if(" + headerEntity.getJavaEntityName() + " != null)", (mm) -> {
                 mm.startLine("return " + createCompositePKLiteria).append("/*gencode4*/");
-            // mm.startLine("return new CompositePK(" + headerEntity.createColValLiteria("dddddd")
-            // + "," + headerEntity.getJavaEntityName() + ")").append("/*codegen4*/");
+                // mm.startLine("return new CompositePK(" + headerEntity.createColValLiteria("dddddd")
+                // + "," + headerEntity.getJavaEntityName() + ")").append("/*codegen4*/");
             });
         }
         f.startLine(" null");
@@ -199,13 +203,20 @@ public class FlatTableRelation {
             Optional<LinkKeys> headerLinkKey = tabRel.getHeaderKeys().stream().filter((r) -> {
                 return StringUtils.equals(r.getHeadLinkKey(), tmpPrimaryColName);
             }).findFirst();
+
             if (!headerLinkKey.isPresent()) {
-                throw new IllegalStateException("header:" + tabRel.getHeaderEntity() + ",tailer:" + tabRel.getTailerEntity() + " can not find key:" + primaryColName + ",cols:" + tabRel.getHeaderKeys().stream().map((r) -> "[" + r.getHeadLinkKey() + "->" + r.getTailerLinkKey() + "]").collect(Collectors.joining(",")));
+//                throw new IllegalStateException("header:" + tabRel.getHeaderEntity() + ",tailer:" + tabRel.getTailerEntity()
+//                        + " can not find key:" + primaryColName + ",cols:"
+//                        + tabRel.getHeaderKeys().stream().map((r) -> "[" + r.getHeadLinkKey() + "->" + r.getTailerLinkKey() + "]")
+//                        .collect(Collectors.joining(",")));
+                // 例如：orderDetail是主表，以orderid作为pk，外表totalpayinfo 为外表（连接键为: totalpay_id -> totalpay_id,所以连接过程会中断
+                return new TableRelation.FinalLinkKey(false, primaryColName, tabRel);
             }
             primaryColName = headerLinkKey.get().getTailerLinkKey();
         }
         return new TableRelation.FinalLinkKey(primaryColName);
     }
+
 
     /**
      * 取得索引主节点
