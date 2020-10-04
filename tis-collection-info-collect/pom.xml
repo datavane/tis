@@ -79,6 +79,12 @@
     <dependencies>
 
         <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+        </dependency>
+
+
+        <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-web-start</artifactId>
         </dependency>

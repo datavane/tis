@@ -1,29 +1,24 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.collectinfo;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import com.qlangtech.tis.collectinfo.ReplicaStatisCount.ReplicaNode;
+import com.qlangtech.tis.collectinfo.api.ICoreStatistics;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.cloud.Replica;
@@ -32,19 +27,30 @@ import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.qlangtech.tis.collectinfo.ReplicaStatisCount.ReplicaNode;
-import com.qlangtech.tis.collectinfo.api.ICoreStatistics;
-import com.qlangtech.tis.manage.common.ConfigFileContext;
-import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+
+import java.io.InputStream;
+import java.net.URL;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2013-10-17
  */
 public class CoreStatisticsReport implements ICoreStatistics {
-
+    static final String GET_METRIX_PATH = "admin/mbeans?stats=true&cat=QUERY&cat=CORE&cat=UPDATE&key=/select&key=/update&key=searcher&wt=xml";
     protected final SolrZkClient zookeeper;
+    // 访问量请求统计
+    final ReplicaStatisCount requestCount = new ReplicaStatisCount();
+     final AtomicLong numDocs = new AtomicLong();
 
+    // 更新量请求统计
+    final ReplicaStatisCount updateCount = new ReplicaStatisCount();
+
+    final ReplicaStatisCount updateErrorCount = new ReplicaStatisCount();
+
+    final ReplicaStatisCount requestErrorCount = new ReplicaStatisCount();
     private int groupCount = 0;
 
     private final String appName;
@@ -85,12 +91,12 @@ public class CoreStatisticsReport implements ICoreStatistics {
         return this.hosts;
     }
 
-    public CoreStatisticsReport(String collectionName, Slice slice, SolrZkClient zookeeper) {
+    public CoreStatisticsReport(String collectionName, SolrZkClient zookeeper) {
         this.groupCount++;
         this.zookeeper = zookeeper;
         hosts = new HashSet<String>();
         appName = collectionName;
-        addClusterCoreInfo(slice);
+        //  addClusterCoreInfo(slice);
     }
 
     /**
@@ -98,7 +104,7 @@ public class CoreStatisticsReport implements ICoreStatistics {
      *
      * @param slice
      */
-    public void addClusterCoreInfo(Slice slice) {
+    public boolean addClusterCoreInfo(Slice slice) {
         this.groupCount++;
         int groupIndex = Integer.parseInt(StringUtils.substringAfter(slice.getName(), "shard")) - 1;
         List<String> replicaIps = new ArrayList<String>(slice.getReplicas().size());
@@ -110,50 +116,85 @@ public class CoreStatisticsReport implements ICoreStatistics {
             try {
                 getCoreStatus(new ReplicaNode(groupIndex, host), replic);
             } catch (Exception e) {
+                // e.printStackTrace();
+                return false;
             }
         }
+
+        return true;
     }
 
     public static final XMLResponseParser RESPONSE_PARSER = new XMLResponseParser();
 
+
     private void getCoreStatus(final ReplicaNode replicaNode, final org.apache.solr.common.cloud.Replica replica) throws Exception {
         // 查看filtercache 的命中率
         // /admin/mbeans?stats=true&cat=CACHE&key=filterCache
-        URL url = new URL(replica.getCoreUrl() + "admin/mbeans?stats=true&cat=QUERYHANDLER&cat=CORE&key=/select&key=/update&key=searcher");
+        URL url = new URL(replica.getCoreUrl() + GET_METRIX_PATH);
         // 服务端处理类：SolrInfoMBeanHandler
-        // http://10.1.5.37:8080/solr/search4totalpay_shard1_replica1/admin/mbeans?stats=true&cat=QUERYHANDLER&cat=CORE&key=/select&key=/update&key=searcher
-        // http://120.55.195.132:8080/solr/search4totalpay_shard1_replica2/admin/mbeans?stats=true&cat=QUERYHANDLER&cat=CORE&key=/select&key=/update&key=searcher&key=core
-        ConfigFileContext.processContent(url, new StreamProcess<Object>() {
+        // http://192.168.28.200:8080/solr/search4totalpay4_shard1_replica_n1/admin/mbeans?stats=true7&wt=xml&cat=CORE&cat=QUERY
 
+        ConfigFileContext.processContent(url, new StreamProcess<Object>() {
             @Override
             @SuppressWarnings("all")
             public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream, "utf8");
-                SimpleOrderedMap mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
-                final SimpleOrderedMap queryHandler = (SimpleOrderedMap) mbeans.get("QUERYHANDLER");
-                SimpleOrderedMap stats = null;
+                SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream, TisUTF8.getName());
+                Mbeans mbeans = new Mbeans(result);//.get("solr-mbeans");
+                //final SimpleOrderedMap queryHandler = (SimpleOrderedMap) mbeans.get("QUERY");
+                // SimpleOrderedMap stats = null;
                 Long requestCount = null;
                 if (replica.getStr(Slice.LEADER) != null) {
                     // leader节点才记录访问量
-                    SimpleOrderedMap update = (SimpleOrderedMap) queryHandler.get("/update");
-                    stats = (SimpleOrderedMap) update.get("stats");
-                    requestCount = (Long) stats.get("requests");
+                    // SimpleOrderedMap update = (SimpleOrderedMap) queryHandler.get("/update");
+                    // stats = (SimpleOrderedMap) update.get("stats");
+                    requestCount = mbeans.getLong("UPDATE", "/update", "requests"); // (Long) stats.get("requests");
                     updateCount.add(replicaNode, requestCount);
-                    CoreStatisticsReport.this.updateErrorCount.add(replicaNode, ((Long) stats.get("errors")));
-                    SimpleOrderedMap core = (SimpleOrderedMap) mbeans.get("CORE");
-                    SimpleOrderedMap searcher = (SimpleOrderedMap) core.get("searcher");
-                    stats = (SimpleOrderedMap) searcher.get("stats");
+                    CoreStatisticsReport.this.updateErrorCount.add(replicaNode //
+                            , mbeans.getLong("UPDATE", "/update", "errors.count"));
+
+//                    SimpleOrderedMap core = (SimpleOrderedMap) mbeans.get("CORE");
+//                    SimpleOrderedMap searcher = (SimpleOrderedMap) core.get("searcher");
+//                    stats = (SimpleOrderedMap) searcher.get("stats");
                     // 文档总数
-                    numDocs.addAndGet(((Integer) stats.get("numDocs")).longValue());
+                    numDocs.addAndGet(mbeans.getInt(new String[]{"CORE", "SEARCHER"}, "searcher", "numDocs"));//((Integer) stats.get("numDocs")).longValue());
                 }
-                SimpleOrderedMap select = (SimpleOrderedMap) queryHandler.get("/select");
-                stats = (SimpleOrderedMap) select.get("stats");
-                requestCount = (Long) stats.get("requests");
+//                SimpleOrderedMap select = (SimpleOrderedMap) queryHandler.get("/select");
+//                stats = (SimpleOrderedMap) select.get("stats");
+                //QUERY./select.requests
+                requestCount = mbeans.getLong("QUERY", "/select", "requests");// (Long) stats.get("QUERY./select.requests");
                 CoreStatisticsReport.this.requestCount.add(replicaNode, requestCount);
-                CoreStatisticsReport.this.requestErrorCount.add(replicaNode, ((Long) stats.get("errors")));
+                CoreStatisticsReport.this.requestErrorCount.add(replicaNode, mbeans.getLong("QUERY", "/select", "errors.count"));
                 return null;
             }
         });
+    }
+
+    private static class Mbeans {
+        private final SimpleOrderedMap mbeans;
+
+        public Mbeans(SimpleOrderedMap result) {
+            this.mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
+        }
+
+        public Long getLong(String cat, String key, String metrix) {
+            return getLong(new String[]{cat}, key, metrix);
+        }
+
+        public Long getLong(String[] cat, String key, String metrix) {
+            return getVal(cat, key, metrix, Long.class);
+        }
+
+        public Integer getInt(String[] cat, String key, String metrix) {
+            return getVal(cat, key, metrix, Integer.class);
+        }
+
+        private <T> T getVal(String[] cat, String key, String metrix, Class<T> clazz) {
+            SimpleOrderedMap c = (SimpleOrderedMap) mbeans.get(cat[0]);
+            SimpleOrderedMap k = (SimpleOrderedMap) c.get(key);
+
+            SimpleOrderedMap stats = (SimpleOrderedMap) k.get("stats");
+            return clazz.cast(stats.get((cat.length > 1 ? cat[1] : cat[0]) + "." + key + "." + metrix));
+        }
     }
 
     // /**
@@ -189,6 +230,7 @@ public class CoreStatisticsReport implements ICoreStatistics {
     // 
     // return masters;
     // }
+
     /**
      * 查询错误增量
      *
@@ -227,23 +269,23 @@ public class CoreStatisticsReport implements ICoreStatistics {
      */
     public long getRequestIncreasement(CoreStatisticsReport newReport) {
         return this.requestCount.getIncreasement(newReport.requestCount);
-    // long result = 0;
-    // AtomicLong preReplicValue = null;
-    // long increase = 0;
-    // for (Map.Entry<ReplicaNode, AtomicLong> entry :
-    // newReport.requestCount
-    // .entrySet()) {
-    // preReplicValue = this.requestCount.get(entry.getKey());
-    // if (preReplicValue == null
-    // || (increase = (entry.getValue().get() - preReplicValue
-    // .get())) < 0) {
-    // result += entry.getValue().get();
-    // } else {
-    // result += increase;
-    // }
-    // }
-    // 
-    // return result;
+        // long result = 0;
+        // AtomicLong preReplicValue = null;
+        // long increase = 0;
+        // for (Map.Entry<ReplicaNode, AtomicLong> entry :
+        // newReport.requestCount
+        // .entrySet()) {
+        // preReplicValue = this.requestCount.get(entry.getKey());
+        // if (preReplicValue == null
+        // || (increase = (entry.getValue().get() - preReplicValue
+        // .get())) < 0) {
+        // result += entry.getValue().get();
+        // } else {
+        // result += increase;
+        // }
+        // }
+        //
+        // return result;
     }
 
     @Override
@@ -266,15 +308,6 @@ public class CoreStatisticsReport implements ICoreStatistics {
     // 更新量
     private long update;
 
-    // 访问量请求统计
-    private final ReplicaStatisCount requestCount = new ReplicaStatisCount();
-
-    // 更新量请求统计
-    private final ReplicaStatisCount updateCount = new ReplicaStatisCount();
-
-    private final ReplicaStatisCount updateErrorCount = new ReplicaStatisCount();
-
-    private final ReplicaStatisCount requestErrorCount = new ReplicaStatisCount();
 
     @Override
     public List<String> getAllServers() {
@@ -285,7 +318,7 @@ public class CoreStatisticsReport implements ICoreStatistics {
         return servers;
     }
 
-    private final AtomicLong numDocs = new AtomicLong();
+
 
     @Override
     public long getNumDocs() {

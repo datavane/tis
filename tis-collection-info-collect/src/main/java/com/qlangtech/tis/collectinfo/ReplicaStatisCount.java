@@ -49,7 +49,7 @@ public class ReplicaStatisCount extends HashMap<ReplicaNode, AtomicLong> {
     /**
      * 取得前后两次取样之间的增量值
      *
-     * @param newReport
+     * @param
      * @return
      */
     public long getIncreasement(ReplicaStatisCount newStatisCount) {

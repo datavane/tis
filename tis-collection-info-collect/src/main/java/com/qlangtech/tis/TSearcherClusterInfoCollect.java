@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -38,6 +38,7 @@ import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
@@ -51,7 +52,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 2013-5-7
  */
 public class TSearcherClusterInfoCollect implements // Daemon
-InitializingBean, ICoreService {
+        InitializingBean, ICoreService {
 
     private IClusterSnapshotDAO clusterSnapshotDAO;
 
@@ -65,7 +66,7 @@ InitializingBean, ICoreService {
 
     static {
         AbstractTisCloudSolrClient.initHashcodeRouter();
-    // configFetcher = TSearcherConfigFetcher.get();
+        // configFetcher = TSearcherConfigFetcher.get();
     }
 
     private static final String COLLECT_STATE_PATH;
@@ -95,7 +96,7 @@ InitializingBean, ICoreService {
     // return staticFacade.getTriggerJobDAO();
     // }
     private Map<String, Application> /* index Name */
-    appNamesMap;
+            appNamesMap;
 
     /**
      * 保存索引名称和 应用的映射关系
@@ -103,7 +104,7 @@ InitializingBean, ICoreService {
      * @return
      */
     private Map<String, /* index Name */
-    Application> getAppNameMap() {
+            Application> getAppNameMap() {
         if (appNamesMap == null) {
             synchronized (TSearcherClusterInfoCollect.class) {
                 if (appNamesMap == null) {
@@ -174,11 +175,10 @@ InitializingBean, ICoreService {
                 for (Slice slice : c.getActiveSlices()) {
                     CoreStatisticsReport report = coreStatisticsReportMap.get(entry.getKey());
                     if (report == null) {
-                        report = new CoreStatisticsReport(entry.getKey(), slice, cloudState.getZkClient());
+                        report = new CoreStatisticsReport(entry.getKey(), cloudState.getZkClient());
                         coreStatisticsReportMap.put(entry.getKey(), report);
-                    } else {
-                        report.addClusterCoreInfo(slice);
                     }
+                    report.addClusterCoreInfo(slice);
                 }
             }
             final List<ClusterSnapshot> insertList = new ArrayList<ClusterSnapshot>();
@@ -243,7 +243,8 @@ InitializingBean, ICoreService {
         List<String> invalidCollection = new ArrayList<>();
         // 校驗增量是否正常
         ConcurrentLinkedQueue<Integer> lastestUpdateCountQueue = null;
-        collection: for (String collection : collectionNames) {
+        collection:
+        for (String collection : collectionNames) {
             for (ClusterSnapshot state : insertList) {
                 if (!clusterContainApp(collection)) {
                     String msg = "collection:" + collection + " is not exist tis metadata,have been delete?";
@@ -381,7 +382,7 @@ InitializingBean, ICoreService {
 
     @SuppressWarnings("all")
     private Map<Integer, /* appid */
-    ICoreStatistics> getPreCollectStatisticsReport() {
+            ICoreStatistics> getPreCollectStatisticsReport() {
         synchronized (coreStatisticsReportHistory) {
             Map<Integer, ICoreStatistics> result = new HashMap<Integer, ICoreStatistics>();
             for (Map.Entry<Integer, ICoreStatistics> entry : coreStatisticsReportHistory.entrySetWithOutValidate()) {
@@ -448,7 +449,7 @@ InitializingBean, ICoreService {
                         // 两小时执行一次
                         Thread.sleep(2 * 60 * 60 * 1000);
                     } catch (Exception e) {
-                    // throw new RuntimeException(e);
+                        // throw new RuntimeException(e);
                     }
                 }
             }
