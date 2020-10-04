@@ -23,6 +23,7 @@ import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.SendSMSUtils;
+import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.tis.zookeeper.ZkPathUtils;
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +64,7 @@ InitializingBean, ICoreService {
     private static final Logger log = LoggerFactory.getLogger(TSearcherClusterInfoCollect.class);
 
     static {
+        AbstractTisCloudSolrClient.initHashcodeRouter();
     // configFetcher = TSearcherConfigFetcher.get();
     }
 

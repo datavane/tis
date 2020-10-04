@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,7 +34,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.cloud.DocRouter;
-import org.apache.solr.common.cloud.OnReconnect;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.ZkCoreNodeProps;
 import org.apache.solr.common.params.CommonParams;
@@ -43,6 +42,7 @@ import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.UpdateParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -58,7 +58,7 @@ public abstract class AbstractTisCloudSolrClient {
     private static final Logger log = LoggerFactory.getLogger(TisCloudSolrClient.class);
 
     static {
-    // AbstractTisCloudSolrClient.initHashcodeRouter();
+        // AbstractTisCloudSolrClient.initHashcodeRouter();
     }
 
     // private static ExtendCloudSolrClient solrClient;
@@ -84,7 +84,7 @@ public abstract class AbstractTisCloudSolrClient {
             routerMap.put(HashcodeRouter.NAME, new HashcodeRouter());
             log.info("load hashcodeRouter success...");
             System.out.println("load hashcodeRouter success...");
-        // routeMapField.set(null, Collections.unmodifiableMap(routerMap));
+            // routeMapField.set(null, Collections.unmodifiableMap(routerMap));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -129,8 +129,8 @@ public abstract class AbstractTisCloudSolrClient {
         params.set(HttpClientUtil.PROP_MAX_CONNECTIONS_PER_HOST, maxConnectionsPerHost);
         params.set(HttpClientUtil.PROP_MAX_CONNECTIONS, maxConnections);
         return HttpClientUtil.createClient(params);
-    // CloseableHttpClient httpClient = HttpClientUtil.createClient(params);
-    // return httpClient;
+        // CloseableHttpClient httpClient = HttpClientUtil.createClient(params);
+        // return httpClient;
     }
 
     public ExtendCloudSolrClient getExtendSolrClient() {
@@ -152,7 +152,7 @@ public abstract class AbstractTisCloudSolrClient {
             } else {
                 parsedName.append(nameAry[i]);
                 firstAppend = false;
-            // .append(Character.toLowerCase());
+                // .append(Character.toLowerCase());
             }
         }
         return parsedName;
@@ -345,7 +345,7 @@ public abstract class AbstractTisCloudSolrClient {
             throw new SolrServerException(e);
         } finally {
             span.finish();
-        // this.finishTracer(span, null);
+            // this.finishTracer(span, null);
         }
     }
 
@@ -380,7 +380,7 @@ public abstract class AbstractTisCloudSolrClient {
             throw new SolrServerException(e);
         } finally {
             span.finish();
-        // this.finishTracer(span, null);
+            // this.finishTracer(span, null);
         }
     }
 
@@ -409,7 +409,7 @@ public abstract class AbstractTisCloudSolrClient {
             throw new SolrServerException(e);
         } finally {
             span.finish();
-        // this.finishTracer(span, null);
+            // this.finishTracer(span, null);
         }
     }
 
