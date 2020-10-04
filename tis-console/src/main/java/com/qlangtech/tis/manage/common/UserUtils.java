@@ -45,7 +45,7 @@ public class UserUtils {
     public static final String USER_TOKEN_SESSION = UserUtils.class.getName() + "user";
 
     public static final IUser getUser(final HttpServletRequest r, RunContext runContext) {
-        final TerminatorHttpServletRequestWrapper request = (TerminatorHttpServletRequestWrapper) (((StrutsRequestWrapper) r).getRequest());
+        final TISHttpServletRequestWrapper request = (TISHttpServletRequestWrapper) (((StrutsRequestWrapper) r).getRequest());
         HttpSession session = request.getSession();
         TUser result = null;
         if (true || ManageUtils.isDaily()) {
@@ -74,7 +74,7 @@ public class UserUtils {
             // result.setDepartment(user.getDepDesc());
             // result = new TUser("18097", "baisui", runContext);
             // result.setDepartment("manage");
-            // 
+            //
             // // 阿里巴巴全局departmentId
             // result.setDepartmentid(123);
             // result.setWangwang("百岁");

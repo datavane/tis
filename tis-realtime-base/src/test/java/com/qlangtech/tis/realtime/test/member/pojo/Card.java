@@ -175,7 +175,7 @@ public class Card extends AbstractRowValueGetter implements Serializable {
     private BigDecimal giveBalance;
 
     /**
-     * prop:会员卡来源,1-二维火,2-5i
+     * prop:会员卡来源
      */
     private Short cardSource;
 
@@ -641,16 +641,10 @@ public class Card extends AbstractRowValueGetter implements Serializable {
         this.giveBalance = giveBalance;
     }
 
-    /**
-     * get:会员卡来源,1-二维火,2-5i
-     */
     public Short getCardSource() {
         return cardSource;
     }
 
-    /**
-     * set:会员卡来源,1-二维火,2-5i
-     */
     public void setCardSource(Short cardSource) {
         this.cardSource = cardSource;
     }

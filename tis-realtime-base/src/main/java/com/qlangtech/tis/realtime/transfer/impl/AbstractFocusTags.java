@@ -52,7 +52,6 @@ public abstract class AbstractFocusTags implements IFocusTags {
 
     @Override
     public String getTopic() {
-        // 由于二维火这边 topic和tags是分离的 这个方法暂时不用
         return topic;
     }
 

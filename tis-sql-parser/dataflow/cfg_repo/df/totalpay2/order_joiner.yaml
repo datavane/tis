@@ -1,0 +1,17 @@
+dependencies:
+-   id: 8c16a8c1-4cd4-d4ae-9213-bb0d15ea7264
+    name: orderdetail
+    type: table
+-   id: d8d9d29a-a45a-203e-0d0a-65e2a35b1877
+    name: totalpayinfo
+    type: table
+-   id: 2cec671a-66a3-7618-ef10-452ed0f61d03
+    name: instance_joiner
+    type: table
+exportName: order_joiner
+id: 1cfb5ebe-76d7-83a3-efad-24127c4de930
+position:
+    x: 590
+    y: 253
+sql: "SELECT t.totalpay_id,t.result_amount,t.recieve_amount,o.open_time,o.end_time\n    ,  i.customer_ids\n FROM orderdetail o \n  INNER JOIN totalpayinfo t  ON (t.totalpay_id = o.totalpay_id)\n  LEFT JOIN instance_joiner i ON (o.order_id = i.order_id)"
+type: join

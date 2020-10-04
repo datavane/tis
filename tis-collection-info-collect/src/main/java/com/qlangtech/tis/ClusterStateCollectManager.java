@@ -286,7 +286,7 @@ public class ClusterStateCollectManager implements InitializingBean {
         exportReport(collect);
     }
 
-    private static final String mail_to2 = "baisui@2dfire.com,huoshao@2dfire.com,chelizi@2dfire.com,huoguo@2dfire.com,shilijia@2dfire.com,mazha@2dfire.com,youzi@2dfire.com,qixi@2dfire.com,qinjiu@2dfire.com";
+    private static final String mail_to2 = "baisui@2dfire.com";
 
     public void exportReport(TSearcherClusterInfoCollect collect) throws JobExecutionException {
         logger.info("start send daily summary report");
@@ -321,7 +321,7 @@ public class ClusterStateCollectManager implements InitializingBean {
             toHtml.format(IOUtils.toString(reader, Charset.forName("utf8")));
             toHtml.format(" --> </style></head><body>%n");
             toHtml.printSummary(indexCount.get(), numberDoc.get(), historyAverage.getLastDayRequestCount(), allHosts.size());
-            toHtml.out.format("<h2>TIS集群详细(VPC)：</h2> %n");
+            toHtml.out.format("<h2>TIS集群详细：</h2> %n");
             toHtml.out.format("<table width=\"100%%\" border=\"1\" class=\"excelDefaults\">%n");
             toHtml.printHeader(historyAverage);
             toHtml.out.format("<tbody>%n");
@@ -376,7 +376,7 @@ public class ClusterStateCollectManager implements InitializingBean {
             }
             toHtml.out.format("</tbody></table></body></html>");
             Date today = new Date();
-            mailSender.send("二维火TIS集群日报VPC(" + datef.format(today) + ")系统自动发送请不要回复此邮件", htmlContent.toString(), mail_to2);
+            mailSender.send("TIS集群日报VPC(" + datef.format(today) + ")系统自动发送请不要回复此邮件", htmlContent.toString(), mail_to2);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new JobExecutionException(e);
@@ -583,7 +583,7 @@ public class ClusterStateCollectManager implements InitializingBean {
         }
 
         public void printSummary(int allAppsCount, long allDocCount, long allRequestCount, int allServerCount) {
-            out.format("<h2>二维火TIS集群数据汇总：</h2> %n");
+            out.format("<h2>TIS集群数据汇总：</h2> %n");
             out.format("<table class=\"excelDefaults\" width=\"400\"> ");
             out.format(" <tr><th class=\"rowHeader\" width=\"30%%\">应用总数:</th><td class=\"style2\">%,d</td></tr>  ", allAppsCount);
             out.format("  <tr><td class=\"rowHeader\" >索引总条数:</td> ");

@@ -173,7 +173,8 @@ public class TestSqlRewriter extends TestCase {
         return rewriteAssert(exportName, false, nodeMeta, extraSqlAssert, extraSql, metaContent, taskContext);
     }
 
-    protected SqlRewriter rewriteAssert(String exportName, boolean isFinal, SqlTaskNodeMeta nodeMeta, String extraSqlAssert, final String extraSql, MetaContent metaContent, TestJoinTaskContext taskContext) {
+    protected SqlRewriter rewriteAssert(String exportName, boolean isFinal, SqlTaskNodeMeta nodeMeta, String extraSqlAssert
+            , final String extraSql, MetaContent metaContent, TestJoinTaskContext taskContext) {
         SqlStringBuilder builder;
         SqlRewriter rewriter;
         Optional<List<Expression>> parameters = Optional.empty();

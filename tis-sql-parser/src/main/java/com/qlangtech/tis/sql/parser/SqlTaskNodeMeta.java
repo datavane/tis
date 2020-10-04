@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,6 +20,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.facebook.presto.sql.parser.ParsingOptions;
 import com.facebook.presto.sql.parser.SqlParser;
 import com.facebook.presto.sql.tree.Expression;
+import com.facebook.presto.sql.tree.Statement;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -31,6 +32,9 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
+import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
+import com.qlangtech.tis.sql.parser.er.TableMeta;
+import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.ColumnTransfer;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
@@ -42,6 +46,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.DumperOptions.LineBreak;
@@ -54,12 +59,10 @@ import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
+
 import java.io.*;
 import java.lang.reflect.Method;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -124,8 +127,114 @@ public class SqlTaskNodeMeta implements ISqlTask {
         yaml.addTypeDescription(new TypeDescription(DumpNodes.class, Tag.MAP, DumpNodes.class));
     }
 
+    /**
+     * 对sql进行粗略的校验
+     *
+     * @param sql
+     * @param dependencyNodes
+     * @return
+     */
+    public static Optional<TisSqlFormatException> validateSql(String sql, List<String> dependencyNodes) {
+        //Optional<TisSqlFormatException> result  = Optional.empty();
+        SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
+        // 这个sql语句有错误，需要校验成错误，抛异常
+        taskNodeMeta.setSql(sql);
+
+        final ITemplateContext tplContext = new ITemplateContext() {
+            @Override
+            public <T> T getContextValue(String key) {
+                return null;
+            }
+
+            @Override
+            public void putContextValue(String key, Object v) {
+
+            }
+
+            @Override
+            public IJoinTaskContext joinTaskContext() {
+                return null;
+            }
+        };
+
+
+        try {
+            String pt = "20200703113848";
+            ITabPartition p = () -> pt;
+            Map<IDumpTable, ITabPartition> tabPartition = dependencyNodes.stream().collect(Collectors.toMap((r) -> EntityName.parse(r), (r) -> p));
+
+            taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition), new IPrimaryTabFinder() {
+                @Override
+                public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
+                    return Optional.empty();
+                }
+
+                @Override
+                public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
+                    return Collections.emptyMap();
+                }
+            }, tplContext, false);
+            return Optional.empty();
+        } catch (Throwable e) {
+            int indexOf;
+            if ((indexOf = ExceptionUtils.indexOfType(e, TisSqlFormatException.class)) > -1) {
+                TisSqlFormatException ex = (TisSqlFormatException) ExceptionUtils.getThrowables(e)[indexOf];
+                //System.out.println(ex.summary());
+                return Optional.of(ex);
+                //  assertEquals("base ref:gg can not find relevant table entity in map,mapSize:1,exist:[g:tis.commodity_goods],位置，行:1,列:44", ex.summary());
+            } else {
+                throw e;
+            }
+        }
+
+    }
+
+    private static class MockDumpPartition extends TabPartitions {
+
+
+        public MockDumpPartition(Map<IDumpTable, ITabPartition> tabPartition) {
+            super(tabPartition);
+        }
+
+        @Override
+        public int size() {
+            return 2;
+        }
+
+//        protected Optional<Map.Entry<IDumpTable, ITabPartition>> findTablePartition(boolean dbNameCriteria, String dbName, String tableName) {
+//            return Optional.of(new EntryPair(EntityName.parse(dbNameCriteria ? dbName : IDumpTable.DEFAULT_DATABASE_NAME + "." + tableName), () -> pt));
+//        }
+
+    }
+
+    private static class EntryPair implements Map.Entry<IDumpTable, ITabPartition> {
+        private final IDumpTable key;
+        private final ITabPartition val;
+
+        public EntryPair(IDumpTable key, ITabPartition val) {
+            this.key = key;
+            this.val = val;
+        }
+
+        @Override
+        public IDumpTable getKey() {
+            return key;
+        }
+
+        @Override
+        public ITabPartition getValue() {
+            return val;
+        }
+
+        @Override
+        public ITabPartition setValue(ITabPartition value) {
+            return null;
+        }
+    }
+
     @Override
-    public RewriteSql getRewriteSql(String taskName, Map<IDumpTable, ITabPartition> dumpPartition, IPrimaryTabFinder erRules, ITemplateContext templateContext, boolean isFinalNode) {
+    public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition
+            , IPrimaryTabFinder erRules, ITemplateContext templateContext, boolean isFinalNode) {
         if (dumpPartition.size() < 1) {
             throw new IllegalStateException("dumpPartition set size can not small than 1");
         }
@@ -135,9 +244,12 @@ public class SqlTaskNodeMeta implements ISqlTask {
         SqlRewriter rewriter = new SqlRewriter(builder, dumpPartition, erRules, parameters, isFinalNode, joinContext);
         // 执行rewrite
         try {
-            rewriter.process(sqlParser.createStatement(this.getSql(), new ParsingOptions()), 0);
+            Statement state = getSqlStatement();
+            rewriter.process(state, 0);
+        } catch (TisSqlFormatException e) {
+            throw e;
         } catch (Exception e) {
-            String dp = dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey() + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
+            String dp = dumpPartition.toString(); //dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey() + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
             throw new IllegalStateException("task:" + taskName + ",isfinalNode:" + isFinalNode + ",dump tabs pt:" + dp + "\n" + e.getMessage(), e);
         }
         SqlRewriter.AliasTable primaryTable = rewriter.getPrimayTable();
@@ -146,6 +258,10 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
         // return ;
         return new RewriteSql(builder.toString(), rewriter.getPrimayTable());
+    }
+
+    private Statement getSqlStatement() {
+        return sqlParser.createStatement(this.getSql(), new ParsingOptions());
     }
 
     /**
@@ -169,7 +285,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
                     result.append(" ");
                 }
                 result.append(line).append("\n");
-            // firstLine = false;
+                // firstLine = false;
             }
         }
         return StringUtils.trimToEmpty(result.toString());
@@ -221,8 +337,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
             throw new RuntimeException("wfDir:" + wfDir.getAbsolutePath(), e);
         }
         return new // 
-        TopologyDir(// 
-        wfDir, SqlTaskNode.NAME_DATAFLOW_DIR + "/" + topologyName);
+                TopologyDir(//
+                wfDir, SqlTaskNode.NAME_DATAFLOW_DIR + "/" + topologyName);
     }
 
     private static class TopologyDir {
@@ -239,7 +355,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         public File synchronizeRemoteRes(String resName) {
             // CenterResource.copyFromRemote2Local(url, localFile);
             return CenterResource.copyFromRemote2Local(CenterResource.getPath(relativePath, resName), true);
-        // return localFile;
+            // return localFile;
         }
 
         public List<File> synchronizeSubRemoteRes() {
@@ -277,7 +393,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         } catch (Exception e) {
             throw new RuntimeException(dependencyTabFile.getAbsolutePath(), e);
         }
-        Iterator<File> fit = FileUtils.iterateFiles(topologyDir.dir, new String[] { "yaml" }, false);
+        Iterator<File> fit = FileUtils.iterateFiles(topologyDir.dir, new String[]{"yaml"}, false);
         File next = null;
         while (fit.hasNext()) {
             next = fit.next();
@@ -410,7 +526,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         public Map<String, /**
          * table name
          */
-        DependencyNode> getDumpNodesMap() {
+                DependencyNode> getDumpNodesMap() {
             if (this.dumpNodesMap == null) {
                 this.dumpNodesMap = Maps.newHashMap();
                 List<DependencyNode> dumpNodes = this.getDumpNodes();
@@ -497,7 +613,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             final String finalNodeName = this.getFinalNode().getExportName();
             // 
             Optional<SqlTaskNode> f = // 
-            taskNodes.stream().filter((n) -> finalNodeName.equals(n.getExportName().getTabName())).findFirst();
+                    taskNodes.stream().filter((n) -> finalNodeName.equals(n.getExportName().getTabName())).findFirst();
             if (!f.isPresent()) {
                 String setStr = taskNodes.stream().map((n) -> n.getExportName().getJavaEntityName()).collect(Collectors.joining(","));
                 throw new IllegalStateException("finalNodeName:" + finalNodeName + " can not find node in[" + setStr + "]");
@@ -548,8 +664,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
             List<SqlTaskNodeMeta> finalNodes = getFinalNodes();
             if (finalNodes.size() != 1) {
                 throw new IllegalStateException(// 
-                "finalNodes size must be 1,but now is:" + finalNodes.size() + ",nodes:[" + // 
-                finalNodes.stream().map((r) -> r.getExportName()).collect(Collectors.joining(",")) + "]");
+                        "finalNodes size must be 1,but now is:" + finalNodes.size() + ",nodes:[" + //
+                                finalNodes.stream().map((r) -> r.getExportName()).collect(Collectors.joining(",")) + "]");
             }
             Optional<SqlTaskNodeMeta> taskNode = finalNodes.stream().findFirst();
             if (!taskNode.isPresent()) {
@@ -566,7 +682,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
          */
         public List<SqlTaskNodeMeta> getFinalNodes() throws Exception {
             Map<String, RefCountTaskNode> /*export Name*/
-            exportNameRefs = Maps.newHashMap();
+                    exportNameRefs = Maps.newHashMap();
             for (SqlTaskNodeMeta meta : getNodeMetas()) {
                 exportNameRefs.put(meta.getId(), new RefCountTaskNode(meta));
             }
@@ -583,8 +699,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
             }
             // 
             List<SqlTaskNodeMeta> finalNodes = // 
-            exportNameRefs.values().stream().filter(// 
-            (e) -> e.refCount.get() < 1).map((r) -> r.taskNode).collect(Collectors.toList());
+                    exportNameRefs.values().stream().filter(//
+                            (e) -> e.refCount.get() < 1).map((r) -> r.taskNode).collect(Collectors.toList());
             return finalNodes;
         }
     }

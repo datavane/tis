@@ -21,7 +21,7 @@ import org.apache.struts2.dispatcher.StrutsRequestWrapper;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.Secret;
-import com.qlangtech.tis.manage.common.TerminatorHttpServletRequestWrapper;
+import com.qlangtech.tis.manage.common.TISHttpServletRequestWrapper;
 import com.qlangtech.tis.manage.common.UserUtils;
 
 /**
@@ -84,7 +84,7 @@ public class LoginAction extends BasicModule {
         ServletActionContext.getRequest().getSession().removeAttribute(UserUtils.USER_TOKEN_SESSION);
         final String host = this.getRequest().getHeader("Host");
         ChangeDomainAction.addCookie(getResponse(), UserUtils.USER_TOKEN, "", StringUtils.substringBefore(host, ":"), 0);
-        final TerminatorHttpServletRequestWrapper request = (TerminatorHttpServletRequestWrapper) (((StrutsRequestWrapper) this.getRequest()).getRequest());
+        final TISHttpServletRequestWrapper request = (TISHttpServletRequestWrapper) (((StrutsRequestWrapper) this.getRequest()).getRequest());
         request.removeCookie(UserUtils.USER_TOKEN);
         getRundataInstance().redirectTo("/runtime/login.htm");
     }

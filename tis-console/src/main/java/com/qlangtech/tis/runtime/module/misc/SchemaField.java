@@ -32,13 +32,13 @@ public class SchemaField implements ISchemaField {
 
     private boolean indexed = false;
 
-    private Boolean stored = true;
+    private boolean stored = true;
 
-    private Boolean required;
+    private boolean required;
 
     private boolean multiValue = false;
 
-    private Boolean sortable;
+    private boolean sortable;
 
     // 如果选择了string分词
     private String textAnalysis;
@@ -49,17 +49,17 @@ public class SchemaField implements ISchemaField {
     // 是否开通docvalue
     private boolean docval;
 
-    // 如果选择数字类型的话 ，是否支持区间查询
-    private boolean range;
+//    // 如果选择数字类型的话 ，是否支持区间查询
+//    private boolean range;
 
-    @Override
-    public boolean isRange() {
-        return range;
-    }
-
-    public void setRange(boolean range) {
-        this.range = range;
-    }
+//    @Override
+//    public boolean isRange() {
+//        return range;
+//    }
+//
+//    public void setRange(boolean range) {
+//        this.range = range;
+//    }
 
     public int getId() {
         return id;
@@ -87,11 +87,11 @@ public class SchemaField implements ISchemaField {
 
     // 输入控件是否可编辑，在新建索引流程，希望用户不需要更改name属性，这样可以保持和数据源中的字段一致
     // private boolean inputDisabled;
-    // 
+    //
     // public boolean isInputDisabled() {
     // return inputDisabled;
     // }
-    // 
+    //
     // public void setInputDisabled(boolean inputDisabled) {
     // this.inputDisabled = inputDisabled;
     // }
@@ -100,7 +100,7 @@ public class SchemaField implements ISchemaField {
     // public String getRegularSymbol() {
     // return regularSymbol;
     // }
-    // 
+    //
     // public void setRegularSymbol(String regularSymbol) {
     // this.regularSymbol = regularSymbol;
     // }
@@ -127,12 +127,12 @@ public class SchemaField implements ISchemaField {
 
     @Override
     public boolean isDocValue() {
-        return this.docval;
+        return this.getSortable();
     }
 
-    public void setDocval(boolean docval) {
-        this.docval = docval;
-    }
+//    public void setDocval(boolean docval) {
+//        this.docval = docval;
+//    }
 
     private String defaultValue;
 
@@ -155,7 +155,7 @@ public class SchemaField implements ISchemaField {
     // public String getTextAnalysis() {
     // return textAnalysis;
     // }
-    // 
+    //
     // public void setTextAnalysis(String textAnalysis) {
     // this.textAnalysis = textAnalysis;
     // }
@@ -255,11 +255,11 @@ public class SchemaField implements ISchemaField {
         this.stored = stored;
     }
 
-    public void setRangequery(boolean value) {
-        this.sortable = value;
-    }
-
-    public Boolean getRangequery() {
-        return this.sortable;
-    }
+//    public void setRangequery(boolean value) {
+//        this.sortable = value;
+//    }
+//
+//    public Boolean getRangequery() {
+//        return this.sortable;
+//    }
 }

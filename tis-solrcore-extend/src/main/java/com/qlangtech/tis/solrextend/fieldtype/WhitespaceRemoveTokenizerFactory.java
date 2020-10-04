@@ -40,9 +40,7 @@ public class WhitespaceRemoveTokenizerFactory extends TokenizerFactory {
         return new WhitespaceTokenizer(factory);
     }
 
-    public static void main(String[] args) {
-    // System.out.println(WhitespaceTokenizer.replaceWhiteSpace("二维火 花卷"));
-    }
+
 
     private static class WhitespaceTokenizer extends Tokenizer {
 

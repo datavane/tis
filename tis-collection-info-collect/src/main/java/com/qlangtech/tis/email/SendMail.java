@@ -1,35 +1,31 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.email;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import javax.mail.Address;
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -49,7 +45,7 @@ public class SendMail {
         // sender.send(recipient);
         String content = null;
         sender.send("hello this is test please ignor it", "hello", "qixi@2dfire.com");
-    // System.out.println(content);
+        // System.out.println(content);
     }
 
     // // 邮箱服务器
@@ -65,9 +61,8 @@ public class SendMail {
 
     // // 这个是你的邮箱用户名
     private String username = "mozhenghua19811109@126.com";
-
     // 你的邮箱密码:
-    private String password = "0010105074";
+    private String password = "";
 
     private String mail_from = "mozhenghua19811109@126.com";
 
@@ -91,6 +86,10 @@ public class SendMail {
      * @throws Exception
      */
     public void send(String subject, String content, String mail_to2) throws Exception {
+        if (1 == 1) {
+            // FIXME 功能还未开放，先跳过
+            return;
+        }
         try {
             // 获取系统环境
             Properties props = new Properties();

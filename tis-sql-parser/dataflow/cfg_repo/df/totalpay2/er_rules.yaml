@@ -1,0 +1,86 @@
+dumpNodes:
+-   dbid: '58'
+    extraMeta:
+        colTransfers: []
+        monitorTrigger: true
+        primaryIndexColumnNames:
+        -   name: order_id
+            pk: true
+        primaryIndexTab: true
+        sharedKey: entity_id
+        timeVerColName: modify_time
+    id: 8c16a8c1-4cd4-d4ae-9213-bb0d15ea7264
+    name: orderdetail
+    position:
+        x: 398
+        y: 112
+    tabid: '57'
+    type: join
+-   dbid: '58'
+    extraMeta:
+        colTransfers: []
+        monitorTrigger: true
+        primaryIndexTab: false
+        timeVerColName: modify_time
+    id: d8d9d29a-a45a-203e-0d0a-65e2a35b1877
+    name: totalpayinfo
+    position:
+        x: 619
+        y: 87
+    tabid: '56'
+    type: join
+-   dbid: '58'
+    extraMeta:
+        colTransfers: []
+        monitorTrigger: true
+        primaryIndexTab: false
+        timeVerColName: modify_time
+    id: 1084af2d-875f-8b0f-9573-db5e42391d12
+    name: instancedetail
+    position:
+        x: 496
+        y: 233
+    tabid: '62'
+    type: join
+relationList:
+-   cardinality: '1:1'
+    child:
+        dbName: order
+        dbid: '58'
+        id: d8d9d29a-a45a-203e-0d0a-65e2a35b1877
+        name: totalpayinfo
+        position:
+            x: 625
+            y: 93
+        tabid: '56'
+        type: table
+    id: 44829fb5-1326-f05f-616b-08faf2453998
+    joinerKeys:
+    -   childKey: totalpay_id
+        parentKey: totalpay_id
+    parent: &id003
+        dbName: order
+        dbid: '58'
+        id: 8c16a8c1-4cd4-d4ae-9213-bb0d15ea7264
+        name: orderdetail
+        position:
+            x: 398
+            y: 112
+        tabid: '57'
+        type: table
+-   cardinality: 1:n
+    child:
+        dbName: order
+        dbid: '58'
+        id: 1084af2d-875f-8b0f-9573-db5e42391d12
+        name: instancedetail
+        position:
+            x: 774
+            y: 117
+        tabid: '62'
+        type: table
+    id: 4157fffd-91bc-575d-61ff-6bb5bca6e3d5
+    joinerKeys:
+    -   childKey: order_id
+        parentKey: order_id
+    parent: *id003

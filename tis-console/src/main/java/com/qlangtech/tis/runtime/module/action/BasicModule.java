@@ -216,11 +216,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
                     throw new IllegalArgumentException("param layout can not be null");
                 }
                 getRequest().setAttribute("layout_template", layout);
-            // 
+            //
             // final String namespace =
             // getActionContext().getActionInvocation().getProxy().getNamespace();
             // Matcher matcher = COMPONENT_PATTERN.matcher(namespace);
-            // 
+            //
             // if (matcher.find()) {
             // getRequest().setAttribute("layout_template",
             // matcher.group() + "/templates/layout/" + layout + ".vm");
@@ -229,7 +229,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
             // "namespace:" + namespace + " can not match pattern " +
             // COMPONENT_PATTERN);
             // }
-            // 
+            //
             }
 
             public void redirectTo(String target) {
@@ -355,7 +355,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
         char[] pc = Arrays.copyOfRange(param.toCharArray(), 13, param.length());
         return trimUnderline(pc).toString();
     // boolean underline = false;
-    // 
+    //
     // StringBuffer result = new StringBuffer();
     // for (int i = 0; i < pc.length; i++) {
     // if ('_' != pc[i]) {
@@ -383,9 +383,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
 
     // public static void main(String[] args) {
-    // 
+    //
     // final long current = System.currentTimeMillis();
-    // 
+    //
     // for (int i = 0; i < 100000; i++) {
     // normalizeExecuteMethod("event_submit_do_buildjob_by_server");
     // }
@@ -408,10 +408,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
     // public IPermissionService getPermissionService() {
     // return new IPermissionService() {
-    // 
+    //
     // @Override
     // public boolean hasAuthority(TUser user, String funcKey) {
-    // 
+    //
     // return true;
     // }
     // };
@@ -528,7 +528,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     // }
     // private static final MockTurbineRunDataInternal rundata = new
     // MockTurbineRunDataInternal();
-    // 
+    //
     // protected final TurbineRunDataInternal getRundata() {
     // // return (TurbineRunDataInternal) TurbineUtil
     // // .getTurbineRunData(getRequest());
@@ -570,7 +570,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
     // @Autowired
     // private FormService formService;
-    // 
+    //
     // // 取得到表单服务
     // public FormService getFormService() {
     // return formService;
@@ -583,13 +583,13 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     // return this.actionTool.getGroup(name);
     // }
     // private static final Group mockGroup = new GroupMock();
-    // 
+    //
     // public Group getDefaultGroup() {
     // return this.actionTool.getDefaultGroup();
     // }
     // @Autowired
     // private URIBrokerService uriService;
-    // 
+    //
     // public URIBrokerService getUriService() {
     // return uriService;
     // }
@@ -628,9 +628,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
      * @return
      */
     public String getLoginUserName() {
-        // UserUtils.getUser(this.getRequest(),
         return this.authtoken.getName();
-    // this).getName();
     }
 
     public IUser getUser() {
@@ -708,7 +706,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
     // public Integer getInt(Context context, String key) {
     // return actionTool.getInt( key);
-    // 
+    //
     // }
     // public String getString(Context context, String key) {
     // // GroupInstanceHelper group = getGroupHelper(context);
@@ -838,11 +836,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     // private AdminUserService authService;
     // @Autowired
     // private AuthProvider authProvider;
-    // 
+    //
     // public AuthProvider getAuthProvider() {
     // return authProvider;
     // }
-    // 
+    //
     // public void setAuthProvider(AuthProvider authProvider) {
     // this.authProvider = authProvider;
     // }

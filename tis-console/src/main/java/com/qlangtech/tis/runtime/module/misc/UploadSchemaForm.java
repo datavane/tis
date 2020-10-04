@@ -43,10 +43,6 @@ public class UploadSchemaForm implements ISchema {
         return this.fields;
     }
 
-    // public void addField(SchemaField field) {
-    // this.fieldKeys.add(field.getName());
-    // this.fields.add(field);
-    // }
     public boolean containsField(String name) {
         for (SchemaField f : this.fields) {
             if (StringUtils.equals(f.getName(), name)) {

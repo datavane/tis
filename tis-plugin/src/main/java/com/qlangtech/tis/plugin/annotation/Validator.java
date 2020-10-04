@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,6 +22,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -101,8 +102,8 @@ public enum Validator {
      * @return false 校验失败
      */
     public boolean validate(// 
-    IFieldErrorHandler msgHandler, // 
-    Context context, String fieldKey, String fieldData) {
+                            IFieldErrorHandler msgHandler, //
+                            Context context, String fieldKey, String fieldData) {
         return this.fieldValidator.validate(msgHandler, context, fieldKey, fieldData);
     }
 
@@ -117,8 +118,8 @@ public enum Validator {
      */
     private static // 
     FieldValidatorResult validate(// 
-    IControlMsgHandler handler, // 
-    Context context, String fieldKey, FieldValidators fvalidator) {
+                                  IControlMsgHandler handler, //
+                                  Context context, String fieldKey, FieldValidators fvalidator) {
         FieldValidatorResult fieldData = new FieldValidatorResult(handler.getString(fieldKey));
         for (IFieldValidator v : fvalidator.validators) {
             if (!v.validate(handler, context, fieldKey, fieldData.fieldData)) {
@@ -130,7 +131,7 @@ public enum Validator {
     }
 
     /**
-     * String:fieldName , FieldValidators：利用现有的枚举校验规则 , IFieldValidator 自定义校验规则
+     * String:fieldName , FieldValidators：利用现有的枚举校验规则 , IFieldValidator 自定义校验规则, Object[] 规则组
      * 构建form校验规则
      *
      * @param p
@@ -141,9 +142,15 @@ public enum Validator {
         if (p.length < 1 || !(p[0] instanceof String)) {
             throw new IllegalArgumentException();
         }
+
+        Map<String, FieldValidators> result = Maps.newHashMap();
+        addValidateRule(result, p);
+        return result;
+    }
+
+    private static void addValidateRule(Map<String, FieldValidators> result, Object[] p) {
         String fieldName = null;
         List<Object> rules = null;
-        Map<String, FieldValidators> result = Maps.newHashMap();
         for (int i = 0; i < p.length; i++) {
             if (p[i] instanceof String) {
                 if (fieldName != null) {
@@ -151,16 +158,24 @@ public enum Validator {
                 }
                 fieldName = (String) p[i];
                 rules = Lists.newArrayList();
-            // 开始定义一个新的Validator
-            // result.put(fieldName,fieldValidators);
+                // 开始定义一个新的Validator
+                // result.put(fieldName,fieldValidators);
+            } else if (p[i].getClass().isArray()) {
+                Object[] rparams = (Object[]) p[i];
+                if (rparams.length > 0) {
+                    addValidateRule(result, rparams);
+                }
+                // 保证数组下一个元素必须为String类型
+                if ((i + 1) < p.length && !(p[i + 1] instanceof String)) {
+                    throw new IllegalStateException("index:" + (i + 1) + ",element:" + p[i + 1] + " must be type of 'String'");
+                }
             } else {
                 // fieldValidators.validators
                 rules.add(p[i]);
             }
-        // result.put((String) p[i], (FieldValidators) p[i + 1]);
+            // result.put((String) p[i], (FieldValidators) p[i + 1]);
         }
         processPreFieldValidateRule(result, fieldName, rules);
-        return result;
     }
 
     private static void processPreFieldValidateRule(Map<String, FieldValidators> result, String fieldName, List<Object> rules) {
@@ -200,20 +215,15 @@ public enum Validator {
      */
     public static // 
     boolean validate(// 
-    IControlMsgHandler handler, // 
-    Context context, Map<String, FieldValidators> fieldsValidator) {
+                     IControlMsgHandler handler, //
+                     Context context, Map<String, FieldValidators> fieldsValidator) {
+        handler.errorsPageShow(context);
         String fieldKey = null;
         FieldValidators fvalidator = null;
         FieldValidatorResult vresult = null;
-        boolean faild = false;
-        for (Map.Entry<String, FieldValidators> entry : fieldsValidator.entrySet()) {
-            fieldKey = entry.getKey();
-            fvalidator = entry.getValue();
-            vresult = validate(handler, context, fieldKey, fvalidator);
-            if (!vresult.valid) {
-                faild = true;
-            }
-        }
+        // 第一轮 校验依赖节点为空的
+        boolean faild = validateAllFieldRules(handler, true, context, fieldsValidator)
+                || validateAllFieldRules(handler, false, context, fieldsValidator);
         if (faild) {
             // 判断提交的plugin表单是否有错误？错误则退出
             handler.addErrorMessage(context, FORM_ERROR_SUMMARY);
@@ -221,9 +231,47 @@ public enum Validator {
         return !faild;
     }
 
+    /**
+     * @param handler
+     * @param validateEmptyDependency 是否只校验依赖节点为空的规则
+     * @param context
+     * @param fieldsValidator
+     * @return
+     */
+    private static boolean validateAllFieldRules(IControlMsgHandler handler
+            , boolean validateEmptyDependency, Context context, Map<String, FieldValidators> fieldsValidator) {
+        String fieldKey;
+        FieldValidators fvalidator;
+        FieldValidatorResult vresult;
+        boolean faild = false;
+        for (Map.Entry<String, FieldValidators> entry : fieldsValidator.entrySet().stream().filter((e) -> {
+            return validateEmptyDependency ? e.getValue().dependencyRules.isEmpty() : !e.getValue().dependencyRules.isEmpty();
+        }).collect(Collectors.toList())) {
+            fieldKey = entry.getKey();
+            fvalidator = entry.getValue();
+
+            vresult = validate(handler, context, fieldKey, fvalidator);
+            if (!vresult.valid) {
+                faild = true;
+            }
+        }
+        return faild;
+    }
+
     public abstract static class FieldValidators {
 
         final List<IFieldValidator> validators = Lists.newArrayList();
+        private final List<String> dependencyRules = Lists.newArrayList();
+
+        /**
+         * 添加校验依赖
+         *
+         * @param rule
+         */
+        public FieldValidators addDependency(String rule) {
+            this.dependencyRules.add(rule);
+            return this;
+        }
 
         public FieldValidators(Validator... validators) {
             for (Validator validator : validators) {
@@ -270,7 +318,7 @@ public enum Validator {
          * @return false：校验失败有错误
          */
         boolean validate(// 
-        IFieldErrorHandler msgHandler, // 
-        Context context, String fieldKey, String fieldData);
+                         IFieldErrorHandler msgHandler, //
+                         Context context, String fieldKey, String fieldData);
     }
 }

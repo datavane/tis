@@ -26,10 +26,11 @@ import com.ibatis.sqlmap.client.extensions.TypeHandlerCallback;
 public class BooleanYorNConvertCallback implements TypeHandlerCallback {
 
     public static final String YES = "Y";
+    public static final String NO = "N";
 
     @Override
     public Object getResult(ResultGetter getter) throws SQLException {
-        if ("N".equalsIgnoreCase(getter.getString())) {
+        if (NO.equalsIgnoreCase(getter.getString())) {
             return Boolean.FALSE;
         } else if (YES.equalsIgnoreCase(getter.getString())) {
             return Boolean.TRUE;
@@ -39,11 +40,11 @@ public class BooleanYorNConvertCallback implements TypeHandlerCallback {
 
     @Override
     public void setParameter(ParameterSetter setter, Object parameter) throws SQLException {
-        setter.setString(((Boolean) parameter) ? YES : "N");
+        setter.setString(((Boolean) parameter) ? YES : NO);
     }
 
     @Override
     public Object valueOf(String s) {
-        return "N".equalsIgnoreCase(s);
+        return NO.equalsIgnoreCase(s);
     }
 }

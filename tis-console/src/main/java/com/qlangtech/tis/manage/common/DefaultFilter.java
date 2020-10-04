@@ -33,7 +33,7 @@ public final class DefaultFilter implements Filter {
 
     private static ThreadLocal<AppAndRuntime> appAndRuntimeLocal = new ThreadLocal<AppAndRuntime>();
 
-    private static ThreadLocal<TerminatorHttpServletRequestWrapper> requestLocal = new ThreadLocal<TerminatorHttpServletRequestWrapper>();
+    private static ThreadLocal<TISHttpServletRequestWrapper> requestLocal = new ThreadLocal<TISHttpServletRequestWrapper>();
 
     // public static void setThreadRequest(AdapterHttpRequest request) {
     // requestLocal.set(request);
@@ -52,14 +52,14 @@ public final class DefaultFilter implements Filter {
     }
 
     // private TerminatorEagleEyeFilter eagleEyeFilter;
-    public static TerminatorHttpServletRequestWrapper getReqeust() {
-        TerminatorHttpServletRequestWrapper request = requestLocal.get();
+    public static TISHttpServletRequestWrapper getReqeust() {
+        TISHttpServletRequestWrapper request = requestLocal.get();
         Assert.assertNotNull("request has not been set in local thread", request);
         return request;
     }
 
     // private static final Pattern p2 = Pattern.compile("(.*?)_run(\\d+)");
-    private static AppAndRuntime getRuntime(TerminatorHttpServletRequestWrapper request) {
+    private static AppAndRuntime getRuntime(TISHttpServletRequestWrapper request) {
         final String key = "request" + ChangeDomainAction.COOKIE_SELECT_APP;
         if (request.getAttribute(key) == null) {
             AppAndRuntime appAndRuntime = new AppAndRuntime();
@@ -147,7 +147,7 @@ public final class DefaultFilter implements Filter {
         try {
             request.setCharacterEncoding(TisUTF8.getName());
             response.setCharacterEncoding(TisUTF8.getName());
-            final TerminatorHttpServletRequestWrapper wrapperRequest = new TerminatorHttpServletRequestWrapper((HttpServletRequest) request);
+            final TISHttpServletRequestWrapper wrapperRequest = new TISHttpServletRequestWrapper((HttpServletRequest) request);
             responseLocal.set(response);
             requestLocal.set(wrapperRequest);
             appAndRuntimeLocal.set(getRuntime(wrapperRequest));

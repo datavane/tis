@@ -1,32 +1,33 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.runtime.module.misc;
 
-import com.qlangtech.tis.runtime.module.action.SchemaAction.VisualType;
-import junit.framework.Assert;
+import com.qlangtech.tis.web.start.TisApp;
 import junit.framework.TestCase;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2017年5月26日
+ * @create: 2020-04-18 11:44
  */
-public class TestTokenizerType extends TestCase {
+public class StartTISWeb extends TestCase {
 
-    public void testTlong() {
-        VisualType vtype = TokenizerType.parseVisualType("tlong");
-        Assert.assertEquals(true, vtype.isRanageQueryAware());
-        System.out.println(vtype.getType());
+    public void testStart() throws Exception {
+        TisApp app = new TisApp("/collect", 8080, (context) -> {
+            context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
+            context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
+        });
+        System.out.println("start");
+        app.start(new String[0]);
     }
 }

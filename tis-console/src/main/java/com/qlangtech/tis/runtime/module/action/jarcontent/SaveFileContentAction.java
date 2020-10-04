@@ -111,20 +111,20 @@ public class SaveFileContentAction extends BasicModule {
     // context)
     // throws UnsupportedEncodingException {
     // Integer appid = this.getInt("appid");
-    // 
+    //
     // SnapshotApply snapshotApply = snapshotApplyDAO.loadByAppid(appid);
     // snapshotApply.setCreateTime(new Date());
     // snapshotApply.setUpdateTime(new Date());
-    // 
+    //
     // // Context context,
     // // final byte[] uploadContent, final String md5,
     // // PropteryGetter fileGetter
-    // 
+    //
     // final byte[] uploadContent = content.getContent()
     // .getBytes(Charset.forName(getEncode()));
-    // 
+    //
     // try {
-    // 
+    //
     // snapshotApply
     // .setResSchemaId(
     // ResSynManager
@@ -133,9 +133,9 @@ public class SaveFileContentAction extends BasicModule {
     // uploadContent),
     // ConfigFileReader.FILE_SCHEMA, this, this)
     // .longValue());
-    // 
+    //
     // } catch (SchemaFileInvalidException e) {
-    // 
+    //
     // return;
     // }
     // try {
@@ -146,29 +146,29 @@ public class SaveFileContentAction extends BasicModule {
     // snapshotApply.setPreSnId(snapshotApply.getSnId());
     // snapshotApply.setSnId(null);
     // snapshotApplyDAO.insertSelective(snapshotApply);
-    // 
+    //
     // }
     /*
    * 与doSaveContent的区别在于，源参数是页面传递， doSaveContentByContext的参数是有http接口传入
    */
-    public void doSaveContentByContext(Context context, Savefilecontent contentOut) throws UnsupportedEncodingException {
-        Integer snapshotid = (Integer) context.get("selectedSnapshotid");
-        // content.getFilename();
-        String fileName = String.valueOf(context.get("filename"));
-        // if (isEditSchemaApply(context, fileName)) return;
-        PropteryGetter propertyGetter = this.createConfigFileGetter(fileName);
-        Long userid = 999l;
-        try {
-            userid = new Long(this.getUserId());
-        } catch (Throwable e) {
-        }
-        CreateSnapshotResult createResult = createNewSnapshot(context, this.getSnapshotViewDAO().getView(snapshotid), propertyGetter, contentOut.getContentBytes(), this, this, "drds更新", userid, this.getLoginUserName());
-        if (!createResult.isSuccess()) {
-            // forward("edit_" + BasicContentScreen.getResourceName(propertyGetter));
-            return;
-        }
-        this.addActionMessage(context, "保存文件成功,最新snapshot:" + createResult.getNewId());
-    }
+//    public void doSaveContentByContext(Context context, Savefilecontent contentOut) throws UnsupportedEncodingException {
+//        Integer snapshotid = (Integer) context.get("selectedSnapshotid");
+//        // content.getFilename();
+//        String fileName = String.valueOf(context.get("filename"));
+//        // if (isEditSchemaApply(context, fileName)) return;
+//        PropteryGetter propertyGetter = this.createConfigFileGetter(fileName);
+//        Long userid = 999l;
+//        try {
+//            userid = new Long(this.getUserId());
+//        } catch (Throwable e) {
+//        }
+//        CreateSnapshotResult createResult = createNewSnapshot(context, this.getSnapshotViewDAO().getView(snapshotid), propertyGetter, contentOut.getContentBytes(), this, this, "drds更新", userid, this.getLoginUserName());
+//        if (!createResult.isSuccess()) {
+//            // forward("edit_" + BasicContentScreen.getResourceName(propertyGetter));
+//            return;
+//        }
+//        this.addActionMessage(context, "保存文件成功,最新snapshot:" + createResult.getNewId());
+//    }
 
     // private boolean isEditSchemaApply(Context context, String fileName) {
     // if ("edit_schema_apply".equals(fileName)) {
@@ -197,7 +197,10 @@ public class SaveFileContentAction extends BasicModule {
             userid = new Long(this.getUserId());
         } catch (Throwable e) {
         }
-        CreateSnapshotResult createResult = createNewSnapshot(context, this.getSnapshotViewDAO().getView(snapshotid), propertyGetter, xmlContent.getContentBytes(), this, this, xmlContent.getMemo(), userid, this.getLoginUserName());
+        CreateSnapshotResult createResult = createNewSnapshot(context
+          , this.getSnapshotViewDAO().getView(snapshotid), propertyGetter, xmlContent.getContentBytes()
+          , this, this, xmlContent.getMemo(), userid, this.getLoginUserName());
+
         if (!createResult.isSuccess()) {
             // forward("edit_" + BasicContentScreen.getResourceName(propertyGetter));
             return;
@@ -219,8 +222,12 @@ public class SaveFileContentAction extends BasicModule {
      * @return
      * @throws UnsupportedEncodingException
      */
-    public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter, byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler, String memo, Long userId, String userName) throws UnsupportedEncodingException {
-        return createNewSnapshot(context, domain, fileGetter, uploadContent, runContext, messageHandler, memo, userId, userName, true);
+    public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain
+      , PropteryGetter fileGetter
+      , byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler
+      , String memo, Long userId, String userName) throws UnsupportedEncodingException {
+        return createNewSnapshot(context, domain, fileGetter, uploadContent, runContext
+          , messageHandler, memo, userId, userName, true);
     }
 
     public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter, byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler, String memo, Long userId, String userName, boolean createNewSnapshot) throws UnsupportedEncodingException {
@@ -330,7 +337,7 @@ public class SaveFileContentAction extends BasicModule {
     // public ISnapshotApplyDAO getSnapshotApplyDAO() {
     // return snapshotApplyDAO;
     // }
-    // 
+    //
     // @Autowired
     // public void setSnapshotApplyDAO(ISnapshotApplyDAO snapshotApplyDAO) {
     // this.snapshotApplyDAO = snapshotApplyDAO;

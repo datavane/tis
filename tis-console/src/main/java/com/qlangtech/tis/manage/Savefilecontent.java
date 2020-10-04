@@ -15,6 +15,8 @@
 package com.qlangtech.tis.manage;
 
 import java.nio.charset.Charset;
+
+import com.qlangtech.tis.manage.common.TisUTF8;
 import junit.framework.Assert;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 
@@ -43,7 +45,7 @@ public final class Savefilecontent {
 
     public byte[] getContentBytes() {
         Assert.assertNotNull("content can not be null", content);
-        return content.getBytes(Charset.forName(BasicModule.getEncode()));
+        return content.getBytes(TisUTF8.get());
     }
 
     public String getContent() {
@@ -69,11 +71,4 @@ public final class Savefilecontent {
     public void setFilename(String filename) {
         this.filename = filename;
     }
-    // public Integer getGid() {
-    // return gid;
-    // }
-    // 
-    // public void setGid(Integer gid) {
-    // this.gid = gid;
-    // }
 }

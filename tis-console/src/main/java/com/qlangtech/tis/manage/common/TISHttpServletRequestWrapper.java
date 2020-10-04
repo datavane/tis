@@ -34,9 +34,9 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2012-9-6
  */
-public class TerminatorHttpServletRequestWrapper extends HttpServletRequestWrapper {
+public class TISHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-    public TerminatorHttpServletRequestWrapper(HttpServletRequest request) {
+    public TISHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
     }
 
@@ -142,13 +142,13 @@ public class TerminatorHttpServletRequestWrapper extends HttpServletRequestWrapp
 
     // @Override
     // public ServletInputStream getInputStream() throws IOException {
-    // 
+    //
     // return super.getInputStream();
     // }
-    // 
+    //
     // @Override
     // public BufferedReader getReader() throws IOException {
-    // 
+    //
     // return super.getReader();
     // }
     @Override

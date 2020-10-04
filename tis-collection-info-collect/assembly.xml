@@ -57,7 +57,7 @@
 				<exclude>org.eclipse.jetty*</exclude>
 				<!--	-->
 				<exclude>${groupId}:${artifactId}</exclude>
-
+				<exclude>*:logback-*</exclude>
 				<exclude>*:log4j*</exclude>
 				<exclude>*:slf4j-log4j12*</exclude>
 				<exclude>*:commons-logging*</exclude>

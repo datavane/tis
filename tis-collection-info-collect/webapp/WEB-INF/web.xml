@@ -4,6 +4,12 @@
 
 <web-app metadata-complete="true">
 
+	<env-entry>
+		<env-entry-name>logback/context-name</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>collector</env-entry-value>
+	</env-entry>
+
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>classpath:/conf/cluster-application-context.xml,classpath:/conf/cluster-snapshot-dao-context.xml,classpath:/conf/terminatorBizDal-dao-context.xml</param-value>
@@ -28,7 +34,7 @@
 		<url-pattern>/export_report</url-pattern>
 	</servlet-mapping>
 
-
+<!--
 	<servlet>
 		<servlet-name>monitorServlet</servlet-name>
 		<servlet-class>com.dihuo.app.common.monitor.MonitorServlet</servlet-class>
@@ -37,7 +43,7 @@
 		<servlet-name>monitorServlet</servlet-name>
 		<url-pattern>/check_health</url-pattern>
 	</servlet-mapping>
-
+-->
 
 
 </web-app>

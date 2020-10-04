@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,6 +23,7 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
 import com.qlangtech.tis.sql.parser.meta.Position;
@@ -34,6 +35,7 @@ import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.nodes.Tag;
+
 import java.io.File;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -52,6 +54,44 @@ public class TestSqlTaskNodeMeta extends TestCase {
     }
 
     private final File parent = new File("./src/main/resources/test");
+
+    public void testValidateSql() {
+
+        List<String> dependencyNodes = Lists.newArrayList();
+
+        // 这个sql语句有错误，需要校验成错误，抛异常
+        Optional<TisSqlFormatException> err = SqlTaskNodeMeta.validateSql("    SELECT g.id,g.entity_id,g.commodity_id,gg.goods_id\n" +
+                "     FROM commodity_goods g", dependencyNodes);
+
+        assertTrue(err.isPresent());
+
+        assertEquals("base ref:gg can not find relevant table entity in map,mapSize:1,exist:[g:tis.commodity_goods],位置，行:1,列:44", err.get().summary());
+    }
+
+    /**
+     * dependencyNodes 集合中的表不在sql的FROM部分中，校验需要失败
+     */
+    public void testValidateSql2() {
+
+        List<String> dependencyNodes = Lists.newArrayList();
+
+        // 这个sql语句有错误，需要校验成错误，抛异常
+        Optional<TisSqlFormatException> err = SqlTaskNodeMeta.validateSql("    SELECT g.id,g.entity_id,g.commodity_id,g.goods_id\n" +
+                "     FROM commodity_goods g", dependencyNodes);
+
+        assertTrue(err.isPresent());
+
+        assertEquals("commodity_goods can not find tab in[]", err.get().summary());
+
+        dependencyNodes.add("commodity_goods");
+        err = SqlTaskNodeMeta.validateSql("    SELECT g.id,g.entity_id,g.commodity_id,g.goods_id\n" +
+                "     FROM commodity_goods g", dependencyNodes);
+
+        assertFalse(err.isPresent());
+
+        //assertEquals("commodity_goods can not find tab in[]", err.get().summary());
+    }
+
 
     public void testGetRewriteSql() throws Exception {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
@@ -77,7 +117,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
         assertTrue(erRule.isPresent());
         EasyMock.replay(tplContext, joinTaskContext);
-        ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql("supply_goods", dumpPartition, erRule.get(), tplContext, true);
+        ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql("supply_goods", new TabPartitions(dumpPartition), erRule.get(), tplContext, true);
         assertNotNull(rewriteSql);
         assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.sqlContent);
         System.out.println(rewriteSql.sqlContent);
@@ -179,7 +219,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         DependencyNode s = single.get(0);
         Assert.assertEquals(dependency.getId(), s.getId());
         Assert.assertEquals(dependency.getName(), s.getName());
-    // FileUtils.forceDelete(dataflowDir);
+        // FileUtils.forceDelete(dataflowDir);
     }
 
     private void assertDependencyNodeEqual(DependencyNode expect, DependencyNode actual) {
@@ -210,11 +250,11 @@ public class TestSqlTaskNodeMeta extends TestCase {
         Assert.assertEquals(200, sqlNodeMeta.getPosition().getY());
         Assert.assertEquals(NodeType.JOINER_SQL, sqlNodeMeta.getNodeType());
         Assert.assertEquals("14", sqlNodeMeta.getId());
-    // for (DependencyNode n : sqlNodeMeta.getDependencies()) {
-    // System.out.println("--------------------------->" + n.getName());
-    // }
-    // 
-    // Assert.assertEquals(1, sqlNodeMeta.getDependencies().size());
+        // for (DependencyNode n : sqlNodeMeta.getDependencies()) {
+        // System.out.println("--------------------------->" + n.getName());
+        // }
+        //
+        // Assert.assertEquals(1, sqlNodeMeta.getDependencies().size());
     }
 
     File tmp_group_specialfee = new File(parent, "tmp_group_specialfee.yaml");

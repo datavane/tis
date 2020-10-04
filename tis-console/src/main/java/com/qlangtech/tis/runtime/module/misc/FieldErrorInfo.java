@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,55 +22,73 @@ package com.qlangtech.tis.runtime.module.misc;
  */
 public class FieldErrorInfo {
 
-    private final int id;
+  private final int id;
+  // 包括： 字段为空，字段重复，字段名称正则式
+  private boolean fieldNameError;
+  // 字段重复了
+//  private boolean duplicateError;
+//  private boolean namePatternError;
 
-    public FieldErrorInfo(int id) {
-        super();
-        this.id = id;
-    }
+  private boolean fieldTypeError;
 
-    public int getId() {
-        return this.id;
-    }
+  // 至少设置一个，可查询，存储，可排序的属性
+  private boolean fieldPropRequiredError;
 
-    private boolean fieldInputBlank;
+  public FieldErrorInfo(int id) {
+    this.id = id;
+  }
 
-    private boolean fieldTypeError;
+  public boolean isFieldPropRequiredError() {
+    return fieldPropRequiredError;
+  }
 
-    // 字段重复了
-    private boolean duplicateError;
+  public void setFieldPropRequiredError(boolean fieldPropRequiredError) {
+    this.fieldPropRequiredError = fieldPropRequiredError;
+  }
 
-    private boolean namePatternError;
+  public boolean isFieldNameError() {
+    return fieldNameError;
+  }
 
-    public boolean isDuplicateError() {
-        return duplicateError;
-    }
+  public void setFieldNameError(boolean fieldNameError) {
+    this.fieldNameError = fieldNameError;
+  }
 
-    public boolean isNamePatternError() {
-        return namePatternError;
-    }
 
-    public void setNamePatternError(boolean namePatternError) {
-        this.namePatternError = namePatternError;
-    }
+  public int getId() {
+    return this.id;
+  }
 
-    public void setDuplicateError(boolean duplicateError) {
-        this.duplicateError = duplicateError;
-    }
 
-    public boolean isFieldTypeError() {
-        return fieldTypeError;
-    }
+//  public boolean isDuplicateError() {
+//    return duplicateError;
+//  }
+//
+//  public boolean isNamePatternError() {
+//    return namePatternError;
+//  }
 
-    public void setFieldTypeError(boolean fieldTypeError) {
-        this.fieldTypeError = fieldTypeError;
-    }
+//  public void setNamePatternError(boolean namePatternError) {
+//    this.namePatternError = namePatternError;
+//  }
+//
+//  public void setDuplicateError(boolean duplicateError) {
+//    this.duplicateError = duplicateError;
+//  }
 
-    public boolean isFieldInputBlank() {
-        return fieldInputBlank;
-    }
+  public boolean isFieldTypeError() {
+    return fieldTypeError;
+  }
 
-    public void setFieldInputBlank(boolean fieldInputBlank) {
-        this.fieldInputBlank = fieldInputBlank;
-    }
+  public void setFieldTypeError(boolean fieldTypeError) {
+    this.fieldTypeError = fieldTypeError;
+  }
+
+  // public boolean isFieldInputBlank() {
+//    return fieldInputBlank;
+//  }
+
+//  public void setFieldInputBlank(boolean fieldInputBlank) {
+//    this.fieldInputBlank = fieldInputBlank;
+//  }
 }

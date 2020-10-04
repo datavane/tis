@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -36,6 +36,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -110,12 +111,12 @@ public class SolrFieldsParser {
             @Override
             public LuceneVersion getLuceneVersion() {
                 return LuceneVersion.LUCENE_7;
-            // Version ver = getTISLuceneVersion(configGetter);
-            // if (ver.equals(Version.LUCENE_7_6_0)) {
-            // return LuceneVersion.LUCENE_7;
-            // }
-            // 
-            // throw new IllegalStateException("illegal version ver:" + ver);
+                // Version ver = getTISLuceneVersion(configGetter);
+                // if (ver.equals(Version.LUCENE_7_6_0)) {
+                // return LuceneVersion.LUCENE_7;
+                // }
+                //
+                // throw new IllegalStateException("illegal version ver:" + ver);
             }
         };
     }
@@ -152,11 +153,11 @@ public class SolrFieldsParser {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-    // SolrFieldsParser parse = new SolrFieldsParser();
-    // File f = new File("D:/workspace/solrhome/supplyGoods/conf/ccc.xml");
-    // InputStream is = new FileInputStream(f);
-    // ParseResult result = parse.parseSchema(is, false);
-    // System.out.println(result.getIndexBuilder());
+        // SolrFieldsParser parse = new SolrFieldsParser();
+        // File f = new File("D:/workspace/solrhome/supplyGoods/conf/ccc.xml");
+        // InputStream is = new FileInputStream(f);
+        // ParseResult result = parse.parseSchema(is, false);
+        // System.out.println(result.getIndexBuilder());
     }
 
     public static boolean hasMultiValuedField(ArrayList<PSchemaField> fields) {
@@ -318,13 +319,13 @@ public class SolrFieldsParser {
                 if (f.getName().equals(sharedKey)) {
                     shareKeyDefined = true;
                 }
-            // if (f.getName().equals(defaultSearchField)) {
-            // defaultSearchFieldDefined = true;
-            // if (!f.isIndexed()) {
-            // parseResult.errlist.add("默认查询键:‘" + defaultSearchField + "’属性'indexed'必须为true");
-            // return result;
-            // }
-            // }
+                // if (f.getName().equals(defaultSearchField)) {
+                // defaultSearchFieldDefined = true;
+                // if (!f.isIndexed()) {
+                // parseResult.errlist.add("默认查询键:‘" + defaultSearchField + "’属性'indexed'必须为true");
+                // return result;
+                // }
+                // }
             }
             if (!shareKeyDefined) {
                 // parseResult.errlist.add("shareKey have not been define in sub
@@ -337,14 +338,14 @@ public class SolrFieldsParser {
                 parseResult.errlist.add("请设置主键");
                 return result;
             }
-        // 判断定义了defaultSearchField 但是没有在schema中找到
-        // if (StringUtils.isNotBlank(defaultSearchField) && !defaultSearchFieldDefined) {
-        // // result.errlist.add(
-        // // "defined defaultSearchField:" + defaultSearchField + " can
-        // // not be found in the fields list");
-        // result.errlist.add("已定义的默认查询字段:" + defaultSearchField + "在fields中不存在");
-        // return result;
-        // }
+            // 判断定义了defaultSearchField 但是没有在schema中找到
+            // if (StringUtils.isNotBlank(defaultSearchField) && !defaultSearchFieldDefined) {
+            // // result.errlist.add(
+            // // "defined defaultSearchField:" + defaultSearchField + " can
+            // // not be found in the fields list");
+            // result.errlist.add("已定义的默认查询字段:" + defaultSearchField + "在fields中不存在");
+            // return result;
+            // }
         }
         parseResult.setUniqueKey(uniqueKey);
         parseResult.setSharedKey(sharedKey);
@@ -369,7 +370,8 @@ public class SolrFieldsParser {
     private void addExtenionProcessor(ParseResult parseResult, XPath xPath, Document document) throws XPathExpressionException {
         Node fieldsNode = (Node) xPath.evaluate("/schema/fields", document, XPathConstants.NODE);
         NodeList nodes = fieldsNode.getChildNodes();
-        aa: for (int i = 0; i < nodes.getLength(); i++) {
+        aa:
+        for (int i = 0; i < nodes.getLength(); i++) {
             Node fieldNode = nodes.item(i);
             String comment = fieldNode.getTextContent();
             if (fieldNode.getNodeType() == Node.COMMENT_NODE && !StringUtils.isBlank(comment)) {
@@ -432,7 +434,9 @@ public class SolrFieldsParser {
         return indexBuilder;
     }
 
-    private ParseResult parseField(Document document, boolean shallValidate, final XPath xpath, ParseResult parseResult, final ArrayList<PSchemaField> dFields, String expression, boolean dynamicField) throws Exception {
+    private ParseResult parseField(Document document, boolean shallValidate, final XPath xpath, ParseResult parseResult
+            , final ArrayList<PSchemaField> dFields, String expression, boolean dynamicField) throws Exception {
+
         NodeList nodes;
         nodes = (NodeList) xpath.evaluate(expression, document, XPathConstants.NODESET);
         PSchemaField field = null;
@@ -595,7 +599,7 @@ public class SolrFieldsParser {
     }
 
     private static boolean isTypeMatch(String fieldType, String matchLetter) {
-        return StringUtils.indexOfAny(fieldType, new String[] { matchLetter, StringUtils.capitalize(matchLetter) }) > -1;
+        return StringUtils.indexOfAny(fieldType, new String[]{matchLetter, StringUtils.capitalize(matchLetter)}) > -1;
     }
 
     public static class SchemaFields extends ArrayList<PSchemaField> {
@@ -723,7 +727,7 @@ public class SolrFieldsParser {
             }
             for (com.qlangtech.tis.solrdao.pojo.PSchemaField field : dFields) {
                 if (!field.isIndexed() && !field.isStored() && !field.isDocValue()) {
-                    errlist.add("字段:‘" + field.getName() + "’的属性'stored'或'indexed'或'docvalue'至少有一项为true");
+                    errlist.add(getFieldPropRequiredErr(field.getName()));
                 }
                 String fieldName = StringUtils.lowerCase(field.getName());
                 if (reserved_words.contains(fieldName)) {
@@ -778,5 +782,9 @@ public class SolrFieldsParser {
         public void setDocumentCreatorType(String documentCreatorType) {
             this.documentCreatorType = StringUtils.defaultIfBlank(documentCreatorType, "default");
         }
+    }
+
+    public static String getFieldPropRequiredErr(String fieldName) {
+        return "字段:‘" + fieldName + "’的属性'stored'或'indexed'或'docvalue'至少有一项为true";
     }
 }

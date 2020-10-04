@@ -1,21 +1,20 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.sql.parser;
 
 import com.facebook.presto.sql.tree.*;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
@@ -24,12 +23,14 @@ import com.qlangtech.tis.sql.parser.SqlFormatter.Formatter;
 import com.qlangtech.tis.sql.parser.SqlStringBuilder.RewriteProcessContext;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.er.TableMeta;
+import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 import static com.qlangtech.tis.sql.parser.ExpressionFormatter.formatExpression;
 
 /**
@@ -44,7 +45,7 @@ import static com.qlangtech.tis.sql.parser.ExpressionFormatter.formatExpression;
  */
 public class SqlRewriter extends Formatter {
 
-    private final Map<IDumpTable, ITabPartition> tabPartition;
+    private final TabPartitions tabPartition;
 
     final List<AliasTable> waitProcessAliasTabsSet = Lists.newArrayList();
 
@@ -68,7 +69,13 @@ public class SqlRewriter extends Formatter {
         this.primayTable = t;
     }
 
-    public SqlRewriter(SqlStringBuilder builder, Map<IDumpTable, ITabPartition> tabPartition, IPrimaryTabFinder erRules, Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext) {
+    public SqlRewriter(SqlStringBuilder builder, Map<IDumpTable, ITabPartition> tabPartition, IPrimaryTabFinder erRules
+            , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext) {
+        this(builder, new TabPartitions(tabPartition), erRules, parameters, isFinal, joinContext);
+    }
+
+    public SqlRewriter(SqlStringBuilder builder, TabPartitions tabPartition, IPrimaryTabFinder erRules
+            , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext) {
         super(builder, erRules.getTabFieldProcessorMap(), parameters);
         this.erRules = erRules;
         this.tabPartition = tabPartition;
@@ -93,8 +100,8 @@ public class SqlRewriter extends Formatter {
                 } catch (Exception e) {
                     throw new RuntimeException(tabMeta.toString(), e);
                 }
-            // 说明是主表,这个函数是Hive专用的
-            // return a.getAlias() + "." + IDumpTable.PARTITION_PT + "," + "abs(pmod( hash( cast( " + a.getAlias() + "." + shardKey + " as string) ) , " + shardCount + ")) AS " + IDumpTable.PARTITION_PMOD;
+                // 说明是主表,这个函数是Hive专用的
+                // return a.getAlias() + "." + IDumpTable.PARTITION_PT + "," + "abs(pmod( hash( cast( " + a.getAlias() + "." + shardKey + " as string) ) , " + shardCount + ")) AS " + IDumpTable.PARTITION_PMOD;
             } else {
                 // return a.getAlias() + "." + IDumpTable.PARTITION_PT + "," + a.getAlias() + "." + IDumpTable.PARTITION_PMOD;
                 result.append(a.getAlias()).append(".").append(IDumpTable.PARTITION_PMOD);
@@ -153,11 +160,11 @@ public class SqlRewriter extends Formatter {
         } else {
             throw new UnsupportedOperationException();
         }
-    // process(node.getRelation(), indent);
-    // builder.append(' ').append(formatExpression(node.getAlias(), parameters));
-    // SqlFormatter.appendAliasColumns(builder, node.getColumnNames());
-    // return null;//
-    // return super.visitAliasedRelation(node, indent);
+        // process(node.getRelation(), indent);
+        // builder.append(' ').append(formatExpression(node.getAlias(), parameters));
+        // SqlFormatter.appendAliasColumns(builder, node.getColumnNames());
+        // return null;//
+        // return super.visitAliasedRelation(node, indent);
     }
 
     @Override
@@ -230,27 +237,35 @@ public class SqlRewriter extends Formatter {
         List<String> originalParts = tabName.getOriginalParts();
         Optional<Map.Entry<IDumpTable, ITabPartition>> find = null;
         if (originalParts.size() == 2) {
-            find = tabPartition.entrySet().stream().filter((r) -> (StringUtils.equals(r.getKey().getDbName(), originalParts.get(0)) && StringUtils.equals(r.getKey().getTableName(), originalParts.get(1)))).findFirst();
+
+            find = tabPartition.findTablePartition(originalParts.get(0), originalParts.get(1));
+
+//            find = tabPartition.entrySet().stream().filter((r) ->
+//                    (StringUtils.equals(r.getKey().getDbName(), originalParts.get(0))
+//                            && StringUtils.equals(r.getKey().getTableName(), originalParts.get(1)))).findFirst();
         } else if (originalParts.size() == 1) {
             final RewriterDumpTable tab = RewriterDumpTable.create(originalParts.get(0));
-            int[] count = new int[1];
-            Stream<Map.Entry<IDumpTable, ITabPartition>> findTabStream = tabPartition.entrySet().stream().filter((r) -> {
-                boolean match = StringUtils.equals(r.getKey().getTableName(), tab.tabname);
-                if (match) {
-                    count[0]++;
-                }
-                return match;
-            });
-            if (count[0] > 1) {
-                throw new IllegalStateException("tabname:" + tab.tabname + " has match more than 1 context tab:" + findTabStream.map((r) -> r.toString()).collect(Collectors.joining(",")));
-            }
-            find = findTabStream.findFirst();
-        // 重新rewrite表名称
+            //int[] count = new int[1];
+
+            find = tabPartition.findTablePartition(tab.tabname);
+
+//            Stream<Map.Entry<IDumpTable, ITabPartition>> findTabStream = tabPartition.entrySet().stream().filter((r) -> {
+//                boolean match = StringUtils.equals(r.getKey().getTableName(), tab.tabname);
+//                if (match) {
+//                    count[0]++;
+//                }
+//                return match;
+//            });
+//            if (count[0] > 1) {
+//                throw new IllegalStateException("tabname:" + tab.tabname + " has match more than 1 context tab:" + findTabStream.map((r) -> r.toString()).collect(Collectors.joining(",")));
+//            }
+            //  find = findTabStream.findFirst();
+            // 重新rewrite表名称
         } else {
             throw new IllegalStateException("tabName:" + String.valueOf(tabName) + " is not illegal");
         }
         if (!find.isPresent()) {
-            throw new IllegalStateException(tabName.toString() + " can not find tab in[" + Joiner.on(",").join(tabPartition.keySet().stream().map((r) -> r.getFullName()).iterator()) + "]");
+            throw new TisSqlFormatException(tabName.toString() + " can not find tab in[" + tabPartition.joinFullNames() + "]", Optional.empty()); // IllegalStateException(tabName.toString() + " can not find tab in[" + tabPartition.joinFullNames() + "]");
         }
         Map.Entry<IDumpTable, ITabPartition> findTab = find.get();
         return findTab;

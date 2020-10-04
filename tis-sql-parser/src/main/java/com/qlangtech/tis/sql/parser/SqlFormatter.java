@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,14 +22,17 @@ import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.sql.parser.SqlRewriter.AliasTable;
 import com.qlangtech.tis.sql.parser.SqlStringBuilder.RewriteProcessContext;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
+import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.ColumnTransfer;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import static com.facebook.presto.sql.TisExpressionFormatter.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -63,12 +66,12 @@ public final class SqlFormatter {
         private final Map<String, EntityName> /**
          * alias
          */
-        aliasTableMap = Maps.newHashMap();
+                aliasTableMap = Maps.newHashMap();
 
         public Map<String, /**
          * alias
          */
-        EntityName> getAliasTableMap() {
+                EntityName> getAliasTableMap() {
             return aliasTableMap;
         }
 
@@ -77,7 +80,7 @@ public final class SqlFormatter {
             this.process(node.getLeft(), context);
             this.process(node.getRight(), context);
             return null;
-        // return super.visitJoin(node, context);
+            // return super.visitJoin(node, context);
         }
 
         @Override
@@ -243,25 +246,25 @@ public final class SqlFormatter {
         protected Void visitQuery(Query node, Integer indent) {
             if (node.getWith().isPresent()) {
                 throw new UnsupportedOperationException(String.valueOf(node.getWith()));
-            // With with = node.getWith().get();
-            // append(indent, "WITH");
-            // if (with.isRecursive()) {
-            // builder.append(" RECURSIVE");
-            // }
-            // builder.append("\n ");
-            // Iterator<WithQuery> queries = with.getQueries().iterator();
-            // while (queries.hasNext()) {
-            // WithQuery query = queries.next();
-            // append(indent, formatExpression(query.getName(), parameters));
-            // query.getColumnNames().ifPresent(columnNames -> appendAliasColumns(builder,
-            // columnNames));
-            // builder.append(" AS ");
-            // process(new TableSubquery(query.getQuery()), indent);
-            // builder.append('\n');
-            // if (queries.hasNext()) {
-            // builder.append(", ");
-            // }
-            // }
+                // With with = node.getWith().get();
+                // append(indent, "WITH");
+                // if (with.isRecursive()) {
+                // builder.append(" RECURSIVE");
+                // }
+                // builder.append("\n ");
+                // Iterator<WithQuery> queries = with.getQueries().iterator();
+                // while (queries.hasNext()) {
+                // WithQuery query = queries.next();
+                // append(indent, formatExpression(query.getName(), parameters));
+                // query.getColumnNames().ifPresent(columnNames -> appendAliasColumns(builder,
+                // columnNames));
+                // builder.append(" AS ");
+                // process(new TableSubquery(query.getQuery()), indent);
+                // builder.append('\n');
+                // if (queries.hasNext()) {
+                // builder.append(", ");
+                // }
+                // }
             }
             processRelation(node.getQueryBody(), indent);
             if (node.getOrderBy().isPresent()) {
@@ -713,9 +716,10 @@ public final class SqlFormatter {
     public static class TableColumnTransferRewritFormatter extends Formatter {
 
         private final Map<String, EntityName> /*alias*/
-        aliasTableMap;
+                aliasTableMap;
 
-        public TableColumnTransferRewritFormatter(SqlStringBuilder builder, QueryFromTableFinder queryFromTableFinder, Map<EntityName, TabFieldProcessor> tableExtraMetaMap) {
+        public TableColumnTransferRewritFormatter(SqlStringBuilder builder, QueryFromTableFinder queryFromTableFinder
+                , Map<EntityName, TabFieldProcessor> tableExtraMetaMap) {
             super(builder, tableExtraMetaMap, Optional.empty());
             this.aliasTableMap = queryFromTableFinder.getAliasTableMap();
         }
@@ -739,7 +743,11 @@ public final class SqlFormatter {
             Identifier field = node.getField();
             EntityName e = aliasTableMap.get(base.getValue());
             if (e == null) {
-                throw new IllegalStateException("base ref:" + base.getValue() + " can not find relevant EntityName in map,mapSize:" + aliasTableMap.size() + ",exist:" + aliasTableMap.entrySet().stream().map((entry) -> "[" + entry.getKey() + ":" + entry.getValue() + "]").collect(Collectors.joining(",")));
+                throw new TisSqlFormatException("base ref:" + base.getValue()
+                        + " can not find relevant table entity in map,mapSize:"
+                        + aliasTableMap.size() + ",exist:"
+                        + aliasTableMap.entrySet().stream().map((entry) -> "[" + entry.getKey() + ":" + entry.getValue() + "]")
+                        .collect(Collectors.joining(",")), node.getLocation());
             }
             // 找到别名依赖的
             Optional<Map.Entry<EntityName, TabFieldProcessor>> find = Optional.empty();
@@ -759,7 +767,7 @@ public final class SqlFormatter {
                 Map<String, ColumnTransfer> /**
                  * colKey
                  */
-                columnTransferMap = extraMeta.colTransfersMap();
+                        columnTransferMap = extraMeta.colTransfersMap();
                 ColumnTransfer cTransfer = columnTransferMap.get(field.getValue());
                 if (cTransfer != null) {
                     this.builder.append(SqlTaskNodeMeta.HiveColTransfer.instance.transfer(base.getValue(), field.getValue(), cTransfer));
@@ -768,7 +776,7 @@ public final class SqlFormatter {
                 }
             }
             return super.visitDereferenceExpression(node, context);
-        // return super.visitDereferenceExpression(node, context);
+            // return super.visitDereferenceExpression(node, context);
         }
         // @Override
         // protected Void visitSingleColumn(SingleColumn node, Integer indent) {

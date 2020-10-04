@@ -32,8 +32,8 @@ public interface ISchemaField {
 
     boolean isDocValue();
 
-    // 是否支持区间查询
-    boolean isRange();
+//    // 是否支持区间查询
+//    boolean isRange();
 
     // 是否是多值
     boolean isMultiValue();
