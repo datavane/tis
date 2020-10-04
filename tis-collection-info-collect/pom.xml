@@ -41,17 +41,11 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <filtering>true</filtering>
             </resource>
         </resources>
-
-        <filters>
-            <filter>src/main/filters/${env}.properties</filter>
-        </filters>
-
     </build>
 
-
+<!--
     <profiles>
         <profile>
             <id>dev</id>
@@ -81,7 +75,7 @@
             </properties>
         </profile>
     </profiles>
-
+-->
     <dependencies>
 
         <dependency>
