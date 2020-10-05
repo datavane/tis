@@ -30,7 +30,7 @@ public class CoreStatisticsReportHistory {
     statis;
 
     /**
-     * @param statis
+     * @param
      */
     public CoreStatisticsReportHistory() {
         super();

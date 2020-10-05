@@ -10,6 +10,7 @@ import org.easymock.EasyMock;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author: baisui 百岁
@@ -19,38 +20,48 @@ public class TestCoreStatisticsReport extends TestCase {
 
     public void testAddClusterCoreInfo() {
         // int order, String testStr, String classpath, Class<?> clazz
-        HttpUtils.addMockApply(0 //
-                , CoreStatisticsReport.GET_METRIX_PATH
-                , "search4totalpay_query_update_metrix.xml"
-                , TestCoreStatisticsReport.class);
+        final AtomicInteger httpGetCount = new AtomicInteger();
+        HttpUtils.addMockApply(
+                CoreStatisticsReport.GET_METRIX_PATH
+                , (HttpUtils.IClasspathRes) () -> {
+                    return TestCoreStatisticsReport.class.getResourceAsStream(
+                            "search4totalpay_query_update_metrix_time" + httpGetCount.incrementAndGet() + ".xml");
+                }
+        );
 
         //String collectionName = "search4totalpay";
         //Slice slice, SolrZkClient zookeeper
 
         Slice slice = EasyMock.createMock("slice", Slice.class);
-        EasyMock.expect(slice.getName()).andReturn("shard1");
+        EasyMock.expect(slice.getName()).andReturn("shard1").times(2);
         Replica replica = EasyMock.createMock("replica", Replica.class);
 
-        EasyMock.expect(replica.getStr(Slice.LEADER)).andReturn("true");
-        EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4totalpay_shard1_replica_n1/");
-        EasyMock.expect(replica.getNodeName()).andReturn("http://192.168.28.200:8080/solr");
+        EasyMock.expect(replica.getStr(Slice.LEADER)).andReturn("true").times(2);
+        EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4totalpay_shard1_replica_n1/").times(2);
+        EasyMock.expect(replica.getNodeName()).andReturn("http://192.168.28.200:8080/solr").times(2);
         Collection<Replica> replicas = Collections.singleton(replica);
         EasyMock.expect(slice.getReplicas()).andReturn(replicas).times(2);
         SolrZkClient zookeeper = EasyMock.createMock("solrZkClient", SolrZkClient.class);
 
 
         EasyMock.replay(slice, zookeeper, replica);
-        CoreStatisticsReport statisticsReport = new CoreStatisticsReport(Config.S4TOTALPAY, zookeeper);
+        CoreStatisticsReport statisticsReportTime1 = new CoreStatisticsReport(Config.S4TOTALPAY, zookeeper);
 
-        assertTrue(statisticsReport.addClusterCoreInfo(slice));
+        assertTrue(statisticsReportTime1.addClusterCoreInfo(slice));
 
-        assertEquals(1683, statisticsReport.requestCount.getCount());
-        assertEquals(9527, statisticsReport.updateCount.getCount());
-        assertEquals(23360, statisticsReport.numDocs.get());
+        assertEquals(1683, statisticsReportTime1.requestCount.getCount());
+        assertEquals(9527, statisticsReportTime1.updateCount.getCount());
+        assertEquals(23360, statisticsReportTime1.numDocs.get());
+        assertEquals(9999, statisticsReportTime1.updateErrorCount.getCount());
+        assertEquals(22222, statisticsReportTime1.requestErrorCount.getCount());
 
+        CoreStatisticsReport statisticsReportTime2 = new CoreStatisticsReport(Config.S4TOTALPAY, zookeeper);
 
-        assertEquals(9999, statisticsReport.updateErrorCount.getCount());
-        assertEquals(22222, statisticsReport.requestErrorCount.getCount());
+        statisticsReportTime2.addClusterCoreInfo(slice);
+        assertEquals(2, httpGetCount.get());
+        long requestIncreasement = statisticsReportTime1.getRequestIncreasement(statisticsReportTime2);
+
+        assertEquals(10, requestIncreasement);
 
         EasyMock.verify(slice, zookeeper, replica);
     }

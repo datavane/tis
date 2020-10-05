@@ -40,10 +40,10 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class CoreStatisticsReport implements ICoreStatistics {
     static final String GET_METRIX_PATH = "admin/mbeans?stats=true&cat=QUERY&cat=CORE&cat=UPDATE&key=/select&key=/update&key=searcher&wt=xml";
-    protected final SolrZkClient zookeeper;
+   // protected final SolrZkClient zookeeper;
     // 访问量请求统计
     final ReplicaStatisCount requestCount = new ReplicaStatisCount();
-     final AtomicLong numDocs = new AtomicLong();
+    final AtomicLong numDocs = new AtomicLong();
 
     // 更新量请求统计
     final ReplicaStatisCount updateCount = new ReplicaStatisCount();
@@ -91,12 +91,10 @@ public class CoreStatisticsReport implements ICoreStatistics {
         return this.hosts;
     }
 
-    public CoreStatisticsReport(String collectionName, SolrZkClient zookeeper) {
+    public CoreStatisticsReport(String collectionName) {
         this.groupCount++;
-        this.zookeeper = zookeeper;
         hosts = new HashSet<String>();
         appName = collectionName;
-        //  addClusterCoreInfo(slice);
     }
 
     /**
@@ -107,9 +105,10 @@ public class CoreStatisticsReport implements ICoreStatistics {
     public boolean addClusterCoreInfo(Slice slice) {
         this.groupCount++;
         int groupIndex = Integer.parseInt(StringUtils.substringAfter(slice.getName(), "shard")) - 1;
-        List<String> replicaIps = new ArrayList<String>(slice.getReplicas().size());
+        Collection<Replica> replicas = slice.getReplicas();
+        List<String> replicaIps = new ArrayList<String>(replicas.size());
         groupServers.put(groupIndex, replicaIps);
-        for (Replica replic : slice.getReplicas()) {
+        for (Replica replic : replicas) {
             String host = replic.getNodeName();
             hosts.add(host);
             replicaIps.add(host);
@@ -191,45 +190,10 @@ public class CoreStatisticsReport implements ICoreStatistics {
         private <T> T getVal(String[] cat, String key, String metrix, Class<T> clazz) {
             SimpleOrderedMap c = (SimpleOrderedMap) mbeans.get(cat[0]);
             SimpleOrderedMap k = (SimpleOrderedMap) c.get(key);
-
             SimpleOrderedMap stats = (SimpleOrderedMap) k.get("stats");
             return clazz.cast(stats.get((cat.length > 1 ? cat[1] : cat[0]) + "." + key + "." + metrix));
         }
     }
-
-    // /**
-    // * 新版IC版本中会有多个master节点，且master节点上不存数据所以需要将master节点过滤不作统计
-    // *
-    // * @return
-    // */
-    // private Set<String> getMasterNodes(int groupIndex) {
-    // if (groupIndex < 0) {
-    // throw new IllegalArgumentException(
-    // "groupIndex can not small than 0");
-    // }
-    // final Set<String> masters = new HashSet<String>();
-    // 
-    // try {
-    // String path = "/terminator-lock/mutex/Terminator"
-    // + this.getAppName() + "-" + groupIndex + "/Dumper";
-    // 
-    // if (this.zookeeper.exists(path, false) == null) {
-    // return masters;
-    // }
-    // 
-    // List<String> childs = this.zookeeper.getChildren(path, false);
-    // for (String p : childs) {
-    // if (!"owner".equalsIgnoreCase(p)) {
-    // masters.add(new String(this.zookeeper.getData(path + "/"
-    // + p, false, new Stat()), "gbk"));
-    // }
-    // }
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // 
-    // return masters;
-    // }
 
     /**
      * 查询错误增量
@@ -317,7 +281,6 @@ public class CoreStatisticsReport implements ICoreStatistics {
         }
         return servers;
     }
-
 
 
     @Override

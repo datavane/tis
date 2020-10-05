@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,6 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -59,10 +60,14 @@ public class HttpUtils {
     }
 
     public static void addMockApply(int order, String testStr, String classpath, Class<?> clazz) {
+        addMockApply(testStr, new ClasspathRes(order, classpath, clazz));
+    }
+
+    public static void addMockApply(String testStr, IClasspathRes classpathRes) {
         if (HttpUtils.mockConnMaker == null) {
             HttpUtils.mockConnMaker = new DefaultMockConnectionMaker();
         }
-        HttpUtils.mockConnMaker.resourceStore.put(testStr, new ClasspathRes(order, classpath, clazz));
+        HttpUtils.mockConnMaker.resourceStore.put(testStr, classpathRes);
     }
 
     public static DefaultMockConnectionMaker mockConnMaker;
@@ -217,27 +222,32 @@ public class HttpUtils {
 
     public static class DefaultMockConnectionMaker implements MockConnectionMaker {
 
-        private final Map<String, ClasspathRes> /**
+        private final Map<String, IClasspathRes> /**
          * url test
          */
-        resourceStore = Maps.newHashMap();
+                resourceStore = Maps.newHashMap();
 
         @Override
         public MockHttpURLConnection create(URL url, List<ConfigFileContext.Header> heads, HTTPMethod method, byte[] content) {
-            for (Map.Entry<String, ClasspathRes> entry : resourceStore.entrySet()) {
+            for (Map.Entry<String, IClasspathRes> entry : resourceStore.entrySet()) {
                 if (StringUtils.indexOf(url.toString(), entry.getKey()) > -1) {
-                    return createConnection(entry.getValue().order, heads, method, content, entry.getValue());
+                    return createConnection(heads, method, content, entry.getValue());
                 }
             }
             return null;
         }
 
-        protected MockHttpURLConnection createConnection(int appendOrder, List<ConfigFileContext.Header> heads, HTTPMethod method, byte[] content, ClasspathRes cpRes) {
+        protected MockHttpURLConnection createConnection(List<ConfigFileContext.Header> heads
+                , HTTPMethod method, byte[] content, IClasspathRes cpRes) {
             return new MockHttpURLConnection(cpRes.getResourceAsStream());
         }
     }
 
-    public static class ClasspathRes {
+    public interface IClasspathRes {
+        InputStream getResourceAsStream();
+    }
+
+    public static class ClasspathRes implements IClasspathRes {
 
         public final int order;
 

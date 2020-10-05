@@ -46,6 +46,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -141,12 +142,14 @@ public class TSearcherClusterInfoCollect implements // Daemon
         if (snapshot.size() < 1) {
             return;
         }
-        List<ClusterSnapshot> records = new ArrayList<ClusterSnapshot>();
-        for (ClusterSnapshot sn : snapshot) {
-            if (sn.getIncrNumber() != null && sn.getIncrNumber() > 0) {
-                records.add(sn);
-            }
-        }
+        List<ClusterSnapshot> records = snapshot.stream()
+                .filter((sn) -> (sn.getIncrNumber() != null && sn.getIncrNumber() > 0))
+                .collect(Collectors.toList()); // new ArrayList<>();
+//        for (ClusterSnapshot sn : snapshot) {
+//            if (sn.getIncrNumber() != null && sn.getIncrNumber() > 0) {
+//                records.add(sn);
+//            }
+//        }
         if (records.size() > 0) {
             log.info("will create " + snapshot.size() + " serarch apps info into cluster" + " records size : " + records.size());
             this.getClusterSnapshotDAO().insertList(records);
@@ -175,7 +178,7 @@ public class TSearcherClusterInfoCollect implements // Daemon
                 for (Slice slice : c.getActiveSlices()) {
                     CoreStatisticsReport report = coreStatisticsReportMap.get(entry.getKey());
                     if (report == null) {
-                        report = new CoreStatisticsReport(entry.getKey(), cloudState.getZkClient());
+                        report = new CoreStatisticsReport(entry.getKey());
                         coreStatisticsReportMap.put(entry.getKey(), report);
                     }
                     report.addClusterCoreInfo(slice);
@@ -216,89 +219,89 @@ public class TSearcherClusterInfoCollect implements // Daemon
                 coreStatisticsReportHistory.putIfAbsent(this.getAppId(serviceName), report);
             }
             coreStatisticsReportHistory.setAllCoreCount(coreCount);
-            try {
-                if (!preSnapshotNull) {
-                    log.info("start vaildateUpdateCount");
-                    vaildateUpdateCount(collectionMap.keySet(), insertList);
-                } else {
-                    log.info("preSnapshotNull is true,so ignor this validate");
-                }
-            } catch (Throwable e) {
-                log.error(e.getMessage(), e);
-            }
+//            try {
+//                if (!preSnapshotNull) {
+//                    log.info("start vaildateUpdateCount");
+//                    vaildateUpdateCount(collectionMap.keySet(), insertList);
+//                } else {
+//                    log.info("preSnapshotNull is true,so ignor this validate");
+//                }
+//            } catch (Throwable e) {
+//                log.error(e.getMessage(), e);
+//            }
             return insertList;
         }
     }
 
-    /**
-     * 校验tis更新是否正常
-     *
-     * @param collectionNames
-     * @param insertList
-     */
-    protected void vaildateUpdateCount(Set<String> collectionNames, final List<ClusterSnapshot> insertList) {
-        if (!isInMonitorTimeRegion()) {
-            return;
-        }
-        List<String> invalidCollection = new ArrayList<>();
-        // 校驗增量是否正常
-        ConcurrentLinkedQueue<Integer> lastestUpdateCountQueue = null;
-        collection:
-        for (String collection : collectionNames) {
-            for (ClusterSnapshot state : insertList) {
-                if (!clusterContainApp(collection)) {
-                    String msg = "collection:" + collection + " is not exist tis metadata,have been delete?";
-                    SendSMSUtils.send(msg, SendSMSUtils.BAISUI_PHONE);
-                    log.warn(msg);
-                    continue;
-                }
-                if (this.getAppId(collection) == state.getAppId().longValue() && RecordExecType.UPDATE.getValue().equals(state.getDataType())) {
-                    lastestUpdateCountQueue = lastestUpdateCount.get(collection);
-                    if (lastestUpdateCountQueue == null) {
-                        lastestUpdateCountQueue = new ConcurrentLinkedQueue<Integer>();
-                        lastestUpdateCount.put(collection, lastestUpdateCountQueue);
-                    }
-                    lastestUpdateCountQueue.add(state.getIncrNumber());
-                    while (lastestUpdateCountQueue.size() > getMonitorTimerange(collection)) {
-                        lastestUpdateCountQueue.poll();
-                    }
-                    StringBuffer incrNumberDesc = new StringBuffer(collection);
-                    for (Integer incrNumber : lastestUpdateCountQueue) {
-                        incrNumberDesc.append(",").append(incrNumber);
-                    }
-                    log.info(incrNumberDesc.toString());
-                    Iterator<Integer> updateCountIterator = lastestUpdateCountQueue.iterator();
-                    int updateCount = 0;
-                    while (updateCountIterator.hasNext()) {
-                        if ((updateCount = updateCountIterator.next()) > 0) {
-                            log.info("collection:" + collection + ",updateCount:" + updateCount + " update statue is in regular status ");
-                            continue collection;
-                        }
-                    }
-                }
-            }
-            int pastTimeGap = 0;
-            if (lastestUpdateCount.get(collection) == null || (pastTimeGap = lastestUpdateCount.get(collection).size()) >= getMonitorTimerange(collection)) {
-                if (!isInIndexBackFlowState(collection)) {
-                    invalidCollection.add(collection);
-                    // if ("search4totalpay".equals(collection)) {
-                    // SendSMSUtils.send("collection search4totalpay incr pause!!!!", SendSMSUtils.HUOSHAO_PHONE);
-                    // }
-                    log.info(collection + ",timerage past:" + pastTimeGap + ",maybe some errors in update process");
-                }
-            } else {
-                log.info(collection + "timerage past:" + pastTimeGap + ",shall wait");
-            }
-        }
-        if (invalidCollection.size() > 0) {
-            StringBuffer cols = new StringBuffer();
-            for (String c : invalidCollection) {
-                cols.append(StringUtils.replaceOnce(c, "search4", "s4")).append(",");
-            }
-            SendSMSUtils.send("incr(" + invalidCollection.size() + ")" + cols + " pause!!!!!", SendSMSUtils.BAISUI_PHONE);
-            log.info("send sms alert msg");
-        }
-    }
+//    /**
+//     * 校验tis更新是否正常
+//     *
+//     * @param collectionNames
+//     * @param insertList
+//     */
+//    protected void vaildateUpdateCount(Set<String> collectionNames, final List<ClusterSnapshot> insertList) {
+//        if (!isInMonitorTimeRegion()) {
+//            return;
+//        }
+//        List<String> invalidCollection = new ArrayList<>();
+//        // 校驗增量是否正常
+//        ConcurrentLinkedQueue<Integer> lastestUpdateCountQueue = null;
+//        collection:
+//        for (String collection : collectionNames) {
+//            for (ClusterSnapshot state : insertList) {
+//                if (!clusterContainApp(collection)) {
+//                    String msg = "collection:" + collection + " is not exist tis metadata,have been delete?";
+//                    SendSMSUtils.send(msg, SendSMSUtils.BAISUI_PHONE);
+//                    log.warn(msg);
+//                    continue;
+//                }
+//                if (this.getAppId(collection) == state.getAppId().longValue() && RecordExecType.UPDATE.getValue().equals(state.getDataType())) {
+//                    lastestUpdateCountQueue = lastestUpdateCount.get(collection);
+//                    if (lastestUpdateCountQueue == null) {
+//                        lastestUpdateCountQueue = new ConcurrentLinkedQueue<Integer>();
+//                        lastestUpdateCount.put(collection, lastestUpdateCountQueue);
+//                    }
+//                    lastestUpdateCountQueue.add(state.getIncrNumber());
+//                    while (lastestUpdateCountQueue.size() > getMonitorTimerange(collection)) {
+//                        lastestUpdateCountQueue.poll();
+//                    }
+//                    StringBuffer incrNumberDesc = new StringBuffer(collection);
+//                    for (Integer incrNumber : lastestUpdateCountQueue) {
+//                        incrNumberDesc.append(",").append(incrNumber);
+//                    }
+//                    log.info(incrNumberDesc.toString());
+//                    Iterator<Integer> updateCountIterator = lastestUpdateCountQueue.iterator();
+//                    int updateCount = 0;
+//                    while (updateCountIterator.hasNext()) {
+//                        if ((updateCount = updateCountIterator.next()) > 0) {
+//                            log.info("collection:" + collection + ",updateCount:" + updateCount + " update statue is in regular status ");
+//                            continue collection;
+//                        }
+//                    }
+//                }
+//            }
+//            int pastTimeGap = 0;
+//            if (lastestUpdateCount.get(collection) == null || (pastTimeGap = lastestUpdateCount.get(collection).size()) >= getMonitorTimerange(collection)) {
+//                if (!isInIndexBackFlowState(collection)) {
+//                    invalidCollection.add(collection);
+//                    // if ("search4totalpay".equals(collection)) {
+//                    // SendSMSUtils.send("collection search4totalpay incr pause!!!!", SendSMSUtils.HUOSHAO_PHONE);
+//                    // }
+//                    log.info(collection + ",timerage past:" + pastTimeGap + ",maybe some errors in update process");
+//                }
+//            } else {
+//                log.info(collection + "timerage past:" + pastTimeGap + ",shall wait");
+//            }
+//        }
+//        if (invalidCollection.size() > 0) {
+//            StringBuffer cols = new StringBuffer();
+//            for (String c : invalidCollection) {
+//                cols.append(StringUtils.replaceOnce(c, "search4", "s4")).append(",");
+//            }
+//            SendSMSUtils.send("incr(" + invalidCollection.size() + ")" + cols + " pause!!!!!", SendSMSUtils.BAISUI_PHONE);
+//            log.info("send sms alert msg");
+//        }
+//    }
 
     /**
      * 根据zk节点判断不在回流狀態
@@ -545,6 +548,7 @@ public class TSearcherClusterInfoCollect implements // Daemon
     }
 
     /**
+     *
      */
     public // Map<String, List<App>>
     BuAppMap getBuAppMap() {

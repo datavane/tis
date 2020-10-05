@@ -7,7 +7,7 @@
 	<env-entry>
 		<env-entry-name>logback/context-name</env-entry-name>
 		<env-entry-type>java.lang.String</env-entry-type>
-		<env-entry-value>collector</env-entry-value>
+		<env-entry-value>collect</env-entry-value>
 	</env-entry>
 
 	<context-param>

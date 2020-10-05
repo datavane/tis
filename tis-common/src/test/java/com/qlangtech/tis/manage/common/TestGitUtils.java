@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,6 +23,7 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -42,12 +43,12 @@ public class TestGitUtils extends TestCase {
         try {
             FileUtils.forceDelete(new File(tmpDir));
         } catch (IOException e) {
-        // throw new RuntimeException(e);
+            // throw new RuntimeException(e);
         }
         try {
             FileUtils.forceMkdir(new File(tmpDir));
         } catch (IOException e) {
-        // throw new RuntimeException(e);
+            // throw new RuntimeException(e);
         }
     }
 
@@ -65,7 +66,8 @@ public class TestGitUtils extends TestCase {
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker() {
 
             @Override
-            protected MockHttpURLConnection createConnection(int appendOrder, List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method, byte[] content, HttpUtils.ClasspathRes cpRes) {
+            protected MockHttpURLConnection createConnection(List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method
+                    , byte[] content, HttpUtils.IClasspathRes cpRes) {
                 httpApplyCount.incrementAndGet();
                 Map<String, List<String>> headerFields = new HashMap<String, List<String>>() {
 
@@ -120,7 +122,7 @@ public class TestGitUtils extends TestCase {
         TISTable table = GIT_UTILS.getTableConfig("order", "instancedetail");
         Assert.assertNotNull(table);
         Assert.assertNotNull(table.getSelectSql());
-    // System.out.println(table.getSelectSql());
+        // System.out.println(table.getSelectSql());
     }
 
     public void testDataSourceConfig() throws Exception {
@@ -165,64 +167,64 @@ public class TestGitUtils extends TestCase {
         TISTable newTab = GIT_UTILS.getTableConfig(dbName, logicName);
         Assert.assertNotNull(newTab);
         Assert.assertEquals("select a,b,c FROM USER", newTab.getSelectSql());
-    // GitDatasourceTablePojo table = GIT_UTILS.getTableConfig("order",
-    // "instancedetail");
-    // 
-    // Assert.assertNotNull(table);
-    // Assert.assertNotNull(table.getSelectSql());
-    // System.out.println(table.getSelectSql());
+        // GitDatasourceTablePojo table = GIT_UTILS.getTableConfig("order",
+        // "instancedetail");
+        //
+        // Assert.assertNotNull(table);
+        // Assert.assertNotNull(table.getSelectSql());
+        // System.out.println(table.getSelectSql());
     }
 
     // public void testGetTotalpay_instanceJoiner() throws Exception {
     // GIT_UTILS.getWorkflow(wfName, branch);
     // }
     public void testDelete() throws Exception {
-    // GitUtils.$().deleteWorkflow("test");
+        // GitUtils.$().deleteWorkflow("test");
     }
 
     public void testGetFile() throws Exception {
-    // System.out.println(GIT_UTILS.isFileExisted(GitUtils.DATASOURCE_PROJECT_ID,
-    // "dmall/db_config"));
+        // System.out.println(GIT_UTILS.isFileExisted(GitUtils.DATASOURCE_PROJECT_ID,
+        // "dmall/db_config"));
     }
 
     public void testCreateFile() throws Exception {
-    // GIT_UTILS.createDatasourceFileOnline("dmall/db_config", "hello", "add
-    // dmall");
+        // GIT_UTILS.createDatasourceFileOnline("dmall/db_config", "hello", "add
+        // dmall");
     }
 
     public void testDeleteDb() throws Exception {
-    // GIT_UTILS.deleteDb("dmall6");
+        // GIT_UTILS.deleteDb("dmall6");
     }
 
     public void testCreateBranch() throws Exception {
-    // GIT_UTILS.createWorkflowBarnch("hello1");
+        // GIT_UTILS.createWorkflowBarnch("hello1");
     }
 
     public void testDeleteBranch() throws Exception {
-    // GIT_UTILS.deleteWorkflowBranch("test1");
+        // GIT_UTILS.deleteWorkflowBranch("test1");
     }
 
     public void testCreateMergeRequest() throws Exception {
-    // GIT_UTILS.createMergeRequest(
-    // GitUtils.WORKFLOW_GIT_PROJECT_ID, "test1", "master", "merge test1");
+        // GIT_UTILS.createMergeRequest(
+        // GitUtils.WORKFLOW_GIT_PROJECT_ID, "test1", "master", "merge test1");
     }
 
     public void testAcceptMergeRequest() throws Exception {
-    // GIT_UTILS.acceptMergeRequest(GitUtils.WORKFLOW_GIT_PROJECT_ID, 19808, "merge
-    // from test1");
+        // GIT_UTILS.acceptMergeRequest(GitUtils.WORKFLOW_GIT_PROJECT_ID, 19808, "merge
+        // from test1");
     }
 
     public void testMergeWorkflowChange() throws Exception {
-    // GIT_UTILS.mergeWorkflowChange("test2");
+        // GIT_UTILS.mergeWorkflowChange("test2");
     }
 
     public void testCloseMergeRequest() throws Exception {
-    // GIT_UTILS.closeMergeRequest(GitUtils.WORKFLOW_GIT_PROJECT_ID, 20238);
+        // GIT_UTILS.closeMergeRequest(GitUtils.WORKFLOW_GIT_PROJECT_ID, 20238);
     }
 
     public void testRawFileJson() throws Exception {
-    // System.out.println(GIT_UTILS.getRawFileJSON(GitUtils.WORKFLOW_GIT_PROJECT_ID,
-    // "00d6f466b8d3525b7ca0b9b8a5ff0516fa8802c3", "test1"));
+        // System.out.println(GIT_UTILS.getRawFileJSON(GitUtils.WORKFLOW_GIT_PROJECT_ID,
+        // "00d6f466b8d3525b7ca0b9b8a5ff0516fa8802c3", "test1"));
     }
     // public void testGetLatestSha() throws Exception {
     // System.out.println(GIT_UTILS.getLatestSha(GitUtils.WORKFLOW_GIT_PROJECT_ID));
