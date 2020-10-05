@@ -4,7 +4,7 @@
 
 定时任务:
  启动类： com.qlangtech.tis.trigger.TisTriggerJobManage
- 配置文件：com/taobao/terminator/trigger/trigger.context.xml
+ 配置文件：com/qlangtech/tis/trigger/trigger.context.xml
 
  配置发布:
  发送配置：Savefilecontentaction 方法：doSyncDailyConfig

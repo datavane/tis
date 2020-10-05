@@ -5,7 +5,6 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import junit.framework.TestCase;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
-import org.apache.solr.common.cloud.SolrZkClient;
 import org.easymock.EasyMock;
 
 import java.util.Collection;
@@ -41,11 +40,11 @@ public class TestCoreStatisticsReport extends TestCase {
         EasyMock.expect(replica.getNodeName()).andReturn("http://192.168.28.200:8080/solr").times(2);
         Collection<Replica> replicas = Collections.singleton(replica);
         EasyMock.expect(slice.getReplicas()).andReturn(replicas).times(2);
-        SolrZkClient zookeeper = EasyMock.createMock("solrZkClient", SolrZkClient.class);
+        //SolrZkClient zookeeper = EasyMock.createMock("solrZkClient", SolrZkClient.class);
 
 
-        EasyMock.replay(slice, zookeeper, replica);
-        CoreStatisticsReport statisticsReportTime1 = new CoreStatisticsReport(Config.S4TOTALPAY, zookeeper);
+        EasyMock.replay(slice, replica);
+        CoreStatisticsReport statisticsReportTime1 = new CoreStatisticsReport(Config.S4TOTALPAY);
 
         assertTrue(statisticsReportTime1.addClusterCoreInfo(slice));
 
@@ -55,7 +54,7 @@ public class TestCoreStatisticsReport extends TestCase {
         assertEquals(9999, statisticsReportTime1.updateErrorCount.getCount());
         assertEquals(22222, statisticsReportTime1.requestErrorCount.getCount());
 
-        CoreStatisticsReport statisticsReportTime2 = new CoreStatisticsReport(Config.S4TOTALPAY, zookeeper);
+        CoreStatisticsReport statisticsReportTime2 = new CoreStatisticsReport(Config.S4TOTALPAY);
 
         statisticsReportTime2.addClusterCoreInfo(slice);
         assertEquals(2, httpGetCount.get());
@@ -63,7 +62,7 @@ public class TestCoreStatisticsReport extends TestCase {
 
         assertEquals(10, requestIncreasement);
 
-        EasyMock.verify(slice, zookeeper, replica);
+        EasyMock.verify(slice, replica);
     }
 
 }

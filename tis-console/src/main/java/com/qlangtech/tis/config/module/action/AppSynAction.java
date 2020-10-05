@@ -179,8 +179,8 @@ public class AppSynAction extends BasicModule {
     void insertDepartment(// User
     String departmentName, // User
     final IDepartmentDAO dptDAO, // User
-    int iterateCount, // user
-    Integer aliGroupDptId) {
+    int iterateCount // user
+    ) {
         String[] dptary = StringUtils.split(departmentName, "-");
         Department department = null;
         Integer parentDptId = null;
@@ -194,9 +194,7 @@ public class AppSynAction extends BasicModule {
                 department.setParentId((parentDptId == null) ? -1 : parentDptId);
                 department.setFullName(parentPath.toString());
                 department.setName(dptary[i]);
-                if ((i + 1) == dptary.length) {
-                    department.setAlibabaDptId(aliGroupDptId);
-                }
+
                 department.setGmtCreate(new Date());
                 department.setGmtModified(new Date());
                 department.setLeaf((i + 1) == dptary.length);
@@ -207,7 +205,7 @@ public class AppSynAction extends BasicModule {
                 parentDptId = getParentId(dptDAO, parentPath.toString());
                 if ((i + 1) == dptary.length) {
                     department = new Department();
-                    department.setAlibabaDptId(aliGroupDptId);
+
                     DepartmentCriteria q = new DepartmentCriteria();
                     q.createCriteria().andDptIdEqualTo(parentDptId);
                     dptDAO.updateByExampleSelective(department, q);

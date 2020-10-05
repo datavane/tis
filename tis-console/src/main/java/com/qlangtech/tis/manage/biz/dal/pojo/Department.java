@@ -33,7 +33,6 @@ public class Department implements Serializable {
 
   private Date gmtModified;
 
-  private Integer indexsetSnapshot;
 
   private Integer templateFlag;
 
@@ -104,14 +103,6 @@ public class Department implements Serializable {
     return fullName;
   }
 
-  public Integer getIndexsetSnapshot() {
-    return indexsetSnapshot;
-  }
-
-  public void setIndexsetSnapshot(Integer indexsetSnapshot) {
-    this.indexsetSnapshot = indexsetSnapshot;
-  }
-
   /**
    * set:full_name
    */
@@ -132,5 +123,5 @@ public class Department implements Serializable {
   public void setLeaf(Boolean leaf) {
     this.leaf = leaf;
   }
-  
+
 }

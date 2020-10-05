@@ -62,7 +62,7 @@
 
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tsearcher-dumpcenter</artifactId>
+            <artifactId>tis-ds-dump</artifactId>
             <version>${project.version}</version>
         </dependency>
 

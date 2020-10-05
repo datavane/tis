@@ -47,17 +47,31 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
         String resName = "collection_TopicTags_status_%d.json";
         AtomicInteger resFetchCount = new AtomicInteger();
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker() {
+          @Override
+          protected MockHttpURLConnection createConnection(List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method
+            , byte[] content, HttpUtils.IClasspathRes cpRes) {
+            String res = String.format(resName, resFetchCount.incrementAndGet());
+            try {
+            //  return new MockHttpURLConnection(cpRes.getResourceAsStream(res));
 
-            @Override
-            protected MockHttpURLConnection createConnection(int appendOrder, List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method, byte[] content, HttpUtils.ClasspathRes cpRes) {
-                // return super.createConnection(appendOrder, heads, method, content, cpRes);
-                String res = String.format(resName, resFetchCount.incrementAndGet());
-                try {
-                    return new MockHttpURLConnection(cpRes.getResourceAsStream(res));
-                } catch (Throwable e) {
-                    throw new RuntimeException(res, e);
-                }
+              return new MockHttpURLConnection(TestIncrTagHeatBeatMonitor.class.getResourceAsStream(res));
+
+            } catch (Throwable e) {
+              throw new RuntimeException(res, e);
             }
+          }
+
+//          @Override
+//            protected MockHttpURLConnection createConnection( List<ConfigFileContext.Header> heads
+//              , ConfigFileContext.HTTPMethod method, byte[] content, HttpUtils.ClasspathRes cpRes) {
+//                // return super.createConnection(appendOrder, heads, method, content, cpRes);
+//                String res = String.format(resName, resFetchCount.incrementAndGet());
+//                try {
+//                    return new MockHttpURLConnection(cpRes.getResourceAsStream(res));
+//                } catch (Throwable e) {
+//                    throw new RuntimeException(res, e);
+//                }
+//            }
         };
         HttpUtils.addMockApply(0, "incr-control", StringUtils.EMPTY, TestIncrTagHeatBeatMonitor.class);
         // 增量节点处理
@@ -67,12 +81,14 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
         binlogTopicTagStatus = new HashMap<>();
         Collection<TopicTagIncrStatus.FocusTags> focusTags = Lists.newArrayList();
         // String topic, Collection<String> tags
-        ArrayList<String> tags = Lists.newArrayList(tag_servicebillinfo, tag_talpayinfo, "orderdetail", "specialfee", "ent_expense", "payinfo", "order_bill", "instancedetail", "ent_expense_order");
+        ArrayList<String> tags = Lists.newArrayList(tag_servicebillinfo, tag_talpayinfo
+          , "orderdetail", "specialfee", "ent_expense", "payinfo", "order_bill", "instancedetail", "ent_expense_order");
         focusTags.add(new TopicTagIncrStatus.FocusTags("test-topic", tags));
         TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
         MockWebSocketMessagePush wsMessagePush = new MockWebSocketMessagePush();
         MockMQConsumerStatus mqConsumerStatus = new MockMQConsumerStatus();
-        IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName, wsMessagePush, transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, mqConsumerStatus);
+        IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(
+          this.collectionName, wsMessagePush, transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, mqConsumerStatus);
         incrTagHeatBeatMonitor.build();
         assertEquals(6, wsMessagePush.count);
     }
@@ -116,10 +132,10 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
         // public long getTotalDiff() {
         // return this.totalDiff += 1000;
         // }
-        // 
+        //
         // @Override
         // public void close() {
-        // 
+        //
         // }
     }
 }
