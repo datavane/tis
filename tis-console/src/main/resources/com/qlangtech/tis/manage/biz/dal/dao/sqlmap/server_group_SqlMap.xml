@@ -21,7 +21,7 @@
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		<iterate property="oredCriteria" conjunction="or" prepend="where"
 			removeFirstPrepend="iterate">
@@ -57,7 +57,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		select aa.gid, app_id, runt_environment, group_index,
 		publish_snapshot_id, create_time,
@@ -76,7 +76,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		select gid, app_id, runt_environment, group_index,
 		publish_snapshot_id, create_time,
@@ -100,7 +100,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		delete from server_group
 		where gid = #gid:INTEGER#
@@ -109,7 +109,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		delete from server_group
 		<include refid="server_group.ibatorgenerated_Example_Where_Clause" />
@@ -118,7 +118,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		insert into server_group (gid, app_id, runt_environment, group_index,
 		publish_snapshot_id,
@@ -136,7 +136,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		insert into server_group
 		<dynamic prepend="(">
@@ -209,7 +209,7 @@
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		select count(*) from server_group
 		<include refid="server_group.ibatorgenerated_Example_Where_Clause" />
@@ -217,7 +217,7 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		update server_group
 		<dynamic prepend="set">
@@ -253,7 +253,7 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		update server_group
 		set gid = #record.gid:INTEGER#,

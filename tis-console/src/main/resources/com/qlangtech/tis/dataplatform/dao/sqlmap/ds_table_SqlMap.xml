@@ -3,7 +3,7 @@
 <sqlMap namespace="ds_table" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.dataplatform.pojo.DsTable" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <result column="tab_id" property="tabId" jdbcType="BIGINT" />
     <result column="ds_id" property="dsId" jdbcType="BIGINT" />
@@ -15,13 +15,13 @@
   </resultMap>
   <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.qlangtech.tis.dataplatform.pojo.DsTable" extends="ds_table.ibatorgenerated_BaseResultMap" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <result column="sql_content" property="sqlContent" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -50,7 +50,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExampleWithBLOBs" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.dataplatform.pojo.DsTableCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select tab_id, ds_id, ds_name, tab_name, tab_alias, modify_time, create_time, sql_content
     from ds_table
@@ -63,7 +63,7 @@
   </select>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.dataplatform.pojo.DsTableCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select aa.tab_id, ds_id, ds_name, tab_name, tab_alias, modify_time, create_time
      from ( select tab_id from ds_table
@@ -78,7 +78,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.dataplatform.pojo.DsTable" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select tab_id, ds_id, ds_name, tab_name, tab_alias, modify_time, create_time, sql_content
     from ds_table
@@ -95,7 +95,7 @@
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.dataplatform.pojo.DsTable" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into ds_table (tab_id, ds_id, ds_name, tab_name, tab_alias, modify_time, create_time,
       sql_content)
@@ -107,7 +107,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.dataplatform.pojo.DsTable" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into ds_table
     <dynamic prepend="(" >
@@ -171,14 +171,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.dataplatform.pojo.DsTableCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select count(*) from ds_table
     <include refid="ds_table.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update ds_table
     <dynamic prepend="set" >
@@ -213,7 +213,7 @@
   </update>
   <update id="ibatorgenerated_updateByExampleWithBLOBs" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update ds_table
     set tab_id = #record.tabId:BIGINT#,
@@ -230,7 +230,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update ds_table
     set tab_id = #record.tabId:BIGINT#,

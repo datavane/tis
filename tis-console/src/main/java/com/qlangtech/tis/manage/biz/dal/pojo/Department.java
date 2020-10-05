@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,125 +22,115 @@ import java.util.Date;
  * @date 2020/04/13
  */
 public class Department implements Serializable {
+  private static final long serialVersionUID = 1L;
+  private Integer dptId;
 
-    private Integer dptId;
+  private Integer parentId;
 
-    private Integer parentId;
+  private String name;
 
-    private String name;
+  private Date gmtCreate;
 
-    private Date gmtCreate;
+  private Date gmtModified;
 
-    private Date gmtModified;
+  private Integer indexsetSnapshot;
 
-    private Integer indexsetSnapshot;
+  private Integer templateFlag;
 
-    private Integer templateFlag;
+  // Indexset 应用模板特性，是否有实时特性，是否有普通模式特性
+  public Integer getTemplateFlag() {
+    return templateFlag;
+  }
 
-    // Indexset 应用模板特性，是否有实时特性，是否有普通模式特性
-    public Integer getTemplateFlag() {
-        return templateFlag;
-    }
+  public void setTemplateFlag(Integer templateFlag) {
+    this.templateFlag = templateFlag;
+  }
 
-    public void setTemplateFlag(Integer templateFlag) {
-        this.templateFlag = templateFlag;
-    }
+  /**
+   * prop:full_name
+   */
+  private String fullName;
 
-    /**
-     * prop:full_name
-     */
-    private String fullName;
+  /**
+   * prop:leaf
+   */
+  private Boolean leaf;
 
-    /**
-     * prop:leaf
-     */
-    private Boolean leaf;
 
-    private Integer alibabaDptId;
+  public Integer getDptId() {
+    return dptId;
+  }
 
-    private static final long serialVersionUID = 1L;
+  public void setDptId(Integer dptId) {
+    this.dptId = dptId;
+  }
 
-    public Integer getDptId() {
-        return dptId;
-    }
+  public Integer getParentId() {
+    return parentId;
+  }
 
-    public void setDptId(Integer dptId) {
-        this.dptId = dptId;
-    }
+  public void setParentId(Integer parentId) {
+    this.parentId = parentId;
+  }
 
-    public Integer getParentId() {
-        return parentId;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setParentId(Integer parentId) {
-        this.parentId = parentId;
-    }
+  public void setName(String name) {
+    this.name = name == null ? null : name.trim();
+  }
 
-    public String getName() {
-        return name;
-    }
+  public Date getGmtCreate() {
+    return gmtCreate;
+  }
 
-    public void setName(String name) {
-        this.name = name == null ? null : name.trim();
-    }
+  public void setGmtCreate(Date gmtCreate) {
+    this.gmtCreate = gmtCreate;
+  }
 
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
+  public Date getGmtModified() {
+    return gmtModified;
+  }
 
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
+  public void setGmtModified(Date gmtModified) {
+    this.gmtModified = gmtModified;
+  }
 
-    public Date getGmtModified() {
-        return gmtModified;
-    }
+  /**
+   * get:full_name
+   */
+  public String getFullName() {
+    return fullName;
+  }
 
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
-    }
+  public Integer getIndexsetSnapshot() {
+    return indexsetSnapshot;
+  }
 
-    /**
-     * get:full_name
-     */
-    public String getFullName() {
-        return fullName;
-    }
+  public void setIndexsetSnapshot(Integer indexsetSnapshot) {
+    this.indexsetSnapshot = indexsetSnapshot;
+  }
 
-    public Integer getIndexsetSnapshot() {
-        return indexsetSnapshot;
-    }
+  /**
+   * set:full_name
+   */
+  public void setFullName(String fullName) {
+    this.fullName = fullName == null ? null : fullName.trim();
+  }
 
-    public void setIndexsetSnapshot(Integer indexsetSnapshot) {
-        this.indexsetSnapshot = indexsetSnapshot;
-    }
+  /**
+   * get:leaf
+   */
+  public Boolean getLeaf() {
+    return leaf;
+  }
 
-    /**
-     * set:full_name
-     */
-    public void setFullName(String fullName) {
-        this.fullName = fullName == null ? null : fullName.trim();
-    }
-
-    /**
-     * get:leaf
-     */
-    public Boolean getLeaf() {
-        return leaf;
-    }
-
-    /**
-     * set:leaf
-     */
-    public void setLeaf(Boolean leaf) {
-        this.leaf = leaf;
-    }
-
-    public Integer getAlibabaDptId() {
-        return alibabaDptId;
-    }
-
-    public void setAlibabaDptId(Integer alibabaDptId) {
-        this.alibabaDptId = alibabaDptId;
-    }
+  /**
+   * set:leaf
+   */
+  public void setLeaf(Boolean leaf) {
+    this.leaf = leaf;
+  }
+  
 }

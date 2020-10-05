@@ -3,7 +3,7 @@
 <sqlMap namespace="schema_config_resource_field" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceField" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <result column="sch_res_id" property="schResId" jdbcType="BIGINT" />
     <result column="field_name" property="fieldName" jdbcType="VARCHAR" />
@@ -22,7 +22,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -68,7 +68,7 @@
 
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceFieldCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select aa.sch_res_id, field_name, app_id, field_type_name, field_type_content, field_type_id,
       custom_modify, stored, indexed, required, multivalue, update_time, create_time, shm_id
@@ -84,7 +84,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceField" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select sch_res_id, field_name, app_id, field_type_name, field_type_content, field_type_id,
       custom_modify, stored, indexed, required, multivalue, update_time, create_time, shm_id
@@ -93,21 +93,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceField" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     delete from schema_config_resource_field
     where sch_res_id = #schResId:BIGINT#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceFieldCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     delete from schema_config_resource_field
     <include refid="schema_config_resource_field.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceField" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into schema_config_resource_field (sch_res_id, field_name, app_id, field_type_name,
       field_type_content, field_type_id, custom_modify, stored, indexed, required, multivalue,
@@ -122,7 +122,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceField" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into schema_config_resource_field
     <dynamic prepend="(" >
@@ -226,14 +226,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SchemaConfigResourceFieldCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select count(*) from schema_config_resource_field
     <include refid="schema_config_resource_field.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update schema_config_resource_field
     <dynamic prepend="set" >
@@ -286,7 +286,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update schema_config_resource_field
     set sch_res_id = #record.schResId:BIGINT#,

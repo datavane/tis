@@ -3,7 +3,7 @@
 <sqlMap namespace="zookeeper_server" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.ZookeeperServer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <result column="zid" property="zid" jdbcType="INTEGER" />
     <result column="env_id" property="envId" jdbcType="INTEGER" />
@@ -15,7 +15,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -44,7 +44,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ZookeeperServerCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select aa.zid, env_id, server_name, ip_address, create_time, updata_time, field_name
      from ( select zid from zookeeper_server
@@ -59,7 +59,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ZookeeperServer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select zid, env_id, server_name, ip_address, create_time, updata_time, field_name
     from zookeeper_server
@@ -67,21 +67,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ZookeeperServer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     delete from zookeeper_server
     where zid = #zid:INTEGER#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ZookeeperServerCriteria" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     delete from zookeeper_server
     <include refid="zookeeper_server.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ZookeeperServer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into zookeeper_server (zid, env_id, server_name, ip_address, create_time, updata_time,
       field_name)
@@ -90,7 +90,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ZookeeperServer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into zookeeper_server
     <dynamic prepend="(" >
@@ -145,14 +145,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ZookeeperServerCriteria" resultClass="java.lang.Integer" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select count(*) from zookeeper_server
     <include refid="zookeeper_server.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update zookeeper_server
     <dynamic prepend="set" >
@@ -184,7 +184,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample" >
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update zookeeper_server
     set zid = #record.zid:INTEGER#,

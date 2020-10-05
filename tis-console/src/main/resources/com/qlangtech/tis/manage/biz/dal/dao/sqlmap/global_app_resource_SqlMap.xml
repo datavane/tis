@@ -3,7 +3,7 @@
 <sqlMap namespace="global_app_resource">
   <resultMap class="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResource" id="ibatorgenerated_BaseResultMap">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <result column="app_res_id" jdbcType="BIGINT" property="appResId" />
     <result column="app_id" jdbcType="INTEGER" property="appId" />
@@ -15,7 +15,7 @@
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     <iterate conjunction="or" prepend="where" property="oredCriteria" removeFirstPrepend="iterate">
       <isEqual compareValue="true" property="oredCriteria[].valid">
@@ -44,7 +44,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResourceCriteria" resultMap="ibatorgenerated_BaseResultMap">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select aa.app_res_id, app_id, aa.ur_id, gmt_create, gmt_modified, is_deleted,SUBSTRING(rr.memo,1,30) as memo
      from ( select app_res_id from global_app_resource
@@ -59,7 +59,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResource" resultMap="ibatorgenerated_BaseResultMap">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select app_res_id, app_id, rr.ur_id, gmt_create, gmt_modified, is_deleted,SUBSTRING(rr.memo,1,30) as memo
     from global_app_resource inner join upload_resource rr on (global_app_resource.ur_id = rr.ur_id)
@@ -67,21 +67,21 @@
   </select>
   <delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResource">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     delete from global_app_resource
     where app_res_id = #appResId:BIGINT#
   </delete>
   <delete id="ibatorgenerated_deleteByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResourceCriteria">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     delete from global_app_resource
     <include refid="global_app_resource.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResource">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into global_app_resource (app_res_id, app_id, ur_id, gmt_create, gmt_modified,
       is_deleted)
@@ -93,7 +93,7 @@
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResource">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into global_app_resource
     <dynamic prepend="(">
@@ -145,14 +145,14 @@
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResourceCriteria" resultClass="java.lang.Integer">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select count(*) from global_app_resource
     <include refid="global_app_resource.ibatorgenerated_Example_Where_Clause" />
   </select>
   <update id="ibatorgenerated_updateByExampleSelective">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update global_app_resource
     <dynamic prepend="set">
@@ -181,7 +181,7 @@
   </update>
   <update id="ibatorgenerated_updateByExample">
     <!--
-      WARNING - if you hava any question please contact to baisui(baisui@taobao.com)
+      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     update global_app_resource
     set app_res_id = #record.appResId:BIGINT#,

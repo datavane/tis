@@ -5,7 +5,7 @@
 		class="com.qlangtech.tis.manage.biz.dal.pojo.Department">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		<result column="dpt_id" property="dptId" jdbcType="INTEGER" />
 		<result column="parent_id" property="parentId" jdbcType="INTEGER" />
@@ -16,9 +16,6 @@
 		<result column="leaf" property="leaf"
 			typeHandler="com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback" />
 
-		<result column="alibaba_dpt_id" property="alibabaDptId"
-			jdbcType="INTEGER" />
-
 		<result column="indexset_snapshot" property="indexsetSnapshot"
 			jdbcType="INTEGER" />
 
@@ -26,7 +23,7 @@
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		<iterate property="oredCriteria" conjunction="or" prepend="where"
 			removeFirstPrepend="iterate">
@@ -61,12 +58,8 @@
 	</sql>
 	<select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria">
-		<!--
-			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
-		-->
 		select aa.dpt_id, parent_id, name, gmt_create, gmt_modified,
-		full_name, leaf, alibaba_dpt_id,indexset_snapshot
+		full_name, leaf,indexset_snapshot
 		from ( select dpt_id from department
 		<isParameterPresent>
 			<include refid="department.ibatorgenerated_Example_Where_Clause" />
@@ -83,7 +76,7 @@
 		parameterClass="String">
 
 SELECT d.dpt_id, d.parent_id, d.name, d.gmt_create, d.gmt_modified, d.full_name,
-		d.leaf, d.alibaba_dpt_id ,indexset_snapshot
+		d.leaf ,indexset_snapshot
   FROM  department d inner join  usr_dpt_extra_relation u on(d.dpt_id = u.dpt_id)
 where u.usr_id = #value#
 
@@ -93,10 +86,10 @@ where u.usr_id = #value#
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Department">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		select dpt_id, parent_id, name, gmt_create, gmt_modified, full_name,
-		leaf, alibaba_dpt_id,indexset_snapshot
+		leaf,indexset_snapshot
 		from department
 		where dpt_id = #dptId:INTEGER#
 	</select>
@@ -104,7 +97,7 @@ where u.usr_id = #value#
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Department">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		delete from department
 		where dpt_id = #dptId:INTEGER#
@@ -113,7 +106,7 @@ where u.usr_id = #value#
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		delete from department
 		<include refid="department.ibatorgenerated_Example_Where_Clause" />
@@ -126,11 +119,10 @@ where u.usr_id = #value#
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Department">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		insert into department (dpt_id, parent_id, name, gmt_create,
-		gmt_modified, full_name, leaf,
-		alibaba_dpt_id)
+		gmt_modified, full_name, leaf)
 		values (#dptId:INTEGER#, #parentId:INTEGER#, #name:VARCHAR#,
 		#gmtCreate:TIMESTAMP#,
 		#gmtModified:TIMESTAMP#, #fullName:VARCHAR#, #leaf,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#, #alibabaDptId:INTEGER#)
@@ -142,7 +134,7 @@ where u.usr_id = #value#
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Department">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		insert into department
 		<dynamic prepend="(">
@@ -167,9 +159,7 @@ where u.usr_id = #value#
 			<isNotNull prepend="," property="leaf">
 				leaf
       </isNotNull>
-			<isNotNull prepend="," property="alibabaDptId">
-				alibaba_dpt_id
-      </isNotNull>
+
 			)
 		</dynamic>
 		values
@@ -195,9 +185,6 @@ where u.usr_id = #value#
 			<isNotNull prepend="," property="leaf">
 				#leaf,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#
       </isNotNull>
-			<isNotNull prepend="," property="alibabaDptId">
-				#alibabaDptId:INTEGER#
-      </isNotNull>
 			)
 		</dynamic>
 		<selectKey resultClass="INTEGER">
@@ -209,7 +196,7 @@ where u.usr_id = #value#
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		select count(*) from department
 		<include refid="department.ibatorgenerated_Example_Where_Clause" />
@@ -217,7 +204,7 @@ where u.usr_id = #value#
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		update department
 		<dynamic prepend="set">
@@ -242,9 +229,7 @@ where u.usr_id = #value#
 			<isNotNull prepend="," property="record.leaf">
 				leaf = #record.leaf,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#
       </isNotNull>
-			<isNotNull prepend="," property="record.alibabaDptId">
-				alibaba_dpt_id = #record.alibabaDptId:INTEGER#
-      </isNotNull>
+
 
       <isNotNull prepend="," property="record.indexsetSnapshot">
 				indexset_snapshot = #record.indexsetSnapshot:INTEGER#
@@ -259,7 +244,7 @@ where u.usr_id = #value#
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		update department
 		set dpt_id = #record.dptId:INTEGER#,
@@ -268,8 +253,7 @@ where u.usr_id = #value#
 		gmt_create = #record.gmtCreate:TIMESTAMP#,
 		gmt_modified = #record.gmtModified:TIMESTAMP#,
 		full_name = #record.fullName:VARCHAR#,
-		leaf = #record.leaf,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#,
-		alibaba_dpt_id = #record.alibabaDptId:INTEGER#
+		leaf = #record.leaf,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#
 		<isParameterPresent>
 			<include refid="department.ibatorgenerated_Example_Where_Clause" />
 		</isParameterPresent>

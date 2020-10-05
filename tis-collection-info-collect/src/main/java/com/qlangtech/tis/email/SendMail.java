@@ -39,13 +39,7 @@ public class SendMail {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        SendMail sender = new SendMail();
-        List<String> recipient = new ArrayList<String>();
-        // recipient.add("baisui@taobao.com");
-        // sender.send(recipient);
-        String content = null;
-        sender.send("hello this is test please ignor it", "hello", "qixi@2dfire.com");
-        // System.out.println(content);
+
     }
 
     // // 邮箱服务器

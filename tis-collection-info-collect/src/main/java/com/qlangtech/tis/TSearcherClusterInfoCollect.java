@@ -151,7 +151,7 @@ public class TSearcherClusterInfoCollect implements // Daemon
 //            }
 //        }
         if (records.size() > 0) {
-            log.info("will create " + snapshot.size() + " serarch apps info into cluster" + " records size : " + records.size());
+            log.info("will create " + snapshot.size() + " serarch apps info into cluster records size : " + records.size());
             this.getClusterSnapshotDAO().insertList(records);
         }
     }
@@ -184,7 +184,7 @@ public class TSearcherClusterInfoCollect implements // Daemon
                     report.addClusterCoreInfo(slice);
                 }
             }
-            final List<ClusterSnapshot> insertList = new ArrayList<ClusterSnapshot>();
+            final List<ClusterSnapshot> insertList = new ArrayList<>();
             int coreCount = 0;
             Map<Integer, ICoreStatistics> preCollectInfo = getPreCollectStatisticsReport();
             coreStatisticsReportHistory.clear();

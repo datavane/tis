@@ -29,7 +29,7 @@
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		<iterate conjunction="or" prepend="where" property="oredCriteria"
 			removeFirstPrepend="iterate">
@@ -67,7 +67,7 @@
 		resultMap="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		select aa.sid, gid, server_name, ip_address, role, create_time,
 		update_time, is_deleted, sp_id
@@ -85,7 +85,7 @@
 		resultMap="ibatorgenerated_BaseResultMap">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		select sid, gid, server_name, ip_address, role, create_time,
 		update_time, is_deleted, sp_id
@@ -134,7 +134,7 @@
 	<delete id="ibatorgenerated_deleteByPrimaryKey" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Server">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		delete from server
 		where sid = #sid:INTEGER#
@@ -143,7 +143,7 @@
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerCriteria">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		delete from server
 		<include refid="server.ibatorgenerated_Example_Where_Clause" />
@@ -151,7 +151,7 @@
 	<insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Server">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		insert into server (sid, gid, server_name, ip_address, role,
 		create_time, update_time,
@@ -169,7 +169,7 @@
 	<insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Server">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		insert into server
 		<dynamic prepend="(">
@@ -242,7 +242,7 @@
 		resultClass="java.lang.Integer">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		select count(*) from server
 		<include refid="server.ibatorgenerated_Example_Where_Clause" />
@@ -250,7 +250,7 @@
 	<update id="ibatorgenerated_updateByExampleSelective">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		update server
 		<dynamic prepend="set">
@@ -296,7 +296,7 @@
 	<update id="ibatorgenerated_updateByExample">
 		<!--
 			WARNING - if you hava any question please contact to
-			baisui(baisui@taobao.com)
+			baisui(baisui@qlangtech.com)
 		-->
 		update server
 		set sid = #record.sid:INTEGER#,
