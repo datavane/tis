@@ -50,7 +50,7 @@ public interface PermissionConstant {
     // 数据流控制，例如：触发等
     String DATAFLOW_MANAGE = "dataflow_manage";
 
-    // 
+    //
     // // 应用视图
     // public static final String PERMISSION_CORE_VIEW = "core_view";
     // // 应用管理
@@ -69,11 +69,11 @@ public interface PermissionConstant {
     // // 项目资源配置 core_config_resource_manage
     // public static final String PERMISSION_CORE_CONFIG_RESOURCE_MANAGE =
     // "core_config_resource_manage";
-    // 
+    //
     // // 快照snapshot一览
     // // public static final String PERMISSION_CORE_SNAPSHOT_LIST =
     // "snapshot_list";
-    // 
+    //
     // // ZK发布 core_publish
     // public static final String PERMISSION_CORE_PUBLISH = "core_publish";
     // // 服务器组管理 core_group_manage
@@ -148,17 +148,17 @@ public interface PermissionConstant {
     public static final String GLOBAL_DEPENDENCY_UPLOAD = "global_dependency_upload";
 
     // 全局参数一览
-    public static final String GLOBAL_PARAMETER_LIST = "global_parameter_list";
+  //  public static final String GLOBAL_PARAMETER_LIST = "global_parameter_list";
 
     // 全局参数添加
-    public static final String GLOBAL_PARAMETER_ADD = "global_parameter_add";
+   // public static final String GLOBAL_PARAMETER_ADD = "global_parameter_add";
 
     // 全局参数设置
-    public static final String GLOBAL_PARAMETER_SET = "global_parameter_set";
+   // public static final String GLOBAL_PARAMETER_SET = "global_parameter_set";
 
     // public static final String GLOBAL_SERVER_POOL_LIST = "global_server_pool_list";// 机器池中机器一览
     // 机器池中机器删除/添加（老版本）
-    public static final String GLOBAL_SERVER_POOL_SET = "global_server_pool_set";
+   // public static final String GLOBAL_SERVER_POOL_SET = "global_server_pool_set";
 
     // Schema类型一览
     public static final String GLOBAL_SCHEMA_TYPE_LIST = "global_schema_type_list";

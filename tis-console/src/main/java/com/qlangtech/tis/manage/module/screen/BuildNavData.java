@@ -71,7 +71,7 @@ public abstract class BuildNavData extends BasicModule {
     }
 
     // private String getAppsDefault() {
-    // 
+    //
     // String sns = "<item text=\"淘江湖SNS\" id=\"sns\">"
     // + "<item text=\"search4realwidget\" id=\"sns1\"/>"
     // + "<item text=\"search4friend\" id=\"sns2\"/>"
@@ -91,7 +91,7 @@ public abstract class BuildNavData extends BasicModule {
     // + "<item text=\"search4comment\" id=\"sns16\"/>"
     // + "<item text=\"search4cms\" id=\"sns17\"/>"
     // + "</item>";
-    // 
+    //
     // String ju = "<item text=\"聚划算\" id=\"ju\">"
     // + "<item text=\"search4snsjuDepositItem\" id=\"ju01\"/>"
     // + "<item text=\"search4snsjuSellerauth\" id=\"ju02\"/>"
@@ -100,7 +100,7 @@ public abstract class BuildNavData extends BasicModule {
     // + "<item text=\"search4snsjuke\" id=\"ju05\"/>"
     // + "<item text=\"search4snsjukeseller\" id=\"ju06\"/>"
     // + "</item>";
-    // 
+    //
     // String zixun = "<item text=\"资讯社区\" id=\"zixun\">"
     // + "<item text=\"search4matrixtry\" id=\"zixun01\"/>"
     // + "<item text=\"search4magicroom\" id=\"zixun02\"/>"
@@ -108,25 +108,25 @@ public abstract class BuildNavData extends BasicModule {
     // + "<item text=\"search4tstart\" id=\"zixun04\"/>"
     // + "<item text=\"search4cms\" id=\"zixun05\"/>"
     // + "</item>";
-    // 
+    //
     // String jishudaxue = "<item text=\"技术大学\" id=\"tec\">"
     // + "<item text=\"search4techcollege\" id=\"tec01\"></item>"
     // + "</item>";
-    // 
+    //
     // String xinyewu = "<item text=\"新业务\" id=\"job\">"
     // + "<item text=\"search4jobOnline\" id=\"job01\"/>"
     // + "<item text=\"search4resumeOnline\" id=\"job02\"/>"
     // + "</item>";
-    // 
+    //
     // String fuwupingtai = "<item text=\"服务平台\" id=\"top\">"
     // + "<item text=\"search4ark\" id=\"top01\"/>"
     // + "<item text=\"search4arkisv\" id=\"top02\"/>" + "</item>";
-    // 
+    //
     // String daogou = "<item text=\"导购\" id=\"tms\">"
     // + "<item text=\"search4tmspage\" id=\"tms01\"/>"
     // + "<item text=\"search4tmshistory\" id=\"tms02\"/>"
     // + "</item>";
-    // 
+    //
     // String shanghupingtai = "<item text=\"商户平台\" id=\"shanghu\">"
     // + "<item text=\"search4bbcproduct\" id=\"shanghu01\"/>"
     // + "<item text=\"search4bbcsupplier\" id=\"shanghu02\"/>"
@@ -141,14 +141,14 @@ public abstract class BuildNavData extends BasicModule {
     // FileInputStream in = new FileInputStream("lib/navview.xml");
     // try {
     // doc = builder.build(in);
-    // 
+    //
     // Format format = Format.getCompactFormat();
     // format.setEncoding("UTF-8");
-    // 
+    //
     // format.setIndent(" ");
-    // 
+    //
     // XMLOutputter xmlOutputter = new XMLOutputter(format);
-    // 
+    //
     // outPut = new String(xmlOutputter.outputString(doc)
     // .getBytes("UTF-8"), "UTF-8");
     // // System.out.println(outPut);
@@ -164,14 +164,14 @@ public abstract class BuildNavData extends BasicModule {
         return addGroups("部署信息查询", "deploy", items_base, false);
     // StringBuffer l = new StringBuffer(createBooksItemStart("deploy",
     // "部署信息查询"));
-    // 
+    //
     // // for (Item item : items_base) {
     // // addItemLink(l, item);
     // // }
     // for (int i = 0; i < items_base.length; i++) {
     // addItemLink(l, items_base[i], (i + 1) == items_base.length);
     // }
-    // 
+    //
     // return l.append(createBooksItemEnd()).toString();
     }
 
@@ -209,7 +209,7 @@ public abstract class BuildNavData extends BasicModule {
         return addGroups("配置发布", "configAdmin", items_config, false);
     // StringBuffer result = new StringBuffer(this.createBooksItemStart(
     // "configAdmin", "配置发布"));
-    // 
+    //
     // for (Item item : items_config) {
     // addItemLink(result, item);
     // }
@@ -220,7 +220,7 @@ public abstract class BuildNavData extends BasicModule {
         return addGroups("任务设置", "triggerconfig", trigger_config, false);
     // StringBuffer result = new StringBuffer(this.createBooksItemStart(
     // "triggerconfig", "任务设置"));
-    // 
+    //
     // for (Item item : trigger_config) {
     // addItemLink(result, item);
     // }
@@ -231,7 +231,7 @@ public abstract class BuildNavData extends BasicModule {
         return addGroups("基础配置", "basicconfig", basic_config, false);
     // StringBuffer result = new StringBuffer(this.createBooksItemStart(
     // "basicconfig", "基础配置"));
-    // 
+    //
     // for (Item item : basic_config) {
     // addItemLink(result, item);
     // }
@@ -242,7 +242,7 @@ public abstract class BuildNavData extends BasicModule {
         return addGroups("权限管理", "rolemanage", role_menu, true);
     // StringBuffer result = new StringBuffer(this.createBooksItemStart(
     // "rolemanage", ""));
-    // 
+    //
     // for (Item item : role_menu) {
     // // addItemLink(result, item);
     // }
@@ -292,8 +292,9 @@ public abstract class BuildNavData extends BasicModule {
     public static final Item[] basic_config = new Item[] { // "dpt_manage", "部门管理", "/runtime/dpt_manage.htm"),
     new Item(PermissionConstant.APP_DEPARTMENT_LIST, "departmentlist", "部门管理", "/runtime/bizdomainlist.htm"), // "dpt_manage", "部门管理", "/runtime/dpt_manage.htm"),
     new Item(PermissionConstant.APP_LIST, "newApp", "应用管理", "/runtime/applist.htm"), // "dpt_manage", "部门管理", "/runtime/dpt_manage.htm"),
-    new Item(PermissionConstant.GLOBAL_PARAMETER_SET, "global_resource", "全局参数配置", "/runtime/config_file_parameters.htm"), // "dpt_manage", "部门管理", "/runtime/dpt_manage.htm"),
-    new Item(PermissionConstant.UN_CHECK, "noble_app_list", "NobleApps", "/engineplugins/noble_app_list.htm"), new Item(PermissionConstant.GLOBAL_OPERATION_LOG_LIST, "operation_log", "操作日志", "/runtime/operation_log.htm") };
+   // new Item(PermissionConstant.GLOBAL_PARAMETER_SET, "global_resource", "全局参数配置", "/runtime/config_file_parameters.htm"), // "dpt_manage", "部门管理", "/runtime/dpt_manage.htm"),
+    new Item(PermissionConstant.UN_CHECK, "noble_app_list", "NobleApps", "/engineplugins/noble_app_list.htm"), //
+      new Item(PermissionConstant.GLOBAL_OPERATION_LOG_LIST, "operation_log", "操作日志", "/runtime/operation_log.htm") };
 
     public static final Item[] role_menu = new Item[] { new Item(PermissionConstant.AUTHORITY_ROLE_LIST, "role_manage", "角色管理", "/runtime/role_list.htm"), new Item(PermissionConstant.AUTHORITY_FUNC_LIST, "role_manage", "funclist", "/runtime/func_list.htm"), new Item(PermissionConstant.AUTHORITY_USER_LIST, "usr_manage", "用户一览", "/runtime/usrlist.htm") };
 

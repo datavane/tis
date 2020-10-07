@@ -409,9 +409,9 @@
     <resources>
       <resource>
         <directory>src/main/resources</directory>
-        <!--
-             <filtering>true</filtering>
-        -->
+        <!---->
+        <filtering>true</filtering>
+
       </resource>
     </resources>
 
@@ -420,14 +420,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <createTime>${timestamp}</createTime>
-              <buildVersion>${project.version}</buildVersion>
-            </manifestEntries>
-          </archive>
-        </configuration>
       </plugin>
 
       <plugin>

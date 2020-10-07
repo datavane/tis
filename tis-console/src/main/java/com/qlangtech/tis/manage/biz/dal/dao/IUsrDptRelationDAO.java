@@ -25,6 +25,8 @@ import com.qlangtech.tis.manage.common.TriggerCrontab;
  */
 public interface IUsrDptRelationDAO {
 
+  void addAdminUser();
+
     int countByExample(UsrDptRelationCriteria example);
 
     int countFromWriteDB(UsrDptRelationCriteria example);
