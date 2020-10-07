@@ -72,7 +72,7 @@ public class SysInitializeAction extends BasicModule {
 
     // final File sysInitializedToken = new File(Config.getDataDir(), "system_initialized_token");
     if (isSysInitialized()) {
-      throw new IllegalStateException("tis has initialized");
+       throw new IllegalStateException("tis has initialized");
     }
 
     UsrDptRelationCriteria c = new UsrDptRelationCriteria();
