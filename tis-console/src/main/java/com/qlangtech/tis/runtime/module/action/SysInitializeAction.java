@@ -43,6 +43,8 @@ public class SysInitializeAction extends BasicModule {
   private static final int DEPARTMENT_ROOT_ID = 1;
   public static final int TEMPLATE_APPLICATION_DEFAULT_ID = 1;
 
+  public static final String ADMIN_ID = "9999";
+
   public static final String APP_NAME_TEMPLATE = "search4template";
 
 
@@ -71,6 +73,14 @@ public class SysInitializeAction extends BasicModule {
     // final File sysInitializedToken = new File(Config.getDataDir(), "system_initialized_token");
     if (isSysInitialized()) {
       throw new IllegalStateException("tis has initialized");
+    }
+
+    UsrDptRelationCriteria c = new UsrDptRelationCriteria();
+    c.createCriteria().andUsrIdEqualTo(ADMIN_ID);
+    if (this.getUsrDptRelationDAO().countByExample(c) > 1) {
+      touchSysInitializedToken();
+      this.addActionMessage(context, "系统已经完成初始化，请继续使用");
+      return;
     }
 
     // 添加一个系统管理员
