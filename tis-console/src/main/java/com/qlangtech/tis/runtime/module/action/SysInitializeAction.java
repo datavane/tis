@@ -77,7 +77,7 @@ public class SysInitializeAction extends BasicModule {
 
     UsrDptRelationCriteria c = new UsrDptRelationCriteria();
     c.createCriteria().andUsrIdEqualTo(ADMIN_ID);
-    if (this.getUsrDptRelationDAO().countByExample(c) > 1) {
+    if (this.getUsrDptRelationDAO().countByExample(c) > 0) {
       touchSysInitializedToken();
       this.addActionMessage(context, "系统已经完成初始化，请继续使用");
       return;
