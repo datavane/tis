@@ -66,6 +66,7 @@
       limit #skip#,#pageSize#
     </isParameterPresent>
        ) bb inner join snapshot aa on aa.sn_id=bb.sn_id
+       ORDER BY bb.sn_id DESC
   </select>
 
 

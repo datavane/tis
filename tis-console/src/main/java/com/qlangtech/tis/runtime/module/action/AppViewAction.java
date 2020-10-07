@@ -39,7 +39,7 @@ public class AppViewAction extends BasicModule {
 
   private Pager pager;
 
-  @Func(value = PermissionConstant.PERMISSION_INDEX_QUERY)
+  @Func(value = PermissionConstant.PERMISSION_INDEX_QUERY, sideEffect = false)
   public void doQueryApp(Context context) throws Exception {
     final String appNameFuzzy = StringUtils.trimToEmpty(this.getString("query"));
     final IAppsFetcher fetcher = UserUtils.getAppsFetcher(this.getRequest(), this);
