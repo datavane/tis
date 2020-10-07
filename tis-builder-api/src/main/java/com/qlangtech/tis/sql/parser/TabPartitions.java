@@ -4,6 +4,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,6 +26,15 @@ public class TabPartitions {
 
     public final Optional<Map.Entry<IDumpTable, ITabPartition>> findTablePartition(String dbName, String tableName) {
         return findTablePartition(true, dbName, tableName);
+    }
+
+    public void putPt(IDumpTable table, ITabPartition pt) {
+        this.tabPartition.put(table, pt);
+    }
+
+    public Optional<ITabPartition> getMinTablePartition() {
+        Optional<ITabPartition> min = tabPartition.values().stream().min(Comparator.comparing((r) -> Long.parseLong(r.getPt())));
+        return min;
     }
 
 

@@ -17,6 +17,8 @@ package com.qlangtech.tis.exec;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.sql.parser.TabPartitions;
+
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -38,27 +40,22 @@ public class ExecChainContextUtils {
      * @param context
      * @return
      */
-    public static Map<IDumpTable, ITabPartition> getDependencyTablesPartitions(IJoinTaskContext context) {
-        Map<IDumpTable, ITabPartition> dateParams = context.getAttribute(PARTITION_DATA_PARAMS);
+    public static TabPartitions getDependencyTablesPartitions(IJoinTaskContext context) {
+        TabPartitions dateParams = context.getAttribute(PARTITION_DATA_PARAMS);
         if (dateParams == null) {
             throw new IllegalStateException("dateParams is not in context");
         }
         return dateParams;
     }
 
-    public static void setDependencyTablesPartitions(IJoinTaskContext context, Map<IDumpTable, ITabPartition> dateParams) {
+    public static void setDependencyTablesPartitions(IJoinTaskContext context, TabPartitions dateParams) {
         context.setAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS, dateParams);
     }
 
-    // /**
-    // * 取得底层依赖的表的最小Partition
-    // *
-    // * @param context
-    // * @return
-    // */
+
     public static ITabPartition getDependencyTablesMINPartition(IJoinTaskContext context) {
-        Map<IDumpTable, ITabPartition> dateParams = getDependencyTablesPartitions(context);
-        Optional<ITabPartition> min = dateParams.values().stream().min(Comparator.comparing((r) -> Long.parseLong(r.getPt())));
+        TabPartitions dateParams = getDependencyTablesPartitions(context);
+        Optional<ITabPartition> min = dateParams.getMinTablePartition();// dateParams.values().stream().min(Comparator.comparing((r) -> Long.parseLong(r.getPt())));
         if (!min.isPresent()) {
             return () -> context.getPartitionTimestamp();
         }

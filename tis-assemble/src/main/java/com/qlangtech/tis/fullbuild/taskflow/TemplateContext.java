@@ -19,6 +19,8 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.sql.parser.TabPartitions;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -62,7 +64,7 @@ public class TemplateContext implements ITemplateContext {
         this.params = paramContext;
     }
 
-    public Map<IDumpTable, ITabPartition> getTablePartition() {
+    public TabPartitions getTablePartition() {
         return ExecChainContextUtils.getDependencyTablesPartitions(params);
     }
 

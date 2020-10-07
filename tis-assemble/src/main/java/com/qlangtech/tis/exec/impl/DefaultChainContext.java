@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -30,9 +30,10 @@ import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.TabPartitions;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.ZkStateReader;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -161,6 +162,7 @@ public class DefaultChainContext implements IExecChainContext {
     // public void setIndexName(String indexName) {
     // this.indexName = indexName;
     // }
+
     /**
      * 每次执行全量会分配一个workflowid對應到 join規則文件
      */
@@ -186,7 +188,7 @@ public class DefaultChainContext implements IExecChainContext {
         super();
         ps = LocalDateTime.now().format(SingleTableDump.DATE_TIME_FORMATTER);
         this.httpExecContext = execContext;
-        ExecChainContextUtils.setDependencyTablesPartitions(this, Maps.newHashMap());
+        ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }
 
     public ZkStateReader getZkStateReader() {

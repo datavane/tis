@@ -31,6 +31,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.pubhook.common.FileUtils;
+import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.zk.AbstractWatcher;
@@ -215,8 +216,9 @@ public class SingleTableDump extends DataflowTask {
      * 添加当前任务的pt
      */
     private void recordPt() {
-        Map<IDumpTable, ITabPartition> dateParams = ExecChainContextUtils.getDependencyTablesPartitions(execChainContext);
-        dateParams.put(this.dumpTable, () -> pt);
+      //  Map<IDumpTable, ITabPartition> dateParams = ExecChainContextUtils.getDependencyTablesPartitions(execChainContext);
+        TabPartitions dateParams = ExecChainContextUtils.getDependencyTablesPartitions(execChainContext);
+        dateParams.putPt(this.dumpTable, () -> pt);
     }
 
     /**
