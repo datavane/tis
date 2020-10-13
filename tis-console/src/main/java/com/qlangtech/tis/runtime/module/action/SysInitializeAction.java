@@ -26,6 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.zookeeper.ZooKeeper;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -75,7 +76,8 @@ public class SysInitializeAction extends BasicModule {
     SysInitializeAction initAction = new SysInitializeAction();
     //ClassPathXmlApplicationContext tis.application.context.xml
     ApplicationContext appContext = new ClassPathXmlApplicationContext("classpath:/tis.application.context.xml");
-    appContext.getAutowireCapableBeanFactory().autowireBean(initAction);
+    appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
+      initAction, AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, true);
     initAction.doInit();
   }
 
