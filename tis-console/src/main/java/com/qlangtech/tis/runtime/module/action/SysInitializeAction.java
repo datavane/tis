@@ -24,7 +24,7 @@ import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.cloud.ZkStateReader;
+import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.zookeeper.ZooKeeper;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -163,7 +163,7 @@ public class SysInitializeAction extends BasicModule {
       zk = new ZooKeeper(zkServer, 50000, null);
       zk.getChildren("/", false);
 
-      ZkUtils.guaranteeExist(zk, zkSubDir + ZkStateReader.CLUSTER_STATE, "{}".getBytes());
+      // ZkUtils.guaranteeExist(zk, zkSubDir + ZkStateReader.CLUSTER_STATE, "{}".getBytes());
       ZkUtils.guaranteeExist(zk, zkSubDir + "/tis");
       ZkUtils.guaranteeExist(zk, zkSubDir + "/tis-lock/dumpindex");
       ZkUtils.guaranteeExist(zk, zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG);
@@ -179,6 +179,7 @@ public class SysInitializeAction extends BasicModule {
 
       }
     }
+
     return true;
   }
 

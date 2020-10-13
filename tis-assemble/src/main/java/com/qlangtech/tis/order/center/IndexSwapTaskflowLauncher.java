@@ -38,6 +38,7 @@ import com.qlangtech.tis.trigger.zk.AbstractWatcher;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
+import org.apache.solr.cloud.ZkController;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
@@ -135,6 +136,8 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         } catch (Exception e) {
             throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
         }
+        // 当初始集群初始化的时候assemble先与solr启动时不执行createClusterZkNodes会出错
+        ZkController.createClusterZkNodes(this.zkClient.getZK());
         ZkStateReader zkStateReader = new ZkStateReader(zkClient.getZK());
         zkStateReader.createClusterStateWatchersAndUpdate();
         this.setZkStateReader(zkStateReader);
