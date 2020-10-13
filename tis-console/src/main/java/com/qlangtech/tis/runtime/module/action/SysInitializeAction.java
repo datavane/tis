@@ -14,19 +14,27 @@
  */
 package com.qlangtech.tis.runtime.module.action;
 
-import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.UploadJarAction.ConfigContentGetter;
+import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.cloud.ZkStateReader;
+import org.apache.zookeeper.ZooKeeper;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 系统初始化
@@ -38,7 +46,6 @@ public class SysInitializeAction extends BasicModule {
 
   private static final long serialVersionUID = 1L;
 
-  // private IResourceParametersDAO resourceParametersDAO;
   private static final int DEPARTMENT_DEFAULT_ID = 2;
   private static final int DEPARTMENT_ROOT_ID = 1;
   public static final int TEMPLATE_APPLICATION_DEFAULT_ID = 1;
@@ -46,6 +53,7 @@ public class SysInitializeAction extends BasicModule {
   public static final String ADMIN_ID = "9999";
 
   public static final String APP_NAME_TEMPLATE = "search4template";
+  private static final Pattern PATTERN_ZK_ADDRESS = Pattern.compile("([^/]+)(/.+)$");
 
 
   public static boolean isSysInitialized() {
@@ -57,30 +65,40 @@ public class SysInitializeAction extends BasicModule {
     return new File(Config.getDataDir(), "system_initialized_token");
   }
 
-  public static void touchSysInitializedToken() throws Exception {
+  private static void touchSysInitializedToken() throws Exception {
     final File sysInitializedToken = getSysInitializedTokenFile();
     //return sysInitializedToken.exists();
     FileUtils.touch(sysInitializedToken);
   }
 
-  /**
-   * 系统初始化
-   *
-   * @param context
-   */
-  public void doInit(Context context) throws Exception {
+  public static void main(String[] args) throws Exception {
+    SysInitializeAction initAction = new SysInitializeAction();
+    //ClassPathXmlApplicationContext tis.application.context.xml
+    ApplicationContext appContext = new ClassPathXmlApplicationContext("classpath:/tis.application.context.xml");
+    appContext.getAutowireCapableBeanFactory().autowireBean(initAction);
+    initAction.doInit();
+  }
+
+  public void doInit() throws Exception {
 
     // final File sysInitializedToken = new File(Config.getDataDir(), "system_initialized_token");
     if (isSysInitialized()) {
-       throw new IllegalStateException("tis has initialized");
+      throw new IllegalStateException("tis has initialized");
     }
+
+    if (!initializeZkPath()) {
+      // 初始化ZK失败
+      return;
+    }
+
 
     UsrDptRelationCriteria c = new UsrDptRelationCriteria();
     c.createCriteria().andUsrIdEqualTo(ADMIN_ID);
     if (this.getUsrDptRelationDAO().countByExample(c) > 0) {
       touchSysInitializedToken();
-      this.addActionMessage(context, "系统已经完成初始化，请继续使用");
-      return;
+      //this.addActionMessage("系统已经完成初始化，请继续使用");
+      throw new IllegalStateException("system has initialized successful,shall not initialize again");
+      //return;
     }
 
     // 添加一个系统管理员
@@ -115,13 +133,54 @@ public class SysInitializeAction extends BasicModule {
     // int newAppid = AddAppAction.createApplication(app, context, this,
     // this.triggerContext);
     app.setAppId(TEMPLATE_APPLICATION_DEFAULT_ID);
-    this.initializeSchemaConfig(context, app);
+    this.initializeSchemaConfig(app);
     touchSysInitializedToken();
-    Thread.sleep(1000);
-    this.addActionMessage(context, "初始化系统参数完成");
+    //Thread.sleep(1000);
+    // this.addActionMessage(context, "初始化系统参数完成");
   }
 
-  void initializeSchemaConfig(Context context, Application app) throws IOException {
+  // 初始化ZK内容
+  private boolean initializeZkPath() {
+
+    Matcher matcher = PATTERN_ZK_ADDRESS.matcher(Config.getZKHost());
+    if (!matcher.matches()) {
+      //this.addErrorMessage(context, "ZK地址:" + Config.getZKHost() + "不符合规范:" + PATTERN_ZK_ADDRESS);
+      throw new IllegalStateException("zk address " + Config.getZKHost() + " is not match " + PATTERN_ZK_ADDRESS);
+      // return false;
+    }
+
+    final String zkServer = matcher.group(1);
+    String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
+    if (StringUtils.endsWith(zkSubDir, "/")) {
+      zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
+      // p.setValue(StringUtils.substring(p.getValue(), 0, p.getValue().length() - 1));
+    }
+
+    ZooKeeper zk = null;
+    try {
+      zk = new ZooKeeper(zkServer, 50000, null);
+      zk.getChildren("/", false);
+
+      ZkUtils.guaranteeExist(zk, zkSubDir + ZkStateReader.CLUSTER_STATE, "{}".getBytes());
+      ZkUtils.guaranteeExist(zk, zkSubDir + "/tis");
+      ZkUtils.guaranteeExist(zk, zkSubDir + "/tis-lock/dumpindex");
+      ZkUtils.guaranteeExist(zk, zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG);
+
+    } catch (Throwable e) {
+      // this.addErrorMessage(context, "ZK地址:" + zkServer + ",不能连接Zookeeper主机");
+      // return false;
+      throw new IllegalStateException("zk address:" + zkServer + " can not connect Zookeeper server", e);
+    } finally {
+      try {
+        zk.close();
+      } catch (Throwable e) {
+
+      }
+    }
+    return true;
+  }
+
+  void initializeSchemaConfig(Application app) throws IOException {
     Snapshot snap = new Snapshot();
     snap.setCreateTime(new Date());
     snap.setCreateUserId(9999l);
@@ -142,8 +201,8 @@ public class SysInitializeAction extends BasicModule {
     snap.setPreSnId(-1);
     Integer snapshotId = this.getSnapshotDAO().insertSelective(snap);
 
-    GroupAction.createGroup(context, RunEnvironment.getSysRuntime(), AddAppAction.FIRST_GROUP_INDEX, app.getAppId(),
-      snapshotId, this);
+    GroupAction.createGroup(RunEnvironment.getSysRuntime(), AddAppAction.FIRST_GROUP_INDEX, app.getAppId(),
+      snapshotId, this.getServerGroupDAO());
   }
 
   void initializeDepartment() {

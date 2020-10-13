@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,6 +25,7 @@ import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -134,13 +135,13 @@ public class ZkUtils {
             if (pathname.length > 1) {
                 StringBuffer path = new StringBuffer();
                 guaranteeExist(// 
-                zookeeper.getSolrZooKeeper(), path, Arrays.copyOfRange(pathname, 0, pathname.length - 1), 0);
+                        zookeeper.getSolrZooKeeper(), path, Arrays.copyOfRange(pathname, 0, pathname.length - 1), 0, StringUtils.EMPTY.getBytes());
             }
             zookeeper.create(zkpath, content.getBytes(TisUTF8.get()), CreateMode.EPHEMERAL_SEQUENTIAL, true);
         } catch (Exception e) {
             logger.error(e.getMessage() + "\n zkpath:" + zkpath, e);
             throw new ZooKeeperException(SolrException.ErrorCode.SERVER_ERROR, e.getMessage() + "\n zkpath:" + zkpath, e);
-        // throw new RuntimeException(e);
+            // throw new RuntimeException(e);
         }
     }
 
@@ -159,13 +160,13 @@ public class ZkUtils {
             }
             registerContent(parentNodepath + "/nodes", ip, zookeeper);
             return ip;
-        // String[] pathname = StringUtils.split(parentNodepath,
-        // PATH_SPLIT);
-        // StringBuffer path = new StringBuffer();
-        // guaranteeExist(zookeeper, path, pathname, 0);
-        // 
-        // zookeeper.create(parentNodepath + "/nodes", ip.getBytes(),
-        // CreateMode.EPHEMERAL_SEQUENTIAL, true);
+            // String[] pathname = StringUtils.split(parentNodepath,
+            // PATH_SPLIT);
+            // StringBuffer path = new StringBuffer();
+            // guaranteeExist(zookeeper, path, pathname, 0);
+            //
+            // zookeeper.create(parentNodepath + "/nodes", ip.getBytes(),
+            // CreateMode.EPHEMERAL_SEQUENTIAL, true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -177,21 +178,26 @@ public class ZkUtils {
      * @param zookeeper
      * @param parentNodepath
      */
-    public static void guaranteeExist(ZooKeeper zookeeper, String parentNodepath) throws Exception {
+    public static void guaranteeExist(ZooKeeper zookeeper, String parentNodepath, byte[] data) throws Exception {
         String[] pathname = StringUtils.split(parentNodepath, PATH_SPLIT);
         StringBuffer path = new StringBuffer();
-        guaranteeExist(zookeeper, path, pathname, 0);
+        guaranteeExist(zookeeper, path, pathname, 0, data);
     }
 
-    private static void guaranteeExist(ZooKeeper zookeeper, StringBuffer path, String[] paths, int deepth) throws Exception {
+    public static void guaranteeExist(ZooKeeper zookeeper, String parentNodepath) throws Exception {
+
+        guaranteeExist(zookeeper, parentNodepath, StringUtils.EMPTY.getBytes());
+    }
+
+    private static void guaranteeExist(ZooKeeper zookeeper, StringBuffer path, String[] paths, int deepth, byte[] data) throws Exception {
         if (deepth >= paths.length) {
             return;
         }
         path.append(PATH_SPLIT).append(paths[deepth]);
         if (zookeeper.exists(path.toString(), false) == null) {
-            zookeeper.create(path.toString(), StringUtils.EMPTY.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            zookeeper.create(path.toString(), data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
         }
-        guaranteeExist(zookeeper, path, paths, ++deepth);
+        guaranteeExist(zookeeper, path, paths, ++deepth, data);
     }
 
     /**
@@ -209,7 +215,7 @@ public class ZkUtils {
         // final String parent = PATH_SPLIT;
         // processNode(fromZk, toZk, parent);
         System.out.println("start");
-        String[] pathname = new String[] { "a", "b" };
+        String[] pathname = new String[]{"a", "b"};
         pathname = Arrays.copyOfRange(pathname, 0, pathname.length - 1);
         for (String n : pathname) {
             System.out.println(n);

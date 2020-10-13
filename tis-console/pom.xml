@@ -420,6 +420,20 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <!-- system initialize action-->
+              <mainClass>com.qlangtech.tis.runtime.module.action.SysInitializeAction</mainClass>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib/</classpathPrefix>
+              <useUniqueVersions>true</useUniqueVersions>
+            </manifest>
+            <manifestEntries>
+              <class-path>conf/</class-path>
+            </manifestEntries>
+          </archive>
+        </configuration>
       </plugin>
 
       <plugin>
