@@ -77,7 +77,7 @@ public class SysInitializeAction extends BasicModule {
     //ClassPathXmlApplicationContext tis.application.context.xml
     ApplicationContext appContext = new ClassPathXmlApplicationContext("classpath:/tis.application.context.xml");
     appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
-      initAction, AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, true);
+      initAction, AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, false);
     initAction.doInit();
   }
 
