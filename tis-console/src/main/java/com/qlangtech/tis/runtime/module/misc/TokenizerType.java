@@ -17,6 +17,7 @@ package com.qlangtech.tis.runtime.module.misc;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.runtime.module.action.SchemaAction.NumericVisualType;
 import com.qlangtech.tis.runtime.module.action.VisualType;
+import com.qlangtech.tis.solrdao.ISchemaField;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import java.util.Map;
  * @date 2015年1月6日下午6:31:17
  */
 public enum TokenizerType {
-  NULL("string", "无分词") //
+  NULL(ISchemaField.DEFAULT_STRING_TYPE_NAME, "无分词") //
   , IK("ik", "IK分词") //
   , LIKE("like", "LIKE分词") //
   , BLANK_SPLIT("text_ws", "空格分词") //
@@ -42,7 +43,7 @@ public enum TokenizerType {
   static {
     visualTypeMap = new HashMap<String, VisualType>();
     numericTypeMap = Maps.newHashMap();
-    visualTypeMap.put("string", VisualType.STRING_TYPE);
+    visualTypeMap.put(ISchemaField.DEFAULT_STRING_TYPE_NAME, VisualType.STRING_TYPE);
     addNumericType("double");
     addNumericType("int");
     addNumericType("float");

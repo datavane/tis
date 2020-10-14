@@ -32,6 +32,7 @@ public class TestSolrFieldParser extends TestCase {
     public void testSchemaFields() throws Exception {
         // SolrFieldsParser solrFieldsParser = new SolrFieldsParser();
         try (InputStream reader = this.getClass().getResourceAsStream("schema-sample.txt")) {
+             assertNotNull(reader);
             IIndexMetaData meta = SolrFieldsParser.parse(() -> IOUtils.toByteArray(reader));
             ParseResult parseResult = meta.getSchemaParseResult();
             Assert.assertTrue("isValid shall be true", parseResult.isValid());

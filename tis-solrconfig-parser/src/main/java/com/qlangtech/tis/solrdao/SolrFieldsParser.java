@@ -556,7 +556,7 @@ public class SolrFieldsParser {
 
     public static class SolrType {
 
-        public static final String DEFAULT_STRING_TYPE_NAME = "string";
+
 
         private Class<?> javaType;
 
@@ -782,6 +782,30 @@ public class SolrFieldsParser {
         public void setDocumentCreatorType(String documentCreatorType) {
             this.documentCreatorType = StringUtils.defaultIfBlank(documentCreatorType, "default");
         }
+
+        /**
+         * 添加保留字段
+         */
+        public void addReservedFields() {
+            SolrType strType = this.getTisType(ISchemaField.DEFAULT_STRING_TYPE_NAME);
+            SolrType longType = this.getTisType("long");
+            PSchemaField verField = new PSchemaField();
+            verField.setName("_version_");
+            verField.setDocValue(true);
+            verField.setStored(true);
+            verField.setType(longType);
+            this.dFields.add(verField);
+
+            PSchemaField textField = new PSchemaField();
+            textField.setName("text");
+            textField.setDocValue(false);
+            textField.setMltiValued(true);
+            textField.setStored(false);
+            textField.setIndexed(true);
+            textField.setType(strType);
+            this.dFields.add(textField);
+        }
+
     }
 
     public static String getFieldPropRequiredErr(String fieldName) {

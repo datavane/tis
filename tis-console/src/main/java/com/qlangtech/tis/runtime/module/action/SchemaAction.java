@@ -37,7 +37,6 @@ import com.qlangtech.tis.solrdao.SolrFieldsParser.SolrType;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.ColName;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import com.yushu.tis.xmodifier.XModifier;
@@ -94,8 +93,7 @@ public class SchemaAction extends BasicModule {
       return;
     }
     ParseResult parseResult = tplSchema.parseResult;
-    SolrType strType = parseResult.getTisType(SolrType.DEFAULT_STRING_TYPE_NAME);
-    SolrType longType = parseResult.getTisType("long");
+    SolrType strType = parseResult.getTisType(ISchemaField.DEFAULT_STRING_TYPE_NAME);
     SqlTaskNodeMeta.SqlDataFlowTopology dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workflow.getName());
     List<ColName> cols = dfTopology.getFinalTaskNodeCols();
     for (ColName colName : cols) {
@@ -111,22 +109,9 @@ public class SchemaAction extends BasicModule {
     }
     // parseResult.setSharedKey(null);
     parseResult.setUniqueKey(null);
-    PSchemaField verField = new PSchemaField();
-    verField.setName("_version_");
-    verField.setDocValue(true);
-    verField.setStored(true);
-    verField.setType(longType);
-    // verField.setInputDisabled(true);
-    parseResult.dFields.add(verField);
-    PSchemaField textField = new PSchemaField();
-    textField.setName("text");
-    textField.setDocValue(false);
-    textField.setMltiValued(true);
-    textField.setStored(false);
-    textField.setIndexed(true);
-    textField.setType(strType);
-    // textField.setInputDisabled(true);
-    parseResult.dFields.add(textField);
+
+    parseResult.addReservedFields();
+
     ByteArrayInputStream inputStream = new ByteArrayInputStream(tplSchema.content);
     org.jdom2.Document document2 = saxBuilder.build(inputStream);
     final XModifier modifier = new XModifier(document2);
@@ -147,6 +132,7 @@ public class SchemaAction extends BasicModule {
     // 序列化结果
     this.doGetFields(context, tplSchema);
   }
+
 
   private SchemaResult getTemplateSchema(Context context, Application tplApp) throws Exception {
     UploadResource schemaRes = getAppSchema(tplApp);
@@ -559,10 +545,12 @@ public class SchemaAction extends BasicModule {
       // f.put("inputDisabled", field.inputDisabled);
       // f.put("rangequery", false);
       f.put("defaultVal", StringUtils.trimToNull(field.getDefaultValue()));
-      f.put("fieldtype", field.getTisFieldType());
+      //f.put("fieldtype", field.getTisFieldType());
       if (field.getType() != null) {
         type = field.getType().getSType().getName();
         serialVisualType2Json(f, type);
+      } else {
+        throw new IllegalStateException("field:" + field.getName() + " 's fieldType is can not be null");
       }
       f.put("docval", field.isDocValue());
       f.put("indexed", field.isIndexed());
@@ -638,18 +626,18 @@ public class SchemaAction extends BasicModule {
       f.put("split", false);
       NumericVisualType vtype = TokenizerType.numericTypeMap.get(type);
       if (vtype != null) {
-        f.put("fieldtype", vtype.getType());
+        f.put(ISchemaField.KEY_FIELD_TYPE, vtype.getType());
 //        f.put("range", vtype.isRangeEnable());
 //        f.put("rangequery", vtype.isRanageQueryAware());
         return;
       }
-      f.put("fieldtype", type);
+      f.put(ISchemaField.KEY_FIELD_TYPE, type);
     } else {
       // 分词字段
       f.put("split", true);
-      f.put("fieldtype", "string");
+      f.put(ISchemaField.KEY_FIELD_TYPE, ISchemaField.DEFAULT_STRING_TYPE_NAME);
       f.put("tokenizerType", tokenizerType.getKey());
-      f.put("range", false);
+      //f.put("range", false);
     }
     // f.put("rangequery", false);
     // if (TokenizerType.tokenerTypes.contains(tokenizerType)) {
@@ -840,19 +828,18 @@ public class SchemaAction extends BasicModule {
    * @return
    */
   protected String parseSolrFieldType(ISchemaField field, org.jdom2.Document document2) {
-    if ("string".equalsIgnoreCase(field.getTisFieldType()) && StringUtils.isNotBlank(field.getTokenizerType())) {
+    if (ISchemaField.DEFAULT_STRING_TYPE_NAME.equalsIgnoreCase(field.getTisFieldTypeName()) && StringUtils.isNotBlank(field.getTokenizerType())) {
       return field.getTokenizerType();
     }
-    // TokenizerType.parseVisualType(field)
     VisualType type = null;
     for (Map.Entry<String, VisualType> entry : TokenizerType.visualTypeMap.entrySet()) {
       type = entry.getValue();
-      if (!"string".equalsIgnoreCase(field.getTisFieldType()) && StringUtils.equals(field.getTisFieldType(), entry.getValue().type)) {
-        //return field.isRange() ? type.getRangedFieldName() : type.getType();
+      if (!ISchemaField.DEFAULT_STRING_TYPE_NAME.equalsIgnoreCase(field.getTisFieldTypeName())
+        && StringUtils.equals(field.getTisFieldTypeName(), entry.getValue().type)) {
         return type.getType();
       }
     }
-    return field.getTisFieldType();
+    return field.getTisFieldTypeName();
   }
 
   static final SAXBuilder saxBuilder = new SAXBuilder(new XMLReaderSAX2Factory(false));

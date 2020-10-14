@@ -36,18 +36,8 @@ public class PSchemaField implements ISchemaField {
 
     private boolean mltiValued;
 
-    private boolean range;
-
     // 是否为动态字段
     private boolean dynamic;
-
-    public boolean isRange() {
-        return range;
-    }
-
-    public void setRange(boolean range) {
-        this.range = range;
-    }
 
     private boolean docValue;
 
@@ -194,8 +184,9 @@ public class PSchemaField implements ISchemaField {
     }
 
     @Override
-    public String getTisFieldType() {
-        return this.type.getSolrType();
+    public String getTisFieldTypeName() {
+       // return this.type.getSolrType();
+        return this.type.getSType().getName();
     }
 
     @Override

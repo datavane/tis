@@ -288,20 +288,20 @@ public class CoreAction extends BasicModule {
     // DBConfig dbConfig = null;
     // DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
     // dbCriteria.createCriteria().andIdIn(dbNameMap.keySet().stream().map((dbNode -> dbNode.getDbId())).collect(Collectors.toList()));
-    // 
+    //
     // Map<Integer /**DBID*/, Date> dependencyDbs = this.getWorkflowDAOFacade().getDatasourceDbDAO()
     // .selectByExample(dbCriteria).stream().collect(Collectors.toMap(DatasourceDb::getId, DatasourceDb::getOpTime));
     // if (dbNameMap.size() != dependencyDbs.size()) {
     // throw new IllegalStateException("dbNameMap.size() " + dbNameMap.size() + " != dependencyDbs.size()" + dependencyDbs.size());
     // }
-    // 
+    //
     // //long timestampp;// = Long.parseLong(ManageUtils.formatNowYyyyMMddHHmmss());
     // final KoubeiProgressCallback koubeiProgressCallback = new KoubeiProgressCallback();
-    // 
+    //
     // List<IbatorContext> daoFacadeList = Lists.newArrayList();
     // Date lastOptime = null;
     // for (Map.Entry<DBNode /* dbname */, List<String>> entry : dbNameMap.entrySet()) {
-    // 
+    //
     // lastOptime = dependencyDbs.get(entry.getKey().getDbId());
     // if (lastOptime == null) {
     // throw new IllegalStateException("db " + entry.getKey()
@@ -312,12 +312,12 @@ public class CoreAction extends BasicModule {
     // long timestamp = ManageUtils.formatNowYyyyMMddHHmmss(lastOptime);
     // dbConfig = GitUtils.$().getDbLinkMetaData( //
     // entry.getKey().getDbName(), RunEnvironment.getSysRuntime(), DbScope.DETAILED);
-    // 
+    //
     // IbatorProperties properties = new IbatorProperties(dbConfig, entry.getValue(), timestamp);
-    // 
+    //
     // //entry.getKey().setDaoDir(properties.getDaoDir());
     // entry.getKey().setTimestampVer(timestamp);
-    // 
+    //
     // KoubeiIbatorRunner runner = new KoubeiIbatorRunner(properties) {
     // @Override
     // protected KoubeiProgressCallback getProgressCallback() {
@@ -326,14 +326,14 @@ public class CoreAction extends BasicModule {
     // };
     // IbatorContext ibatorContext = runner.getIbatorContext();
     // daoFacadeList.add(ibatorContext);
-    // 
-    // 
+    //
+    //
     // if (entry.getValue().size() < 1) {
     // throw new IllegalStateException("db:" + entry.getKey() + " relevant tablesList can not small than 1");
     // }
-    // 
+    //
     // try {
-    // 
+    //
     // if (!properties.isDaoScriptCreated()) {
     // // 生成源代码
     // runner.build();
@@ -343,20 +343,20 @@ public class CoreAction extends BasicModule {
     // // 类型名称
     // if (compilerAndPackage) {
     // File classpathDir = new File("/Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency");
-    // 
+    //
     // JavaCompilerProcess daoCompilerPackageProcess
     // = new JavaCompilerProcess(dbConfig, properties.getDaoDir(), classpathDir);
     // // 打包,生成jar包
     // daoCompilerPackageProcess.compileAndBuildJar();
     // }
-    // 
+    //
     // } catch (Exception e) {
     // // 将文件夹清空
     // FileUtils.forceDelete(properties.getDaoDir());
     // throw new RuntimeException("dao path:" + properties.getDaoDir(), e);
     // }
     // }
-    // 
+    //
     // daoFacadeList.stream().forEach((r) -> {
     // FacadeContext fc = new FacadeContext();
     // fc.setFacadeInstanceName(r.getFacadeInstanceName());
@@ -364,7 +364,7 @@ public class CoreAction extends BasicModule {
     // fc.setFacadeInterfaceName(r.getFacadeInterface());
     // indexStreamCodeGenerator.facadeList.add(fc);
     // });
-    // 
+    //
     // /************************************************************************************
     // * 自动生成scala代码,及spring相关配置文件
     // *************************************************************************************/
@@ -375,28 +375,28 @@ public class CoreAction extends BasicModule {
     // DBNode.dump(dbNameMap.keySet().stream().collect(Collectors.toList())
     // , StreamContextConstant.getDbDependencyConfigMetaFile(
     // indexStreamCodeGenerator.getAppDomain().getAppName(), indexStreamCodeGenerator.incrScriptTimestamp));
-    // 
+    //
     // // 生成Spring XML配置文件
     // indexStreamCodeGenerator.generateConfigFiles();
     // }
-    // 
+    //
     // incrStatus.setIncrScriptMainFileContent(indexStreamCodeGenerator.readIncrScriptMainFileContent());
-    // 
+    //
     // // scala 代码编译
     // //https://github.com/davidB/scala-maven-plugin/blob/master/src/main/java/scala_maven_executions/JavaMainCallerSupport.java
     // //TODO 真实生产环境中需要 和 代码build阶段分成两步
     // if (compilerAndPackage) {
-    // 
+    //
     // File sourceRoot = StreamContextConstant.getStreamScriptRootDir(
     // indexStreamCodeGenerator.getAppDomain().getAppName(), indexStreamCodeGenerator.incrScriptTimestamp);//  new File("/opt/data/streamscript/" + appDomain.getAppName() + File.separator + timestamp);
-    // 
+    //
     // // 编译Scala代码
-    // 
+    //
     // if (this.streamScriptCompile(sourceRoot, dbNameMap.keySet())) {
     // this.addErrorMessage(context, "增量脚本编译失败");
     // return;
     // }
-    // 
+    //
     // // 对scala代码进行 打包
     // JavaCompilerProcess.SourceGetterStrategy getterStrategy  //
     // = new JavaCompilerProcess.SourceGetterStrategy(false, "/src/main/scala", ".scala") {
@@ -405,7 +405,7 @@ public class CoreAction extends BasicModule {
     // // 没有scala的类型，暂且用other替换一下
     // return JavaFileObject.Kind.OTHER;
     // }
-    // 
+    //
     // @Override
     // public MyJavaFileObject processMyJavaFileObject(MyJavaFileObject fileObj) {
     // try {
@@ -415,29 +415,29 @@ public class CoreAction extends BasicModule {
     // } catch (IOException e) {
     // throw new RuntimeException(e);
     // }
-    // 
+    //
     // return fileObj;
     // }
     // };
-    // 
+    //
     // //
     // JavaCompilerProcess.FileObjectsContext fileObjects = JavaCompilerProcess.getFileObjects(sourceRoot, getterStrategy);
-    // 
+    //
     // final JavaCompilerProcess.FileObjectsContext compiledCodeContext = new JavaCompilerProcess.FileObjectsContext();
-    // 
+    //
     // File streamScriptClassesDir = new File(sourceRoot, "classes");
     // (streamScriptClassesDir, compiledCodeContext, null);
-    // 
+    //
     // // 取得spring配置文件相关resourece
     // JavaCompilerProcess.FileObjectsContext xmlConfigs =
     // indexStreamCodeGenerator.getSpringXmlConfigsObjectsContext();
-    // 
+    //
     // // 将stream code打包
     // JavaCompilerProcess.packageJar(sourceRoot
     // , StreamContextConstant.getIncrStreamJarName(indexStreamCodeGenerator.getAppDomain().getAppName())  //indexStreamCodeGenerator.getAppDomain().getAppName() + "-incr.jar"
     // , fileObjects, compiledCodeContext, xmlConfigs);
     // }
-    // 
+    //
     // } catch (Exception e) {
     // // 将原始文件删除干净
     // try {
@@ -449,7 +449,7 @@ public class CoreAction extends BasicModule {
     // }
     // }
     // private static void appendDBDependenciesClasspath(Set<String> classpathElements, Set<DBNode> dependencyDBNodes) {
-    // 
+    //
     // for (DBNode db : dependencyDBNodes) {
     // File jarFile = new File(db.getDaoDir(), db.getDbName() + "-dao.jar");
     // if (!jarFile.exists()) {
@@ -461,7 +461,7 @@ public class CoreAction extends BasicModule {
     // private void apappendClassFilependClassFile(
     // File parent, JavaCompilerProcess.FileObjectsContext fileObjects
     // , final StringBuffer qualifiedClassName) throws IOException {
-    // 
+    //
     // String[] children = parent.list();
     // File childFile = null;
     // for (String child : children) {
@@ -475,18 +475,18 @@ public class CoreAction extends BasicModule {
     // }
     // appendClassFile(childFile, fileObjects, newQualifiedClassName);
     // } else {
-    // 
+    //
     // final String className = StringUtils.substringBeforeLast(child, ".");
     // NestClassFileObject fileObj = MyJavaFileManager.getNestClassFileObject( //
     // ((new StringBuffer(qualifiedClassName)).append(".").append(className)).toString(), fileObjects.classMap);
-    // 
+    //
     // try (InputStream input = FileUtils.openInputStream(childFile)) {
     // IOUtils.copy(input, fileObj.openOutputStream());
     // }
     // }
     // }
     // }
-    // 
+    //
     // /**
     // * 校验表单中
     // *
@@ -494,48 +494,48 @@ public class CoreAction extends BasicModule {
     // */
     // @SuppressWarnings("all")
     // public void doValidatePluginField(Context context) throws Exception {
-    // 
+    //
     // com.alibaba.fastjson.JSONObject form = this.getFormJSON();
-    // 
+    //
     // String keyname = this.getString("keyname");
     // String pluginClass = form.getString("klass");
     // // String val = this.getString("val");
-    // 
+    //
     // Descriptor<?> desc = Jenkins.getInstance().getDescriptor(pluginClass);
     // CheckMethod check = desc.getCheckMethod(keyname);
     // if (StringUtils.isEmpty(check.getDependsOn())) {
     // // 说明check方法不存在
     // return;
     // }
-    // 
+    //
     // List<String> paramNames = ((List<String>) paramsNameField.get(check));
     // List<String> paramVals = new ArrayList<>();
-    // 
+    //
     // for (String n : paramNames) {
     // paramVals.add(form.getString(n));
     // }
-    // 
+    //
     // FormValidation validateResult = (FormValidation) ((java.lang.reflect.Method)
     // fieldCheckField.get(check))
     // .invoke(desc, paramVals.toArray(new String[paramVals.size()]));
-    // 
+    //
     // // 直接就把校验结果打到客户端去了
     // this.setBizResult(context, new FormValidationResult(validateResult));
     // }
-    // 
+    //
     // public static class FormValidationResult {
     // private final Kind kind;
     // private final String message;
-    // 
+    //
     // FormValidationResult(FormValidation validateResult) {
     // this.kind = validateResult.kind;
     // this.message = validateResult.getMessage();
     // }
-    // 
+    //
     // public Kind getKind() {
     // return kind;
     // }
-    // 
+    //
     // public String getMessage() {
     // return message;
     // }
@@ -568,30 +568,30 @@ public class CoreAction extends BasicModule {
     // desc.name = "aa";
     // desc.order = 1;
     // fieldsDesc.add(desc);
-    // 
+    //
     // desc = new FormFieldDesc();
     // desc.name = "bb";
     // desc.order = 2;
-    // 
+    //
     // fieldsDesc.add(desc);
-    // 
+    //
     // Collections.sort(fieldsDesc, formFieldDescComparator);
-    // 
+    //
     // for (FormFieldDesc d : fieldsDesc) {
     // System.out.println(d.getName());
     // }
     }
 
     // public static class TISPluginDescriptor<T extends Describable<T>> {
-    // 
+    //
     // @JSONField(serialize = false)
     // private final Descriptor<T> desc;
-    // 
+    //
     // public TISPluginDescriptor(Descriptor<T> desc) {
     // super();
     // this.desc = desc;
     // }
-    // 
+    //
     // public static <T extends Describable<T>> List<TISPluginDescriptor<T>>
     // convert(List<Descriptor<T>> descList) {
     // List<TISPluginDescriptor<T>> resultList = Lists.newArrayList();
@@ -600,23 +600,23 @@ public class CoreAction extends BasicModule {
     // }
     // return resultList;
     // }
-    // 
+    //
     // public String getDisplayName() {
     // return desc.getDisplayName();
     // }
-    // 
+    //
     // public String getId() {
     // return desc.getId();
     // }
-    // 
+    //
     // public List<FormFieldDesc> getFormFieldsDesc() {
     // List<FormFieldDesc> fieldsDesc = Lists.newArrayList();
     // FormFieldDesc d = null;
     // FormField fann = null;
-    // 
+    //
     // Class<?> clazz = desc.getKlass().toJavaClass();
     // Field[] fields = clazz.getDeclaredFields();
-    // 
+    //
     // for (Field f : fields) {
     // fann = f.getAnnotation(FormField.class);
     // if (fann != null) {
@@ -627,11 +627,11 @@ public class CoreAction extends BasicModule {
     // fieldsDesc.add(d);
     // }
     // }
-    // 
+    //
     // Collections.sort(fieldsDesc, formFieldDescComparator);
     // return fieldsDesc;
     // }
-    // 
+    //
     // }
     // #################################################################################
     /**
@@ -871,10 +871,10 @@ public class CoreAction extends BasicModule {
     // public CollectionTopology p(int status, InputStream stream, Map<String, List<String>> headerFields) {
     // JSONTokener tokener = new JSONTokener(stream);
     // JSONObject result = new JSONObject(tokener);
-    // 
+    //
     // result.getString("data");
-    // 
-    // 
+    //
+    //
     // return null;
     // }
     // });
@@ -1053,7 +1053,7 @@ public class CoreAction extends BasicModule {
         this.addActionMessage(context, collection + ":增量任务状态变为:" + (pause ? "暂停" : "启动"));
     }
 
-    // 
+    //
     /**
      * 创建一个应用,选择组×组内副本数目
      */
@@ -1167,17 +1167,7 @@ public class CoreAction extends BasicModule {
         if (!request.isValid()) {
             return false;
         }
-        // WorkFlow dataflow = getAppBindedWorkFlow(module);
-        // Optional<ERRules> erRule = ERRules.getErRule(dataflow.getName());
-        // if (erRule.isPresent()) {
-        // throw new IllegalStateException("dataflow name " + dataflow.getName() + " relevant erRule Can not be null");
-        // }
-        // Optional<PrimaryTableMeta> firstPrimaryTabMeta = erRule.get().getPrimaryTabs().stream().findFirst();
-        // if (!firstPrimaryTabMeta.isPresent() || StringUtils.isEmpty(routerField = firstPrimaryTabMeta.get().getSharedKey())) {
-        // //throw new IllegalStateException("dataflow:" + dataflow.getName() + " have not find any valid sharedKey");
-        // module.addErrorMessage(context, "dataflow:" + dataflow.getName() + "中还没有设置‘sharedKey’");
-        // return false;
-        // }
+
         SnapshotDomain snapshotDomain = module.getSnapshotViewDAO().getView(publishSnapshotId);
         InputStream input = null;
         IIndexMetaData meta = SolrFieldsParser.parse(() -> snapshotDomain.getSolrSchema().getContent());
@@ -1310,7 +1300,7 @@ public class CoreAction extends BasicModule {
         public boolean process(boolean isLeader, Replica replica) throws Exception;
     }
 
-    // 
+    //
     // /**
     // * 设置这次操作的json描述
     // *
@@ -1340,12 +1330,12 @@ public class CoreAction extends BasicModule {
     // // request.getRequest().setLoggerContent(StringUtils.EMPTY);
     // //
     // // }
-    // 
+    //
     // private Map<String, CoreNode> getCoreNodeMap() {
     // return getCoreNodeMap(/* getCoreNodeMap */false);
-    // 
+    //
     // }
-    // 
+    //
     // /**
     // * 取得当前应用
     // *
@@ -1360,7 +1350,7 @@ public class CoreAction extends BasicModule {
         return result;
     }
 
-    // 
+    //
     // /**
     // * @param context
     // * @param serverSuffix
@@ -1418,7 +1408,7 @@ public class CoreAction extends BasicModule {
         return result;
     }
 
-    // 
+    //
     private static class ParseIpResult {
 
         private boolean valid;
@@ -1554,15 +1544,15 @@ public class CoreAction extends BasicModule {
         }
     }
 
-    // 
+    //
     // // private TriggerJobConsole triggerJobConsole;
-    // 
+    //
     // // @Autowired
     // // public final void setTriggerJobConsole(TriggerJobConsole
     // // triggerJobConsole) {
     // // this.triggerJobConsole = triggerJobConsole;
     // // }
-    // 
+    //
     // /**
     // * 校验dump是否正在执行
     // *
@@ -1587,11 +1577,11 @@ public class CoreAction extends BasicModule {
     // // }
     // return false;
     // }
-    // 
+    //
     // private String getServiceName() {
     // return this.getAppDomain().getAppName();
     // }
-    // 
+    //
     // /**
     // * 更新某一组的schema文件
     // *
@@ -1600,22 +1590,22 @@ public class CoreAction extends BasicModule {
     // */
     // @Func(PermissionConstant.APP_SCHEMA_UPDATE)
     // public void doUpdateSchemaByGroup(Context context) throws Exception {
-    // 
+    //
     // Integer group = this.getInt("group");
     // // Assert.assertNotNull(group);
     // if (group == null || group < 0) {
     // this.addErrorMessage(context, "请设置组");
     // return;
     // }
-    // 
+    //
     // if (isDumpWorking(context)) {
     // return;
     // }
-    // 
+    //
     // this.getClientProtocol().schemaChange(getServiceName(), group);
     // this.addActionMessage(context, "触发第" + group + "组Schema文件更新成功");
     // }
-    // 
+    //
     // /**
     // * 更新所有的solrconfig
     // *
@@ -1629,10 +1619,10 @@ public class CoreAction extends BasicModule {
     // return;
     // }
     // this.getClientProtocol().coreConfigChange(this.getServiceName());
-    // 
+    //
     // this.addActionMessage(context, "已经成功触发了更新全部Solrconfig");
     // }
-    // 
+    //
     // /**
     // * 更新solrconfig
     // *
@@ -1642,24 +1632,24 @@ public class CoreAction extends BasicModule {
     // // doUpdateSchemaByGroup
     // @Func(PermissionConstant.APP_SOLRCONFIG_UPDATE)
     // public void doUpdateSolrconfigByGroup(Context context) throws Exception {
-    // 
+    //
     // Integer group = this.getInt("group");
     // if (group == null || group < 0) {
     // this.addErrorMessage(context, "请设置组");
     // return;
     // }
-    // 
+    //
     // if (isDumpWorking(context)) {
     // return;
     // }
-    // 
+    //
     // this.getClientProtocol().coreConfigChange(this.getServiceName(), group);
     // this.addActionMessage(context, "触发第" + group + "组solrconfig文件更新成功");
     // }
-    // 
+    //
     // private static final Pattern serverPattern = Pattern
     // .compile("(.+?)_(\\d+)");
-    // 
+    //
     // /**
     // * 具体更新某一个服务器
     // *
@@ -1674,13 +1664,13 @@ public class CoreAction extends BasicModule {
     // //
     // // String server = this.getString("server");
     // // Assert.assertNotNull(group);
-    // 
+    //
     // if (isDumpWorking(context)) {
     // return;
     // }
-    // 
+    //
     // updateResourceByServer(context, new ResourceConfigRefesh() {
-    // 
+    //
     // @Override
     // public void update(String ip, Integer group, Context context)
     // throws Exception {
@@ -1689,15 +1679,15 @@ public class CoreAction extends BasicModule {
     // addActionMessage(context, "已经触发了服务器：" + ip + ",第" + group
     // + " 组的 solrconfig更新");
     // }
-    // 
+    //
     // });
-    // 
+    //
     // }
-    // 
+    //
     // private void updateResourceByServer(Context context,
     // ResourceConfigRefesh resourceRefesh) throws Exception {
     // String[] servers = this.getRequest().getParameterValues("updateServer");
-    // 
+    //
     // if (servers == null || servers.length < 1) {
     // this.addErrorMessage(context, "请选择服务器");
     // return;
@@ -1707,56 +1697,56 @@ public class CoreAction extends BasicModule {
     // Integer group = null;
     // for (String server : servers) {
     // matcher = serverPattern.matcher(server);
-    // 
+    //
     // if (!matcher.matches()) {
     // this.addErrorMessage(context, "传递参数updateServer 不合法：" + server);
     // return;
     // }
-    // 
+    //
     // group = Integer.parseInt(matcher.group(2));
-    // 
+    //
     // matcher = this.isValidIpPattern(matcher.group(1));
     // if (!matcher.matches()) {
     // this.addErrorMessage(context, "IP:" + ip + "不符合格式规范");
     // return;
     // }
-    // 
+    //
     // ip = matcher.group(1);
-    // 
+    //
     // resourceRefesh.update(ip, group, context);
-    // 
+    //
     // }
     // }
-    // 
+    //
     // private interface ResourceConfigRefesh {
     // public void update(String ip, Integer group, Context context)
     // throws Exception;
-    // 
+    //
     // }
-    // 
+    //
     // // do_update_hsf_all_server
     // @Func(PermissionConstant.APP_HSF_UPDATE)
     // public void doUpdateHsfAllServer(Context context) throws Exception {
-    // 
+    //
     // this.getClientProtocol().rePublishHsf(this.getServiceName());
-    // 
+    //
     // this.addActionMessage(context, "已经成功触发了所有hsf重新发布");
     // }
-    // 
+    //
     // // doUpdateSolrconfigByGroup
     // @Func(PermissionConstant.APP_HSF_UPDATE)
     // public void doUpdateHsfByGroup(Context context) throws Exception {
-    // 
+    //
     // Integer group = this.getInt("group");
     // if (group == null || group < 0) {
     // this.addErrorMessage(context, "请设置组号");
     // return;
     // }
-    // 
+    //
     // this.getClientProtocol().rePublishHsf(this.getServiceName(), group);
     // this.addActionMessage(context, "触发第" + group + "组Hsf服务更新成功");
     // }
-    // 
+    //
     // /**
     // * @param context
     // * @throws Exception
@@ -1789,9 +1779,9 @@ public class CoreAction extends BasicModule {
     // // server);
     // //
     // // this.addActionMessage(context, "已经触发服务器[" + server + "]HSF服务重新发布");
-    // 
+    //
     // }
-    // 
+    //
     // /**
     // *
     // * @return
@@ -1801,7 +1791,7 @@ public class CoreAction extends BasicModule {
     // return (m.matches());
     }
 
-    // 
+    //
     // /**
     // * 减少组内副本数目
     // *
@@ -1810,30 +1800,30 @@ public class CoreAction extends BasicModule {
     // */
     // @Func(PermissionConstant.APP_REPLICA_MANAGE)
     // public void doDecreaseReplica(Context context) throws Exception {
-    // 
+    //
     // if (isDumpWorking(context)) {
     // return;
     // }
-    // 
+    //
     // // this.getClientProtocol().desCoreReplication(request, replication);
     // updateReplica(context, new ReplicaUpdate() {
     // @Override
     // public String getExecuteLiteria() {
     // return "减少";
     // }
-    // 
+    //
     // @Override
     // public void update(CoreRequest request, short[] replicCount)
     // throws IOException {
     // getClientProtocol().desCoreReplication(request, replicCount);
     // }
-    // 
+    //
     // // @Override
     // // public void update(CoreRequest corerequest, Integer replica)
     // // throws IOException {
     // //
     // // }
-    // 
+    //
     // @Override
     // public boolean shallContinueProcess(Context context,
     // FCoreRequest request) {
@@ -1847,13 +1837,13 @@ public class CoreAction extends BasicModule {
     // + request.getIps()
     // + "中有实时模式的master节点，master节点不能被删除");
     // }
-    // 
+    //
     // return canReduceReplica;
     // }
-    // 
+    //
     // });
     // }
-    // 
+    //
     // /**
     // * 添加组内副本数目
     // *
@@ -1862,17 +1852,17 @@ public class CoreAction extends BasicModule {
     // */
     // @Func(PermissionConstant.APP_REPLICA_MANAGE)
     // public void doAddReplica(Context context) throws Exception {
-    // 
+    //
     // if (isDumpWorking(context)) {
     // return;
     // }
-    // 
+    //
     // updateReplica(context, new ReplicaUpdate() {
     // @Override
     // public String getExecuteLiteria() {
     // return "添加";
     // }
-    // 
+    //
     // @Override
     // public void update(CoreRequest request, short[] replicCount)
     // throws IOException {
@@ -1880,7 +1870,7 @@ public class CoreAction extends BasicModule {
     // }
     // });
     // }
-    // 
+    //
     // /**
     // * 更新组内副本数，用于增加或者减少副本
     // *
@@ -1892,7 +1882,7 @@ public class CoreAction extends BasicModule {
     // throws Exception {
     // final Integer replica = this.getInt("replica");
     // Integer group = this.getInt("groupcount");
-    // 
+    //
     // if (replica == null || replica < 1) {
     // this.addErrorMessage(context, "请设置合法的组内副本数");
     // return;
@@ -1901,35 +1891,35 @@ public class CoreAction extends BasicModule {
     // this.addErrorMessage(context, "请设置组数");
     // return;
     // }
-    // 
+    //
     // if (!this.getCoreManager().isCreateNewServiceSuc(this.getServiceName()))
     // {
     // this.addErrorMessage(context, "该Solr应用正在创建索引中，请等待创建成功之后再设置");
     // return;
     // }
-    // 
+    //
     // FCoreRequest request = createCoreRequest(context, 0, group, replica,
     // replicaUpdate.getExecuteLiteria(),/* isAppNameAware */true, /*
     // mustSelectMoreOneReplicAtLeast */
     // false);
-    // 
+    //
     // // FCoreRequest request = createCoreRequest(context, group, replica,
     // // replicaUpdate.getExecuteLiteria(), false/*
     // // mustSelectMoreOneReplicAtLeast */);
-    // 
+    //
     // if (!request.isValid()
     // && replicaUpdate.shallContinueProcess(context, request)) {
     // return;
     // }
-    // 
+    //
     // // 编辑操作日志
     // // setOperationLogDesc(request);
-    // 
+    //
     // replicaUpdate.update(request.getRequest(), request.getReplicCount());
     // this.addActionMessage(context, replicaUpdate.getExecuteLiteria()
     // + "副本成功!");
     // }
-    // 
+    //
     private FCoreRequest createCoreRequest(Context context, Integer group, Integer replica, String setVerbs, boolean mustSelectMoreOneReplicAtLeast) {
         return createCoreRequest(context, 0, group, replica, setVerbs, mustSelectMoreOneReplicAtLeast);
     }
@@ -1997,16 +1987,16 @@ public class CoreAction extends BasicModule {
     // */
     // public abstract void update(CoreRequest request, short[] replicCount)
     // throws IOException;
-    // 
+    //
     // public abstract String getExecuteLiteria();
-    // 
+    //
     // public boolean shallContinueProcess(Context context, FCoreRequest
     // request) {
     // return true;
     // }
-    // 
+    //
     // }
-    // 
+    //
     // /**
     // * 更新组内数目
     // *
@@ -2023,17 +2013,17 @@ public class CoreAction extends BasicModule {
     // if (isDumpWorking(context)) {
     // return;
     // }
-    // 
+    //
     // // 校验是否是实时模式
     // if (isRealTimeModel(context)) {
     // return;
     // }
-    // 
+    //
     // this.forward("addgroup");
-    // 
+    //
     // LocatedCores locateCore = this.getClientProtocol().getCoreLocations(
     // this.getAppDomain().getAppName());
-    // 
+    //
     // context.put("assignGroupCount", locateCore.getCores().size());
     // int serverSum = 0;
     // for (LocatedCore localtedCore : locateCore.getCores()) {
@@ -2043,23 +2033,23 @@ public class CoreAction extends BasicModule {
     // try {
     // replica = (serverSum / locateCore.getCores().size());
     // } catch (Throwable e) {
-    // 
+    //
     // }
-    // 
+    //
     // if (replica < 1) {
     // this.addErrorMessage(context, "应用有异常，组内副本数部门小于1");
     // return;
     // }
-    // 
+    //
     // context.put("assignreplica", replica);
-    // 
+    //
     // context.put(CoreAction.CREATE_CORE_SELECT_COREINFO,
     // new CreateCorePageDTO(locateCore.getCores().size(), groupcount,
     // replica, false// locateCore.isMonopy()
     // ));
-    // 
+    //
     // }
-    // 
+    //
     // /**
     // * 更新组内数目
     // *
@@ -2073,53 +2063,53 @@ public class CoreAction extends BasicModule {
     // this.addErrorMessage(context, "请设置合法的Group数");
     // return;
     // }
-    // 
+    //
     // Integer assignGroupCount = this.getInt("assigngroup");
-    // 
+    //
     // if (assignGroupCount == null) {
     // throw new IllegalArgumentException(
     // "assignGroupCount can not be null");
     // }
-    // 
+    //
     // final Integer replica = this.getInt("replica");
-    // 
+    //
     // if (replica == null) {
     // throw new IllegalArgumentException("replica can not be null");
     // }
-    // 
+    //
     // if (isRealTimeModel(context)) {
     // return;
     // }
-    // 
+    //
     // if (isDumpWorking(context)) {
     // return;
     // }
-    // 
+    //
     // FCoreRequest result = createCoreRequest(context, assignGroupCount,
     // groupcount, replica, "添加",/* isAppNameAware */true);
-    // 
+    //
     // if (!result.isValid()) {
     // return;
     // }
-    // 
+    //
     // this.getClientProtocol().addCoreNums(result.getRequest(),
     // groupcount.shortValue(), result.getReplicCount());
-    // 
+    //
     // this.addActionMessage(context, "添加" + groupcount + "组服务器成功!!!!!");
     // }
-    // 
+    //
     // private boolean isRealTimeModel(Context context) throws Exception {
     // LocatedCores locateCore = this.getClientProtocol().getCoreLocations(
     // this.getAppDomain().getAppName());
-    // 
+    //
     // if (Corenodemanage.isRealTime(locateCore)) {
     // this.addErrorMessage(context, "实时应用不能添加组");
     // return true;
     // }
-    // 
+    //
     // return false;
     // }
-    // 
+    //
     // /**
     // * 从应用core中删除一个服务器
     // *
@@ -2128,38 +2118,38 @@ public class CoreAction extends BasicModule {
     // */
     // @Func(PermissionConstant.APP_SERVER_SET)
     // public void doDeleteServerFromCore(Context context) throws Exception {
-    // 
+    //
     // Integer group = this.getInt("group");
-    // 
+    //
     // if (group == null || group < 0) {
     // this.addErrorMessage(context, "请选择合法的Group");
     // return;
     // }
-    // 
+    //
     // final String ip = this.getString("ip");
     // if (StringUtils.isEmpty(ip)) {
     // this.addErrorMessage(context, "请选择需要删除的服务IP地址");
     // return;
     // }
-    // 
+    //
     // Matcher matcher = this.isValidIpPattern(ip);
     // if (!matcher.matches()) {
     // this.addErrorMessage(context, "IP:" + ip + "不符合格式规范");
     // return;
     // }
-    // 
+    //
     // if (isDumpWorking(context)) {
     // return;
     // }
-    // 
+    //
     // // 将正在运行的副本删除
     // this.getClientProtocol().unprotectProcessExcessReplication(
     // this.getServiceName(), group, matcher.group(1));
-    // 
+    //
     // this.addActionMessage(context, "已经触发删除server为：" + ip + " 的第" + group
     // + "组服务器，页面状态需要稍后才能同步");
     // }
-    // 
+    //
     // public void doStopOne(Context context) throws Exception {
     // int groupNum = this.getInt("groupNum");
     // int replicaNum = this.getInt("replicaNum");
@@ -2179,7 +2169,7 @@ public class CoreAction extends BasicModule {
     // + replicaNum + " 失败 , 中心节点有异常");
     // }
     // }
-    // 
+    //
     // public void doStartOne(Context context) throws Exception {
     // int groupNum = this.getInt("groupNum");
     // int replicaNum = this.getInt("replicaNum");
@@ -2199,7 +2189,7 @@ public class CoreAction extends BasicModule {
     // + replicaNum + " 失败,中心节点有异常");
     // }
     // }
-    // 
+    //
     // public void setCoreReplication(Context context) throws Exception {
     // Integer groupNum = this.getInt("groupNum");
     // Integer numReplica = this.getInt("numReplica");
@@ -2220,7 +2210,7 @@ public class CoreAction extends BasicModule {
     // + "设置副本数 : " + numReplica + " 失败 , 请先检查是否成功执行全量等");
     // }
     // }
-    // 
+    //
     // public void doCheckingCoreCompletion(Context context) throws Exception {
     // CheckingResponse response = this.getClientProtocol()
     // .checkingCoreCompletion(this.getServiceName());

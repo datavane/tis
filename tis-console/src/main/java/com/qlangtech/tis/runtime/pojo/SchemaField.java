@@ -115,7 +115,7 @@ public class SchemaField implements ISchemaField {
     }
 
     @Override
-    public String getTisFieldType() {
+    public String getTisFieldTypeName() {
         return this.type;
     }
 
