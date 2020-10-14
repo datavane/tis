@@ -53,7 +53,7 @@
   </types>
   <fields>
     <field name="id" type="string" stored="true" indexed="true" docValues="false" multiValued="false" />
-    <field name="_version_" type="long" stored="true" indexed="false" docValues="false" multiValued="false" />
+    <field name="_version_" type="long" stored="true" indexed="false" docValues="true" multiValued="false" />
     <field name="text" type="string" stored="false" indexed="true" docValues="false" multiValued="true" />
   </fields>
   <uniqueKey>id</uniqueKey>

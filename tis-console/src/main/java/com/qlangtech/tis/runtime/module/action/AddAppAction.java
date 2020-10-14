@@ -207,6 +207,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       (short) 0, /* groupIndex */
       RunEnvironment.getSysRuntime(), false);
     appKey.setTargetSnapshotId((long) createResult.getNewId());
+    appKey.setFromCache(false);
     LoadSolrCoreConfigByAppNameServlet.getSnapshotDomain(ConfigFileReader.getConfigList(), appKey, this);
     CoreAction.createCollection(this, context, gourpCount, repliation, request, createResult.getNewId());
   }
