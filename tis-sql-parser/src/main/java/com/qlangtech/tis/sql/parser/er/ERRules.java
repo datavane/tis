@@ -205,13 +205,26 @@ public class ERRules implements IPrimaryTabFinder {
     }
 
     /**
+     * 是否是主表
+     *
+     * @param tabName
+     * @return
+     */
+    public Optional<PrimaryTableMeta> isPrimaryTable(String tabName) {
+        List<PrimaryTableMeta> primaryTableNames = this.getPrimaryTabs();
+        Optional<PrimaryTableMeta> hasPrimaryParent = primaryTableNames.stream().filter((r) -> StringUtils.equals(tabName, r.getTabName())).findFirst();
+        return hasPrimaryParent;
+    }
+
+    /**
      * 取得第一个父表关系, 一个表有多个父表，优先取为主索引表的父表
      *
      * @param tabName
      * @return
      */
     public Optional<TableRelation> getFirstParent(String tabName) {
-        List<PrimaryTableMeta> primaryTableNames = this.getPrimaryTabs();
+        // List<PrimaryTableMeta> primaryTableNames = this.getPrimaryTabs();
+
         DependencyNode child;
         TableRelation resultRel = null;
         Optional<PrimaryTableMeta> hasPrimaryParent = null;
@@ -219,9 +232,10 @@ public class ERRules implements IPrimaryTabFinder {
             child = relation.getChild();
             if (StringUtils.equals(child.getName(), tabName)) {
                 resultRel = relation;
-                hasPrimaryParent = primaryTableNames.stream().filter((r) -> StringUtils.equals(relation.getParent().getName(), r.getTabName())).findFirst();
+                // 判断parent表是否是主表？
+                //hasPrimaryParent = primaryTableNames.stream().filter((r) -> StringUtils.equals(relation.getParent().getName(), r.getTabName())).findFirst();
                 // 优先选取主索引表
-                if (hasPrimaryParent.isPresent()) {
+                if (isPrimaryTable(relation.getParent().getName()).isPresent()) {
                     return Optional.of(relation);
                 }
             }

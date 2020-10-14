@@ -123,7 +123,7 @@ protected override def processColsMeta(builder: BuilderList): Unit = {
 }
 
 #foreach($i in $config.mapDataMethodCreatorList  )
-    $i.generateMapDataMethodBody
+  $i.generateMapDataMethodBody
 #end
 
 override def createRowsWrapper(): DefaultPojo = new BasicRuleDrivenWrapper(this)

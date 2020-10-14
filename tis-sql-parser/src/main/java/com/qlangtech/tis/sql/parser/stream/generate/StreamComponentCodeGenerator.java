@@ -581,6 +581,9 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
         }
 
 
+        /**
+         * @return
+         */
         public String getGenerateMapDataMethodBody() {
 
             FunctionVisitor.FuncFormat funcFormat = new FunctionVisitor.FuncFormat();
@@ -611,12 +614,25 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                         if (groups.getGroups().size() < 1) {
                             throw new IllegalStateException("groups.getGroups().size() can not small than 1");
                         }
-
-                        Optional<TableRelation> firstParentRel = this.erRules.getFirstParent(this.entityName.getTabName());
-                        if (!firstParentRel.isPresent()) {
-                            throw new IllegalStateException("first parent table can not be null ,child table:" + this.entityName);
+                        TableRelation parentRel = null;
+                        Optional<PrimaryTableMeta> ptab = this.erRules.isPrimaryTable(this.entityName.getTabName());
+                        if (ptab.isPresent()) {
+                            // 如果聚合表本身就是主表的话，那它只需要查询自己就行了
+                            PrimaryTableMeta p = ptab.get();
+                            parentRel = new TableRelation();
+//                            parentRel.setParent(null);
+//                            parentRel.setChild(null);
+                            parentRel.setCardinality(TabCardinality.ONE_N.getToken());
+                           // List<JoinerKey> joinerKeys = Lists.newArrayList();
+                            parentRel.setJoinerKeys(p.getPrimaryKeyNames().stream().map((rr) -> new JoinerKey(rr.getName(), rr.getName())).collect(Collectors.toList()));
+                        } else {
+                            Optional<TableRelation> firstParentRel = this.erRules.getFirstParent(this.entityName.getTabName());
+                            if (!firstParentRel.isPresent()) {
+                                throw new IllegalStateException("first parent table can not be null ,child table:" + this.entityName);
+                            }
+                            parentRel = firstParentRel.get();
                         }
-                        TableRelation parentRel = firstParentRel.get();
+
                         if (!parentRel.isCardinalityEqual(TabCardinality.ONE_N)) {
                             throw new IllegalStateException("rel" + parentRel + " execute aggreate mush be an rel cardinality:" + TabCardinality.ONE_N);
                         }

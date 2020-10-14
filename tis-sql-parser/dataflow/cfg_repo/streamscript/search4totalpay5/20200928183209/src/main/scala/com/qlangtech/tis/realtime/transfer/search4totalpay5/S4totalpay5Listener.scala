@@ -155,8 +155,9 @@ OrderdetailColEnum.getPKs().forEach((r) =>{
 orderdetailBuilder.add( // 
 ("end_time")
 ,("open_time")
+,("entity_id")
+,("order_id")
 ,("totalpay_id").notCopy()  // FK or primay key
-,("order_id").notCopy()  // FK or primay key
 ,("modify_time").notCopy().timestampVer() //gencode9 
 );
 orderdetailBuilder.addChildTabRef(EntityName.parse("order.totalpayinfo"),Lists.newArrayList(("totalpay_id","totalpay_id")))
@@ -166,7 +167,7 @@ orderdetailBuilder.setGetterRowsFromOuterPersistence(/*gencode5*/
     var orderdetails: List[RowMap]  = null    
     var orderdetailCriteria :OrderdetailCriteria = new OrderdetailCriteria()    
     orderdetailCriteria.createCriteria()    .andOrderIdEqualTo(pk.getValue())
-    orderdetailCriteria.addSelCol(OrderdetailColEnum.END_TIME ,OrderdetailColEnum.OPEN_TIME ,OrderdetailColEnum.TOTALPAY_ID ,OrderdetailColEnum.ORDER_ID)    
+    orderdetailCriteria.addSelCol(OrderdetailColEnum.END_TIME ,OrderdetailColEnum.OPEN_TIME ,OrderdetailColEnum.ENTITY_ID ,OrderdetailColEnum.ORDER_ID ,OrderdetailColEnum.TOTALPAY_ID)    
     orderdetails = this.orderDAOFacade.getOrderdetailDAO().selectColsByExample(orderdetailCriteria,1,100)    
     orderdetails    
 }

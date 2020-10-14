@@ -164,7 +164,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         Collection<IOnsListenerStatus> incrChannels = getAllTransferChannel(result);
         zkClient.addOnReconnect(() -> {
             try {
-                Thread.sleep(60000);
+                Thread.sleep(6000);
             } catch (InterruptedException e) {
             }
             getAllTransferChannel(result);
@@ -201,10 +201,11 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
                 @Override
                 protected void process(Watcher watcher) throws KeeperException, InterruptedException {
-                    Thread.sleep(60000);
+                    Thread.sleep(3000);
                     getAllTransferChannel(result);
                 }
             }, true);
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
