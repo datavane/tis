@@ -77,7 +77,7 @@ public class TestGroupBySqlParser {
         // Map<ColName, ValueOperator> columnTracer = Maps.newHashMap();
         // Rewriter rewriter = Rewriter.create(columnTracer);
         // Query query =
-        terminatorNode.parse();
+        terminatorNode.parse(true);
     // System.out.println(SqlFormatter.formatSql(query, Optional.empty()));
     // 
     // System.out.println("terminator node:" + terminatorNode.getExportName());

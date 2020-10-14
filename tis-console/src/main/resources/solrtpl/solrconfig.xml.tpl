@@ -3,9 +3,6 @@
 <config>
 
   <luceneMatchVersion>8.6.1</luceneMatchVersion>
-  <hdfsHome>${hdfsaddress}</hdfsHome>
-  <tisRepository>${terminator_host_address}</tisRepository>
-
 
   <dataDir>./data</dataDir>
 

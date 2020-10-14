@@ -608,11 +608,22 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
 
         public TableTupleCreator parseFinalSqlTaskNode() throws Exception {
+            SqlTaskNode task = getFinalTaskNode();
+            return task.parse(true);
+        }
+
+        @JSONField(serialize = false)
+        public List<ColName> getFinalTaskNodeCols() throws Exception {
+            SqlTaskNode task = this.getFinalTaskNode();
+            return task.parse(false).getColsRefs().getColRefMap().keySet();
+        }
+
+        private SqlTaskNode getFinalTaskNode() throws Exception {
             List<SqlTaskNode> taskNodes = this.parseTaskNodes();
             SqlTaskNode task = null;
             final String finalNodeName = this.getFinalNode().getExportName();
-            // 
-            Optional<SqlTaskNode> f = // 
+            //
+            Optional<SqlTaskNode> f = //
                     taskNodes.stream().filter((n) -> finalNodeName.equals(n.getExportName().getTabName())).findFirst();
             if (!f.isPresent()) {
                 String setStr = taskNodes.stream().map((n) -> n.getExportName().getJavaEntityName()).collect(Collectors.joining(","));
@@ -624,8 +635,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
              * *******************************
              */
             task = f.get();
-            return task.parse();
+            return task;
         }
+
+
+        /////////////////////////////////////////
 
         public SqlDataFlowTopology() {
             super();
@@ -663,7 +677,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         public SqlTaskNodeMeta getFinalNode() throws Exception {
             List<SqlTaskNodeMeta> finalNodes = getFinalNodes();
             if (finalNodes.size() != 1) {
-                throw new IllegalStateException(// 
+                throw new IllegalStateException(//
                         "finalNodes size must be 1,but now is:" + finalNodes.size() + ",nodes:[" + //
                                 finalNodes.stream().map((r) -> r.getExportName()).collect(Collectors.joining(",")) + "]");
             }
@@ -697,8 +711,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
                     refCount.incr();
                 }
             }
-            // 
-            List<SqlTaskNodeMeta> finalNodes = // 
+            //
+            List<SqlTaskNodeMeta> finalNodes = //
                     exportNameRefs.values().stream().filter(//
                             (e) -> e.refCount.get() < 1).map((r) -> r.taskNode).collect(Collectors.toList());
             return finalNodes;

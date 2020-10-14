@@ -18,12 +18,15 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.HdfsSourcePathCreator;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
+import com.qlangtech.tis.sql.parser.ColName;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -60,8 +63,8 @@ public class WorkflowIndexBuildInterceptor extends IndexBuildInterceptor {
     protected void setBuildTableTitleItems(String indexName, ImportDataProcessInfo processinfo, IExecChainContext execContext) {
         try {
             SqlTaskNodeMeta.SqlDataFlowTopology topology = execContext.getTopology();
-            TableTupleCreator finalNode = topology.parseFinalSqlTaskNode();
-            processinfo.setBuildTableTitleItems(finalNode.getColsRefs().getColRefMap().keySet().stream().map((k) -> k.getAliasName()).collect(Collectors.joining(",")));
+            List<ColName> finalNode = topology.getFinalTaskNodeCols();
+            processinfo.setBuildTableTitleItems(finalNode.stream().map((k) -> k.getAliasName()).collect(Collectors.joining(",")));
         } catch (Exception e) {
             throw new RuntimeException("workflow:" + execContext.getWorkflowName(), e);
         }

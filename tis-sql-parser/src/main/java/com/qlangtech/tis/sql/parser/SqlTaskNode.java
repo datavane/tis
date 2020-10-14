@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -31,6 +31,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.visitor.StreamTransformVisitor;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -106,12 +107,12 @@ public class SqlTaskNode {
         ColRef colsRef = v.getColsRef();
         int index = 0;
         for (Map.Entry<ColName, IDataTupleCreator> /* colName */
-        entry : colsRef.getColRefMap().entrySet()) {
+                entry : colsRef.getColRefMap().entrySet()) {
             // int index, String key, int type, boolean pk
-            result.add(new ColumnMetaData(index++, StringUtils.lowerCase(entry.getKey().getName()), -1, /**
-             * 暂时无法取到类型，先用-1占一下位置
-             */
-            false));
+            result.add(new ColumnMetaData(index++, StringUtils.lowerCase(entry.getKey().getName())
+                    , -1
+                    , /**  * 暂时无法取到类型，先用-1占一下位置    */
+                    false));
         }
         return result;
     }
@@ -184,7 +185,11 @@ public class SqlTaskNode {
 
     private TableTupleCreator tupleCterator = null;
 
-    public TableTupleCreator parse() {
+//    public TableTupleCreator parse() {
+//        return parse(true);
+//    }
+
+    public TableTupleCreator parse(boolean parseAllRefTab) {
         if (tupleCterator != null) {
             return this.tupleCterator;
         }
@@ -201,11 +206,10 @@ public class SqlTaskNode {
             // Optional<TisGroupBy> groupBy = v.getGroupBy();
             tupleCterator.setColsRefs(colsRefs);
             // TaskNode 識別
-            for (Map.Entry<String, IDataTupleCreator> /**
-             * ref
-             */
-            entry : colsRefs.getBaseRefEntities()) {
-                entry.getValue().accept(taskNodeRecognizedVisitor);
+            if (parseAllRefTab) {
+                for (Map.Entry<String, IDataTupleCreator> /*** ref */entry : colsRefs.getBaseRefEntities()) {
+                    entry.getValue().accept(taskNodeRecognizedVisitor);
+                }
             }
             return tupleCterator;
         } catch (Exception e) {
@@ -255,7 +259,7 @@ public class SqlTaskNode {
                 if (colRef == null && tableTuple.getNodetype() == NodeType.JOINER_SQL) {
                     SqlTaskNode taskNode = dumpNodesContext.geTaskNode(tableTuple.getEntityName());
                     // SqlTaskNode taskNode = SqlTaskNode.geTaskNode(tableTuple.getEntityName().getTabName());
-                    tableTuple.setColsRefs(taskNode.parse().getColsRefs());
+                    tableTuple.setColsRefs(taskNode.parse(true).getColsRefs());
                     taskNode.getGroupBy();
                     colRef = tableTuple.getColsRefs();
                     colRef.getBaseRefEntities().forEach((entry) -> {
@@ -278,7 +282,7 @@ public class SqlTaskNode {
     // private static final Pattern PATTERN_REQUIRED =
     // Pattern.compile("required:(.+?)");
     public static void main(String[] args) throws Exception {
-    // parseTaskNode();
+        // parseTaskNode();
     }
 
     // public static List<SqlTaskNode> parseTaskNodes(SqlDataFlowTopology topology) throws Exception {

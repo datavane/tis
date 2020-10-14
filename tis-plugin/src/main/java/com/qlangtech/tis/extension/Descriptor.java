@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -33,6 +33,7 @@ import com.qlangtech.tis.util.XStream2;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -41,6 +42,7 @@ import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.popFieldStack;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.pushFieldStack;
 
@@ -53,6 +55,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static final String KEY_primaryVal = "_primaryVal";
 
     public static final String KEY_OPTIONS = "options";
+
+    private static final String KEY_VALIDATE_METHOD_PREFIX = "validate";
+    private static final Pattern validateMethodPattern = Pattern.compile(KEY_VALIDATE_METHOD_PREFIX + "(.+?)");
 
     /**
      * The class being described by this descriptor.
@@ -72,9 +77,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             clazz = (Class) getClass();
         this.clazz = clazz;
         this.validateMethodMap = this.createValidateMap();
-    // doing this turns out to be very error prone,
-    // as field initializers in derived types will override values.
-    // load();
+        // doing this turns out to be very error prone,
+        // as field initializers in derived types will override values.
+        // load();
     }
 
     /**
@@ -114,7 +119,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         // validate${fieldName}
         // System.out.println(this.getClass().getName());
         Method[] validateMethods = this.getClass().getMethods();
-        Pattern validateMethodPattern = Pattern.compile("validate(.+?)");
+
         Matcher methodMatcher = null;
         String fieldName = null;
         for (Method validateMethod : validateMethods) {
@@ -122,18 +127,29 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             methodMatcher = validateMethodPattern.matcher(validateMethod.getName());
             if (methodMatcher.matches()) {
                 fieldName = StringUtils.uncapitalize(methodMatcher.group(1));
-                Parameter[] parameters = validateMethod.getParameters();
-                if (parameters.length == 4) {
-                    if (// key
-                    parameters[0].getType() == IFieldErrorHandler.class && parameters[1].getType() == Context.class && // value
-                    parameters[2].getType() == String.class && parameters[3].getType() == String.class) {
-                        if (validateMethod.getReturnType() != Boolean.TYPE) {
-                            throw new IllegalStateException("method:" + validateMethod.getName() + " return type shall be type of boolean");
+                //KEY_VALIDATE_METHOD_PREFIX
+                if (StringUtils.isNotBlank(fieldName)) {
+                    // 针对某一个字段进行校验
+                    Parameter[] parameters = validateMethod.getParameters();
+                    if (parameters.length == 4) {
+                        if (// key
+                                parameters[0].getType() == IFieldErrorHandler.class && parameters[1].getType() == Context.class && // value
+                                        parameters[2].getType() == String.class && parameters[3].getType() == String.class) {
+                            if (validateMethod.getReturnType() != Boolean.TYPE) {
+                                throw new IllegalStateException("method:" + validateMethod.getName() + " return type shall be type of boolean");
+                            }
+                            mapBuilder.put(fieldName, validateMethod);
+                            // validateMethodMap.put(fieldName, validateMethod);
                         }
-                        mapBuilder.put(fieldName, validateMethod);
-                    // validateMethodMap.put(fieldName, validateMethod);
                     }
                 }
+
+//                else {
+//                    // 针对全部属性联合进行校验，例如：在上提交数据库配置表单，服务端需要连接一下数据库进行测试就需要拿到所有表单信息之后惊醒一次校验
+//                    // 这个校验一般是放在字段校验之后进行的
+//
+//                   // mapBuilder.put(KEY_VALIDATE_METHOD_PREFIX, validateMethod);
+//                }
             }
         }
         return mapBuilder.build();
@@ -192,7 +208,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public Map<String, /**
      * fieldname
      */
-    PropertyType> getPropertyTypes() {
+            PropertyType> getPropertyTypes() {
         if (propertyTypes == null)
             propertyTypes = buildPropertyTypes(clazz);
         return propertyTypes;
@@ -201,7 +217,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     private Map<String, /**
      * fieldname
      */
-    PropertyType> buildPropertyTypes(Class<?> clazz) {
+            PropertyType> buildPropertyTypes(Class<?> clazz) {
         Map<String, PropertyType> r = new HashMap<String, PropertyType>();
         FormField formField = null;
         for (Field f : clazz.getDeclaredFields()) {
@@ -227,7 +243,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public final boolean validate(IFieldErrorHandler msgHandler, Context context, Map<String, /**
      * attr key
      */
-    com.alibaba.fastjson.JSONObject> formData) {
+            com.alibaba.fastjson.JSONObject> formData) {
         String impl = null;
         Descriptor descriptor;
         String attr;
@@ -235,10 +251,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         JSONObject valJ;
         String attrVal;
         boolean valid = true;
-        Map<String, PropertyType> /**
-         * fieldname
-         */
-        propertyTypes = this.getPropertyTypes();
+
+        Map<String, PropertyType> /** * fieldname */
+                propertyTypes = this.getPropertyTypes();
+        PostFormVals postFormVals = new PostFormVals();
+
         for (Map.Entry<String, PropertyType> entry : propertyTypes.entrySet()) {
             attr = entry.getKey();
             attrDesc = entry.getValue();
@@ -278,6 +295,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 }
                 if (containVal) {
                     attrVal = valJ.getString(KEY_primaryVal);
+                    postFormVals.fieldVals.put(attr, attrVal);
                     Validator[] validators = attrDesc.getValidator();
                     for (Validator v : validators) {
                         if (!v.validate(msgHandler, context, attr, attrVal)) {
@@ -298,8 +316,25 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     }
                 }
             }
+        }// end for
+
+        if (!this.validate(msgHandler, context, postFormVals)) {
+            valid = false;
         }
+
         return valid;
+    }
+
+    /**
+     * 校验整体表单
+     *
+     * @param msgHandler
+     * @param context
+     * @param postFormVals
+     * @return true 代表没有错误
+     */
+    protected boolean validate(IFieldErrorHandler msgHandler, Context context, PostFormVals postFormVals) {
+        return true;
     }
 
     private void addFieldRequiredError(IFieldErrorHandler msgHandler, Context context, String attrKey) {
@@ -307,10 +342,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     // @Override
-    public ParseDescribable<T> newInstance(Map<String, /**
-     * attr key
-     */
-    com.alibaba.fastjson.JSONObject> formData) {
+    public ParseDescribable<T> newInstance(Map<String, /** * attr key */
+            com.alibaba.fastjson.JSONObject> formData) {
         try {
             T describable = clazz.newInstance();
             return parseDescribable(describable, formData);
@@ -330,7 +363,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     private ParseDescribable<T> parseDescribable(T describable, Map<String, /**
      * Attr Name
      */
-    JSONObject> keyValMap) {
+            JSONObject> keyValMap) {
         ParseDescribable<T> result = new ParseDescribable<>(describable);
         String impl;
         Descriptor descriptor;
@@ -406,7 +439,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static Map<String, /**
      * attrName
      */
-    JSONObject> parseAttrValMap(Object vals) {
+            JSONObject> parseAttrValMap(Object vals) {
         Map<String, com.alibaba.fastjson.JSONObject> attrValMap = Maps.newHashMap();
         if (vals == null) {
             return attrValMap;
@@ -620,7 +653,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     private final Map<String, Callable<List<? extends IdentityName>>> /**
      * fieldname
      */
-    selectOptsRegister = Maps.newHashMap();
+            selectOptsRegister = Maps.newHashMap();
 
     /**
      * 如果插件中有selectable的控件，则在descriptor中需要注册selectable控件中的内容
@@ -666,6 +699,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
         public String getImpl() {
             return implClass.getName();
+        }
+    }
+
+    public static class PostFormVals {
+        private Map<String, String> fieldVals = Maps.newHashMap();
+
+        public String getField(String key) {
+            return fieldVals.get(key);
         }
     }
 }

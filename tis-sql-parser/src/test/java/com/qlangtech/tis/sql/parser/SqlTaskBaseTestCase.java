@@ -45,7 +45,7 @@ public abstract class SqlTaskBaseTestCase extends TestCase {
          * 开始解析
          * *******************************
          */
-        return task.parse();
+        return task.parse(true);
     }
 
     protected List<SqlTaskNode> parseTopologySqlTaskNodes(String topologyName) throws Exception {
@@ -53,17 +53,5 @@ public abstract class SqlTaskBaseTestCase extends TestCase {
         // SqlTaskNode.parseTaskNodes(topology);
         List<SqlTaskNode> taskNodes = topology.parseTaskNodes();
         return taskNodes;
-    // SqlTaskNode task = null;
-    // Optional<SqlTaskNode> taskNode = taskNodes.stream().filter((r) -> mediaTableName.equals(r.getExportName().getTabName())).findFirst();
-    // Assert.assertTrue(mediaTableName + " shall be exist", taskNode.isPresent());
-    // // Map<ColName, ValueOperator> columnTracer = Maps.newHashMap();
-    // // Rewriter rewriter = Rewriter.create(columnTracer);
-    // task = taskNode.get();
-    // /**
-    // * *******************************
-    // * 开始解析
-    // * *******************************
-    // */
-    // return task.parse();
     }
 }

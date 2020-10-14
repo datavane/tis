@@ -178,6 +178,14 @@ public class FunctionUtils {
         return min.get();
     }
 
+    public static Object max(GroupValues groupVales, IValGetter valGetter) {
+        Optional<Object> min = groupVales.vals.stream().map((r) -> valGetter.getVal(r)).max(rowValueGetterComparator);
+        if (!min.isPresent()) {
+            throw new IllegalStateException("datas can not find minist elements");
+        }
+        return min.get();
+    }
+
     /**
      * 四舍五入保留scale位小数
      *

@@ -77,6 +77,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
         // https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF
         funcMeta.put("rlike", new TISUdfMeta(false, FunctionUtils.getMethod("rlike", String.class, String.class)));
         funcMeta.put("min", new TISUdfMeta(true, FunctionUtils.getMethod("min", GroupValues.class, IValGetter.class)));
+        funcMeta.put("max", new TISUdfMeta(true, FunctionUtils.getMethod("max", GroupValues.class, IValGetter.class)));
         funcMeta.put("split", new TISUdfMeta(false, FunctionUtils.getMethod("split", String.class, String.class)));
         // concat_ws(String separator, Object... objs)
         funcMeta.put("concat_ws", new TISUdfMeta(false, FunctionUtils.getMethod("concat_ws", String.class, Object[].class)));

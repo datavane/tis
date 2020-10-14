@@ -97,8 +97,8 @@ public class SchemaAction extends BasicModule {
     SolrType strType = parseResult.getTisType(SolrType.DEFAULT_STRING_TYPE_NAME);
     SolrType longType = parseResult.getTisType("long");
     SqlTaskNodeMeta.SqlDataFlowTopology dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workflow.getName());
-    TableTupleCreator finalJoinNode = dfTopology.parseFinalSqlTaskNode();
-    for (ColName colName : finalJoinNode.getColsRefs().getColRefMap().keySet()) {
+    List<ColName> cols = dfTopology.getFinalTaskNodeCols();
+    for (ColName colName : cols) {
       PSchemaField f = new PSchemaField();
       f.setName(colName.getAliasName());
       f.setType(strType);

@@ -91,7 +91,7 @@ public class TabCriteriaEntityRecognizeVisitor implements IDataTupleCreatorVisit
                 EntityName firstMatch = dumpNodsContext.accurateMatch(table);
                 subqueryTaskNode.addRequired(firstMatch, new SqlTaskNode(firstMatch, NodeType.DUMP, this.dumpNodsContext));
             });
-            final TableTupleCreator tupleCreator = subqueryTaskNode.parse();
+            final TableTupleCreator tupleCreator = subqueryTaskNode.parse(true);
             tableTuple.setColsRefs(tupleCreator.getColsRefs());
             tableTuple.setRealEntityName(tupleCreator.getEntityName());
         // tableTuple.setEntityRef(new EntitiyRef(tableCriteria.getName(),
