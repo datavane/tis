@@ -29,6 +29,17 @@ object BasicRuleDrivenListener {
  */
 abstract class BasicRuleDrivenListener extends BasicRMListener() {
 
+  /**
+   *  子类中在设置 <br>
+   *  empNo：string <br>
+   *  andEmpNoEqualTo 需要的是int <br>
+   *  deptEmpCriteria.createCriteria().andEmpNoEqualTo(empNo) <br>
+   * @param data
+   * @return
+   */
+  protected implicit def convert2Double(data: String): Integer = {
+    data.toInt
+  }
 
   protected implicit def convert2Double(data: Any): Double = {
 

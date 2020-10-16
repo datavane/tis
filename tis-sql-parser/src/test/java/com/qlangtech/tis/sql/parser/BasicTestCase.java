@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.sql.parser;
 
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import junit.framework.TestCase;
@@ -27,15 +28,16 @@ import java.io.IOException;
  * @date 2020/04/13
  */
 public class BasicTestCase extends TestCase {
-    static final String dataflowDir = "./dataflow";
+   // static final String dataflowDir = "./dataflow";
 
     static {
-        Config.setDataDir(dataflowDir);
-        try {
-            FileUtils.forceMkdir(new File(dataflowDir));
-        } catch (IOException e) {
-            throw new RuntimeException(dataflowDir, e);
-        }
+        CenterResource.setNotFetchFromCenterRepository();
+//        Config.setDataDir(dataflowDir);
+//        try {
+//            FileUtils.forceMkdir(new File(dataflowDir));
+//        } catch (IOException e) {
+//            throw new RuntimeException(dataflowDir, e);
+//        }
         HttpUtils.addMockGlobalParametersConfig();
     }
 }
