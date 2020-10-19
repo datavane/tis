@@ -117,7 +117,7 @@ public class SysInitializeAction extends BasicModule {
             }
           }
           if (!containTisConsole) {
-            statement.execute("create database " + dbCfg.dbname);
+            statement.addBatch("create database " + dbCfg.dbname+";");
             statement.addBatch("use " + dbCfg.dbname + ";");
             statement.addBatch(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
             statement.executeBatch();
