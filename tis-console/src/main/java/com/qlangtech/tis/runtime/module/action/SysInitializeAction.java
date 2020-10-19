@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -94,21 +95,34 @@ public class SysInitializeAction extends BasicModule {
 //		<property name="username" value="${tis.datasource.username}" />
 //		<property name="password" value="${tis.datasource.password}" />
 //		<property name="validationQuery" value="select 1" />
-
-    dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-    dataSource.setUrl("jdbc:mysql://" + dbCfg.url + ":3306?useUnicode=yes&amp;characterEncoding=utf8");
-    dataSource.setUsername(dbCfg.userName);
-    dataSource.setPassword(dbCfg.password);
-    dataSource.setValidationQuery("select 1");
-    try (Connection conn = dataSource.getConnection()) {
-      try (Statement statement = conn.createStatement()) {
-        // 初始化TIS数据库
-        logger.info("init tis_console db and initialize the tables");
-        statement.execute("create database tis_console");
-        statement.executeLargeUpdate(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
+    try {
+      dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+      dataSource.setUrl("jdbc:mysql://" + dbCfg.url + ":3306?useUnicode=yes&amp;characterEncoding=utf8");
+      dataSource.setUsername(dbCfg.userName);
+      dataSource.setPassword(dbCfg.password);
+      dataSource.setValidationQuery("select 1");
+      try (Connection conn = dataSource.getConnection()) {
+        try (Statement statement = conn.createStatement()) {
+          // 初始化TIS数据库
+          logger.info("init tis_console db and initialize the tables");
+          boolean containTisConsole = false;
+          try (ResultSet showDatabaseResult = statement.executeQuery("show database")) {
+            if ("tis_console".equals(showDatabaseResult.getString(1))) {
+              containTisConsole = true;
+            }
+          }
+          if (!containTisConsole) {
+            statement.execute("create database tis_console");
+            statement.addBatch(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
+            statement.executeBatch();
+            FileUtils.forceDelete(tisConsoleSqlFile);
+          }
+        }
       }
+    } finally {
+      dataSource.close();
     }
-    dataSource.close();
+
     SysInitializeAction initAction = new SysInitializeAction();
     //ClassPathXmlApplicationContext tis.application.context.xml
     ApplicationContext appContext = new ClassPathXmlApplicationContext("classpath:/tis.application.context.xml");
