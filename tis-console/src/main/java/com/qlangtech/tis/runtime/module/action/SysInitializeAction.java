@@ -129,10 +129,11 @@ public class SysInitializeAction extends BasicModule {
             try {
               statement.addBatch("create database " + dbCfg.dbname + ";");
               statement.addBatch("use " + dbCfg.dbname + ";");
-              for (String sql : convert2BatchSql(tisConsoleSqlFile)) {
-                statement.addBatch(sql);
-              }
               statement.executeBatch();
+              for (String sql : convert2BatchSql(tisConsoleSqlFile)) {
+                statement.execute(sql);
+              }
+
               FileUtils.forceDelete(tisConsoleSqlFile);
               execSuccess = true;
             } finally {
