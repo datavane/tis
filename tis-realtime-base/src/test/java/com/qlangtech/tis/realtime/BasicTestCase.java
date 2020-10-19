@@ -428,22 +428,7 @@ public abstract class BasicTestCase extends TestCase {
         }
     }
 
-    protected void createUnitTab() {
-    // Unit unit = this.deserializeBean("db_union_1.txt", Unit.class);
-    // menuDAOFacade.getMenuDAO().insertUnit(unit);
-    // unit = this.deserializeBean("db_union_2.txt", Unit.class);
-    // menuDAOFacade.getMenuDAO().insertUnit(unit);
-    // unit = this.deserializeBean("db_union_3.txt", Unit.class);
-    // menuDAOFacade.getMenuDAO().insertUnit(unit);
-    // unit = this.deserializeBean("db_union_4_00000000.txt", Unit.class);
-    // menuDAOFacade.getMenuDAO().insertUnit(unit);
-    }
-
-    // protected AsyncMsg createInsertMQMessage(String tabName, String resourcePath) {
-    // return createInsertMQMessage(tabName, this.deserializeBean(resourcePath));
-    // }
     protected <T> AsyncMsg createInsertMQMessage(String tabName, DTO<T> pojo) {
-        // (r) -> r
         return createMsg(tabName, com.qlangtech.tis.realtime.transfer.DTO.EventType.ADD, pojo, (r) -> r);
     }
 
@@ -455,8 +440,8 @@ public abstract class BasicTestCase extends TestCase {
     }
 
     private <T> AsyncMsg createMsg(String tabName, EventType event, DTO<T> dto, ICallback updateCaller) {
-        return (AsyncMsg) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { AsyncMsg.class }, new InvocationHandler() {
-
+        return (AsyncMsg) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader()
+                , new Class<?>[] { AsyncMsg.class }, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if ("getContent".equals(method.getName())) {

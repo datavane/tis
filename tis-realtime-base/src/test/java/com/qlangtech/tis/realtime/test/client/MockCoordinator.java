@@ -24,6 +24,10 @@ import java.util.List;
  * @date 2020/04/13
  */
 public class MockCoordinator implements ITISCoordinator {
+    @Override
+    public boolean shallConnect2RemoteIncrStatusServer() {
+        return false;
+    }
 
     @Override
     public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {

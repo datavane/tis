@@ -91,12 +91,15 @@ public class DBNode {
             List<DBNode> dbs = null;
             try (InputStream input = FileUtils.openInputStream(StreamContextConstant.getDbDependencyConfigMetaFile(collection, timestamp))) {
                 dbs = DBNode.load(input);
-                Map<String, DBConfig> dbConfigsMap = dbs.stream().collect(Collectors.toMap((db) -> db.getDbName(), (db) -> GitUtils.$().getDbLinkMetaData(db.getDbName(), DbScope.FACADE)));
+                Map<String, DBConfig> dbConfigsMap
+                        = dbs.stream().collect(Collectors.toMap((db) -> db.getDbName()
+                        , (db) -> GitUtils.$().getDbLinkMetaData(db.getDbName(), DbScope.FACADE)));
+
                 for (Map.Entry<String, DBConfig> entry : dbConfigsMap.entrySet()) {
                     SpringDBRegister dbRegister = new SpringDBRegister(entry.getKey(), entry.getValue(), factory);
                     dbRegister.visitFirst();
                 }
-            // return dbConfigsMap;
+
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -196,19 +196,25 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                 }
 
                 // 设置是否是主键
+                boolean isPrimaryTable = false;
                 Optional<TableMeta> primaryFind = erR.getPrimaryTab(entityName);
+                PrimaryTableMeta ptab = null;
                 if (primaryFind.isPresent()) {
+                    isPrimaryTable = true;
+                    ptab = (PrimaryTableMeta) primaryFind.get();
                     aliasListBuffer.append(".setPrimaryTableOfIndex()");
                 }
 
                 aliasListBuffer.returnLine();
 
+                if (!isPrimaryTable) {
+                    // 设置主键
+                    aliasListBuffer
+                            .methodBody(entityName.javaPropTableName() + "ColEnum.getPKs().forEach((r) =>", (r) -> {
+                                r.startLine(entityName.getJavaEntityName()).append("Builder.add(r.getName().PK())");
+                            }).append(")");
+                }
 
-                // 设置主键
-                aliasListBuffer
-                        .methodBody(entityName.javaPropTableName() + "ColEnum.getPKs().forEach((r) =>", (r) -> {
-                            r.startLine(entityName.getJavaEntityName()).append("Builder.add(r.getName().PK())");
-                        }).append(")");
 
                 aliasListBuffer.startLine(entityName.getJavaEntityName()).append("Builder.add(").append(" // ").returnLine();
 
@@ -244,6 +250,11 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                                 .append(first.getOutputColName().getAliasName()).append("\")");
                     } else {
                         aliasListBuffer.append("(\"").append(last.getOutputColName().getName()).append("\")");
+                    }
+
+                    // 如果是主表就在通过单独的列meta配置中的信息来设置主键，在实际例子中发现表中使用了联合主键，在运行的时候会出错
+                    if (isPrimaryTable && ptab.isPK(last.getOutputColName().getName())) {
+                        aliasListBuffer.append(".PK()");
                     }
 
                     if (erR.isTimestampVerColumn(entityName, last.getOutputColName().getName())) {
@@ -623,7 +634,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 //                            parentRel.setParent(null);
 //                            parentRel.setChild(null);
                             parentRel.setCardinality(TabCardinality.ONE_N.getToken());
-                           // List<JoinerKey> joinerKeys = Lists.newArrayList();
+                            // List<JoinerKey> joinerKeys = Lists.newArrayList();
                             parentRel.setJoinerKeys(p.getPrimaryKeyNames().stream().map((rr) -> new JoinerKey(rr.getName(), rr.getName())).collect(Collectors.toList()));
                         } else {
                             Optional<TableRelation> firstParentRel = this.erRules.getFirstParent(this.entityName.getTabName());

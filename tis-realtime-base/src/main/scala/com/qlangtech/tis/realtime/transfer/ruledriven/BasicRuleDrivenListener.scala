@@ -37,7 +37,7 @@ abstract class BasicRuleDrivenListener extends BasicRMListener() {
    * @param data
    * @return
    */
-  protected implicit def convert2Double(data: String): Integer = {
+  protected implicit def convert2Integer(data: String): Integer = {
     data.toInt
   }
 

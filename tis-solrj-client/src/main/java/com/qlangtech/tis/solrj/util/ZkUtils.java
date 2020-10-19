@@ -55,8 +55,11 @@ public class ZkUtils {
         if (coordinator == null) {
             throw new IllegalArgumentException("param coordinator can not be null");
         }
+        List<String> children = coordinator.getChildren(zkPath, watcher, true);
+        if (children == null) {
+            throw new IllegalStateException("zkPath:" + zkPath + " relevant children can not be null");
+        }
         try {
-            List<String> children = coordinator.getChildren(zkPath, watcher, true);
             if (onReconnect && watcher != null) {
                 coordinator.addOnReconnect(() -> {
                     getFirstChildValue(coordinator, zkPath, watcher, false);

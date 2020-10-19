@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.io.Resource;
+
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -44,7 +45,7 @@ public abstract class BasicTransferTool {
 
     // 本地保存监听的collection下的topic的状态
     protected final Map<String, TopicInfo> /* collection */
-    collectionFocusTopicInfo = new HashMap<>();
+            collectionFocusTopicInfo = new HashMap<>();
 
     private final URLClassLoader classLoader;
 
@@ -84,8 +85,8 @@ public abstract class BasicTransferTool {
                 if (StringUtils.isBlank(collectionName)) {
                     throw new IllegalStateException("includesCollectionNames set can not be empty");
                 }
-                AppLauncherResource launcherResource = getLauncherResource(Collections.singleton(collectionName));
-                Resource[] resources = launcherResource.getResource().toArray(new Resource[] {});
+                AppLauncherResource launcherResource = getLauncherResource(collectionName);
+                Resource[] resources = launcherResource.getResource().toArray(new Resource[]{});
                 logger.info("load extra resource:{}", Arrays.stream(resources).map(r -> r.toString()).collect(Collectors.joining(",")));
                 this.appContext = new ResourceXmlApplicationContext(resources) {
 
@@ -143,16 +144,17 @@ public abstract class BasicTransferTool {
         this.addCollectionFocuseTag(listener.getCollectionName(), topic, listener.getTableFocuse());
     }
 
-    protected AppLauncherResource getLauncherResource(Set<String> includesCollectionNames) throws IOException {
+    protected AppLauncherResource getLauncherResource(String includesCollectionName) throws IOException {
         if (launcherResource == null) {
-            launcherResource = LauncherResourceUtils.getAppResource(includesCollectionNames, "classpath*:com/qlangtech/tis/realtime/transfer/search4*/app-context*.xml", this.classLoader);
+            launcherResource = LauncherResourceUtils.getAppResource(Collections.singleton(includesCollectionName)
+                    , "classpath*:com/qlangtech/tis/realtime/transfer/" + includesCollectionName + "/app-context*.xml", this.classLoader);
         }
         return launcherResource;
     }
 
-    private static final Set<String> includesCollectionNames = Collections.emptySet();
+    // private static final Set<String> includesCollectionNames = Collections.emptySet();
 
-    protected AppLauncherResource getLauncherResource() throws IOException {
-        return getLauncherResource(includesCollectionNames);
-    }
+//    protected AppLauncherResource getLauncherResource() throws IOException {
+//        return getLauncherResource(includesCollectionNames);
+//    }
 }

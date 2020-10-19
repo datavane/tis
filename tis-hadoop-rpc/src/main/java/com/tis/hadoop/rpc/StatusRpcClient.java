@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,6 +34,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -69,6 +70,7 @@ public class StatusRpcClient {
     // public void close() {
     // }
     // };
+
     /**
      * 连接日志收集节点地址
      *
@@ -79,12 +81,11 @@ public class StatusRpcClient {
     private void connect2RemoteIncrStatusServer(final ITISCoordinator zookeeper, boolean reConnect, final AssembleSvcCompsiteCallback rpcCallback) throws Exception {
         // 增量状态收集节点
         final String incrStateCollectAddress = ZkUtils.getFirstChildValue(zookeeper, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, new AbstractWatcher() {
-
             @Override
             protected void process(Watcher watcher) throws KeeperException, InterruptedException {
                 try {
                     connect2RemoteIncrStatusServer(zookeeper, false, /* reConnect */
-                    rpcCallback);
+                            rpcCallback);
                 } catch (Exception e) {
                     error(e.getMessage(), e);
                     logger.error(e.getMessage(), e);
@@ -162,29 +163,34 @@ public class StatusRpcClient {
     private AtomicReference<AssembleSvcCompsite> connect2RemoteIncrStatusServer(ITISCoordinator zookeeper, AdapterAssembleSvcCompsiteCallback... callbacks) throws Exception {
         final AtomicReference<AssembleSvcCompsite> ref = new AtomicReference<>();
         ref.set(AssembleSvcCompsite.MOCK_PRC);
+        if (!zookeeper.shallConnect2RemoteIncrStatusServer()) {
+            return ref;
+        }
+
+
         StatusRpcClient statusRpcClient = new StatusRpcClient();
         statusRpcClient.connect2RemoteIncrStatusServer(zookeeper, true, /* reConnect */
-        new AssembleSvcCompsiteCallback() {
+                new AssembleSvcCompsiteCallback() {
 
-            @Override
-            public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
-                ref.compareAndSet(oldrpc, newrpc);
-                for (AdapterAssembleSvcCompsiteCallback c : callbacks) {
-                    c.process(oldrpc, newrpc);
-                }
-                return newrpc;
-            }
+                    @Override
+                    public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
+                        ref.compareAndSet(oldrpc, newrpc);
+                        for (AdapterAssembleSvcCompsiteCallback c : callbacks) {
+                            c.process(oldrpc, newrpc);
+                        }
+                        return newrpc;
+                    }
 
-            @Override
-            public AssembleSvcCompsite getOld() {
-                return ref.get();
-            }
+                    @Override
+                    public AssembleSvcCompsite getOld() {
+                        return ref.get();
+                    }
 
-            @Override
-            public void errorOccur(AssembleSvcCompsite oldrpc, Exception e) {
-                ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
-            }
-        });
+                    @Override
+                    public void errorOccur(AssembleSvcCompsite oldrpc, Exception e) {
+                        ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
+                    }
+                });
         return ref;
     }
 
@@ -204,7 +210,6 @@ public class StatusRpcClient {
     public abstract static class AssembleSvcCompsite {
 
         public static final AssembleSvcCompsite MOCK_PRC = new AssembleSvcCompsite(new MockIncrStatusUmbilicalProtocol(), new MockLogReporter()) {
-
             @Override
             public void close() {
             }

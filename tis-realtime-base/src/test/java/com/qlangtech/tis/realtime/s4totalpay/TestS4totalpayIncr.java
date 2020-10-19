@@ -1,20 +1,20 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.realtime.s4totalpay;
 
-import com.qlangtech.tis.cloud.ITisCloudClientFactory;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.realtime.DefaultTableWrapper;
 import com.qlangtech.tis.realtime.test.client.MockTisCloudClient;
 import com.qlangtech.tis.realtime.test.member.pojo.Card;
@@ -22,8 +22,10 @@ import com.qlangtech.tis.realtime.test.member.pojo.Customer;
 import com.qlangtech.tis.realtime.test.order.pojo.*;
 import com.qlangtech.tis.realtime.test.shop.pojo.MallShop;
 import com.qlangtech.tis.realtime.transfer.BasicPojoConsumer;
-import com.qlangtech.tis.realtime.transfer.BasicRMListener;
+import com.qlangtech.tis.spring.LauncherResourceUtils;
 import org.apache.solr.common.SolrDocument;
+
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -33,16 +35,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class TestS4totalpayIncr extends AbstractTestS4totalpayIncr {
 
-    static {
-        BasicRMListener.CloudClientTypeCode = ITisCloudClientFactory.TEST_MOCK;
-    }
+
+
 
     public TestS4totalpayIncr() {
         super(false);
     }
 
     public void testGetBeanGroup() {
-        BeanGroup beanGroup = new BeanGroup().invoke();
+        BeanGroup beanGroup = new BeanGroup(this.listenerBean).invoke();
         assertNotNull(beanGroup);
         beanGroup.totalpayinfo.startCollectUpdateProp();
         assertTrue(beanGroup.totalpayinfo.vals.isUpdatePropsCollect());
@@ -53,7 +54,7 @@ public class TestS4totalpayIncr extends AbstractTestS4totalpayIncr {
         // TisIncrLauncher.main(new String[]{"search4totalpay", "20190820171040"});
         CountDownLatch countd = new CountDownLatch(1);
         System.out.println("test over");
-        BeanGroup beanGroup = new BeanGroup().invoke();
+        BeanGroup beanGroup = new BeanGroup(this.listenerBean).invoke();
         DTO<Specialfee> specialfee = beanGroup.getSpecialfee();
         DTO<MallShop> shopPojo = beanGroup.getShopPojo();
         DTO<Card> card = beanGroup.getCard();
@@ -100,10 +101,10 @@ public class TestS4totalpayIncr extends AbstractTestS4totalpayIncr {
                 // from instancedetail
                 assertEquals(1, doc.getFieldValue("has_fetch"));
                 assertEquals("8f931168c2b44f7bb05e77e27286ce0c,8f931168c2b44f7bb05e77e27286cccc", doc.getFieldValue("customer_ids"));
-            // 8f931168c2b44f7bb05e77e27286ce0c
-            // for (SolrInputField f : doc.getInputDoc()) {
-            // System.out.println(f.getName() + ":" + f.getValue());
-            // }
+                // 8f931168c2b44f7bb05e77e27286ce0c
+                // for (SolrInputField f : doc.getInputDoc()) {
+                // System.out.println(f.getName() + ":" + f.getValue());
+                // }
             } finally {
             }
             countd.countDown();
@@ -115,7 +116,7 @@ public class TestS4totalpayIncr extends AbstractTestS4totalpayIncr {
      * 测试更新流程
      */
     public void testUpdateTotalpayInfo() throws Exception {
-        BeanGroup beanGroup = new BeanGroup().invoke();
+        BeanGroup beanGroup = new BeanGroup(this.listenerBean).invoke();
         SolrDocument solrDocument = deseriablizeDoc("doc_1.txt");
         MockTisCloudClient.expectGetDocById(String.valueOf(solrDocument.getFieldValue("totalpay_id")), solrDocument);
         final long timestamp = System.currentTimeMillis() / 1000;

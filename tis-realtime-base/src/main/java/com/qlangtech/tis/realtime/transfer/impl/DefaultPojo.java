@@ -190,7 +190,8 @@ public class DefaultPojo implements IPojo {
     }
 
     protected IRowPack createRowPack(ITable table) {
-        return new SingleDimensionsRowPack(table, this.onsListener.getTabColumnMeta(table.getTableName()).getTimeVersionCol());
+        return new SingleDimensionsRowPack(table
+                , this.onsListener.getTabColumnMeta(table.getTableName()).getTimeVersionCol());
     }
 
     // /**

@@ -32,6 +32,11 @@ public class TisZkClient implements ITISCoordinator {
 
     private final List<OnReconnect> reconnectList;
 
+    @Override
+    public boolean shallConnect2RemoteIncrStatusServer() {
+        return true;
+    }
+
     private final SolrZkClient zkclient;
 
     public TisZkClient(String zkServerAddress, int zkClientTimeout) {

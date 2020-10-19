@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans >
+  <bean id="deptEmpDAO" class="com.qlangtech.tis.realtime.test.employees.dao.impl.DeptEmpDAOImpl" parent="employeesBaseDAO" />
+  <bean id="employeesDatasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+    <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+    <property name="url" value="jdbc:mysql://192.168.28.200:3306/employees?useUnicode=true&amp;characterEncoding=utf-8&amp;zeroDateTimeBehavior=convertToNull&amp;autoReconnect=true" />
+    <property name="username" value="root" />
+    <property name="password" value="123456" />
+    <property name="validationQuery" value="select 1" />
+  </bean>
+  <bean id="employeesBaseDAO" class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport" abstract="true" >
+    <property name="dataSource" ref="employeesDatasource" />
+    <property name="sqlMapClient" >
+      <bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean" >
+        <property name="configLocation" value="classpath:/conf/employees-sqlmap-config.xml" />
+      </bean>
+    </property>
+  </bean>
+  <bean id="employeesDAOFacade" class="com.qlangtech.tis.realtime.test.employees.dao.impl.EmployeesDAOFacadeImpl" >
+    <constructor-arg index="0" ref="deptEmpDAO" />
+  </bean>
+</beans>

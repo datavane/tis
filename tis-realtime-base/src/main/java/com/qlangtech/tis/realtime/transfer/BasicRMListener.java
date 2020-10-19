@@ -666,7 +666,7 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
                     }
                     if (!this.pojoQueue.offer(pojo)) {
                         // size 已经到上限,太累了需要休息一会儿了
-                        String msg = this.getCollectionName() + "incr too tried to work , waiting for a moment";
+                        String msg = this.getCollectionName() + "incr too tried to work , wait for a moment";
                         log.warn(msg);
                         SendSMSUtils.send(msg, SendSMSUtils.BAISUI_PHONE);
                         Thread.sleep(30000);

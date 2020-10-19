@@ -51,6 +51,10 @@ public class PrimaryTableMeta extends TableMeta {
         return this.primaryKeyNames;
     }
 
+    public boolean isPK(String colName) {
+        return getPrimaryKeyNames().stream().filter((cname) -> StringUtils.equals(cname.getName(), colName)).count() > 0;
+    }
+
     /**
      * 取得数据库中为物理主键的PK键，其他的非Pk的作为查询Corbar数据源的路由键使用
      *
@@ -93,7 +97,7 @@ public class PrimaryTableMeta extends TableMeta {
         return createCompositePK(colTransferToken, valToken, false, tabRels);
     }
 
-    public String createCompositePK(String colTransferToken, String valToken, boolean force,FlatTableRelation... tabRels) {
+    public String createCompositePK(String colTransferToken, String valToken, boolean force, FlatTableRelation... tabRels) {
         if (tabRels.length > 1) {
             EntityName first = tabRels[0].getHeaderEntity();
             if (!StringUtils.equals(first.getTabName(), this.getTabName())) {

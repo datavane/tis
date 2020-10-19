@@ -90,11 +90,6 @@ override def createProcessRate(): RateLimiter = RateLimiter.create(600)
 
 protected override def processColsMeta(builder: BuilderList): Unit = {
   val deptEmpBuilder:AliasList.Builder = builder.add("dept_emp").setPrimaryTableOfIndex()
-
-DeptEmpColEnum.getPKs().forEach((r) =>{
-    deptEmpBuilder.add(r.getName().PK())
-}
-)
 deptEmpBuilder.add( // 
 ("dept_no")
 ,("from_date").timestampVer().t((row, fieldValue) => {
@@ -127,7 +122,7 @@ r.getColumn("to_date")})
      result //return
 
 })/*end .t()*/
-,("emp_no")
+,("emp_no").PK()
 );
 deptEmpBuilder.setGetterRowsFromOuterPersistence(/*gencode5*/
  (rowTabName, rvals, pk ) =>{

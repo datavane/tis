@@ -335,14 +335,17 @@ public class ERRules implements IPrimaryTabFinder {
     @JSONField(serialize = false)
     public List<PrimaryTableMeta> getPrimaryTabs() {
         if (primaryTabs == null) {
-            primaryTabs = this.getDumpNodes().stream().filter((d) -> d.getExtraMeta() != null && d.getExtraMeta().isPrimaryIndexTab()).map((d) -> new PrimaryTableMeta(d.getName(), d.getExtraMeta())).collect(Collectors.toList());
+            primaryTabs = this.getDumpNodes().stream().filter(
+                    (d) -> d.getExtraMeta() != null && d.getExtraMeta().isPrimaryIndexTab())
+                    .map((d) -> new PrimaryTableMeta(d.getName(), d.getExtraMeta())).collect(Collectors.toList());
         }
         return primaryTabs;
     }
 
     @Override
     public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
-        Optional<TableMeta> first = this.getPrimaryTabs().stream().filter((p) -> StringUtils.equals(p.getTabName(), entityName.getTableName())).map((r) -> (TableMeta) r).findFirst();
+        Optional<TableMeta> first = this.getPrimaryTabs().stream().filter(
+                (p) -> StringUtils.equals(p.getTabName(), entityName.getTableName())).map((r) -> (TableMeta) r).findFirst();
         return first;
     }
 

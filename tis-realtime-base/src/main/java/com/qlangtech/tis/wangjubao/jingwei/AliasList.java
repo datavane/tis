@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -31,8 +31,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocumentBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.stream.Collectors;
+
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -48,7 +50,7 @@ public class AliasList {
     private final Map<String, Alias> /**
      * col origin name
      */
-    aliasColMap;
+            aliasColMap;
 
     private final Set<String> focusColumns;
 
@@ -70,23 +72,17 @@ public class AliasList {
     private final Map<List<Alias>, AliasList> /**
      * 主表的FK列
      */
-    parentTabReference = Maps.newHashMap();
+            parentTabReference = Maps.newHashMap();
 
     // 主表 外表的引用
     // Lists.newArrayList();
-    private final Map<List<Alias>, AliasList> /**
-     * 子表的PK列
-     */
-    childTabReference = Maps.newHashMap();
+    private final Map<List<Alias>, AliasList> /* 子表的PK列*/ childTabReference = Maps.newHashMap();
 
     private AliasList(String tableName, boolean primaryOfIndex, boolean ignoreIncrTrigger, Alias... alias) {
         this.aliasList = Collections.unmodifiableList(Lists.newArrayList(alias));
         this.primaryOfIndex = primaryOfIndex;
         this.ignoreIncrTrigger = ignoreIncrTrigger;
-        Map<String, Alias> /**
-         * col origin name
-         */
-        colMap = Maps.newHashMap();
+        Map<String, Alias> /*col origin name*/ colMap = Maps.newHashMap();
         this.aliasList.stream().forEach((r) -> colMap.put(r.getName(), r));
         this.aliasColMap = Collections.unmodifiableMap(colMap);
         this.focusColumns = this.aliasList.stream().filter((a) -> {
@@ -169,7 +165,7 @@ public class AliasList {
             throw new IllegalStateException("table:" + this.tableName + " relevant getterRowsFromOuterPersistence can not be null");
         }
         return // (List<IRowValueGetter>)
-        getterRowsFromOuterPersistence.process(rowTabName, rowVals, pk);
+                getterRowsFromOuterPersistence.process(rowTabName, rowVals, pk);
     }
 
     /**
@@ -203,11 +199,11 @@ public class AliasList {
         public Map<String, /**
          * TableName
          */
-        AliasList> build() {
+                AliasList> build() {
             Map<String, AliasList> /**
              * TableName
              */
-            tabColumnMetaMap = Maps.newHashMap();
+                    tabColumnMetaMap = Maps.newHashMap();
             for (AliasList.Builder colsBuilder : builders) {
                 tabColumnMetaMap.put(colsBuilder.getTabName(), colsBuilder.build());
             }
@@ -223,7 +219,7 @@ public class AliasList {
             AliasList tabProcess = null;
             for (TableRef ref : (parent2Child ? colsBuilder.childTabRefs : colsBuilder.parentTabRefs)) {
                 List<Alias> /* 链接 字表的列 */
-                keys = Lists.newArrayList();
+                        keys = Lists.newArrayList();
                 AliasList tab = tabColumnMetaMap.get(colsBuilder.getTabName());
                 if (tab == null) {
                     throw new IllegalStateException("table:" + colsBuilder.getTabName() + " can not find relevant AliasList");
@@ -351,7 +347,7 @@ public class AliasList {
             Map<String, AliasColBuilderWrapper> /**
              * from colum name
              */
-            removeDuplicateColumnMap = Maps.newHashMap();
+                    removeDuplicateColumnMap = Maps.newHashMap();
             AliasColBuilderWrapper preBuilder = null;
             // new Alias[aliasListBuilder.size()];
             List<Alias> aliasArray = Lists.newArrayList();
@@ -366,7 +362,7 @@ public class AliasList {
             for (Map.Entry<String, AliasColBuilderWrapper> /**
              * from colum name
              */
-            entry : removeDuplicateColumnMap.entrySet()) {
+                    entry : removeDuplicateColumnMap.entrySet()) {
                 aliasArray.addAll(entry.getValue().buildColumnAlias());
             }
             AliasList result = new AliasList(tabName, this.primaryIndexOfIndex, this.ignoreIncrTrigger, aliasArray.toArray(new Alias[aliasArray.size()]));
@@ -476,17 +472,17 @@ public class AliasList {
         aliasList.forEach((a) -> {
             if (a.copy) {
                 if (a.valLazyTransfer != null) {
-                // TODO 涉及到多表join的先不在这里断言测试，单元测试中显示申明断言
-                // Callable<Object> call = a.valLazyTransfer.process(tab);
-                // 
-                // try {
-                // Assert.assertEquals(
-                // "[" + this.tableName + ",from  '" + a.getName() + "' to '" + a.getToName() + "']\n" + document.toString(),
-                // String.valueOf(call.call()),
-                // String.valueOf(document.getFieldValue(a.getToName())));
-                // } catch (Exception e) {
-                // throw new RuntimeException(e);
-                // }
+                    // TODO 涉及到多表join的先不在这里断言测试，单元测试中显示申明断言
+                    // Callable<Object> call = a.valLazyTransfer.process(tab);
+                    //
+                    // try {
+                    // Assert.assertEquals(
+                    // "[" + this.tableName + ",from  '" + a.getName() + "' to '" + a.getToName() + "']\n" + document.toString(),
+                    // String.valueOf(call.call()),
+                    // String.valueOf(document.getFieldValue(a.getToName())));
+                    // } catch (Exception e) {
+                    // throw new RuntimeException(e);
+                    // }
                 } else if (a.creator != null) {
                     Assert.assertEquals("[" + this.tableName + ",create column '" + a.getToName() + "']\n" + document.toString(), String.valueOf(a.creator.process(tab)), String.valueOf(document.getFieldValue(a.getToName())));
                 } else {
@@ -513,7 +509,7 @@ public class AliasList {
                 // TODO 先注释掉后期再改
                 MediaResultKey.putMediaResult(a.getToName(), true, lazyTransfer.process(row));
                 return;
-            // throw new NotImplementedException("tablename:" + this.getTableName() + ",transfer,from:" + a.getName() + ",to:" + a.getToName());
+                // throw new NotImplementedException("tablename:" + this.getTableName() + ",transfer,from:" + a.getName() + ",to:" + a.getToName());
             }
             if (a.copy) {
                 Object val = a.getVal(row);
@@ -529,11 +525,10 @@ public class AliasList {
         for (Map.Entry<List<Alias>, AliasList> /**
          * 主表
          */
-        entry : this.parentTabReference.entrySet()) {
+                entry : this.parentTabReference.entrySet()) {
             key = entry.getKey();
             value = entry.getValue();
-            if (recover || value.isIgnoreIncrTrigger()) /*说明是维表不参与增量消息监听*/
-            {
+            if (recover || value.isIgnoreIncrTrigger()) /*说明是维表不参与增量消息监听*/ {
                 rows = value.getRowsFromOuterPersistence(this.getTableName(), row, AllThreadLocal.getPkThreadLocal());
                 if (rows != null) {
                     for (IRowValueGetter getter : rows) {
@@ -547,7 +542,7 @@ public class AliasList {
         for (Map.Entry<List<Alias>, AliasList> /**
          * 子表
          */
-        entry : this.getChildTabReference().entrySet()) {
+                entry : this.getChildTabReference().entrySet()) {
             key = entry.getKey();
             value = entry.getValue();
             if (recover || value.isIgnoreIncrTrigger()) {
@@ -560,23 +555,23 @@ public class AliasList {
                 }
             }
         }
-    // Map<List<Alias>, AliasList> ;
-    // 
-    // val outerTableRefs:Map[_, /* FK */
-    // AliasList] =this.getChildTabReference();//.asScala
-    // var outerTabRow:IRowPack = null
-    // for (outerTabs< -outerTableRefs.values) {
-    // outerTabRow = pojo.getRowPack(outerTabs.getTableName)
-    // if (outerTabRow == null) {
-    // for (getter< -outerTabs.getRowsFromOuterPersistence(pk).asScala) {
-    // if (outerTabs.isNestChildRow) {
-    // addDoc.mergeOrCreateChild(getter, outerTabs)
-    // } else {
-    // outerTabs.copy2TisDocument(getter, addDoc)
-    // }
-    // }
-    // }
-    // }
+        // Map<List<Alias>, AliasList> ;
+        //
+        // val outerTableRefs:Map[_, /* FK */
+        // AliasList] =this.getChildTabReference();//.asScala
+        // var outerTabRow:IRowPack = null
+        // for (outerTabs< -outerTableRefs.values) {
+        // outerTabRow = pojo.getRowPack(outerTabs.getTableName)
+        // if (outerTabRow == null) {
+        // for (getter< -outerTabs.getRowsFromOuterPersistence(pk).asScala) {
+        // if (outerTabs.isNestChildRow) {
+        // addDoc.mergeOrCreateChild(getter, outerTabs)
+        // } else {
+        // outerTabs.copy2TisDocument(getter, addDoc)
+        // }
+        // }
+        // }
+        // }
     }
 
     public void cleanTisDocument(TisSolrInputDocument document) {
@@ -627,17 +622,17 @@ public class AliasList {
     public Map.Entry<Alias, /**
      * 主表的PK列
      */
-    AliasList> getFirstParentTab() {
+            AliasList> getFirstParentTab() {
         if (this.isPrimaryTable()) {
             throw new IllegalStateException("primary table can not get FK");
         }
         throw new UnsupportedOperationException();
-    // Optional<Map.Entry<Alias/** 主表的PK列 */, AliasList>> parent = this.parentTabReference.entrySet().stream().findFirst();
-    // if (!parent.isPresent()) {
-    // return null;
-    // }
-    // return parent.get();// .get(getFirstForignTableName());
-    // return c;
+        // Optional<Map.Entry<Alias/** 主表的PK列 */, AliasList>> parent = this.parentTabReference.entrySet().stream().findFirst();
+        // if (!parent.isPresent()) {
+        // return null;
+        // }
+        // return parent.get();// .get(getFirstForignTableName());
+        // return c;
     }
 
     // /**

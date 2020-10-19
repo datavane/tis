@@ -1,24 +1,23 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.realtime.s4totalpay;
 
-import com.qlangtech.tis.manage.common.CenterResource;
-import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.realtime.BasicTestCase;
+import com.google.common.collect.Sets;
+import com.qlangtech.tis.realtime.BasicBeanGroup;
+import com.qlangtech.tis.realtime.BasicIncrTestCase;
 import com.qlangtech.tis.realtime.PojoCUD;
-import com.qlangtech.tis.realtime.TisIncrLauncher;
 import com.qlangtech.tis.realtime.test.member.dao.IMemberDAOFacade;
 import com.qlangtech.tis.realtime.test.member.pojo.Card;
 import com.qlangtech.tis.realtime.test.member.pojo.Customer;
@@ -26,22 +25,16 @@ import com.qlangtech.tis.realtime.test.order.dao.IOrderDAOFacade;
 import com.qlangtech.tis.realtime.test.order.pojo.*;
 import com.qlangtech.tis.realtime.test.shop.dao.IShopDAOFacade;
 import com.qlangtech.tis.realtime.test.shop.pojo.MallShop;
-import com.qlangtech.tis.realtime.test.util.DefaultRowValueGetter;
 import com.qlangtech.tis.realtime.transfer.BasicRMListener;
-import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
-import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.wangjubao.jingwei.Table;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import com.qlangtech.tis.spring.LauncherResourceUtils;
+
+import java.util.Set;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
+public abstract class AbstractTestS4totalpayIncr extends BasicIncrTestCase {
 
     public static final String TAB_ORDERINFO = "orderdetail";
 
@@ -63,9 +56,9 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
 
     public static final String TAB_PAYINFO = "payinfo";
 
-    protected static BasicRMListener listenerBean = null;
+    //  protected static BasicRMListener listenerBean = null;
 
-    protected ApplicationContext s4totalpayContext;
+    // protected ApplicationContext s4totalpayContext;
 
     protected IOrderDAOFacade orderDAOFacade;
 
@@ -77,45 +70,55 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
 
     protected static final String KEY_MODIFY_TIME = "modify_time";
 
-    @Override
-    protected Table getTableRowProcessor(String tabName) {
-        return listenerBean.getTableProcessor(tabName);
+    private static final Set<String> includeSpringContext;
+
+
+    static {
+        includeSpringContext = Sets.newHashSet();
+        includeSpringContext.add("employees-dao-context.xml");
+        LauncherResourceUtils.resourceFilter = (res) -> {
+            return !includeSpringContext.contains(res.getFilename());
+        };
     }
+
 
     public AbstractTestS4totalpayIncr(boolean shallRegisterMQ) {
+//boolean shallRegisterMQ,String collectionName ,long wfTimestamp ,String... configLocations
+        super(shallRegisterMQ, COLLECTION_search4totalpay, wfTimestamp
+                , "/conf/order-test-dao-context.xml", "/conf/member-test-dao-context.xml", "/conf/shop-test-dao-context.xml");
         // com.qlangtech.tis.realtime.transfer.MQListenerFactory 中不会启动mq去读mq的消息
-        Config.setTest(!shallRegisterMQ);
-        AbstractTisCloudSolrClient.initHashcodeRouter();
-        try {
-            final TisIncrLauncher incrLauncher = new TisIncrLauncher(COLLECTION_search4totalpay, wfTimestamp, true);
-            incrLauncher.downloadDependencyJarsAndPlugins();
-            // 启动增量任务
-            BeanFactory incrContainer = incrLauncher.launchIncrChannel();
-            listenerBean = incrContainer.getBean(BasicRMListener.class);
-            assertNotNull(listenerBean);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        s4totalpayContext = new // /
-        ClassPathXmlApplicationContext("/conf/order-test-dao-context.xml", "/conf/member-test-dao-context.xml", "/conf/shop-test-dao-context.xml") {
-
-            protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-                DefaultListableBeanFactory factory = (DefaultListableBeanFactory) beanFactory;
-                // DataSourceRegister.setApplicationContext(factory,
-                // dbMetaList);
-                DBNode.registerDependencyDbsFacadeConfig(COLLECTION_search4totalpay, wfTimestamp, factory);
-                // SpringDBRegister dbRegister = new SpringDBRegister(dbLinkMetaData.getName(), dbLinkMetaData, factory);
-                // dbRegister.visitAll();
-                // registerExtraBeanDefinition(factory);
-                super.prepareBeanFactory(beanFactory);
-            }
-        };
-        orderDAOFacade = s4totalpayContext.getBean("orderDAOFacade", IOrderDAOFacade.class);
-        memberDAOFacade = s4totalpayContext.getBean("memberDAOFacade", IMemberDAOFacade.class);
-        shopDAOFacade = s4totalpayContext.getBean("shopDAOFacade", IShopDAOFacade.class);
+//        Config.setTest(!shallRegisterMQ);
+//        AbstractTisCloudSolrClient.initHashcodeRouter();
+//        try {
+//            final TisIncrLauncher incrLauncher = new TisIncrLauncher(COLLECTION_search4totalpay, wfTimestamp, true);
+//            incrLauncher.downloadDependencyJarsAndPlugins();
+//            // 启动增量任务
+//            BeanFactory incrContainer = incrLauncher.launchIncrChannel();
+//            listenerBean = incrContainer.getBean(BasicRMListener.class);
+//            assertNotNull(listenerBean);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//        s4totalpayContext = new // /
+//        ClassPathXmlApplicationContext("/conf/order-test-dao-context.xml", "/conf/member-test-dao-context.xml", "/conf/shop-test-dao-context.xml") {
+//
+//            protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+//                DefaultListableBeanFactory factory = (DefaultListableBeanFactory) beanFactory;
+//                // DataSourceRegister.setApplicationContext(factory,
+//                // dbMetaList);
+//                DBNode.registerDependencyDbsFacadeConfig(COLLECTION_search4totalpay, wfTimestamp, factory);
+//                // SpringDBRegister dbRegister = new SpringDBRegister(dbLinkMetaData.getName(), dbLinkMetaData, factory);
+//                // dbRegister.visitAll();
+//                // registerExtraBeanDefinition(factory);
+//                super.prepareBeanFactory(beanFactory);
+//            }
+//        };
+        orderDAOFacade = appContext.getBean("orderDAOFacade", IOrderDAOFacade.class);
+        memberDAOFacade = appContext.getBean("memberDAOFacade", IMemberDAOFacade.class);
+        shopDAOFacade = appContext.getBean("shopDAOFacade", IShopDAOFacade.class);
     }
 
-    protected class BeanGroup {
+    protected class BeanGroup extends BasicBeanGroup {
 
         protected DTO<Specialfee> specialfee;
 
@@ -186,21 +189,20 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
             return instance2;
         }
 
-        protected <T> DTO<T> getBean(String path, Class<T> pojoClazz, PojoCUD<T> crud) {
-            DefaultRowValueGetter junitValsExample = deserializeBean(crud.getTableName(), getTableRowProcessor(crud.getTableName()), path);
-            DefaultRowValueGetter vals = deserializeBean(crud.getTableName(), null, /**
-             * 不需要处理
-             */
-            path);
-            // vals = updateCallback.process(pojoClazz, vals);
-            T pojo = DTO.pojo(vals, pojoClazz);
-            crud.initSyncWithDB(pojo);
-            return new DTO<>(junitValsExample, vals, pojoClazz, pojo, crud);
+        public BeanGroup(BasicRMListener listenerBean) {
+            super(listenerBean);
         }
+
+//        protected <T> DTO<T> getBean(String path, Class<T> pojoClazz, PojoCUD<T> crud) {
+//            DefaultRowValueGetter junitValsExample = deserializeBean(crud.getTableName(), getTableRowProcessor(crud.getTableName()), path);
+//            DefaultRowValueGetter vals = deserializeBean(crud.getTableName(), null, /*** 不需要处理 */path);
+//            T pojo = DTO.pojo(vals, pojoClazz);
+//            crud.initSyncWithDB(pojo);
+//            return new DTO<>(junitValsExample, vals, pojoClazz, pojo, crud);
+//        }
 
         public BeanGroup invoke() {
             this.totalpayinfo = this.getBean("totalpayinfo_1.txt", Totalpayinfo.class, new PojoCUD<Totalpayinfo>() {
-
                 @Override
                 public String getTableName() {
                     return "totalpayinfo";
@@ -215,7 +217,6 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
                 }
             });
             this.orderdetail = getBean("orderdetail_1.txt", Orderdetail.class, new PojoCUD<Orderdetail>() {
-
                 @Override
                 public String getTableName() {
                     return "orderdetail";
@@ -230,7 +231,6 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
                 }
             });
             specialfee = getBean("specialfee_1.txt", Specialfee.class, new PojoCUD<Specialfee>() {
-
                 @Override
                 public String getTableName() {
                     return "specialfee";
@@ -251,7 +251,6 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
             });
             // orderDAOFacade.getSpecialfeeDAO().updateByExampleSelective()
             shopPojo = this.getBean("mall_shop_1.txt", MallShop.class, new PojoCUD<MallShop>() {
-
                 @Override
                 public String getTableName() {
                     return "mall_shop";
@@ -271,7 +270,6 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
             // DefaultRowValueGetter mallShop = deserializeBean("mall_shop_1.txt");
             // MallShop shopPojo = pojo(mallShop, MallShop.class);
             card = this.getBean("card_1.txt", Card.class, new PojoCUD<Card>() {
-
                 @Override
                 public String getTableName() {
                     return "card";
@@ -291,7 +289,6 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
             // DefaultRowValueGetter card = deserializeBean("card_1.txt");
             // Card c = pojo(card, Card.class);
             custm = this.getBean("customer_1.txt", Customer.class, new PojoCUD<Customer>() {
-
                 @Override
                 public String getTableName() {
                     return "customer";
@@ -311,7 +308,6 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
             // DefaultRowValueGetter customer = deserializeBean("customer_1.txt");
             // Customer custm = pojo(customer, Customer.class);
             PojoCUD<Payinfo> payinfoCUD = new PojoCUD<Payinfo>() {
-
                 @Override
                 public String getTableName() {
                     return "payinfo";
@@ -337,7 +333,6 @@ public abstract class AbstractTestS4totalpayIncr extends BasicTestCase {
             payinfo2 = getBean("payinfo_2.txt", Payinfo.class, payinfoCUD);
             // TestS4totalpayIncr.this.orderDAOFacade.getPayinfoDAO().insertSelective(payinfo2.pojo);
             takeoutOrderExtra = getBean("takeout_order_extra_1.txt", TakeoutOrderExtra.class, new PojoCUD<TakeoutOrderExtra>() {
-
                 @Override
                 public String getTableName() {
                     return "takeout_order_extra";
