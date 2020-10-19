@@ -180,7 +180,10 @@ public class SysInitializeAction extends BasicModule {
       }
 
     }
-    return result.toString();
+    String convertSql = result.toString();
+    FileUtils.write(new File(tisConsoleSqlFile.getParent(), tisConsoleSqlFile.getName() + ".convert")
+      , convertSql, TisUTF8.get(), false);
+    return convertSql;
   }
 
   public void doInit() throws Exception {
