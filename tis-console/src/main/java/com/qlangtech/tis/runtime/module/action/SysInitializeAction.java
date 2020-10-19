@@ -110,8 +110,10 @@ public class SysInitializeAction extends BasicModule {
           logger.info("init '" + dbCfg.dbname + "' db and initialize the tables");
           boolean containTisConsole = false;
           try (ResultSet showDatabaseResult = statement.executeQuery("show databases")) {
-            if (dbCfg.dbname.equals(showDatabaseResult.getString(1))) {
-              containTisConsole = true;
+            while (showDatabaseResult.next()) {
+              if (dbCfg.dbname.equals(showDatabaseResult.getString(1))) {
+                containTisConsole = true;
+              }
             }
           }
           if (!containTisConsole) {
