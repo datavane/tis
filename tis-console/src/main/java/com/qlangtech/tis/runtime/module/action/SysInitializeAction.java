@@ -25,6 +25,7 @@ import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
@@ -80,6 +81,10 @@ public class SysInitializeAction extends BasicModule {
   }
 
   public static void main(String[] args) throws Exception {
+
+
+    //System.out.println(convert2BatchSql(new File("/opt/misc/tis-ansible/tis_console.sql")));
+
     if (args.length < 1) {
       throw new IllegalArgumentException("args.length must big than 0");
     }
@@ -121,7 +126,7 @@ public class SysInitializeAction extends BasicModule {
             try {
               statement.addBatch("create database " + dbCfg.dbname + ";");
               statement.addBatch("use " + dbCfg.dbname + ";");
-              statement.addBatch(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
+              statement.addBatch(convert2BatchSql(tisConsoleSqlFile));
               statement.executeBatch();
               FileUtils.forceDelete(tisConsoleSqlFile);
               execSuccess = true;
@@ -146,6 +151,36 @@ public class SysInitializeAction extends BasicModule {
     appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
       initAction, AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, false);
     initAction.doInit();
+  }
+
+  /**
+   * 将sql脚本文件转成jdbc batchsql 允许的sql格式
+   *
+   * @param tisConsoleSqlFile
+   * @return
+   * @throws Exception
+   */
+  private static String convert2BatchSql(File tisConsoleSqlFile) throws Exception {
+    LineIterator lineIt = FileUtils.lineIterator(tisConsoleSqlFile, TisUTF8.getName());
+    StringBuffer result = new StringBuffer();
+    String line = null;
+    while (lineIt.hasNext()) {
+      line = StringUtils.trimToEmpty(lineIt.nextLine());
+      if (StringUtils.startsWith(line, "/*") //
+        || StringUtils.startsWith(line, "--") //
+        || StringUtils.startsWith(line, "#") //
+        || StringUtils.startsWith(line, "//")) {
+        continue;
+      }
+
+      result.append(line).append(" ");
+
+      if (StringUtils.endsWith(line, ";")) {
+        result.append("\r\n");
+      }
+
+    }
+    return result.toString();
   }
 
   public void doInit() throws Exception {
