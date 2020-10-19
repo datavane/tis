@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.runtime.module.action;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.Config;
@@ -41,8 +42,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 系统初始化
@@ -126,7 +129,9 @@ public class SysInitializeAction extends BasicModule {
             try {
               statement.addBatch("create database " + dbCfg.dbname + ";");
               statement.addBatch("use " + dbCfg.dbname + ";");
-              statement.addBatch(convert2BatchSql(tisConsoleSqlFile));
+              for (String sql : convert2BatchSql(tisConsoleSqlFile)) {
+                statement.addBatch(sql);
+              }
               statement.executeBatch();
               FileUtils.forceDelete(tisConsoleSqlFile);
               execSuccess = true;
@@ -160,8 +165,9 @@ public class SysInitializeAction extends BasicModule {
    * @return
    * @throws Exception
    */
-  private static String convert2BatchSql(File tisConsoleSqlFile) throws Exception {
+  private static List<String> convert2BatchSql(File tisConsoleSqlFile) throws Exception {
     LineIterator lineIt = FileUtils.lineIterator(tisConsoleSqlFile, TisUTF8.getName());
+    List<String> batchs = Lists.newArrayList();
     StringBuffer result = new StringBuffer();
     String line = null;
     while (lineIt.hasNext()) {
@@ -176,14 +182,15 @@ public class SysInitializeAction extends BasicModule {
       result.append(line).append(" ");
 
       if (StringUtils.endsWith(line, ";")) {
-        result.append("\r\n");
+        batchs.add(result.toString());
+        result = new StringBuffer();
       }
 
     }
-    String convertSql = result.toString();
+    // String convertSql = result.toString();
     FileUtils.write(new File(tisConsoleSqlFile.getParent(), tisConsoleSqlFile.getName() + ".convert")
-      , convertSql, TisUTF8.get(), false);
-    return convertSql;
+      , batchs.stream().collect(Collectors.joining("\n")), TisUTF8.get(), false);
+    return batchs;
   }
 
   public void doInit() throws Exception {
