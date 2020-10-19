@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
@@ -131,7 +132,12 @@ public class SysInitializeAction extends BasicModule {
               statement.addBatch("use " + dbCfg.dbname + ";");
               statement.executeBatch();
               for (String sql : convert2BatchSql(tisConsoleSqlFile)) {
-                statement.execute(sql);
+                try {
+                  statement.execute(sql);
+                } catch (SQLException e) {
+                  logger.error(sql, e);
+                  throw e;
+                }
               }
 
               FileUtils.forceDelete(tisConsoleSqlFile);
