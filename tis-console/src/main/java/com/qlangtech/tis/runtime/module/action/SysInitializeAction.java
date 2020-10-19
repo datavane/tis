@@ -18,14 +18,17 @@ import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.UploadJarAction.ConfigContentGetter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
+import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.zookeeper.ZooKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -33,6 +36,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,6 +51,7 @@ import java.util.regex.Pattern;
 public class SysInitializeAction extends BasicModule {
 
   private static final long serialVersionUID = 1L;
+  private static final Logger logger = LoggerFactory.getLogger(SysInitializeAction.class);
 
   private static final int DEPARTMENT_DEFAULT_ID = 2;
   private static final int DEPARTMENT_ROOT_ID = 1;
@@ -73,6 +79,36 @@ public class SysInitializeAction extends BasicModule {
   }
 
   public static void main(String[] args) throws Exception {
+    if (args.length < 1) {
+      throw new IllegalArgumentException("args.length must big than 0");
+    }
+    File tisConsoleSqlFile = new File(args[0]);
+    if (!tisConsoleSqlFile.exists()) {
+      throw new IllegalStateException("tisConsoleSqlFile:" + tisConsoleSqlFile.getAbsolutePath() + " is not exist");
+    }
+    Config.TisDbConfig dbCfg = Config.getDbCfg();
+    BasicDataSource dataSource = new BasicDataSource();
+//<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+//		<property name="url"
+//    value="jdbc:mysql://${tis.datasource.url}:3306/${tis.datasource.dbname}?useUnicode=yes&amp;characterEncoding=utf8" />
+//		<property name="username" value="${tis.datasource.username}" />
+//		<property name="password" value="${tis.datasource.password}" />
+//		<property name="validationQuery" value="select 1" />
+
+    dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+    dataSource.setUrl("jdbc:mysql://" + dbCfg.url + ":3306?useUnicode=yes&amp;characterEncoding=utf8");
+    dataSource.setUsername(dbCfg.userName);
+    dataSource.setPassword(dbCfg.password);
+    dataSource.setValidationQuery("select 1");
+    try (Connection conn = dataSource.getConnection()) {
+      try (Statement statement = conn.createStatement()) {
+        // 初始化TIS数据库
+        logger.info("init tis_console db and initialize the tables");
+        statement.execute("create database tis_console");
+        statement.executeLargeUpdate(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
+      }
+    }
+    dataSource.close();
     SysInitializeAction initAction = new SysInitializeAction();
     //ClassPathXmlApplicationContext tis.application.context.xml
     ApplicationContext appContext = new ClassPathXmlApplicationContext("classpath:/tis.application.context.xml");

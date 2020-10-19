@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,6 +16,7 @@ package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.util.ResourceBundle;
 
@@ -101,13 +102,26 @@ public class Config {
     // 组装节点
     private final String assembleHost;
 
+    public final TisDbConfig dbCfg;
+
     private Config() {
         P p = P.create();
         this.zkHost = p.getString(KEY_ZK_HOST, true);
         this.assembleHost = p.getString(KEY_ASSEMBLE_HOST, true);
         this.tisHost = p.getString(KEY_TIS_HOST, true);
         this.runtime = p.getString(KEY_RUNTIME, true);
+
+//        tis.datasource.url=192.168.28.200
+//        tis.datasource.username=root
+//        tis.datasource.password=123456
+//        tis.datasource.dbname=tis_console
+        this.dbCfg = new TisDbConfig();
+        this.dbCfg.url = p.getString("tis.datasource.url");
+        this.dbCfg.userName = p.getString("tis.datasource.username");
+        this.dbCfg.password = p.getString("tis.datasource.password");
+        this.dbCfg.dbname = p.getString("tis.datasource.dbname");
     }
+
 
     public static String getRuntime() {
         return getInstance().runtime;
@@ -127,6 +141,10 @@ public class Config {
 
     public static String getAssembleHttpHost() {
         return "http://" + getInstance().assembleHost + ":8080" + CONTEXT_ASSEMBLE;
+    }
+
+    public static TisDbConfig getDbCfg() {
+        return getInstance().dbCfg;
     }
 
     public static String getZKHost() {
@@ -212,6 +230,17 @@ public class Config {
             }
         }
         return config;
+    }
+
+    public static class TisDbConfig {
+        //        tis.datasource.url=192.168.28.200
+//        tis.datasource.username=root
+//        tis.datasource.password=123456
+//        tis.datasource.dbname=tis_console
+        public String url;
+        public String userName;
+        public String password;
+        public String dbname;
     }
 
     public static class FuncGroup {
