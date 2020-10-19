@@ -117,11 +117,19 @@ public class SysInitializeAction extends BasicModule {
             }
           }
           if (!containTisConsole) {
-            statement.addBatch("create database " + dbCfg.dbname+";");
-            statement.addBatch("use " + dbCfg.dbname + ";");
-            statement.addBatch(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
-            statement.executeBatch();
-            FileUtils.forceDelete(tisConsoleSqlFile);
+            boolean execSuccess = false;
+            try {
+              statement.addBatch("create database " + dbCfg.dbname + ";");
+              statement.addBatch("use " + dbCfg.dbname + ";");
+              statement.addBatch(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
+              statement.executeBatch();
+              FileUtils.forceDelete(tisConsoleSqlFile);
+              execSuccess = true;
+            } finally {
+              if (!execSuccess) {
+                statement.execute("drop database if exists " + dbCfg.dbname);
+              }
+            }
           } else {
             touchSysInitializedToken();
             throw new IllegalStateException("db '" + dbCfg.dbname + "' is exist");
