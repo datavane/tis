@@ -98,21 +98,25 @@ public class SysInitializeAction extends BasicModule {
     try {
       dataSource.setDriverClassName("com.mysql.jdbc.Driver");
       dataSource.setUrl("jdbc:mysql://" + dbCfg.url + ":3306?useUnicode=yes&amp;characterEncoding=utf8");
+      if (StringUtils.isBlank(dbCfg.dbname)) {
+        throw new IllegalStateException("dbCfg.dbname in config.properites can not be null");
+      }
       dataSource.setUsername(dbCfg.userName);
       dataSource.setPassword(dbCfg.password);
       dataSource.setValidationQuery("select 1");
       try (Connection conn = dataSource.getConnection()) {
         try (Statement statement = conn.createStatement()) {
           // 初始化TIS数据库
-          logger.info("init tis_console db and initialize the tables");
+          logger.info("init '" + dbCfg.dbname + "' db and initialize the tables");
           boolean containTisConsole = false;
           try (ResultSet showDatabaseResult = statement.executeQuery("show database")) {
-            if ("tis_console".equals(showDatabaseResult.getString(1))) {
+            if (dbCfg.dbname.equals(showDatabaseResult.getString(1))) {
               containTisConsole = true;
             }
           }
           if (!containTisConsole) {
-            statement.execute("create database tis_console");
+            statement.execute("create database " + dbCfg.dbname);
+            statement.addBatch("use " + dbCfg.dbname + ";");
             statement.addBatch(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
             statement.executeBatch();
             FileUtils.forceDelete(tisConsoleSqlFile);
