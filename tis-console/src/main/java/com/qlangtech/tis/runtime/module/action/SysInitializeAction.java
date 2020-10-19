@@ -109,7 +109,7 @@ public class SysInitializeAction extends BasicModule {
           // 初始化TIS数据库
           logger.info("init '" + dbCfg.dbname + "' db and initialize the tables");
           boolean containTisConsole = false;
-          try (ResultSet showDatabaseResult = statement.executeQuery("show database")) {
+          try (ResultSet showDatabaseResult = statement.executeQuery("show databases")) {
             if (dbCfg.dbname.equals(showDatabaseResult.getString(1))) {
               containTisConsole = true;
             }
@@ -120,6 +120,9 @@ public class SysInitializeAction extends BasicModule {
             statement.addBatch(FileUtils.readFileToString(tisConsoleSqlFile, TisUTF8.get()));
             statement.executeBatch();
             FileUtils.forceDelete(tisConsoleSqlFile);
+          } else {
+            touchSysInitializedToken();
+            throw new IllegalStateException("db '" + dbCfg.dbname + "' is exist");
           }
         }
       }
