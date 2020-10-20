@@ -62,6 +62,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     // private static FileSystem fileSystem;
     public static final String KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER = "IndexSwapTaskflowLauncher";
 
+
     public static IndexSwapTaskflowLauncher getIndexSwapTaskflowLauncher(ServletContext context) {
         IndexSwapTaskflowLauncher result = (IndexSwapTaskflowLauncher) context.getAttribute(KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER);
         if (result == null) {

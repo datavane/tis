@@ -18,32 +18,15 @@
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 
-
-
-
 	<servlet>
 		<servlet-name>exportReport</servlet-name>
 		<servlet-class>com.qlangtech.tis.collect.servlet.FullReportCreateServlet</servlet-class>
 	</servlet>
-	<!-- <servlet> <servlet-name>dailyReport</servlet-name> <servlet-class>com.qlangtech.tis.collect.servlet.DailyReportCreateServlet</servlet-class>
-		</servlet> <servlet-mapping> <servlet-name>dailyReport</servlet-name> <url-pattern>/dailyReport</url-pattern> 
-		</servlet-mapping> -->
 
 	<servlet-mapping>
 		<servlet-name>exportReport</servlet-name>
 		<url-pattern>/export_report</url-pattern>
 	</servlet-mapping>
-
-<!--
-	<servlet>
-		<servlet-name>monitorServlet</servlet-name>
-		<servlet-class>com.dihuo.app.common.monitor.MonitorServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>monitorServlet</servlet-name>
-		<url-pattern>/check_health</url-pattern>
-	</servlet-mapping>
--->
 
 
 </web-app>

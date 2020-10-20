@@ -37,8 +37,6 @@ public class CloudSolrClientFactory implements FactoryBean<ZkStateReader>, Initi
         clientBuilder.withConnectionTimeout(40000);
         clientBuilder.withSocketTimeout(40000);
         this.solrClient = clientBuilder.build();
-    // solrClient = new CloudSolrClient(TSearcherConfigFetcher.get().getZkAddress());
-    // solrClient.connect();
     }
 
     @Override

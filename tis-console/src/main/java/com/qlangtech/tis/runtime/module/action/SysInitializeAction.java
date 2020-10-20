@@ -15,6 +15,7 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.Config;
@@ -28,6 +29,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.cloud.SolrZkClient;
+import org.apache.solr.common.cloud.ZkCmdExecutor;
+import org.apache.solr.common.cloud.ZkStateReader;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +44,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -130,16 +137,16 @@ public class SysInitializeAction extends BasicModule {
             try {
               statement.addBatch("create database " + dbCfg.dbname + ";");
               statement.addBatch("use " + dbCfg.dbname + ";");
-              statement.executeBatch();
+
               for (String sql : convert2BatchSql(tisConsoleSqlFile)) {
                 try {
-                  statement.execute(sql);
+                  statement.addBatch(sql);
                 } catch (SQLException e) {
                   logger.error(sql, e);
                   throw e;
                 }
               }
-
+              statement.executeBatch();
               FileUtils.forceDelete(tisConsoleSqlFile);
               execSuccess = true;
             } finally {
@@ -300,8 +307,43 @@ public class SysInitializeAction extends BasicModule {
       }
     }
 
+    TisZkClient zkClient = new TisZkClient(Config.getZKHost(), 60000);
+    try (SolrZkClient solrZk = zkClient.getZK()) {
+      try {
+        createClusterZkNodes(solrZk);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
     return true;
   }
+
+  /**
+   * 百岁add
+   * copy from org.apache.solr.cloud.ZkController
+   * Create the zknodes necessary for a cluster to operate
+   *
+   * @param zkClient a SolrZkClient
+   * @throws KeeperException      if there is a Zookeeper error
+   * @throws InterruptedException on interrupt
+   */
+  public static void createClusterZkNodes(SolrZkClient zkClient)
+    throws KeeperException, InterruptedException, IOException {
+    ZkCmdExecutor cmdExecutor = new ZkCmdExecutor(zkClient.getZkClientTimeout());
+    cmdExecutor.ensureExists(ZkStateReader.LIVE_NODES_ZKNODE, zkClient);
+    cmdExecutor.ensureExists(ZkStateReader.COLLECTIONS_ZKNODE, zkClient);
+    cmdExecutor.ensureExists(ZkStateReader.ALIASES, zkClient);
+    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_EVENTS_PATH, zkClient);
+    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_TRIGGER_STATE_PATH, zkClient);
+    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_NODE_ADDED_PATH, zkClient);
+    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_NODE_LOST_PATH, zkClient);
+    byte[] emptyJson = "{}".getBytes(StandardCharsets.UTF_8);
+    cmdExecutor.ensureExists(ZkStateReader.CLUSTER_STATE, emptyJson, CreateMode.PERSISTENT, zkClient);
+    cmdExecutor.ensureExists(ZkStateReader.SOLR_SECURITY_CONF_PATH, emptyJson, CreateMode.PERSISTENT, zkClient);
+    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_CONF_PATH, emptyJson, CreateMode.PERSISTENT, zkClient);
+    // bootstrapDefaultConfigSet(zkClient);
+  }
+
 
   void initializeSchemaConfig(Application app) throws IOException {
     Snapshot snap = new Snapshot();
