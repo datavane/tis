@@ -147,10 +147,11 @@ public class SysInitializeAction extends BasicModule {
                 statement.execute("drop database if exists " + dbCfg.dbname);
               }
             }
-          } else {
-            touchSysInitializedToken();
-            throw new IllegalStateException("db '" + dbCfg.dbname + "' is exist");
           }
+          //else {
+//            touchSysInitializedToken();
+//            throw new IllegalStateException("db '" + dbCfg.dbname + "' is exist");
+          //}
         }
       }
     } finally {
