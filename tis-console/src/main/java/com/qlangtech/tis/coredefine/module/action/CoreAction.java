@@ -151,7 +151,9 @@ public class CoreAction extends BasicModule {
         incrStatus.setK8sReplicationControllerCreated(rcConfig != null);
         if (rcConfig != null) {
             incrStatus.setIncrDeployment(rcConfig);
-            JobType.RemoteCallResult<IndexJobRunningStatus> callResult = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(this.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
+            JobType.RemoteCallResult<IndexJobRunningStatus> callResult
+              = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
+                this.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
             if (callResult.success) {
                 incrStatus.setIncrProcess(callResult.biz);
             }

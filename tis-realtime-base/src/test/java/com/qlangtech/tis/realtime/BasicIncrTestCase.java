@@ -35,7 +35,7 @@ public abstract class BasicIncrTestCase extends BasicTestCase {
         Config.setTest(!shallRegisterMQ);
         AbstractTisCloudSolrClient.initHashcodeRouter();
         try {
-            final TisIncrLauncher incrLauncher = new TisIncrLauncher(collectionName, wfTimestamp, false);
+            final TisIncrLauncher incrLauncher = new TisIncrLauncher(collectionName, wfTimestamp, true);
             incrLauncher.downloadDependencyJarsAndPlugins();
 
             // 启动增量任务

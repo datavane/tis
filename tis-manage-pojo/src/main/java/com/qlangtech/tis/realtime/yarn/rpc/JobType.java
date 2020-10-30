@@ -80,7 +80,8 @@ public enum JobType {
         throw new IllegalArgumentException("name:" + name + " is not illegal");
     }
 
-    public <T> RemoteCallResult<T> assembIncrControlWithResult(String collectionName, List<HttpUtils.PostParam> extraParams, Class<T> clazz) throws MalformedURLException {
+    public <T> RemoteCallResult<T> assembIncrControlWithResult(
+            String collectionName, List<HttpUtils.PostParam> extraParams, Class<T> clazz) throws MalformedURLException {
         return assembIncrControl(collectionName, extraParams, clazz == null ? null : new IAssembIncrControlResult() {
 
             public T deserialize(JSONObject json) {

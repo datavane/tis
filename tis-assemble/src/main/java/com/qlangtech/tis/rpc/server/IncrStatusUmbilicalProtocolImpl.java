@@ -53,8 +53,6 @@ import java.util.concurrent.*;
 public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmbilicalProtocol
 IncrStatusGrpc.IncrStatusImplBase {
 
-    // private static final Logger logger = LoggerFactory
-    // .getLogger(IncrStatusUmbilicalProtocolImpl.class);
     private final HashMap<String, ConcurrentHashMap<String, TableMultiDataIndexStatus>> // 
     updateCounterStatus = new HashMap<>();
 

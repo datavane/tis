@@ -315,6 +315,7 @@ public class StatusRpcClient {
 
         @Override
         public MasterJob reportStatus(UpdateCounterMap upateCounter) {
+            logger.warn("stat report server has not connect on!!!! using Mock channel");
             return null;
         }
 
