@@ -196,13 +196,9 @@ public class AliasList {
             return builder;
         }
 
-        public Map<String, /**
-         * TableName
-         */
+        public Map<String, /** * TableName  */
                 AliasList> build() {
-            Map<String, AliasList> /**
-             * TableName
-             */
+            Map<String, AliasList> /*** TableName  */
                     tabColumnMetaMap = Maps.newHashMap();
             for (AliasList.Builder colsBuilder : builders) {
                 tabColumnMetaMap.put(colsBuilder.getTabName(), colsBuilder.build());
@@ -344,10 +340,8 @@ public class AliasList {
 
         private AliasList build() {
             // <<<<<<<<<< 为了去除集合中有重复的列
-            Map<String, AliasColBuilderWrapper> /**
-             * from colum name
-             */
-                    removeDuplicateColumnMap = Maps.newHashMap();
+            Map<String, AliasColBuilderWrapper> /*** from colum name */removeDuplicateColumnMap = Maps.newHashMap();
+
             AliasColBuilderWrapper preBuilder = null;
             // new Alias[aliasListBuilder.size()];
             List<Alias> aliasArray = Lists.newArrayList();
@@ -359,10 +353,7 @@ public class AliasList {
                     preBuilder.colBuilders.add(cbuilder);
                 }
             }
-            for (Map.Entry<String, AliasColBuilderWrapper> /**
-             * from colum name
-             */
-                    entry : removeDuplicateColumnMap.entrySet()) {
+            for (Map.Entry<String, AliasColBuilderWrapper> /*** from colum name */entry : removeDuplicateColumnMap.entrySet()) {
                 aliasArray.addAll(entry.getValue().buildColumnAlias());
             }
             AliasList result = new AliasList(tabName, this.primaryIndexOfIndex, this.ignoreIncrTrigger, aliasArray.toArray(new Alias[aliasArray.size()]));
@@ -392,7 +383,8 @@ public class AliasList {
                 // 则要打notcopy的标记，以免最后在tisDocument中被设置值
                 if (colBuilders.size() < 2) {
                     logger.info("table:{},col transfer will not copy:[{}]", this.tableName, firstColBuilder);
-                    firstColBuilder.notCopy();
+                    // 先去掉 2020/10/30
+                    // firstColBuilder.notCopy();
                 } else {
                     for (Alias.Builder b : colBuilders) {
                         if (!b.copy) {
@@ -404,19 +396,7 @@ public class AliasList {
                 }
                 return Collections.singleton(firstColBuilder.build());
             }
-            // else {
-            // if (colBuilders.size() < 2) {
-            // return Collections.singleton(firstColBuilder.build());
-            // }
-            // }
-            // AtomicInteger index = new AtomicInteger();
-            // throw new IllegalStateException("table:" + this.tableName + "\n"
-            // + colBuilders.stream().map((r) -> index.incrementAndGet()+ ". [" + r.toString() + "]").collect(Collectors.joining("\n")));
-            // if (firstColBuilder.pk && colBuilders.size() > 1) {
-            // //  firstColBuilder.notCopy();
-            // return Collections.singleton(firstColBuilder.build());
-            // }
-            // 
+
             Collection<Alias> aliases = colBuilders.stream().map((b) -> {
                 return b.build();
             }).collect(Collectors.toList());

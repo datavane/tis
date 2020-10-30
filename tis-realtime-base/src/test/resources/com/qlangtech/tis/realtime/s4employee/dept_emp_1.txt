@@ -1,0 +1,4 @@
+   emp_no: 12260
+  dept_no: d004
+from_date: 1991-04-28
+  to_date: 1991-05-09

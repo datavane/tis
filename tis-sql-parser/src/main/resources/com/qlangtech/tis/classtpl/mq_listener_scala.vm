@@ -94,20 +94,15 @@ import scala.util.control.Breaks._
 object ${config.javaName}Listener {
 
 private val log: Logger = LoggerFactory.getLogger(classOf[${config.javaName}Listener])
-
-val PK_TOTALPAY_ID: String = "totalpay_id"
-
-//private val NULL_PK: NullCompositePK = new NullCompositePK()
-
+#*
 private val payinfosThreadLocal: ThreadLocal[Map[GroupKey, GroupValues]] = addThreadLocalVal()
-
 private val instancedetailsThreadLocal: ThreadLocal[Map[GroupKey, GroupValues]] = addThreadLocalVal()
-
 private val specialfeesThreadLocal: ThreadLocal[Map[GroupKey, GroupValues]] = addThreadLocalVal()
-
+private val ENTITY_ID: String = "entity_id"
+*#
 private val NUM_CONSUME_NUM_5: Int = 5
 
-private val ENTITY_ID: String = "entity_id"
+
 
 }
 
@@ -118,9 +113,24 @@ private var _tabsFocuse : java.util.Set[String] = _
 
 override def createProcessRate(): RateLimiter = RateLimiter.create(600)
 
+override def getShardIdName( tabName : String ) : String = {
+val shardIdVal = tabName match {
+#foreach($i in $config.dumpTables  )
+    #if(!$config.isTriggerIgnore($i))
+    case "${i.tabName}" => "${config.getSharedId($i)}"
+    #end
+#end
+case _=> throw new IllegalArgumentException("table name:"+ tabName +" is illegal");
+}
+shardIdVal
+}
+
+
 protected override def processColsMeta(builder: BuilderList): Unit = {
   ${config.colsMetaBuilderList}
 }
+
+
 
 #foreach($i in $config.mapDataMethodCreatorList  )
   $i.generateMapDataMethodBody
@@ -152,9 +162,9 @@ this.${d.facadeInstanceName} = ${d.facadeInstanceName}
  * 生成getPK部分
  ************************************************************#
 /**
-* 取得索引宽表主键
-* @return
-*/
+ * 取得索引宽表主键
+ * @return
+ */
 override def getPk( row : ITable) : DefaultPk = {
 
   if (row.getEventType() == DTO.EventType.DELETE) {

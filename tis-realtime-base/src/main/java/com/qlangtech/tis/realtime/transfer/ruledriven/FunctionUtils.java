@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,6 +22,7 @@ import com.qlangtech.tis.realtime.transfer.IRowValueGetter;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -43,6 +44,7 @@ public class FunctionUtils {
     // 流计算调用的函数算子
     // ================================================================================
     // return op_and(r.getColumn("draw_status"),8)
+
     /**
      * Returns the string or bytes resulting from concatenating the strings or bytes passed in as parameters in order. For example, concat('foo', 'bar') results in 'foobar'. Note that this function can take any number of input strings.
      * @param a
@@ -50,7 +52,7 @@ public class FunctionUtils {
      * @return
      */
     public static String concat(String a, String b) {
-        return StringUtils.join(new Object[] { a, b });
+        return StringUtils.join(new Object[]{a, b});
     }
 
     /**
@@ -139,11 +141,11 @@ public class FunctionUtils {
         System.out.println(method);
         method = FunctionUtils.getMethod("round", double.class, int.class);
         System.out.println(method);
-    // for (Method m : FunctionUtils.class.getMethods()) {
-    // System.out.println(m);
-    // }
-    // 
-    // System.out.println(method.getReturnType());
+        // for (Method m : FunctionUtils.class.getMethods()) {
+        // System.out.println(m);
+        // }
+        //
+        // System.out.println(method.getReturnType());
     }
 
     public static List<Object> collect_list(GroupValues groupValues, IValGetter valGetter) {
@@ -166,7 +168,7 @@ public class FunctionUtils {
 
         @Override
         public int compare(Object o1, Object o2) {
-            return o1.hashCode() - o2.hashCode();
+            return ((Comparable) o1).compareTo(o2);// - o2.hashCode();
         }
     };
 
@@ -179,11 +181,12 @@ public class FunctionUtils {
     }
 
     public static Object max(GroupValues groupVales, IValGetter valGetter) {
-        Optional<Object> min = groupVales.vals.stream().map((r) -> valGetter.getVal(r)).max(rowValueGetterComparator);
-        if (!min.isPresent()) {
-            throw new IllegalStateException("datas can not find minist elements");
+
+        Optional<Object> max = groupVales.vals.stream().map((r) -> valGetter.getVal(r)).max(rowValueGetterComparator);
+        if (!max.isPresent()) {
+            throw new IllegalStateException("datas can not find maxist elements");
         }
-        return min.get();
+        return max.get();
     }
 
     /**

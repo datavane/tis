@@ -139,7 +139,8 @@ public class TisIncrLauncher {
              * ==================================================================
              */
             for (DBNode n : dbNodes) {
-                CenterResource.copyFromRemote2Local(StreamContextConstant.getDAORootPath(n.getDbName(), n.getTimestampVer()) + "/" + DBNode.getDAOJarName(n.getDbName()), true);
+                CenterResource.copyFromRemote2Local(
+                        StreamContextConstant.getDAORootPath(n.getDbName(), n.getTimestampVer()) + "/" + DBNode.getDAOJarName(n.getDbName()), true);
             }
         } finally {
             TIS.permitInitialize = true;

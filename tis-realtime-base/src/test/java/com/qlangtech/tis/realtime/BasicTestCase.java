@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,9 +16,9 @@ package com.qlangtech.tis.realtime;
 
 import com.qlangtech.tis.async.message.client.consumer.AsyncMsg;
 import com.qlangtech.tis.manage.common.CenterResource;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.realtime.s4employee.TestS4employee;
 import com.qlangtech.tis.realtime.s4totalpay.AbstractTestS4totalpayIncr;
 import com.qlangtech.tis.realtime.test.util.DefaultRowValueGetter;
 import com.qlangtech.tis.realtime.transfer.BasicPojoConsumer;
@@ -32,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
@@ -71,7 +72,9 @@ public abstract class BasicTestCase extends TestCase {
 
     static {
         HttpUtils.addMockGlobalParametersConfig();
-        HttpUtils.addMockApply(1, "schema.xml", "schema-xstream.xml", AbstractTestS4totalpayIncr.class);
+        HttpUtils.addMockApply(1, COLLECTION_search4totalpay + "/0/daily/schema.xml", "schema-xstream.xml", AbstractTestS4totalpayIncr.class);
+        //http://192.168.28.200:8080/tjs/download/appconfig/search4test2/0/daily/schema.xml?snapshotid=-1
+        HttpUtils.addMockApply(2, "search4test2/0/daily/schema.xml", "schema-xstream.xml", TestS4employee.class);
         // HttpUtils.mockConnMaker = new MockConnectionMaker() {
         // @Override
         // public MockHttpURLConnection create(URL url, List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method, byte[] content) {
@@ -99,10 +102,10 @@ public abstract class BasicTestCase extends TestCase {
         CenterResource.setNotFetchFromCenterRepository();
         System.out.println("mockConnMaker set===================================================================");
         System.setProperty("notdownloadjar", "true");
-    // if (!TisIncrLauncher.notDownload) {
-    // // System.setProperty("data.dir", "/tmp/tis");
-    // Config.setDataDir("/tmp/tis");
-    // }
+        // if (!TisIncrLauncher.notDownload) {
+        // // System.setProperty("data.dir", "/tmp/tis");
+        // Config.setDataDir("/tmp/tis");
+        // }
     }
 
     // public static final String menuId = "999320135eb8b638015ebd85b1c39999";
@@ -195,7 +198,7 @@ public abstract class BasicTestCase extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
-    // initData();
+        // initData();
     }
 
     // protected void cleanExistPersistenceData() throws Exception {
@@ -213,13 +216,13 @@ public abstract class BasicTestCase extends TestCase {
     protected void clearTisRecord() {
         // 在TIS中将这条索引干掉
         try {
-        // client.deleteById(COLLECTION_MENU, MenuPk.DEFAULT_LANG_PREFIX + "_" + menuId,
-        // entityId, 1);
-        // client.deleteById(COLLECTION_MENU, "en_US_" + menuId, entityId, 1);
-        // client.deleteById("search4menu", "default_999320135eb8b638015ebd85b1c30007",
-        // entityId, 1);
-        // client.deleteById("search4menu", "en_US_999320135eb8b638015ebd85b1c30007",
-        // entityId, 1);
+            // client.deleteById(COLLECTION_MENU, MenuPk.DEFAULT_LANG_PREFIX + "_" + menuId,
+            // entityId, 1);
+            // client.deleteById(COLLECTION_MENU, "en_US_" + menuId, entityId, 1);
+            // client.deleteById("search4menu", "default_999320135eb8b638015ebd85b1c30007",
+            // entityId, 1);
+            // client.deleteById("search4menu", "en_US_999320135eb8b638015ebd85b1c30007",
+            // entityId, 1);
         } catch (Throwable e) {
         }
     }
@@ -417,8 +420,8 @@ public abstract class BasicTestCase extends TestCase {
                     colValue = StringUtils.trimToEmpty(StringUtils.substringAfter(line, ":"));
                     if (!"null".equalsIgnoreCase(colValue)) {
                         i.put(colName, colValue);
-                    // i.put(BasicPojoConsumer.removeUnderline(colName).toString(), colValue);
-                    // BeanUtils.copyProperty(i, BasicPojoConsumer.removeUnderline(colName).toString(), colValue);
+                        // i.put(BasicPojoConsumer.removeUnderline(colName).toString(), colValue);
+                        // BeanUtils.copyProperty(i, BasicPojoConsumer.removeUnderline(colName).toString(), colValue);
                     }
                 }
             }
@@ -441,52 +444,52 @@ public abstract class BasicTestCase extends TestCase {
 
     private <T> AsyncMsg createMsg(String tabName, EventType event, DTO<T> dto, ICallback updateCaller) {
         return (AsyncMsg) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader()
-                , new Class<?>[] { AsyncMsg.class }, new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                if ("getContent".equals(method.getName())) {
-                    BinlogRecord binlog = new BinlogRecord();
-                    binlog.setEventType(event.getTypeName());
-                    binlog.setOrginTableName(tabName);
-                    Map<String, String> before = Collections.emptyMap();
-                    if (event == com.qlangtech.tis.realtime.transfer.DTO.EventType.UPDATE) {
-                        dto.startCollectUpdateProp();
-                        before = serialize2Map(dto.vals);
-                    }
-                    binlog.setBefore(before);
-                    try {
-                        binlog.setAfter(serialize2Map(updateCaller.process(dto.vals)));
-                        updateCaller.process(dto.junitValsExample);
-                    } finally {
-                        if (event == com.qlangtech.tis.realtime.transfer.DTO.EventType.UPDATE) {
-                            T update = dto.stopCollectUpdateProp();
-                            dto.pojoCUD.updateByExampleSelective(update, dto.pojo);
+                , new Class<?>[]{AsyncMsg.class}, new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                        if ("getContent".equals(method.getName())) {
+                            BinlogRecord binlog = new BinlogRecord();
+                            binlog.setEventType(event.getTypeName());
+                            binlog.setOrginTableName(tabName);
+                            Map<String, String> before = Collections.emptyMap();
+                            if (event == com.qlangtech.tis.realtime.transfer.DTO.EventType.UPDATE) {
+                                dto.startCollectUpdateProp();
+                                before = serialize2Map(dto.vals);
+                            }
+                            binlog.setBefore(before);
+                            try {
+                                binlog.setAfter(serialize2Map(updateCaller.process(dto.vals)));
+                                updateCaller.process(dto.junitValsExample);
+                            } finally {
+                                if (event == com.qlangtech.tis.realtime.transfer.DTO.EventType.UPDATE) {
+                                    T update = dto.stopCollectUpdateProp();
+                                    dto.pojoCUD.updateByExampleSelective(update, dto.pojo);
+                                }
+                            }
+                            // return JSON.toJSON(binlog);
+                            return binlog;
                         }
+                        if ("getMsgID".equals(method.getName())) {
+                            return String.valueOf(UUID.randomUUID());
+                        }
+                        throw new UnsupportedOperationException(method.getName());
                     }
-                    // return JSON.toJSON(binlog);
-                    return binlog;
-                }
-                if ("getMsgID".equals(method.getName())) {
-                    return String.valueOf(UUID.randomUUID());
-                }
-                throw new UnsupportedOperationException(method.getName());
-            }
 
-            protected Map<String, String> serialize2Map(DefaultRowValueGetter pojo) throws Exception {
-                return pojo.vals;
-            // final Map<String, String> result = Maps.newHashMap();
-            // String val = null;
-            // BeanInfo beaninfo = Introspector.getBeanInfo(pojo.getClass(), Object.class);
-            // 
-            // for (PropertyDescriptor pdesc : beaninfo.getPropertyDescriptors()) {
-            // val = pojo.getColumn(pdesc.getName());
-            // if (StringUtils.isNotBlank(val)) {
-            // result.put(BasicPojoConsumer.addUnderline(pdesc.getName()).toString(), val);
-            // }
-            // }
-            // return result;
-            }
-        });
+                    protected Map<String, String> serialize2Map(DefaultRowValueGetter pojo) throws Exception {
+                        return pojo.vals;
+                        // final Map<String, String> result = Maps.newHashMap();
+                        // String val = null;
+                        // BeanInfo beaninfo = Introspector.getBeanInfo(pojo.getClass(), Object.class);
+                        //
+                        // for (PropertyDescriptor pdesc : beaninfo.getPropertyDescriptors()) {
+                        // val = pojo.getColumn(pdesc.getName());
+                        // if (StringUtils.isNotBlank(val)) {
+                        // result.put(BasicPojoConsumer.addUnderline(pdesc.getName()).toString(), val);
+                        // }
+                        // }
+                        // return result;
+                    }
+                });
     }
 
     public static class DTO<T> {

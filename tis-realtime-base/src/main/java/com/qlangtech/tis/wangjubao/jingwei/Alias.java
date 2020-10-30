@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,6 +16,7 @@ package com.qlangtech.tis.wangjubao.jingwei;
 
 import com.qlangtech.tis.realtime.transfer.IRowValueGetter;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
+
 import java.util.concurrent.Callable;
 
 /**
@@ -291,20 +292,25 @@ public class Alias {
     }
 
     public long getLong(IRowValueGetter row) {
-        return Long.parseLong(String.valueOf(getVal(row, true)));
+        try {
+            // 因为查看了getLong方法只有在取timestamp的时候才会用到，所以这里先用getRawVal不需要过多的转换操作
+            return Long.parseLong(String.valueOf(getRawVal(row)));
+        } catch (NumberFormatException e) {
+            throw new RuntimeException(this.toString(), e);
+        }
     }
 
     /**
      * 取得原始值
      *
-     * @param tab
+     * @param row
      * @return
      */
-    public String getRawVal(IRowValueGetter tab) {
+    public String getRawVal(IRowValueGetter row) {
         if (this.creator != null) {
             throw new IllegalStateException("creator shall be null");
         }
-        return tab.getColumn(this.getName());
+        return row.getColumn(this.getName());
     }
 
     public Object getVal(IRowValueGetter tab, boolean force) {

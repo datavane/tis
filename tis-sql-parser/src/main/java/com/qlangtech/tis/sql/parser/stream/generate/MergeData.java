@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,6 +25,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.ValChain;
 import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,7 +54,7 @@ public class MergeData {
     private final Map<String, FunctionVisitor.IToString> /**
      * method token
      */
-    globalScripts = Maps.newHashMap();
+            globalScripts = Maps.newHashMap();
 
     private static final Pattern PATTERN_COLLECTION_NAME = Pattern.compile("(search4)([^\\s]+)");
 
@@ -122,9 +123,6 @@ public class MergeData {
         return this.unprocessedTableRelations;
     }
 
-    // public void clearUnprocessedTableRelations(){
-    // this.unprocessedTableRelations.clear();
-    // }
     public void addGlobalScript(String methodToken, FunctionVisitor.IToString script) {
         this.globalScripts.put(methodToken, script);
     }
@@ -166,13 +164,13 @@ public class MergeData {
             throw new IllegalStateException("tabName:" + tabName + " is not one of the primayTab");
         }
         return p.get().createPKPlayloadParams().toString();
-    // PrimaryTableMeta ptabMeta = p.get();
-    // List<PrimaryTableMeta.PrimaryLinkKey> payloadRouterKeys = ptabMeta.getPayloadRouterKeys();
-    // StringBuffer buffer = new StringBuffer();
-    // for (PrimaryTableMeta.PrimaryLinkKey routerKey : payloadRouterKeys) {
-    // buffer.append(",\"").append(routerKey.getName()).append("\",row.getColumn(\"").append(routerKey.getName()).append("\")");
-    // }
-    // return buffer.toString();
+        // PrimaryTableMeta ptabMeta = p.get();
+        // List<PrimaryTableMeta.PrimaryLinkKey> payloadRouterKeys = ptabMeta.getPayloadRouterKeys();
+        // StringBuffer buffer = new StringBuffer();
+        // for (PrimaryTableMeta.PrimaryLinkKey routerKey : payloadRouterKeys) {
+        // buffer.append(",\"").append(routerKey.getName()).append("\",row.getColumn(\"").append(routerKey.getName()).append("\")");
+        // }
+        // return buffer.toString();
     }
 
     /**
@@ -183,7 +181,6 @@ public class MergeData {
      */
     public boolean isPrimaryTable(String tabName) {
         Optional<PrimaryTableMeta> p = getPrimaryTableMetaOption(tabName);
-        // return primaryTableNames.contains(tabName);
         return p.isPresent();
     }
 
@@ -199,6 +196,35 @@ public class MergeData {
         return tabTriggers.keySet().stream().map((r) -> r.getEntityName()).collect(Collectors.toList());
     }
 
+    public String getSharedId(EntityName e) {
+        Optional<PrimaryTableMeta> ptmeta = getPrimaryTableMetaOption(e.getTabName());
+        if (ptmeta.isPresent()) {
+            return ptmeta.get().getSharedKey();
+        } else {
+//        #set($parentTabRef=$config.getFirstParent($i.tabName))
+//        #set($tabName=$i.tabName)
+//        #* List<TableRelation> *#
+//        #set($childTabRef=$config.getChildTabReference($i.tabName))
+            Optional<TableRelation> firstParent = this.getFirstParent(e.getTabName());
+            if (firstParent.isPresent()) {
+                ptmeta = getPrimaryTableMetaOption(firstParent.get().getParent().getName());
+                if (ptmeta.isPresent()) {
+                    return ptmeta.get().getSharedKey();
+                }
+            }
+            List<TableRelation> childTabRefs = this.getChildTabReference(e.getTabName());
+            for (TableRelation childRef : childTabRefs) {
+                ptmeta = getPrimaryTableMetaOption(childRef.getChild().getName());
+                if (ptmeta.isPresent()) {
+                    return ptmeta.get().getSharedKey();
+                }
+            }
+        }
+
+        throw new IllegalStateException("can not find shareId with table:" + e.getTabName());
+    }
+
+
     public boolean isTriggerIgnore(EntityName entityName) {
         return this.erRules.isTriggerIgnore(entityName);
     }
@@ -208,6 +234,7 @@ public class MergeData {
     }
 
     public String getColsMetaBuilderList() {
+
         return this.aliasListBuilder.toString();
     }
 

@@ -29,6 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.qlangtech.tis.realtime.s4employee.TestS4employee;
 import com.qlangtech.tis.realtime.s4totalpay.AbstractTestS4totalpayIncr;
 import com.qlangtech.tis.realtime.s4totalpay.TestS4totalpayIncr;
 import com.qlangtech.tis.realtime.transfer.ruledriven.TestAllThreadLocal;
@@ -53,6 +54,8 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestFunctionUtils.class);
         suite.addTestSuite(TestAliasList.class);
         suite.addTestSuite(TestTableClusterParser.class);
+
+        suite.addTestSuite(TestS4employee.class);
         suite.addTestSuite(TestS4totalpayIncr.class);
         return suite;
     }

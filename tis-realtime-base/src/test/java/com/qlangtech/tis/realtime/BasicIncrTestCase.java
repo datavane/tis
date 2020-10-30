@@ -19,7 +19,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public abstract class BasicIncrTestCase extends BasicTestCase {
     protected ApplicationContext appContext;
     protected BasicRMListener listenerBean = null;
-    static{
+
+    static {
         BasicRMListener.CloudClientTypeCode = ITisCloudClientFactory.TEST_MOCK;
     }
 
@@ -34,8 +35,9 @@ public abstract class BasicIncrTestCase extends BasicTestCase {
         Config.setTest(!shallRegisterMQ);
         AbstractTisCloudSolrClient.initHashcodeRouter();
         try {
-            final TisIncrLauncher incrLauncher = new TisIncrLauncher(collectionName, wfTimestamp, true);
+            final TisIncrLauncher incrLauncher = new TisIncrLauncher(collectionName, wfTimestamp, false);
             incrLauncher.downloadDependencyJarsAndPlugins();
+
             // 启动增量任务
             BeanFactory incrContainer = incrLauncher.launchIncrChannel();
             listenerBean = incrContainer.getBean(BasicRMListener.class);
@@ -57,6 +59,7 @@ public abstract class BasicIncrTestCase extends BasicTestCase {
                         super.prepareBeanFactory(beanFactory);
                     }
                 };
+        System.out.println("create listenerBean successful");
     }
 
 }

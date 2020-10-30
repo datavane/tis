@@ -18,7 +18,7 @@ import junit.framework.TestCase;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-18 11:44
  */
-public class StartWeb extends TestCase {
+public class StartSolrWeb extends TestCase {
 
     public void testStart() throws Exception {
         String[] args = new String[] {};

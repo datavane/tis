@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.realtime.s4employee;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.realtime.BasicBeanGroup;
 import com.qlangtech.tis.realtime.BasicIncrTestCase;
@@ -25,7 +26,10 @@ import com.qlangtech.tis.realtime.test.employees.pojo.DeptEmpCriteria;
 import com.qlangtech.tis.realtime.transfer.BasicRMListener;
 import com.qlangtech.tis.spring.LauncherResourceUtils;
 
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -34,7 +38,7 @@ import java.util.Set;
 public class TestS4employee extends BasicIncrTestCase {
 
     static final String collectionName = "search4test2";
-    static final long wfTimestamp = 20201016143313l;
+    static final long wfTimestamp = 20201028174545l;
 
     private static final Set<String> includeSpringContext;
 
@@ -53,33 +57,60 @@ public class TestS4employee extends BasicIncrTestCase {
 
     public TestS4employee() {
         //boolean shallRegisterMQ, String collectionName, long wfTimestamp, String... configLocations
-        super(false, collectionName, wfTimestamp, "/conf/employees-dao-context.xml");
+        super(false, collectionName, wfTimestamp, "/conf/employees-test-dao-context.xml");
         this.employeesDAOFacade = this.appContext.getBean("employeesDAOFacade", IEmployeesDAOFacade.class);
     }
 
-  //  public void testGetBeanGroup() {
+    //  public void testGetBeanGroup() {
 //        BeanGroup beanGroup = new BeanGroup().invoke();
 //        assertNotNull(beanGroup);
 //        beanGroup.totalpayinfo.startCollectUpdateProp();
 //        assertTrue(beanGroup.totalpayinfo.vals.isUpdatePropsCollect());
-   // }
+    // }
 
     /**
      * 添加部门职工
      *
      * @throws Exception
      */
-    public void testAddDepyEmployee() throws Exception {
+    public void testAddDepyEmployee() throws Throwable {
 
         BeanGroup bgroup = new BeanGroup(this.listenerBean);
+
+
         bgroup.invoke();
         assertTrue(listenerBean.consume(createInsertMQMessage(TAB_DEPT_EMP, bgroup.deptEmp1)));
         assertTrue(listenerBean.consume(createInsertMQMessage(TAB_DEPT_EMP, bgroup.deptEmp2)));
-
+        CountDownLatch countDown = new CountDownLatch(1);
+        List<Throwable> errors = Lists.newArrayList();
         listenerBean.setPojoVisit((pojo, doc, shareid) -> {
-            assertEquals(6, pojo.getRowsPack().size());
+            try {
+                assertEquals(1, pojo.getRowsPack().size());
+                listenerBean.getTabColumnMeta(TAB_DEPT_EMP).assertEqual(bgroup.deptEmp1.junitValsExample, doc.getInputDoc());
+                System.out.println(doc.getInputDoc());
 
+                assertEquals("12260", doc.getFieldValue("emp_no"));
+                assertEquals("d004", doc.getFieldValue("dept_no"));
+                assertEquals("1991-04-28", doc.getFieldValue("from_date"));
+                assertEquals("1991-05-09", doc.getFieldValue("to_date"));
+                assertEquals(19910428l, doc.getFieldValue("_version_"));
+
+
+
+                System.out.println("=====================");
+            } catch (Throwable e) {
+                errors.add(e);
+            } finally {
+                countDown.countDown();
+            }
         });
+
+        if (!countDown.await(10, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("wait timetout");
+        }
+        for (Throwable e : errors) {
+            throw e;
+        }
     }
 
     protected class BeanGroup extends BasicBeanGroup {

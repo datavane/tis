@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,7 +16,6 @@ package com.qlangtech.tis.realtime.transfer;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.RateLimiter;
 import com.qlangtech.tis.async.message.client.consumer.AsyncMsg;
 import com.qlangtech.tis.async.message.client.consumer.impl.AbstractConsumerHandle;
@@ -39,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.InitializingBean;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -61,15 +61,13 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
 
     private final String collectionName;
 
-    protected static final String ENTITY_ID = "entity_id";
-
     private List<IPojoVisit> pojoInterceptors = null;
 
     private IPojoVisit pojoVisit = (pojo, doc, shareId) -> {
-        Object sharedId = doc.getFieldValue(getShardIdName());
-        if (sharedId == null) {
-            doc.setField(getShardIdName(), shareId);
-        }
+//        Object sharedId = doc.getFieldValue(getShardIdName());
+//        if (sharedId == null) {
+//            doc.setField(getShardIdName(), shareId);
+//        }
     };
 
     public ITisCloudClient cloudClient;
@@ -84,12 +82,12 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
     protected final Map<String, AliasList> /**
      *  tablename
      */
-    tabColumnMetaMap;
+            tabColumnMetaMap;
 
     protected final Map<String, AliasList> /**
      *  tablename
      */
-    primaryTables;
+            primaryTables;
 
     private static final Set<String> collectionNames = new HashSet<String>();
 
@@ -201,6 +199,7 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
     // * 取得款表中主表的名称
     // */
     // public abstract String getPrimaryTableName(IPojo pojo);
+
     /**
      * 消费ons发送过来的增量消息
      *
@@ -278,6 +277,7 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
 
     /**
      * 增量任务是否暂停中
+     *
      * @return
      */
     public final boolean isPaused() {
@@ -325,7 +325,7 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
     private final AtomicLong consumeErrorCount = new AtomicLong();
 
     private final ConcurrentHashMap<String, IIncreaseCounter> // count
-    tableUpdateCount = new ConcurrentHashMap<>();
+            tableUpdateCount = new ConcurrentHashMap<>();
 
     private AtomicLong tabConsumeCount = new AtomicLong(0);
 
@@ -378,7 +378,7 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
         JSONArray array = new JSONArray();
         JSONObject json = null;
         for (Map.Entry<String, IIncreaseCounter> // table
-        etry : tableUpdateCount.entrySet()) {
+                etry : tableUpdateCount.entrySet()) {
             json = new JSONObject();
             json.put(etry.getKey(), etry.getValue().getAccumulation());
             array.put(json);
@@ -435,19 +435,19 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
             this.focusTags.setCollection(this.getCollectionName());
             this.focusTags.setTags(this.getTableFocuse());
             this.focusTags.setTopic(StringUtils.EMPTY);
-        // 限流一分钟
-        // scheduler.schedule(new Runnable() {
-        // @Override
-        // public void run() {
-        // try {
-        // setCollectionName();
-        // 
-        // log.info("source_limit_cancel");
-        // } catch (Throwable e) {
-        // log.error(e.getMessage(), e);
-        // }
-        // }
-        // }, 180, TimeUnit.SECONDS);
+            // 限流一分钟
+            // scheduler.schedule(new Runnable() {
+            // @Override
+            // public void run() {
+            // try {
+            // setCollectionName();
+            //
+            // log.info("source_limit_cancel");
+            // } catch (Throwable e) {
+            // log.error(e.getMessage(), e);
+            // }
+            // }
+            // }, 180, TimeUnit.SECONDS);
         } finally {
             MDC.remove("app");
         }
@@ -485,6 +485,7 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
     // public long addSolrConsume() {
     // return this.addTableCount(IIncreaseCounter.SOLR_CONSUME_COUNT);
     // }
+
     /**
      * 操作增量
      *
@@ -499,7 +500,7 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
      */
     public void cleanLastAccumulator() {
         for (Map.Entry<String, IIncreaseCounter> /* table name */
-        entry : this.tableUpdateCount.entrySet()) {
+                entry : this.tableUpdateCount.entrySet()) {
             ((ProcessCount) entry.getValue()).lastCollectCount.remove();
         }
     }
@@ -615,38 +616,6 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
         }
     }
 
-    // private static final String[] DEFAULT_VERSION_COLUMN_NAME = new String[]{"modify_time", "op_time"};
-    // private static final RowVersionCreator[] versionCreator;
-    // // op_time的时间convert
-    // public static final RowVersionCreator VER_CREATOR_OP_TIME = new RowVersionCreator(DEFAULT_VERSION_COLUMN_NAME[1]) {
-    // @Override
-    // public long getVersion(String latestversion) {
-    // return Long.parseLong(formatYyyyMMddHHmmss.get().format(new Date(Long.parseLong(latestversion))));
-    // }
-    // };
-    // 
-    // static {
-    // versionCreator = new RowVersionCreator[DEFAULT_VERSION_COLUMN_NAME.length];
-    // versionCreator[0] = new RowVersionCreator(DEFAULT_VERSION_COLUMN_NAME[0]) {
-    // @Override
-    // public long getVersion(String latestversion) {
-    // return Long
-    // .parseLong(formatYyyyMMddHHmmss.get().format(new Date(Long.parseLong(latestversion) * 1000)));
-    // }
-    // };
-    // versionCreator[1] = VER_CREATOR_OP_TIME;
-    // }
-    // /**
-    // * 标示本列版本号的列名称
-    // *
-    // * @return
-    // */
-    // public RowVersionCreator[] getRowVersionCreator() {
-    // return versionCreator;
-    // }
-    // protected String[] getVersionColumnName(){
-    // return DEFAULT_VERSION_COLUMN_NAME;
-    // }
     /**
      * @param pk
      * @return
@@ -805,25 +774,13 @@ public abstract class BasicRMListener extends AbstractConsumerHandle implements 
         return this.getTableCount(metricName);
     }
 
-    // public static abstract class RowVersionCreator {
-    // private final String versionColumnName;
-    // 
-    // public String getVersionColumnName() {
-    // return versionColumnName;
-    // }
-    // 
-    // public RowVersionCreator(String versionColumnName) {
-    // super();
-    // this.versionColumnName = versionColumnName;
-    // }
-    // 
-    // public abstract long getVersion(String latestVersion);
-    // 
-    // }
-    public static final String TABLE_SHARD_ID = "entity_id";
-
-    public String getShardIdName() {
-        return TABLE_SHARD_ID;
+    /**
+     * 记录的分区键
+     *
+     * @return
+     */
+    public String getShardIdName(String tableName) {
+        throw new UnsupportedOperationException();
     }
 
     public void lookPojoVisit(IPojo pojo, TisSolrInputDocument doc, String shareId) {

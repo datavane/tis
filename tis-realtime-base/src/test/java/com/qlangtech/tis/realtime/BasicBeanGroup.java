@@ -24,11 +24,15 @@ public abstract class BasicBeanGroup {
     }
 
     protected <T> BasicTestCase.DTO<T> getBean(String path, Class<T> pojoClazz, PojoCUD<T> crud) {
-        DefaultRowValueGetter junitValsExample = deserializeBean(crud.getTableName(), listenerBean.getTableProcessor(crud.getTableName()), path);
-        DefaultRowValueGetter vals = deserializeBean(crud.getTableName(), null, /*** 不需要处理 */path);
-        T pojo = BasicTestCase.DTO.pojo(vals, pojoClazz);
-        crud.initSyncWithDB(pojo);
-        return new BasicTestCase.DTO<>(junitValsExample, vals, pojoClazz, pojo, crud);
+        try {
+            DefaultRowValueGetter junitValsExample = deserializeBean(crud.getTableName(), listenerBean.getTableProcessor(crud.getTableName()), path);
+            DefaultRowValueGetter vals = deserializeBean(crud.getTableName(), null, /*** 不需要处理 */path);
+            T pojo = BasicTestCase.DTO.pojo(vals, pojoClazz);
+            crud.initSyncWithDB(pojo);
+            return new BasicTestCase.DTO<>(junitValsExample, vals, pojoClazz, pojo, crud);
+        } catch (Exception e) {
+            throw new RuntimeException("path:" + path, e);
+        }
     }
 
     protected DefaultRowValueGetter deserializeBean(String tableName, Table tableRowProcessor, String path) {

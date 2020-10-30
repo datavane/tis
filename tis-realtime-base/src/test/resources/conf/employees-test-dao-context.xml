@@ -13,7 +13,7 @@
     <property name="dataSource" ref="employeesDatasource" />
     <property name="sqlMapClient" >
       <bean class="org.springframework.orm.ibatis.SqlMapClientFactoryBean" >
-        <property name="configLocation" value="classpath:/conf/employees-sqlmap-config.xml" />
+        <property name="configLocation" value="classpath:/conf/employees-test-sqlmap-config.xml" />
       </bean>
     </property>
   </bean>

@@ -440,14 +440,14 @@ public abstract class BasicPojoConsumer implements Runnable {
         final ShareId shardid = new ShareId();
         for (Map.Entry<String, IRowPack> entry : pojo.getRowsPack()) {
             entry.getValue().vistRow((r) -> {
-                shardid.value = r.getColumn(this.onsListener.getShardIdName());
+                shardid.value = r.getColumn(this.onsListener.getShardIdName(r.getTableName()));
                 return (shardid.value != null);
             });
         }
         if (shardid.value != null) {
             return String.valueOf(shardid.value);
         }
-        throw new IllegalStateException("pojo has not set shareid[" + this.onsListener.getShardIdName() + "]:" + pojo.toString());
+        throw new IllegalStateException("pojo has not set shareid" + pojo.toString());
     }
 
     public static final class ShareId {
