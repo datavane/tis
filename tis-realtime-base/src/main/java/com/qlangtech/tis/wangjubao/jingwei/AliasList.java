@@ -482,7 +482,7 @@ public class AliasList {
      * @param recover  挡在更新流程中，发现tis中没有对应的记录需要从数据库中将原有记录恢复出来
      */
     public void copy2TisDocument(IRowValueGetter row, TisSolrInputDocument document, boolean recover) {
-        // System.out.println(this.getTableName()+"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<baisui001");
+
         aliasList.forEach((a) -> {
             ILazyTransfer lazyTransfer = a.getValLazyTransfer();
             if (lazyTransfer != null) {

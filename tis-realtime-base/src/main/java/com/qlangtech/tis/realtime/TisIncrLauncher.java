@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
+
 import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -54,16 +55,15 @@ public class TisIncrLauncher {
 
     private static final Logger logger = LoggerFactory.getLogger(TisIncrLauncher.class);
 
-    private final boolean launchStatusReport;
+    //private final boolean launchStatusReport;
+
+//    public TisIncrLauncher(String collection, long timestamp) {
+//        this(collection, timestamp, true);
+//    }
 
     public TisIncrLauncher(String collection, long timestamp) {
-        this(collection, timestamp, true);
-    }
-
-    public TisIncrLauncher(String collection, long timestamp, boolean launchStatusReport) {
         this.collection = collection;
         this.timestamp = timestamp;
-        this.launchStatusReport = launchStatusReport;
     }
 
     public static void main(String[] args) throws Exception {
@@ -195,8 +195,8 @@ public class TisIncrLauncher {
         // Map<String, DBConfig> dbConfigsMap = this.dbNodes.stream().collect(
         // Collectors.toMap((db) -> db.getDbName(), (db) -> GitUtils.$().getDbLinkMetaData(db.getDbName(), DbScope.FACADE)));//.collect(Collectors.toMap()).collect(Collectors.toList());
         URLClassLoader classLoader = new // 
-        TISIncrClassLoader(jarUrls.toArray(new URL[jarUrls.size()]), TisIncrLauncher.class.getClassLoader());
-        TransferIncrContainer incrContainer = new TransferIncrContainer(this.collection, timestamp, classLoader, this.launchStatusReport);
+                TISIncrClassLoader(jarUrls.toArray(new URL[jarUrls.size()]), TisIncrLauncher.class.getClassLoader());
+        TransferIncrContainer incrContainer = new TransferIncrContainer(this.collection, timestamp, classLoader);
         incrContainer.start();
         return incrContainer.getSpringBeanFactory();
     }

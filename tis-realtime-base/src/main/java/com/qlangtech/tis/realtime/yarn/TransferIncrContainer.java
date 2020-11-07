@@ -65,21 +65,20 @@ public class TransferIncrContainer extends BasicTransferTool {
     // private String collectionNames;
     private IncrStatusReportWorker statusReportWorker;
 
-    private boolean launchStatusReport;
+  //  private boolean launchStatusReport;
 
-    public TransferIncrContainer(String collection, long timestamp, URLClassLoader classLoader) {
-        this(collection, timestamp, classLoader, true);
-    }
+//    public TransferIncrContainer(String collection, long timestamp, URLClassLoader classLoader) {
+//        this(collection, timestamp, classLoader);
+//    }
 
     /**
      * @param collection
      * @param classLoader
      */
-    public TransferIncrContainer(String collection, long timestamp, URLClassLoader classLoader, boolean launchStatusReport) {
+    public TransferIncrContainer(String collection, long timestamp, URLClassLoader classLoader) {
         super(classLoader, timestamp);
         this.collection = collection;
         this.hostName = NetUtils.getHostname();
-        this.launchStatusReport = launchStatusReport;
     }
 
     public void start() throws Exception {
@@ -95,8 +94,9 @@ public class TransferIncrContainer extends BasicTransferTool {
         this.startService(this.collection);
         this.info("launch_rm_success");
         final List<IOnsListenerStatus> allChannels = getAllTransferChannel();
-        if (launchStatusReport) {
-            connect2RemoteIncrStatusServer(BasicRMListener.getCloudClient().getCoordinator(), true);
+        ITISCoordinator coordinator = BasicRMListener.getCloudClient().getCoordinator();
+        if (coordinator.shallConnect2RemoteIncrStatusServer()) {
+            connect2RemoteIncrStatusServer(coordinator, true);
             TransferStatusMBean mbean = new TransferStatusMBean(this.getIndexNames(), allChannels);
             mbean.afterPropertiesSet();
             statusReportWorker = new IncrStatusReportWorker(allChannels, mbean.getIndexUUID());

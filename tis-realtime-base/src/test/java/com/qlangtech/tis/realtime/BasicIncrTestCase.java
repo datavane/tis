@@ -17,7 +17,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * @create: 2020-10-16 14:43
  **/
 public abstract class BasicIncrTestCase extends BasicTestCase {
-    protected ApplicationContext appContext;
+    protected final ApplicationContext appContext;
     protected BasicRMListener listenerBean = null;
 
     static {
@@ -35,7 +35,7 @@ public abstract class BasicIncrTestCase extends BasicTestCase {
         Config.setTest(!shallRegisterMQ);
         AbstractTisCloudSolrClient.initHashcodeRouter();
         try {
-            final TisIncrLauncher incrLauncher = new TisIncrLauncher(collectionName, wfTimestamp, true);
+            final TisIncrLauncher incrLauncher = new TisIncrLauncher(collectionName, wfTimestamp);
             incrLauncher.downloadDependencyJarsAndPlugins();
 
             // 启动增量任务
@@ -45,7 +45,12 @@ public abstract class BasicIncrTestCase extends BasicTestCase {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        appContext = new // /
+        this.appContext = createTestSpringContext(collectionName, wfTimestamp, configLocations);
+        System.out.println("create listenerBean successful");
+    }
+
+    public static ApplicationContext createTestSpringContext(String collectionName, long wfTimestamp, String[] configLocations) {
+        return new // /
                 ClassPathXmlApplicationContext(configLocations//"/conf/order-test-dao-context.xml", "/conf/member-test-dao-context.xml", "/conf/shop-test-dao-context.xml"
                 ) {
                     protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
@@ -59,7 +64,6 @@ public abstract class BasicIncrTestCase extends BasicTestCase {
                         super.prepareBeanFactory(beanFactory);
                     }
                 };
-        System.out.println("create listenerBean successful");
     }
 
 }

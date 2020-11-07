@@ -15,19 +15,17 @@
 package com.qlangtech.tis.realtime.s4employee;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.qlangtech.tis.realtime.BasicBeanGroup;
-import com.qlangtech.tis.realtime.BasicIncrTestCase;
 import com.qlangtech.tis.realtime.BasicTestCase;
 import com.qlangtech.tis.realtime.PojoCUD;
 import com.qlangtech.tis.realtime.test.employees.dao.IEmployeesDAOFacade;
 import com.qlangtech.tis.realtime.test.employees.pojo.DeptEmp;
 import com.qlangtech.tis.realtime.test.employees.pojo.DeptEmpCriteria;
 import com.qlangtech.tis.realtime.transfer.BasicRMListener;
-import com.qlangtech.tis.spring.LauncherResourceUtils;
+import org.springframework.context.ApplicationContext;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -35,21 +33,8 @@ import java.util.concurrent.TimeUnit;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-08-26 14:19
  */
-public class TestS4employee extends BasicIncrTestCase {
+public class TestS4employee extends BasicEmployeeTestCase {
 
-    static final String collectionName = "search4test2";
-    static final long wfTimestamp = 20201028174545l;
-
-    private static final Set<String> includeSpringContext;
-
-
-    static {
-        includeSpringContext = Sets.newHashSet();
-        includeSpringContext.add("employees-dao-context.xml");
-        LauncherResourceUtils.resourceFilter = (res) -> {
-            return includeSpringContext.contains(res.getFilename());
-        };
-    }
 
     private IEmployeesDAOFacade employeesDAOFacade;
 
@@ -57,8 +42,13 @@ public class TestS4employee extends BasicIncrTestCase {
 
     public TestS4employee() {
         //boolean shallRegisterMQ, String collectionName, long wfTimestamp, String... configLocations
-        super(false, collectionName, wfTimestamp, "/conf/employees-test-dao-context.xml");
-        this.employeesDAOFacade = this.appContext.getBean("employeesDAOFacade", IEmployeesDAOFacade.class);
+        super(false);
+        this.employeesDAOFacade = getEmployeesDAOFacade(this.appContext);
+    }
+
+    public static IEmployeesDAOFacade getEmployeesDAOFacade(ApplicationContext appContext) {
+        Objects.requireNonNull(appContext, "appContext can not be null");
+        return appContext.getBean("employeesDAOFacade", IEmployeesDAOFacade.class);
     }
 
     //  public void testGetBeanGroup() {
@@ -96,7 +86,6 @@ public class TestS4employee extends BasicIncrTestCase {
                 assertEquals(19910428l, doc.getFieldValue("_version_"));
 
 
-
                 System.out.println("=====================");
             } catch (Throwable e) {
                 errors.add(e);
@@ -123,39 +112,45 @@ public class TestS4employee extends BasicIncrTestCase {
 
         @Override
         public BeanGroup invoke() {
-
-            PojoCUD<DeptEmp> deptEmpCUD = new PojoCUD<DeptEmp>() {
-
-                @Override
-                public String getTableName() {
-                    return "dept_emp";
-                }
-
-                @Override
-                public void initSyncWithDB(DeptEmp pojo) {
-//String deptNo, Integer empNo
-                    employeesDAOFacade.getDeptEmpDAO().deleteByPrimaryKey(pojo.getDeptNo(), pojo.getEmpNo());
-                    employeesDAOFacade.getDeptEmpDAO().insertSelective(pojo);
-//                    orderDAOFacade.getPayinfoDAO().deleteByPrimaryKey(pojo.getPayId());
-//                    orderDAOFacade.getPayinfoDAO().insertSelective(pojo);
-                }
-
-                @Override
-                public void updateByExampleSelective(DeptEmp pojo, DeptEmp oldPojo) {
-                    assertNotNull(pojo.getDeptNo());
-                    assertNotNull(pojo.getEmpNo());
-                    assertNotNull(pojo.getFromDate());
-                    assertNotNull(pojo.getToDate());
-                    DeptEmpCriteria c = new DeptEmpCriteria();
-                    c.createCriteria().andDeptNoEqualTo(oldPojo.getDeptNo()).andEmpNoEqualTo(oldPojo.getEmpNo());
-                    employeesDAOFacade.getDeptEmpDAO().updateByExampleSelective(pojo, c);
-                }
-            };
+            PojoCUD<DeptEmp> deptEmpCUD = new DeptEmpPojoCUD(employeesDAOFacade);
 
             deptEmp1 = getBean("dept_emp_1.txt", DeptEmp.class, deptEmpCUD);
             deptEmp2 = getBean("dept_emp_2.txt", DeptEmp.class, deptEmpCUD);
             return this;
         }
+    }
+
+    public static final class DeptEmpPojoCUD implements PojoCUD<DeptEmp> {
+        private final IEmployeesDAOFacade employeesDAOFacade;
+
+        public DeptEmpPojoCUD(IEmployeesDAOFacade employeesDAOFacade) {
+            this.employeesDAOFacade = employeesDAOFacade;
+        }
+
+        @Override
+        public String getTableName() {
+            return "dept_emp";
+        }
+
+        @Override
+        public void initSyncWithDB(DeptEmp pojo) {
+//String deptNo, Integer empNo
+            employeesDAOFacade.getDeptEmpDAO().deleteByPrimaryKey(pojo.getDeptNo(), pojo.getEmpNo());
+            employeesDAOFacade.getDeptEmpDAO().insertSelective(pojo);
+
+        }
+
+        @Override
+        public void updateByExampleSelective(DeptEmp pojo, DeptEmp oldPojo) {
+            assertNotNull(pojo.getDeptNo());
+            assertNotNull(pojo.getEmpNo());
+            assertNotNull(pojo.getFromDate());
+            assertNotNull(pojo.getToDate());
+            DeptEmpCriteria c = new DeptEmpCriteria();
+            c.createCriteria().andDeptNoEqualTo(oldPojo.getDeptNo()).andEmpNoEqualTo(oldPojo.getEmpNo());
+            employeesDAOFacade.getDeptEmpDAO().updateByExampleSelective(pojo, c);
+        }
+
     }
 
 //

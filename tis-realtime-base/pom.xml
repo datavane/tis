@@ -16,10 +16,25 @@
     <url>http://maven.apache.org</url>
 
     <properties>
-
+        <rocketmq.version>4.7.1</rocketmq.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-client</artifactId>
+            <version>${rocketmq.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-tools</artifactId>
+            <version>${rocketmq.version}</version>
+            <scope>test</scope>
+        </dependency>
+
 
         <!---->
 
