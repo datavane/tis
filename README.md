@@ -1,19 +1,17 @@
-![tis](http://tis.pub/img/logo.png)
+![tis](docs/tis-logo.png)
 
 ## TIS介绍
 
- [详细说明](http://tis.pub/docs/)
-
+TIS平台是一套为企业级用户提供大数据多维、实时、查询的搜索中台产品。用户可以在TIS上自助快速构建搜索服务，它大大降低了搜索技术的门槛 [详细说明](http://tis.pub/docs/)
+ 
 ## 安装说明
 
-  通过Ansible脚本快速将TIS在分布式环境中一键安装（支持私有云、公有云等环境），方便、快捷
-   
-  [详细说明](http://tis.pub/docs/install/)
+  通过Ansible脚本快速将TIS在分布式环境中一键安装（支持私有云、公有云等环境），方便、快捷 [详细说明](http://tis.pub/docs/install/)
 
 ## 架构
 
-![tis](http://tis.pub/img/tis/tis-synoptic.png)
-
+ ![tis](docs/tis-synoptic.png)
+ 
 ## 许可协议
 
  TIS is under the AGPL-3.0 License. See the [LICENSE](https://github.com/qlangtech/tis-solr/blob/master/LICENSE) file for details.
