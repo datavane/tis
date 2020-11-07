@@ -1,16 +1,18 @@
-![tis](docs/tis-logo.png)
+![tis](http://tis.pub/img/logo.png)
 
 ## TIS介绍
 
  [详细说明](http://tis.pub/docs/)
 
 ## 安装说明
+
+  通过Ansible脚本快速将TIS在分布式环境中一键安装（支持私有云、公有云等环境），方便、快捷
    
-   [详细说明](http://tis.pub/docs/install/)
+  [详细说明](http://tis.pub/docs/install/)
 
 ## 架构
 
-![tis](docs/tis-synoptic.png)
+![tis](http://tis.pub/img/tis/tis-synoptic.png)
 
 ## 许可协议
 
