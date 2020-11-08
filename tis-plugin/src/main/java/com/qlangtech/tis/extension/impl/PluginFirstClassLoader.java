@@ -51,9 +51,10 @@ public class PluginFirstClassLoader extends AntClassLoader implements Closeable 
         return urls;
     }
 
-    public void close() throws IOException {
-        cleanup();
-    }
+//    @Override
+//    public void close()  {
+//        cleanup();
+//    }
 
     @Override
     protected Enumeration findResources(String arg0, boolean arg1) throws IOException {
