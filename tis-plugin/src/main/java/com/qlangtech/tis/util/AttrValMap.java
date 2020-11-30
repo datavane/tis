@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +39,9 @@ public class AttrValMap {
 
     private final Descriptor descriptor;
 
-    private IFieldErrorHandler msgHandler;
+    private IControlMsgHandler msgHandler;
 
-    public static List<AttrValMap> describableAttrValMapList(IFieldErrorHandler fieldErrorHandler, JSONArray itemsArray) {
+    public static List<AttrValMap> describableAttrValMapList(IControlMsgHandler fieldErrorHandler, JSONArray itemsArray) {
         List<AttrValMap> describableAttrValMapList = Lists.newArrayList();
         AttrValMap describableAttrValMap = null;
         JSONObject itemObj = null;
@@ -52,7 +53,7 @@ public class AttrValMap {
         return describableAttrValMapList;
     }
 
-    public static AttrValMap parseDescribableMap(IFieldErrorHandler fieldErrorHandler, com.alibaba.fastjson.JSONObject jsonObject) {
+    public static AttrValMap parseDescribableMap(IControlMsgHandler fieldErrorHandler, com.alibaba.fastjson.JSONObject jsonObject) {
         String impl = null;
         Descriptor descriptor;
         impl = jsonObject.getString("impl");
@@ -66,7 +67,7 @@ public class AttrValMap {
         return new AttrValMap(fieldErrorHandler, attrValMap, descriptor);
     }
 
-    public AttrValMap(IFieldErrorHandler msgHandler, Map<String, JSONObject> attrValMap, Descriptor descriptor) {
+    public AttrValMap(IControlMsgHandler msgHandler, Map<String, JSONObject> attrValMap, Descriptor descriptor) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
         this.msgHandler = msgHandler;

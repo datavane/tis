@@ -14,7 +14,7 @@
  */
 package com.qlangtech.tis.offline.module.manager.impl;
 
-import com.qlangtech.tis.offline.module.pojo.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import junit.framework.TestCase;
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class OfflineManagerTest extends TestCase {
 
     // @Override
     // protected void runTest() throws Throwable {
-    // 
+    //
     // super.runTest();
     // }
     private OfflineManager offline;
@@ -37,13 +37,13 @@ public class OfflineManagerTest extends TestCase {
     // super.setUp();
     }
 
-    public void testGetTables() throws Exception {
-        List<String> tabs = this.offline.getTables("order");
-        assertNotNull(tabs.size());
-        for (String tab : tabs) {
-            System.out.println(tab);
-        }
-    }
+  //  public void testGetTables() throws Exception {
+//        List<String> tabs = this.offline.getTables("order");
+//        assertNotNull(tabs.size());
+//        for (String tab : tabs) {
+//            System.out.println(tab);
+//        }
+   // }
 
     public void testGetColumn() throws Exception {
         List<ColumnMetaData> list = offline.getTableMetadata("order", "totalpayinfo");

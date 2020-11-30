@@ -21,7 +21,7 @@ import com.facebook.presto.sql.tree.TISStackableAstVisitor.StackableAstVisitorCo
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.offline.module.pojo.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;

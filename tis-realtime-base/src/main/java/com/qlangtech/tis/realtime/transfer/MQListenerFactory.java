@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,6 +22,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.PluginStore;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
+
 import java.util.List;
 
 /**
@@ -42,7 +43,8 @@ public class MQListenerFactory implements InitializingBean {
         if (StringUtils.isEmpty(this.collection)) {
             throw new IllegalStateException("collection name have not be set");
         }
-        PluginStore<com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory> mqFactory = TIS.getPluginStore(this.collection, com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory.class);
+        PluginStore<com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory> mqFactory
+                = TIS.getPluginStore(null, this.collection, com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory.class);
         List<com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory> mqListenerFactory = mqFactory.getPlugins();
         if (this.consumer == null) {
             throw new IllegalStateException("consume can not be null");

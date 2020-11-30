@@ -23,7 +23,7 @@ import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
 import com.qlangtech.tis.hdfs.util.Constants;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.TableDumpFactory;
-import com.qlangtech.tis.offline.module.pojo.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.TriggerParam;

@@ -35,6 +35,6 @@
       /> -->
   <!-- 添加 用来处理offline中的db和git更新操作 -->
   <bean id="offlineManager" class="com.qlangtech.tis.offline.module.manager.impl.OfflineManager">
-    <property name="comDfireTisWorkflowDAOFacade" ref="comDfireTisWorkflowDaoFacade"/>
+    <property name="comDfireTisWorkflowDAOFacade" ref="wfDaoFacade"/>
   </bean>
 </beans>

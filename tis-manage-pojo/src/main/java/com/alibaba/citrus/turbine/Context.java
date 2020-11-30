@@ -31,4 +31,6 @@ public interface Context {
     public void put(String key, Object value);
 
     public void remove(String key);
+
+    public boolean hasErrors();
 }

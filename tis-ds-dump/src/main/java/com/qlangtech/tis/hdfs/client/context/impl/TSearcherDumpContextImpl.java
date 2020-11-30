@@ -18,7 +18,7 @@ import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
 import com.qlangtech.tis.hdfs.client.context.TSearcherQueryContext;
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
-import com.qlangtech.tis.offline.pojo.TISTable;
+import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.logging.Log;

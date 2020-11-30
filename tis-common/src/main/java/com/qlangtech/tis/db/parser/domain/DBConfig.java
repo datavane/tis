@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,6 +20,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -48,21 +49,24 @@ public class DBConfig {
 
     private int port = 3306;
 
-    private final Map<String, List<String>> /* host|ip */
-    dbEnum = new HashMap<>();
+    private Map<String, List<String>> /* host|ip */ dbEnum = new HashMap<>();
+
+    public void setDbEnum(Map<String, List<String>> dbEnum) {
+        this.dbEnum = dbEnum;
+    }
 
     private StringBuffer hostDesc;
 
     @JSONField(serialize = false)
     public String getFormatDBName() {
         return DBNode.getFormatDBName(this.name);
-    // return StringUtils.remove(StringUtils.lowerCase(name), "_");
+        // return StringUtils.remove(StringUtils.lowerCase(name), "_");
     }
 
     @JSONField(serialize = false)
     public String getDAOJarName() {
         return DBNode.getDAOJarName(this.name);
-    // return this.getFormatDBName() + "-dao.jar";
+        // return this.getFormatDBName() + "-dao.jar";
     }
 
     /**
@@ -122,7 +126,8 @@ public class DBConfig {
         final CountDownLatch countDownLatch = new CountDownLatch(facade ? 1 : dbCount);
         int hostCount = 0;
         AtomicReference<String> fjdbcUrl = new AtomicReference<>();
-        outer: for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
+        outer:
+        for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
             for (String dbName : entry.getValue()) {
                 // TODO 访问mysql的方式，将来如果有其他数据库可以再扩展一下
                 String jdbcUrl = "jdbc:mysql://" + (resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey()) + ":" + this.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";

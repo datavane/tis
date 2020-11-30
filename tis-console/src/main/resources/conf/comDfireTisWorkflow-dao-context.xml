@@ -19,7 +19,7 @@
       </bean>
     </property>
   </bean>
-  <bean id="comDfireTisWorkflowDaoFacade" class="com.qlangtech.tis.workflow.dao.impl.ComDfireTisWorkflowDAOFacadeImpl" >
+  <bean id="wfDaoFacade" class="com.qlangtech.tis.workflow.dao.impl.ComDfireTisWorkflowDAOFacadeImpl" >
     <constructor-arg index="0" ref="workFlowPublishHistoryDAO" />
     <constructor-arg index="1" ref="workFlowDAO" />
     <constructor-arg index="2" ref="workFlowBuildHistoryDAO" />

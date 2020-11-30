@@ -14,10 +14,12 @@
  */
 package com.qlangtech.tis.util;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import org.json.JSONArray;
-import org.json.JSONObject;
+//import org.json.JSONArray;
+//import org.json.JSONObject;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -104,7 +106,7 @@ public class HeteroList<T extends Describable<T>> {
         Descriptor<T> descriptor = null;
         for (T i : this.getItems()) {
             item = (new DescribableJSON(i)).getItemJson();
-            items.put(item);
+            items.add(item);
         }
         o.put("items", items);
         return o;

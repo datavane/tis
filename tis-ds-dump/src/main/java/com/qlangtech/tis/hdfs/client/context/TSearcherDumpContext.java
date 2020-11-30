@@ -15,7 +15,7 @@
 package com.qlangtech.tis.hdfs.client.context;
 
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
-import com.qlangtech.tis.offline.pojo.TISTable;
+import com.qlangtech.tis.plugin.ds.TISTable;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import java.util.concurrent.atomic.AtomicInteger;
 

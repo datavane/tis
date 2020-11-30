@@ -14,12 +14,12 @@
  */
 package com.qlangtech.tis.util;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +45,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
         JSONArray attrs;
         String key;
         Descriptor.PropertyType val;
+        JSONObject extraProps = null;
         // FormField fieldAnnot;
         JSONObject attrVal;
         JSONObject descriptors = new JSONObject();
@@ -66,12 +67,20 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 attrVal.put("type", val.typeIdentity());
                 attrVal.put("required", val.isInputRequired());
                 attrVal.put("ord", val.ordinal());
+
+                extraProps = val.getExtraProps();
+                if (extraProps != null) {
+                    // 额外属性
+                    attrVal.put("eprops", extraProps);
+                }
+
                 ISelectOptionsGetter optionsCreator = null;
                 if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
                     if (!(d instanceof ISelectOptionsGetter)) {
-                        throw new IllegalStateException("descriptor:" + d.getClass() + " has a selectable field:" + key + " descriptor must be an instance of 'ISelectOptionsGetter'");
+                        throw new IllegalStateException("descriptor:" + d.getClass()
+                                + " has a selectable field:" + key + " descriptor must be an instance of 'ISelectOptionsGetter'");
                     }
-                    optionsCreator = (ISelectOptionsGetter) d;
+                    optionsCreator = d;
                     List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(key);
                     attrVal.put("options", selectOptions);
                 }
@@ -79,7 +88,8 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors());
                     attrVal.put("descriptors", des2Json.getDescriptorsJSON());
                 }
-                attrs.put(attrVal);
+                // attrs.put(attrVal);
+                attrs.add(attrVal);
             }
             // 对象拥有的属性
             des.put("attrs", attrs);

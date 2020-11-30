@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,23 +25,22 @@ import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
-import com.qlangtech.tis.plugin.CollectionPluginStore;
-import com.qlangtech.tis.plugin.ComponentMeta;
-import com.qlangtech.tis.plugin.IRepositoryResource;
-import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.util.Memoizer;
-import com.qlangtech.tis.util.RobustReflectionConverter;
-import com.qlangtech.tis.util.XStream2;
-import com.qlangtech.tis.util.XStream2PluginInfoReader;
+import com.qlangtech.tis.plugin.*;
+import com.qlangtech.tis.plugin.ds.DSKey;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.util.*;
 import org.jvnet.hudson.reactor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
 
 /**
@@ -51,7 +50,7 @@ import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
 public class TIS {
 
     private static final Logger logger = LoggerFactory.getLogger(TIS.class);
-
+    private static final String DB_GROUP_NAME = "db";
     public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
 
     public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
@@ -60,7 +59,7 @@ public class TIS {
     public static final String KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE = "global_config.xml";
 
     // 
-    public static final String KEY_TIS_ENGINE_COMPONENT_CONFIG_FILE = "engine_config.xml";
+    // public static final String KEY_TIS_ENGINE_COMPONENT_CONFIG_FILE = "engine_config.xml";
 
     /**
      * All {@link DescriptorExtensionList} keyed by their {@link DescriptorExtensionList}.
@@ -72,15 +71,58 @@ public class TIS {
         }
     };
 
-    private static final transient Memoizer<CollectionPluginStore.Key, CollectionPluginStore> collectionPluginStore = new Memoizer<CollectionPluginStore.Key, CollectionPluginStore>() {
-
-        public CollectionPluginStore compute(CollectionPluginStore.Key key) {
-            return new CollectionPluginStore(key);
+    private static final transient Memoizer<KeyedPluginStore.Key, KeyedPluginStore> collectionPluginStore
+            = new Memoizer<KeyedPluginStore.Key, KeyedPluginStore>() {
+        public KeyedPluginStore compute(KeyedPluginStore.Key key) {
+            return new KeyedPluginStore(key);
         }
     };
 
+    private static final transient Memoizer<DSKey, DataSourceFactoryPluginStore> databasePluginStore
+            = new Memoizer<DSKey, DataSourceFactoryPluginStore>() {
+        @Override
+        public DataSourceFactoryPluginStore compute(DSKey key) {
+            if (key.isFacadeType()) {
+                // shall not maintance record in DB
+                return new DataSourceFactoryPluginStore(key, false) {
+                    @Override
+                    public void saveTable(String tableName) throws Exception {
+                        throw new UnsupportedOperationException("tableName:" + tableName);
+                    }
+                };
+            } else {
+                return new DataSourceFactoryPluginStore(key, true);
+            }
+        }
+    };
+
+    /**
+     * Get db relevant plugin config
+     *
+     * @param pluginContext
+     * @return
+     */
+    public static DataSourceFactoryPluginStore getDataBasePluginStore(IPluginContext pluginContext, PostedDSProp dsProp) {
+        DataSourceFactoryPluginStore pluginStore
+                = databasePluginStore.get(new DSKey(DB_GROUP_NAME, dsProp.getDbType(), dsProp.getDbname(), DataSourceFactory.class, pluginContext));
+        return pluginStore;
+    }
+
+
+    /**
+     * Get the index relevant plugin configuration
+     *
+     * @param collection
+     * @param key
+     * @param <T>
+     * @return
+     */
     public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
-        PluginStore<T> pluginStore = collectionPluginStore.get(new CollectionPluginStore.Key(collection, key));
+        return getPluginStore(null, collection, key);
+    }
+
+    public static <T extends Describable> PluginStore<T> getPluginStore(IPluginContext pluginContext, String collection, Class<T> key) {
+        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key("collection", collection, key, pluginContext));
         if (pluginStore == null) {
             // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
             return getPluginStore(key);
@@ -130,9 +172,9 @@ public class TIS {
             this.pluginManager = new PluginManager(this.pluginDirRoot);
             final InitStrategy is = InitStrategy.get(Thread.currentThread().getContextClassLoader());
             executeReactor(// loading and preparing plugins
-            is, // load jobs
-            pluginManager.initTasks(is), // forced ordering among key milestones
-            loadTasks(), InitMilestone.ordering());
+                    is, // load jobs
+                    pluginManager.initTasks(is), // forced ordering among key milestones
+                    loadTasks(), InitMilestone.ordering());
             logger.info("tis plugin have been initialized,consume: {}ms.", System.currentTimeMillis() - start);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -192,7 +234,7 @@ public class TIS {
                     super.runTask(task);
                 } finally {
                     t.setName(name);
-                // SecurityContextHolder.clearContext();
+                    // SecurityContextHolder.clearContext();
                 }
             }
         };
@@ -202,9 +244,9 @@ public class TIS {
             protected void onInitMilestoneAttained(InitMilestone milestone) {
                 // initLevel = milestone;
                 if (milestone == PLUGINS_PREPARED) {
-                // set up Guice to enable injection as early as possible
-                // before this milestone, ExtensionList.ensureLoaded() won't actually try to locate instances
-                // ExtensionList.lookup(ExtensionFinder.class).getComponents();
+                    // set up Guice to enable injection as early as possible
+                    // before this milestone, ExtensionList.ensureLoaded() won't actually try to locate instances
+                    // ExtensionList.lookup(ExtensionFinder.class).getComponents();
                 }
             }
         }.run(reactor);
@@ -213,6 +255,7 @@ public class TIS {
     // public File getRootDir() {
     // return this.root;
     // }
+
     /**
      * Exposes {@link Descriptor} by its name to URL.
      * <p>
@@ -223,7 +266,7 @@ public class TIS {
      * @throws IllegalArgumentException if a short name was passed which matches multiple IDs (fail fast)
      */
     // too late to fix
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Descriptor getDescriptor(String id) {
         // legacy descriptors that are reigstered manually doesn't show up in getExtensionList, so check them explicitly.
         Iterable<Descriptor> descriptors = getExtensionList(Descriptor.class);
@@ -253,8 +296,9 @@ public class TIS {
      * you'll get the same instance that this method returns.
      */
     public Descriptor getDescriptor(Class<? extends Describable> type) {
-        for (Descriptor d : getExtensionList(Descriptor.class)) if (d.clazz == type)
-            return d;
+        for (Descriptor d : getExtensionList(Descriptor.class))
+            if (d.clazz == type)
+                return d;
         return null;
     }
 
@@ -262,8 +306,9 @@ public class TIS {
      * Gets the {@link Descriptor} instance in the current Jenkins by its type.
      */
     public <T extends Descriptor> T getDescriptorByType(Class<T> type) {
-        for (Descriptor d : getExtensionList(Descriptor.class)) if (d.getClass() == type)
-            return type.cast(d);
+        for (Descriptor d : getExtensionList(Descriptor.class))
+            if (d.getClass() == type)
+                return type.cast(d);
         return null;
     }
 
@@ -277,7 +322,7 @@ public class TIS {
      *
      * @return Can be an empty list but never null.
      */
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     public <T extends Describable<T>, D extends Descriptor<T>> DescriptorExtensionList<T, D> getDescriptorList(Class<T> type) {
         return descriptorLists.get(type);
     }
@@ -328,6 +373,7 @@ public class TIS {
     // throw new RuntimeException(e);
     // }
     // }
+
     /**
      * 取得增量模块需要用到的plugin名称
      *

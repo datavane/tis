@@ -159,7 +159,7 @@
 
     <constructor-arg index="23" ref="zooKeeperGetter"/>
     <constructor-arg index="24" ref="clusterStateReader"/>
-    <constructor-arg index="25" ref="comDfireTisWorkflowDaoFacade"/>
+    <constructor-arg index="25" ref="wfDaoFacade"/>
 
   </bean>
 

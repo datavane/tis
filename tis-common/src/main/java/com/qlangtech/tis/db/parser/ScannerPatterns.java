@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,10 +24,11 @@ import java.util.regex.Pattern;
  */
 public class ScannerPatterns {
 
-    public enum TokenTypes {
+    public static final String HOST_KEY = "host";
 
+    public enum TokenTypes {
         // 
-        TT_HOST_DESC("^host", true),
+        TT_HOST_DESC("^" + HOST_KEY, true),
         // 
         TT_PASSWORD("^password", true),
         // 
@@ -50,13 +51,13 @@ public class ScannerPatterns {
         TT_RANGE_MINUS("^-", true),
         // http://www.regular-expressions.info/ip.html
         TT_IP(// 
-        "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])", true),
+                "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])", true),
         // 
         TT_RANGE_NUMBER("^\\d+", true),
         // 
         TT_WHITESPACE("^(\\s)+", false),
         TT_HOST(// 
-        "^([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9])(\\.([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9]))+", true),
+                "^([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9])(\\.([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9]))+", true),
         // 
         TT_COLON("^:", true),
         // 

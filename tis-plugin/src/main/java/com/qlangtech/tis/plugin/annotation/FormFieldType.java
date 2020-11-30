@@ -21,10 +21,14 @@ package com.qlangtech.tis.plugin.annotation;
 public enum FormFieldType {
 
     INPUTTEXT(1),
-    /*
+    /**
      * 有多个选项可以选择
      */
     SELECTABLE(6),
+    /**
+     * 密码
+     */
+    PASSWORD(7),
     TEXTAREA(2),
     DATE(3),
     /**

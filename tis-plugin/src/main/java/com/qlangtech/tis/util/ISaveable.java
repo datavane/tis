@@ -24,5 +24,5 @@ import java.util.List;
  */
 public interface ISaveable<D extends Descriptor<T>, T extends Describable<T>> {
 
-    void save(ICollectionName name, List<T> items);
+    void save(IPluginContext name, List<T> items);
 }

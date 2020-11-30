@@ -22,10 +22,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
@@ -205,32 +207,40 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return new XmlFile(new File(TIS.pluginCfgRoot, getPluginFileName(pluginId)));
     }
 
-    public Map<String, /**
-     * fieldname
-     */
-            PropertyType> getPropertyTypes() {
+    public Map<String, /*** fieldname*/PropertyType> getPropertyTypes() {
         if (propertyTypes == null)
             propertyTypes = buildPropertyTypes(clazz);
         return propertyTypes;
     }
 
-    private Map<String, /**
-     * fieldname
-     */
+    private Map<String, /*** fieldname */
             PropertyType> buildPropertyTypes(Class<?> clazz) {
         Map<String, PropertyType> r = new HashMap<String, PropertyType>();
         FormField formField = null;
-        for (Field f : clazz.getDeclaredFields()) {
-            if (!Modifier.isPublic(f.getModifiers())) {
-                continue;
+        PropertyType ptype = null;
+
+        try {
+            PluginExtraProps extraProps = PluginExtraProps.load(clazz);
+
+            for (Field f : clazz.getDeclaredFields()) {
+                if (!Modifier.isPublic(f.getModifiers())) {
+                    continue;
+                }
+                formField = f.getAnnotation(FormField.class);
+                if (formField != null) {
+                    ptype = new PropertyType(f, formField);
+                    if (extraProps != null) {
+                        ptype.setExtraProp(extraProps.getProp(f.getName()));
+                    }
+                    r.put(f.getName(), ptype);
+                }
             }
-            formField = f.getAnnotation(FormField.class);
-            if (formField != null) {
-                r.put(f.getName(), new PropertyType(f, formField));
-            }
+            return r;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return r;
     }
+
 
     /**
      * 校验客户端提交的表单
@@ -240,10 +250,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param formData
      * @return
      */
-    public final boolean validate(IFieldErrorHandler msgHandler, Context context, Map<String, /**
-     * attr key
-     */
-            com.alibaba.fastjson.JSONObject> formData) {
+    public final boolean validate(IControlMsgHandler msgHandler
+            , Context context //
+            , Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> formData) {
         String impl = null;
         Descriptor descriptor;
         String attr;
@@ -254,7 +263,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
         Map<String, PropertyType> /** * fieldname */
                 propertyTypes = this.getPropertyTypes();
-        PostFormVals postFormVals = new PostFormVals();
+        PostFormVals postFormVals = new PostFormVals(formData);
 
         for (Map.Entry<String, PropertyType> entry : propertyTypes.entrySet()) {
             attr = entry.getKey();
@@ -280,7 +289,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 pushFieldStack(context, attr, 0);
                 try {
                     if (!attrValMap.validate(context)) {
-                        valid = false;
+                        valid =false;
                         continue;
                     }
                 } finally {
@@ -300,7 +309,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     for (Validator v : validators) {
                         if (!v.validate(msgHandler, context, attr, attrVal)) {
                             valid = false;
-                            continue;
+                            break;
                         }
                     }
                     // }
@@ -318,7 +327,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
         }// end for
 
-        if (!this.validate(msgHandler, context, postFormVals)) {
+        if (valid && !this.validate(msgHandler, context, postFormVals)) {
             valid = false;
         }
 
@@ -333,7 +342,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param postFormVals
      * @return true 代表没有错误
      */
-    protected boolean validate(IFieldErrorHandler msgHandler, Context context, PostFormVals postFormVals) {
+    protected boolean validate(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
         return true;
     }
 
@@ -471,6 +480,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
         private Boolean inputRequired;
 
+        private PluginExtraProps.Prop extraProp;
+
         PropertyType(Field f, Class clazz, Type type, String displayName, FormField formField) {
             this.f = f;
             this.clazz = clazz;
@@ -480,6 +491,17 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 throw new IllegalStateException("param formField can not be null");
             }
             this.formField = formField;
+        }
+
+        public JSONObject getExtraProps() {
+            if (this.extraProp == null) {
+                return null;
+            }
+            return this.extraProp.getProps();
+        }
+
+        public void setExtraProp(PluginExtraProps.Prop extraProp) {
+            this.extraProp = extraProp;
         }
 
         public String dftVal() {
@@ -650,9 +672,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return Self.class;
     }
 
-    private final Map<String, Callable<List<? extends IdentityName>>> /**
-     * fieldname
-     */
+    private final Map<String, Callable<List<? extends IdentityName>>> /*** fieldname*/
             selectOptsRegister = Maps.newHashMap();
 
     /**
@@ -703,10 +723,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public static class PostFormVals {
+
+        // receive from post form directly
+        public final Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> rawFormData;
+
+        public PostFormVals(Map<String, JSONObject> rawFormData) {
+            this.rawFormData = rawFormData;
+        }
+
         private Map<String, String> fieldVals = Maps.newHashMap();
 
         public String getField(String key) {
             return fieldVals.get(key);
         }
     }
+
 }

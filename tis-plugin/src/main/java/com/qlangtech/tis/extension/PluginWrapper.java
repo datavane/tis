@@ -217,7 +217,8 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
      * @param dependencies         a list of mandatory dependencies
      * @param optionalDependencies a list of optional dependencies
      */
-    public PluginWrapper(PluginManager parent, File archive, Manifest manifest, URL baseResourceURL, ClassLoader classLoader, File disableFile, List<Dependency> dependencies, List<Dependency> optionalDependencies) {
+    public PluginWrapper(PluginManager parent, File archive, Manifest manifest, URL baseResourceURL, ClassLoader classLoader
+            , File disableFile, List<Dependency> dependencies, List<Dependency> optionalDependencies) {
         this.parent = parent;
         this.manifest = manifest;
         this.shortName = computeShortName(manifest, archive.getName());

@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.offline.module.pojo;
 
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+
 import java.util.List;
 
 /**

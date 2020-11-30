@@ -41,10 +41,11 @@ public class DefaultMessageHandler extends DefaultFieldErrorHandler implements I
         context.put(ACTION_BIZ_RESULT, result);
     }
 
-    @SuppressWarnings("unchecked")
-    public boolean hasErrors(Context context) {
-        return context.get(ACTION_ERROR_MSG) != null && !((List<String>) context.get(ACTION_ERROR_MSG)).isEmpty();
-    }
+//    @SuppressWarnings("unchecked")
+//    public boolean hasErrors(Context context) {
+//
+//        return context.hasErrors();
+//    }
 
     @Override
     public void errorsPageShow(Context context) {

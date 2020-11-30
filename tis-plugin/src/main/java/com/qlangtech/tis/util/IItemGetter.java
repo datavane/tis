@@ -23,5 +23,5 @@ import java.util.List;
  */
 public interface IItemGetter<T extends Describable<T>> {
 
-    public List<T> get(ICollectionName name);
+    public List<T> get(IPluginContext name);
 }

@@ -53,7 +53,8 @@ import java.util.regex.Pattern;
  * @date 2015年12月25日 下午4:32:17
  */
 @SuppressWarnings("all")
-public abstract class BasicRMListener extends AbstractConsumerHandle implements InitializingBean, IOnsListenerStatus, ITableProcessGetter, ITableFocuseGetter {
+public abstract class BasicRMListener extends AbstractConsumerHandle
+        implements InitializingBean, IOnsListenerStatus, ITableProcessGetter, ITableFocuseGetter {
 
     public static final String KEY_COLLECTION = "app";
 

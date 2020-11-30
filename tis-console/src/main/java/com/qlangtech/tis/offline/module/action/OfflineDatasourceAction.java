@@ -16,15 +16,17 @@ package com.qlangtech.tis.offline.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.db.parser.domain.DBConfig;
 import com.qlangtech.tis.db.parser.domain.DBConfigSuit;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.JoinRule;
@@ -36,12 +38,13 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
-import com.qlangtech.tis.offline.module.pojo.ColumnMetaData;
 import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
-import com.qlangtech.tis.offline.pojo.TISTable;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
+import com.qlangtech.tis.plugin.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -55,12 +58,14 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
+import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -147,7 +152,9 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doSelectDbChange(Context context) throws Exception {
     Integer dbid = this.getInt("dbid");
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
-    List<String> tabs = this.offlineManager.getTables(db.getName());
+    PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(this, new PostedDSProp(db.getName(), DbScope.DETAILED));
+
+    List<String> tabs = dbPlugin.getPlugin().getTablesInDB();
     // 通过DB的连接信息找到找到db下所有表信息
     // 对应的tabs列表
     this.setBizResult(context, tabs.stream().map((t) -> {
@@ -172,9 +179,8 @@ public class OfflineDatasourceAction extends BasicModule {
     // return;
     // }
     // 3. 添加数据库
-    offlineManager.addDatasourceDb(dbPojo, this, context);
+    //  offlineManager.addDb(dbPojo.getDbName(), this, context);
     // 4. 返回最新的数据源信息
-    // this.doGetDatasourceInfo(context);
   }
 
   /**
@@ -451,7 +457,7 @@ public class OfflineDatasourceAction extends BasicModule {
     for (int i = 0; i < cols.size(); i++) {
       col = cols.getJSONObject(i);
       colMeta = new ColumnMetaData(i, col.getString("key"), col.getIntValue("type"), col.getBoolean("pk"));
-      tab.addColumnMeta(colMeta);
+      // tab.addColumnMeta(colMeta);
     }
     if (updateMode) {
       tab.setTabId(form.getInteger("tabId"));
@@ -669,7 +675,7 @@ public class OfflineDatasourceAction extends BasicModule {
         });
 
     if (!Validator.validate(handler, context, validateRule)) {
-     // return;
+      // return;
     }
 
   }
@@ -1137,8 +1143,30 @@ public class OfflineDatasourceAction extends BasicModule {
    * @throws Exception the exception
    */
   public void doGetDatasourceInfo(Context context) throws Exception {
-    this.setBizResult(context, offlineManager.getDatasourceInfo());
+    // this.setBizResult(context, offlineManager.getDatasourceInfo());
+    this.setBizResult(context
+      , new ConfigDsMeta(offlineManager.getDatasourceInfo(), TIS.get().getDescriptorList(DataSourceFactory.class)));
   }
+
+
+  public static class ConfigDsMeta {
+    private final Collection<OfflineDatasourceAction.DatasourceDb> dbs;
+    private final DescriptorsJSON pluginDesc;
+
+    public ConfigDsMeta(Collection<DatasourceDb> dbs, DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> descList) {
+      this.dbs = dbs;
+      this.pluginDesc = new DescriptorsJSON(descList);
+    }
+
+    public Collection<DatasourceDb> getDbs() {
+      return dbs;
+    }
+
+    public com.alibaba.fastjson.JSONObject getPluginDesc() {
+      return pluginDesc.getDescriptorsJSON();
+    }
+  }
+
 
   /**
    * Do get datasource db. 获取一个db的git配置信息
@@ -1147,12 +1175,12 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   public void doGetDatasourceDbById(Context context) {
     Integer dbId = this.getInt("id");
-    DBConfigSuit configSuit = offlineManager.getDbConfig(dbId);
-    DBConfig db = configSuit.getDetailed();
-    confusionPassword(db);
-    if ((db = configSuit.getFacade()) != null) {
-      confusionPassword(db);
-    }
+    DBConfigSuit configSuit = offlineManager.getDbConfig(this, dbId, DbScope.DETAILED);
+//    DBConfig db = configSuit.getDetailed();
+//    confusionPassword(db);
+//    if ((db = configSuit.getFacade()) != null) {
+//      confusionPassword(db);
+//    }
     this.setBizResult(context, configSuit);
   }
 
@@ -1171,7 +1199,7 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   public void doGetDatasourceTableById(Context context) throws IOException {
     Integer tableId = this.getInt("id");
-    TISTable tableConfig = this.offlineManager.getTableConfig(tableId);
+    TISTable tableConfig = this.offlineManager.getTableConfig(this, tableId);
     this.setBizResult(context, tableConfig);
   }
 
@@ -1208,13 +1236,14 @@ public class OfflineDatasourceAction extends BasicModule {
       if (dumpNode == null) {
         throw new IllegalStateException("key:" + dumpNodeId + " can not find relevant dump node in topplogy '" + topology + "'");
       }
-      tabCfg = GitUtils.$().getTableConfig(dumpNode.getDbName(), dumpNode.getName());
-      // reflectCols = tabCfg.getReflectCols();
-      // for (ColumnMetaData col : reflectCols) {
-      //
-      // }
-      // rowMetaData = SqlTaskNode.reflectTableCols(dumpNode.getExtraSql());
-      sqlCols.setCols(tabCfg.getReflectCols());
+
+      // tabCfg = GitUtils.$().getTableConfig(dumpNode.getDbName(), dumpNode.getName());
+      DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(this, new PostedDSProp(dumpNode.getDbName()));
+      TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
+      if (CollectionUtils.isEmpty(tisTable.getReflectCols())) {
+        throw new IllegalStateException("db:" + dumpNode.getDbName() + ",table:" + dumpNode.getName() + " relevant table col reflect cols can not be empty");
+      }
+      sqlCols.setCols(tisTable.getReflectCols());
       colsMeta.add(sqlCols);
     }
     this.setBizResult(context, colsMeta);
@@ -1287,7 +1316,7 @@ public class OfflineDatasourceAction extends BasicModule {
       this.addErrorMessage(context, "表名不能为空");
       return;
     }
-    // form.getString("tableLogicName");
+
     final String tableLogicName = table;
     if (StringUtils.equals("db_config", tableLogicName)) {
       this.addErrorMessage(context, "表名不能为'db_config'");
@@ -1299,45 +1328,28 @@ public class OfflineDatasourceAction extends BasicModule {
       this.addErrorMessage(context, "已经有了相同逻辑名的表");
       return;
     }
-    List<ColumnMetaData> cols = offlineManager.getTableMetadata(db.getName(), table);
+
+    PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(this, new PostedDSProp(db.getName(), DbScope.DETAILED));
+
+    List<ColumnMetaData> cols = dbPlugin.getPlugin().getTableMetadata(table);// offlineManager.getTableMetadata(db.getName(), table);
     if (cols.size() < 1) {
       this.addErrorMessage(context, "表:[" + table + "]没有定义列");
       return;
     }
-    StringBuffer sql = new StringBuffer();
-    sql.append("SELECT ");
-    sql.append(Joiner.on(",").join(cols.stream().map((r) -> r.getKey()).iterator())).append("\n");
-    sql.append("FROM ").append(table);
-    if (!StringUtils.equals(table, tableLogicName)) {
-      sql.append(" AS ").append(tableLogicName);
-    }
+
+    StringBuffer extractSQL = ColumnMetaData.buildExtractSQL(table, cols);
+
+//    StringBuffer sql = new StringBuffer();
+//    sql.append("SELECT ");
+//    sql.append(Joiner.on(",").join(cols.stream().map((r) -> r.getKey()).iterator())).append("\n");
+//    sql.append("FROM ").append(table);
+//    if (!StringUtils.equals(table, tableLogicName)) {
+//      sql.append(" AS ").append(tableLogicName);
+//    }
     TableReflect tableReflect = new TableReflect();
-    tableReflect.cols = cols;
-    tableReflect.sql = sql.toString();
+    tableReflect.setCols(cols);
+    tableReflect.setSql(extractSQL.toString());
     this.setBizResult(context, tableReflect);
-  }
-
-  public static class TableReflect {
-
-    private String sql;
-
-    private List<ColumnMetaData> cols;
-
-    public String getSql() {
-      return sql;
-    }
-
-    public void setSql(String sql) {
-      this.sql = sql;
-    }
-
-    public List<ColumnMetaData> getCols() {
-      return cols;
-    }
-
-    public void setCols(List<ColumnMetaData> cols) {
-      this.cols = cols;
-    }
   }
 
   /**
@@ -1608,7 +1620,7 @@ public class OfflineDatasourceAction extends BasicModule {
   // return sb.toString();
   // }
   @Autowired
-  public void setComDfireTisWorkflowDaoFacade(IComDfireTisWorkflowDAOFacade facade) {
+  public void setWfDaoFacade(IComDfireTisWorkflowDAOFacade facade) {
     this.offlineDAOFacade = facade;
   }
 

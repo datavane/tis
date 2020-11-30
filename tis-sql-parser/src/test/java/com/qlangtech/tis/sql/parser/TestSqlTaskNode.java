@@ -15,7 +15,7 @@
 package com.qlangtech.tis.sql.parser;
 
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.offline.module.pojo.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import junit.framework.TestCase;
 import java.util.List;
 import java.util.Set;

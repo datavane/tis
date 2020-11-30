@@ -1,25 +1,27 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.db.parser;
 
+import com.qlangtech.tis.db.parser.ScannerPatterns.TokenTypes;
+import com.qlangtech.tis.db.parser.domain.DBConfig;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.io.FileUtils;
-import com.qlangtech.tis.db.parser.ScannerPatterns.TokenTypes;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -38,6 +40,30 @@ public class DBConfigParser {
         this.tokenBuffer = tokenBuffer;
         this.dbConfigResult.setHostDesc(hostDesc);
     }
+
+    /**
+     * Parse the dbnode description to struct Object
+     *
+     * @param dbName
+     * @param dbNodeDesc
+     * @return
+     */
+    public static Map<String, List<String>> parseDBEnum(String dbName, String dbNodeDesc) {
+        if (StringUtils.isEmpty(dbNodeDesc)) {
+            throw new IllegalArgumentException("param dbNodeDesc can not be null");
+        }
+        if (StringUtils.isEmpty(dbName)) {
+            throw new IllegalArgumentException("param dbName can not be null");
+        }
+        DBTokenizer tokenizer = new DBTokenizer(ScannerPatterns.HOST_KEY + ":" + dbNodeDesc);
+        tokenizer.parse();
+        DBConfigParser parser = new DBConfigParser(tokenizer.getTokenBuffer());
+        parser.dbConfigResult.setName(dbName);
+        parser.parseHostDesc();
+        DBConfig db = parser.dbConfigResult;
+        return db.getDbEnum();
+    }
+
 
     public static void main(String[] args) throws Exception {
         File f = new File("./db_config.txt");
@@ -96,7 +122,7 @@ public class DBConfigParser {
                 // hostDesc.append(t.getContent());
                 tokenBuffer.popToken();
                 if (dbHostEnum()) {
-                // parseSuccess = true;
+                    // parseSuccess = true;
                 } else {
                     parseSuccess = false;
                 }
@@ -121,25 +147,7 @@ public class DBConfigParser {
     private boolean dbPrimaryInfo() {
         final int save = tokenBuffer.getCurrentPosition();
         boolean parseSuccess = this.parseHostDesc();
-        // final int save = tokenBuffer.getCurrentPosition();
-        // Token t = tokenBuffer.nextToken();
-        // if (t.isTokenType(TokenTypes.TT_HOST_DESC)) {
-        // tokenBuffer.popToken();
-        // t = tokenBuffer.nextToken();
-        // if (t.isTokenType(TokenTypes.TT_COLON)) {
-        // tokenBuffer.popToken();
-        // if (dbHostEnum()) {
-        // // parseSuccess = true;
-        // } else {
-        // parseSuccess = false;
-        // }
-        // } else {
-        // parseSuccess = false;
-        // }
-        // } else {
-        // parseSuccess = false;
-        // }
-        // username
+
         Token t = tokenBuffer.nextToken();
         if (t.isTokenType(TokenTypes.TT_USERNAME)) {
             tokenBuffer.popToken();
@@ -216,7 +224,7 @@ public class DBConfigParser {
         } else {
             return false;
         }
-    // return hostIp != null;
+        // return hostIp != null;
     }
 
     // '['NUM']'
@@ -341,7 +349,7 @@ public class DBConfigParser {
             tokenBuffer.resetCurrentPosition(save);
         }
         return hostip;
-    // return praseResult;
+        // return praseResult;
     }
 
     private boolean dbPort() {

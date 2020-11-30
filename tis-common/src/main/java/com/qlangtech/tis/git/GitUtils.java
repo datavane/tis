@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,7 +25,6 @@ import com.qlangtech.tis.manage.common.ConfigFileContext.HTTPMethod;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.offline.DbScope;
-import com.qlangtech.tis.offline.module.pojo.ColumnMetaData;
 import com.qlangtech.tis.offline.pojo.*;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
 import junit.framework.Assert;
@@ -38,6 +37,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -134,32 +134,32 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
 
     public static void main(String[] args) throws Exception {
         System.out.println(Secret.encrypt("order@552208", cryptKey));
-    // createFile();
-    // getChildren();
-    // getProjects();
+        // createFile();
+        // getChildren();
+        // getProjects();
     }
 
     private static void createFile() {
-    // String urlString = GIT_HOST + "/api/v4/projects/1281/repository/files";
-    // 
-    // List<PostParam> params = new ArrayList<>();
-    // params.add(new PostParam("file_path", "server/hello2.txt"));
-    // params.add(new PostParam("branch_name", "master"));
-    // params.add(new PostParam("encoding", "base64"));
-    // params.add(new PostParam("content",
-    // Base64.getEncoder().encodeToString("我爱北京天安门".getBytes(Charset.forName("utf8")))));
-    // params.add(new PostParam("commit_message", "new added"));
-    // 
-    // HttpUtils.post(urlString, params, new GitPostStreamProcess<String>() {
-    // @Override
-    // public String p(int status, InputStream stream, String md5) {
-    // try {
-    // return IOUtils.toString(stream, "utf8");
-    // } catch (IOException e) {
-    // throw new RuntimeException(e);
-    // }
-    // }
-    // });
+        // String urlString = GIT_HOST + "/api/v4/projects/1281/repository/files";
+        //
+        // List<PostParam> params = new ArrayList<>();
+        // params.add(new PostParam("file_path", "server/hello2.txt"));
+        // params.add(new PostParam("branch_name", "master"));
+        // params.add(new PostParam("encoding", "base64"));
+        // params.add(new PostParam("content",
+        // Base64.getEncoder().encodeToString("我爱北京天安门".getBytes(Charset.forName("utf8")))));
+        // params.add(new PostParam("commit_message", "new added"));
+        //
+        // HttpUtils.post(urlString, params, new GitPostStreamProcess<String>() {
+        // @Override
+        // public String p(int status, InputStream stream, String md5) {
+        // try {
+        // return IOUtils.toString(stream, "utf8");
+        // } catch (IOException e) {
+        // throw new RuntimeException(e);
+        // }
+        // }
+        // });
     }
 
     /**
@@ -171,7 +171,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
     @Override
     public void createDatabase(TISDb db, String commitLog) {
         processDBConfig(db, commitLog, true, /* is new */
-        db.isFacade());
+                db.isFacade());
     }
 
     /**
@@ -183,7 +183,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
     @Override
     public void updateDatabase(TISDb db, String commitLog) {
         this.processDBConfig(db, commitLog, false, /* is new */
-        db.isFacade());
+                db.isFacade());
     }
 
     public static final String DB_CONFIG_META_NAME = "db_config";
@@ -223,25 +223,25 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
      * @param table
      * @param commitLog
      */
-    @Override
-    public void createTableDaily(TISTable table, String commitLog) {
-        if (table == null || StringUtils.isEmpty(table.getDbName()) || StringUtils.isEmpty(table.getTableLogicName())) {
-            throw new IllegalArgumentException("param table can not be null");
-        }
-        if (StringUtils.isEmpty(table.getSelectSql())) {
-            throw new IllegalArgumentException("param selectSql can not be null");
-        }
-        if (StringUtils.isEmpty(commitLog)) {
-            throw new IllegalArgumentException("param commitLog can not be null");
-        }
-        String path = TAB_CONFIG_ROOT_DIR + table.getDbName() + "/" + table.getTableLogicName();
-        final String sql = table.getSelectSql();
-        // 不需要序列化
-        table.setSelectSql(null);
-        boolean newMode = (table.getTabId() == null);
-        this.createFile(path + "/profile", GitBranchInfo.$(GitBranch.DEVELOP), JSON.toJSONString(table, true), commitLog, DATASOURCE_PROJECT_ID, newMode);
-        this.createFile(path + "/sql", GitBranchInfo.$(GitBranch.DEVELOP), sql, commitLog, DATASOURCE_PROJECT_ID, newMode);
-    }
+//    @Override
+//    public void createTableDaily(TISTable table, String commitLog) {
+//        if (table == null || StringUtils.isEmpty(table.getDbName()) || StringUtils.isEmpty(table.getTableLogicName())) {
+//            throw new IllegalArgumentException("param table can not be null");
+//        }
+//        if (StringUtils.isEmpty(table.getSelectSql())) {
+//            throw new IllegalArgumentException("param selectSql can not be null");
+//        }
+//        if (StringUtils.isEmpty(commitLog)) {
+//            throw new IllegalArgumentException("param commitLog can not be null");
+//        }
+//        String path = TAB_CONFIG_ROOT_DIR + table.getDbName() + "/" + table.getTableLogicName();
+//        final String sql = table.getSelectSql();
+//        // 不需要序列化
+//        table.setSelectSql(null);
+//        boolean newMode = (table.getTabId() == null);
+//        this.createFile(path + "/profile", GitBranchInfo.$(GitBranch.DEVELOP), JSON.toJSONString(table, true), commitLog, DATASOURCE_PROJECT_ID, newMode);
+//        this.createFile(path + "/sql", GitBranchInfo.$(GitBranch.DEVELOP), sql, commitLog, DATASOURCE_PROJECT_ID, newMode);
+//    }
 
     public static int ExecuteGetTableConfigCount;
 
@@ -251,32 +251,32 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
      *
      * @return
      */
-    @Override
-    public TISTable getTableConfig(String dbName, String tableName) {
-        JSONObject tableProfile = getGitJson(DATASOURCE_PROJECT_ID, TAB_CONFIG_ROOT_DIR + dbName + "/" + tableName + "/profile");
-        TISTable table = new TISTable();
-        table.setTableLogicName(tableProfile.getString("tableLogicName"));
-        table.setTableName(tableProfile.getString("tableName"));
-        table.setPartitionNum(tableProfile.getInt("partitionNum"));
-        table.setDbName(tableProfile.getString("dbName"));
-        table.setPartitionInterval(tableProfile.getInt("partitionInterval"));
-        final String keyReflectCols = "reflectCols";
-        if (!tableProfile.isNull(keyReflectCols)) {
-            JSONArray reflectCols = tableProfile.getJSONArray(keyReflectCols);
-            JSONObject col = null;
-            for (int i = 0; i < reflectCols.length(); i++) {
-                col = reflectCols.getJSONObject(i);
-                table.addColumnMeta(new ColumnMetaData(col.getInt("index"), col.getString("key"), col.getInt("type"), col.getBoolean("pk")));
-            }
-        }
-        FileContent f = getFileContent(DATASOURCE_PROJECT_ID, TAB_CONFIG_ROOT_DIR + dbName + "/" + tableName + "/sql", GitBranch.DEVELOP);
-        if (!f.exist()) {
-            throw new IllegalStateException("target file not exist:" + f);
-        }
-        table.setSelectSql(f.getContent());
-        ExecuteGetTableConfigCount++;
-        return table;
-    }
+//    @Override
+//    public TISTable getTableConfig(String dbName, String tableName) {
+//        JSONObject tableProfile = getGitJson(DATASOURCE_PROJECT_ID, TAB_CONFIG_ROOT_DIR + dbName + "/" + tableName + "/profile");
+//        TISTable table = new TISTable();
+//        table.setTableLogicName(tableProfile.getString("tableLogicName"));
+//        table.setTableName(tableProfile.getString("tableName"));
+//        table.setPartitionNum(tableProfile.getInt("partitionNum"));
+//        table.setDbName(tableProfile.getString("dbName"));
+//        table.setPartitionInterval(tableProfile.getInt("partitionInterval"));
+//        final String keyReflectCols = "reflectCols";
+//        if (!tableProfile.isNull(keyReflectCols)) {
+//            JSONArray reflectCols = tableProfile.getJSONArray(keyReflectCols);
+//            JSONObject col = null;
+//            for (int i = 0; i < reflectCols.length(); i++) {
+//                col = reflectCols.getJSONObject(i);
+//                table.addColumnMeta(new ColumnMetaData(col.getInt("index"), col.getString("key"), col.getInt("type"), col.getBoolean("pk")));
+//            }
+//        }
+//        FileContent f = getFileContent(DATASOURCE_PROJECT_ID, TAB_CONFIG_ROOT_DIR + dbName + "/" + tableName + "/sql", GitBranch.DEVELOP);
+//        if (!f.exist()) {
+//            throw new IllegalStateException("target file not exist:" + f);
+//        }
+//        table.setSelectSql(f.getContent());
+//        ExecuteGetTableConfigCount++;
+//        return table;
+//    }
 
     /**
      * 线上配置
@@ -356,13 +356,13 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
     }
 
     private void deleteFile(String path, GitBranchInfo branch, GitUser user, String commitLog, int projectId) {
-    // String urlStromg = GIT_HOST + "/api/v4/projects/" + projectId + "/repository/files/" + this.urlEncode(path);
-    // List<PostParam> params = new ArrayList<>();
-    // params.add(new HttpUtils.PostParam("branch", branch.getBranch()));
-    // params.add(new HttpUtils.PostParam("commit_message", commitLog));
-    // params.add(new PostParam("author_name", user.getName()));
-    // params.add(new PostParam("author_email", user.getEmail()));
-    // HttpUtils.delete(urlStromg, params, gitPostStreamProcess);
+        // String urlStromg = GIT_HOST + "/api/v4/projects/" + projectId + "/repository/files/" + this.urlEncode(path);
+        // List<PostParam> params = new ArrayList<>();
+        // params.add(new HttpUtils.PostParam("branch", branch.getBranch()));
+        // params.add(new HttpUtils.PostParam("commit_message", commitLog));
+        // params.add(new PostParam("author_name", user.getName()));
+        // params.add(new PostParam("author_email", user.getEmail()));
+        // HttpUtils.delete(urlStromg, params, gitPostStreamProcess);
     }
 
     private void createFile(String path, GitBranchInfo branch, String content, String commitLog, int projectId, boolean create) {
@@ -383,29 +383,29 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
         try {
             File targetFile = new File(this.dbRootDir, path);
             FileUtils.writeStringToFile(targetFile, content, TisUTF8.get(), false);
-        // return FileUtils.readFileToString(targetFile, TisUTF8.get());
+            // return FileUtils.readFileToString(targetFile, TisUTF8.get());
         } catch (IOException e) {
             throw new RuntimeException("filepath:" + path, e);
         }
-    // try {
-    // URL urlString;
-    // try {
-    // urlString = new URL(GIT_HOST + "/api/v4/projects/" + projectId + "/repository/files/" + this.urlEncode(path));
-    // } catch (MalformedURLException e1) {
-    // throw new RuntimeException(e1);
-    // }
-    // List<PostParam> params = new ArrayList<>();
-    // String branchName = StringUtils.isEmpty(branch.name) ? branch.staticName.value : branch.name;
-    // params.add(new PostParam("branch", branchName));
-    // params.add(new PostParam("encoding", "base64"));
-    // params.add(new PostParam("author_email", "baisui@2dfire.com"));
-    // params.add(new PostParam("author_name", "baisui"));
-    // params.add(new PostParam("content", Base64.getEncoder().encodeToString(content.getBytes(Charset.forName("utf8")))));
-    // params.add(new PostParam("commit_message", commitLog));
-    // String result = HttpUtils.process(urlString, params, gitPostStreamProcess, httpMethod);
-    // } catch (Exception e) {
-    // 
-    // }
+        // try {
+        // URL urlString;
+        // try {
+        // urlString = new URL(GIT_HOST + "/api/v4/projects/" + projectId + "/repository/files/" + this.urlEncode(path));
+        // } catch (MalformedURLException e1) {
+        // throw new RuntimeException(e1);
+        // }
+        // List<PostParam> params = new ArrayList<>();
+        // String branchName = StringUtils.isEmpty(branch.name) ? branch.staticName.value : branch.name;
+        // params.add(new PostParam("branch", branchName));
+        // params.add(new PostParam("encoding", "base64"));
+        // params.add(new PostParam("author_email", "baisui@2dfire.com"));
+        // params.add(new PostParam("author_name", "baisui"));
+        // params.add(new PostParam("content", Base64.getEncoder().encodeToString(content.getBytes(Charset.forName("utf8")))));
+        // params.add(new PostParam("commit_message", commitLog));
+        // String result = HttpUtils.process(urlString, params, gitPostStreamProcess, httpMethod);
+        // } catch (Exception e) {
+        //
+        // }
     }
 
     // private void updateFile(String path, String branch, String content,
@@ -446,7 +446,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
         } catch (IOException e) {
             throw new RuntimeException(targetDir.getAbsolutePath(), e);
         }
-    // this.deleteFile(name + "/db_config", GitBranchInfo.$(GitBranch.MASTER), user, "delete db " + name, DATASOURCE_PROJECT_ID);
+        // this.deleteFile(name + "/db_config", GitBranchInfo.$(GitBranch.MASTER), user, "delete db " + name, DATASOURCE_PROJECT_ID);
     }
 
     @Override
@@ -464,7 +464,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
     @Override
     public void deleteTableDaily(String dbName, String tableLogicName, GitUser user) {
         this.deleteTable(dbName, tableLogicName, true, /* isDaily */
-        user);
+                user);
     }
 
     @Override
@@ -501,7 +501,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
                 }
             }
         });
-    // System.out.println(result);
+        // System.out.println(result);
     }
 
     public enum GitBranch {
@@ -630,24 +630,24 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
             return Collections.emptyList();
         }
         return Lists.newArrayList(path.list());
-    // String url = String.format(GIT_HOST + "/api/v4/projects/%d/repository/tree?ref=%s&path=%s&recursive=false", projectId,
-    // branch.getBranch(), urlEncode(filePath));
-    // return HttpUtils.processContent(url, new GitStreamProcess<List<String>>() {
-    // 
-    // @Override
-    // public List<String> p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-    // List<String> result = Lists.newArrayList();
-    // JSONTokener tokener = new JSONTokener(stream);
-    // JSONArray a = new JSONArray(tokener);
-    // JSONObject o = null;
-    // 
-    // for (int i = 0; i < a.length(); i++) {
-    // o = a.getJSONObject(i);
-    // result.add(o.getString("name"));
-    // }
-    // return result;
-    // }
-    // });
+        // String url = String.format(GIT_HOST + "/api/v4/projects/%d/repository/tree?ref=%s&path=%s&recursive=false", projectId,
+        // branch.getBranch(), urlEncode(filePath));
+        // return HttpUtils.processContent(url, new GitStreamProcess<List<String>>() {
+        //
+        // @Override
+        // public List<String> p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+        // List<String> result = Lists.newArrayList();
+        // JSONTokener tokener = new JSONTokener(stream);
+        // JSONArray a = new JSONArray(tokener);
+        // JSONObject o = null;
+        //
+        // for (int i = 0; i < a.length(); i++) {
+        // o = a.getJSONObject(i);
+        // result.add(o.getString("name"));
+        // }
+        // return result;
+        // }
+        // });
     }
 
     private String urlEncode(String value) {
@@ -666,6 +666,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
     // private List<String> listChildFile(int projectId, String filePath, GitBranch branch) {
     // return this.getFileContent(projectId, filePath, GitBranchInfo.$(branch));
     // }
+
     /**
      * 取得Db配置
      *
@@ -756,8 +757,8 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
             if (hostCount.get() != 1) {
                 throw new IllegalStateException("facade db:" + dbName + " relevant hostCount can not big than 1,but now:" + hostCount);
             }
-        // 最终想想还是不要在这里改db的名称
-        // db.setName(dbName);
+            // 最终想想还是不要在这里改db的名称
+            // db.setName(dbName);
         }
         db.setPassword(Secret.decrypt(db.getPassword(), cryptKey));
         return db;
@@ -1044,7 +1045,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
             heads.add(PRIVATE_TOKEN);
             heads.addAll(super.getHeaders());
             return heads;
-        // return createHeaders(super.getHeaders());
+            // return createHeaders(super.getHeaders());
         }
     }
 

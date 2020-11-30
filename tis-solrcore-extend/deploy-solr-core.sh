@@ -2,8 +2,8 @@
   #  jar -tvf ./solr-core-8.6.1.jar | grep CoreAdminOperation
   # 删除jar包中存在的class文件
   #  zip --delete ./solr-core-8.6.1.jar "org/apache/solr/handler/admin/CoreAdminOperation.class"
-
-mvn deploy:deploy-file \
+#org.apache.maven.plugins:maven-deploy-plugin:2.8:deploy
+mvn org.apache.maven.plugins:maven-deploy-plugin:2.8:deploy-file \
  -DgroupId=com.qlangtech.tis \
  -DartifactId=tis-solr-core \
  -Dversion=8.6.1-fix \

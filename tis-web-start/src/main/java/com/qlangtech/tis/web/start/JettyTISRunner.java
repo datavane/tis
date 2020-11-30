@@ -161,8 +161,11 @@ public class JettyTISRunner {
         }
         server = new Server(new QueuedThreadPool(450));
         // << 启用jndi
-        org.eclipse.jetty.webapp.Configuration.ClassList classlist = org.eclipse.jetty.webapp.Configuration.ClassList.setServerDefault(server);
-        classlist.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration", "org.eclipse.jetty.plus.webapp.EnvConfiguration", "org.eclipse.jetty.plus.webapp.PlusConfiguration");
+        org.eclipse.jetty.webapp.Configuration.ClassList classlist
+                = org.eclipse.jetty.webapp.Configuration.ClassList.setServerDefault(server);
+        classlist.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration"
+                , "org.eclipse.jetty.plus.webapp.EnvConfiguration"
+                , "org.eclipse.jetty.plus.webapp.PlusConfiguration");
         // >>
         NetworkTrafficServerConnector connector = new NetworkTrafficServerConnector(server);
         HttpConfiguration configuration = new HttpConfiguration();

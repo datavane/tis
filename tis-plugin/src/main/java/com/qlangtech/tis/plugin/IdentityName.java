@@ -15,7 +15,7 @@
 package com.qlangtech.tis.plugin;
 
 /**
- * 插件的名称ID
+ * The plugin global unique identity name
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13

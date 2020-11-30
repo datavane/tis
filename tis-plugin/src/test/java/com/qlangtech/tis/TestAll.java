@@ -15,6 +15,7 @@
 package com.qlangtech.tis;
 
 import com.qlangtech.tis.extension.impl.TestXmlFile;
+import com.qlangtech.tis.extension.util.TestPluginExtraProps;
 import com.qlangtech.tis.plugin.TestComponentMeta;
 import com.qlangtech.tis.plugin.TestPluginStore;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
@@ -37,6 +38,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestComponentMeta.class);
         suite.addTestSuite(TestXmlFile.class);
         suite.addTestSuite(TestPluginStore.class);
+        suite.addTestSuite(TestPluginExtraProps.class);
         return suite;
     }
 }

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,6 +18,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.db.parser.domain.DBConfig;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
@@ -30,6 +31,16 @@ import java.util.Map;
  */
 public class TestDBConfigParser extends TestCase {
 
+    public void testJustParseDBHost() throws Exception {
+        DBConfigParser p = getDBParser("order_db_config.txt");
+        DBConfig db = p.startParser();
+        String dbName = "order";
+        Map<String, List<String>> dbEnum = DBConfigParser.parseDBEnum(dbName, db.getHostDesc().toString());
+        assertTrue(dbEnum.size() > 1);
+        validateDbEnum(dbName, dbEnum);
+    }
+
+
     public void testMulti2() throws Exception {
         DBConfigParser parser = getDBParser("order_db_config.txt");
         DBConfig db = parser.startParser();
@@ -38,6 +49,10 @@ public class TestDBConfigParser extends TestCase {
         Assert.assertEquals("mysql", db.getDbType());
         Assert.assertEquals(orderName, db.getName());
         Map<String, List<String>> dbEnum = db.getDbEnum();
+        validateDbEnum(orderName, dbEnum);
+    }
+
+    private void validateDbEnum(String orderName, Map<String, List<String>> dbEnum) {
         DecimalFormat format = new DecimalFormat("00");
         List<String> dbs = dbEnum.get("10.1.6.101");
         Assert.assertNotNull(dbs);
@@ -74,7 +89,7 @@ public class TestDBConfigParser extends TestCase {
                 Assert.assertNull(dbName);
             }
         }
-    // System.out.println(dbdesc.toString());
+        // System.out.println(dbdesc.toString());
     }
 
     // public void testMulti() throws Exception {

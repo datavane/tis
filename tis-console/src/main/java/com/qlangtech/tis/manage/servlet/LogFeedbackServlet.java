@@ -266,7 +266,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
         if (focusTags.size() > 0) {
           TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
           executorService.execute(() -> {
-            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName, this, transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, plugin.createConsumerStatus());
+            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName, this
+              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, plugin.createConsumerStatus());
             incrTagHeatBeatMonitor.build();
           });
         }

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,7 +20,9 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.XStream2;
 import junit.framework.TestCase;
+
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -46,7 +48,7 @@ public class TestPluginStore extends TestCase {
         Descriptor.ParseDescribable parseDescribable = new Descriptor.ParseDescribable(p);
         parseDescribable.extraPluginMetas.add(new XStream2.PluginMeta("testmeta", "1.0.0"));
         dlist.add(parseDescribable);
-        pstore.setPlugins(dlist);
+        pstore.setPlugins(Optional.empty(), dlist);
         pstore.cleanPlugins();
         List<TestPlugin> plugins = pstore.getPlugins();
         assertEquals(1, plugins.size());

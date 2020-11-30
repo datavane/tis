@@ -79,7 +79,7 @@ public class TISK8sDelegate {
         if (StringUtils.isEmpty(indexName)) {
             throw new IllegalArgumentException("param indexName can not be null");
         }
-        PluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
+        PluginStore<IncrStreamFactory> store = TIS.getPluginStore(null,indexName, IncrStreamFactory.class);
         this.k8sConfig = store.getPlugin();
         if (this.k8sConfig == null) {
             throw new IllegalStateException(" have not set k8s plugin");
