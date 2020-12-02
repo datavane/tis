@@ -46,7 +46,7 @@ public class PrimaryTableMeta extends TableMeta {
         }
         long pkCount = this.primaryKeyNames.stream().filter((r) -> r.isPk()).count();
         if (pkCount != 1) {
-            throw new IllegalStateException("db pk shall be just one,but current is:" + pkCount);
+            throw new IllegalStateException("table:" + this.getTabName() + ",db pk shall be just one,but current is:" + pkCount);
         }
         return this.primaryKeyNames;
     }

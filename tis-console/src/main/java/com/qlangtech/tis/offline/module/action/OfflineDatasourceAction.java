@@ -1176,11 +1176,7 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doGetDatasourceDbById(Context context) {
     Integer dbId = this.getInt("id");
     DBConfigSuit configSuit = offlineManager.getDbConfig(this, dbId, DbScope.DETAILED);
-//    DBConfig db = configSuit.getDetailed();
-//    confusionPassword(db);
-//    if ((db = configSuit.getFacade()) != null) {
-//      confusionPassword(db);
-//    }
+
     this.setBizResult(context, configSuit);
   }
 

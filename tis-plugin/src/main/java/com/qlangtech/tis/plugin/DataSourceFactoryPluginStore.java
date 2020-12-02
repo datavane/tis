@@ -88,6 +88,9 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         try {
             TISTable tisTable = new TISTable();
             XmlFile tableReflectSerializer = this.getTableReflectSerializer(tableName);
+            if (!tableReflectSerializer.exists()) {
+                throw new IllegalStateException("file is not exist:" + tableReflectSerializer.getFile());
+            }
             TableReflect tableMeta = (TableReflect) tableReflectSerializer.read();
             tisTable.setReflectCols(tableMeta.getCols());
             tisTable.setSelectSql(tableMeta.getSql());

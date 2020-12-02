@@ -65,6 +65,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * The class being described by this descriptor.
      */
     public final transient Class<? extends T> clazz;
+    public transient boolean overWriteValidateMethod;
 
     private transient volatile Map<String, PropertyType> propertyTypes, globalPropertyTypes;
 
@@ -79,6 +80,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             clazz = (Class) getClass();
         this.clazz = clazz;
         this.validateMethodMap = this.createValidateMap();
+
         // doing this turns out to be very error prone,
         // as field initializers in derived types will override values.
         // load();
@@ -113,7 +115,25 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         } catch (NoSuchMethodException e) {
             throw new AssertionError(getClass() + " is missing getDescriptor method.");
         }
+
+        try {
+            Method validateMethod = this.getClass().getDeclaredMethod(
+                    "validate", IControlMsgHandler.class, Context.class, PostFormVals.class);
+            this.overWriteValidateMethod = (validateMethod.getDeclaringClass() != Descriptor.class);
+        } catch (NoSuchMethodException e) {
+            //throw new AssertionError(this.getClass() + " is missing validate method.");
+        }
+
         this.validateMethodMap = this.createValidateMap();
+    }
+
+    /**
+     * Get extract props for client UI initialize
+     *
+     * @return
+     */
+    public Map<String, Object> getExtractProps() {
+        return Collections.emptyMap();
     }
 
     private Map<String, Method> createValidateMap() {
@@ -156,6 +176,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
         return mapBuilder.build();
     }
+
 
     /**
      * Obtains the property type of the given field of {@link #clazz}
@@ -289,7 +310,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 pushFieldStack(context, attr, 0);
                 try {
                     if (!attrValMap.validate(context)) {
-                        valid =false;
+                        valid = false;
                         continue;
                     }
                 } finally {

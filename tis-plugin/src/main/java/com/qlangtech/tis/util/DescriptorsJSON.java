@@ -49,11 +49,19 @@ public class DescriptorsJSON<T extends Describable<T>> {
         // FormField fieldAnnot;
         JSONObject attrVal;
         JSONObject descriptors = new JSONObject();
+        Map<String, Object> extractProps;
         for (Descriptor<T> d : this.descriptors) {
             des = new JSONObject();
             des.put(KEY_DISPLAY_NAME, d.getDisplayName());
             des.put("extendPoint", d.getT().getName());
             des.put("impl", d.getId());
+            des.put("veriflable", d.overWriteValidateMethod);
+
+            extractProps = d.getExtractProps();
+            if (!extractProps.isEmpty()) {
+                des.put("extractProps", extractProps);
+            }
+
             attrs = new JSONArray();
             ArrayList<Map.Entry<String, Descriptor.PropertyType>> entries = Lists.newArrayList(d.getPropertyTypes().entrySet());
             entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));

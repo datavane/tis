@@ -20,8 +20,10 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract the dataSource modal
@@ -48,14 +50,6 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      */
     public abstract List<ColumnMetaData> getTableMetadata(String table);
 
-    /**
-     * Support facade datasource for incr process
-     *
-     * @return
-     */
-    public abstract boolean supportFacade();
-
-    public abstract List<String> facadeSourceTypes();
 
     /**
      * Create datasource for incr process
@@ -81,7 +75,45 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public abstract Iterator<IDataSourceDumper> getDataDumpers();
 
     @Override
-    public Descriptor<DataSourceFactory> getDescriptor() {
-        return TIS.get().getDescriptor(this.getClass());
+    public final Descriptor<DataSourceFactory> getDescriptor() {
+        Descriptor<DataSourceFactory> descriptor = TIS.get().getDescriptor(this.getClass());
+        if (!(descriptor instanceof BaseDataSourceFactoryDescriptor)) {
+            throw new IllegalStateException(this.getClass().getSimpleName() + " must implement the Descriptor of "
+                    + BaseDataSourceFactoryDescriptor.class.getSimpleName());
+        }
+        return descriptor;
+    }
+
+
+    public abstract static class BaseDataSourceFactoryDescriptor extends Descriptor<DataSourceFactory> {
+        @Override
+        public final String getDisplayName() {
+            return this.getDataSourceName();
+        }
+
+        @Override
+        public final Map<String, Object> getExtractProps() {
+            Map<String, Object> eprops = new HashMap<>();
+            eprops.put("supportFacade", this.supportFacade());
+            eprops.put("facadeSourceTypes", this.facadeSourceTypes());
+            return eprops;
+        }
+
+        /**
+         * Get DB name
+         *
+         * @return
+         */
+        protected abstract String getDataSourceName();
+
+        /**
+         * Support facade datasource for incr process
+         *
+         * @return
+         */
+        protected abstract boolean supportFacade();
+
+        protected abstract List<String> facadeSourceTypes();
+
     }
 }
