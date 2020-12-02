@@ -28,6 +28,7 @@ import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DSKey;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.util.*;
 import org.jvnet.hudson.reactor.*;

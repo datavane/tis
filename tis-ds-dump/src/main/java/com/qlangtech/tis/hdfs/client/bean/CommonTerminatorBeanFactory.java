@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.hdfs.client.bean;
 
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.TisZkClient;
-import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.hdfs.client.context.impl.TSearcherDumpContextImpl;
 import com.qlangtech.tis.hdfs.client.context.impl.TSearcherQueryContextImpl;
 import com.qlangtech.tis.hdfs.client.data.HDFSProvider;
@@ -26,11 +26,14 @@ import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
 import com.qlangtech.tis.hdfs.client.router.GroupRouter;
 import com.qlangtech.tis.hdfs.client.router.SolrCloudPainRouter;
 import com.qlangtech.tis.offline.TableDumpFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -94,13 +97,17 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         if (statusReportRef == null) {
             throw new IllegalStateException("statusReportRef can not be null");
         }
-        dumpContext.setTisTable(GitUtils.$().getTableConfig(dumpTable.getDbName(), dumpTable.getTableName()));
+
+        DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(null, new PostedDSProp(dumpTable.getDbName()));
+        dumpContext.setTisTable(dbPluginStore.loadTableMeta(dumpTable.getTableName()));
+
+       // dumpContext.setTisTable(GitUtils.$().getTableConfig(dumpTable.getDbName(), dumpTable.getTableName()));
         dumpContext.setStatusReportRef(statusReportRef);
         dumpContext.setQueryContext(queryContext);
         dumpContext.setDataprocessor(this.dataprocess);
         dumpContext.setTaskId(this.getTaskid());
         final Map<String, String> /* dump sql */
-        subTablesDesc = new HashMap<>();
+                subTablesDesc = new HashMap<>();
         subTablesDesc.put(dbNames.toString(), dumpContext.getTisTable().getSelectSql());
         this.fullDumpProvider.setSubTablesDesc(subTablesDesc);
         logger.info("exectaskid:" + dumpContext.getTaskId());

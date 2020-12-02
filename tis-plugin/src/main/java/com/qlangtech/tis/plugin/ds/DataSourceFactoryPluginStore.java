@@ -12,15 +12,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.plugin;
+package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.plugin.ds.DataSourceFactory;
-import com.qlangtech.tis.plugin.ds.TISTable;
-import com.qlangtech.tis.plugin.ds.TableReflect;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
