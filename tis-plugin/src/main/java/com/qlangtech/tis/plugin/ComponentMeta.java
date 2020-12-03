@@ -19,12 +19,15 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.util.RobustReflectionConverter;
 import com.qlangtech.tis.util.XStream2;
 import com.qlangtech.tis.util.XStream2PluginInfoReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 组件元数据信息
@@ -33,8 +36,9 @@ import java.util.Set;
  * @create: 2020-04-24 16:24
  */
 public class ComponentMeta {
-
+    private static final Logger logger = LoggerFactory.getLogger(ComponentMeta.class);
     public final List<IRepositoryResource> resources;
+
 
     public ComponentMeta(List<IRepositoryResource> resources) {
         this.resources = resources;
@@ -86,9 +90,11 @@ public class ComponentMeta {
     public void synchronizePluginsFromRemoteRepository() {
         try {
             this.downloaConfig();
-            for (XStream2.PluginMeta m : loadPluginMeta()) {
+            Set<XStream2.PluginMeta> pluginMetas = loadPluginMeta();
+            for (XStream2.PluginMeta m : pluginMetas) {
                 m.copyFromRemote();
             }
+            logger.info("download plugin from remote repository:" + pluginMetas.stream().map((m) -> m.toString()).collect(Collectors.joining(",")));
         } finally {
             TIS.permitInitialize = true;
         }
