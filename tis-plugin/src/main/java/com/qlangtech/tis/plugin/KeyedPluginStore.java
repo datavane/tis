@@ -29,21 +29,23 @@ import java.util.Objects;
  */
 public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
-    private transient final String serializeFileName;
-    protected transient final String keyVal;
+    //private transient final String serializeFileName;
+    //protected transient final String keyVal;
+    protected transient final Key key;
 
     protected transient final IPluginContext pluginContext;
 
     public KeyedPluginStore(Key key) {
         super(key.pluginClass, key.getSotreFile());
-        this.serializeFileName = key.getSerializeFileName();
+        // this.serializeFileName = key.getSerializeFileName();
+        this.key = key;
         this.pluginContext = key.pluginContext;
-        this.keyVal = key.keyVal;
+        // this.keyVal = key.keyVal;
     }
 
     @Override
     protected String getSerializeFileName() {
-        return serializeFileName;
+        return key.getSerializeFileName();
     }
 
     public static class Key<T extends Describable> {
@@ -72,7 +74,11 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         protected String getSerializeFileName() {
-            return groupName + File.separator + keyVal + File.separator + pluginClass.getName();
+            return this.getSubDirPath() + File.separator + pluginClass.getName();
+        }
+
+        public String getSubDirPath() {
+            return groupName + File.separator + keyVal;
         }
 
         private XmlFile getSotreFile() {

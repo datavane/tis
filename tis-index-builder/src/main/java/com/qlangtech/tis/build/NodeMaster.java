@@ -101,19 +101,23 @@ public abstract class NodeMaster {
              * 下载插件代码和配置到本地
              * ==================================================================
              */
-            ComponentMeta dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent();
+            ComponentMeta dumpAndIndexBuilderComponent = null;
+            if (IndexBuildParam.JOB_TYPE_DUMP.equals(jobType)) {
+                dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent(getDataSourceFactoryPluginStore(commandLine));
+            } else {
+                dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent();
+            }
+
             dumpAndIndexBuilderComponent.synchronizePluginsFromRemoteRepository();
             logger.info("synchronizePluginsFromRemoteRepository success");
         }
         try {
             // 
             if (IndexBuildParam.JOB_TYPE_DUMP.equals(jobType)) {
+
+
                 final String tabDumpFactory = commandLine.getOptionValue(ITableDumpConstant.DUMP_TABLE_DUMP_FACTORY_NAME);
-                final String dbName = commandLine.getOptionValue(ITableDumpConstant.DUMP_DBNAME);
-                if (StringUtils.isEmpty(dbName)) {
-                    throw new IllegalStateException("param 'dbName' can not be null");
-                }
-                DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(null, new PostedDSProp(dbName));
+                DataSourceFactoryPluginStore dbPlugin = getDataSourceFactoryPluginStore(commandLine);
 
                 PluginStore<TableDumpFactory> tableDumpFactoryStore = TIS.getPluginStore(TableDumpFactory.class);
                 TableDumpFactory factory = tableDumpFactoryStore.find(tabDumpFactory);
@@ -148,6 +152,14 @@ public abstract class NodeMaster {
             }
         }
         System.exit(0);
+    }
+
+    private static DataSourceFactoryPluginStore getDataSourceFactoryPluginStore(CommandLine commandLine) {
+        final String dbName = commandLine.getOptionValue(ITableDumpConstant.DUMP_DBNAME);
+        if (StringUtils.isEmpty(dbName)) {
+            throw new IllegalStateException("param 'dbName' can not be null");
+        }
+        return TIS.getDataBasePluginStore(null, new PostedDSProp(dbName));
     }
 
     private static void finalReportTaskStatus(CommandLine commandLine, boolean faild) {

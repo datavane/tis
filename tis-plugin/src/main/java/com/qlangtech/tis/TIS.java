@@ -25,7 +25,10 @@ import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
-import com.qlangtech.tis.plugin.*;
+import com.qlangtech.tis.plugin.ComponentMeta;
+import com.qlangtech.tis.plugin.IRepositoryResource;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DSKey;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
@@ -402,7 +405,7 @@ public class TIS {
         }
     }
 
-    public static ComponentMeta getDumpAndIndexBuilderComponent() {
+    public static ComponentMeta getDumpAndIndexBuilderComponent(IRepositoryResource... extractRes) {
         if (initialized) {
             throw new IllegalStateException("TIS plugins has initialized");
         }
@@ -411,6 +414,9 @@ public class TIS {
         resources.add(getPluginStore(ParamsConfig.class));
         resources.add(getPluginStore(TableDumpFactory.class));
         resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
+        for (IRepositoryResource r : extractRes) {
+            resources.add(r);
+        }
         return new ComponentMeta(resources);
     }
 

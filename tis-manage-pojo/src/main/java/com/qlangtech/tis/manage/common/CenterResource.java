@@ -150,12 +150,10 @@ public class CenterResource {
         final File lastModifiedFile = new File(local.getParentFile(), local.getName() + KEY_LAST_MODIFIED_EXTENDION);
         if (!directDownload) {
             boolean shallWriteLocal = HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
-
                 @Override
                 public List<ConfigFileContext.Header> getHeaders() {
                     return HEADER_GET_META;
                 }
-
                 @Override
                 public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                     return shallWriteLocal(headerFields, url, local, lastModifiedFile);

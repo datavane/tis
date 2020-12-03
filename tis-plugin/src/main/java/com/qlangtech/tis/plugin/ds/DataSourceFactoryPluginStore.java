@@ -15,8 +15,10 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import org.apache.commons.lang.StringUtils;
 
@@ -39,6 +41,17 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     }
 
     @Override
+    public void copyConfigFromRemote() {
+        List<String> subFiles
+                = CenterResource.getSubFiles(
+                        TIS.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath(), false, true);
+        for (String f : subFiles) {
+            CenterResource.copyFromRemote2Local(
+                    TIS.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath() + File.separator+f, true);
+        }
+    }
+
+    @Override
     public synchronized boolean setPlugins(Optional<Context> context, List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
         if (!context.isPresent()) {
             throw new IllegalArgumentException("Context shall exist");
@@ -47,7 +60,7 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         if (shallUpdateDB && !update) {
             // shall skip in update model
             Context ctx = context.get();
-            String dbName = this.keyVal;
+            String dbName = this.key.keyVal;
             // 对数据库记录进行添加
             pluginContext.addDb(dbName, ctx);
             if (ctx.hasErrors()) {

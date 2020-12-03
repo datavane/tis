@@ -64,11 +64,6 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
      * 拷贝配置文件到本地
      */
     public void copyConfigFromRemote() {
-        // final URL url = CenterResource.getPathURL( //
-        // Config.SUB_DIR_CFG_REPO + "/" + TIS.KEY_TIS_PLUGIN_CONFIG
-        // + "/" + Descriptor.getPluginFileName(getSerializeFileName())
-        // );
-        // CenterResource.copyFromRemote2Local(url, file.getFile());
         CenterResource.copyFromRemote2Local(TIS.KEY_TIS_PLUGIN_CONFIG + "/" + Descriptor.getPluginFileName(getSerializeFileName()), true);
     }
 
