@@ -15,7 +15,6 @@
 package com.qlangtech.tis.git;
 
 import com.alibaba.citrus.turbine.impl.DefaultContext;
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.db.parser.DBConfigParser;
 import com.qlangtech.tis.db.parser.DBTokenizer;
@@ -663,20 +662,13 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
         return this.getFileContent(projectId, filePath, GitBranchInfo.$(branch));
     }
 
-    // private List<String> listChildFile(int projectId, String filePath, GitBranch branch) {
-    // return this.getFileContent(projectId, filePath, GitBranchInfo.$(branch));
-    // }
 
-    /**
-     * 取得Db配置
-     *
-     * @param dbName 数据库名
-     * @return 数据库配置
-     */
-    @Override
+
+//    @Override
     public DBConfig getDbLinkMetaData(String dbName, DbScope dbScope) {
-        DBConfig dbConfig = getDbConfig(dbName, dbScope);
-        return dbConfig;
+//        DBConfig dbConfig = getDbConfig(dbName, dbScope);
+//        return dbConfig;
+        throw new UnsupportedOperationException("dbName:" + dbName + ",dbScope:" + dbScope);
     }
 
     // public DBConfig getDbLinkMetaData(String dbName, RunEnvironment runtime) {
@@ -721,23 +713,8 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
 
     @Override
     public DBConfig getDbConfig(String dbName, DbScope dbScope) {
-        // if (StringUtils.isEmpty(dbName)) {
-        // throw new IllegalArgumentException("param dbName can not be null");
-        // }
-        // //GitBranch branch = (runtime == RunEnvironment.DAILY) ? GitBranch.DEVELOP : GitBranch.MASTER;
-        // GitBranch branch = GitBranch.MASTER;
         boolean targetFacade = (dbScope == DbScope.FACADE);
-        // 如果需要的是 facade的类型，但是没有，所以就取detailed的类型
-        // if (dbScope == DbScope.FACADE) {
-        // targetFacade = true;
-        // if (!this.containFacadeDbTypeSubpath(dbName)) {
-        // dbScope = DbScope.DETAILED;
-        // }
-        // }
-        // ////////////////////////////////////////////////////////////////////////
-        // getFileContent(DATASOURCE_PROJECT_ID, getDBConfigPath(dbName, dbScope), branch);
         FileContent f = getDbConfigFile(dbName, dbScope);
-        // final String content = getFileContent(DATASOURCE_PROJECT_ID, getDBConfigPath(dbName, runtime, dbScope), branch);
         if (!f.exist()) {
             throw new IllegalStateException("db:" + dbName + " can not fetch relevant db config,target file:" + f);
         }
@@ -757,8 +734,6 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
             if (hostCount.get() != 1) {
                 throw new IllegalStateException("facade db:" + dbName + " relevant hostCount can not big than 1,but now:" + hostCount);
             }
-            // 最终想想还是不要在这里改db的名称
-            // db.setName(dbName);
         }
         db.setPassword(Secret.decrypt(db.getPassword(), cryptKey));
         return db;

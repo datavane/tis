@@ -1,33 +1,33 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.hdfs.client.router;
+package com.qlangtech.tis.plugin.ds;
 
-import java.util.Map;
+import java.util.Iterator;
 
 /**
- * @description
- * @since 2011-8-30 03:31:29
- * @version 1.0
+ * Abstract the dataSource modal
  *
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public interface GroupRouter {
+ * @author: baisui 百岁
+ * @create: 2020-11-24 10:40
+ **/
+public class DataDumpers {
+    public final int splitCount;
+    public final Iterator<IDataSourceDumper> dumpers;
 
-    /**
-     * 根据传入的一行数据中的切分字段的值，返回对应的Shard number
-     */
-    public String getGroupName(Map<String, String> rowData);
+    public DataDumpers(int splitCount, Iterator<IDataSourceDumper> dumpers) {
+        this.splitCount = splitCount;
+        this.dumpers = dumpers;
+    }
 }

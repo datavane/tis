@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -33,12 +33,15 @@ import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -106,9 +109,15 @@ public abstract class NodeMaster {
             // 
             if (IndexBuildParam.JOB_TYPE_DUMP.equals(jobType)) {
                 final String tabDumpFactory = commandLine.getOptionValue(ITableDumpConstant.DUMP_TABLE_DUMP_FACTORY_NAME);
+                final String dbName = commandLine.getOptionValue(ITableDumpConstant.DUMP_DBNAME);
+                if (StringUtils.isEmpty(dbName)) {
+                    throw new IllegalStateException("param 'dbName' can not be null");
+                }
+                DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(null, new PostedDSProp(dbName));
+
                 PluginStore<TableDumpFactory> tableDumpFactoryStore = TIS.getPluginStore(TableDumpFactory.class);
                 TableDumpFactory factory = tableDumpFactoryStore.find(tabDumpFactory);
-                TableDumpNodeMaster master = new TableDumpNodeMaster(factory);
+                TableDumpNodeMaster master = new TableDumpNodeMaster(factory, dbPlugin.getPlugin());
                 master.run(commandLine);
             } else if (IndexBuildParam.JOB_TYPE_INDEX_BUILD.equals(jobType)) {
                 final String builderTriggerFactory = commandLine.getOptionValue(IndexBuildParam.INDEXING_BUILDER_TRIGGER_FACTORY);
@@ -120,7 +129,7 @@ public abstract class NodeMaster {
             } else {
                 // invalidJobType = true;
                 throw new IllegalStateException("jobType:" + jobType + " is illegal");
-            // logger.error("jobType:{} is illegal", jobType);
+                // logger.error("jobType:{} is illegal", jobType);
             }
             // 最终要向中心节点报告状态
             finalReportTaskStatus(commandLine, false);

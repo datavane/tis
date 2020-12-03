@@ -15,13 +15,26 @@
 package com.qlangtech.tis.plugin.ds;
 
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author: baisui 百岁
  * @create: 2020-11-24 16:24
  */
 public interface IDataSourceDumper {
+    void closeResource();
+   // void openResource();
+
+    int getRowSize();
+
+    List<ColumnMetaData> getMetaData();
+
     /**
      * start to dump data to target fileSystem
      */
-    public void startDump();
+    public Iterator<Map<String, String>> startDump();
+
+    String getDbHost();
 }

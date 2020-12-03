@@ -15,6 +15,8 @@
 package com.qlangtech.tis.hdfs.client.data;
 
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
+import com.qlangtech.tis.plugin.ds.IDataSourceDumper;
+
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,7 +29,7 @@ public abstract class AbstractDBTableReaderTask implements Runnable {
 
     protected final CountDownLatch latch;
 
-    protected final SourceDataProvider<String, String> dataProvider;
+    protected final IDataSourceDumper dumper;
 
     // private MultiThreadHDFSDataProvider hdfsProvider;
     // protected FileSystem fileSystem;
@@ -45,13 +47,13 @@ public abstract class AbstractDBTableReaderTask implements Runnable {
     protected final Map<String, Object> threadResult;
 
     String getDbIP() {
-        return dataProvider.getDbHost();
+        return dumper.getDbHost();
     }
 
     // end 百岁添加
-    public AbstractDBTableReaderTask(CountDownLatch latch, SourceDataProvider<String, String> dataProvider, Map<String, Object> threadResult, AtomicInteger dbHostBusyCount, final AtomicInteger processErrorCount, TSearcherDumpContext dumpContext) {
+    public AbstractDBTableReaderTask(CountDownLatch latch, IDataSourceDumper dumper, Map<String, Object> threadResult, AtomicInteger dbHostBusyCount, final AtomicInteger processErrorCount, TSearcherDumpContext dumpContext) {
         this.latch = latch;
-        this.dataProvider = dataProvider;
+        this.dumper = dumper;
         this.threadResult = threadResult;
         this.dbHostBusyCount = dbHostBusyCount;
         if (processErrorCount == null) {

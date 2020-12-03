@@ -78,7 +78,7 @@ public interface IDBConfigAccess {
 
     void deleteTableOnline(String dbName, String tableLogicName, GitUtils.GitUser user);
 
-    DBConfig getDbLinkMetaData(String dbName, DbScope dbScope);
+   // DBConfig getDbLinkMetaData(String dbName, DbScope dbScope);
 
     List<String> listDbConfigPath(String dbname);
 

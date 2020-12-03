@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -17,20 +17,20 @@ package com.qlangtech.tis.order.dump.task;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.db.parser.domain.DBConfig;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
-import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.hdfs.client.bean.CommonTerminatorBeanFactory;
 import com.qlangtech.tis.hdfs.client.bean.TISDumpClient;
 import com.qlangtech.tis.hdfs.client.data.MultiThreadDataProvider;
 import com.qlangtech.tis.hdfs.client.data.SourceDataProviderFactory;
 import com.qlangtech.tis.manage.common.DataSourceRegister;
-import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,8 +56,8 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
 
     private final AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
 
-    public SingleTableDumpTask(TableDumpFactory taskFactory, TisZkClient zkClient, AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc) {
-        super(taskFactory);
+    public SingleTableDumpTask(TableDumpFactory taskFactory, DataSourceFactory dataSourceFactory, TisZkClient zkClient, AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc) {
+        super(taskFactory, dataSourceFactory);
         if (zkClient == null) {
             throw new IllegalArgumentException("param zkClient can not be null");
         }
@@ -69,10 +69,10 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
         this.sourceDataProviderFactoryInspect = sourceDataProviderFactoryInspect;
     }
 
-    @Override
-    protected DBConfig getDataSourceConfig() {
-        return GitUtils.$().getDbLinkMetaData(this.dumpTable.getDbName(), DbScope.DETAILED);
-    }
+//    @Override
+//    protected DBConfig getDataSourceConfig() {
+//        return GitUtils.$().getDbLinkMetaData(this.dumpTable.getDbName(), DbScope.DETAILED);
+//    }
 
     @Override
     protected void registerExtraBeanDefinition(DefaultListableBeanFactory factory) {
@@ -101,7 +101,7 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
 
     @Override
     protected TISDumpClient getDumpBeans(TaskContext context) throws Exception {
-        CommonTerminatorBeanFactory beanFactory = new CommonTerminatorBeanFactory(this.tableDumpFactory);
+        CommonTerminatorBeanFactory beanFactory = new CommonTerminatorBeanFactory(this.tableDumpFactory, this.dataSourceFactory);
         beanFactory.setStatusReportRef(this.statusRpc);
         try {
             int taskid = Integer.parseInt(context.get(IParamContext.KEY_TASK_ID));
@@ -114,13 +114,12 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
             throw new IllegalStateException("dumptable can not be null");
         }
         beanFactory.setDumpTable(this.dumpTable);
-        // beanFactory.setJustDump(true);
-        // beanFactory.setIndexName(indexName);
-        // fixme
-        // TableDumpFactory tableDumpFactory = null;
-        MultiThreadDataProvider dataProvider = new MultiThreadDataProvider(tableDumpFactory, MultiThreadDataProvider.DEFUALT_WAIT_QUEUE_SIZE, MultiThreadDataProvider.DEFUALT_WAIT_QUEUE_SIZE);
+        MultiThreadDataProvider dataProvider = new MultiThreadDataProvider(tableDumpFactory, this.dataSourceFactory
+                , MultiThreadDataProvider.DEFUALT_WAIT_QUEUE_SIZE, MultiThreadDataProvider.DEFUALT_WAIT_QUEUE_SIZE);
+
+        //this.dataSourceFactory
         SourceDataProviderFactory dataProviderFactory = new SourceDataProviderFactory();
-        final DBConfig dbLinkMetaData = parseDbLinkMetaData(context);
+        final DBConfig dbLinkMetaData = null;
         final Map<String, DataSource> dsMap = new HashMap<>();
         final StringBuffer dbNames = new StringBuffer();
         AtomicInteger dbCount = new AtomicInteger();
@@ -145,10 +144,10 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
         if (dsMap.size() != dbCount.get()) {
             throw new IllegalStateException("dsMap.size():" + dsMap.size() + ",dbCount.get():" + dbCount.get() + " shall be equal");
         }
-        dataProviderFactory.setDataSourceGetter(dsMap::get);
+       // dataProviderFactory.setDataSourceGetter(dsMap::get);
         dataProvider.setSourceData(dataProviderFactory);
         beanFactory.setFullDumpProvider(dataProvider);
-        beanFactory.setGrouprouter(null);
+        //beanFactory.setGrouprouter(null);
         beanFactory.afterPropertiesSet(dbNames);
         // 单元测试过程中可以测试是否正常
         sourceDataProviderFactoryInspect.look(dbLinkMetaData, dataProviderFactory);
@@ -156,8 +155,4 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
         return dumpBean;
     }
 
-    @Override
-    public void initialSpringContext(TaskContext context) {
-    // super.initialSpringContext(context);
-    }
 }

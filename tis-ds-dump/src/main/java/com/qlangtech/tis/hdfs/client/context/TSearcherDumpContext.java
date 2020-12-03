@@ -15,6 +15,7 @@
 package com.qlangtech.tis.hdfs.client.context;
 
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 2013-3-11
  */
 public interface TSearcherDumpContext extends TSearcherQueryContext {
+
+    DataSourceFactory getDataSourceFactory();
 
     public StatusRpcClient.AssembleSvcCompsite getStatusReportRPC();
 

@@ -18,6 +18,7 @@ import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
 import com.qlangtech.tis.hdfs.client.context.TSearcherQueryContext;
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.StatusRpcClient;
@@ -43,10 +44,19 @@ public class TSearcherDumpContextImpl implements TSearcherDumpContext, Initializ
 
     // protected String fsName;
     private TSearcherQueryContext queryContext;
-
+    private DataSourceFactory dataSourceFactory;
     private Integer taskId;
 
     private TISTable tisTable;
+
+    @Override
+    public DataSourceFactory getDataSourceFactory() {
+        return dataSourceFactory;
+    }
+
+    public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
+        this.dataSourceFactory = dataSourceFactory;
+    }
 
     private final AtomicInteger allRows = new AtomicInteger();
 

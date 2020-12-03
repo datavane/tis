@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,11 +16,11 @@ package com.qlangtech.tis.hdfs.client.context.impl;
 
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.hdfs.client.context.TSearcherQueryContext;
-import com.qlangtech.tis.hdfs.client.router.GroupRouter;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
+
 import java.util.Collections;
 import java.util.Set;
 
@@ -38,8 +38,6 @@ public class TSearcherQueryContextImpl implements InitializingBean, TSearcherQue
 
     protected EntityName dumpTable = null;
 
-    // private String shardKey = "id";
-    private GroupRouter groupRouter;
 
     // private IServiceConfig serviceConfig = null;
     private TisZkClient zkClient = null;
@@ -70,34 +68,11 @@ public class TSearcherQueryContextImpl implements InitializingBean, TSearcherQue
     public void fireServiceConfigChange() {
     }
 
-    /**
-     */
     public TSearcherQueryContextImpl() {
         super();
     }
 
-    public final GroupRouter getGroupRouter() {
-        return groupRouter;
-    }
 
-    public final void setGroupRouter(GroupRouter groupRouter) {
-        this.groupRouter = groupRouter;
-    }
-
-    // public final void setZkAddress(String zkAddress) {
-    // this.zkAddress = zkAddress;
-    // }
-    // public final String getShardKey() {
-    // return shardKey;
-    // }
-    // 
-    // public final void setShardKey(String shardKey) {
-    // this.shardKey = shardKey;
-    // }
-    // public TerminatorZkClient getZkClient() {
-    // return zkClient;
-    // }
-    // 
     public void setZkClient(TisZkClient zkClient) {
         this.zkClient = zkClient;
     }

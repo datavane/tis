@@ -23,9 +23,8 @@ import com.qlangtech.tis.hdfs.client.data.MultiThreadDataProvider;
 import com.qlangtech.tis.hdfs.client.data.SourceDataProvider;
 import com.qlangtech.tis.hdfs.client.data.SourceDataProviderFactory;
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
-import com.qlangtech.tis.hdfs.client.router.GroupRouter;
-import com.qlangtech.tis.hdfs.client.router.SolrCloudPainRouter;
 import com.qlangtech.tis.offline.TableDumpFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
@@ -34,8 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -53,9 +50,11 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
     private AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusReportRef;
 
     private final TableDumpFactory flatTableBuilder;
+    private final DataSourceFactory dataSourceFactory;
 
-    public CommonTerminatorBeanFactory(TableDumpFactory flatTableBuilder) {
+    public CommonTerminatorBeanFactory(TableDumpFactory flatTableBuilder, DataSourceFactory dataSourceFactory) {
         this.flatTableBuilder = flatTableBuilder;
+        this.dataSourceFactory = dataSourceFactory;
     }
 
     @SuppressWarnings("all")
@@ -69,9 +68,6 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
 
     private BatchDataProcessor<String, String> dataprocess;
 
-    private GroupRouter grouprouter;
-
-    // private String indexName;
     public Integer getTaskid() {
         return taskid;
     }
@@ -81,39 +77,34 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
     }
 
     @SuppressWarnings("all")
-    public // @Override
-    TSearcherDumpContextImpl afterPropertiesSet(StringBuffer dbNames) throws Exception {
+    public TSearcherDumpContextImpl afterPropertiesSet(StringBuffer dbNames) throws Exception {
         termiantorBean = createTerminatorBean();
         final TSearcherQueryContextImpl queryContext = new TSearcherQueryContextImpl();
         if (this.tisZkClient == null) {
             throw new IllegalStateException("solrZkClient can not be null");
         }
         queryContext.setZkClient(this.tisZkClient);
-        GroupRouter groupRouter = this.getGrouprouter();
-        queryContext.setGroupRouter(groupRouter);
         queryContext.setDumpTable(this.dumpTable);
         queryContext.afterPropertiesSet();
         TSearcherDumpContextImpl dumpContext = new TSearcherDumpContextImpl();
         if (statusReportRef == null) {
             throw new IllegalStateException("statusReportRef can not be null");
         }
+        dumpContext.setDataSourceFactory(this.dataSourceFactory);
 
         DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(null, new PostedDSProp(dumpTable.getDbName()));
         dumpContext.setTisTable(dbPluginStore.loadTableMeta(dumpTable.getTableName()));
 
-       // dumpContext.setTisTable(GitUtils.$().getTableConfig(dumpTable.getDbName(), dumpTable.getTableName()));
+        // dumpContext.setTisTable(GitUtils.$().getTableConfig(dumpTable.getDbName(), dumpTable.getTableName()));
         dumpContext.setStatusReportRef(statusReportRef);
         dumpContext.setQueryContext(queryContext);
         dumpContext.setDataprocessor(this.dataprocess);
         dumpContext.setTaskId(this.getTaskid());
-        final Map<String, String> /* dump sql */
-                subTablesDesc = new HashMap<>();
-        subTablesDesc.put(dbNames.toString(), dumpContext.getTisTable().getSelectSql());
-        this.fullDumpProvider.setSubTablesDesc(subTablesDesc);
+
         logger.info("exectaskid:" + dumpContext.getTaskId());
         dumpContext.afterPropertiesSet();
         SourceDataProvider datasourceProvider = null;
-        initMultiThreadHdfsDataProvider(dumpContext, fullDumpProvider);
+        initMultiThreadHdfsDataProvider(dumpContext);
         termiantorBean.setDumpContext(dumpContext);
         fullDumpProvider.setDumpContext(dumpContext);
         termiantorBean.setFullHdfsProvider(fullDumpProvider);
@@ -136,28 +127,15 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
     }
 
     @SuppressWarnings("all")
-    private void initMultiThreadHdfsDataProvider(TSearcherDumpContextImpl dumpContext, HDFSProvider<String, String> dumpProvider) throws Exception {
-        if (!(dumpProvider instanceof MultiThreadDataProvider)) {
-            return;
-        }
-        SourceDataProviderFactory datasourceProvider = ((MultiThreadDataProvider) dumpProvider).getSourceData();
+    private void initMultiThreadHdfsDataProvider(TSearcherDumpContextImpl dumpContext) throws Exception {
+
+        DataSourceFactory dataSourceFactory = this.dataSourceFactory;
+
+        SourceDataProviderFactory datasourceProvider = ((MultiThreadDataProvider) fullDumpProvider).getSourceData();
         if (datasourceProvider != null) {
             datasourceProvider.setDumpContext(dumpContext);
             datasourceProvider.init();
         }
-    }
-
-    public GroupRouter getGrouprouter() {
-        if (grouprouter == null) {
-            SolrCloudPainRouter router = new SolrCloudPainRouter();
-            router.setShardKey("id");
-            this.grouprouter = router;
-        }
-        return grouprouter;
-    }
-
-    public void setGrouprouter(GroupRouter grouprouter) {
-        this.grouprouter = grouprouter;
     }
 
     @Override

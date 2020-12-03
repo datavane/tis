@@ -72,7 +72,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      *
      * @return
      */
-    public abstract Iterator<IDataSourceDumper> getDataDumpers();
+    public abstract DataDumpers getDataDumpers(TISTable table);
 
     @Override
     public final Descriptor<DataSourceFactory> getDescriptor() {

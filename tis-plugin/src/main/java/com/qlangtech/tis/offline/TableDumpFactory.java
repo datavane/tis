@@ -29,7 +29,8 @@ import com.qlangtech.tis.plugin.IdentityName;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public abstract class TableDumpFactory implements Describable<TableDumpFactory>, ITableDumpJobFactory, IFs2Table, ITableBuildTaskContext, IdentityName {
+public abstract class TableDumpFactory implements Describable<TableDumpFactory>, ITableDumpJobFactory
+        , IFs2Table, ITableBuildTaskContext, IdentityName {
 
     public static final ITableDumpJobFactory NO_OP = new ITableDumpJobFactory() {
 

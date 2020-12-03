@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,8 +23,11 @@ import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
 import com.qlangtech.tis.hdfs.util.Constants;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.TableDumpFactory;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DataDumpers;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.IDataSourceDumper;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.TriggerParam;
 import org.apache.commons.io.IOUtils;
@@ -32,6 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.*;
@@ -41,21 +45,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * @author 百岁（baisui@qlangtech.com）
  * @description 在写入方面为了充分利用HDFS集群的写入，针对一个表或者一个库启动一个线程写入<br>
  * 如果有分组情况，最终写入HDFS都是以分组为单位的文件<br>
- *
- * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public class MultiThreadDataProvider implements HDFSProvider<String, String> {
 
     // 表Dump的时候默认使用16组，会生成16个通道，随机向里面写入
-    // private static final int RAND_GROUP_NUMBER = 16;
     public static final int MAX_PROCESS_ERROR = 100;
 
     // 正在执行dump数据库的繁忙程度
     private static final ConcurrentHashMap<String, AtomicInteger> /* dbip */
-    dbBusyStatistics = new ConcurrentHashMap<>();
+            dbBusyStatistics = new ConcurrentHashMap<>();
 
     // 百岁 add20130513
     // 默认最大并发dump任务数量
@@ -82,7 +84,6 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
 
     private final boolean isIncrOrNot = false;
 
-    private AtomicBoolean isBusy = new AtomicBoolean(false);
 
     private AtomicBoolean hasWriteTitles = new AtomicBoolean(false);
 
@@ -110,14 +111,16 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
     private TSearcherDumpContext dumpContext;
 
     private final TableDumpFactory flatTableBuilder;
+    private final DataSourceFactory dataSourceFactory;
 
     private final int maxPoolSize;
 
-    public MultiThreadDataProvider(TableDumpFactory flatTableBuilder, int maxPoolSize, int waitQueueSize) {
+    public MultiThreadDataProvider(TableDumpFactory flatTableBuilder, DataSourceFactory dataSourceFactory, int maxPoolSize, int waitQueueSize) {
         super();
         this.maxPoolSize = maxPoolSize;
         Objects.requireNonNull(flatTableBuilder, "param flatTableBuilder can not be null");
         this.flatTableBuilder = flatTableBuilder;
+        this.dataSourceFactory = dataSourceFactory;
     }
 
     public TSearcherDumpContext getDumpContext() {
@@ -181,20 +184,21 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
 
     @SuppressWarnings("all")
     @Override
-    public synchronized // int groupNum/* 组的总数 */
-    void importServiceData(// int groupNum/* 组的总数 */
-    Map context) {
+    public synchronized void importServiceData(Map context) {
+        //TIS.getDataBasePluginStore();
         if (dumpContext == null) {
             throw new IllegalStateException("dumpContext can not be null");
         }
-        int split = 0;
+        // int split = 0;
         Map<String, TISFSDataOutputStream> outMap = null;
         final long currentTimeStamp = System.nanoTime();
-        if (this.sourceDataFactory.getSourceDataProvider() == null || (split = this.sourceDataFactory.getSourceDataProvider().size()) < 1) {
-            throw new IllegalStateException(" has any data source has been set");
-        }
+
+        DataDumpers dataDumpers = this.dataSourceFactory.getDataDumpers(this.getDumpContext().getTisTable());
+        Iterator<IDataSourceDumper> dumpers = dataDumpers.dumpers;
+        IDataSourceDumper dumper = null;
+
         try {
-            this.isBusy().set(true);
+
             log.warn(currentTimeStamp + ":obj get execute lock");
             shardInitCount = new AtomicInteger(0);
             outMap = new HashMap<String, TISFSDataOutputStream>();
@@ -216,20 +220,22 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
             context.put(Constants.IMPORT_COUNT, importCount);
             outMap = Collections.unmodifiableMap(outMap);
             List<HashMap<String, Object>> resultCollect = new ArrayList<>();
-            log.info("db provider split:" + split);
-            CountDownLatch latch = new CountDownLatch(split);
-            // 总dump数据条数
-            // int allDumpRow = this.sourceDataFactory.getAllDumpRow();
-            List<SourceDataProvider> dbs = new ArrayList<>(this.sourceDataFactory.getSourceDataProvider());
-            Collections.shuffle(dbs);
+            CountDownLatch latch = new CountDownLatch(dataDumpers.splitCount);
             final AtomicInteger processErrorCount = new AtomicInteger();
-            for (int ii = 0; ii < split; ii++) {
-                SourceDataProvider singletabDataProvider = (SourceDataProvider) dbs.get(ii);
+
+            while (dumpers.hasNext()) {
+                dumper = dumpers.next();
+
                 HashMap<String, Object> result = new HashMap<String, Object>();
                 resultCollect.add(result);
                 // 一张表为一个执行单元
-                dbReaderExecutor.execute(new DBTableReaderTask(latch, singletabDataProvider, this, getFileSystem(), outMap, utf8StrTime, result, getDBServerBusyCount(singletabDataProvider.getDbHost()), processErrorCount, dumpContext));
+                dbReaderExecutor.execute(new DBTableReaderTask(latch, dumper
+                        , getFileSystem(), outMap, utf8StrTime, result
+                        , getDBServerBusyCount(dumper.getDbHost()), processErrorCount, dumpContext));
+
             }
+
+
             if (!latch.await(7, TimeUnit.HOURS)) {
                 throw new IllegalStateException("dump table:" + this.dumpContext.getDumpTable() + " time expire");
             }
@@ -245,7 +251,7 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
                         loginfo = ">>>>>>>>>>>>>>>>导入行数据为[" + errorRow + "]到HDFS集群中出错！！<<<<<<<<<<<<<<<<<";
                         log.warn(loginfo);
                         sourceDataFactory.reportDumpStatus(true, /* faild */
-                        true);
+                                true);
                         throw new DataImportHDFSException(loginfo);
                     }
                 }
@@ -267,7 +273,7 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
             e.printStackTrace();
             throw new DataImportHDFSException("【警告】出现未知错误，错误信息:" + e.getMessage(), e);
         } finally {
-            this.isBusy().set(false);
+
             log.warn(currentTimeStamp + ":has release the lock");
             // if (outMap != null) {
             for (Entry<String, TISFSDataOutputStream> entry : outMap.entrySet()) {
@@ -283,7 +289,7 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
                 } finally {
                     shard = null;
                     outputStream = null;
-                // outMap.put(shard, null);
+                    // outMap.put(shard, null);
                 }
             }
             if (shardInitCount != null) {
@@ -407,12 +413,6 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
 
     // 负责将将数数据库持久层数据导入到hdfs中去
     public class DBTableReaderTask extends AbstractDBTableReaderTask {
-
-        // MultiThreadHDFSDataProvider hdfsProvider, FileSystem fileSystem, Map<String,
-        // FSDataOutputStream> outMap,
-        // private final MultiThreadHDFSDataProvider hdfsProvider;
-        // private CountDownLatch latch = null;
-        // private final SourceDataProvider<String, String> dataProvider;
         private final String utf8StrTime;
 
         private final ITISFileSystem fileSystem;
@@ -423,8 +423,11 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
 
         private final Random nextMapIndexRandom;
 
-        public DBTableReaderTask(CountDownLatch latch, SourceDataProvider<String, String> dataProvider, MultiThreadDataProvider hdfsProvider, ITISFileSystem fileSystem, Map<String, TISFSDataOutputStream> outMap, String utf8StrTime, Map<String, Object> threadResult, AtomicInteger dbHostBusyCount, AtomicInteger processErrorCount, TSearcherDumpContext dumpContext) {
-            super(latch, dataProvider, threadResult, dbHostBusyCount, processErrorCount, dumpContext);
+        public DBTableReaderTask(CountDownLatch latch, IDataSourceDumper dumper
+                , ITISFileSystem fileSystem, Map<String, TISFSDataOutputStream> outMap
+                , String utf8StrTime, Map<String, Object> threadResult, AtomicInteger dbHostBusyCount
+                , AtomicInteger processErrorCount, TSearcherDumpContext dumpContext) {
+            super(latch, dumper, threadResult, dbHostBusyCount, processErrorCount, dumpContext);
             this.utf8StrTime = utf8StrTime;
             this.fileSystem = fileSystem;
             this.outMap = outMap;
@@ -442,7 +445,7 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
                     return;
                 }
                 AtomicInteger filtercount = new AtomicInteger();
-                dataProvider.openResource();
+                Iterator<Map<String, String>> rowsIt = dumper.startDump();
                 writeTitle();
                 long startTime = System.currentTimeMillis();
                 long interTime = startTime;
@@ -451,24 +454,21 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
                 String info = null;
                 AtomicInteger submitSize = new AtomicInteger(0);
                 long readCount = 0;
-                while (dataProvider.hasNext()) {
+                while (rowsIt.hasNext()) {
                     readCount++;
-                    Map<String, String> row = dataProvider.next();
+                    Map<String, String> row = rowsIt.next();
                     submit(row, errorList, submitSize, filtercount);
                     if (++allcount % 10000 == 0) {
                         // 是否超过最大錯誤限度
                         if (this.processErrorCount.get() > MAX_PROCESS_ERROR) {
                             return;
                         }
-                        info = "thread" + Thread.currentThread().getName() + "ip:" + dataProvider.getDbHost() + " plush rows:10000 consume:" + (System.currentTimeMillis() - interTime) / 1000 + "s  all time consume: " + (System.currentTimeMillis() - startTime) / 1000 + "s accumulate: " + allcount;
+                        info = "thread" + Thread.currentThread().getName() + "ip:" + dumper.getDbHost() + " plush rows:10000 consume:" + (System.currentTimeMillis() - interTime) / 1000 + "s  all time consume: " + (System.currentTimeMillis() - startTime) / 1000 + "s accumulate: " + allcount;
                         log.warn(info);
                         interTime = System.currentTimeMillis();
                     }
                 }
-                if (writerFinishedCount.incrementAndGet() == sourceDataFactory.getSourceDataProvider().size()) {
-                    info = ">>>>>>>>>>>>>【注意】此次批量导入完成,消耗的时间 是: " + (System.currentTimeMillis() - threadBeginTime) / 1000 + " 秒<<<<<<<<<<<<<";
-                    log.warn(info);
-                }
+
                 threadResult.put(Constants.IMPORT_HDFS_ROW_COUNT, allcount);
             } catch (Exception e) {
                 this.processErrorCount.addAndGet(MAX_PROCESS_ERROR);
@@ -481,24 +481,23 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
                 } catch (Throwable e) {
                 }
                 try {
-                    dataProvider.closeResource();
+                    this.dumper.closeResource();
                 } catch (Throwable e) {
                 }
                 latch.countDown();
             }
-        // return threadResult;
+            // return threadResult;
         }
 
         private void writeTitle() {
             try {
-                if (!hasWriteTitles.get() && dataProvider instanceof SingleTableSqlExcuteProvider && hasWriteTitles.compareAndSet(false, true)) {
-                    List<ColumnMetaData> rowmetalist = ((SingleTableSqlExcuteProvider) dataProvider).getMetaData();
+                if (!hasWriteTitles.get()  && hasWriteTitles.compareAndSet(false, true)) {
+                    List<ColumnMetaData> rowmetalist = this.dumper.getMetaData();
                     MultiThreadDataProvider.this.rowKeys = Collections.unmodifiableList(rowmetalist);
                     try (TISFSDataOutputStream output = fileSystem.create(createColumnMetaDataPath(utf8StrTime), true)) {
                         IOUtils.write(JSON.toJSONString(rowmetalist, false), output, TisUTF8.get());
                         log.info("success write title" + dumpContext.getDumpTable());
                     }
-                // IOUtils.closeQuietly(output);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -558,13 +557,7 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
         }
     }
 
-    public static void main(String[] args) {
-    }
 
-    @Override
-    public AtomicBoolean isBusy() {
-        return isBusy;
-    }
 
     @SuppressWarnings("all")
     private SourceDataProviderFactory sourceDataFactory;
@@ -579,9 +572,6 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
         this.sourceDataFactory = sourceData;
     }
 
-    public void setSubTablesDesc(Map<String, String> subTablesDesc) {
-        this.sourceDataFactory.setSubTablesDesc(subTablesDesc);
-    }
 
     /**
      * @return the fileSystem

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,6 +27,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.TriggerParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,10 +86,6 @@ public class TISDumpClient {
         }
     }
 
-    public void subscribeTerminatorOuterService(String version) {
-    }
-
-    // @Override
     public void copyToLocalFile(String src, String dst) {
         IPath srcPath = fileSystem.getPath(src);
         File dstPath = new File(dst);
@@ -104,26 +101,20 @@ public class TISDumpClient {
         HDFSProvider dataProvider = this.getFullHdfsProvider();
         Assert.assertNotNull("full dump hdfs provider can not be null", dataProvider);
         EntityName dumptable = dumpContext.getDumpTable();
-        if (!dataProvider.isBusy().get()) {
-            // 判断是否有必要执行本次dump任务
-            if (!dataProvider.shallProcessDumpTask(startTime, force, context)) {
-                return;
-            }
-            // 删除历史文件
-            flatTableBuilder.deleteHistoryFile(dumptable, context);
-            dataProvider.importServiceData(result);
-            // 导入完成,需要绑定hive表
-            flatTableBuilder.bindTables(Collections.singleton(dumpContext.getDumpTable()), MultiThreadDataProvider.getDumpLaunchTimestamp(result), context);
-            // 最终生成成功
-            dataProvider.createSuccessToken(startTime);
-            logger.warn((isIncr ? "【增量】" : "【全量】") + "任务执行结束<<<<<<");
-        } else {
-            // 当前任务虽然拿到HDFS集群的执行任务的锁可以执行任务，但是此时客户端的
-            // 数据提供者正在执行任务，没有空闲，所以赶紧释放锁，让其他客户能拿到锁资源。
-            // 其实针对目前的应用情况而言，只有一个增量和一个全量，其实并没有增量/全量Job同时竞争一个dataProvider情况
-            // lock.unLock(isIncr);
-            logger.warn(">>>>>>>>>>此DataProvider正在执行FS" + (isIncr ? "【增量】" : "【全量】") + "导入任务,这次任务调用将被忽略！！！<<<<<<<<<<");
+
+        // 判断是否有必要执行本次dump任务
+        if (!dataProvider.shallProcessDumpTask(startTime, force, context)) {
+            return;
         }
+        // 删除历史文件
+        flatTableBuilder.deleteHistoryFile(dumptable, context);
+        dataProvider.importServiceData(result);
+        // 导入完成,需要绑定hive表
+        flatTableBuilder.bindTables(Collections.singleton(dumpContext.getDumpTable()), MultiThreadDataProvider.getDumpLaunchTimestamp(result), context);
+        // 最终生成成功
+        dataProvider.createSuccessToken(startTime);
+        logger.warn((isIncr ? "【增量】" : "【全量】") + "任务执行结束<<<<<<");
+
     }
 
     public TSearcherDumpContext getDumpContext() {

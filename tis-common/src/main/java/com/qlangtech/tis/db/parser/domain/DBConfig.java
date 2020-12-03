@@ -60,13 +60,11 @@ public class DBConfig {
     @JSONField(serialize = false)
     public String getFormatDBName() {
         return DBNode.getFormatDBName(this.name);
-        // return StringUtils.remove(StringUtils.lowerCase(name), "_");
     }
 
     @JSONField(serialize = false)
     public String getDAOJarName() {
         return DBNode.getDAOJarName(this.name);
-        // return this.getFormatDBName() + "-dao.jar";
     }
 
     /**
@@ -104,7 +102,6 @@ public class DBConfig {
     public void vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess, boolean facade) {
         String[] err = new String[1];
         if (!this.vistDbURL(resolveHostIp, urlProcess, facade, new AdapterMessageHandler() {
-
             @Override
             public void addErrorMessage(Context context, String msg) {
                 err[0] = msg;

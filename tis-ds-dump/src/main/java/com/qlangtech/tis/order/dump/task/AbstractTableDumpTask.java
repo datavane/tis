@@ -1,36 +1,34 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.order.dump.task;
 
 import com.qlangtech.tis.build.task.TaskMapper;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.hdfs.client.bean.TISDumpClient;
 import com.qlangtech.tis.hdfs.client.bean.TISDumpClient.TriggerParamProcess;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
-import com.qlangtech.tis.manage.common.SpringDBRegister;
 import com.qlangtech.tis.offline.TableDumpFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.TriggerParam;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -45,11 +43,9 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
 
     private static final ExecutorService threadPool = java.util.concurrent.Executors.newCachedThreadPool();
 
-    // private static final Pattern DB_HOST_ENUM =
-    // Pattern.compile("db\\.(.+?)\\.enum");
-    public ClassPathXmlApplicationContext springContext;
 
     protected final TableDumpFactory tableDumpFactory;
+    protected final DataSourceFactory dataSourceFactory;
 
     private TISDumpClient dumpbeans;
 
@@ -63,18 +59,19 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
         return this.dumpbeans.getDumpContext();
     }
 
-    public AbstractTableDumpTask(TableDumpFactory tableDumpFactory) {
+    public AbstractTableDumpTask(TableDumpFactory tableDumpFactory, DataSourceFactory dataSourceFactory) {
         super();
         this.tableDumpFactory = tableDumpFactory;
+        this.dataSourceFactory = dataSourceFactory;
     }
 
-    protected abstract DBConfig getDataSourceConfig();
+    // protected abstract DBConfig getDataSourceConfig();
 
-    protected final DBConfig parseDbLinkMetaData(TaskContext context) {
-        final DBConfig dbLinkMetaData = getDataSourceConfig();
-        logger.info("dbLinkMetaData:" + dbLinkMetaData.toString());
-        return dbLinkMetaData;
-    }
+//    protected final DBConfig parseDbLinkMetaData(TaskContext context) {
+//        final DBConfig dbLinkMetaData = getDataSourceConfig();
+//        logger.info("dbLinkMetaData:" + dbLinkMetaData.toString());
+//        return dbLinkMetaData;
+//    }
 
     // protected abstract List<DBLinkMetaData> parseDbLinkMetaData(
     // TaskContext context);
@@ -93,7 +90,7 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
         // Map<String, DumpResult> /* 索引名称 */          dumpResultMap = new HashMap<>();
         Objects.requireNonNull(tableDumpFactory, "fs2Table has not be initial");
         logger.info("static initialize start");
-        initialSpringContext(context);
+        // initialSpringContext(context);
         logger.info("static initialize success");
         // StatusRpcClient rpcClient = new StatusRpcClient();
         try {
@@ -109,67 +106,35 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
             if (dumpbeans == null) {
                 throw new IllegalStateException("dumpbeans list size can not small than 1");
             }
-            // AtomicInteger dumpJobCount = new AtomicInteger();
             tableDumpFactory.startTask((connContext) -> {
-                // for (final TISDumpClient dumpBean : dumpbeans) {
-                // executeService.submit(new Callable<DumpResult>() {
-                // 
-                // @Override
-                // public DumpResult call() throws Exception {
-                // DumpResult dumpResult = new DumpResult();
-                // try {
                 dumpbeans.executeDumpTask(false, force, new TriggerParamProcess() {
-
                     @Override
                     public void callback(TriggerParam param) {
                         return;
                     }
                 }, startTime, connContext);
-            // dumpResult.dumpTable = dumpbeans.getDumpContext().getDumpTable();
-            // } catch (Exception e) {
-            // dumpResult.error = e;
-            // }
-            // return dumpResult;
-            // }
-            // });
-            // dumpJobCount.incrementAndGet();
-            // }
-            // DumpResult dumpResult = null;
-            // for (int i = 0; i < dumpJobCount.get(); i++) {
-            // dumpResult = executeService.take().get();
-            // if (!dumpResult.isSuccess()) {
-            // // 失败了
-            // if (dumpResult.error != null) {
-            // throw dumpResult.error;
-            // } else {
-            // throw new DumpResultException(dumpResult);
-            // }
-            // }
-            // logger.info("dump job:" + dumpResult.dumpTable + " complete!!!");
-            // dumpResultMap.put(dumpResult.dumpTable.toString(), dumpResult);
-            // }
             });
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             // return new TaskReturn(ReturnCode.FAILURE, "all table dump faild");
             throw new RuntimeException(e);
         } finally {
-        // try {
-        // if (hiveConnection != null) {
-        // hiveConnection.close();
-        // }
-        // } catch (Exception e) {
-        // 
-        // }
+            // try {
+            // if (hiveConnection != null) {
+            // hiveConnection.close();
+            // }
+            // } catch (Exception e) {
+            //
+            // }
         }
-    // TaskReturn taskResult;
-    // try {
-    // JSONObject dumpResultDesc = createDumpResultDesc(dumpResultMap);
-    // taskResult = new TaskReturn(ReturnCode.SUCCESS, dumpResultDesc.toString(1));
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // return taskResult;
+        // TaskReturn taskResult;
+        // try {
+        // JSONObject dumpResultDesc = createDumpResultDesc(dumpResultMap);
+        // taskResult = new TaskReturn(ReturnCode.SUCCESS, dumpResultDesc.toString(1));
+        // } catch (Exception e) {
+        // throw new RuntimeException(e);
+        // }
+        // return taskResult;
     }
 
     /**
@@ -187,21 +152,21 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
         return force;
     }
 
-    public void initialSpringContext(TaskContext context) {
-        final DBConfig dbLinkMetaData = parseDbLinkMetaData(context);
-        springContext = new ClassPathXmlApplicationContext("dump-app-context.xml", this.getClass()) {
-
-            protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-                DefaultListableBeanFactory factory = (DefaultListableBeanFactory) beanFactory;
-                // DataSourceRegister.setApplicationContext(factory,
-                // dbMetaList);
-                SpringDBRegister dbRegister = new SpringDBRegister(dbLinkMetaData.getName(), dbLinkMetaData, factory);
-                dbRegister.visitAll();
-                registerExtraBeanDefinition(factory);
-                super.prepareBeanFactory(beanFactory);
-            }
-        };
-    }
+//    public void initialSpringContext(TaskContext context) {
+//        final DBConfig dbLinkMetaData = parseDbLinkMetaData(context);
+//        springContext = new ClassPathXmlApplicationContext("dump-app-context.xml", this.getClass()) {
+//
+//            protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+//                DefaultListableBeanFactory factory = (DefaultListableBeanFactory) beanFactory;
+//                // DataSourceRegister.setApplicationContext(factory,
+//                // dbMetaList);
+//                SpringDBRegister dbRegister = new SpringDBRegister(dbLinkMetaData.getName(), dbLinkMetaData, factory);
+//                dbRegister.visitAll();
+//                registerExtraBeanDefinition(factory);
+//                super.prepareBeanFactory(beanFactory);
+//            }
+//        };
+//    }
 
     /**
      * @param dumpResultMap
@@ -233,7 +198,7 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
 
         boolean isSuccess() {
             return // serviceConfig != null &&
-            error == null;
+                    error == null;
         }
     }
 

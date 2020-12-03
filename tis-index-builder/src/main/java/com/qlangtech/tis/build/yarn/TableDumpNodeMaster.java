@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,8 +18,10 @@ import com.qlangtech.tis.build.NodeMaster;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.dump.task.SingleTableDumpTask;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Objects;
 
 /**
@@ -33,17 +35,19 @@ public class TableDumpNodeMaster extends NodeMaster {
     private static final Logger logger = LoggerFactory.getLogger(TableDumpNodeMaster.class);
 
     private final TableDumpFactory tableDumpFactory;
+    private final DataSourceFactory dataSourceFactory;
 
-    public TableDumpNodeMaster(TableDumpFactory factory) {
+    public TableDumpNodeMaster(TableDumpFactory factory, DataSourceFactory dataSourceFactory) {
         super(factory);
         this.tableDumpFactory = factory;
+        this.dataSourceFactory = dataSourceFactory;
     }
 
     @Override
     protected void startExecute(TaskContext context) {
         Objects.requireNonNull(zkClient, "zkClient can not be null");
         Objects.requireNonNull(statusRpc, "statusRpc can not be null");
-        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(tableDumpFactory, zkClient, statusRpc);
+        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(tableDumpFactory, dataSourceFactory, zkClient, statusRpc);
         tableDumpTask.map(context);
     }
 }
