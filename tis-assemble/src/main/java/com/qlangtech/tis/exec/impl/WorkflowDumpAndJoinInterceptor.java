@@ -93,7 +93,8 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                  * 构建宽表构建任务节点
                  * ************************************
                  */
-                process = flatTableBuilder.createTask(pnode, StringUtils.equals(fNode.getId(), pnode.getId()), tplContext, context, execChainContext.getTableDumpFactory(), joinPhaseStatus.getTaskStatus(pnode.getExportName()));
+                process = flatTableBuilder.createTask(pnode, StringUtils.equals(fNode.getId(), pnode.getId())
+                        , tplContext, context, execChainContext.getTableDumpFactory(), joinPhaseStatus.getTaskStatus(pnode.getExportName()));
                 taskMap.put(pnode.getId(), new TaskAndMilestone(process));
             }
             try {

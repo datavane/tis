@@ -64,7 +64,8 @@ public class WorkflowIndexBuildInterceptor extends IndexBuildInterceptor {
         try {
             SqlTaskNodeMeta.SqlDataFlowTopology topology = execContext.getTopology();
             List<ColName> finalNode = topology.getFinalTaskNodeCols();
-            processinfo.setBuildTableTitleItems(finalNode.stream().map((k) -> k.getAliasName()).collect(Collectors.joining(",")));
+            processinfo.setBuildTableTitleItems(
+                    finalNode.stream().map((k) -> k.getAliasName()).collect(Collectors.joining(",")));
         } catch (Exception e) {
             throw new RuntimeException("workflow:" + execContext.getWorkflowName(), e);
         }

@@ -43,8 +43,6 @@ import java.util.stream.Collectors;
  */
 public class PluginStore<T extends Describable> implements IRepositoryResource, IPluginStoreSave<T> {
 
-    private static final Logger logger = LoggerFactory.getLogger(PluginStore.class);
-
     private final transient Class<T> pluginClass;
 
     private List<T> plugins = Lists.newArrayList();
@@ -179,7 +177,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
             if (!file.exists()) {
                 return;
             }
-            logger.info("==============load:" + file.toString());
+
             file.unmarshal(this);
             this.loaded = true;
         } catch (IOException e) {
