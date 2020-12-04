@@ -114,8 +114,6 @@ public abstract class NodeMaster {
         try {
             // 
             if (IndexBuildParam.JOB_TYPE_DUMP.equals(jobType)) {
-
-
                 final String tabDumpFactory = commandLine.getOptionValue(ITableDumpConstant.DUMP_TABLE_DUMP_FACTORY_NAME);
                 DataSourceFactoryPluginStore dbPlugin = getDataSourceFactoryPluginStore(commandLine);
 

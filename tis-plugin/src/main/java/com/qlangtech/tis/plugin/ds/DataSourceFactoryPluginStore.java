@@ -104,6 +104,9 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
             TableReflect tableMeta = (TableReflect) tableReflectSerializer.read();
             tisTable.setReflectCols(tableMeta.getCols());
             tisTable.setSelectSql(tableMeta.getSql());
+            tisTable.setTableName(tableName);
+            tisTable.setTableLogicName(tableName);
+            tisTable.setDbName(this.key.keyVal);
             return tisTable;
         } catch (IOException e) {
             throw new RuntimeException(e);

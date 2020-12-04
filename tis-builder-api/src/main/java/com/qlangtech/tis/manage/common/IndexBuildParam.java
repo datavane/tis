@@ -94,7 +94,7 @@ public class IndexBuildParam {
             for (Field f : fields) {
                 names.add(String.valueOf(f.get(null)));
             }
-            names.add(ITableDumpConstant.DUMP_TABLE_DUMP_FACTORY_NAME);
+            //names.add(ITableDumpConstant.DUMP_TABLE_DUMP_FACTORY_NAME);
             names.add(JOB_TYPE);
             names.add(IParamContext.KEY_TASK_ID);
             // names.add(JOB_PLUGINS);

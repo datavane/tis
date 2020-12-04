@@ -56,7 +56,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
         CenterResource.setNotFetchFromCenterRepository();
     }
 
-    private static final String DB_ORDER = "order";
+    private static final String DB_ORDER = "order1";
 
     private static final String TABLE_TOTALPAYINFO = "totalpayinfo";
 
