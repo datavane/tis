@@ -27,9 +27,8 @@ import java.io.IOException;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class BasicTestCase extends TestCase {
-   // static final String dataflowDir = "./dataflow";
-
+public class
+BasicTestCase extends TestCase {
     static {
         CenterResource.setNotFetchFromCenterRepository();
 //        Config.setDataDir(dataflowDir);

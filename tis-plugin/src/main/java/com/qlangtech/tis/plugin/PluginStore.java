@@ -24,6 +24,8 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.util.XStream2;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +42,8 @@ import java.util.stream.Collectors;
  * @date 2020/04/13
  */
 public class PluginStore<T extends Describable> implements IRepositoryResource, IPluginStoreSave<T> {
+
+    private static final Logger logger = LoggerFactory.getLogger(PluginStore.class);
 
     private final transient Class<T> pluginClass;
 
@@ -92,7 +96,9 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
             }
         }
         final String instanceName = this.pluginClass.getSimpleName();
-        throw new IllegalStateException(instanceName + " has not be initialized,name:" + name + " can not find relevant '" + instanceName + "' in [" + plugins.stream().map((r) -> ((IdentityName) r).getName()).collect(Collectors.joining(",")) + "]");
+        throw new IllegalStateException(instanceName + " has not be initialized,name:" + name + " can not find relevant '" + instanceName
+                + "' in ["
+                + plugins.stream().map((r) -> ((IdentityName) r).getName()).collect(Collectors.joining(",")) + "]");
     }
 
     public List<Descriptor<T>> allDescriptor() {
@@ -171,6 +177,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         try {
             copyConfigFromRemote();
             if (!file.exists()) {
+                logger.info("==============is not exist:" + file.toString());
                 return;
             }
             file.unmarshal(this);

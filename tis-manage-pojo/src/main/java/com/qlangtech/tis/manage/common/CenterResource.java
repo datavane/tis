@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,6 +94,9 @@ public class CenterResource {
         // 是否取本地文件
         if (notFetchFromCenterRepository()) {
             File parent = new File(Config.getMetaCfgDir(), relativePath);
+            if (!parent.exists()) {
+                throw new IllegalStateException("parent:" + parent.getAbsolutePath() + " is not exist");
+            }
             File c = null;
             List<String> suNames = Lists.newArrayList();
             for (String child : parent.list()) {
@@ -154,6 +158,7 @@ public class CenterResource {
                 public List<ConfigFileContext.Header> getHeaders() {
                     return HEADER_GET_META;
                 }
+
                 @Override
                 public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                     return shallWriteLocal(headerFields, url, local, lastModifiedFile);
