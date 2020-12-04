@@ -39,6 +39,8 @@ public class TableDumpNodeMaster extends NodeMaster {
 
     public TableDumpNodeMaster(TableDumpFactory factory, DataSourceFactory dataSourceFactory) {
         super(factory);
+        Objects.requireNonNull(factory, "TableDumpFactory can not be null");
+        Objects.requireNonNull(dataSourceFactory, "dataSourceFactory can not be null");
         this.tableDumpFactory = factory;
         this.dataSourceFactory = dataSourceFactory;
     }
