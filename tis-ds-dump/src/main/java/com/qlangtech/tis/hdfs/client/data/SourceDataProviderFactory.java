@@ -226,7 +226,9 @@ public class SourceDataProviderFactory {
 //                    logger.warn(" create dump on dbs:" + dbNames + "\n use sql ==> " + sql);
 //                }
 //            }
-
+        if (dumpContext == null) {
+            throw new IllegalStateException("dumpContext can not be null");
+        }
         DataDumpers dataDumpers = dumpContext.getDataSourceFactory().getDataDumpers(this.dumpContext.getTisTable());
         Iterator<IDataSourceDumper> dumpers = dataDumpers.dumpers;
         IDataSourceDumper dumper = null;
