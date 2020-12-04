@@ -177,9 +177,9 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         try {
             copyConfigFromRemote();
             if (!file.exists()) {
-                logger.info("==============is not exist:" + file.toString());
                 return;
             }
+            logger.info("==============load:" + file.toString());
             file.unmarshal(this);
             this.loaded = true;
         } catch (IOException e) {
