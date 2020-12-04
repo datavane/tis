@@ -19,6 +19,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.exception.DataImportHDFSException;
 import com.qlangtech.tis.fs.*;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
+import com.qlangtech.tis.hdfs.client.context.impl.TSearcherDumpContextImpl;
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
 import com.qlangtech.tis.hdfs.util.Constants;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -106,7 +107,7 @@ public class MultiThreadDataProvider  {
 
 
 
-    private TSearcherDumpContext dumpContext;
+    private TSearcherDumpContextImpl dumpContext;
 
     private final TableDumpFactory flatTableBuilder;
     private final DataSourceFactory dataSourceFactory;
@@ -121,11 +122,11 @@ public class MultiThreadDataProvider  {
         this.dataSourceFactory = dataSourceFactory;
     }
 
-    public TSearcherDumpContext getDumpContext() {
+    public TSearcherDumpContextImpl getDumpContext() {
         return this.dumpContext;
     }
 
-    public void setDumpContext(TSearcherDumpContext dumpContext) {
+    public void setDumpContext(TSearcherDumpContextImpl dumpContext) {
         this.dumpContext = dumpContext;
     }
 

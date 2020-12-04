@@ -26,12 +26,14 @@ import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -92,7 +94,9 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         dumpContext.setDataSourceFactory(this.dataSourceFactory);
 
         DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(null, new PostedDSProp(dumpTable.getDbName()));
-        dumpContext.setTisTable(dbPluginStore.loadTableMeta(dumpTable.getTableName()));
+        TISTable tisTable = dbPluginStore.loadTableMeta(dumpTable.getTableName());
+        Objects.requireNonNull(tisTable, "tisTable can not be null");
+        dumpContext.setTisTable(tisTable);
 
         // dumpContext.setTisTable(GitUtils.$().getTableConfig(dumpTable.getDbName(), dumpTable.getTableName()));
         dumpContext.setStatusReportRef(statusReportRef);
