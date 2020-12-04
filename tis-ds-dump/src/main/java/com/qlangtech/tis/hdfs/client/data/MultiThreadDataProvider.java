@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 如果有分组情况，最终写入HDFS都是以分组为单位的文件<br>
  * @date 2020/04/13
  */
-public class MultiThreadDataProvider implements HDFSProvider<String, String> {
+public class MultiThreadDataProvider  {
 
     // 表Dump的时候默认使用16组，会生成16个通道，随机向里面写入
     public static final int MAX_PROCESS_ERROR = 100;
@@ -104,9 +104,7 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
         return count;
     }
 
-    @Override
-    public void init() {
-    }
+
 
     private TSearcherDumpContext dumpContext;
 
@@ -169,7 +167,6 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
 
     private static final String KEY_DUMP_LAUNCH_TIME = "dumpLaunchTime";
 
-    @SuppressWarnings("all")
     public static String getDumpLaunchTimestamp(Map context) {
         String time = (String) context.get(KEY_DUMP_LAUNCH_TIME);
         Assert.assertNotNull(time);
@@ -182,8 +179,7 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
         context.put(KEY_DUMP_LAUNCH_TIME, time);
     }
 
-    @SuppressWarnings("all")
-    @Override
+
     public synchronized void importServiceData(Map context) {
         //TIS.getDataBasePluginStore();
         if (dumpContext == null) {
@@ -298,7 +294,6 @@ public class MultiThreadDataProvider implements HDFSProvider<String, String> {
         }
     }
 
-    @Override
     public void createSuccessToken(String time) throws Exception {
         // 创建成功构建索引信号文件
         try (TISFSDataOutputStream out = getFileSystem().create(ceateSuccessTokenPath(time), true)) {

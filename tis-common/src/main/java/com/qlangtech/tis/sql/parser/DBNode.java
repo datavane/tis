@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,7 +18,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.db.parser.domain.DBConfig;
 import com.qlangtech.tis.git.GitUtils;
-import com.qlangtech.tis.manage.common.SpringDBRegister;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
@@ -27,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
+
 import java.io.*;
 import java.util.List;
 import java.util.Map;
@@ -96,14 +96,16 @@ public class DBNode {
                         , (db) -> GitUtils.$().getDbLinkMetaData(db.getDbName(), DbScope.FACADE)));
 
                 for (Map.Entry<String, DBConfig> entry : dbConfigsMap.entrySet()) {
-                    SpringDBRegister dbRegister = new SpringDBRegister(entry.getKey(), entry.getValue(), factory);
-                    dbRegister.visitFirst();
+//                    SpringDBRegister dbRegister = new SpringDBRegister(entry.getKey(), entry.getValue(), factory);
+//                    dbRegister.visitFirst();
                 }
 
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        throw new UnsupportedOperationException();
     }
 
     public static List<DBNode> load(InputStream inputstrea) throws Exception {
@@ -128,10 +130,10 @@ public class DBNode {
 
     public File getDaoDir() {
         return StreamContextConstant.getDAORootDir(this.getDbName(), this.getTimestampVer());
-    // if (this.daoDir == null || !this.daoDir.exists()) {
-    // throw new IllegalStateException("dao dir is not exist,dir:" + this.daoDir);
-    // }
-    // return daoDir;
+        // if (this.daoDir == null || !this.daoDir.exists()) {
+        // throw new IllegalStateException("dao dir is not exist,dir:" + this.daoDir);
+        // }
+        // return daoDir;
     }
 
     // public void setDaoDir(File daoDir) {

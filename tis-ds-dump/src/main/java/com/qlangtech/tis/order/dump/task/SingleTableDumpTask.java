@@ -15,25 +15,19 @@
 package com.qlangtech.tis.order.dump.task;
 
 import com.qlangtech.tis.TisZkClient;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.hdfs.client.bean.CommonTerminatorBeanFactory;
 import com.qlangtech.tis.hdfs.client.bean.TISDumpClient;
 import com.qlangtech.tis.hdfs.client.data.MultiThreadDataProvider;
 import com.qlangtech.tis.hdfs.client.data.SourceDataProviderFactory;
-import com.qlangtech.tis.manage.common.DataSourceRegister;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.StatusRpcClient;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
-import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -119,38 +113,38 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
 
         //this.dataSourceFactory
         SourceDataProviderFactory dataProviderFactory = new SourceDataProviderFactory();
-        final DBConfig dbLinkMetaData = null;
-        final Map<String, DataSource> dsMap = new HashMap<>();
+        //final DBConfig dbLinkMetaData = null;
+        //final Map<String, DataSource> dsMap = new HashMap<>();
         final StringBuffer dbNames = new StringBuffer();
         AtomicInteger dbCount = new AtomicInteger();
-        final DataSourceRegister.DBRegister dbRegister = new DataSourceRegister.DBRegister(dbLinkMetaData.getName(), dbLinkMetaData) {
-
-            @Override
-            protected void createDefinition(String dbDefinitionId, String driverClassName, String jdbcUrl, String userName, String password) {
-                BasicDataSource ds = new BasicDataSource();
-                ds.setDriverClassName(driverClassName);
-                ds.setUrl(jdbcUrl);
-                ds.setUsername(userName);
-                ds.setPassword(password);
-                ds.setValidationQuery("select 1");
-                synchronized (dbNames) {
-                    dsMap.put(dbDefinitionId, ds);
-                    dbCount.incrementAndGet();
-                    dbNames.append(dbDefinitionId).append(";");
-                }
-            }
-        };
-        dbRegister.visitAll();
-        if (dsMap.size() != dbCount.get()) {
-            throw new IllegalStateException("dsMap.size():" + dsMap.size() + ",dbCount.get():" + dbCount.get() + " shall be equal");
-        }
-       // dataProviderFactory.setDataSourceGetter(dsMap::get);
+//        final DataSourceRegister.DBRegister dbRegister = new DataSourceRegister.DBRegister(dbLinkMetaData.getName(), dbLinkMetaData) {
+//
+//            @Override
+//            protected void createDefinition(String dbDefinitionId, String driverClassName, String jdbcUrl, String userName, String password) {
+//                BasicDataSource ds = new BasicDataSource();
+//                ds.setDriverClassName(driverClassName);
+//                ds.setUrl(jdbcUrl);
+//                ds.setUsername(userName);
+//                ds.setPassword(password);
+//                ds.setValidationQuery("select 1");
+//                synchronized (dbNames) {
+//                    dsMap.put(dbDefinitionId, ds);
+//                    dbCount.incrementAndGet();
+//                    dbNames.append(dbDefinitionId).append(";");
+//                }
+//            }
+//        };
+//        dbRegister.visitAll();
+//        if (dsMap.size() != dbCount.get()) {
+//            throw new IllegalStateException("dsMap.size():" + dsMap.size() + ",dbCount.get():" + dbCount.get() + " shall be equal");
+//        }
+        // dataProviderFactory.setDataSourceGetter(dsMap::get);
         dataProvider.setSourceData(dataProviderFactory);
         beanFactory.setFullDumpProvider(dataProvider);
         //beanFactory.setGrouprouter(null);
         beanFactory.afterPropertiesSet(dbNames);
         // 单元测试过程中可以测试是否正常
-        sourceDataProviderFactoryInspect.look(dbLinkMetaData, dataProviderFactory);
+        sourceDataProviderFactoryInspect.look(null, dataProviderFactory);
         TISDumpClient dumpBean = beanFactory.getObject();
         return dumpBean;
     }

@@ -20,7 +20,7 @@ import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fs.ITaskContext;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
 import com.qlangtech.tis.hdfs.client.context.impl.TSearcherDumpContextImpl;
-import com.qlangtech.tis.hdfs.client.data.HDFSProvider;
+
 import com.qlangtech.tis.hdfs.client.data.MultiThreadDataProvider;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
@@ -98,7 +98,7 @@ public class TISDumpClient {
         TSearcherDumpContext dumpContext = this.getDumpContext();
         final Map result = new HashMap();
         MultiThreadDataProvider.setDumpLaunchTime(result, startTime);
-        HDFSProvider dataProvider = this.getFullHdfsProvider();
+        MultiThreadDataProvider dataProvider = this.getFullHdfsProvider();
         Assert.assertNotNull("full dump hdfs provider can not be null", dataProvider);
         EntityName dumptable = dumpContext.getDumpTable();
 

@@ -18,7 +18,6 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.hdfs.client.context.impl.TSearcherDumpContextImpl;
 import com.qlangtech.tis.hdfs.client.context.impl.TSearcherQueryContextImpl;
-import com.qlangtech.tis.hdfs.client.data.HDFSProvider;
 import com.qlangtech.tis.hdfs.client.data.MultiThreadDataProvider;
 import com.qlangtech.tis.hdfs.client.data.SourceDataProvider;
 import com.qlangtech.tis.hdfs.client.data.SourceDataProviderFactory;
@@ -164,8 +163,7 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         this.dumpTable = dumpTable;
     }
 
-    @SuppressWarnings("all")
-    public HDFSProvider<String, String> getFullDumpProvider() {
+    public MultiThreadDataProvider getFullDumpProvider() {
         return fullDumpProvider;
     }
 
@@ -174,10 +172,7 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         this.fullDumpProvider = fullDumpProvider;
     }
 
-    // public void setIncrDumpProvider(HDFSProvider<String, String>
-    // incrDumpProvider) {
-    // this.incrDumpProvider = incrDumpProvider;
-    // }
+
     public void setTermiantorBean(TISDumpClient termiantorBean) {
         this.termiantorBean = termiantorBean;
     }
