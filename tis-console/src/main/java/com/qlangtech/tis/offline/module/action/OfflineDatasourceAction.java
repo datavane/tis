@@ -23,8 +23,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
-import com.qlangtech.tis.db.parser.domain.DBConfigSuit;
+import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
@@ -41,7 +40,6 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
-import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
@@ -77,6 +75,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -94,6 +93,8 @@ import static java.sql.Types.*;
  * @date 2019年7月25日
  */
 public class OfflineDatasourceAction extends BasicModule {
+
+  private static final Pattern pattern_table_name = Pattern.compile("[a-z]{1}[\\da-z_]+");
 
   private static final long serialVersionUID = 1L;
 
@@ -322,88 +323,89 @@ public class OfflineDatasourceAction extends BasicModule {
   }
 
   private TISDb getDb(Context context, boolean isNew) throws Exception {
-    this.errorsPageShow(context);
-    TISDb pojo = new TISDb();
-    Map<String, Validator.FieldValidators> validateRule = //
-      Validator.fieldsValidator("dbName", new Validator.FieldValidators(Validator.require, Validator.identity) {
-
-        @Override
-        public void setFieldVal(String val) {
-          pojo.setDbName(val);
-        }
-      }, "encoding", new Validator.FieldValidators(Validator.require) {
-
-        @Override
-        public void setFieldVal(String val) {
-          pojo.setEncoding(val);
-        }
-      }, "dbType", new Validator.FieldValidators(Validator.require) {
-
-        @Override
-        public void setFieldVal(String val) {
-          pojo.setDbType(val);
-        }
-      }, "userName", new Validator.FieldValidators(Validator.require) {
-
-        @Override
-        public void setFieldVal(String val) {
-          pojo.setUserName(val);
-        }
-      }, "port", new Validator.FieldValidators(Validator.require, Validator.integer) {
-
-        @Override
-        public void setFieldVal(String val) {
-          pojo.setPort(val);
-        }
-      }, "host", new Validator.FieldValidators(Validator.require) {
-
-        @Override
-        public void setFieldVal(String val) {
-          pojo.setHost(val);
-        }
-      });
-    this.addPasswordValidator(isNew, pojo, validateRule);
-    IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());
-    Boolean facade = null;
-    try {
-      facade = handler.getBoolean("facade");
-    } catch (Exception e) {
-      throw new IllegalArgumentException("param facade is illegal");
-    }
-    if (!isNew || facade) {
-      validateRule.put("dbId", new Validator.FieldValidators(Validator.require) {
-
-        @Override
-        public void setFieldVal(String val) {
-          pojo.setDbId(val);
-        }
-      });
-    }
-    if (!Validator.validate(handler, context, validateRule)) {
-      return null;
-    }
-    DbScope dbScope = facade ? DbScope.FACADE : DbScope.DETAILED;
-    if (!isNew && StringUtils.isEmpty(pojo.getPassword())) {
-      // 更新流程下需要将系统中已经保存的密码取回
-      com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineManager.getDB(Integer.parseInt(pojo.getDbId()));
-      DBConfig dbConfig = null;
-      if (GitUtils.$().isDbConfigExist(db.getName(), dbScope) && StringUtils.equals((dbConfig = GitUtils.$().getDbLinkMetaData(db.getName(), dbScope)).getName(), pojo.getDbName())) {
-        pojo.setPassword(dbConfig.getPassword());
-      } else if (StringUtils.isBlank(pojo.getPassword())) {
-        this.addPasswordValidator(true, pojo, validateRule);
-        if (!Validator.validate(handler, context, validateRule)) {
-          return null;
-        }
-      }
-    }
-    String extraParams = handler.getString("extraParams");
-    String shardingType = handler.getString("shardingType");
-    String shardingEnum = handler.getString("shardingEnum");
-    pojo.setFacade(facade);
-    pojo.setExtraParams(extraParams);
-    pojo.setShardingType(shardingType);
-    pojo.setShardingEnum(shardingEnum);
-    return pojo;
+    throw new UnsupportedOperationException();
+//    this.errorsPageShow(context);
+//    TISDb pojo = new TISDb();
+//    Map<String, Validator.FieldValidators> validateRule = //
+//      Validator.fieldsValidator("dbName", new Validator.FieldValidators(Validator.require, Validator.identity) {
+//
+//        @Override
+//        public void setFieldVal(String val) {
+//          pojo.setDbName(val);
+//        }
+//      }, "encoding", new Validator.FieldValidators(Validator.require) {
+//
+//        @Override
+//        public void setFieldVal(String val) {
+//          pojo.setEncoding(val);
+//        }
+//      }, "dbType", new Validator.FieldValidators(Validator.require) {
+//
+//        @Override
+//        public void setFieldVal(String val) {
+//          pojo.setDbType(val);
+//        }
+//      }, "userName", new Validator.FieldValidators(Validator.require) {
+//
+//        @Override
+//        public void setFieldVal(String val) {
+//          pojo.setUserName(val);
+//        }
+//      }, "port", new Validator.FieldValidators(Validator.require, Validator.integer) {
+//
+//        @Override
+//        public void setFieldVal(String val) {
+//          pojo.setPort(val);
+//        }
+//      }, "host", new Validator.FieldValidators(Validator.require) {
+//
+//        @Override
+//        public void setFieldVal(String val) {
+//          pojo.setHost(val);
+//        }
+//      });
+//    this.addPasswordValidator(isNew, pojo, validateRule);
+//    IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());
+//    Boolean facade = null;
+//    try {
+//      facade = handler.getBoolean("facade");
+//    } catch (Exception e) {
+//      throw new IllegalArgumentException("param facade is illegal");
+//    }
+//    if (!isNew || facade) {
+//      validateRule.put("dbId", new Validator.FieldValidators(Validator.require) {
+//
+//        @Override
+//        public void setFieldVal(String val) {
+//          pojo.setDbId(val);
+//        }
+//      });
+//    }
+//    if (!Validator.validate(handler, context, validateRule)) {
+//      return null;
+//    }
+//    DbScope dbScope = facade ? DbScope.FACADE : DbScope.DETAILED;
+//    if (!isNew && StringUtils.isEmpty(pojo.getPassword())) {
+//      // 更新流程下需要将系统中已经保存的密码取回
+//      com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineManager.getDB(Integer.parseInt(pojo.getDbId()));
+//      DBConfig dbConfig = null;
+//      if (GitUtils.$().isDbConfigExist(db.getName(), dbScope) && StringUtils.equals((dbConfig = GitUtils.$().getDbLinkMetaData(db.getName(), dbScope)).getName(), pojo.getDbName())) {
+//        pojo.setPassword(dbConfig.getPassword());
+//      } else if (StringUtils.isBlank(pojo.getPassword())) {
+//        this.addPasswordValidator(true, pojo, validateRule);
+//        if (!Validator.validate(handler, context, validateRule)) {
+//          return null;
+//        }
+//      }
+//    }
+//    String extraParams = handler.getString("extraParams");
+//    String shardingType = handler.getString("shardingType");
+//    String shardingEnum = handler.getString("shardingEnum");
+//    pojo.setFacade(facade);
+//    pojo.setExtraParams(extraParams);
+//    pojo.setShardingType(shardingType);
+//    pojo.setShardingEnum(shardingEnum);
+//    return pojo;
   }
 
   private void addPasswordValidator(boolean isNew, TISDb pojo, Map<String, Validator.FieldValidators> validateRule) {
@@ -648,9 +650,21 @@ public class OfflineDatasourceAction extends BasicModule {
           }
         }, //
         "exportName" //
-        , new Validator.FieldValidators(Validator.require, Validator.identity) {
-        }, //
-        validateRuleDependency //
+        , new Validator.FieldValidators(Validator.require, Validator.identity
+        ) {
+        },
+        new Validator.IFieldValidator() {
+          @Override
+          public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+            Matcher m = pattern_table_name.matcher(fieldData);
+            if (!m.matches()) {
+              msgHandler.addFieldError(context, fieldKey, "必须符合规则:" + pattern_table_name);
+              return false;
+            }
+            return true;
+          }
+        }//
+        , validateRuleDependency //
         , new Validator.FieldValidators(Validator.require) {
           @Override
           public void setFieldVal(String val) {
@@ -726,6 +740,7 @@ public class OfflineDatasourceAction extends BasicModule {
       nodeMeta = o.getJSONObject("nodeMeta");
       nestNodeMeta = nodeMeta.getJSONObject("nodeMeta");
       nodetype = NodeType.parse(nestNodeMeta.getString("type"));
+
       if (nodetype == NodeType.DUMP) {
         dnode = new DependencyNode();
         dnode.setExtraSql(SqlTaskNodeMeta.processBigContent(nodeMeta.getString("sqlcontent")));
@@ -742,11 +757,12 @@ public class OfflineDatasourceAction extends BasicModule {
         topologyPojo.addDumpTab(dnode);
       } else if (nodetype == NodeType.JOINER_SQL) {
         pnode = new SqlTaskNodeMeta();
+        pnode.setId(o.getString("id"));
         pnode.setPosition(pos);
         pnode.setSql(SqlTaskNodeMeta.processBigContent(nodeMeta.getString("sql")));
         pnode.setExportName(nodeMeta.getString("exportName"));
         // pnode.setId(String.valueOf(nodeMeta.get("id")));
-        pnode.setId(o.getString("id"));
+        //pnode.setId(o.getString("id"));
         pnode.setType(NodeType.JOINER_SQL.getType());
         joinDependencies = nodeMeta.getJSONArray("dependencies");
         for (int k = 0; k < joinDependencies.length(); k++) {
@@ -1078,7 +1094,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
   private interface TopologyUpdateCallback {
 
-    public void execute(String topologyName, SqlDataFlowTopology topology);
+    void execute(String topologyName, SqlDataFlowTopology topology);
   }
 
   /**
@@ -1439,7 +1455,7 @@ public class OfflineDatasourceAction extends BasicModule {
    * @param context
    */
   @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT)
-  public void doDeleteDatasourceDbById(Context context) {
+  public void doDeleteDatasourceDbById(Context context) throws Exception {
     Integer id = this.getInt("id");
     if (id == null) {
       this.addErrorMessage(context, "db id不能为空");

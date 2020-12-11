@@ -73,7 +73,7 @@ public class DescribableJSON<T extends Describable<T>> {
         }
         item.put("vals", vals);
         if (instance instanceof IdentityName) {
-            item.put("identityName", ((IdentityName) instance).getName());
+            item.put("identityName", ((IdentityName) instance).identityValue());
         }
 
 

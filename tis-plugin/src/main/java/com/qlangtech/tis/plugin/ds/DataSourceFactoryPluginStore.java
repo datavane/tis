@@ -20,6 +20,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -40,14 +41,41 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         this.shallUpdateDB = shallUpdateDB;
     }
 
+    public DSKey getDSKey() {
+        return (DSKey) this.key;
+    }
+
+    public FacadeDataSource createFacadeDataSource() throws Exception {
+        DataSourceFactory plugin = this.getPlugin();
+        if (plugin == null) {
+            throw new IllegalStateException("dbName:" + key.keyVal + " relevant facade datasource has not been defined,file:" + this.getSerializeFileName());
+        }
+        if (!(plugin instanceof IFacadeDataSource)) {
+            throw new IllegalStateException("plugin:" + plugin.identityValue() + " is not instanceOf IFacadeDataSource");
+        }
+        //try {
+        // 进行一次connection的校验
+        plugin.getTablesInDB();
+        return ((IFacadeDataSource) plugin).createFacadeDataSource();
+//        } catch (Exception e) {
+//            throw new RuntimeException(e)
+//        }
+
+    }
+
+    public void deleteDB() throws Exception {
+        File targetFile = this.getTargetFile();
+        FileUtils.deleteDirectory(targetFile.getParentFile());
+    }
+
     @Override
     public void copyConfigFromRemote() {
         List<String> subFiles
                 = CenterResource.getSubFiles(
-                        TIS.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath(), false, true);
+                TIS.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath(), false, true);
         for (String f : subFiles) {
             CenterResource.copyFromRemote2Local(
-                    TIS.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath() + File.separator+f, true);
+                    TIS.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath() + File.separator + f, true);
         }
     }
 

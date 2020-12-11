@@ -45,16 +45,16 @@ public class SnapshotDAOImpl extends BasicDAO<Snapshot, SnapshotCriteria> implem
 
     @Override
     public Integer getMaxSnapshotId(SnapshotCriteria criteria) {
-        return (Integer) this.count("snapshot.ibatorgenerated_selectMaxSnapshotId", criteria);
+        return this.count("snapshot.ibatorgenerated_selectMaxSnapshotId", criteria);
     }
 
     public int countByExample(SnapshotCriteria example) {
-        Integer count = (Integer) this.count("snapshot.ibatorgenerated_countByExample", example);
+        Integer count = this.count("snapshot.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(SnapshotCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("snapshot.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("snapshot.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -91,7 +91,7 @@ public class SnapshotDAOImpl extends BasicDAO<Snapshot, SnapshotCriteria> implem
     public Snapshot selectByPrimaryKey(Integer snId) {
         Snapshot key = new Snapshot();
         key.setSnId(snId);
-        Snapshot record = (Snapshot) this.load("snapshot.ibatorgenerated_selectByPrimaryKey", key);
+        Snapshot record = this.load("snapshot.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -108,7 +108,7 @@ public class SnapshotDAOImpl extends BasicDAO<Snapshot, SnapshotCriteria> implem
     public Snapshot loadFromWriteDB(Integer snId) {
         Snapshot key = new Snapshot();
         key.setSnId(snId);
-        Snapshot record = (Snapshot) this.loadFromWriterDB("snapshot.ibatorgenerated_selectByPrimaryKey", key);
+        Snapshot record = this.loadFromWriterDB("snapshot.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

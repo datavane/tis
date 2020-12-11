@@ -89,14 +89,15 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
             throw new IllegalStateException(this.pluginClass + " can not find by name:" + name);
         }
         for (T item : plugins) {
-            if (StringUtils.equals(name, ((IdentityName) item).getName())) {
+
+            if (StringUtils.equals(name, ((IdentityName) item).identityValue())) {
                 return item;
             }
         }
         final String instanceName = this.pluginClass.getSimpleName();
         throw new IllegalStateException(instanceName + " has not be initialized,name:" + name + " can not find relevant '" + instanceName
                 + "' in ["
-                + plugins.stream().map((r) -> ((IdentityName) r).getName()).collect(Collectors.joining(",")) + "]");
+                + plugins.stream().map((r) -> ((IdentityName) r).identityValue()).collect(Collectors.joining(",")) + "]");
     }
 
     public List<Descriptor<T>> allDescriptor() {

@@ -36,13 +36,13 @@ var generate_bar = function( bar_container, bar_data, convert_label_values )
   $( '.bar-max.val', bar_holder ).text( bar_data['max'] );
     
   bar_level++;
-  $( '.bar-total.bar', bar_holder ).width( new String( (bar_data['total']/bar_data['max'])*100 ) + '%' );
+  $( '.bar-total.bar', bar_holder ).width( String( (bar_data['total']/bar_data['max'])*100 ) + '%' );
   $( '.bar-total.val', bar_holder ).text( bar_data['total'] );
 
   if( bar_data['used'] )
   {
     bar_level++;
-    $( '.bar-used.bar', bar_holder ).width( new String( (bar_data['used']/bar_data['total'])*100 ) + '%' );
+    $( '.bar-used.bar', bar_holder ).width( String( (bar_data['used']/bar_data['total'])*100 ) + '%' );
     $( '.bar-used.val', bar_holder ).text( bar_data['used'] );
   }
 
@@ -208,7 +208,7 @@ var system_info = function( element, system_data )
     generate_bar( bar_holder, bar_data, true );
   }
 
-}
+};
 
 // #/
 sammy.get

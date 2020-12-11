@@ -397,8 +397,7 @@ function install(el, opts) {
     }, opts.timeout);
     $(el).data('blockUI.timeout', to);
   }
-};
-
+}
 // remove the block
 function remove(el, opts) {
   var full = (el == window);
@@ -432,8 +431,7 @@ function remove(el, opts) {
   }
   else
     reset(els, data, opts, el);
-};
-
+}
 // move blocking element back into the DOM where it started
 function reset(els,data,opts,el) {
   els.each(function(i,o) {
@@ -452,8 +450,7 @@ function reset(els,data,opts,el) {
 
   if (typeof opts.onUnblock == 'function')
     opts.onUnblock(el,opts);
-};
-
+}
 // bind/unbind the handler
 function bind(b, el, opts) {
   var full = el == window, $el = $(el);
@@ -475,8 +472,7 @@ function bind(b, el, opts) {
 // former impl...
 //     var $e = $('a,:input');
 //     b ? $e.bind(events, opts, handler) : $e.unbind(events, handler);
-};
-
+}
 // event handler to suppress keyboard/mouse events when blocking
 function handler(e) {
   // allow tab navigation (conditionally)
@@ -498,26 +494,22 @@ function handler(e) {
 
   // allow events for content that is not being blocked
   return $(e.target).parents().children().filter('div.blockUI').length == 0;
-};
-
-function focus(back) {
+}
+    function focus(back) {
   if (!pageBlockEls)
     return;
   var e = pageBlockEls[back===true ? pageBlockEls.length-1 : 0];
   if (e)
     e.focus();
-};
-
-function center(el, x, y) {
+}
+    function center(el, x, y) {
   var p = el.parentNode, s = el.style;
   var l = ((p.offsetWidth - el.offsetWidth)/2) - sz(p,'borderLeftWidth');
   var t = ((p.offsetHeight - el.offsetHeight)/2) - sz(p,'borderTopWidth');
   if (x) s.left = l > 0 ? (l+'px') : '0';
   if (y) s.top  = t > 0 ? (t+'px') : '0';
-};
-
-function sz(el, p) {
+}
+    function sz(el, p) {
   return parseInt($.css(el,p))||0;
-};
-
+}
 })(jQuery);

@@ -75,7 +75,7 @@ public class PluginItems {
                     for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
 
                         PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
-                        dbExtraProps.setDbname(plugin.instance.getName());
+                        dbExtraProps.setDbname(plugin.instance.identityValue());
 
                         boolean success = TIS.getDataBasePluginStore(pluginContext, dbExtraProps)
                                 .setPlugins(context, Collections.singletonList(plugin), dbExtraProps.isUpdate());

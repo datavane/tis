@@ -15,11 +15,8 @@
 package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.offline.DbScope;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +38,11 @@ public class UploadPluginMeta {
     private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))+)?");
 
     private static final String KEY_REQUIRE = "require";
+    private final String name;
+
+    private boolean required;
+    // 除去 required 之外的其他参数
+    private Map<String, String> extraParams = new HashMap<>();
 
 
     public static List<UploadPluginMeta> parse(String[] plugins) {
@@ -75,7 +77,7 @@ public class UploadPluginMeta {
                 }
                 metas.add(pmeta);
             } else {
-                throw new IllegalStateException("plugin:" + plugin + " is not match the pattern:" + PATTERN_PLUGIN_META);
+                throw new IllegalStateException("plugin:'" + plugin + "' is not match the pattern:" + PATTERN_PLUGIN_META);
             }
         }
         if (plugins.length != metas.size()) {
@@ -87,9 +89,6 @@ public class UploadPluginMeta {
     public HeteroEnum getHeteroEnum() {
         return HeteroEnum.of(this.getName());
     }
-
-
-
 
 
     public static void main(String[] args) {
@@ -112,11 +111,6 @@ public class UploadPluginMeta {
         this.required = required;
     }
 
-    private final String name;
-
-    private boolean required;
-    // 除去 required 之外的其他参数
-    private Map<String, String> extraParams = new HashMap<>();
 
     public String getExtraParam(String key) {
         return this.extraParams.get(key);

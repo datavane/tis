@@ -17,7 +17,7 @@
 
 var set_healthcheck_status = function( status )
 {
-  var hc_button = $( '.healthcheck-status' )
+  var hc_button = $( '.healthcheck-status' );
   if ( status == 'enable' )
   {
     hc_button.parents( 'dd' )

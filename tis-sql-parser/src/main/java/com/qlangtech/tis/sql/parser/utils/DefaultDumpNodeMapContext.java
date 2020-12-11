@@ -55,9 +55,11 @@ public class DefaultDumpNodeMapContext implements IDumpNodeMapContext {
         if (allNodes == null) {
             throw new IllegalStateException("entityName:" + entityName + " relevant join node can not be null");
         }
-        Optional<SqlTaskNode> node = allNodes.stream().filter((r) -> org.apache.commons.lang.StringUtils.equals(r.getExportName().getTabName(), entityName.getTabName())).findFirst();
+        Optional<SqlTaskNode> node = allNodes.stream().filter((r) ->
+                org.apache.commons.lang.StringUtils.equals(r.getExportName().getTabName(), entityName.getTabName())).findFirst();
         if (!node.isPresent()) {
-            throw new IllegalStateException("nodename:" + entityName.getTabName() + " can not be find ,all:[" + allNodes.stream().map((e) -> e.getExportName().getTabName()).collect(Collectors.joining(",")) + "] ");
+            throw new IllegalStateException("nodename:" + entityName.getTabName() + " can not be find ,all:["
+                    + allNodes.stream().map((e) -> e.getExportName().getTabName()).collect(Collectors.joining(",")) + "] ");
         }
         return node.get();
     }

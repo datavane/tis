@@ -231,7 +231,7 @@ solrAdminServices.factory('System',
                }
            }
            return "/solr/" + params.core + params.handler + "?" + qs.sort().join("&");
-       }
+       };
        return resource;
 }])
 .factory('Segments',

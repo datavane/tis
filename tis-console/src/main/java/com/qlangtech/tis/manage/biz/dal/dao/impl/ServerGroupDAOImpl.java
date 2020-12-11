@@ -36,12 +36,12 @@ public class ServerGroupDAOImpl extends BasicDAO<ServerGroup, ServerGroupCriteri
     }
 
     public int countByExample(ServerGroupCriteria example) {
-        Integer count = (Integer) this.count("server_group.ibatorgenerated_countByExample", example);
+        Integer count = this.count("server_group.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(ServerGroupCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("server_group.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("server_group.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -78,7 +78,7 @@ public class ServerGroupDAOImpl extends BasicDAO<ServerGroup, ServerGroupCriteri
     public ServerGroup selectByPrimaryKey(Integer gid) {
         ServerGroup key = new ServerGroup();
         key.setGid(gid);
-        ServerGroup record = (ServerGroup) this.load("server_group.ibatorgenerated_selectByPrimaryKey", key);
+        ServerGroup record = this.load("server_group.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -95,7 +95,7 @@ public class ServerGroupDAOImpl extends BasicDAO<ServerGroup, ServerGroupCriteri
     public ServerGroup loadFromWriteDB(Integer gid) {
         ServerGroup key = new ServerGroup();
         key.setGid(gid);
-        ServerGroup record = (ServerGroup) this.loadFromWriterDB("server_group.ibatorgenerated_selectByPrimaryKey", key);
+        ServerGroup record = this.loadFromWriterDB("server_group.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -107,7 +107,7 @@ public class ServerGroupDAOImpl extends BasicDAO<ServerGroup, ServerGroupCriteri
         key.setAppName(appName);
         key.setGroupIndex(groupIndex);
         key.setRuntEnvironment(runtime);
-        return (ServerGroup) this.loadFromWriterDB("server_group.ibatorgenerated_getBy_appName_groupIndex_runtime", key);
+        return this.loadFromWriterDB("server_group.ibatorgenerated_getBy_appName_groupIndex_runtime", key);
     }
 
     private static class UpdateByExampleParms extends ServerGroupCriteria {

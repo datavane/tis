@@ -357,7 +357,7 @@ sammy.get
           }
       )
     }
-)
+);
 /*
  Sample docs:
  <doc boost="2.5">

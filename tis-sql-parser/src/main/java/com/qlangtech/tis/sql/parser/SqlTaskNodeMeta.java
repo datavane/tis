@@ -63,7 +63,9 @@ import org.yaml.snakeyaml.representer.Representer;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -304,11 +306,33 @@ public class SqlTaskNodeMeta implements ISqlTask {
         if (topology.profile == null || StringUtils.isEmpty(topology.getName()) || topology.getTimestamp() < 1 || topology.getDataflowId() < 1) {
             throw new IllegalArgumentException("param topology's prop name timestamp or dataflowid neither can be null");
         }
+        Pattern PatternjoinNode = Pattern.compile("[\\da-z]+\\-[\\da-z]+\\-[\\da-z]+\\-[\\da-z]+\\-[\\da-z]+\\.yaml");
+        // 用来处理被删除的节点，如果某个节点被删除的话对应的AtomicBoolean flag 就为false
+        Map<String, AtomicBoolean> oldNodeFileStats
+                = Arrays.stream(parent.list((dir, name) -> PatternjoinNode.matcher(name).matches()))
+                .collect(Collectors.toMap((filename) -> filename, (filename) -> new AtomicBoolean()));
+
+        String nodeFileName = null;
+        AtomicBoolean hasProcess = null;
         for (SqlTaskNodeMeta process : topology.getNodeMetas()) {
-            try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, process.getExportName() + ".yaml")))) {
+            if (StringUtils.isEmpty(process.getId())) {
+                throw new IllegalStateException(process.getExportName() + " relevant node property id can not be null ");
+            }
+            nodeFileName = (process.getId() + ".yaml");
+            hasProcess = oldNodeFileStats.get(nodeFileName);
+            if (hasProcess != null) {
+                hasProcess.set(true);
+            }
+            try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, nodeFileName)))) {
                 yaml.dump(process, output);
             }
         }
+        oldNodeFileStats.entrySet().forEach((e) -> {
+            // 老文件 没有被处理 说明已经被删除了
+            if (!e.getValue().get()) {
+                FileUtils.deleteQuietly(new File(parent, e.getKey()));
+            }
+        });
         try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, FILE_NAME_DEPENDENCY_TABS)))) {
             yaml.dump(new DumpNodes(topology.getDumpNodes()), output);
         }

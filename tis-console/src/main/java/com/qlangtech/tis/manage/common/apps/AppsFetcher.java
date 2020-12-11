@@ -176,7 +176,7 @@ public abstract class AppsFetcher implements IAppsFetcher {
     @Override
     public abstract List<ApplicationApply> getAppApplyList(IApplicationApplyDAO applicationApplyDAO);
 
-    public static interface CriteriaSetter {
+    public interface CriteriaSetter {
 
         void set(ApplicationCriteria.Criteria criteria);
     }

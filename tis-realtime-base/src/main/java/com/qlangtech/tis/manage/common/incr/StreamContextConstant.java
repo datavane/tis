@@ -1,22 +1,24 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.manage.common.incr;
 
-import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.plugin.ds.DBConfig;
+import com.qlangtech.tis.sql.parser.DBNode;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 
 /**
@@ -43,14 +45,14 @@ public class StreamContextConstant {
     }
 
     public static File getDAOJarFile(DBNode dbNode) {
-        return new File(getDAORootDir(dbNode.getDbName(), dbNode.getTimestampVer()), DBNode.getDAOJarName(dbNode.getDbName()));
+        return new File(getDAORootDir(dbNode.getDbName(), dbNode.getTimestampVer()), DBConfig.getDAOJarName(dbNode.getDbName()));
     }
 
     public static String getDAORootPath(String dbName, long timestamp) {
         if (timestamp < 1) {
             throw new IllegalArgumentException("param timestamp:" + timestamp + " can not small than 1");
         }
-        return (DIR_DAO + "/" + DBNode.getFormatDBName(dbName) + "/" + String.valueOf(timestamp));
+        return (DIR_DAO + "/" + DBConfig.getFormatDBName(dbName) + "/" + timestamp);
     }
 
     public static File getStreamScriptRootDir(String collectionName, long timestamp) {

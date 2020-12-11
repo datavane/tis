@@ -90,7 +90,7 @@ public class DTO {
 
         private final String type;
 
-        private EventType(String type) {
+        EventType(String type) {
             this.type = type;
         }
 

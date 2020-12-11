@@ -134,7 +134,7 @@ THE SOFTWARE.
     makeArray: _makeArray,
     isFunction: _isFunction,
     isArray: _isArray
-  })
+  });
 
   // Sammy.Object is the base for all other Sammy classes. It provides some useful
   // functionality, including cloning, iterating, etc.
@@ -1221,8 +1221,8 @@ THE SOFTWARE.
       } else {
         params = $.extend({}, this._parseFormParams($form));
         returned = this.runRoute(verb, path, params, form.get(0));
-      };
-      return (typeof returned == 'undefined') ? false : returned;
+      }
+        return (typeof returned == 'undefined') ? false : returned;
     },
 
     _serializeFormParams: function($form) {

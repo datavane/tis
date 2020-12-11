@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,15 +26,15 @@ import com.qlangtech.tis.plugin.annotation.Validator;
  */
 public class AliyunTokenParams extends ParamsConfig implements IAliyunToken {
 
-    @FormField(ordinal = 0, validate = { Validator.require, Validator.identity })
+    @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity})
     public String name;
 
     // @FormField(ordinal = 1, validate = {Validator.require})
     // public String endpoint;
-    @FormField(ordinal = 2, validate = { Validator.require })
+    @FormField(ordinal = 2, validate = {Validator.require})
     public String accessKeyId;
 
-    @FormField(ordinal = 3, validate = { Validator.require })
+    @FormField(ordinal = 3, validate = {Validator.require})
     public String accessKeySecret;
 
     @Override
@@ -42,10 +42,10 @@ public class AliyunTokenParams extends ParamsConfig implements IAliyunToken {
         return null;
     }
 
-    @Override
-    public String getName() {
-        return this.name;
-    }
+//    @Override
+//    public String getName() {
+//        return this.name;
+//    }
 
     // @Override
     // public String getEndpoint() {

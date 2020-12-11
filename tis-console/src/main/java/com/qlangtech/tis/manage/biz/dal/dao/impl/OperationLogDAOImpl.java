@@ -36,12 +36,12 @@ public class OperationLogDAOImpl extends BasicDAO<OperationLog, OperationLogCrit
     }
 
     public int countByExample(OperationLogCriteria example) {
-        Integer count = (Integer) this.count("operation_log.ibatorgenerated_countByExample", example);
+        Integer count = this.count("operation_log.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(OperationLogCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("operation_log.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("operation_log.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -86,7 +86,7 @@ public class OperationLogDAOImpl extends BasicDAO<OperationLog, OperationLogCrit
     public OperationLog selectByPrimaryKey(Integer opId) {
         OperationLog key = new OperationLog();
         key.setOpId(opId);
-        OperationLog record = (OperationLog) this.load("operation_log.ibatorgenerated_selectByPrimaryKey", key);
+        OperationLog record = this.load("operation_log.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -109,7 +109,7 @@ public class OperationLogDAOImpl extends BasicDAO<OperationLog, OperationLogCrit
     public OperationLog loadFromWriteDB(Integer opId) {
         OperationLog key = new OperationLog();
         key.setOpId(opId);
-        OperationLog record = (OperationLog) this.loadFromWriterDB("operation_log.ibatorgenerated_selectByPrimaryKey", key);
+        OperationLog record = this.loadFromWriterDB("operation_log.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

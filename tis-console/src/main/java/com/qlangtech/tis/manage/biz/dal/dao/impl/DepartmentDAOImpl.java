@@ -41,12 +41,12 @@ public class DepartmentDAOImpl extends BasicDAO<Department, DepartmentCriteria> 
     }
 
     public int countByExample(DepartmentCriteria example) {
-        Integer count = (Integer) this.count("department.ibatorgenerated_countByExample", example);
+        Integer count = this.count("department.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(DepartmentCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("department.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("department.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -85,7 +85,7 @@ public class DepartmentDAOImpl extends BasicDAO<Department, DepartmentCriteria> 
     public Department selectByPrimaryKey(Integer dptId) {
         Department key = new Department();
         key.setDptId(dptId);
-        Department record = (Department) this.load("department.ibatorgenerated_selectByPrimaryKey", key);
+        Department record = this.load("department.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -102,7 +102,7 @@ public class DepartmentDAOImpl extends BasicDAO<Department, DepartmentCriteria> 
     public Department loadFromWriteDB(Integer dptId) {
         Department key = new Department();
         key.setDptId(dptId);
-        Department record = (Department) this.loadFromWriterDB("department.ibatorgenerated_selectByPrimaryKey", key);
+        Department record = this.loadFromWriterDB("department.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

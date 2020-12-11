@@ -39,7 +39,7 @@ solrAdminApp.controller('QueryController',
         } else {
           params[key] = [value];
         }
-      }
+      };
       var copy = function(params, query) {
         for (var key in query) {
           terms = query[key];

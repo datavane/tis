@@ -53,11 +53,13 @@ public class TisResultMapBuilder implements ResultMapBuilder {
                 // final String resultCode = resultName.toString() + "_ajax";
                 build = new ResultConfig.Builder(resultCode, ActionChainResult.class.getName());
                 build.addParam("actionName", TisActionMapper.addUnderline(resultName).toString());
-                build.addParam("namespace", "/" + matcher.group(1) + StringUtils.replace(matcher.group(3), ".", "/") + "#screen");
+                build.addParam("namespace", "/" + matcher.group(1)
+                  + StringUtils.replace(matcher.group(3), ".", "/") + "#screen");
                 resultsConfig.put(resultCode, build.build());
             } else {
                 build = new ResultConfig.Builder(resultName, TerminatorVelocityResult.class.getName());
-                build.addParam("location", "/" + matcher.group(1) + "/templates/" + matcher.group(2) + StringUtils.replace(matcher.group(3), ".", "/") + '/' + getViewName(resultName) + ".vm");
+                build.addParam("location", "/" + matcher.group(1) + "/templates/"
+                  + matcher.group(2) + StringUtils.replace(matcher.group(3), ".", "/") + '/' + getViewName(resultName) + ".vm");
                 resultsConfig.put(resultName, build.build());
             }
         } else {

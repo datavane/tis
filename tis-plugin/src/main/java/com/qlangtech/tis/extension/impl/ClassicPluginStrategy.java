@@ -256,7 +256,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
     public void initializeComponents(PluginWrapper plugin) {
     }
 
-    private static final List<ExtensionFinder> finders = Collections.<ExtensionFinder>singletonList(new ExtensionFinder.Sezpoz());
+    private static final List<ExtensionFinder> finders = Collections.singletonList(new ExtensionFinder.Sezpoz());
 
     public <T> List<ExtensionComponent<T>> findComponents(final Class<T> type, TIS tis) {
         if (LOGGER.isInfoEnabled()) {

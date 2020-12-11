@@ -29,7 +29,7 @@ var init_timer = function( next_tick )
     window.clearTimeout( timer_timeout );
   }
   update_timer( next_tick );
-}
+};
 
 var update_timer = function( next_tick )
 {
@@ -47,7 +47,7 @@ var update_timer = function( next_tick )
     'update_timer( ' + --next_tick + ' )',
     1000
   );
-}
+};
 
 var clear_timer = function()
 {
@@ -56,7 +56,7 @@ var clear_timer = function()
     window.clearTimeout( timer_timeout );
     timer_element.hide();
   }
-}
+};
 
 var replication_fetch_status = function()
 {
@@ -455,7 +455,7 @@ var replication_fetch_status = function()
       }
     }
   );
-}
+};
 
 // #/:core/replication
 sammy.get

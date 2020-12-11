@@ -37,12 +37,12 @@ public class ClusterSnapshotDAOImpl extends BasicDAO<ClusterSnapshot, ClusterSna
     }
 
     public int countByExample(ClusterSnapshotCriteria example) {
-        Integer count = (Integer) this.count("cluster_snapshot.ibatorgenerated_countByExample", example);
+        Integer count = this.count("cluster_snapshot.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(ClusterSnapshotCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("cluster_snapshot.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("cluster_snapshot.ibatorgenerated_countByExample", example);
         return count;
     }
 

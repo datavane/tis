@@ -45,16 +45,16 @@ public class OfflineManagerTest extends TestCase {
 //        }
    // }
 
-    public void testGetColumn() throws Exception {
-        List<ColumnMetaData> list = offline.getTableMetadata("order", "totalpayinfo");
-        assertTrue(list.size() > 0);
-        for (ColumnMetaData c : list) {
-            System.out.println(c.getKey());
-        }
-    // List<String> tabs = this.offline.getTables("order");
-    // Assert.assertNotNull(tabs.size());
-    // for (String tab : tabs) {
-    // System.out.println(tab);
-    // }
-    }
+//    public void testGetColumn() throws Exception {
+//        List<ColumnMetaData> list = offline.getTableMetadata("order", "totalpayinfo");
+//        assertTrue(list.size() > 0);
+//        for (ColumnMetaData c : list) {
+//            System.out.println(c.getKey());
+//        }
+//    // List<String> tabs = this.offline.getTables("order");
+//    // Assert.assertNotNull(tabs.size());
+//    // for (String tab : tabs) {
+//    // System.out.println(tab);
+//    // }
+//    }
 }

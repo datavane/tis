@@ -19,6 +19,13 @@
     <properties>
     </properties>
     <dependencies>
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-common</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

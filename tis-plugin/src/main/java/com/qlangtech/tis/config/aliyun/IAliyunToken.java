@@ -28,7 +28,7 @@ public interface IAliyunToken extends IdentityName {
     // private static String accessKeyId = "*** Provide your AccessKeyId ***";
     // private static String accessKeySecret = "*** Provide your AccessKeySecret ***";
     // public String getEndpoint();
-    public String getAccessKeyId();
+    String getAccessKeyId();
 
-    public String getAccessKeySecret();
+    String getAccessKeySecret();
 }

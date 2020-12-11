@@ -15,20 +15,14 @@
 package com.qlangtech.tis.sql.parser;
 
 import com.qlangtech.tis.manage.common.CenterResource;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import junit.framework.TestCase;
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class
-BasicTestCase extends TestCase {
+public class BasicTestCase extends TestCase {
     static {
         CenterResource.setNotFetchFromCenterRepository();
 //        Config.setDataDir(dataflowDir);

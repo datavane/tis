@@ -22,5 +22,5 @@ import com.qlangtech.tis.extension.Describable;
  */
 public interface IMQListenerFactory {
 
-    public IMQListener create();
+    IMQListener create();
 }

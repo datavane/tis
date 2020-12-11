@@ -20,8 +20,8 @@ package com.koubei.web.tag.pager;
  */
 public interface LinkBuilder {
 
-    public StringBuffer getPagerUrl();
+    StringBuffer getPagerUrl();
 
     // public void setPage(int page);
-    public StringBuffer getPageUrl(int page);
+    StringBuffer getPageUrl(int page);
 }

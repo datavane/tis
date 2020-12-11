@@ -113,7 +113,7 @@ public class PluginAction extends BasicModule {
         }
       }
     }
-    if (this.hasErrors(context)) {
+    if (this.hasErrors(context) || this.getBoolean("verify")) {
       return;
     }
     if (faild) {

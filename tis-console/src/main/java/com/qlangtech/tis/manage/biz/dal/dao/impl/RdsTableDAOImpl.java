@@ -31,12 +31,12 @@ public class RdsTableDAOImpl extends BasicDAO<RdsTable, RdsTableCriteria> implem
     }
 
     public int countByExample(RdsTableCriteria example) {
-        Integer count = (Integer) this.count("rds_table.ibatorgenerated_countByExample", example);
+        Integer count = this.count("rds_table.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(RdsTableCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("rds_table.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("rds_table.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -75,7 +75,7 @@ public class RdsTableDAOImpl extends BasicDAO<RdsTable, RdsTableCriteria> implem
     public RdsTable selectByPrimaryKey(Long id) {
         RdsTable key = new RdsTable();
         key.setId(id);
-        RdsTable record = (RdsTable) this.load("rds_table.ibatorgenerated_selectByPrimaryKey", key);
+        RdsTable record = this.load("rds_table.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -92,7 +92,7 @@ public class RdsTableDAOImpl extends BasicDAO<RdsTable, RdsTableCriteria> implem
     public RdsTable loadFromWriteDB(Long id) {
         RdsTable key = new RdsTable();
         key.setId(id);
-        RdsTable record = (RdsTable) this.loadFromWriterDB("rds_table.ibatorgenerated_selectByPrimaryKey", key);
+        RdsTable record = this.loadFromWriterDB("rds_table.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

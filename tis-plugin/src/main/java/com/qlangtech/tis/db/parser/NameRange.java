@@ -163,7 +163,7 @@ public final class NameRange {
      */
     public static NameRange loadInput(String input) {
         final int len = input.length();
-        final int minusIndex = input.indexOf('-', 0);
+        final int minusIndex = input.indexOf('-');
         if (minusIndex < 0) {
             if (numericCheck(input)) {
                 final long min = Long.parseLong(input);

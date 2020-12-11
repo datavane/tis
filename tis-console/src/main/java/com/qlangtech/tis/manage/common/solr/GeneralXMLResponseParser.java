@@ -100,6 +100,5 @@ public class GeneralXMLResponseParser extends XMLResponseParser {
 
     public static void main(String[] arg) throws Exception {
         System.out.println(URLEncoder.encode("美图", "GBk"));
-        ;
     }
 }

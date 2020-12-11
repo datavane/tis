@@ -36,12 +36,12 @@ public class FuncDAOImpl extends BasicDAO<Func, FuncCriteria> implements IFuncDA
     }
 
     public int countByExample(FuncCriteria example) {
-        Integer count = (Integer) this.count("func.ibatorgenerated_countByExample", example);
+        Integer count = this.count("func.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(FuncCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("func.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("func.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -80,7 +80,7 @@ public class FuncDAOImpl extends BasicDAO<Func, FuncCriteria> implements IFuncDA
     public Func selectByPrimaryKey(Integer funId) {
         Func key = new Func();
         key.setFunId(funId);
-        Func record = (Func) this.load("func.ibatorgenerated_selectByPrimaryKey", key);
+        Func record = this.load("func.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -97,7 +97,7 @@ public class FuncDAOImpl extends BasicDAO<Func, FuncCriteria> implements IFuncDA
     public Func loadFromWriteDB(Integer funId) {
         Func key = new Func();
         key.setFunId(funId);
-        Func record = (Func) this.loadFromWriterDB("func.ibatorgenerated_selectByPrimaryKey", key);
+        Func record = this.loadFromWriterDB("func.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

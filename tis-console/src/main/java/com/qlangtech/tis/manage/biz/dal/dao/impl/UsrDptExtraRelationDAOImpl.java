@@ -36,12 +36,12 @@ public class UsrDptExtraRelationDAOImpl extends BasicDAO<UsrDptExtraRelation, Us
     }
 
     public int countByExample(UsrDptExtraRelationCriteria example) {
-        Integer count = (Integer) this.count("usr_dpt_extra_relation.ibatorgenerated_countByExample", example);
+        Integer count = this.count("usr_dpt_extra_relation.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(UsrDptExtraRelationCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("usr_dpt_extra_relation.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("usr_dpt_extra_relation.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -80,7 +80,7 @@ public class UsrDptExtraRelationDAOImpl extends BasicDAO<UsrDptExtraRelation, Us
     public UsrDptExtraRelation selectByPrimaryKey(Long id) {
         UsrDptExtraRelation key = new UsrDptExtraRelation();
         key.setId(id);
-        UsrDptExtraRelation record = (UsrDptExtraRelation) this.load("usr_dpt_extra_relation.ibatorgenerated_selectByPrimaryKey", key);
+        UsrDptExtraRelation record = this.load("usr_dpt_extra_relation.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -97,7 +97,7 @@ public class UsrDptExtraRelationDAOImpl extends BasicDAO<UsrDptExtraRelation, Us
     public UsrDptExtraRelation loadFromWriteDB(Long id) {
         UsrDptExtraRelation key = new UsrDptExtraRelation();
         key.setId(id);
-        UsrDptExtraRelation record = (UsrDptExtraRelation) this.loadFromWriterDB("usr_dpt_extra_relation.ibatorgenerated_selectByPrimaryKey", key);
+        UsrDptExtraRelation record = this.loadFromWriterDB("usr_dpt_extra_relation.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

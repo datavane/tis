@@ -97,7 +97,7 @@ sammy.get
                       for( var file in response.files )
                       {
                         var is_directory = response.files[file].directory;
-                        var prefix = xhr.data ? xhr.data.file + '/' : ''
+                        var prefix = xhr.data ? xhr.data.file + '/' : '';
 
                         var item = {
                           data: {
@@ -250,7 +250,7 @@ sammy.get
                 }
               }
             );
-          }
+          };
           load_file();
         }
       }

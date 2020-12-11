@@ -60,7 +60,7 @@ solrAdminApp.controller('PluginsController',
             } else {
                 $location.search("entry", $scope.plugins.join(','));
             }
-        }
+        };
 
         $scope.startRecording = function() {
             $scope.isRecording = true;
@@ -68,7 +68,7 @@ solrAdminApp.controller('PluginsController',
                 $scope.reference = data.reference;
                 console.log($scope.reference);
             })
-        }
+        };
 
         $scope.stopRecording = function() {
             $scope.isRecording = false;
@@ -76,7 +76,7 @@ solrAdminApp.controller('PluginsController',
             Mbeans.delta({core: $routeParams.core}, $scope.reference, function(data) {
                 parseDelta($scope.types, data);
             });
-        }
+        };
 
         $scope.refresh();
     });
@@ -107,7 +107,7 @@ var getPlugins = function(data) {
         delete pluginProperties.stats;
         for (var stat in stats) {
             // add breaking space after a bracket or @ to handle wrap long lines:
-            stats[stat] = new String(stats[stat]).replace( /([\(@])/g, '$1&#8203;');
+            stats[stat] = String(stats[stat]).replace( /([\(@])/g, '$1&#8203;');
         }
         plugin = {name: key, changed: false, stats: stats, open:false};
         plugin.properties = pluginProperties;
@@ -133,9 +133,9 @@ var parseDelta = function(types, data) {
         for (var i in list) {
             if (list[i].name == name) return list[i];
         }
-    }
+    };
 
-    var mbeans = data["solr-mbeans"]
+    var mbeans = data["solr-mbeans"];
     for (var i=0; i<mbeans.length; i+=2) {
         var typeName = mbeans[i];
         var type = getByName(types, typeName);
@@ -149,7 +149,7 @@ var parseDelta = function(types, data) {
                 plugin.properties = changedPlugin;
                 for (var stat in stats) {
                     // add breaking space after a bracket or @ to handle wrap long lines:
-                    plugin.stats[stat] = new String(stats[stat]).replace( /([\(@])/g, '$1&#8203;');
+                    plugin.stats[stat] = String(stats[stat]).replace( /([\(@])/g, '$1&#8203;');
                 }
                 plugin.changed = true;
                 type.changes++;
@@ -163,4 +163,4 @@ var openPlugins = function(type, selected) {
         var plugin = type.plugins[i];
         plugin.open = selected.indexOf(plugin.name)>=0;
     }
-}
+};

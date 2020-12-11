@@ -145,7 +145,7 @@ solrAdminApp.controller('CoreAdminController',
       $scope.cancelSwapCores = function() {
         delete $scope.swapMessage;
         $scope.showSwap = false;
-      }
+      };
 
       $scope.reloadCore = function() {
         if ($scope.initFailures[$scope.selectedCore]) {

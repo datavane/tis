@@ -556,7 +556,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
             if (cons.length > 0 && cons[0] != null) {
                 final String[] strs = new String[NUMBER_OF_STRINGS];
                 try {
-                    cons[0].newInstance((Object[]) strs);
+                    cons[0].newInstance(strs);
                 // Expecting an exception to be thrown by this call:
                 // IllegalArgumentException: wrong number of Arguments
                 } catch (Exception e) {

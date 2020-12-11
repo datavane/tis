@@ -137,7 +137,7 @@ sammy.get
             {
               first_core = key;
             }
-            continue;
+
           }
           context.redirect( context.path + '/' + first_core );
         },

@@ -36,12 +36,12 @@ public class ServerPoolDAOImpl extends BasicDAO<ServerPool, ServerPoolCriteria> 
     }
 
     public int countByExample(ServerPoolCriteria example) {
-        Integer count = (Integer) this.count("server_pool.ibatorgenerated_countByExample", example);
+        Integer count = this.count("server_pool.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(ServerPoolCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("server_pool.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("server_pool.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -78,7 +78,7 @@ public class ServerPoolDAOImpl extends BasicDAO<ServerPool, ServerPoolCriteria> 
     public ServerPool selectByPrimaryKey(Integer spId) {
         ServerPool key = new ServerPool();
         key.setSpId(spId);
-        ServerPool record = (ServerPool) this.load("server_pool.ibatorgenerated_selectByPrimaryKey", key);
+        ServerPool record = this.load("server_pool.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -95,7 +95,7 @@ public class ServerPoolDAOImpl extends BasicDAO<ServerPool, ServerPoolCriteria> 
     public ServerPool loadFromWriteDB(Integer spId) {
         ServerPool key = new ServerPool();
         key.setSpId(spId);
-        ServerPool record = (ServerPool) this.loadFromWriterDB("server_pool.ibatorgenerated_selectByPrimaryKey", key);
+        ServerPool record = this.loadFromWriterDB("server_pool.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

@@ -50,14 +50,6 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      */
     public abstract List<ColumnMetaData> getTableMetadata(String table);
 
-
-    /**
-     * Create datasource for incr process
-     *
-     * @return
-     */
-    public abstract DataSource createFacadeDataSource();
-
     /**
      * DataSource like TiSpark has store format as RDD shall skip the phrase of data dump
      *

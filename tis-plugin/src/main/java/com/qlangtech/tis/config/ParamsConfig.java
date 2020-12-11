@@ -40,11 +40,12 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     public static <T extends IdentityName> T getItem(String identityName, Class<T> type) {
         List<T> items = getItems(type);
         for (T i : items) {
-            if (StringUtils.equals(i.getName(), identityName)) {
+            if (StringUtils.equals(i.identityValue(), identityName)) {
                 return i;
             }
         }
-        throw new IllegalStateException("Name:" + identityName + " can not find relevant config in[" + items.stream().map((r) -> r.getName()).collect(Collectors.joining(",")) + "]");
+        throw new IllegalStateException("Name:" + identityName + " can not find relevant config in["
+                + items.stream().map((r) -> r.identityValue()).collect(Collectors.joining(",")) + "]");
     }
 
     // 取得所有的配置项

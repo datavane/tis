@@ -56,7 +56,7 @@ solrAdminApp.controller('ReplicationController',
 
         $scope.execute = function(command) {
             Replication.command({core:$routeParams.core, command:command}, function(data){$scope.refresh()});
-        }
+        };
 
         $scope.showIterations = function() { $scope.iterationCount = 100000}; // limitTo should accept undefined, but doesn't work.
         $scope.hideIterations = function() { $scope.iterationCount = 1};
@@ -162,11 +162,11 @@ var parseDateToEpoch = function(date) {
     // "Sat Mar 03 2012 10:37:33"
     var d = new Date( parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + parts[6] + ' ' + parts[4] );
     return d.getTime();
-}
+};
 
 var parseSeconds = function(time) {
     var seconds = 0;
-    var arr = new String(time || '').split('.');
+    var arr = String(time || '').split('.');
     var parts = arr[0].split(':').reverse();
 
     for (var i = 0; i < parts.length; i++) {
@@ -179,7 +179,7 @@ var parseSeconds = function(time) {
     }
 
     return seconds;
-}
+};
 
 var getSlaveSettings = function(data) {
     var settings = {};
@@ -232,4 +232,4 @@ var getMasterSettings = function(details, isSlave) {
         }
     }
     return master;
-}
+};

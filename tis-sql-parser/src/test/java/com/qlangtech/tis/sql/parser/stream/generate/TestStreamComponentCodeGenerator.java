@@ -66,12 +66,13 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
     }
 
     public static void assertGenerateContentEqual(long timestamp, String collectionName, String generateScalaFileName) throws IOException {
+        File generateFile = new File(Config.getDataDir(), "cfg_repo/streamscript/" + collectionName + "/"
+                + timestamp + "/src/main/scala/com/qlangtech/tis/realtime/transfer/" + collectionName + "/" + generateScalaFileName);
         // 校验生成的文件和assert文件内容相等
         try (InputStream assertFile = TestStreamComponentCodeGenerator.class.getResourceAsStream(generateScalaFileName)) {
-            assertNotNull(assertFile);
-            File generateFile = new File(Config.getDataDir(), "cfg_repo/streamscript/" + collectionName + "/"
-                    + timestamp + "/src/main/scala/com/qlangtech/tis/realtime/transfer/" + collectionName + "/" + generateScalaFileName);
-            assertTrue(generateFile.getAbsolutePath(),generateFile.exists());
+            assertNotNull("generateScalaFileName can not be null:" + generateScalaFileName, assertFile);
+
+            assertTrue(generateFile.getAbsolutePath(), generateFile.exists());
             assertEquals(IOUtils.toString(assertFile, TisUTF8.get()), FileUtils.readFileToString(generateFile, TisUTF8.get()));
         }
     }

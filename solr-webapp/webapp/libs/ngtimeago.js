@@ -90,9 +90,9 @@ catalyst.filter('timeago', function() {
             years < 1.5 && substitute(strings.year, 1, strings) ||
             substitute(strings.years, Math.round(years), strings);
             console.log(prefix+words+suffix+separator);
-            prefix.replace(/ /g, '')
-            words.replace(/ /g, '')
-            suffix.replace(/ /g, '')
+            prefix.replace(/ /g, '');
+            words.replace(/ /g, '');
+            suffix.replace(/ /g, '');
             return (prefix+' '+words+' '+suffix+' '+separator);
             
         };

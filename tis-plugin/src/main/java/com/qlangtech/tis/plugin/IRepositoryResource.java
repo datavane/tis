@@ -25,12 +25,12 @@ public interface IRepositoryResource {
     /**
      * 拷贝配置文件到本地
      */
-    public void copyConfigFromRemote();
+    void copyConfigFromRemote();
 
     /**
      * 目标文件
      *
      * @return
      */
-    public File getTargetFile();
+    File getTargetFile();
 }

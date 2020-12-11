@@ -33,13 +33,13 @@ var loader = {
 
 Number.prototype.esc = function()
 {
-  return new String( this ).esc();
-}
+  return String( this ).esc();
+};
 
 String.prototype.esc = function()
 {
   return this.replace( /</g, '&lt;' ).replace( />/g, '&gt;' );
-}
+};
 
 SolrDate = function( date )
 {
@@ -48,7 +48,7 @@ SolrDate = function( date )
     
   // "Sat Mar 03 2012 10:37:33"
   return new Date( parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + parts[6] + ' ' + parts[4] );
-}
+};
 
 var sammy = $.sammy
 (
@@ -292,7 +292,7 @@ var solr_admin = function( app_config )
       .hide()
       .find( 'ul' )
         .empty();
-  }
+  };
 
   this.check_for_init_failures = function check_for_init_failures( cores )
   {
@@ -324,7 +324,7 @@ var solr_admin = function( app_config )
       .show()
       .find( 'ul' )
         .html( failures.join( "\n" ) );
-  }
+  };
 
   this.run = function()
   {
@@ -500,7 +500,7 @@ var solr_admin = function( app_config )
   this.convert_duration_to_seconds = function convert_duration_to_seconds( str )
   {
     var seconds = 0;
-    var arr = new String( str || '' ).split( '.' );
+    var arr = String( str || '' ).split( '.' );
     var parts = arr[0].split( ':' ).reverse();
     var parts_count = parts.length;
 
@@ -652,7 +652,7 @@ var connection_error = function connection_error()
   );
 
   window.setTimeout( connection_check, connection_check_delay );
-}
+};
 
 $( document ).ajaxError
 (

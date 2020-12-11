@@ -25,5 +25,5 @@ import java.io.IOException;
  */
 public interface IAsyncMsgDeserialize {
 
-    public DTO deserialize(byte[] content) throws IOException;
+    DTO deserialize(byte[] content) throws IOException;
 }

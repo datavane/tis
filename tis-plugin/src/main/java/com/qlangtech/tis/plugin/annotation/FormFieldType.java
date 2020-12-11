@@ -39,7 +39,7 @@ public enum FormFieldType {
 
     private final int identity;
 
-    private FormFieldType(int val) {
+    FormFieldType(int val) {
         this.identity = val;
     }
 

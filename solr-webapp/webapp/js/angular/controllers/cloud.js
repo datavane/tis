@@ -26,7 +26,7 @@ solrAdminApp.controller('CloudController',
 
         $scope.closeDebug = function() {
             $scope.showDebug = false;
-        }
+        };
 
         var view = $location.search().view ? $location.search().view : "graph";
         if (view == "tree") {
@@ -90,17 +90,17 @@ var graphSubController = function ($scope, Zookeeper, isRadial) {
     $scope.next = function() {
         $scope.pos += $scope.rows;
         $scope.initGraph();
-    }
+    };
 
     $scope.previous = function() {
         $scope.pos = Math.max(0, $scope.pos - $scope.rows);
         $scope.initGraph();
-    }
+    };
 
     $scope.resetGraph = function() {
         $scope.pos = 0;
         $scope.initGraph();
-    }
+    };
 
     $scope.initGraph = function() {
         Zookeeper.liveNodes(function (data) {
@@ -137,7 +137,7 @@ var graphSubController = function ($scope, Zookeeper, isRadial) {
                             var nodes = [];
                             for (var n in state[c].shards[s].replicas) {
                                 leaf_count++;
-                                var replica = state[c].shards[s].replicas[n]
+                                var replica = state[c].shards[s].replicas[n];
 
                                 var uri = replica.base_url;
                                 var parts = uri.match(/^(\w+:)\/\/(([\w\d\.-]+)(:(\d+))?)(.+)$/);
@@ -344,7 +344,7 @@ solrAdminApp.directive('graph', function(Constants) {
                     .attr('class', helper_node_class)
                     .attr('transform', function (d) {
                         return 'translate(' + d.y + ',' + d.x + ')';
-                    })
+                    });
 
                 node.append('circle')
                     .attr('r', 4.5);
@@ -369,7 +369,7 @@ solrAdminApp.directive('graph', function(Constants) {
             };
 
             var radialGraph = function(element, graphData, leafCount) {
-                var max_val = Math.min(element.width(), $('body').height())
+                var max_val = Math.min(element.width(), $('body').height());
                 var r = max_val / 2;
 
                 var cluster = d3.layout.cluster()
@@ -401,7 +401,7 @@ solrAdminApp.directive('graph', function(Constants) {
                     .attr('class', helper_node_class)
                     .attr('transform', function (d) {
                         return 'rotate(' + (d.x - 90) + ')translate(' + d.y + ')';
-                    })
+                    });
 
                 node.append('circle')
                     .attr('r', 4.5);
@@ -427,7 +427,7 @@ solrAdminApp.directive('graph', function(Constants) {
             }
         }
     };
-})
+});
 
 /*
 

@@ -31,23 +31,14 @@ public class ArrayUtils {
     }
 
     public static boolean isEmpty(boolean[] array) {
-        if (array == null || array.length == 0) {
-            return true;
-        }
-        return false;
+        return array == null || array.length == 0;
     }
 
     public static boolean isEmpty(String[] array) {
-        if (array == null || array.length == 0) {
-            return true;
-        }
-        return false;
+        return array == null || array.length == 0;
     }
 
     public static boolean isEmpty(char[] array) {
-        if (array == null || array.length == 0) {
-            return true;
-        }
-        return false;
+        return array == null || array.length == 0;
     }
 }

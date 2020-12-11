@@ -12,14 +12,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.db.parser.domain;
+package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
-import com.qlangtech.tis.sql.parser.DBNode;
+import org.apache.commons.lang.StringUtils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class DBConfig {
+public class DBConfig implements IDbMeta {
 
     private String dbType;
 
@@ -57,14 +57,33 @@ public class DBConfig {
 
     private StringBuffer hostDesc;
 
+    @Override
     @JSONField(serialize = false)
     public String getFormatDBName() {
-        return DBNode.getFormatDBName(this.name);
+        return getFormatDBName(this.name);
     }
 
     @JSONField(serialize = false)
     public String getDAOJarName() {
-        return DBNode.getDAOJarName(this.name);
+        return getDAOJarName(this.name);
+    }
+
+
+    /**
+     * 首字母小写并且将下划线去掉
+     *
+     * @param dbName
+     * @return
+     */
+    public static String getFormatDBName(String dbName) {
+        if (StringUtils.isEmpty(dbName)) {
+            throw new IllegalArgumentException("param dbName can not be null");
+        }
+        return StringUtils.remove(StringUtils.lowerCase(dbName), "_");
+    }
+
+    public static String getDAOJarName(String dbName) {
+        return getFormatDBName(dbName) + "-dao.jar";
     }
 
     /**
@@ -176,6 +195,7 @@ public class DBConfig {
         this.dbType = dbType;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -232,7 +252,7 @@ public class DBConfig {
          * @param dbName
          * @return
          */
-        public boolean visit(DBConfig config, String ip, String dbName) throws Exception;
+        boolean visit(DBConfig config, String ip, String dbName) throws Exception;
     }
 
     public interface IDbUrlProcess {
@@ -243,7 +263,7 @@ public class DBConfig {
          * @param dbName
          * @return
          */
-        public void visit(String dbName, String jdbcUrl);
+        void visit(String dbName, String jdbcUrl);
     }
 
     @Override

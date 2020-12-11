@@ -62,19 +62,19 @@ solrAdminApp.controller('DataImportController',
         $scope.toggleDebug = function () {
             $scope.isDebugMode = !$scope.isDebugMode;
             $scope.showConfiguration = true;
-        }
+        };
 
         $scope.toggleConfiguration = function () {
             $scope.showConfiguration = !$scope.showConfiguration;
-        }
+        };
 
         $scope.toggleRawStatus = function () {
             $scope.showRawStatus = !$scope.showRawStatus;
-        }
+        };
 
         $scope.toggleRawDebug = function () {
             $scope.showRawDebug = !$scope.showRawDebug;
-        }
+        };
 
         $scope.reload = function () {
             DataImport.reload({core: $routeParams.core}, function () {
@@ -84,7 +84,7 @@ solrAdminApp.controller('DataImportController',
                 }, 5000);
                 $scope.refresh();
             });
-        }
+        };
 
         $scope.form = {
             command: "full-import",
@@ -131,7 +131,7 @@ solrAdminApp.controller('DataImportController',
                     $scope.refreshStatus();
                 }, 4000);
             });
-        }
+        };
 
         $scope.refreshStatus = function () {
 
@@ -271,11 +271,11 @@ var showInfo = function (messages, showFull, info_text, elapsed_seconds) {
         }
     }
     return info;
-}
+};
 
 var parseSeconds = function(time) {
     var seconds = 0;
-    var arr = new String(time || '').split('.');
+    var arr = String(time || '').split('.');
     var parts = arr[0].split(':').reverse();
 
     for (var i = 0; i < parts.length; i++) {
@@ -286,4 +286,4 @@ var parseSeconds = function(time) {
         seconds++; // treat more or equal than .5 as additional second
     }
     return seconds;
-}
+};

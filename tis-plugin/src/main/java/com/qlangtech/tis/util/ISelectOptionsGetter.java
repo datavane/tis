@@ -25,5 +25,5 @@ import java.util.List;
  */
 public interface ISelectOptionsGetter {
 
-    public List<Descriptor.SelectOption> getSelectOptions(String name);
+    List<Descriptor.SelectOption> getSelectOptions(String name);
 }

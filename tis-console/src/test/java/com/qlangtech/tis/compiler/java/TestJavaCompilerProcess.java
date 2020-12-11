@@ -14,7 +14,7 @@
  */
 package com.qlangtech.tis.compiler.java;
 
-import com.qlangtech.tis.db.parser.domain.DBConfig;
+import com.qlangtech.tis.plugin.ds.DBConfig;
 import junit.framework.TestCase;
 import java.io.File;
 

@@ -68,10 +68,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public transient boolean overWriteValidateMethod;
 
     private transient volatile Map<String, PropertyType> propertyTypes, globalPropertyTypes;
+    /**
+     * Identity prop of one plugin the plugin must implement the IdentityName interface
+     */
+    private transient volatile PropertyType identityProp = null;
 
     private final transient Map<String, Method> validateMethodMap;
 
     /**
+     * this.identityProp
+     *
      * @param clazz Pass in {@link #self()} to have the descriptor describe itself,
      *              (this hack is needed since derived types can't call "getClass()" to refer to itself.
      */
@@ -229,8 +235,28 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public Map<String, /*** fieldname*/PropertyType> getPropertyTypes() {
-        if (propertyTypes == null)
+        if (propertyTypes == null) {
             propertyTypes = buildPropertyTypes(clazz);
+
+            List<PropertyType> identityFields
+                    = propertyTypes.values().stream().filter((p) -> p.isIdentity()).collect(Collectors.toList());
+            if (IdentityName.class.isAssignableFrom(this.clazz)) {
+                if (identityFields.size() != 1) {
+                    throw new IllegalStateException("class:" + this.clazz + " is type of "
+                            + IdentityName.class + " must sign no more than one col:"
+                            + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
+                }
+                this.identityProp = identityFields.get(0);
+            } else {
+                if (identityFields.size() > 0) {
+                    throw new IllegalStateException("class:" + this.clazz + " is not type of "
+                            + IdentityName.class + " but more than one identity col:"
+                            + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
+                }
+            }
+
+
+        }
         return propertyTypes;
     }
 
@@ -455,6 +481,20 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return result;
     }
 
+    public String getIdentityValue(T tDescribable) {
+        return (String) getIdentityField().getVal(tDescribable);
+    }
+
+    public PropertyType getIdentityField() {
+        if (identityProp == null) {
+            getPropertyTypes();
+            if (identityProp == null) {
+                throw new IllegalStateException("property identityProp can not be null");
+            }
+        }
+        return identityProp;
+    }
+
     public static class ParseDescribable<T extends Describable> {
 
         public final T instance;
@@ -514,6 +554,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             this.formField = formField;
         }
 
+        /**
+         * 是否是主键
+         *
+         * @return
+         */
+        public boolean isIdentity() {
+            return this.formField.identity();
+        }
+
         public JSONObject getExtraProps() {
             if (this.extraProp == null) {
                 return null;
@@ -558,7 +607,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
 
         PropertyType(Field f, FormField formField) {
-            this(f, f.getType(), f.getGenericType(), f.toString(), formField);
+            this(f, f.getType(), f.getGenericType(), f.getName(), formField);
         }
 
         // PropertyType(Method getter) {
@@ -710,14 +759,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public final List<SelectOption> getSelectOptions(String name) {
         Callable<List<? extends IdentityName>> opsCallable = selectOptsRegister.get(name);
         if (opsCallable == null) {
-            throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:" + this.getClass().getName() + ",has registed:" + selectOptsRegister.keySet().stream().collect(Collectors.joining(",")));
+            throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:"
+                    + this.getClass().getName() + ",has registed:" + selectOptsRegister.keySet().stream().collect(Collectors.joining(",")));
         }
         try {
             List<? extends IdentityName> opts = opsCallable.call();
             if (opts == null) {
                 return Collections.emptyList();
             }
-            return opts.stream().map((r) -> new SelectOption(r.getName(), r.getClass())).collect(Collectors.toList());
+            return opts.stream().map((r) -> new SelectOption(r.identityValue(), r.getClass())).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException("field name:" + name + ",class:" + this.getClass().getName(), e);
         }

@@ -16,7 +16,7 @@ package com.qlangtech.tis.hdfs.client.data;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.common.utils.Assert;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
+import com.qlangtech.tis.plugin.ds.DBConfig;
 import com.qlangtech.tis.exception.SourceDataReadException;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;

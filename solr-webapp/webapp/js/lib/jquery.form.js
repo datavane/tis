@@ -221,7 +221,7 @@ $.fn.ajaxSubmit = function(options) {
         window[fn] = undefined;
         try { delete window[fn]; } catch(e){}
       }
-    }
+    };
     var $io = $('<iframe id="' + id + '" name="' + id + '" src="'+ s.iframeSrc +'" onload="window[\'_\'+this.id]()" />');
     var io = $io[0];
 
@@ -801,6 +801,5 @@ function log() {
       window.opera.postError(msg);
     }
   }
-};
-
+}
 })(jQuery);

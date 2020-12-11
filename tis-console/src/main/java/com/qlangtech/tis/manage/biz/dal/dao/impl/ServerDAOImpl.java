@@ -36,12 +36,12 @@ public class ServerDAOImpl extends BasicDAO<Server, ServerCriteria> implements I
     }
 
     public int countByExample(ServerCriteria example) {
-        Integer count = (Integer) this.count("server.ibatorgenerated_countByExample", example);
+        Integer count = this.count("server.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(ServerCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("server.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("server.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -78,7 +78,7 @@ public class ServerDAOImpl extends BasicDAO<Server, ServerCriteria> implements I
     public Server selectByPrimaryKey(Integer sid) {
         Server key = new Server();
         key.setSid(sid);
-        Server record = (Server) this.load("server.ibatorgenerated_selectByPrimaryKey", key);
+        Server record = this.load("server.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -95,7 +95,7 @@ public class ServerDAOImpl extends BasicDAO<Server, ServerCriteria> implements I
     public Server loadFromWriteDB(Integer sid) {
         Server key = new Server();
         key.setSid(sid);
-        Server record = (Server) this.loadFromWriterDB("server.ibatorgenerated_selectByPrimaryKey", key);
+        Server record = this.loadFromWriterDB("server.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

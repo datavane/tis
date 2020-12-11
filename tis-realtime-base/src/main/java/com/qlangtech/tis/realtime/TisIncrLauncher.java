@@ -17,6 +17,7 @@ package com.qlangtech.tis.realtime;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
+import com.qlangtech.tis.plugin.ds.DBConfig;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.realtime.yarn.TransferIncrContainer;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
@@ -140,7 +141,7 @@ public class TisIncrLauncher {
              */
             for (DBNode n : dbNodes) {
                 CenterResource.copyFromRemote2Local(
-                        StreamContextConstant.getDAORootPath(n.getDbName(), n.getTimestampVer()) + "/" + DBNode.getDAOJarName(n.getDbName()), true);
+                        StreamContextConstant.getDAORootPath(n.getDbName(), n.getTimestampVer()) + "/" + DBConfig.getDAOJarName(n.getDbName()), true);
             }
         } finally {
             TIS.permitInitialize = true;

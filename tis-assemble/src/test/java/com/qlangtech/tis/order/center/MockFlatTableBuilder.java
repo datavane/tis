@@ -81,7 +81,12 @@ public class MockFlatTableBuilder extends FlatTableBuilder {
     }
 
     @Override
-    public String getName() {
+    public String identityValue() {
         return name;
     }
+
+    //    @Override
+//    public String getName() {
+//        return name;
+//    }
 }

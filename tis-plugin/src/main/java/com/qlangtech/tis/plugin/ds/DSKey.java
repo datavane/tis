@@ -35,7 +35,7 @@ public class DSKey extends KeyedPluginStore.Key<DataSourceFactory> {
 
     @Override
     protected String getSerializeFileName() {
-        return groupName + File.separator + keyVal + dbScope.getDBType() + File.separator + pluginClass.getName();
+        return groupName + File.separator + keyVal + File.separator + pluginClass.getName() + dbScope.getDBType();
     }
 
     public boolean isFacadeType() {

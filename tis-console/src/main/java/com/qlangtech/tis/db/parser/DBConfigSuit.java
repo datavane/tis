@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.db.parser.domain;
+package com.qlangtech.tis.db.parser;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -25,9 +25,17 @@ import com.qlangtech.tis.util.DescribableJSON;
 public class DBConfigSuit {
 
   private DescribableJSON detailed;
+  private DescribableJSON facade;
 
   public JSONObject getDetailed() throws Exception {
-    return detailed.getItemJson();
+    return this.detailed.getItemJson();
+  }
+
+  public JSONObject getFacade() throws Exception {
+    if (this.facade == null) {
+      return null;
+    }
+    return this.facade.getItemJson();
   }
 
   public void setDetailed(DataSourceFactory detailed) {
@@ -35,6 +43,13 @@ public class DBConfigSuit {
       throw new IllegalStateException("param detailed can not be null");
     }
     this.detailed = new DescribableJSON(detailed);
+  }
+
+  public void setFacade(DataSourceFactory facade) {
+    if (facade == null) {
+      throw new IllegalStateException("param detailed can not be null");
+    }
+    this.facade = new DescribableJSON(facade);
   }
   //
 //    private DBConfig facade;

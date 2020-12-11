@@ -30,7 +30,7 @@ var luke_array_to_struct = function( array )
     struct.values.push( array[i+1] );
   }
   return struct;
-}
+};
 
 var luke_array_to_hash = function( array )
 {
@@ -40,7 +40,7 @@ var luke_array_to_hash = function( array )
     hash[ array[i] ] = array[i+1];
   }
   return hash;
-}
+};
 
 var load_terminfo = function( trigger_element, core_basepath, field, data_element, terminfo_element )
 {
@@ -80,7 +80,7 @@ var load_terminfo = function( trigger_element, core_basepath, field, data_elemen
         var get_width = function get_width()
         {
           return $( this ).width();
-        }
+        };
 
         var topterms_holder_element = $( '.topterms-holder', data_element );
         var histogram_holder_element = $( '.histogram-holder', data_element );
@@ -216,7 +216,7 @@ var load_terminfo = function( trigger_element, core_basepath, field, data_elemen
       }
     }
   );
-}
+};
 
 sammy.bind
 (
@@ -225,7 +225,7 @@ sammy.bind
   {
     var related_navigation_element = $( '#related dl#f-df-t', params.schema_browser_element );
     var related_navigation_meta = $( '#related dl.ukf-dsf', params.schema_browser_element );
-    var related_select_element = $( '#related select', params.schema_browser_element )
+    var related_select_element = $( '#related select', params.schema_browser_element );
     var type = 'index';
 
     var sammy_basepath = app.core_menu.find( '.active a' ).attr( 'href' );
@@ -271,7 +271,7 @@ sammy.bind
         'copyfield_dest' : [],
         'dynamic_fields' : [],
         'types' : []
-      }
+      };
 
       $( 'option[value="' + params.route_params.path.esc() + '"]', related_select_element )
         .attr( 'selected', 'selected' );
@@ -711,7 +711,7 @@ sammy.get
         path : '?' + path[1],
         type : param[0],
         value : param[1]
-      }
+      };
 
       trigger_params.callback = function( schema_browser_data, data_element )
       {
@@ -812,7 +812,7 @@ sammy.get
 
         var similarity_element = $( 'dt.similarity', options_element );
         if ( is_t && schema_browser_data.types[field] && schema_browser_data.types[field].similarity ) {
-            var similarity = schema_browser_data.types[field].similarity
+            var similarity = schema_browser_data.types[field].similarity;
             if (similarity.details && similarity.className) {
                 $( 'dd.similarity', options_element ).remove();
                 similarity_element
@@ -1006,7 +1006,7 @@ sammy.get
             }
 
             return list_content;
-          }
+          };
 
           // -- field-type
           var field_type_element = $( 'dt.field-type', options_element );

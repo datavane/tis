@@ -34,7 +34,7 @@ public interface IDataSourceDumper {
     /**
      * start to dump data to target fileSystem
      */
-    public Iterator<Map<String, String>> startDump();
+    Iterator<Map<String, String>> startDump();
 
     String getDbHost();
 }

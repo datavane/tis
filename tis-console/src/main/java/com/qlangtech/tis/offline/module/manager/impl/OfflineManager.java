@@ -15,12 +15,10 @@
 package com.qlangtech.tis.offline.module.manager.impl;
 
 import com.alibaba.citrus.turbine.Context;
-import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.db.parser.DBConfigParser;
+import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.db.parser.DBTokenizer;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
-import com.qlangtech.tis.db.parser.domain.DBConfigSuit;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.GitBranchInfo;
 import com.qlangtech.tis.git.GitUtils.GitUser;
@@ -32,13 +30,9 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.pojo.TISDb;
-import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
-import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.plugin.ds.DataSourceFactory;
-import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.IPluginContext;
@@ -185,9 +179,9 @@ public class OfflineManager {
     if (StringUtils.isEmpty(dbName)) {
       throw new IllegalArgumentException("param dbName can not be null");
     }
-    if (StringUtils.isEmpty(username)) {
-      throw new IllegalArgumentException("param username can not be null");
-    }
+//    if (StringUtils.isEmpty(username)) {
+//      throw new IllegalArgumentException("param username can not be null");
+//    }
     if (StringUtils.isEmpty(password)) {
       throw new IllegalArgumentException("param password can not be null");
     }
@@ -309,30 +303,31 @@ public class OfflineManager {
    * @param context
    */
   public void updateFacadeDBConfig(Integer dbid, TISDb db, BasicModule action, Context context) throws Exception {
-    if (dbid == null) {
-      throw new IllegalArgumentException("dbid can not be null");
-    }
-    DatasourceDb ds = workflowDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbid);
-    if (ds == null) {
-      throw new IllegalStateException("dbid:" + dbid + " relevant datasourceDB can not be null");
-    }
-    List<String> children = GitUtils.$().listDbConfigPath(ds.getName());
-    boolean isAdd = !children.contains(GitUtils.DB_CONFIG_META_NAME + DbScope.FACADE.getDBType());
-    if (StringUtils.isEmpty(db.getPassword())) {
-      if (isAdd) {
-        throw new IllegalStateException("db password can not be empty in add process");
-      } else {
-        // 更新流程
-        DBConfig dbConfig = GitUtils.$().getDbLinkMetaData(ds.getName(), DbScope.FACADE);
-        db.setPassword(dbConfig.getPassword());
-      }
-    }
-    db.setFacade(true);
-    if (!this.testDbConnection(db, action, context).valid) {
-      return;
-    }
-    String path = GitUtils.$().getDBConfigPath(ds.getName(), DbScope.FACADE);
-    GitUtils.$().processDBConfig(db, path, "edit db" + db.getDbName(), isAdd, true);
+    throw new UnsupportedOperationException();
+//    if (dbid == null) {
+//      throw new IllegalArgumentException("dbid can not be null");
+//    }
+//    DatasourceDb ds = workflowDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbid);
+//    if (ds == null) {
+//      throw new IllegalStateException("dbid:" + dbid + " relevant datasourceDB can not be null");
+//    }
+//    List<String> children = GitUtils.$().listDbConfigPath(ds.getName());
+//    boolean isAdd = !children.contains(GitUtils.DB_CONFIG_META_NAME + DbScope.FACADE.getDBType());
+//    if (StringUtils.isEmpty(db.getPassword())) {
+//      if (isAdd) {
+//        throw new IllegalStateException("db password can not be empty in add process");
+//      } else {
+//        // 更新流程
+//        DBConfig dbConfig = GitUtils.$().getDbLinkMetaData(ds.getName(), DbScope.FACADE);
+//        db.setPassword(dbConfig.getPassword());
+//      }
+//    }
+//    db.setFacade(true);
+//    if (!this.testDbConnection(db, action, context).valid) {
+//      return;
+//    }
+//    String path = GitUtils.$().getDBConfigPath(ds.getName(), DbScope.FACADE);
+//    GitUtils.$().processDBConfig(db, path, "edit db" + db.getDbName(), isAdd, true);
   }
 
   /**
@@ -443,94 +438,94 @@ public class OfflineManager {
 //    return tabs;
 //  }
 
-  /**
-   * description: 获得所有的
-   * <p>
-   * date: 3:37 PM 5/11/2017
-   */
-  public List<ColumnMetaData> getTableMetadata(String dbName, String table) {
-    if (StringUtils.isBlank(table)) {
-      throw new IllegalArgumentException("param table can not be null");
-    }
-    List<ColumnMetaData> columns = new ArrayList<>();
-    // String dbEnumName = null;
-    try {
-      // final Map<String, BasicDataSource> dsMap =
-      // offlineManager.getDataSources(dbName);
-      final DBConfig dbConfig = GitUtils.$().getDbLinkMetaData(dbName, DbScope.DETAILED);
-      dbConfig.vistDbName((config, ip, dbname) -> {
-        visitConnection(config, ip, dbname, config.getUserName(), config.getPassword(), (conn) -> {
-          // Statement statement = null;
-          // ResultSet resultSet = null;
-          DatabaseMetaData metaData1 = null;
-          ResultSet primaryKeys = null;
-          ResultSet columns1 = null;
-          try {
-            metaData1 = conn.getMetaData();
-            primaryKeys = metaData1.getPrimaryKeys(null, null, table);
-            columns1 = metaData1.getColumns(null, null, table, null);
-            Set<String> pkCols = Sets.newHashSet();
-            while (primaryKeys.next()) {
-              // $NON-NLS-1$
-              String columnName = primaryKeys.getString("COLUMN_NAME");
-              pkCols.add(columnName);
-            }
-            int i = 0;
-            String colName = null;
-            while (columns1.next()) {
-              columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME")), columns1.getInt("DATA_TYPE"), pkCols.contains(colName)));
-            }
-            // metaData1.c
-            // statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            // resultSet = statement.executeQuery("select * from " + table + " limit 1");
-            // ResultSetMetaData metaData = resultSet.getMetaData();
-            // int columnCnt = metaData.getColumnCount();
-            // for (int i = 1; i <= columnCnt; i++) {
-            // columns.add(
-            // new ColumnMetaData((i - 1), metaData.getColumnLabel(i), metaData.getColumnType(i)));
-            // }
-          } finally {
-            closeResultSet(columns1);
-            closeResultSet(primaryKeys);
-            // if (columns1 != null) {
-            // columns1.close();
-            // }
-            // if (primaryKeys != null) {
-            // primaryKeys.close();
-            // }
-          }
-        });
-        return true;
-      });
-      return columns;
-      // for (Map.Entry<String, BasicDataSource> dsEntry :
-      // dsMap.entrySet()) {
-      // dbEnumName = dsEntry.getKey();
-      // BasicDataSource dataSource = dsEntry.getValue();
-      //
-      // Connection connection = dataSource.getConnection();
-      // Statement statement =
-      // connection.createStatement(ResultSet.TYPE_FORWARD_ONLY,
-      // ResultSet.CONCUR_READ_ONLY);
-      // statement.execute("select * from " + table + " limit 0");
-      // ResultSet resultSet = statement.getResultSet();
-      // ResultSetMetaData metaData = resultSet.getMetaData();
-      // int columnCnt = metaData.getColumnCount();
-      // List<ColumnMetaData> columns = new ArrayList<>();
-      // for (int i = 1; i <= columnCnt; i++) {
-      // columns.add(new ColumnMetaData((i - 1),
-      // metaData.getColumnLabel(i), metaData.getColumnType(i)));
-      // }
-      // columnMetaDataColumns = columns;
-      // if (!repeat) {
-      // break;
-      // }
-      // }
-    } catch (Exception e) {
-      // return null;
-      throw new RuntimeException(e);
-    }
-  }
+//  /**
+//   * description: 获得所有的
+//   * <p>
+//   * date: 3:37 PM 5/11/2017
+//   */
+//  public List<ColumnMetaData> getTableMetadata(String dbName, String table) {
+//    if (StringUtils.isBlank(table)) {
+//      throw new IllegalArgumentException("param table can not be null");
+//    }
+//    List<ColumnMetaData> columns = new ArrayList<>();
+//    // String dbEnumName = null;
+//    try {
+//      // final Map<String, BasicDataSource> dsMap =
+//      // offlineManager.getDataSources(dbName);
+//      final DBConfig dbConfig = GitUtils.$().getDbLinkMetaData(dbName, DbScope.DETAILED);
+//      dbConfig.vistDbName((config, ip, dbname) -> {
+//        visitConnection(config, ip, dbname, config.getUserName(), config.getPassword(), (conn) -> {
+//          // Statement statement = null;
+//          // ResultSet resultSet = null;
+//          DatabaseMetaData metaData1 = null;
+//          ResultSet primaryKeys = null;
+//          ResultSet columns1 = null;
+//          try {
+//            metaData1 = conn.getMetaData();
+//            primaryKeys = metaData1.getPrimaryKeys(null, null, table);
+//            columns1 = metaData1.getColumns(null, null, table, null);
+//            Set<String> pkCols = Sets.newHashSet();
+//            while (primaryKeys.next()) {
+//              // $NON-NLS-1$
+//              String columnName = primaryKeys.getString("COLUMN_NAME");
+//              pkCols.add(columnName);
+//            }
+//            int i = 0;
+//            String colName = null;
+//            while (columns1.next()) {
+//              columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME")), columns1.getInt("DATA_TYPE"), pkCols.contains(colName)));
+//            }
+//            // metaData1.c
+//            // statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+//            // resultSet = statement.executeQuery("select * from " + table + " limit 1");
+//            // ResultSetMetaData metaData = resultSet.getMetaData();
+//            // int columnCnt = metaData.getColumnCount();
+//            // for (int i = 1; i <= columnCnt; i++) {
+//            // columns.add(
+//            // new ColumnMetaData((i - 1), metaData.getColumnLabel(i), metaData.getColumnType(i)));
+//            // }
+//          } finally {
+//            closeResultSet(columns1);
+//            closeResultSet(primaryKeys);
+//            // if (columns1 != null) {
+//            // columns1.close();
+//            // }
+//            // if (primaryKeys != null) {
+//            // primaryKeys.close();
+//            // }
+//          }
+//        });
+//        return true;
+//      });
+//      return columns;
+//      // for (Map.Entry<String, BasicDataSource> dsEntry :
+//      // dsMap.entrySet()) {
+//      // dbEnumName = dsEntry.getKey();
+//      // BasicDataSource dataSource = dsEntry.getValue();
+//      //
+//      // Connection connection = dataSource.getConnection();
+//      // Statement statement =
+//      // connection.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+//      // ResultSet.CONCUR_READ_ONLY);
+//      // statement.execute("select * from " + table + " limit 0");
+//      // ResultSet resultSet = statement.getResultSet();
+//      // ResultSetMetaData metaData = resultSet.getMetaData();
+//      // int columnCnt = metaData.getColumnCount();
+//      // List<ColumnMetaData> columns = new ArrayList<>();
+//      // for (int i = 1; i <= columnCnt; i++) {
+//      // columns.add(new ColumnMetaData((i - 1),
+//      // metaData.getColumnLabel(i), metaData.getColumnType(i)));
+//      // }
+//      // columnMetaDataColumns = columns;
+//      // if (!repeat) {
+//      // break;
+//      // }
+//      // }
+//    } catch (Exception e) {
+//      // return null;
+//      throw new RuntimeException(e);
+//    }
+//  }
 
   private void closeResultSet(ResultSet rs) {
     if (rs != null) {
@@ -732,6 +727,14 @@ public class OfflineManager {
 
     DataSourceFactory dsPlugin = dbStore.getPlugin();
     dbSuit.setDetailed(dsPlugin);
+
+
+    DataSourceFactoryPluginStore facadeStore
+      = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(db.getName(), DbScope.FACADE));
+
+    if (facadeStore.getPlugin() != null) {
+      dbSuit.setFacade(facadeStore.getPlugin());
+    }
 
 //
 //    List<String> childPath = GitUtils.$().listDbConfigPath(db.getName());
@@ -1055,13 +1058,14 @@ public class OfflineManager {
   // this.disableTableDump(datasourceTable.getId(), action, context);
   // }
   // }
-  public void deleteDatasourceDbById(int dbId, BasicModule action, Context context) {
+  public void deleteDatasourceDbById(int dbId, BasicModule action, Context context) throws Exception {
     // 1 先检查db是否存在
     DatasourceDb db = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
     if (db == null) {
       action.addErrorMessage(context, "找不到该db，db id = " + dbId);
       return;
     }
+
     // 2 检查还有表没
     DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
     tableCriteria.createCriteria().andDbIdEqualTo(dbId);
@@ -1070,9 +1074,12 @@ public class OfflineManager {
       action.addErrorMessage(context, "该数据库下仍然有数据表，请先删除所有的表");
       return;
     }
-    GitUser user = GitUser.dft();
+//    DataSourceFactoryPluginStore dsPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
+//    dsPluginStore.deleteDB();
+    TIS.deleteDB(db.getName());
+    // GitUser user = GitUser.dft();
     // 3 删除git
-    GitUtils.$().deleteDb(db.getName(), user);
+    //GitUtils.$().deleteDb(db.getName(), user);
     // 4 删除db
     this.workflowDAOFacade.getDatasourceDbDAO().deleteByPrimaryKey(dbId);
     action.addActionMessage(context, "成功删除'" + db.getName() + "'");

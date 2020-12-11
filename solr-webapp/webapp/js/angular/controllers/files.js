@@ -66,7 +66,7 @@ solrAdminApp.controller('FilesController',
                         });
                     }
                 });
-            }
+            };
             $scope.tree = [];
             process("", $scope.tree);
 

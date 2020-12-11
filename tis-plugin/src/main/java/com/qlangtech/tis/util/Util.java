@@ -39,7 +39,7 @@ public class Util {
     }
 
     public static String join(Collection<?> strings, String separator) {
-        return strings.stream().map((r) -> ((Object) r).toString()).collect(Collectors.joining(separator));
+        return strings.stream().map((r) -> r.toString()).collect(Collectors.joining(separator));
     }
 
     /**

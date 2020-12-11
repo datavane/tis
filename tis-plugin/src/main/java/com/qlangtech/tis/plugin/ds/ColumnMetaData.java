@@ -36,7 +36,7 @@ public class ColumnMetaData {
     }
 
     private final String key;
-
+    //java.sql.Types
     private final int type;
 
     private final int index;
@@ -48,7 +48,7 @@ public class ColumnMetaData {
 
     /**
      * @param key  column名字
-     * @param type column类型
+     * @param type column类型 java.sql.Types
      */
     public ColumnMetaData(int index, String key, int type, boolean pk) {
         super();

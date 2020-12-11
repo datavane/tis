@@ -52,7 +52,7 @@ solrAdminApp.controller('CollectionsController',
                   }
               }
               if ($routeParams.collection && !$scope.collection) {
-                  alert("No collection called " + $routeParams.collection)
+                  alert("No collection called " + $routeParams.collection);
                   $location.path("/~collections");
               }
               $scope.liveNodes = data.cluster.liveNodes;
@@ -91,7 +91,7 @@ solrAdminApp.controller('CollectionsController',
       $scope.toggleCreateAlias = function() {
         $scope.hideAll();
         $scope.showCreateAlias = true;
-      }
+      };
 
       $scope.toggleDeleteAlias = function() {
         $scope.hideAll();
@@ -104,18 +104,18 @@ solrAdminApp.controller('CollectionsController',
           }
         });
 
-      }
+      };
 
       $scope.cancelCreateAlias = $scope.cancelDeleteAlias = function() {
         $scope.hideAll();
-      }
+      };
 
       $scope.createAlias = function() {
         var collections = $scope.aliasCollections.join(",");
         Collections.createAlias({name: $scope.aliasToCreate, collections: collections}, function(data) {
           $scope.hideAll();
         });
-      }
+      };
       $scope.deleteAlias = function() {
         Collections.deleteAlias({name: $scope.aliasToDelete}, function(data) {
           $scope.hideAll();
@@ -215,12 +215,12 @@ solrAdminApp.controller('CollectionsController',
             $scope.refresh();
           }, 2000);
         });
-      }
+      };
       $scope.addReplica = function(shard) {
         var params = {
           collection: shard.collection,
           shard: shard.name,
-        }
+        };
         if (shard.replicaNodeName && shard.replicaNodeName != "") {
           params.node = shard.replicaNodeName;
         }
@@ -236,11 +236,11 @@ solrAdminApp.controller('CollectionsController',
 
       $scope.toggleShard = function(shard) {
           shard.show = !shard.show;
-      }
+      };
 
       $scope.toggleReplica = function(replica) {
           replica.show = !replica.show;
-      }
+      };
 
       $scope.refresh();
     }
@@ -254,4 +254,4 @@ var flatten = function(data) {
         list.push(entry);
     }
     return list;
-}
+};

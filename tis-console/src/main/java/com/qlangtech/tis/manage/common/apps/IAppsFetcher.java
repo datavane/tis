@@ -30,7 +30,7 @@ import com.qlangtech.tis.manage.common.apps.AppsFetcher.CriteriaSetter;
  */
 public interface IAppsFetcher {
 
-    public abstract boolean hasGrantAuthority(String permissionCode);
+    boolean hasGrantAuthority(String permissionCode);
 
     /**
      * 取得当前用户所在部门的应用
@@ -38,7 +38,7 @@ public interface IAppsFetcher {
      * @param setter
      * @return
      */
-    public abstract List<Application> getApps(CriteriaSetter setter);
+    List<Application> getApps(CriteriaSetter setter);
 
     /**
      * 统计符合条件的应用数目
@@ -46,7 +46,7 @@ public interface IAppsFetcher {
      * @param setter
      * @return
      */
-    public abstract int count(CriteriaSetter setter);
+    int count(CriteriaSetter setter);
 
     /**
      * 更新应用
@@ -55,9 +55,9 @@ public interface IAppsFetcher {
      * @param setter
      * @return
      */
-    public abstract int update(Application app, CriteriaSetter setter);
+    int update(Application app, CriteriaSetter setter);
 
-    public abstract List<Department> getDepartmentBelongs(RunContext runcontext);
+    List<Department> getDepartmentBelongs(RunContext runcontext);
 
     /**
      * 显示所有的定时任务
@@ -65,7 +65,7 @@ public interface IAppsFetcher {
      * @param usrDptRelationDAO
      * @return
      */
-    public abstract List<TriggerCrontab> getTriggerTabs(IUsrDptRelationDAO usrDptRelationDAO);
+    List<TriggerCrontab> getTriggerTabs(IUsrDptRelationDAO usrDptRelationDAO);
 
-    public abstract List<ApplicationApply> getAppApplyList(IApplicationApplyDAO applicationApplyDAO);
+    List<ApplicationApply> getAppApplyList(IApplicationApplyDAO applicationApplyDAO);
 }

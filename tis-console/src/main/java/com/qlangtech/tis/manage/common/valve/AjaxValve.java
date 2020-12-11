@@ -83,7 +83,9 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
      * @param extendVal    业务系统出了 errors 和msgs之外还要传其他的值
      * @throws IOException
      */
-    public static void writeInfo2Client(IExecResult actionExecResult, HttpServletResponse response, Boolean errorPageShow, List<String> errorMsgList, List<String> msgList, List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList, Object extendVal) throws IOException {
+    public static void writeInfo2Client(IExecResult actionExecResult, HttpServletResponse response, Boolean errorPageShow
+      , List<String> errorMsgList, List<String> msgList
+      , List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList, Object extendVal) throws IOException {
         try {
             StringBuffer result = buildResultStruct(actionExecResult, errorPageShow, errorMsgList, msgList, pluginErrorList, extendVal);
             writeJson(response, result);
@@ -97,7 +99,8 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
         return buildResultStruct(r, r.errorPageShow, r.errorMsgList, r.msgList, r.pluginErrorList, r.getBizResult());
     }
 
-    private static StringBuffer buildResultStruct(IExecResult actionExecResult, Boolean errorPageShow, List<String> errorMsgList, List<String> msgList, List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList, Object extendVal) {
+    private static StringBuffer buildResultStruct(IExecResult actionExecResult, Boolean errorPageShow, List<String> errorMsgList
+      , List<String> msgList, List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList, Object extendVal) {
         StringBuffer result = new StringBuffer();
         result.append("{\n");
         result.append(" \"").append(KEY_SUCCESS).append("\":").append(actionExecResult.isSuccess());
@@ -169,7 +172,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
         // try {
         // Thread.sleep(1000);
         // } catch (InterruptedException e) {
-        // 
+        //
         // }
         response.setContentType("text/json;charset=UTF-8");
         response.getWriter().write(execResult.toString());
@@ -177,7 +180,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
 
     public interface IExecResult {
 
-        public boolean isSuccess();
+        boolean isSuccess();
     }
 
     public static class ActionExecResult implements IExecResult {

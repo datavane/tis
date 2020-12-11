@@ -239,7 +239,7 @@ sammy.get
                             
               return false;
             }
-          )
+          );
 
         var reload_config_element = $( '.reload_config', config_element );
         reload_config_element
@@ -303,7 +303,7 @@ sammy.get
             function( event )
             {
               var self = $( this );
-              var block = self.closest( '.block' )
+              var block = self.closest( '.block' );
 
               var debug_checkbox = $( 'input[name="debug"]', form_element );
               var submit_span = $( 'button[type="submit"] span', form_element );
@@ -463,9 +463,8 @@ sammy.get
                     }
 
                     document_details.push( detail );
-                  };
-
-                  $( '.docs', details_element )
+                  }
+                    $( '.docs', details_element )
                     .html( document_details.join( ', ' ) );
 
                   // --
@@ -487,9 +486,8 @@ sammy.get
                                  + '<abbr class="time">' +  value.esc() + '</abbr>';
                       dates_details.push( detail );                      
                     }
-                  };
-
-                  var dates_element = $( '.dates', details_element );
+                  }
+                    var dates_element = $( '.dates', details_element );
 
                   dates_element
                     .html( dates_details.join( ', ' ) );
@@ -497,9 +495,8 @@ sammy.get
                   $( '.time', dates_element )
                     .removeData( 'timeago' )
                     .timeago();
-                };
-
-                var get_time_taken = function get_default_time_taken()
+                }
+                  var get_time_taken = function get_default_time_taken()
                 {
                   var time_taken_text = response.statusMessages['Time taken'];
                   return app.convert_duration_to_seconds( time_taken_text );

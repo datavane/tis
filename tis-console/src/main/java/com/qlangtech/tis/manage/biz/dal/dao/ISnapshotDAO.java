@@ -30,7 +30,7 @@ public interface ISnapshotDAO {
 
     int deleteByExample(SnapshotCriteria criteria);
 
-    public List<Snapshot> findPassTestSnapshot(SnapshotCriteria example);
+    List<Snapshot> findPassTestSnapshot(SnapshotCriteria example);
 
     int deleteByPrimaryKey(Integer snId);
 
@@ -42,7 +42,7 @@ public interface ISnapshotDAO {
 
     List<Snapshot> selectByExample(SnapshotCriteria example, int page, int pageSize);
 
-    public Integer getMaxSnapshotId(SnapshotCriteria criteria);
+    Integer getMaxSnapshotId(SnapshotCriteria criteria);
 
     Snapshot selectByPrimaryKey(Integer snId);
 

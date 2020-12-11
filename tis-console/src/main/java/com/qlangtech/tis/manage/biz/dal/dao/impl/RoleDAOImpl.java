@@ -36,12 +36,12 @@ public class RoleDAOImpl extends BasicDAO<Role, RoleCriteria> implements IRoleDA
     }
 
     public int countByExample(RoleCriteria example) {
-        Integer count = (Integer) this.count("role.ibatorgenerated_countByExample", example);
+        Integer count = this.count("role.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(RoleCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("role.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("role.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -80,7 +80,7 @@ public class RoleDAOImpl extends BasicDAO<Role, RoleCriteria> implements IRoleDA
     public Role selectByPrimaryKey(Integer rId) {
         Role key = new Role();
         key.setrId(rId);
-        Role record = (Role) this.load("role.ibatorgenerated_selectByPrimaryKey", key);
+        Role record = this.load("role.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -97,7 +97,7 @@ public class RoleDAOImpl extends BasicDAO<Role, RoleCriteria> implements IRoleDA
     public Role loadFromWriteDB(Integer rId) {
         Role key = new Role();
         key.setrId(rId);
-        Role record = (Role) this.loadFromWriterDB("role.ibatorgenerated_selectByPrimaryKey", key);
+        Role record = this.loadFromWriterDB("role.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

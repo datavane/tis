@@ -36,12 +36,12 @@ public class ZookeeperServerDAOImpl extends BasicDAO<ZookeeperServer, ZookeeperS
     }
 
     public int countByExample(ZookeeperServerCriteria example) {
-        Integer count = (Integer) this.count("zookeeper_server.ibatorgenerated_countByExample", example);
+        Integer count = this.count("zookeeper_server.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(ZookeeperServerCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("zookeeper_server.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("zookeeper_server.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -78,7 +78,7 @@ public class ZookeeperServerDAOImpl extends BasicDAO<ZookeeperServer, ZookeeperS
     public ZookeeperServer selectByPrimaryKey(Integer zid) {
         ZookeeperServer key = new ZookeeperServer();
         key.setZid(zid);
-        ZookeeperServer record = (ZookeeperServer) this.load("zookeeper_server.ibatorgenerated_selectByPrimaryKey", key);
+        ZookeeperServer record = this.load("zookeeper_server.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -95,7 +95,7 @@ public class ZookeeperServerDAOImpl extends BasicDAO<ZookeeperServer, ZookeeperS
     public ZookeeperServer loadFromWriteDB(Integer zid) {
         ZookeeperServer key = new ZookeeperServer();
         key.setZid(zid);
-        ZookeeperServer record = (ZookeeperServer) this.loadFromWriterDB("zookeeper_server.ibatorgenerated_selectByPrimaryKey", key);
+        ZookeeperServer record = this.loadFromWriterDB("zookeeper_server.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

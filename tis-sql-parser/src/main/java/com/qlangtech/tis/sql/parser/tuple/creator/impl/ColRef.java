@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.sql.parser.ColName;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
 import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -29,16 +30,13 @@ import java.util.Set;
  * @create: 2020-05-22 16:51
  */
 public class ColRef {
-
-    private ListMap /**
+    /**
      * colName
      */
-    colRefMap = new ListMap();
+    private ListMap colRefMap = new ListMap();
 
-    private Map<String, IDataTupleCreator> /**
-     * ref
-     */
-    baseRefMap = Maps.newHashMap();
+    private Map<String, IDataTupleCreator> /*** ref*/
+            baseRefMap = Maps.newHashMap();
 
     public Set<Map.Entry<String, IDataTupleCreator>> getBaseRefEntities() {
         return this.baseRefMap.entrySet();
@@ -74,7 +72,7 @@ public class ColRef {
         private final Map<ColName, IDataTupleCreator> /**
          * colName
          */
-        colRefMap = Maps.newHashMap();
+                colRefMap = Maps.newHashMap();
 
         private final List<ColName> cols = Lists.newArrayList();
 

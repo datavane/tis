@@ -24,5 +24,5 @@ import com.qlangtech.tis.extension.ExtensionList;
  */
 public interface IDescriptorsGetter<D extends Descriptor<T>, T extends Describable<T>> {
 
-    public ExtensionList<D> get();
+    ExtensionList<D> get();
 }

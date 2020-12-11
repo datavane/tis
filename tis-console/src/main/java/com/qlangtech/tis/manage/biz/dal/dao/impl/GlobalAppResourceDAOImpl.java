@@ -36,12 +36,12 @@ public class GlobalAppResourceDAOImpl extends BasicDAO<GlobalAppResource, Global
     }
 
     public int countByExample(GlobalAppResourceCriteria example) {
-        Integer count = (Integer) this.count("global_app_resource.ibatorgenerated_countByExample", example);
+        Integer count = this.count("global_app_resource.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(GlobalAppResourceCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("global_app_resource.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("global_app_resource.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -80,7 +80,7 @@ public class GlobalAppResourceDAOImpl extends BasicDAO<GlobalAppResource, Global
     public GlobalAppResource selectByPrimaryKey(Long appResId) {
         GlobalAppResource key = new GlobalAppResource();
         key.setAppResId(appResId);
-        GlobalAppResource record = (GlobalAppResource) this.load("global_app_resource.ibatorgenerated_selectByPrimaryKey", key);
+        GlobalAppResource record = this.load("global_app_resource.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -97,7 +97,7 @@ public class GlobalAppResourceDAOImpl extends BasicDAO<GlobalAppResource, Global
     public GlobalAppResource loadFromWriteDB(Long appResId) {
         GlobalAppResource key = new GlobalAppResource();
         key.setAppResId(appResId);
-        GlobalAppResource record = (GlobalAppResource) this.loadFromWriterDB("global_app_resource.ibatorgenerated_selectByPrimaryKey", key);
+        GlobalAppResource record = this.loadFromWriterDB("global_app_resource.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

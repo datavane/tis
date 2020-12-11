@@ -31,12 +31,12 @@ public class UsrApplyDptRecordDAOImpl extends BasicDAO<UsrApplyDptRecord, UsrApp
     }
 
     public int countByExample(UsrApplyDptRecordCriteria example) {
-        Integer count = (Integer) this.count("usr_apply_dpt_record.ibatorgenerated_countByExample", example);
+        Integer count = this.count("usr_apply_dpt_record.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(UsrApplyDptRecordCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("usr_apply_dpt_record.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("usr_apply_dpt_record.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -75,7 +75,7 @@ public class UsrApplyDptRecordDAOImpl extends BasicDAO<UsrApplyDptRecord, UsrApp
     public UsrApplyDptRecord selectByPrimaryKey(Long id) {
         UsrApplyDptRecord key = new UsrApplyDptRecord();
         key.setId(id);
-        UsrApplyDptRecord record = (UsrApplyDptRecord) this.load("usr_apply_dpt_record.ibatorgenerated_selectByPrimaryKey", key);
+        UsrApplyDptRecord record = this.load("usr_apply_dpt_record.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -92,7 +92,7 @@ public class UsrApplyDptRecordDAOImpl extends BasicDAO<UsrApplyDptRecord, UsrApp
     public UsrApplyDptRecord loadFromWriteDB(Long id) {
         UsrApplyDptRecord key = new UsrApplyDptRecord();
         key.setId(id);
-        UsrApplyDptRecord record = (UsrApplyDptRecord) this.loadFromWriterDB("usr_apply_dpt_record.ibatorgenerated_selectByPrimaryKey", key);
+        UsrApplyDptRecord record = this.loadFromWriterDB("usr_apply_dpt_record.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

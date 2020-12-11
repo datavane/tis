@@ -845,7 +845,7 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doGetIndexExist(Context context) throws Exception {
-    this.setBizResult(context, true || this.isIndexExist());
+    this.setBizResult(context, this.isIndexExist());
   }
 
   /**

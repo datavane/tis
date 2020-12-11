@@ -25,7 +25,7 @@ public interface IConsumerHandle {
      *
      * @return
      */
-    public String getSubExpression();
+    String getSubExpression();
 
     /**
      * 处理消息Handle，业务逻辑在此处理

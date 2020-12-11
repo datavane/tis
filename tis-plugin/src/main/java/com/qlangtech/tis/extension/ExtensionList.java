@@ -49,7 +49,7 @@ public class ExtensionList<T> extends AbstractList<T> {
      */
     public static <T> ExtensionList<T> lookup(Class<T> type) {
         TIS j = TIS.get();
-        return j == null ? create((TIS) null, type) : j.getExtensionList(type);
+        return j == null ? create(null, type) : j.getExtensionList(type);
     }
 
     public Class<T> getExtensionType() {

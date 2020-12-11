@@ -24,7 +24,7 @@ public enum Selectable {
 
     public final String identity;
 
-    private Selectable(String identity) {
+    Selectable(String identity) {
         this.identity = identity;
     }
 }

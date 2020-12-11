@@ -81,11 +81,11 @@ solrAdminApp.controller('SchemaBrowserController',
 
         $scope.selectFieldOrType = function() {
             $location.search($scope.fieldOrType);
-        }
+        };
 
         $scope.toggleAnalyzer = function(analyzer) {
             analyzer.show = !analyzer.show;
-        }
+        };
 
         $scope.loadTermInfo = function() {
             var params = {fl: $scope.name, core: $routeParams.core};
@@ -100,7 +100,7 @@ solrAdminApp.controller('SchemaBrowserController',
                     $scope.topTermsCount = $scope.termInfo.termCount;
                 }
             });
-        }
+        };
 
         $scope.toggleTerms = function() {
             $scope.showTerms = !$scope.showTerms;
@@ -108,12 +108,12 @@ solrAdminApp.controller('SchemaBrowserController',
             if ($scope.showTerms) {
                 $scope.loadTermInfo();
             }
-        }
+        };
 
         $scope.loadAllTerms = function() {
             $scope.topTermsCount = $scope.termInfo.maxTerms;
             $scope.loadTermInfo();
-        }
+        };
 
         $scope.toggleAutoload = function() {
             $scope.isAutoload = !$scope.isAutoload;
@@ -158,7 +158,7 @@ var filterFields = function(type, data, name) {
         }
     }
     return fields.sort();
-}
+};
 
 var mergeIndexAndSchemaData = function(index, schema) {
 
@@ -274,7 +274,7 @@ var getFieldProperties = function(data, core, is, field) {
         } else {
             display.rows.push({name:name, comment:flags});
         }
-    }
+    };
 
     // Identify the rows for our field property table
     if (is.field && data.fields[field]) {
@@ -360,7 +360,7 @@ var getAnalysisInfo = function(data, is, name) {
         } else {
             return {label: label, key: key};
         }
-    }
+    };
 
     var buildAnalyzer = function (analyzerData) {
         var analyzer = {};
@@ -372,7 +372,7 @@ var getAnalysisInfo = function(data, is, name) {
             analyzer.componentTypes.push(processComponentType("Token Filters", "tokenFilters", analyzerData.filters));
         }
         return analyzer;
-    }
+    };
 
     analysis.data = data.types[type];
     if (analysis.data) {
@@ -382,7 +382,7 @@ var getAnalysisInfo = function(data, is, name) {
         ];
     }
     return analysis;
-}
+};
 
 var getTermInfo = function(data) {
 
@@ -390,7 +390,7 @@ var getTermInfo = function(data) {
     if (data && data.topTerms) {
         termInfo.topTerms = [];
 
-        var currentGroup = {count: 0}
+        var currentGroup = {count: 0};
         for (var i = 0; i < data.topTerms.length; i += 2) {
             var count = data.topTerms[i + 1];
             if (currentGroup.count != count) {

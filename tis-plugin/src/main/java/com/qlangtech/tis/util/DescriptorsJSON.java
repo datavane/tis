@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 
 import java.util.ArrayList;
@@ -51,12 +52,15 @@ public class DescriptorsJSON<T extends Describable<T>> {
         JSONObject descriptors = new JSONObject();
         Map<String, Object> extractProps;
         for (Descriptor<T> d : this.descriptors) {
+
             des = new JSONObject();
             des.put(KEY_DISPLAY_NAME, d.getDisplayName());
             des.put("extendPoint", d.getT().getName());
             des.put("impl", d.getId());
             des.put("veriflable", d.overWriteValidateMethod);
-
+            if (IdentityName.class.isAssignableFrom(d.clazz)) {
+                des.put("pkField", d.getIdentityField().displayName);
+            }
             extractProps = d.getExtractProps();
             if (!extractProps.isEmpty()) {
                 des.put("extractProps", extractProps);

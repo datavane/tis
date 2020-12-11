@@ -45,7 +45,7 @@ public class XStream2 extends XStream {
     private final XppDriver xppDruver;
 
     public XStream2(XppDriver xppDruver) {
-        super(null, (Mapper) null, xppDruver);
+        super(null, null, xppDruver);
         this.xppDruver = xppDruver;
     }
 

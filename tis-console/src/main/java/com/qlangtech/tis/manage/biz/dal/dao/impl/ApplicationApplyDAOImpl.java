@@ -36,12 +36,12 @@ public class ApplicationApplyDAOImpl extends BasicDAO<ApplicationApply, Applicat
     }
 
     public int countByExample(ApplicationApplyCriteria example) {
-        Integer count = (Integer) this.count("application_apply.ibatorgenerated_countByExample", example);
+        Integer count = this.count("application_apply.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(ApplicationApplyCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("application_apply.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("application_apply.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -80,7 +80,7 @@ public class ApplicationApplyDAOImpl extends BasicDAO<ApplicationApply, Applicat
     public ApplicationApply selectByPrimaryKey(Integer appId) {
         ApplicationApply key = new ApplicationApply();
         key.setAppId(appId);
-        ApplicationApply record = (ApplicationApply) this.load("application_apply.ibatorgenerated_selectByPrimaryKey", key);
+        ApplicationApply record = this.load("application_apply.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -97,7 +97,7 @@ public class ApplicationApplyDAOImpl extends BasicDAO<ApplicationApply, Applicat
     public ApplicationApply loadFromWriteDB(Integer appId) {
         ApplicationApply key = new ApplicationApply();
         key.setAppId(appId);
-        ApplicationApply record = (ApplicationApply) this.loadFromWriterDB("application_apply.ibatorgenerated_selectByPrimaryKey", key);
+        ApplicationApply record = this.loadFromWriterDB("application_apply.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

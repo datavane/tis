@@ -196,7 +196,7 @@ sammy.get
                 }
               }
             );
-        }
+        };
                         
         verbose_link
           .die( 'toggle' )
@@ -227,7 +227,7 @@ sammy.get
             }
           );
 
-        var button = $( 'button', analysis_form )
+        var button = $( 'button', analysis_form );
 
         var compute_analysis_params = function()
         {
@@ -238,7 +238,7 @@ sammy.get
           params.push( { name: 'verbose_output', value: $( '.verbose_output', analysis_element ).hasClass( 'active' ) ? 1 : 0 } );
 
           return params;
-        }
+        };
                 
         analysis_form
           .die( 'submit' )
@@ -345,7 +345,7 @@ sammy.get
               classes.push( 'verbose_output' );
             }
             return classes.join( ' ' );
-          }
+          };
                     
           var build_analysis_table = function( field_or_name, name, analysis_data )
           {        

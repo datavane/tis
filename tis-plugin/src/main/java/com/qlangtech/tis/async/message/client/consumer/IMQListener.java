@@ -22,16 +22,16 @@ import com.qlangtech.tis.extension.Describable;
  */
 public interface IMQListener {
 
-    public String getTopic();
+    String getTopic();
 
-    public void setDeserialize(IAsyncMsgDeserialize deserialize);
+    void setDeserialize(IAsyncMsgDeserialize deserialize);
 
-    public void setConsumerHandle(IConsumerHandle consumer);
+    void setConsumerHandle(IConsumerHandle consumer);
 
-    public IConsumerHandle getConsumerHandle();
+    IConsumerHandle getConsumerHandle();
 
     /**
      * Listener启动
      */
-    abstract void start() throws MQConsumeException;
+    void start() throws MQConsumeException;
 }

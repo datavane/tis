@@ -22,7 +22,7 @@ package com.qlangtech.tis.async.message.client.consumer;
  */
 public interface IMQConsumerStatusFactory {
 
-    public IMQConsumerStatus createConsumerStatus();
+    IMQConsumerStatus createConsumerStatus();
 
     interface IMQConsumerStatus {
         // 想了一想这个接口暂时没有什么用，先不用

@@ -89,7 +89,7 @@ sammy.get
                 }
               );
             }
-          )
+          );
 
         $( '.optional legend input[type=checkbox]', query_form )
           .die( 'change' )
@@ -137,7 +137,7 @@ sammy.get
 
               return false;
             }
-          )
+          );
 
         query_form
           .die( 'submit' )

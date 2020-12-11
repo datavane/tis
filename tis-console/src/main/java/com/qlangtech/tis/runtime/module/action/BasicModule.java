@@ -133,9 +133,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 //            return;
 //        }
     int dbId = this.getWorkflowDAOFacade().getDatasourceDbDAO().insertSelective(datasourceDb);
+    datasourceDb.setId(dbId);
     // GitUtils.$().createDatabase(db, "add db " + db.getDbName());
     // this.addActionMessage(context, "数据库添加成功");
-    this.setBizResult(context, dbId);
+    this.setBizResult(context, datasourceDb);
   }
 
 

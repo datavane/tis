@@ -87,7 +87,7 @@ public enum HeteroEnum {
     // private final IItemGetter itemGetter;
     public final Selectable selectable;
 
-    private <// IDescriptorsGetter descriptorsGetter,
+    <// IDescriptorsGetter descriptorsGetter,
             T extends Describable<T>> HeteroEnum(// IDescriptorsGetter descriptorsGetter,
                                                  Class<T> extensionPoint, // IDescriptorsGetter descriptorsGetter,
                                                  String identity, String caption, Selectable selectable) {
@@ -99,7 +99,7 @@ public enum HeteroEnum {
         this.selectable = selectable;
     }
 
-    private <// , IDescriptorsGetter descriptorsGetter//, ISaveable saveable
+    <// , IDescriptorsGetter descriptorsGetter//, ISaveable saveable
             T extends Describable<T>> HeteroEnum(// , IDescriptorsGetter descriptorsGetter//, ISaveable saveable
                                                  Class<T> extensionPoint, // , IDescriptorsGetter descriptorsGetter//, ISaveable saveable
                                                  String identity, String caption) {

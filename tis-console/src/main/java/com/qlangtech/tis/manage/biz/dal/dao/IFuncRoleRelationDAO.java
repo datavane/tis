@@ -48,5 +48,5 @@ public interface IFuncRoleRelationDAO {
 
     FuncRoleRelation loadFromWriteDB(Integer id);
 
-    public List<String> selectFuncListByUsrid(String usrid);
+    List<String> selectFuncListByUsrid(String usrid);
 }

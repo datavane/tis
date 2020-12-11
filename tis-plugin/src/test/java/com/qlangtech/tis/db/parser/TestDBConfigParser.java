@@ -15,12 +15,13 @@
 package com.qlangtech.tis.db.parser;
 
 import com.qlangtech.tis.common.utils.Assert;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
+import com.qlangtech.tis.plugin.ds.DBConfig;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
@@ -140,7 +141,7 @@ public class TestDBConfigParser extends TestCase {
         try {
             DBTokenizer tokenizer = null;
             try (InputStream reader = this.getClass().getResourceAsStream(resourceName)) {
-                tokenizer = new DBTokenizer(IOUtils.toString(reader, "utf8"));
+                tokenizer = new DBTokenizer(IOUtils.toString(reader, StandardCharsets.UTF_8));
             }
             tokenizer.parse();
             return new DBConfigParser(tokenizer.getTokenBuffer());

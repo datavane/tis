@@ -14,18 +14,13 @@
  */
 package com.qlangtech.tis.git;
 
-import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.db.parser.DBConfigParser;
-import com.qlangtech.tis.db.parser.DBTokenizer;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.HTTPMethod;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.pojo.*;
-import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
 import junit.framework.Assert;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -42,17 +37,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+
+//import com.qlangtech.tis.db.parser.domain.DBConfig;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
+public class GitUtils //implements com.qlangtech.tis.db.IDBConfigAccess
+{
 
     private static final ConfigFileContext.Header PRIVATE_TOKEN = new ConfigFileContext.Header("PRIVATE-TOKEN", "XqxWfcskmh9TskxGpEac");
 
@@ -86,7 +82,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
         @Override
         public String p(int status, InputStream stream, Map<String, List<String>> headerFields) {
             try {
-                return IOUtils.toString(stream, "utf8");
+                return IOUtils.toString(stream, StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -94,7 +90,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
 
         @Override
         public void error(int status, InputStream errstream, IOException e) throws Exception {
-            String error = IOUtils.toString(errstream, "utf8");
+            String error = IOUtils.toString(errstream, StandardCharsets.UTF_8);
             JSONTokener tokener = new JSONTokener(error);
             JSONObject result = new JSONObject(tokener);
             throw new Exception(result.getString("message"), e);
@@ -167,7 +163,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
      * @param db
      * @param commitLog
      */
-    @Override
+
     public void createDatabase(TISDb db, String commitLog) {
         processDBConfig(db, commitLog, true, /* is new */
                 db.isFacade());
@@ -179,7 +175,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
      * @param db
      * @param commitLog
      */
-    @Override
+
     public void updateDatabase(TISDb db, String commitLog) {
         this.processDBConfig(db, commitLog, false, /* is new */
                 db.isFacade());
@@ -187,7 +183,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
 
     public static final String DB_CONFIG_META_NAME = "db_config";
 
-    @Override
+
     public void processDBConfig(TISDb db, String commitLog, boolean isNew, boolean facade) {
         String path = getDBConfigPath(db.getDbName(), (db.isFacade() ? DbScope.FACADE : DbScope.DETAILED));
         this.processDBConfig(db, path, commitLog, isNew, facade);
@@ -199,7 +195,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
      * @param isNew
      * @param facade    是否是cobar类型
      */
-    @Override
+
     public void processDBConfig(TISDb db, String path, String commitLog, boolean isNew, boolean facade) {
         if (StringUtils.isEmpty(db.getDbName())) {
             throw new IllegalArgumentException("param dbName can not be null");
@@ -207,7 +203,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
         this.processFile(path, GitBranchInfo.$(GitBranch.DEVELOP), db.createDBConfigDesc(), commitLog, DATASOURCE_PROJECT_ID, isNew ? HTTPMethod.POST : HTTPMethod.PUT);
     }
 
-    @Override
+
     public String getDBConfigPath(String dbname, DbScope dbscope) {
         return getDBConfigParentPath(dbname) + "/" + DB_CONFIG_META_NAME + dbscope.getDBType();
     }
@@ -283,7 +279,6 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
      * @param db
      * @param commitLog
      */
-    @Override
     public void createDatasourceFileOnline(TISDb db, String commitLog) {
         String dbName = db.getDbName();
         if (StringUtils.isEmpty(dbName)) {
@@ -432,26 +427,26 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
     // });
     // // System.out.println(result);
     // }
-    @Override
+
     public void updateDatasourceFileOnline(String path, String content, String commitLog) {
         this.createFile(path, GitBranchInfo.$(GitBranch.MASTER), content, commitLog, DATASOURCE_PROJECT_ID, false);
     }
 
-    @Override
-    public void deleteDb(String dbName, GitUser user) {
-        File targetDir = new File(this.dbRootDir, getDBConfigParentPath(dbName));
-        try {
-            FileUtils.forceDelete(targetDir);
-        } catch (IOException e) {
-            throw new RuntimeException(targetDir.getAbsolutePath(), e);
-        }
-        // this.deleteFile(name + "/db_config", GitBranchInfo.$(GitBranch.MASTER), user, "delete db " + name, DATASOURCE_PROJECT_ID);
-    }
 
-    @Override
-    public void deleteDbOnline(String name, GitUser user) {
-        this.deleteDb(name, user);
-    }
+//    public void deleteDb(String dbName, GitUser user) {
+//        File targetDir = new File(this.dbRootDir, getDBConfigParentPath(dbName));
+//        try {
+//            FileUtils.forceDelete(targetDir);
+//        } catch (IOException e) {
+//            throw new RuntimeException(targetDir.getAbsolutePath(), e);
+//        }
+//        // this.deleteFile(name + "/db_config", GitBranchInfo.$(GitBranch.MASTER), user, "delete db " + name, DATASOURCE_PROJECT_ID);
+//    }
+
+
+//    public void deleteDbOnline(String name, GitUser user) {
+//        this.deleteDb(name, user);
+//    }
 
     private void deleteTable(String dbName, String tableLogicName, boolean isDaily, GitUser user) {
         String path = TAB_CONFIG_ROOT_DIR + "/" + dbName + "/" + tableLogicName;
@@ -460,13 +455,13 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
         this.deleteFile(path + "/sql", branch, user, "delete table" + path, DATASOURCE_PROJECT_ID);
     }
 
-    @Override
+
     public void deleteTableDaily(String dbName, String tableLogicName, GitUser user) {
         this.deleteTable(dbName, tableLogicName, true, /* isDaily */
                 user);
     }
 
-    @Override
+
     public void deleteTableOnline(String dbName, String tableLogicName, GitUser user) {
         this.deleteTable(dbName, tableLogicName, false, user);
     }
@@ -478,7 +473,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
             @Override
             public String p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                 try {
-                    return IOUtils.toString(stream, "utf8");
+                    return IOUtils.toString(stream, StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -494,7 +489,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
             @Override
             public String p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                 try {
-                    return IOUtils.toString(stream, "utf8");
+                    return IOUtils.toString(stream, StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -509,7 +504,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
 
         private final String value;
 
-        private GitBranch(String value) {
+        GitBranch(String value) {
             this.value = value;
         }
     }
@@ -663,26 +658,24 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
     }
 
 
-
-//    @Override
-    public DBConfig getDbLinkMetaData(String dbName, DbScope dbScope) {
-//        DBConfig dbConfig = getDbConfig(dbName, dbScope);
-//        return dbConfig;
-        throw new UnsupportedOperationException("dbName:" + dbName + ",dbScope:" + dbScope);
-    }
+//    public DBConfig getDbLinkMetaData(String dbName, DbScope dbScope) {
+////        DBConfig dbConfig = getDbConfig(dbName, dbScope);
+////        return dbConfig;
+//        throw new UnsupportedOperationException("dbName:" + dbName + ",dbScope:" + dbScope);
+//    }
 
     // public DBConfig getDbLinkMetaData(String dbName, RunEnvironment runtime) {
     // DBConfig dbConfig = getDbConfig(dbName, runtime, DbScope.DETAILED);
     // return dbConfig;
     // }
-    @Override
+
     public List<String> listDbConfigPath(String dbname) {
         // GitBranch branch = (runtime == RunEnvironment.DAILY) ? GitBranch.DEVELOP : GitBranch.MASTER;
         GitBranch branch = GitBranch.MASTER;
         return this.listChild(DATASOURCE_PROJECT_ID, getDBConfigParentPath(dbname), GitBranchInfo.$(branch));
     }
 
-    @Override
+
     public boolean containFacadeDbTypeSubpath(String dbname) {
         List<String> child = this.listDbConfigPath(dbname);
         return child.contains(GitUtils.DB_CONFIG_META_NAME + DbScope.FACADE.getDBType());
@@ -711,33 +704,33 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
         return f;
     }
 
-    @Override
-    public DBConfig getDbConfig(String dbName, DbScope dbScope) {
-        boolean targetFacade = (dbScope == DbScope.FACADE);
-        FileContent f = getDbConfigFile(dbName, dbScope);
-        if (!f.exist()) {
-            throw new IllegalStateException("db:" + dbName + " can not fetch relevant db config,target file:" + f);
-        }
-        DBTokenizer tokenizer = new DBTokenizer(f.getContent());
-        tokenizer.parse();
-        DBConfigParser parser = new DBConfigParser(tokenizer.getTokenBuffer());
-        DBConfig db = parser.startParser();
-        if (targetFacade) {
-            AtomicInteger hostCount = new AtomicInteger();
-            AtomicReference<String> jdbcUrlRef = new AtomicReference<>();
-            if (!db.vistDbURL(false, (r, jdbcUrl) -> {
-                jdbcUrlRef.set(jdbcUrl);
-                hostCount.incrementAndGet();
-            }, dbScope == DbScope.FACADE, new AdapterMessageHandler(), new DefaultContext())) {
-                throw new IllegalStateException("jdbcURL is illegal:" + jdbcUrlRef.get());
-            }
-            if (hostCount.get() != 1) {
-                throw new IllegalStateException("facade db:" + dbName + " relevant hostCount can not big than 1,but now:" + hostCount);
-            }
-        }
-        db.setPassword(Secret.decrypt(db.getPassword(), cryptKey));
-        return db;
-    }
+//    @Override
+//    public DBConfig getDbConfig(String dbName, DbScope dbScope) {
+//        boolean targetFacade = (dbScope == DbScope.FACADE);
+//        FileContent f = getDbConfigFile(dbName, dbScope);
+//        if (!f.exist()) {
+//            throw new IllegalStateException("db:" + dbName + " can not fetch relevant db config,target file:" + f);
+//        }
+//        DBTokenizer tokenizer = new DBTokenizer(f.getContent());
+//        tokenizer.parse();
+//        DBConfigParser parser = new DBConfigParser(tokenizer.getTokenBuffer());
+//        DBConfig db = parser.startParser();
+//        if (targetFacade) {
+//            AtomicInteger hostCount = new AtomicInteger();
+//            AtomicReference<String> jdbcUrlRef = new AtomicReference<>();
+//            if (!db.vistDbURL(false, (r, jdbcUrl) -> {
+//                jdbcUrlRef.set(jdbcUrl);
+//                hostCount.incrementAndGet();
+//            }, dbScope == DbScope.FACADE, new AdapterMessageHandler(), new DefaultContext())) {
+//                throw new IllegalStateException("jdbcURL is illegal:" + jdbcUrlRef.get());
+//            }
+//            if (hostCount.get() != 1) {
+//                throw new IllegalStateException("facade db:" + dbName + " relevant hostCount can not big than 1,but now:" + hostCount);
+//            }
+//        }
+//        db.setPassword(Secret.decrypt(db.getPassword(), cryptKey));
+//        return db;
+//    }
 
     private JSONObject getGitJson(int gitProjectId, String gitPath) {
         return getGitJson(gitProjectId, gitPath, GitBranchInfo.$(GitBranch.DEVELOP));
@@ -774,7 +767,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
                 JSONTokener tokener = new JSONTokener(stream);
                 JSONObject o = new JSONObject(tokener);
                 try {
-                    return new String(Base64.getDecoder().decode(o.getString("content")), "utf8");
+                    return new String(Base64.getDecoder().decode(o.getString("content")), StandardCharsets.UTF_8);
                 } catch (Exception e) {
                     throw new RuntimeException(urlString, e);
                 }
@@ -788,7 +781,7 @@ public class GitUtils implements com.qlangtech.tis.db.IDBConfigAccess {
             @Override
             public String p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                 try {
-                    return IOUtils.toString(stream, Charset.forName("UTF-8"));
+                    return IOUtils.toString(stream, StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

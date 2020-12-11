@@ -30,7 +30,7 @@ var get_tooltip = function( segment_response ) {
 var get_entry = function( segment_response, segment_bytes_max ) {
     //calcualte dimensions of graph
     var dims = calculate_dimensions(segment_response.sizeInBytes, 
-            segment_bytes_max, segment_response.size, segment_response.delCount)
+            segment_bytes_max, segment_response.size, segment_response.delCount);
     //create entry for segment with given dimensions
     var entry = get_entry_item(segment_response.name, dims, 
             get_tooltip(segment_response), (segment_response.mergeCandidate)?true:false);
@@ -107,7 +107,7 @@ var prepare_x_axis = function(segment_bytes_max) {
     var step = 0;
     for (var j = 0; j < 3; j+=1) {
             step += segment_bytes_max_log/4;
-            var step_value = number_format(Math.floor((Math.pow(Math.E, step))/factor))
+            var step_value = number_format(Math.floor((Math.pow(Math.E, step))/factor));
             series_entry += '<div class="w5">' + ((step_value > 0.001)?step_value : '&nbsp;')  + '</div>'
     }
     series_entry += '<div class="end">' + number_format(Math.floor(segment_bytes_max/factor)) + ' MB </div>' +

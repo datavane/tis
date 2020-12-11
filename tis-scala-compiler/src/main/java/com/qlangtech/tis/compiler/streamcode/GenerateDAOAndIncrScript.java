@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,17 +18,20 @@ import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.koubei.abator.KoubeiIbatorRunner;
 import com.koubei.abator.KoubeiProgressCallback;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
 import com.qlangtech.tis.compiler.java.MyJavaFileManager;
 import com.qlangtech.tis.compiler.java.MyJavaFileObject;
 import com.qlangtech.tis.compiler.java.NestClassFileObject;
 import com.qlangtech.tis.coredefine.module.action.IbatorProperties;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
-import com.qlangtech.tis.git.GitUtils;
+import com.qlangtech.tis.plugin.ds.FacadeDataSource;
+import com.qlangtech.tis.plugin.ds.IDbMeta;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
@@ -38,6 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.ibator.config.IbatorContext;
 import scala.tools.ScalaCompilerSupport;
 import scala.tools.scala_maven_executions.LogProcessorUtils;
+
+import javax.sql.DataSource;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
@@ -70,30 +75,36 @@ public class GenerateDAOAndIncrScript {
     public void generate(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<Integer, /**
      * DBID
      */
-    Long> dependencyDbs) throws Exception {
+            Long> dependencyDbs) throws Exception {
         final Map<DBNode, List<String>> dbNameMap = indexStreamCodeGenerator.getDbTables();
         if (dbNameMap.size() < 1) {
             throw new IllegalStateException("dbNameMap size can not small than 1");
         }
-        DBConfig dbConfig = null;
+
         if (dbNameMap.size() != dependencyDbs.size()) {
             throw new IllegalStateException("dbNameMap.size() " + dbNameMap.size() + " != dependencyDbs.size()" + dependencyDbs.size());
         }
         // long timestampp;// = Long.parseLong(ManageUtils.formatNowYyyyMMddHHmmss());
+        DataSourceFactoryPluginStore dbPluginStore = null;
         final KoubeiProgressCallback koubeiProgressCallback = new KoubeiProgressCallback();
         List<IbatorContext> daoFacadeList = Lists.newArrayList();
         Long lastOptime = null;
         for (Map.Entry<DBNode, List<String>> /* dbname */
-        entry : dbNameMap.entrySet()) {
+                entry : dbNameMap.entrySet()) {
             lastOptime = dependencyDbs.get(entry.getKey().getDbId());
             if (lastOptime == null) {
                 throw new IllegalStateException("db " + entry.getKey() + " is not find in dependency dbs:" + dbNameMap.keySet().stream().map((r) -> "[" + r.getDbId() + ":" + r.getDbName() + "]").collect(Collectors.joining(",")));
             }
             // ManageUtils.formatNowYyyyMMddHHmmss(lastOptime);
             long timestamp = lastOptime;
-            // 
-            dbConfig = GitUtils.$().getDbLinkMetaData(entry.getKey().getDbName(), DbScope.DETAILED);
-            IbatorProperties properties = new IbatorProperties(dbConfig, entry.getValue(), timestamp);
+            //
+
+            dbPluginStore
+                    = TIS.getDataBasePluginStore(null, new PostedDSProp(entry.getKey().getDbName(), DbScope.FACADE));
+            FacadeDataSource facadeDataSource = dbPluginStore.createFacadeDataSource();
+//            DataSourceFactory facadeFactory = dbPluginStore.getPlugin();
+            // dbConfig = GitUtils.$().getDbLinkMetaData(entry.getKey().getDbName(), DbScope.DETAILED);
+            IbatorProperties properties = new IbatorProperties(facadeDataSource, entry.getValue(), timestamp);
             // entry.getKey().setDaoDir(properties.getDaoDir());
             entry.getKey().setTimestampVer(timestamp);
             if (entry.getValue().size() < 1) {
@@ -117,10 +128,10 @@ public class GenerateDAOAndIncrScript {
                     // 直接生成就行了，别管当前是不是要编译了
                     File classpathDir = new File(Config.getDataDir(), "libs/tis-ibatis");
                     // File classpathDir = new File("/Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency");
-                    JavaCompilerProcess daoCompilerPackageProcess = new JavaCompilerProcess(dbConfig, properties.getDaoDir(), classpathDir);
+                    JavaCompilerProcess daoCompilerPackageProcess = new JavaCompilerProcess(facadeDataSource.dbMeta, properties.getDaoDir(), classpathDir);
                     // 打包,生成jar包
                     daoCompilerPackageProcess.compileAndBuildJar();
-                // }
+                    // }
                 }
             } catch (Exception e) {
                 // 将文件夹清空
@@ -141,7 +152,7 @@ public class GenerateDAOAndIncrScript {
         try {
             File sourceRoot = StreamContextConstant.getStreamScriptRootDir(indexStreamCodeGenerator.collection, indexStreamCodeGenerator.incrScriptTimestamp);
             if (!indexStreamCodeGenerator.isIncrScriptDirCreated() || // 检查Faild Token文件是否存在
-            ScalaCompilerSupport.incrStreamCodeCompileFaild(sourceRoot)) {
+                    ScalaCompilerSupport.incrStreamCodeCompileFaild(sourceRoot)) {
                 /**
                  * *********************************************************************************
                  * 自动生成scala代码
@@ -205,14 +216,14 @@ public class GenerateDAOAndIncrScript {
                 // 将stream code打包
                 // indexStreamCodeGenerator.getAppDomain().getAppName() + "-incr.jar"
                 JavaCompilerProcess.packageJar(// indexStreamCodeGenerator.getAppDomain().getAppName() + "-incr.jar"
-                sourceRoot, StreamContextConstant.getIncrStreamJarName(indexStreamCodeGenerator.collection), fileObjects, compiledCodeContext, xmlConfigs);
+                        sourceRoot, StreamContextConstant.getIncrStreamJarName(indexStreamCodeGenerator.collection), fileObjects, compiledCodeContext, xmlConfigs);
             }
         } catch (Exception e) {
             // 将原始文件删除干净
             try {
                 FileUtils.forceDelete(indexStreamCodeGenerator.getStreamCodeGenerator().getIncrScriptDir());
             } catch (Throwable ex) {
-            // ex.printStackTrace();
+                // ex.printStackTrace();
             }
             throw new RuntimeException(e);
         }

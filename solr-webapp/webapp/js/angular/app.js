@@ -354,7 +354,7 @@ solrAdminApp.config([
       $rootScope.exceptions[rejection.config.url] = rejection.data.error;
     }
     return $q.reject(rejection);
-  }
+  };
 
   return {request: started, response: ended, responseError: failed};
 })
@@ -388,7 +388,7 @@ solrAdminApp.controller('MainController', function($scope, $route, $rootScope, $
   $scope.refresh = function() {
       $scope.cores = [];
       $scope.collections = [];
-  }
+  };
 
   $scope.refresh();
   $scope.resetMenu = function(page, pageType) {
@@ -441,15 +441,15 @@ solrAdminApp.controller('MainController', function($scope, $route, $rootScope, $
 
   $scope.dumpCloud = function() {
       $scope.$broadcast("cloud-dump");
-  }
+  };
 
   $scope.showCore = function(core) {
     $location.url("/" + core.name);
-  }
+  };
 
   $scope.showCollection = function(collection) {
     $location.url("/" + collection.name + "/collection-overview")
-  }
+  };
 
   $scope.$on('$routeChangeStart', function() {
       $rootScope.exceptions = {};

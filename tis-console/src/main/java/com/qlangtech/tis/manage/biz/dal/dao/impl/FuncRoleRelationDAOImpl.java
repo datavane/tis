@@ -36,7 +36,7 @@ public class FuncRoleRelationDAOImpl extends BasicDAO<FuncRoleRelation, FuncRole
     }
 
     public int countByExample(FuncRoleRelationCriteria example) {
-        Integer count = (Integer) this.count("func_role_relation.ibatorgenerated_countByExample", example);
+        Integer count = this.count("func_role_relation.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -46,7 +46,7 @@ public class FuncRoleRelationDAOImpl extends BasicDAO<FuncRoleRelation, FuncRole
     }
 
     public int countFromWriteDB(FuncRoleRelationCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("func_role_relation.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("func_role_relation.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -85,7 +85,7 @@ public class FuncRoleRelationDAOImpl extends BasicDAO<FuncRoleRelation, FuncRole
     public FuncRoleRelation selectByPrimaryKey(Integer id) {
         FuncRoleRelation key = new FuncRoleRelation();
         key.setId(id);
-        FuncRoleRelation record = (FuncRoleRelation) this.load("func_role_relation.ibatorgenerated_selectByPrimaryKey", key);
+        FuncRoleRelation record = this.load("func_role_relation.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -102,7 +102,7 @@ public class FuncRoleRelationDAOImpl extends BasicDAO<FuncRoleRelation, FuncRole
     public FuncRoleRelation loadFromWriteDB(Integer id) {
         FuncRoleRelation key = new FuncRoleRelation();
         key.setId(id);
-        FuncRoleRelation record = (FuncRoleRelation) this.loadFromWriterDB("func_role_relation.ibatorgenerated_selectByPrimaryKey", key);
+        FuncRoleRelation record = this.loadFromWriterDB("func_role_relation.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

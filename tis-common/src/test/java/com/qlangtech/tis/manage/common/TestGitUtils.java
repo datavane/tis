@@ -14,11 +14,8 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import com.qlangtech.tis.db.parser.domain.DBConfig;
 import com.qlangtech.tis.git.GitUtils;
-import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.pojo.TISDb;
-import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
@@ -51,8 +48,8 @@ public class TestGitUtils extends TestCase {
     private static final GitUtils GIT_UTILS = GitUtils.$();
 
     public void testGetFacadeDBConfig() {
-        DBConfig orderCfg = GIT_UTILS.getDbLinkMetaData("order", DbScope.FACADE);
-        assertNotNull("orderCfg can not be null", orderCfg);
+//        DBConfig orderCfg = GIT_UTILS.getDbLinkMetaData("order", DbScope.FACADE);
+//        assertNotNull("orderCfg can not be null", orderCfg);
     }
 
 //    public void testGetDbConfig() {
@@ -122,16 +119,16 @@ public class TestGitUtils extends TestCase {
 //    }
 
     public void testDataSourceConfig() throws Exception {
-        DBConfig dbConfig = GIT_UTILS.getDbLinkMetaData("order", DbScope.DETAILED);
-        Assert.assertTrue(dbConfig.getDbEnum().size() > 0);
-        Assert.assertNotNull(dbConfig.getHostDesc());
-        Assert.assertNotNull(dbConfig.getName());
-        List<String> childPath = GIT_UTILS.listDbConfigPath("order");
-        Assert.assertNotNull(childPath);
-        Assert.assertEquals(2, childPath.size());
-        for (String c : childPath) {
-            System.out.println(c);
-        }
+//        DBConfig dbConfig = GIT_UTILS.getDbLinkMetaData("order", DbScope.DETAILED);
+//        Assert.assertTrue(dbConfig.getDbEnum().size() > 0);
+//        Assert.assertNotNull(dbConfig.getHostDesc());
+//        Assert.assertNotNull(dbConfig.getName());
+//        List<String> childPath = GIT_UTILS.listDbConfigPath("order");
+//        Assert.assertNotNull(childPath);
+//        Assert.assertEquals(2, childPath.size());
+//        for (String c : childPath) {
+//            System.out.println(c);
+//        }
     }
 
     public void testCreateDatabaseDaily() throws Exception {

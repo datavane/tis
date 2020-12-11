@@ -248,11 +248,11 @@ public class Pager {
 
     public interface NavigationStyle {
 
-        public AroundTag getAroundStyle();
+        AroundTag getAroundStyle();
 
-        public String getCurrentPageTag(int page);
+        String getCurrentPageTag(int page);
 
-        public void popDivHreLink(StringBuffer pageHtml, int page, String name);
+        void popDivHreLink(StringBuffer pageHtml, int page, String name);
 
         /**
          * @param pageHtml
@@ -260,17 +260,17 @@ public class Pager {
          * @param name
          * @param cssClass
          */
-        public void popDivHreLink(StringBuffer pageHtml, int page, String name, String cssClass);
+        void popDivHreLink(StringBuffer pageHtml, int page, String name, String cssClass);
 
         /**
          * 创建前一页链接
          */
-        public void popPerPageLink(StringBuffer pageHtml, int page);
+        void popPerPageLink(StringBuffer pageHtml, int page);
 
         /**
          * 创建后一页链接
          */
-        public void popNextPageLink(StringBuffer pageHtml, int page);
+        void popNextPageLink(StringBuffer pageHtml, int page);
         // public String getIgnoreTag();
     }
 
@@ -279,14 +279,14 @@ public class Pager {
      */
     public interface PageStatistics {
 
-        public void build(StringBuffer builder, int page, int pageCount);
+        void build(StringBuffer builder, int page, int pageCount);
     }
 
     public interface DirectJump {
 
-        public void build(StringBuffer builder);
+        void build(StringBuffer builder);
 
-        public AroundTag getAroundTag();
+        AroundTag getAroundTag();
     }
 
     public interface PageNumShowRule {
@@ -296,31 +296,31 @@ public class Pager {
          *
          * @return
          */
-        public Offset getPreOffset();
+        Offset getPreOffset();
 
         /**
          * 取得后偏移值
          *
          * @return
          */
-        public Offset getTailOffset();
+        Offset getTailOffset();
 
         /**
          * 是否显示最后一页
          *
          * @return
          */
-        public boolean isShowLastPage();
+        boolean isShowLastPage();
 
-        public boolean isShowFirstPage();
+        boolean isShowFirstPage();
 
         /**
          * 开始使用分页省略符号的页码
          *
          * @return
          */
-        public int startRangeLength();
+        int startRangeLength();
 
-        public int getRangeWidth();
+        int getRangeWidth();
     }
 }

@@ -59,26 +59,26 @@ public interface AsyncMsg extends Serializable {
      *
      * @return
      */
-    String getKey();
+   // String getKey();
 
-    /**
-     * 重试次数
-     *
-     * @return
-     */
-    int getReconsumeTimes();
+//    /**
+//     * 重试次数
+//     *
+//     * @return
+//     */
+//    int getReconsumeTimes();
 
-    /**
-     * 开始投递的时间
-     *
-     * @return
-     */
-    long getStartDeliverTime();
+//    /**
+//     * 开始投递的时间
+//     *
+//     * @return
+//     */
+//    long getStartDeliverTime();
 
-    /**
-     * 最初的MessageID。在消息重试时msgID会变
-     *
-     * @return
-     */
-    String getOriginMsgID();
+//    /**
+//     * 最初的MessageID。在消息重试时msgID会变
+//     *
+//     * @return
+//     */
+//    String getOriginMsgID();
 }

@@ -172,7 +172,7 @@ var logging_handler = function( response, text_status, xhr )
             .addClass( 'level' );
         }
       }
-    )
+    );
 
   $( '.trigger', this )
     .die( 'click' )
@@ -260,12 +260,12 @@ var format_time = function( time )
 {
   time = time ? new Date( time ) : new Date();
   return '<time datetime="' + time.toISOString().esc() + '">' + format_time_content( time ) + '</abbr>';
-}
+};
 
 var format_time_content = function( time )
 {
   return time.toLocaleString( undefined, format_time_options ).esc();
-}
+};
 
 var load_logging_viewer = function()
 {
@@ -403,7 +403,7 @@ var load_logging_viewer = function()
       }
     }
   );
-}
+};
 
 // #/~logging
 sammy.get
@@ -523,7 +523,7 @@ sammy.get
                     var self = $( element );
                     self.text( format_time_content( new Date( self.attr( 'datetime' ) ) ) );
                   }
-                )
+                );
 
               return false;
             }

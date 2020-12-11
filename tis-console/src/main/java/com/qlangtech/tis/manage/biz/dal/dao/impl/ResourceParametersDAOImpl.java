@@ -36,12 +36,12 @@ public class ResourceParametersDAOImpl extends BasicDAO<ResourceParameters, Reso
     }
 
     public int countByExample(ResourceParametersCriteria example) {
-        Integer count = (Integer) this.count("resource_parameters.ibatorgenerated_countByExample", example);
+        Integer count = this.count("resource_parameters.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(ResourceParametersCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("resource_parameters.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("resource_parameters.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -80,7 +80,7 @@ public class ResourceParametersDAOImpl extends BasicDAO<ResourceParameters, Reso
     public ResourceParameters selectByPrimaryKey(Long rpId) {
         ResourceParameters key = new ResourceParameters();
         key.setRpId(rpId);
-        ResourceParameters record = (ResourceParameters) this.load("resource_parameters.ibatorgenerated_selectByPrimaryKey", key);
+        ResourceParameters record = this.load("resource_parameters.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -97,7 +97,7 @@ public class ResourceParametersDAOImpl extends BasicDAO<ResourceParameters, Reso
     public ResourceParameters loadFromWriteDB(Long rpId) {
         ResourceParameters key = new ResourceParameters();
         key.setRpId(rpId);
-        ResourceParameters record = (ResourceParameters) this.loadFromWriterDB("resource_parameters.ibatorgenerated_selectByPrimaryKey", key);
+        ResourceParameters record = this.loadFromWriterDB("resource_parameters.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

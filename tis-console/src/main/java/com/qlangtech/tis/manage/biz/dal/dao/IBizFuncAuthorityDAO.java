@@ -24,7 +24,7 @@ import java.util.List;
  */
 public interface IBizFuncAuthorityDAO {
 
-    public List<BizFuncAuthority> selectWithGroupByFuncidAppid(BizFuncAuthorityCriteria criteria);
+    List<BizFuncAuthority> selectWithGroupByFuncidAppid(BizFuncAuthorityCriteria criteria);
 
     int countByExample(BizFuncAuthorityCriteria example);
 

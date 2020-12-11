@@ -141,7 +141,7 @@ public class ConfigFileReader {
     // }
     }
 
-    public String saveFile(final InputStream reader, PropteryGetter getter, Long fileSufix) throws FileNotFoundException, IOException {
+    public String saveFile(final InputStream reader, PropteryGetter getter, Long fileSufix) throws IOException {
         OutputStream writer = null;
         File saveFile = this.getNewFile(getter, fileSufix);
         try {
@@ -160,7 +160,7 @@ public class ConfigFileReader {
         return md5file(saveFile);
     }
 
-    public static String md5file(final File saveFile) throws FileNotFoundException, IOException {
+    public static String md5file(final File saveFile) throws IOException {
         InputStream savedStream = null;
         try {
             savedStream = new FileInputStream(saveFile);

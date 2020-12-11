@@ -21,7 +21,7 @@ solrAdminApp.controller('JavaPropertiesController',
     $scope.refresh = function() {
       Properties.get(function(data) {
         var sysprops = data["system.properties"];
-        var sep = sysprops["path.separator"]
+        var sep = sysprops["path.separator"];
         var props = [];
         for (var key in sysprops) {
           var value = sysprops[key];

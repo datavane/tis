@@ -16,13 +16,15 @@ package com.qlangtech.tis.sql.parser;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
-import com.qlangtech.tis.git.GitUtils;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -39,6 +41,8 @@ import java.util.stream.Collectors;
  */
 public class DBNode {
 
+    private static final Logger logger = LoggerFactory.getLogger(DBNode.class);
+
     private final String dbName;
 
     private final int dbId;
@@ -52,20 +56,6 @@ public class DBNode {
         yaml = new Yaml(new Constructor());
     }
 
-    public String getFormatDBName() {
-        return getFormatDBName(this.dbName);
-    }
-
-    public static String getFormatDBName(String dbName) {
-        if (StringUtils.isEmpty(dbName)) {
-            throw new IllegalArgumentException("param dbName can not be null");
-        }
-        return StringUtils.remove(StringUtils.lowerCase(dbName), "_");
-    }
-
-    public static String getDAOJarName(String dbName) {
-        return getFormatDBName(dbName) + "-dao.jar";
-    }
 
     public static void dump(List<DBNode> nodes, File f) throws Exception {
         try (Writer writer = new OutputStreamWriter(FileUtils.openOutputStream(f), TisUTF8.get()) {
@@ -88,16 +78,35 @@ public class DBNode {
      */
     public static void registerDependencyDbsFacadeConfig(String collection, long timestamp, DefaultListableBeanFactory factory) {
         try {
-            List<DBNode> dbs = null;
-            try (InputStream input = FileUtils.openInputStream(StreamContextConstant.getDbDependencyConfigMetaFile(collection, timestamp))) {
-                dbs = DBNode.load(input);
-                Map<String, DBConfig> dbConfigsMap
-                        = dbs.stream().collect(Collectors.toMap((db) -> db.getDbName()
-                        , (db) -> GitUtils.$().getDbLinkMetaData(db.getDbName(), DbScope.FACADE)));
 
-                for (Map.Entry<String, DBConfig> entry : dbConfigsMap.entrySet()) {
-//                    SpringDBRegister dbRegister = new SpringDBRegister(entry.getKey(), entry.getValue(), factory);
-//                    dbRegister.visitFirst();
+            //  DataSourceFactoryPluginStore dsFactoryPluginStore = null;
+            // String datasourceName = null;
+            // = TIS.getDataBasePluginStore(null, new PostedDSProp("", DbScope.FACADE));
+
+
+            //                Map<String, DBConfig> dbConfigsMap
+//                        = dbs.stream().collect(Collectors.toMap((db) -> db.getDbName()
+//                        , (db) -> GitUtils.$().getDbLinkMetaData(db.getDbName(), DbScope.FACADE)));
+            Map<String, DataSourceFactoryPluginStore> dbConfigsMap = null;
+
+            // List<DBNode> dbs = null;
+            try (InputStream input = FileUtils.openInputStream(StreamContextConstant.getDbDependencyConfigMetaFile(collection, timestamp))) {
+//                for (DBNode db : DBNode.load(input)) {
+//                    dsFactoryPluginStore
+//                            = TIS.getDataBasePluginStore(null, new PostedDSProp(db.getDbName(), DbScope.FACADE));
+//                    //factory.registerBeanDefinition(db.getDbName() + "Datasource", dsFactoryPluginStore.createFacadeDataSource());
+//                    datasourceName = db.getDbName() + "Datasource";
+//                    logger.info("register dataSource:");
+//                    factory.registerSingleton(datasourceName, dsFactoryPluginStore.createFacadeDataSource());
+//                }
+                // 这样可以去重
+                dbConfigsMap
+                        = DBNode.load(input).stream().collect(Collectors.toMap((db) -> db.getDbName()
+                        , (db) -> TIS.getDataBasePluginStore(null, new PostedDSProp(db.getDbName(), DbScope.FACADE))));
+//
+                for (Map.Entry<String, DataSourceFactoryPluginStore> entry : dbConfigsMap.entrySet()) {
+                    //  datasourceName = entry.getKey() + "Datasource";
+                    factory.registerSingleton(entry.getKey() + "Datasource", entry.getValue().createFacadeDataSource());
                 }
 
             }
@@ -105,8 +114,22 @@ public class DBNode {
             throw new RuntimeException(e);
         }
 
-        throw new UnsupportedOperationException();
+        // throw new UnsupportedOperationException();
     }
+
+//    @Override
+//    protected void createDefinition(final String dbDefinitionId, String driverClassName, String jdbcUrl, String userName, String password) {
+//        BeanDefinitionBuilder define = BeanDefinitionBuilder.genericBeanDefinition(TISDataSource.class);
+//        define.setLazyInit(true);
+//        define.addPropertyValue("driverClassName", driverClassName);
+//        define.addPropertyValue("url", jdbcUrl);
+//        define.addPropertyValue("username", userName);
+//        define.addPropertyValue("password", password);
+//        define.addPropertyValue("validationQuery", "select 1");
+//        define.setDestroyMethodName("close");
+//        logger.info("create dbbean:" + dbDefinitionId + dbSuffix + ",jdbc url:" + jdbcUrl);
+//        factory.registerBeanDefinition(dbDefinitionId + dbSuffix, define.getBeanDefinition());
+//    }
 
     public static List<DBNode> load(InputStream inputstrea) throws Exception {
         try (InputStreamReader reader = new InputStreamReader(inputstrea, TisUTF8.get()) {

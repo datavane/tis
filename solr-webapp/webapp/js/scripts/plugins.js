@@ -32,7 +32,7 @@ var compute_plugin_data = function( response, changeset )
   var types_obj = {};
   var plugin_key = null;
 
-  changes = { count : {}, list : {} }
+  changes = { count : {}, list : {} };
 
   for( var i = 0; i < response['solr-mbeans'].length; i++ )
   {
@@ -136,7 +136,7 @@ var render_plugin_data = function( plugin_data, plugin_sort, types )
       { 
         load_reference_xml();
         
-        changes = { count : {}, list : {} }
+        changes = { count : {}, list : {} };
         $( 'a > span', navigation_element ).remove();
         $( '.entry.changed', frame_element ).removeClass( 'changed' );
 
@@ -242,7 +242,7 @@ var render_plugin_data = function( plugin_data, plugin_sort, types )
             });
           }
           else {
-            content += '<dd>' + new String( detail_value ).esc() + '</dd>' + "\n";
+            content += '<dd>' + String( detail_value ).esc() + '</dd>' + "\n";
           }
           content += '</dl></li>' + "\n";
         }
@@ -254,7 +254,7 @@ var render_plugin_data = function( plugin_data, plugin_sort, types )
 
           for( var stats_key in details[detail_key] )
           {
-            var stats_value = new String( details[detail_key][stats_key] );
+            var stats_value = String( details[detail_key][stats_key] );
             stats_value = stats_value.replace( /([\(@])/g, '$1&#8203;' );
 
             content += '<li><dl class="clearfix">' + "\n";
@@ -362,7 +362,7 @@ var load_reference_xml = function()
       }
     }
   );
-}
+};
 
 sammy.bind
 (
@@ -372,7 +372,7 @@ sammy.bind
     var callback = function()
     {
       params.callback( app.plugin_data.plugin_data, app.plugin_data.sort_table, app.plugin_data.types );
-    }
+    };
         
     if( app.plugin_data )
     {

@@ -65,8 +65,8 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
         PluginStore<TableDumpFactory> pluginStore = TIS.getPluginStore(TableDumpFactory.class);
         DataSourceFactoryPluginStore dataBasePluginStore = TIS.getDataBasePluginStore(null, new PostedDSProp(DB_ORDER));
         assertNotNull(pluginStore);
-        TableDumpFactory plugin = pluginStore.getPlugin();
-        assertNotNull(plugin);
+        TableDumpFactory tableDumpPlugin = pluginStore.getPlugin();
+        assertNotNull(tableDumpPlugin);
 
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         final String startTimeStamp = format.format(new Date());
@@ -74,7 +74,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
 
         AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc = new AtomicReference<>();
         statusRpc.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
-        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(plugin, dataBasePluginStore.getPlugin(), zkClient, statusRpc) {
+        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(tableDumpPlugin, dataBasePluginStore.getPlugin(), zkClient, statusRpc) {
 
             protected void registerZKDumpNodeIn(TaskContext context) {
             }
@@ -102,7 +102,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
         assertEquals(1, GitUtils.ExecuteGetTableConfigCount);
         int allTableDumpRows = tableDumpTask.getAllTableDumpRows();
         assertTrue(allTableDumpRows > 0);
-        plugin.startTask((r) -> {
+        tableDumpPlugin.startTask((r) -> {
             testConnectionWorkRegular(r, tableDumpTask.getDumpContext(), startTimeStamp);
         });
 

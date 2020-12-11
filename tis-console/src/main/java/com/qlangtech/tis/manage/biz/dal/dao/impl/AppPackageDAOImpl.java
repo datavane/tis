@@ -36,12 +36,12 @@ public class AppPackageDAOImpl extends BasicDAO<AppPackage, AppPackageCriteria> 
     }
 
     public int countByExample(AppPackageCriteria example) {
-        Integer count = (Integer) this.count("app_package.ibatorgenerated_countByExample", example);
+        Integer count = this.count("app_package.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(AppPackageCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("app_package.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("app_package.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -78,7 +78,7 @@ public class AppPackageDAOImpl extends BasicDAO<AppPackage, AppPackageCriteria> 
     public AppPackage selectByPrimaryKey(Integer pid) {
         AppPackage key = new AppPackage();
         key.setPid(pid);
-        AppPackage record = (AppPackage) this.load("app_package.ibatorgenerated_selectByPrimaryKey", key);
+        AppPackage record = this.load("app_package.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -95,7 +95,7 @@ public class AppPackageDAOImpl extends BasicDAO<AppPackage, AppPackageCriteria> 
     public AppPackage loadFromWriteDB(Integer pid) {
         AppPackage key = new AppPackage();
         key.setPid(pid);
-        AppPackage record = (AppPackage) this.loadFromWriterDB("app_package.ibatorgenerated_selectByPrimaryKey", key);
+        AppPackage record = this.loadFromWriterDB("app_package.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

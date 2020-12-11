@@ -36,12 +36,12 @@ public class GroupInfoDAOImpl extends BasicDAO<GroupInfo, GroupInfoCriteria> imp
     }
 
     public int countByExample(GroupInfoCriteria example) {
-        Integer count = (Integer) this.count("group_info.ibatorgenerated_countByExample", example);
+        Integer count = this.count("group_info.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(GroupInfoCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("group_info.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("group_info.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -78,7 +78,7 @@ public class GroupInfoDAOImpl extends BasicDAO<GroupInfo, GroupInfoCriteria> imp
     public GroupInfo selectByPrimaryKey(Integer gid) {
         GroupInfo key = new GroupInfo();
         key.setGid(gid);
-        GroupInfo record = (GroupInfo) this.load("group_info.ibatorgenerated_selectByPrimaryKey", key);
+        GroupInfo record = this.load("group_info.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -95,7 +95,7 @@ public class GroupInfoDAOImpl extends BasicDAO<GroupInfo, GroupInfoCriteria> imp
     public GroupInfo loadFromWriteDB(Integer gid) {
         GroupInfo key = new GroupInfo();
         key.setGid(gid);
-        GroupInfo record = (GroupInfo) this.loadFromWriterDB("group_info.ibatorgenerated_selectByPrimaryKey", key);
+        GroupInfo record = this.loadFromWriterDB("group_info.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

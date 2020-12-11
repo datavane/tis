@@ -37,12 +37,12 @@ public class UploadResourceDAOImpl extends BasicDAO<UploadResource, UploadResour
     }
 
     public int countByExample(UploadResourceCriteria example) {
-        Integer count = (Integer) this.count("upload_resource.ibatorgenerated_countByExample", example);
+        Integer count = this.count("upload_resource.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(UploadResourceCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("upload_resource.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("upload_resource.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -85,7 +85,7 @@ public class UploadResourceDAOImpl extends BasicDAO<UploadResource, UploadResour
     public UploadResource selectByPrimaryKey(Long urId) {
         UploadResource key = new UploadResource();
         key.setUrId(urId);
-        UploadResource record = (UploadResource) this.load("upload_resource.ibatorgenerated_selectByPrimaryKey", key);
+        UploadResource record = this.load("upload_resource.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -108,7 +108,7 @@ public class UploadResourceDAOImpl extends BasicDAO<UploadResource, UploadResour
     public UploadResource loadFromWriteDB(Long urId) {
         UploadResource key = new UploadResource();
         key.setUrId(urId);
-        UploadResource record = (UploadResource) this.loadFromWriterDB("upload_resource.ibatorgenerated_selectByPrimaryKey", key);
+        UploadResource record = this.loadFromWriterDB("upload_resource.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

@@ -15,7 +15,7 @@
 package com.qlangtech.tis.db.parser;
 
 import com.qlangtech.tis.db.parser.ScannerPatterns.TokenTypes;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
+import com.qlangtech.tis.plugin.ds.DBConfig;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 

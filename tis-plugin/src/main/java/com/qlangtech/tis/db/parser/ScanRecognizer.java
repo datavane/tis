@@ -14,8 +14,9 @@
  */
 package com.qlangtech.tis.db.parser;
 
-import java.util.regex.Pattern;
 import com.qlangtech.tis.db.parser.ScannerPatterns.TokenTypes;
+
+import java.util.regex.Pattern;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

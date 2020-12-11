@@ -23,6 +23,7 @@ import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.plugin.ComponentMeta;
@@ -88,12 +89,13 @@ public class TIS {
         public DataSourceFactoryPluginStore compute(DSKey key) {
             if (key.isFacadeType()) {
                 // shall not maintance record in DB
-                return new DataSourceFactoryPluginStore(key, false) {
-                    @Override
-                    public void saveTable(String tableName) throws Exception {
-                        throw new UnsupportedOperationException("tableName:" + tableName);
-                    }
-                };
+                return new DataSourceFactoryPluginStore(key, false);
+//                {
+//                    @Override
+//                    public void saveTable(String tableName) throws Exception {
+//                        throw new UnsupportedOperationException("tableName:" + tableName);
+//                    }
+//                };
             } else {
                 return new DataSourceFactoryPluginStore(key, true);
             }
@@ -103,14 +105,30 @@ public class TIS {
     /**
      * Get db relevant plugin config
      *
-     * @param pluginContext
+     * @param dsProp
      * @return
      */
+    public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
+        return getDataBasePluginStore(null, dsProp);
+    }
+
     public static DataSourceFactoryPluginStore getDataBasePluginStore(IPluginContext pluginContext, PostedDSProp dsProp) {
         DataSourceFactoryPluginStore pluginStore
                 = databasePluginStore.get(new DSKey(DB_GROUP_NAME
                 , dsProp.getDbType(), dsProp.getDbname(), DataSourceFactory.class, pluginContext));
         return pluginStore;
+    }
+
+    public static void deleteDB(String dbName) {
+        try {
+            DataSourceFactoryPluginStore dsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName));
+            dsPluginStore.deleteDB();
+            DataSourceFactoryPluginStore facetDsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, DbScope.FACADE));
+            databasePluginStore.clear(dsPluginStore.getDSKey());
+            databasePluginStore.clear(facetDsPluginStore.getDSKey());
+        } catch (Exception e) {
+            throw new RuntimeException(dbName, e);
+        }
     }
 
 
@@ -174,7 +192,7 @@ public class TIS {
     private TIS() {
         final long start = System.currentTimeMillis();
         try {
-            this.pluginManager = new PluginManager(this.pluginDirRoot);
+            this.pluginManager = new PluginManager(pluginDirRoot);
             final InitStrategy is = InitStrategy.get(Thread.currentThread().getContextClassLoader());
             executeReactor(// loading and preparing plugins
                     is, // load jobs
@@ -424,7 +442,7 @@ public class TIS {
     // return new File(this.pluginCfgRoot, collection + File.separator + KEY_TIS_INCR_COMPONENT_CONFIG_FILE);
     // }
     private File getGlobalConfigFile() {
-        return new File(this.pluginCfgRoot, "global" + File.separator + KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE);
+        return new File(pluginCfgRoot, "global" + File.separator + KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE);
     }
     // public void saveComponent(String collection, IncrComponent incrComponent) {
     // try {

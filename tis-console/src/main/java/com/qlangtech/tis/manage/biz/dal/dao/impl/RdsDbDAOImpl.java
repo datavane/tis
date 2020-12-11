@@ -31,12 +31,12 @@ public class RdsDbDAOImpl extends BasicDAO<RdsDb, RdsDbCriteria> implements IRds
     }
 
     public int countByExample(RdsDbCriteria example) {
-        Integer count = (Integer) this.count("rds_db.ibatorgenerated_countByExample", example);
+        Integer count = this.count("rds_db.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(RdsDbCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("rds_db.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("rds_db.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -75,7 +75,7 @@ public class RdsDbDAOImpl extends BasicDAO<RdsDb, RdsDbCriteria> implements IRds
     public RdsDb selectByPrimaryKey(Long id) {
         RdsDb key = new RdsDb();
         key.setId(id);
-        RdsDb record = (RdsDb) this.load("rds_db.ibatorgenerated_selectByPrimaryKey", key);
+        RdsDb record = this.load("rds_db.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -92,7 +92,7 @@ public class RdsDbDAOImpl extends BasicDAO<RdsDb, RdsDbCriteria> implements IRds
     public RdsDb loadFromWriteDB(Long id) {
         RdsDb key = new RdsDb();
         key.setId(id);
-        RdsDb record = (RdsDb) this.loadFromWriterDB("rds_db.ibatorgenerated_selectByPrimaryKey", key);
+        RdsDb record = this.loadFromWriterDB("rds_db.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

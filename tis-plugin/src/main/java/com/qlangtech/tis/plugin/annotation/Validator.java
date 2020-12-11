@@ -245,7 +245,7 @@ public enum Validator {
         FieldValidatorResult vresult;
         boolean faild = false;
         for (Map.Entry<String, FieldValidators> entry : fieldsValidator.entrySet().stream().filter((e) -> {
-            return validateEmptyDependency ? e.getValue().dependencyRules.isEmpty() : !e.getValue().dependencyRules.isEmpty();
+            return validateEmptyDependency == e.getValue().dependencyRules.isEmpty();
         }).collect(Collectors.toList())) {
             fieldKey = entry.getKey();
             fvalidator = entry.getValue();
@@ -304,7 +304,7 @@ public enum Validator {
         }
     }
 
-    private Validator(IFieldValidator fv) {
+    Validator(IFieldValidator fv) {
         this.fieldValidator = fv;
     }
 

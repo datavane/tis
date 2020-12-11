@@ -92,11 +92,11 @@ solrAdminApp.controller('SchemaController',
 
         $scope.selectFieldOrType = function() {
             $location.search($scope.fieldOrType);
-        }
+        };
 
         $scope.toggleAnalyzer = function(analyzer) {
             analyzer.show = !analyzer.show;
-        }
+        };
 
         $scope.loadTermInfo = function() {
             var params = {fl: $scope.name, core: $routeParams.core};
@@ -111,7 +111,7 @@ solrAdminApp.controller('SchemaController',
                     $scope.topTermsCount = $scope.termInfo.termCount;
                 }
             });
-        }
+        };
 
         $scope.toggleTerms = function() {
             $scope.showTerms = !$scope.showTerms;
@@ -119,24 +119,24 @@ solrAdminApp.controller('SchemaController',
             if ($scope.showTerms) {
                 $scope.loadTermInfo();
             }
-        }
+        };
 
         $scope.loadAllTerms = function() {
             $scope.topTermsCount = $scope.termInfo.maxTerms;
             $scope.loadTermInfo();
-        }
+        };
 
         $scope.toggleAutoload = function() {
             $scope.isAutoload = !$scope.isAutoload;
             $cookies[cookie_schema_browser_autoload] = $scope.isAutoload;
             console.log("cookie: " + $cookies[cookie_schema_browser_autoload]);
-        }
+        };
 
         $scope.hideAll = function() {
             $scope.showAddField = false;
             $scope.showAddDynamicField = false;
             $scope.showAddCopyField = false;
-        }
+        };
 
         $scope.toggleAddField = function() {
             if ($scope.showAddField && $scope.adding == "field") {
@@ -149,10 +149,10 @@ solrAdminApp.controller('SchemaController',
                 $scope.newField = {
                     stored: "true",
                     indexed: "true"
-                }
+                };
                 delete $scope.addErrors;
             }
-        }
+        };
 
         $scope.addField = function() {
             delete $scope.addErrors;
@@ -172,7 +172,7 @@ solrAdminApp.controller('SchemaController',
                     }, 1500);
                 }
             });
-        }
+        };
 
         $scope.toggleAddDynamicField = function() {
             if ($scope.showAddField && $scope.adding == "dynamicField") {
@@ -185,10 +185,10 @@ solrAdminApp.controller('SchemaController',
                 $scope.newField = {
                     stored: "true",
                     indexed: "true"
-                }
+                };
                 delete $scope.addErrors;
             }
-        }
+        };
 
         $scope.addDynamicField = function() {
             delete $scope.addErrors;
@@ -208,7 +208,7 @@ solrAdminApp.controller('SchemaController',
                     }, 1500);
                 }
             });
-        }
+        };
 
         $scope.toggleAddCopyField = function() {
             if ($scope.showAddCopyField) {
@@ -220,7 +220,7 @@ solrAdminApp.controller('SchemaController',
                 $scope.copyField = {};
                 delete $scope.addCopyFieldErrors;
             }
-        }
+        };
         $scope.addCopyField = function() {
             delete $scope.addCopyFieldErrors;
             var data = {"add-copy-field": $scope.copyField};
@@ -235,7 +235,7 @@ solrAdminApp.controller('SchemaController',
                     $timeout($scope.refresh, 1500);
                 }
             });
-        }
+        };
 
         $scope.toggleDelete = function() {
             if ($scope.showDelete) {
@@ -250,7 +250,7 @@ solrAdminApp.controller('SchemaController',
                 }
                 $scope.showDelete = true;
             }
-        }
+        };
 
         $scope.delete = function() {
             Schema.post({core: $routeParams.core}, $scope.deleteData, function(data) {
@@ -267,11 +267,11 @@ solrAdminApp.controller('SchemaController',
                    );
                }
             });
-        }
+        };
         $scope.toggleDeleteCopyField = function(field) {
             field.show = !field.show;
             delete field.errors;
-        }
+        };
         $scope.deleteCopyField = function(field, source, dest) {
             data = {'delete-copy-field': {source: source, dest: dest}};
             Schema.post({core: $routeParams.core}, data, function(data) {
@@ -327,7 +327,7 @@ var filterFields = function(type, data, name) {
         }
     }
     return fields.sort();
-}
+};
 
 var mergeIndexAndSchemaData = function(index, schema) {
 
@@ -443,7 +443,7 @@ var getFieldProperties = function(data, core, is, field) {
         } else {
             display.rows.push({name:name, comment:flags});
         }
-    }
+    };
 
     // Identify the rows for our field property table
     if (is.field && data.fields[field]) {
@@ -527,7 +527,7 @@ var getAnalysisInfo = function(data, is, name) {
         } else {
             return {label: label, key: key};
         }
-    }
+    };
 
     var buildAnalyzer = function (analyzerData) {
         var analyzer = {};
@@ -539,7 +539,7 @@ var getAnalysisInfo = function(data, is, name) {
             analyzer.componentTypes.push(processComponentType("Token Filters", "tokenFilters", analyzerData.filters));
         }
         return analyzer;
-    }
+    };
 
     analysis.data = data.types[type];
     if (analysis.data) {
@@ -549,7 +549,7 @@ var getAnalysisInfo = function(data, is, name) {
         ];
     }
     return analysis;
-}
+};
 
 var getTermInfo = function(data) {
 
@@ -557,7 +557,7 @@ var getTermInfo = function(data) {
     if (data && data.topTerms) {
         termInfo.topTerms = [];
 
-        var currentGroup = {count: 0}
+        var currentGroup = {count: 0};
         for (var i = 0; i < data.topTerms.length; i += 2) {
             var count = data.topTerms[i + 1];
             if (currentGroup.count != count) {
@@ -587,7 +587,7 @@ var sortedObjectArray = function(list) {
       objarr.push({"name": list[i]});
     }
     return objarr;
-}
+};
 
 /*
         var get_width = function get_width()

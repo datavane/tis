@@ -45,12 +45,12 @@ public class BizFuncAuthorityDAOImpl extends BasicDAO<BizFuncAuthority, BizFuncA
     }
 
     public int countByExample(BizFuncAuthorityCriteria example) {
-        Integer count = (Integer) this.count("biz_func_authority.ibatorgenerated_countByExample", example);
+        Integer count = this.count("biz_func_authority.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(BizFuncAuthorityCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("biz_func_authority.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("biz_func_authority.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -94,7 +94,7 @@ public class BizFuncAuthorityDAOImpl extends BasicDAO<BizFuncAuthority, BizFuncA
     public BizFuncAuthority selectByPrimaryKey(Integer bfId) {
         BizFuncAuthority key = new BizFuncAuthority();
         key.setBfId(bfId);
-        BizFuncAuthority record = (BizFuncAuthority) this.load("biz_func_authority.ibatorgenerated_selectByPrimaryKey", key);
+        BizFuncAuthority record = this.load("biz_func_authority.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -111,7 +111,7 @@ public class BizFuncAuthorityDAOImpl extends BasicDAO<BizFuncAuthority, BizFuncA
     public BizFuncAuthority loadFromWriteDB(Integer bfId) {
         BizFuncAuthority key = new BizFuncAuthority();
         key.setBfId(bfId);
-        BizFuncAuthority record = (BizFuncAuthority) this.loadFromWriterDB("biz_func_authority.ibatorgenerated_selectByPrimaryKey", key);
+        BizFuncAuthority record = this.loadFromWriterDB("biz_func_authority.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 

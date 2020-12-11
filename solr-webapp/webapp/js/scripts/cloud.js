@@ -272,7 +272,7 @@ var generate_graph = function( graph_element, graph_data, leaf_count )
     .data( nodes )
     .enter().append( 'g' )
       .attr( 'class', helper_node_class )
-      .attr( 'transform', function(d) { return 'translate(' + d.y + ',' + d.x + ')'; } )
+      .attr( 'transform', function(d) { return 'translate(' + d.y + ',' + d.x + ')'; } );
 
   node.append( 'circle' )
     .attr( 'r', 4.5 );
@@ -298,7 +298,7 @@ var generate_graph = function( graph_element, graph_data, leaf_count )
 
 var generate_rgraph = function( graph_element, graph_data, leaf_count )
 {
-  var max_val = Math.min( graph_element.width(), $( 'body' ).height() )
+  var max_val = Math.min( graph_element.width(), $( 'body' ).height() );
   var r = max_val / 2;
 
   var cluster = d3.layout.cluster()
@@ -325,7 +325,7 @@ var generate_rgraph = function( graph_element, graph_data, leaf_count )
     .data( nodes )
     .enter().append( 'g' )
       .attr( 'class', helper_node_class )
-      .attr( 'transform', function(d) { return 'rotate(' + (d.x - 90) + ')translate(' + d.y + ')'; } )
+      .attr( 'transform', function(d) { return 'rotate(' + (d.x - 90) + ')translate(' + d.y + ')'; } );
 
   node.append( 'circle' )
     .attr( 'r', 4.5 );
@@ -370,7 +370,7 @@ var prepare_graph_data = function( response, graph_element, live_nodes, callback
         for( var n in state[c].shards[s].replicas )
         {
           leaf_count++;
-          var replica = state[c].shards[s].replicas[n]
+          var replica = state[c].shards[s].replicas[n];
 
           var uri = replica.base_url;
           var parts = uri.match( /^(\w+:)\/\/(([\w\d\.-]+)(:(\d+))?)(.+)$/ );
@@ -434,7 +434,7 @@ var prepare_graph_data = function( response, graph_element, live_nodes, callback
     helper_data.pathname = $.unique( helper_data.pathname );
 
     callback( graph_element, graph_data, leaf_count );  
-}
+};
 
 var update_status_filter = function(filterType, filterVal) {
   if (filterType == 'status') {
@@ -492,7 +492,7 @@ var prepare_graph = function( graph_element, callback )
             },
             success : function( response, text_status, xhr )
             {              
-              prepare_graph_data(response, graph_element, live_nodes, callback)
+              prepare_graph_data(response, graph_element, live_nodes, callback);
 
               if (response.znode && response.znode.paging) {
                 var parr = response.znode.paging.split('|');
@@ -509,8 +509,8 @@ var prepare_graph = function( graph_element, callback )
                 else
                   $('#cloudGraphPagingPrev').hide();
                 
-                var rows = parseInt(parr[1])
-                var total = parseInt(parr[2])
+                var rows = parseInt(parr[1]);
+                var total = parseInt(parr[2]);
                 $( '#cloudGraphPagingStart' ).val(start);
                 $( '#cloudGraphPagingRows' ).val(rows);
                 if (rows == -1)
@@ -572,7 +572,7 @@ var init_graph = function( graph_element )
       generate_graph( graph_element, graph_data, leaf_count );
     }
   );
-}
+};
 
 var init_rgraph = function( graph_element )
 {
@@ -584,7 +584,7 @@ var init_rgraph = function( graph_element )
       generate_rgraph( graph_element, graph_data, leaf_count );
     }
   );
-}
+};
 
 var init_tree = function( tree_element )
 {

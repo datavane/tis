@@ -49,6 +49,6 @@ public class TestComponentMeta extends TestCase {
         }
         IYarnConfig yarn1 = ParamsConfig.getItem("yarn1", IYarnConfig.class);
         assertNotNull(yarn1);
-        assertEquals("yarn1", yarn1.getName());
+        assertEquals("yarn1", yarn1.identityValue());
     }
 }

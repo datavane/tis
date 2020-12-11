@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -17,13 +17,14 @@ package com.qlangtech.tis.compiler.java;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.db.parser.domain.DBConfig;
-// import com.taobao.terminator.db.parser.domain.*;
+import com.qlangtech.tis.plugin.ds.DBConfig;
+import com.qlangtech.tis.plugin.ds.IDbMeta;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
 import java.io.File;
@@ -38,6 +39,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
+
+// import com.taobao.terminator.db.parser.domain.*;
 
 /**
  * 将自动生成出来的java类进行编译 https://blog.csdn.net/lmy86263/article/details/59742557
@@ -58,11 +61,11 @@ public class JavaCompilerProcess {
 
     private final File classpathDir;
 
-    private final DBConfig dbConfig;
+    private final IDbMeta dbConfig;
 
     private final File sourceDir;
 
-    public JavaCompilerProcess(DBConfig dbConfig, File sourceDir, File classpathDir) {
+    public JavaCompilerProcess(IDbMeta dbConfig, File sourceDir, File classpathDir) {
         super();
         if (sourceDir == null || !sourceDir.exists()) {
             throw new IllegalArgumentException("param sourceDir can not be null");
@@ -83,18 +86,18 @@ public class JavaCompilerProcess {
         dbConfig.setName("shop");
         JavaCompilerProcess compilerProcess = new JavaCompilerProcess(dbConfig, rootDir, classpathDir);
         compilerProcess.compileAndBuildJar();
-    // JarFile jarFile = new JarFile(
-    // "D:\\j2ee_solution\\mvn_repository\\com\\dfire\\tis\\tis-ibatis\\2.0\\tis-ibatis-2.0.jar");
-    // JarEntry next = null;
-    // Enumeration<JarEntry> entries = jarFile.entries();
-    // InputStream input = null;
-    // while (entries.hasMoreElements()) {
-    // next = entries.nextElement();
-    // 
-    // System.out.println(next.getName() + ",input is dir:" + next.isDirectory());
-    // 
-    // }
-    // jarFile.close();
+        // JarFile jarFile = new JarFile(
+        // "D:\\j2ee_solution\\mvn_repository\\com\\dfire\\tis\\tis-ibatis\\2.0\\tis-ibatis-2.0.jar");
+        // JarEntry next = null;
+        // Enumeration<JarEntry> entries = jarFile.entries();
+        // InputStream input = null;
+        // while (entries.hasMoreElements()) {
+        // next = entries.nextElement();
+        //
+        // System.out.println(next.getName() + ",input is dir:" + next.isDirectory());
+        //
+        // }
+        // jarFile.close();
     }
 
     /**
@@ -128,13 +131,13 @@ public class JavaCompilerProcess {
             // 在其他实例都已经准备完毕后, 构建编译任务, 其他实例的构建见如下
             // 
             CompilationTask compileTask = // 
-            compiler.getTask(// 
-            new OutputStreamWriter(System.err), // 
-            manager, // 
-            collector, // 
-            options, // 
-            classes, // 
-            fileObjects.classMap.values().stream().map((r) -> r.getFileObject()).collect(Collectors.toList()));
+                    compiler.getTask(//
+                            new OutputStreamWriter(System.err), //
+                            manager, //
+                            collector, //
+                            options, //
+                            classes, //
+                            fileObjects.classMap.values().stream().map((r) -> r.getFileObject()).collect(Collectors.toList()));
             compileTask.call();
             collector.getDiagnostics().forEach(item -> System.out.println(item.toString()));
             // final Set<String> zipDirSet = Sets.newHashSet();
@@ -250,9 +253,9 @@ public class JavaCompilerProcess {
                 // zipPath = new ZipPath(childPath.stream().collect(Collectors.joining("/")), className, //
                 // isJavaSourceCode ? JavaFileObject.Kind.SOURCE : JavaFileObject.Kind.OTHER);// + ".class";
                 zipPath = new // 
-                ZipPath(// 
-                zp, // + ".class";
-                className, isJavaSourceCode ? JavaFileObject.Kind.SOURCE : JavaFileObject.Kind.OTHER);
+                        ZipPath(//
+                        zp, // + ".class";
+                        className, isJavaSourceCode ? JavaFileObject.Kind.SOURCE : JavaFileObject.Kind.OTHER);
                 result.classMap.put(childPath.stream().collect(Collectors.joining(".")) + "." + className, sourceGetterStrategy.processMyJavaFileObject(new MyJavaFileObject(child, zipPath, sourceGetterStrategy.getSourceKind(), isJavaSourceCode)));
             }
         });
@@ -294,7 +297,7 @@ public class JavaCompilerProcess {
     }
 
     private static final SourceGetterStrategy // 
-    JAVA_GETTER = new SourceGetterStrategy(true, "java", ".java");
+            JAVA_GETTER = new SourceGetterStrategy(true, "java", ".java");
 
     public static void traversingFiles(Stack<String> childPath, File parent, FileObjectsContext result, IProcessFile fileProcess) {
         if (parent == null || !parent.exists()) {
@@ -326,7 +329,7 @@ public class JavaCompilerProcess {
     public static class FileObjectsContext {
 
         public Map<String, IOutputEntry> /* class name */
-        classMap = Maps.newHashMap();
+                classMap = Maps.newHashMap();
 
         Set<String> dirSet = Sets.newHashSet();
 

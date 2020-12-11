@@ -54,7 +54,11 @@ public class DefaultIndexBuilderTriggerFactory extends IndexBuilderTriggerFactor
     }
 
     @Override
-    public String getName() {
+    public String identityValue() {
         return NAME;
     }
+//    @Override
+//    public String getName() {
+//        return NAME;
+//    }
 }

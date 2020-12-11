@@ -23,7 +23,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  */
 public interface ISnapshotViewDAO {
 
-    public SnapshotDomain getView(Integer snId);
+    SnapshotDomain getView(Integer snId);
 
-    public SnapshotDomain getView(Integer snId, RunEnvironment runtime);
+    SnapshotDomain getView(Integer snId, RunEnvironment runtime);
 }

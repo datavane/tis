@@ -25,11 +25,11 @@ import java.util.List;
  */
 public interface PluginStrategy {
 
-    public static final String FILE_NAME_timestamp2 = ".timestamp2";
+    String FILE_NAME_timestamp2 = ".timestamp2";
 
     <T> List<ExtensionComponent<T>> findComponents(Class<T> extensionType, TIS tis);
 
-    public void updateDependency(PluginWrapper depender, PluginWrapper dependee);
+    void updateDependency(PluginWrapper depender, PluginWrapper dependee);
 
     /**
      * Creates a plugin wrapper, which provides a management interface for the plugin

@@ -48,19 +48,19 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     private interface Item {
 
-        public static final int INTEGER_ITEM = 0;
+        int INTEGER_ITEM = 0;
 
-        public static final int STRING_ITEM = 1;
+        int STRING_ITEM = 1;
 
-        public static final int LIST_ITEM = 2;
+        int LIST_ITEM = 2;
 
-        public static final int WILDCARD_ITEM = 3;
+        int WILDCARD_ITEM = 3;
 
-        public int compareTo(Item item);
+        int compareTo(Item item);
 
-        public int getType();
+        int getType();
 
-        public boolean isNull();
+        boolean isNull();
     }
 
     /**
@@ -279,7 +279,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
                     // 1-0 = 1- (normalize) = 1
                     return 0;
                 }
-                Item first = (Item) get(0);
+                Item first = get(0);
                 return first.compareTo(null);
             }
             switch(item.getType()) {
@@ -399,7 +399,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     private static Item parseItem(boolean isDigit, String buf) {
-        return isDigit ? (Item) new IntegerItem(buf) : (Item) new StringItem(buf, false);
+        return isDigit ? new IntegerItem(buf) : new StringItem(buf, false);
     }
 
     public int compareTo(VersionNumber o) {

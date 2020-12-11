@@ -49,6 +49,6 @@ public interface IServerGroupDAO {
     ServerGroup loadFromWriteDB(Integer gid);
 
     // 百岁添加
-    public ServerGroup load(String appName, Short groupIndex, Short runtime);
+    ServerGroup load(String appName, Short groupIndex, Short runtime);
     // end
 }

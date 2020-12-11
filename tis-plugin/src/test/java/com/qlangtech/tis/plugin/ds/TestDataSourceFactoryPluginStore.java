@@ -16,6 +16,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.BasicTestCase;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.offline.DbScope;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -24,12 +25,30 @@ import com.qlangtech.tis.TIS;
 public class TestDataSourceFactoryPluginStore extends BasicTestCase {
 
     private static final String DB_NAME = "order1";
+    private static final String DB_EMPLOYEE_NAME = "employees";
     private static final String TABLE_NAME = "totalpayinfo";
 
     public void testLoadTableMeta() {
         DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(null, new PostedDSProp(DB_NAME));
+        //dbPluginStore.getPlugin()
+        assertNotNull(dbPluginStore.getPlugin());
         TISTable tab = dbPluginStore.loadTableMeta(TABLE_NAME);
         assertNotNull(tab);
         assertEquals(37, tab.getReflectCols().size());
+    }
+
+
+    public void testLoadFacadeTableMeta() throws Exception {
+        DataSourceFactoryPluginStore employeesPluginStore
+                = TIS.getDataBasePluginStore(null, new PostedDSProp(DB_EMPLOYEE_NAME, DbScope.FACADE));
+        assertNotNull(employeesPluginStore);
+
+        Class<?> aClass = Class.forName("com.qlangtech.tis.plugin.ds.DBConfig");
+        System.out.println(aClass);
+
+        DataSourceFactory plugin = employeesPluginStore.getPlugin();
+        assertNotNull(plugin);
+       // plugin.createFacadeDataSource();
+
     }
 }

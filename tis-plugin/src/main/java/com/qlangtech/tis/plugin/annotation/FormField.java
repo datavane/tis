@@ -27,6 +27,10 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface FormField {
     //String name() default "";
+    /**
+     * 替换IdentityName接口的功能，说明一个插件中有一个field的值能代表该插件的唯一ID，不过一个插件中只能有一个field标记为identity=true
+     */
+    boolean identity() default false;
 
     String dftVal() default StringUtils.EMPTY;
 
@@ -34,7 +38,7 @@ public @interface FormField {
     int ordinal() default 0;
 
     // 表单字段是否必须
-   // boolean require() default false;
+    // boolean require() default false;
 
     Validator[] validate() default {};
 

@@ -119,10 +119,7 @@ public class RobustReflectionConverter implements Converter {
             if (classesWithField == null) {
                 return false;
             }
-            if (!classesWithField.contains(clazz.getName())) {
-                return false;
-            }
-            return true;
+            return classesWithField.contains(clazz.getName());
         } finally {
             criticalFieldsLock.readLock().unlock();
         }

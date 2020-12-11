@@ -31,12 +31,12 @@ public class AppTriggerJobRelationDAOImpl extends BasicDAO<AppTriggerJobRelation
     }
 
     public int countByExample(AppTriggerJobRelationCriteria example) {
-        Integer count = (Integer) this.count("app_trigger_job_relation.ibatorgenerated_countByExample", example);
+        Integer count = this.count("app_trigger_job_relation.ibatorgenerated_countByExample", example);
         return count;
     }
 
     public int countFromWriteDB(AppTriggerJobRelationCriteria example) {
-        Integer count = (Integer) this.countFromWriterDB("app_trigger_job_relation.ibatorgenerated_countByExample", example);
+        Integer count = this.countFromWriterDB("app_trigger_job_relation.ibatorgenerated_countByExample", example);
         return count;
     }
 
@@ -75,7 +75,7 @@ public class AppTriggerJobRelationDAOImpl extends BasicDAO<AppTriggerJobRelation
     public AppTriggerJobRelation selectByPrimaryKey(Long atId) {
         AppTriggerJobRelation key = new AppTriggerJobRelation();
         key.setAtId(atId);
-        AppTriggerJobRelation record = (AppTriggerJobRelation) this.load("app_trigger_job_relation.ibatorgenerated_selectByPrimaryKey", key);
+        AppTriggerJobRelation record = this.load("app_trigger_job_relation.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -92,7 +92,7 @@ public class AppTriggerJobRelationDAOImpl extends BasicDAO<AppTriggerJobRelation
     public AppTriggerJobRelation loadFromWriteDB(Long atId) {
         AppTriggerJobRelation key = new AppTriggerJobRelation();
         key.setAtId(atId);
-        AppTriggerJobRelation record = (AppTriggerJobRelation) this.loadFromWriterDB("app_trigger_job_relation.ibatorgenerated_selectByPrimaryKey", key);
+        AppTriggerJobRelation record = this.loadFromWriterDB("app_trigger_job_relation.ibatorgenerated_selectByPrimaryKey", key);
         return record;
     }
 
@@ -112,7 +112,7 @@ public class AppTriggerJobRelationDAOImpl extends BasicDAO<AppTriggerJobRelation
 
     /*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.taobao.terminator.manage.common.BasicDAO#getTableName()
 	 */
     @Override
