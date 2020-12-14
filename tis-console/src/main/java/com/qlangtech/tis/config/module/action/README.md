@@ -7,9 +7,6 @@ http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_cre
 ### Request Body
 
 ``` javascript
-
-
-
 {
  datasource: {
     plugin: "TiKV",
@@ -17,8 +14,17 @@ http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_cre
     dbName: "employees"
  },
  table: "employess",
+ indexName: "employess",
  columns: [
   {name:"id",token:"ik",search:true}
  ]
+ ,
+ incr: {
+   plugin: "TiCDC-Kafka"，
+   mqAddress: "192.168.28.201:9092" ,
+   topic: "test_topic"  ,
+   groupId: "test_group" ,
+   offsetResetStrategy: "earliest" #earliest or latest or none
+ }
 }
 ```
