@@ -28,3 +28,42 @@ http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_cre
  }
 }
 ```
+
+### Response 
+
+``` javascript
+{
+ success: true,
+ bizresult: {
+  taskid: 123
+ }
+}
+```
+
+## 轮询索引构建结果
+
+### Url
+
+http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_get_status
+
+### Request Body
+
+``` javascript
+{
+ taskid: 123
+}
+```
+
+### Response 
+
+``` javascript
+{
+ success: true,
+ bizresult: {
+  
+ }
+}
+```
+
+
+
