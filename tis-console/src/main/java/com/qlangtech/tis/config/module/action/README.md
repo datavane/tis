@@ -34,6 +34,7 @@ http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_cre
 ``` javascript
 {
  success: true,
+ errormsg:["err1"],
  bizresult: {
   taskid: 123
  }
@@ -51,6 +52,7 @@ http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_get
 ``` javascript
 {
  taskid: 123
+ log: true # 是否显示日志
 }
 ```
 
@@ -59,11 +61,24 @@ http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_get
 ``` javascript
 {
  success: true,
+ errormsg:["err1"], # 系统级异常信息
  bizresult: {
-  
+  complete: false,
+  faild: false,
+  stage: "dump", # dump,join,indexBuild,indexBackflow
+  errs: "" ,
+  logs: "" # 提交参数中 log 为true
  }
 }
 ```
+
+## 创建增量通道
+
+如果之前创建的索引实例没有创建
+
+## 执行全量构建
+
+## 删除已创建的索引
 
 
 
