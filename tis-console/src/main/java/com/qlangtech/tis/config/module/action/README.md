@@ -74,6 +74,32 @@ http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_
 
 ## 查询增量通道状态
 
+### Url 
+http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_get_incr_status
+
+### Request Body
+``` javascript
+{
+ indexName: "employess",
+ log: true
+}
+```
+### Response 
+
+``` javascript
+{
+ success: true,
+ errormsg:["err1"], # 系统级异常信息
+ bizresult: {
+  current_cursor:[
+     {mqName:"testKafka",cursor:123}
+  ]  # mq消费的游标
+  last_60_sec: 20, #最近 60秒内的流量
+  logs: ""         #提交参数中 log 为true
+ }
+}
+```
+
 ## 创建增量通道
 
 如果之前创建的索引实例没有创建增量通道，就可以创建，不然，报错
@@ -103,7 +129,7 @@ http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_
  success: true,
  errormsg:["err1"], # 系统级异常信息
  bizresult: {
-  logs: "" 
+  logs: "" # 增量实行日志
  }
 }
 ```
