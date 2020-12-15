@@ -2,7 +2,7 @@
 
 ### Url
 
-http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_create
+http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_create
 
 ### Request Body
 
@@ -45,7 +45,7 @@ http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_cre
 
 ### Url
 
-http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_get_status
+http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_get_status
 
 ### Request Body
 
@@ -72,9 +72,41 @@ http://host:8080/solr/config/config.ajax?action=collection_action&emethod=do_get
 }
 ```
 
+## 查询增量通道状态
+
 ## 创建增量通道
 
-如果之前创建的索引实例没有创建
+如果之前创建的索引实例没有创建增量通道，就可以创建，不然，报错
+
+### Url 
+http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_create_incr
+
+### Request Body
+
+``` javascript
+{
+ indexName: "employess" ,
+ incr: {
+   plugin: "TiCDC-Kafka"，
+   mqAddress: "192.168.28.201:9092" ,
+   topic: "test_topic"  ,
+   groupId: "test_group" ,
+   offsetResetStrategy: "earliest" #earliest or latest or none,可选
+ }
+}
+```
+
+### Response 
+
+``` javascript
+{
+ success: true,
+ errormsg:["err1"], # 系统级异常信息
+ bizresult: {
+  logs: "" 
+ }
+}
+```
 
 ## 执行全量构建
 
