@@ -36,16 +36,34 @@ http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_
  success: true,
  errormsg:["err1"],
  bizresult: {
-  taskid: 123
+  taskid: 123  # 后续可以根据此id 轮询任务执行状态
  }
 }
 ```
+## 取得索引状态
+### Url
+http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_get_index_status
+### Request Body
+``` javascript
+{
+ indexName: ""
+ log:  true
+}
+```
+### Response 
 
+``` javascript
+{
+  doc_num: 99999999,
+  latest_fullbuild_time: "2020-11-11 12:00:00",
+  incr_ready: false # 增量是否开通 
+}
+```
 ## 轮询索引构建结果
 
 ### Url
 
-http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_get_status
+http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_get_task_status
 
 ### Request Body
 
@@ -63,6 +81,7 @@ http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_
  success: true,
  errormsg:["err1"], # 系统级异常信息
  bizresult: {
+  taskid: 123
   complete: false,
   faild: false,
   stage: "dump", # dump,join,indexBuild,indexBackflow
@@ -136,7 +155,52 @@ http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_
 
 ## 执行全量构建
 
+如果业务方数据有变更需要重新构建全量数据
+
+### Url
+http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_fullbuild
+
+### Request Body
+``` javascript
+{
+ indexName: "employess"
+}
+```
+
+### Response 
+``` javascript
+{
+ success: true,
+ errormsg:["err1"],
+ bizresult: {
+  taskid: 123  # 后续可以根据此id 轮询任务执行状态
+ }
+}
+```
+后续可以根据`do_get_status`来轮询执行状态
+
 ## 删除已创建的索引
+将索引删除，如果已经开通增量通道，一并将增量实例也删除
+
+### Url
+http://${host}:8080/solr/config/config.ajax?action=collection_action&emethod=do_delete_index
+
+### Request Body
+``` javascript
+{
+ indexName: "employess"
+}
+```
+
+### Response
+``` javascript
+{
+ success: false, # 删除操作是否成功
+ errormsg:["err1"],
+ bizresult: {
+ }
+}
+```
 
 
 
