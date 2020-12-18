@@ -71,6 +71,7 @@ public abstract class BasicTestCase extends TestCase {
     public static final String COLLECTION_search4totalpay = "search4totalpay";
 
     static {
+        CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
         HttpUtils.addMockApply(1, COLLECTION_search4totalpay + "/0/daily/schema.xml", "schema-xstream.xml", AbstractTestS4totalpayIncr.class);
         //http://192.168.28.200:8080/tjs/download/appconfig/search4test2/0/daily/schema.xml?snapshotid=-1
@@ -99,7 +100,7 @@ public abstract class BasicTestCase extends TestCase {
         // }
         // };
         // 本地就是远程仓库，不需要再同步了
-        CenterResource.setNotFetchFromCenterRepository();
+
         System.out.println("mockConnMaker set===================================================================");
         System.setProperty("notdownloadjar", "true");
         // if (!TisIncrLauncher.notDownload) {

@@ -16,13 +16,14 @@ package com.qlangtech.tis.manage.common.valve;
 
 import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisActionMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.struts2.ServletActionContext;
-import org.apache.struts2.dispatcher.mapper.ActionMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,12 +59,15 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
   protected String doIntercept(ActionInvocation invocation) throws Exception {
     HttpServletResponse response = ServletActionContext.getResponse();
     TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
-    final ActionMapping mapping = ServletActionContext.getActionMapping();
+    ActionProxy proxy = invocation.getProxy();
+    //proxy.getNamespace()
+    //final ActionMapping mapping = ServletActionContext.getActionMapping();
     AjaxValve.ActionExecResult execResult = null;
     try {
+
       final String result = invocation.invoke();
-      // 一定要invoke之后再执行
       execResult = MockContext.getActionExecResult();
+      // 一定要invoke之后再执行
       if (!execResult.isSuccess()) {
         // 业务失败也要回滚
         transactionManager.rollback(status);
@@ -78,7 +82,8 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
       if (!status.isCompleted()) {
         transactionManager.rollback(status);
       }
-      if (TisActionMapper.REQUEST_EXTENDSION_AJAX.equals(mapping.getExtension())) {
+//if (TisActionMapper.REQUEST_EXTENDSION_AJAX.equals(mapping.getExtension())) {
+      if (StringUtils.endsWith(proxy.getNamespace(), TisActionMapper.ACTION_TOKEN)) {
         // logger.error(e.getMessage(), e);
         List<String> errors = new ArrayList<String>();
         errors.add("服务端发生异常，请联系系统管理员");
@@ -95,6 +100,8 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
         if (!findTisException) {
           errors.add(ExceptionUtils.getRootCauseMessage(e));
         }
+//        execResult = MockContext.getActionExecResult();
+//        execResult.addErrorMsg(errors);
         AjaxValve.writeInfo2Client(() -> false, response, false, errors, Collections.emptyList(), Collections.emptyList(), null);
         return Action.NONE;
       } else {

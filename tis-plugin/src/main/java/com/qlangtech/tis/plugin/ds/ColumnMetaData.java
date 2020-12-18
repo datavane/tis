@@ -15,6 +15,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 
@@ -25,13 +26,26 @@ import java.util.List;
 public class ColumnMetaData {
 
     public static StringBuffer buildExtractSQL(String tableName, List<ColumnMetaData> cols) {
+        return buildExtractSQL(tableName, false, cols);
+    }
+
+    public static StringBuffer buildExtractSQL(String tableName, boolean useAlias, List<ColumnMetaData> cols) {
+        if (CollectionUtils.isEmpty(cols)) {
+            throw new IllegalStateException("tableName:"+ tableName+"");
+        }
         StringBuffer sql = new StringBuffer();
         sql.append("SELECT ");
-        sql.append(Joiner.on(",").join(cols.stream().map((r) -> r.getKey()).iterator())).append("\n");
+        sql.append(Joiner.on(",").join(cols.stream().map((r) -> {
+            if (useAlias) {
+                return "a." + r.getKey();
+            } else {
+                return r.getKey();
+            }
+        }).iterator())).append("\n");
         sql.append("FROM ").append(tableName);
-//        if (!StringUtils.equals(table, tableLogicName)) {
-//            sql.append(" AS ").append(tableLogicName);
-//        }
+        if (useAlias) {
+            sql.append(" AS a");
+        }
         return sql;
     }
 

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,9 +20,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+
 import java.util.List;
 import java.util.Map;
 
@@ -32,10 +31,11 @@ import java.util.Map;
  */
 public class AttrValMap {
 
-    private final Map<String, JSONObject> /**
-     * attrName
-     */
-    attrValMap;
+    public static final String PLUGIN_EXTENSION_IMPL = "impl";
+    public static final String PLUGIN_EXTENSION_VALS = "vals";
+
+    private final Map<String, JSONObject> /*** attrName*/
+            attrValMap;
 
     private final Descriptor descriptor;
 
@@ -56,12 +56,12 @@ public class AttrValMap {
     public static AttrValMap parseDescribableMap(IControlMsgHandler fieldErrorHandler, com.alibaba.fastjson.JSONObject jsonObject) {
         String impl = null;
         Descriptor descriptor;
-        impl = jsonObject.getString("impl");
+        impl = jsonObject.getString(PLUGIN_EXTENSION_IMPL);
         descriptor = TIS.get().getDescriptor(impl);
         if (descriptor == null) {
             throw new IllegalStateException("impl:" + impl + " can not find relevant ");
         }
-        Object vals = jsonObject.get("vals");
+        Object vals = jsonObject.get(PLUGIN_EXTENSION_VALS);
         Map<String, JSONObject> attrValMap = Descriptor.parseAttrValMap(vals);
         // return descriptor.newInstance(attrValMap);
         return new AttrValMap(fieldErrorHandler, attrValMap, descriptor);

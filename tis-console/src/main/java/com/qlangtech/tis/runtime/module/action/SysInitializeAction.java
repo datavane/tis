@@ -66,7 +66,7 @@ public class SysInitializeAction extends BasicModule {
   private static final long serialVersionUID = 1L;
   private static final Logger logger = LoggerFactory.getLogger(SysInitializeAction.class);
 
-  private static final int DEPARTMENT_DEFAULT_ID = 2;
+  public static final int DEPARTMENT_DEFAULT_ID = 2;
   private static final int DEPARTMENT_ROOT_ID = 1;
   public static final int TEMPLATE_APPLICATION_DEFAULT_ID = 1;
 

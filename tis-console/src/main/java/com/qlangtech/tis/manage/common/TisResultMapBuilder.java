@@ -32,14 +32,14 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
  */
 public class TisResultMapBuilder implements ResultMapBuilder {
 
-    private static final ResultConfig ACTION_RESULT_CONFIG = (new ResultConfig.Builder(BasicModule.key_FORWARD, TerminatorForwardResult.class.getName())).build();
+    //private static final ResultConfig ACTION_RESULT_CONFIG = (new ResultConfig.Builder(BasicModule.key_FORWARD, TerminatorForwardResult.class.getName())).build();
 
     @Override
     public Map<String, ResultConfig> build(Class<?> actionClass, Action annotation, String actionName, PackageConfig packageConfig) {
         ResultConfig.Builder build = null;
         final String resultName = actionClass.getSimpleName();
         Map<String, ResultConfig> resultsConfig = new HashMap<String, ResultConfig>();
-        resultsConfig.put(BasicModule.key_FORWARD, ACTION_RESULT_CONFIG);
+       // resultsConfig.put(BasicModule.key_FORWARD, ACTION_RESULT_CONFIG);
         Matcher matcher = TisPackageBasedActionConfigBuilder.NAMESPACE_PATTERN.matcher(actionClass.getName());
         if (// || (matcher = TisPackageBasedActionConfigBuilder.NAMESPACE_TIS_PATTERN.matcher(actionClass.getName())).matches()
         matcher.matches()) {

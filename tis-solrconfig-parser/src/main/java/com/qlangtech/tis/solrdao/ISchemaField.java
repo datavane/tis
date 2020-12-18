@@ -20,34 +20,22 @@ package com.qlangtech.tis.solrdao;
  */
 public interface ISchemaField {
     String DEFAULT_STRING_TYPE_NAME = "string";
-
     String KEY_FIELD_TYPE = "fieldtype";
-
     String getName();
-
     /**
      * 字段类型名称，不是全路径
-     *
      * @return
      */
     String getTisFieldTypeName();
-
     String getTokenizerType();
 
     boolean isIndexed();
 
     boolean isStored();
-
     boolean isDocValue();
-
-//    // 是否支持区间查询
-//    boolean isRange();
-
     // 是否是多值
     boolean isMultiValue();
-
     boolean isDynamic();
-
     /**
      * 默认值
      *

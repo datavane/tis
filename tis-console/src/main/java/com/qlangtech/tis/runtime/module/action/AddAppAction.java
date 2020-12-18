@@ -118,7 +118,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   @Func(PermissionConstant.APP_ADD)
   public void doCreateCollection(Context context) throws Exception {
     CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);
-    confiemModel.setTplAppId(getTemplateApp().getAppId());
+    confiemModel.setTplAppId(getTemplateApp(this).getAppId());
     SchemaResult schemaResult = this.parseSchema(context, confiemModel);
     // if (!createNewApp(context, confiemModel.getAppform(), -1, /* publishSnapshotId */
     // null, /* schemaContent */
@@ -147,7 +147,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   @Func(PermissionConstant.APP_ADD)
   public void doAdvanceAddApp(Context context) throws Exception {
     CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);
-    confiemModel.setTplAppId(getTemplateApp().getAppId());
+    confiemModel.setTplAppId(getTemplateApp(this).getAppId());
     SchemaResult schemaResult = this.parseSchema(context, confiemModel);
     if (!createNewApp(context, confiemModel.getAppform(), -1, /**
        * publishSnapshotId
@@ -162,7 +162,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     });
   }
 
-  private void createCollection(Context context, CreateIndexConfirmModel confiemModel, SchemaResult schemaResult, ICreateNewApp appCreator) throws Exception {
+  protected void createCollection(Context context, CreateIndexConfirmModel confiemModel, SchemaResult schemaResult, ICreateNewApp appCreator) throws Exception {
     ExtendApp extApp = confiemModel.getAppform();
     appendPrefix(extApp);
     String workflow = confiemModel.getAppform().getWorkflow();
@@ -183,7 +183,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     Application app = new Application();
     app.setAppId(confiemModel.getTplAppId());
     Integer publishSnapshotId = getPublishSnapshotId(this.getServerGroupDAO(), app);
-    IUser loginUser = this.getUser();
+   // IUser loginUser = this.getUser();
     byte[] content = schemaResult.content;
     SelectableServer.ServerNodeTopology coreNode = confiemModel.getCoreNode();
     final int gourpCount = coreNode.getShardCount();
@@ -200,7 +200,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     }
     /**
      * *************************************************************************************
-     * 因为这里数据库的事物还没有提交，需要先将schema配置信息保存到缓存中去以便solrcore节点能获取到
+     * 因为这里数据库的事务还没有提交，需要先将schema配置信息保存到缓存中去以便solrcore节点能获取到
      * **************************************************************************************
      */
     final AppKey appKey = new AppKey(extApp.getProjectName(), /* appName ========== */
@@ -212,7 +212,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     CoreAction.createCollection(this, context, gourpCount, repliation, request, createResult.getNewId());
   }
 
-  interface ICreateNewApp {
+  public interface ICreateNewApp {
 
     public CreateSnapshotResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception;
   }
@@ -262,7 +262,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
    * @param context
    * @param app
    */
-  private CreateSnapshotResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception {
+  protected CreateSnapshotResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception {
     return this.createNewApp(context, app, publishSnapshotId, schemaContent, false);
   }
 
@@ -486,14 +486,14 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     }
   }
 
-  public static Department getDepartment(RunContext runcontext, Integer aliDptId) {
+  public static Department getDepartment(RunContext runcontext, Integer dptId) {
     // Department department = null;
     DepartmentCriteria criteria = new DepartmentCriteria();
-    criteria.createCriteria().andDptIdEqualTo(aliDptId);
+    criteria.createCriteria().andDptIdEqualTo(dptId);
     for (Department dpt : runcontext.getDepartmentDAO().selectByExample(criteria)) {
       return dpt;
     }
-    throw new IllegalArgumentException("aliDptId:" + aliDptId + " can not find any department obj");
+    throw new IllegalArgumentException("dptId:" + dptId + " can not find any department obj");
   }
 
   /**
@@ -522,7 +522,8 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       this.addErrorMessage(context, "拷贝目标应用已经删除");
       return;
     }
-    final ServerGroup group = DownloadServlet.getServerGroup(fromAppId, (new Integer(FIRST_GROUP_INDEX)).shortValue(), this.getAppDomain().getRunEnvironment().getId(), getServerGroupDAO());
+    final ServerGroup group = DownloadServlet.getServerGroup(fromAppId
+      , (new Integer(FIRST_GROUP_INDEX)).shortValue(), this.getAppDomain().getRunEnvironment().getId(), getServerGroupDAO());
     if (group == null) {
       this.addErrorMessage(context, "拷贝目标应用还没有定义组");
       return;
@@ -547,51 +548,11 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     newSnapshto.setCreateUserName(this.getLoginUserName());
     // final Integer newsnapshotId =
     this.getSnapshotDAO().insertSelective(newSnapshto);
-    // 更新目标组目标组
-    // ServerGroup destinatGroup = DownloadServlet.getServerGroup(toAppId,
-    // (new Integer(FIRST_GROUP_INDEX)).shortValue(),
-    // RunEnvironment.DAILY.getId(), getServerGroupDAO());
-    // if (destinatGroup == null) {
-    // // 插入组
-    // destinatGroup = getServerGroupDAO().loadFromWriteDB(
-    // GroupAction.createGroup(context, RunEnvironment.DAILY,
-    // FIRST_GROUP_INDEX, toAppId, this));
-    // }
-    // Assert.assertNotNull("destinatGroup can not be null", destinatGroup);
-    // ServerGroup updateGroup = new ServerGroup();
-    // updateGroup.setPublishSnapshotId(newsnapshotId);
-    // ServerGroupCriteria groupQuery = new ServerGroupCriteria();
-    // groupQuery.createCriteria().andGidEqualTo(destinatGroup.getGid());
-    // getServerGroupDAO().updateByExampleSelective(updateGroup,
-    // groupQuery);
+
     this.addActionMessage(context, "拷贝源应用“" + fromApp.getProjectName() + "”已经成功复制到目标应用“" + destinationApp.getProjectName() + "”");
   }
 
-  // @Func(PermissionConstant.APP_SERVER_GROUP_SET)
-  // public void doUpdateYuntipath(// @FormGroup("appupdate") Application
-  // form,
-  // // Navigator nav,
-  // Context context) {
-  // Integer groupid = this.getInt("groupid");
-  // Assert.assertNotNull(groupid);
-  //
-  // ServerGroup serverGroup = new ServerGroup();
-  // if (!setYuntiPath(serverGroup, context)) {
-  // return;
-  // }
-  //
-  // ServerGroupCriteria groupCriteria = new ServerGroupCriteria();
-  // groupCriteria.createCriteria().andGidEqualTo(groupid);
-  // this.getServerGroupDAO().updateByExampleSelective(serverGroup,
-  // groupCriteria);
-  //
-  // AppDomainInfo appdomain = this.getAppDomain();
-  // // this.addActionMessage(context, msg)
-  // this.addActionMessage(context,
-  // "应用:" + appdomain.getAppName() + " 环境："
-  // + appdomain.getRunEnvironment().getDescribe()
-  // + "的云梯路径已经成功更新成功：" + serverGroup.getYuntiPath());
-  // }
+
 
   /**
    * 更新应用

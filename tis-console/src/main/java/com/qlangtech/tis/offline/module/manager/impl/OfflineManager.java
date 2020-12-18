@@ -16,9 +16,7 @@ package com.qlangtech.tis.offline.module.manager.impl;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.db.parser.DBConfigParser;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
-import com.qlangtech.tis.db.parser.DBTokenizer;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.GitBranchInfo;
 import com.qlangtech.tis.git.GitUtils.GitUser;
@@ -35,6 +33,7 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.*;
@@ -46,8 +45,10 @@ import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
-import java.sql.*;
-import java.util.Date;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -78,124 +79,124 @@ public class OfflineManager {
   }
 
 
-  /**
-   * description: 测试连接，true连接成功，false连接失败 date: 3:04 PM 5/25/2017
-   */
-  public TestDbConnection testDbConnection(TISDb database, BasicModule action, Context context) throws Exception {
-    TestDbConnection testResult = new TestDbConnection();
-    testResult.facade = database.isFacade();
-    if (StringUtils.isBlank(database.getPassword()) || StringUtils.isBlank(database.getUserName())) {
-      throw new IllegalArgumentException("password:" + database.getPassword() + " or username:[" + database.getUserName() + "] is illegal");
-    }
-    if (StringUtils.isBlank(database.getHost())) {
-      throw new IllegalArgumentException("host can not be null");
-    }
-    // ///////////////////////////////////////////////////////////////////
-    DBTokenizer tokenizer = new DBTokenizer("host:" + database.getHost());
-    tokenizer.parse();
-    DBConfigParser parser = new DBConfigParser(tokenizer.getTokenBuffer());
-    parser.dbConfigResult.setName(database.getDbName());
-    parser.dbConfigResult.setPort(Integer.parseInt(database.getPort()));
-    if (!parser.parseHostDesc()) {
-      action.addErrorMessage(context, database.getHost() + " 有误，请联系系统管理员");
-      return testResult;
-    }
-    int dbCount = 0;
-    DBConfig db = parser.dbConfigResult;
-    for (Map.Entry<String, List<String>> entry : db.getDbEnum().entrySet()) {
-      dbCount += entry.getValue().size();
-    }
-    testResult.dbCount = dbCount;
-    if (database.isFacade() && dbCount > 1) {
-      action.addErrorMessage(context, "门面数据库目标库不能为多库");
-      return testResult;
-    }
-    StringBuilder connErrs = new StringBuilder();
-    if (!db.vistDbURL(false, (dbName, jdbcUrl) -> {
-      try {
-        validateConnection(jdbcUrl, db, database.getUserName(), database.getPassword(), (conn) -> {
-          Statement s = null;
-          ResultSet result = null;
-          try {
-            s = conn.createStatement();
-            result = s.executeQuery("select 1");
-            if (result.next()) {
-              result.getString(1);
-            }
-          } finally {
-            try {
-              result.close();
-            } catch (SQLException e) {
-            }
-            try {
-              s.close();
-            } catch (SQLException e) {
-            }
-          }
-        });
-      } catch (Throwable e) {
-        connErrs.append(dbName + " " + e.getMessage());
-      }
-    }, database.isFacade(), action, context)) {
-      return testResult;
-    }
-    if (connErrs.length() > 0) {
-      action.addErrorMessage(context, "连接异常:" + connErrs.toString());
-      return testResult;
-    }
-    return testResult.success();
-  }
-
-  public static class TestDbConnection {
-
-    public boolean valid = false;
-
-    // DB门面连接
-    private boolean facade = false;
-
-    private int dbCount;
-
-    private TestDbConnection success() {
-      this.valid = true;
-      return this;
-    }
-
-    public int getDbCount() {
-      return this.dbCount;
-    }
-
-    public boolean isFacade() {
-      return this.facade;
-    }
-  }
-
-  public void visitConnection(DBConfig db, String ip, String dbName, String username, String password, IConnProcessor p) throws Exception {
-    if (db == null) {
-      throw new IllegalStateException("param db can not be null");
-    }
-    if (StringUtils.isEmpty(ip)) {
-      throw new IllegalArgumentException("param ip can not be null");
-    }
-    if (StringUtils.isEmpty(dbName)) {
-      throw new IllegalArgumentException("param dbName can not be null");
-    }
-//    if (StringUtils.isEmpty(username)) {
-//      throw new IllegalArgumentException("param username can not be null");
+//  /**
+//   * description: 测试连接，true连接成功，false连接失败 date: 3:04 PM 5/25/2017
+//   */
+//  public TestDbConnection testDbConnection(TISDb database, BasicModule action, Context context) throws Exception {
+//    TestDbConnection testResult = new TestDbConnection();
+//    testResult.facade = database.isFacade();
+//    if (StringUtils.isBlank(database.getPassword()) || StringUtils.isBlank(database.getUserName())) {
+//      throw new IllegalArgumentException("password:" + database.getPassword() + " or username:[" + database.getUserName() + "] is illegal");
 //    }
-    if (StringUtils.isEmpty(password)) {
-      throw new IllegalArgumentException("param password can not be null");
-    }
-    if (p == null) {
-      throw new IllegalArgumentException("param IConnProcessor can not be null");
-    }
-    Connection conn = null;
-    final String jdbcUrl = "jdbc:mysql://" + ip + ":" + db.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
-    try {
-      validateConnection(jdbcUrl, db, username, password, p);
-    } catch (Exception e) {
-      throw new RuntimeException(jdbcUrl, e);
-    }
-  }
+//    if (StringUtils.isBlank(database.getHost())) {
+//      throw new IllegalArgumentException("host can not be null");
+//    }
+//    // ///////////////////////////////////////////////////////////////////
+//    DBTokenizer tokenizer = new DBTokenizer("host:" + database.getHost());
+//    tokenizer.parse();
+//    DBConfigParser parser = new DBConfigParser(tokenizer.getTokenBuffer());
+//    parser.dbConfigResult.setName(database.getDbName());
+//    parser.dbConfigResult.setPort(Integer.parseInt(database.getPort()));
+//    if (!parser.parseHostDesc()) {
+//      action.addErrorMessage(context, database.getHost() + " 有误，请联系系统管理员");
+//      return testResult;
+//    }
+//    int dbCount = 0;
+//    DBConfig db = parser.dbConfigResult;
+//    for (Map.Entry<String, List<String>> entry : db.getDbEnum().entrySet()) {
+//      dbCount += entry.getValue().size();
+//    }
+//    testResult.dbCount = dbCount;
+//    if (database.isFacade() && dbCount > 1) {
+//      action.addErrorMessage(context, "门面数据库目标库不能为多库");
+//      return testResult;
+//    }
+//    StringBuilder connErrs = new StringBuilder();
+//    if (!db.vistDbURL(false, (dbName, jdbcUrl) -> {
+//      try {
+//        validateConnection(jdbcUrl, db, database.getUserName(), database.getPassword(), (conn) -> {
+//          Statement s = null;
+//          ResultSet result = null;
+//          try {
+//            s = conn.createStatement();
+//            result = s.executeQuery("select 1");
+//            if (result.next()) {
+//              result.getString(1);
+//            }
+//          } finally {
+//            try {
+//              result.close();
+//            } catch (SQLException e) {
+//            }
+//            try {
+//              s.close();
+//            } catch (SQLException e) {
+//            }
+//          }
+//        });
+//      } catch (Throwable e) {
+//        connErrs.append(dbName + " " + e.getMessage());
+//      }
+//    }, database.isFacade(), action, context)) {
+//      return testResult;
+//    }
+//    if (connErrs.length() > 0) {
+//      action.addErrorMessage(context, "连接异常:" + connErrs.toString());
+//      return testResult;
+//    }
+//    return testResult.success();
+//  }
+
+//  public static class TestDbConnection {
+//
+//    public boolean valid = false;
+//
+//    // DB门面连接
+//    private boolean facade = false;
+//
+//    private int dbCount;
+//
+//    private TestDbConnection success() {
+//      this.valid = true;
+//      return this;
+//    }
+//
+//    public int getDbCount() {
+//      return this.dbCount;
+//    }
+//
+//    public boolean isFacade() {
+//      return this.facade;
+//    }
+//  }
+
+//  public void visitConnection(DBConfig db, String ip, String dbName, String username, String password, IConnProcessor p) throws Exception {
+//    if (db == null) {
+//      throw new IllegalStateException("param db can not be null");
+//    }
+//    if (StringUtils.isEmpty(ip)) {
+//      throw new IllegalArgumentException("param ip can not be null");
+//    }
+//    if (StringUtils.isEmpty(dbName)) {
+//      throw new IllegalArgumentException("param dbName can not be null");
+//    }
+////    if (StringUtils.isEmpty(username)) {
+////      throw new IllegalArgumentException("param username can not be null");
+////    }
+//    if (StringUtils.isEmpty(password)) {
+//      throw new IllegalArgumentException("param password can not be null");
+//    }
+//    if (p == null) {
+//      throw new IllegalArgumentException("param IConnProcessor can not be null");
+//    }
+//    Connection conn = null;
+//    final String jdbcUrl = "jdbc:mysql://" + ip + ":" + db.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
+//    try {
+//      validateConnection(jdbcUrl, db, username, password, p);
+//    } catch (Exception e) {
+//      throw new RuntimeException(jdbcUrl, e);
+//    }
+//  }
 
   private void validateConnection(String jdbcUrl, DBConfig db, String username, String password, IConnProcessor p) throws Exception {
     Connection conn = null;
@@ -217,16 +218,15 @@ public class OfflineManager {
     public void vist(Connection conn) throws SQLException;
   }
 
-  public void addDatasourceTable(TISTable table, BasicModule action, Context context, boolean updateMode) throws Exception {
+  public ProcessedTable addDatasourceTable(TISTable table, BasicModule action, Context context, boolean updateMode) throws Exception {
     final String tableName = table.getTableName();
-    String tableLogicName = table.getTableLogicName();
     // 检查db是否存在
     final DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
     dbCriteria.createCriteria().andIdEqualTo(table.getDbId());
     int sameDbCount = workflowDAOFacade.getDatasourceDbDAO().countByExample(dbCriteria);
     if (sameDbCount < 1) {
       action.addErrorMessage(context, "找不到这个数据库");
-      return;
+      return null;
     }
     final int dbId = table.getDbId();
     DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
@@ -239,11 +239,11 @@ public class OfflineManager {
       }
     } else {
       // 检查表是否存在，如存在则退出
-      tableCriteria.createCriteria().andDbIdEqualTo(dbId).andTableLogicNameEqualTo(tableLogicName);
+      tableCriteria.createCriteria().andDbIdEqualTo(dbId).andNameEqualTo(tableName);//.andTableLogicNameEqualTo();
       int sameTableCount = workflowDAOFacade.getDatasourceTableDAO().countByExample(tableCriteria);
       if (sameTableCount > 0) {
-        action.addErrorMessage(context, "该数据库下已经有了相同逻辑名的表:" + tableLogicName);
-        return;
+        action.addErrorMessage(context, "该数据库下已经有了相同逻辑名的表:" + tableName);
+        return null;
       }
     }
     // 更新DB的最新操作时间
@@ -271,9 +271,9 @@ public class OfflineManager {
     } else {
       dsTable = new DatasourceTable();
       dsTable.setName(tableName);
-      dsTable.setTableLogicName(tableLogicName);
+//      dsTable.setTableLogicName(tableName);
       dsTable.setDbId(dbId);
-      dsTable.setGitTag(tableLogicName);
+      dsTable.setGitTag(tableName);
       // 标示是否有同步到线上去
       dsTable.setSyncOnline(new Byte("0"));
       dsTable.setCreateTime(new Date());
@@ -282,16 +282,46 @@ public class OfflineManager {
       dsTable.setId(tableId);
     }
     db = workflowDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbId);
-    // 添加 git
-    // GitUtils.$().createTableDaily(table, "add table " + tableLogicName);
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(action, new PostedDSProp(db.getName()));
-    dbPlugin.saveTable(tableName);
-
     action.addActionMessage(context, "数据库表'" + tableName + "'" + (updateMode ? "更新" : "添加") + "成功");
     table.setSelectSql(null);
     table.setReflectCols(null);
     table.setTabId(dsTable.getId());
     action.setBizResult(context, table);
+    // return dsTable;
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(action, new PostedDSProp(db.getName()));
+    return new ProcessedTable(dbPlugin.saveTable(tableName), dsTable);
+  }
+
+  public static class ProcessedTable {
+    private final TableReflect tabReflect;
+    private final DatasourceTable tabMeta;
+
+    public ProcessedTable(TableReflect tabReflect, DatasourceTable tabMeta) {
+      if (tabReflect == null) {
+        throw new IllegalStateException("tabReflect  can not be null");
+      }
+      if (tabMeta == null) {
+        throw new IllegalStateException("tabMeta  can not be null");
+      }
+      this.tabReflect = tabReflect;
+      this.tabMeta = tabMeta;
+    }
+
+    public String getName() {
+      return tabMeta.getName();
+    }
+
+    public Integer getDbId() {
+      return this.tabMeta.getDbId();
+    }
+
+    public Integer getId() {
+      return this.tabMeta.getId();
+    }
+
+    public String getExtraSql() {
+      return SqlTaskNodeMeta.processBigContent(tabReflect.getSql());
+    }
   }
 
   /**
@@ -352,7 +382,7 @@ public class OfflineManager {
 
   public void editDatasourceTable(TISTable table, BasicModule action, Context context) throws Exception {
     String dbName = table.getDbName();
-    String tableLogicName = table.getTableLogicName();
+    String tableLogicName = table.getTableName();
     // 检查db是否存在
     DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
     dbCriteria.createCriteria().andNameEqualTo(dbName);
@@ -364,7 +394,7 @@ public class OfflineManager {
     int dbId = dbList.get(0).getId();
     // 检查表是否存在
     DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-    tableCriteria.createCriteria().andDbIdEqualTo(dbId).andTableLogicNameEqualTo(tableLogicName);
+    tableCriteria.createCriteria().andDbIdEqualTo(dbId).andNameEqualTo(tableLogicName);
     List<DatasourceTable> tableList = workflowDAOFacade.getDatasourceTableDAO().minSelectByExample(tableCriteria);
     if (CollectionUtils.isEmpty(tableList)) {
       action.addErrorMessage(context, "该数据库下没有表" + tableLogicName);
@@ -555,7 +585,7 @@ public class OfflineManager {
     // 把所有表名统计一遍
     Map<String, Integer> tableNameCntMap = new HashMap<>();
     for (DatasourceTable datasourceTable : tables) {
-      String name = datasourceTable.getTableLogicName();
+      String name = datasourceTable.getName();
       if (tableNameCntMap.containsKey(name)) {
         tableNameCntMap.put(name, tableNameCntMap.get(name) + 1);
       } else {
@@ -563,9 +593,9 @@ public class OfflineManager {
       }
     }
     for (DatasourceTable datasourceTable : tables) {
-      String name = datasourceTable.getTableLogicName();
+      String name = datasourceTable.getName();
       if (tableNameCntMap.get(name) > 1) {
-        datasourceTable.setTableLogicName(dbMap.get(datasourceTable.getDbId()).getName() + "/" + datasourceTable.getTableLogicName());
+        datasourceTable.setName(dbMap.get(datasourceTable.getDbId()).getName() + "/" + datasourceTable.getName());
       }
     }
     Collections.sort(tables);
@@ -720,34 +750,18 @@ public class OfflineManager {
     DatasourceDb db = getDB(dbId);
     DBConfigSuit dbSuit = new DBConfigSuit();
 
-    PostedDSProp dbProp = new PostedDSProp(db.getName(), dbScope);
+    PostedDSProp dbProp = new PostedDSProp(db.getName(), DbScope.DETAILED);
 
     PluginStore<DataSourceFactory> dbStore = TIS.getDataBasePluginStore(pluginContext, dbProp);
 
-
     DataSourceFactory dsPlugin = dbStore.getPlugin();
     dbSuit.setDetailed(dsPlugin);
-
-
     DataSourceFactoryPluginStore facadeStore
       = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(db.getName(), DbScope.FACADE));
 
     if (facadeStore.getPlugin() != null) {
       dbSuit.setFacade(facadeStore.getPlugin());
     }
-
-//
-//    List<String> childPath = GitUtils.$().listDbConfigPath(db.getName());
-//    if (childPath.size() < 1) {
-//      throw new IllegalStateException("db:" + db.getName() + " relevant db meta config is empty");
-//    }
-//    DBConfig detailed = GitUtils.$().getDbConfig(db.getName(), DbScope.DETAILED);
-//    dbSuit.setDetailed(detailed);
-//    if (childPath.contains(GitUtils.DB_CONFIG_META_NAME + DbScope.FACADE.getDBType())) {
-//      //
-//      DBConfig facade = GitUtils.$().getDbConfig(db.getName(), DbScope.FACADE);
-//      dbSuit.setFacade(facade);
-//    }
     return dbSuit;
   }
 
@@ -763,7 +777,7 @@ public class OfflineManager {
     DatasourceTable tab = this.workflowDAOFacade.getDatasourceTableDAO().selectByPrimaryKey(tableId);
     DatasourceDb db = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(tab.getDbId());
     DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(db.getName()));
-    TISTable t = dbPlugin.loadTableMeta(tab.getTableLogicName()); //GitUtils.$().getTableConfig(db.getName(), tab.getTableLogicName());
+    TISTable t = dbPlugin.loadTableMeta(tab.getName());
     t.setDbName(db.getName());
     t.setTableName(tab.getName());
     t.setTabId(tableId);
@@ -832,7 +846,7 @@ public class OfflineManager {
       throw new IllegalStateException(" database can not be null");
     }
     DatasourceTableCriteria criteria = new DatasourceTableCriteria();
-    criteria.createCriteria().andTableLogicNameEqualTo(tableLogicName).andDbIdEqualTo(db.getId());
+    criteria.createCriteria().andNameEqualTo(tableLogicName).andDbIdEqualTo(db.getId());
     int tableCount = workflowDAOFacade.getDatasourceTableDAO().countByExample(criteria);
     return tableCount > 0;
   }
@@ -1118,9 +1132,9 @@ public class OfflineManager {
       GitUser user = GitUser.dft();
       RunEnvironment runEnvironment = action.getAppDomain().getRunEnvironment();
       if (RunEnvironment.DAILY.equals(runEnvironment)) {
-        GitUtils.$().deleteTableDaily(datasourceDb.getName(), datasourceTable.getTableLogicName(), user);
+        GitUtils.$().deleteTableDaily(datasourceDb.getName(), datasourceTable.getName(), user);
       } else if (RunEnvironment.ONLINE.equals(runEnvironment)) {
-        GitUtils.$().deleteTableOnline(datasourceDb.getName(), datasourceTable.getTableLogicName(), user);
+        GitUtils.$().deleteTableOnline(datasourceDb.getName(), datasourceTable.getName(), user);
       } else {
         action.addErrorMessage(context, "当前运行环境" + runEnvironment + "既不是daily也不是online");
         return;

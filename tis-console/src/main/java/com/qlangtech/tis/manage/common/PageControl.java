@@ -32,84 +32,84 @@ import com.opensymphony.xwork2.util.ValueStack;
  */
 public class PageControl {
 
-    public TisActionComponent setTemplate(final String path) throws Exception {
-        // if (1 == 1) {
-        // OutputStreamWriter writer = new OutputStreamWriter(
-        // ServletActionContext.getResponse().getOutputStream());
-        // 
-        // writer.write("<h1>" + path + "</h1>");
-        // writer.flush();
-        // 
-        // return null;
-        // }
-        HttpServletRequest request = ServletActionContext.getRequest();
-        HttpServletResponse response = ServletActionContext.getResponse();
-        final ActionMapping mapping = ServletActionContext.getActionMapping();
-        final DefaultActionMapper actionMapper = new DefaultActionMapper() {
-
-            @Override
-            public String getUriFromActionMapping(ActionMapping mapping) {
-                return mapping.getNamespace() + (StringUtils.startsWith(path, "/") ? path : ('/' + path));
-            }
-
-            // @Override
-            // protected String getUri(HttpServletRequest request) {
-            // return mapping.getNamespace()
-            // + (StringUtils.startsWith(path, "/") ? path
-            // : ('/' + path));
-            // }
-            @Override
-            protected String dropExtension(String name, ActionMapping mapping) {
-                for (String ext : extensions) {
-                    String extension = "." + ext;
-                    if (name.endsWith(extension)) {
-                        name = name.substring(0, name.length() - extension.length());
-                        mapping.setExtension(StringUtils.equalsIgnoreCase(ext, "vm") ? "vm" : "action");
-                        return name;
-                    }
-                }
-                return null;
-            }
-        };
-        actionMapper.setExtensions("action,htm,vm");
-        actionMapper.setAllowDynamicMethodCalls("false");
-        actionMapper.setAlwaysSelectFullNamespace("true");
-        actionMapper.getMapping(request, null);
-        ActionMapping mapresult = actionMapper.getMapping(request, null);
-        final TisActionComponent action = new TisActionComponent(ServletActionContext.getValueStack(request), request, ServletActionContext.getResponse());
-        Container container = Dispatcher.getInstance().getContainer();
-        container.inject(action);
-        // action.setValueStackFactory(container.getInstance(ValueStackFactory.class));
-        action.setName(mapresult.getName());
-        action.setNamespace(mapresult.getNamespace());
-        action.setExecuteResult(true);
-        action.setIgnoreContextParams(false);
-        action.setFlush(true);
-        action.setRethrowException(true);
-        action.setActionMapper(actionMapper);
-        action.end(new OutputStreamWriter(response.getOutputStream()), null);
-        return action;
-    }
-
-    public static class TisActionComponent extends ActionComponent {
-
-        public TisActionComponent(ValueStack stack, HttpServletRequest req, HttpServletResponse res) {
-            super(stack, req, res);
-        }
-
-        public TisActionComponent setParameter(String name, Object value) {
-            this.addParameter(name, value);
-            return this;
-        }
-    }
-
-    public PageControl setParameter(String name, String value) {
-        return this;
-    }
-
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-    }
+//    public TisActionComponent setTemplate(final String path) throws Exception {
+//        // if (1 == 1) {
+//        // OutputStreamWriter writer = new OutputStreamWriter(
+//        // ServletActionContext.getResponse().getOutputStream());
+//        //
+//        // writer.write("<h1>" + path + "</h1>");
+//        // writer.flush();
+//        //
+//        // return null;
+//        // }
+//        HttpServletRequest request = ServletActionContext.getRequest();
+//        HttpServletResponse response = ServletActionContext.getResponse();
+//        final ActionMapping mapping = ServletActionContext.getActionMapping();
+//        final DefaultActionMapper actionMapper = new DefaultActionMapper() {
+//
+//            @Override
+//            public String getUriFromActionMapping(ActionMapping mapping) {
+//                return mapping.getNamespace() + (StringUtils.startsWith(path, "/") ? path : ('/' + path));
+//            }
+//
+//            // @Override
+//            // protected String getUri(HttpServletRequest request) {
+//            // return mapping.getNamespace()
+//            // + (StringUtils.startsWith(path, "/") ? path
+//            // : ('/' + path));
+//            // }
+//            @Override
+//            protected String dropExtension(String name, ActionMapping mapping) {
+//                for (String ext : extensions) {
+//                    String extension = "." + ext;
+//                    if (name.endsWith(extension)) {
+//                        name = name.substring(0, name.length() - extension.length());
+//                        mapping.setExtension(StringUtils.equalsIgnoreCase(ext, "vm") ? "vm" : "action");
+//                        return name;
+//                    }
+//                }
+//                return null;
+//            }
+//        };
+//        actionMapper.setExtensions("action,htm,vm");
+//        actionMapper.setAllowDynamicMethodCalls("false");
+//        actionMapper.setAlwaysSelectFullNamespace("true");
+//        actionMapper.getMapping(request, null);
+//        ActionMapping mapresult = actionMapper.getMapping(request, null);
+//        final TisActionComponent action = new TisActionComponent(ServletActionContext.getValueStack(request), request, ServletActionContext.getResponse());
+//        Container container = Dispatcher.getInstance().getContainer();
+//        container.inject(action);
+//        // action.setValueStackFactory(container.getInstance(ValueStackFactory.class));
+//        action.setName(mapresult.getName());
+//        action.setNamespace(mapresult.getNamespace());
+//        action.setExecuteResult(true);
+//        action.setIgnoreContextParams(false);
+//        action.setFlush(true);
+//        action.setRethrowException(true);
+//        action.setActionMapper(actionMapper);
+//        action.end(new OutputStreamWriter(response.getOutputStream()), null);
+//        return action;
+//    }
+//
+//    public static class TisActionComponent extends ActionComponent {
+//
+//        public TisActionComponent(ValueStack stack, HttpServletRequest req, HttpServletResponse res) {
+//            super(stack, req, res);
+//        }
+//
+//        public TisActionComponent setParameter(String name, Object value) {
+//            this.addParameter(name, value);
+//            return this;
+//        }
+//    }
+//
+//    public PageControl setParameter(String name, String value) {
+//        return this;
+//    }
+//
+//    /**
+//     * @param args
+//     */
+//    public static void main(String[] args) {
+//    }
 }

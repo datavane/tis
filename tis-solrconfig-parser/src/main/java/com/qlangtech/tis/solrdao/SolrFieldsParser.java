@@ -24,6 +24,7 @@ import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.solrdao.extend.IndexBuildHook;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
+import com.qlangtech.tis.sql.parser.ColName;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.util.DOMUtil;
@@ -557,7 +558,6 @@ public class SolrFieldsParser {
     public static class SolrType {
 
 
-
         private Class<?> javaType;
 
         private Type solrType;
@@ -633,6 +633,14 @@ public class SolrFieldsParser {
         for (String s : reserved_words) {
             reservedWordsBuffer.append("'").append(s).append("' ");
         }
+    }
+
+    public interface ParseResultCallback {
+        /**
+         * @param cols   topology 宽表中解析出来的宽表字段
+         * @param result
+         */
+        public void process(List<ColName> cols, ParseResult result);
     }
 
     public static class ParseResult implements ISchema {

@@ -19,9 +19,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IdentityName;
 
-import javax.sql.DataSource;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +32,10 @@ import java.util.Map;
 public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName {
 
     public static final String DS_TYPE_MYSQL = "MySQL";
+
+    public static List<DataSourceFactory> all() {
+        return TIS.get().getExtensionList(DataSourceFactory.class);
+    }
 
     /**
      * Get all the tables in dataBase

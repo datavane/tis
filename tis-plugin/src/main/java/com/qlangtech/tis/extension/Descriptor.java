@@ -506,9 +506,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
-    public static Map<String, /**
-     * attrName
-     */
+    public static Map<String, /*** attrName */
             JSONObject> parseAttrValMap(Object vals) {
         Map<String, com.alibaba.fastjson.JSONObject> attrValMap = Maps.newHashMap();
         if (vals == null) {

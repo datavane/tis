@@ -130,9 +130,9 @@ public class TISZkStateReader {
     // if (StringUtils.isBlank(hostName)) {
     // throw new IllegalStateException("hostName can not be blank");
     // }
-    // 
+    //
     // return String.format("http://%s:8080/solr/version.jsp", hostName);
-    // 
+    //
     // }
     private static String getLuceneVer(URL url) {
         try {
@@ -162,37 +162,7 @@ public class TISZkStateReader {
         }
     }
 
-    // public Aliases getAliases() {
-    // return aliases;
-    // }
-    // public Integer compareStateVersions(String coll, int version) {
-    // DocCollection collection = clusterState.getCollectionOrNull(coll);
-    // if (collection == null)
-    // return null;
-    // if (collection.getZNodeVersion() < version) {
-    // LOG.debug("Server older than client {}<{}", collection.getZNodeVersion(),
-    // version);
-    // DocCollection nu = getCollectionLive(this, coll);
-    // if (nu == null)
-    // return -1;
-    // if (nu.getZNodeVersion() > collection.getZNodeVersion()) {
-    // updateWatchedCollection(coll, nu);
-    // collection = nu;
-    // }
-    // }
-    // 
-    // if (collection.getZNodeVersion() == version) {
-    // return null;
-    // }
-    // 
-    // LOG.debug("Wrong version from client [{}]!=[{}]", version,
-    // collection.getZNodeVersion());
-    // 
-    // return collection.getZNodeVersion();
-    // }
-    // public static String getCollectionPath(String coll) {
-    // return COLLECTIONS_ZKNODE + "/" + coll + "/state.json";
-    // }
+
     /**
      * @return
      */
@@ -200,23 +170,7 @@ public class TISZkStateReader {
         return selectTableNodesMap.values();
     }
 
-    // /**
-    // * 选择基于特定版本的服务器候选节点
-    // *
-    // * @param lver
-    // * @return
-    // */
-    // public Optional<CoreNode> getCoreNodeCandidate(LuceneVersion lver) {
-    // Optional<CoreNode> cn = this.getSelectTableNodes().stream().filter((n) -> {
-    // return lver.getVersion() == n.getLuceneSpecVersion();
-    // }).max((c1, c2) -> {
-    // return c2.getSolrCoreCount() - c1.getSolrCoreCount();
-    // });
-    // return cn;
-    // // if (cn.isPresent()) {
-    // // this.setBizResult(context, cn.get());
-    // // }
-    // }
+
     private Collection<CoreNode> fetchSelectTableNodes() {
         selectTableNodesMap.clear();
         try {
@@ -243,19 +197,6 @@ public class TISZkStateReader {
                 node.setLuceneSpecVersion(getLuceneVer(url));
                 selectTableNodesMap.put(ip, node);
             }
-        // // 计算各个节点的lucene版本
-        // for (Map.Entry<String, Integer> entry : solrCoreCountMap.entrySet()) {
-        // CoreNode node = new CoreNode();
-        // String ip = getIP(entry.getKey());
-        // InetAddress address = InetAddress.getByName(ip);
-        // String host = address.getHostName();
-        // node.setHostName(host);
-        // node.setNodeName(entry.getKey());
-        // node.setSolrCoreCount(entry.getValue());
-        // URL url = new URL(GET_LUCENE_VER_RUL_FORMAT.format(new String[]{ip}));
-        // node.setLuceneSpecVersion(getLuceneVer(url));
-        // selectTableNodesMap.put(ip, node);
-        // }
         } catch (Exception e) {
             throw new RuntimeException("get select table node error", e);
         }

@@ -184,16 +184,16 @@ public class OfflineDatasourceAction extends BasicModule {
     // 4. 返回最新的数据源信息
   }
 
-  /**
-   * 校验数据连接是否正常
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
-  public void doVerifyDbConfigAdd(Context context) throws Exception {
-    this.verifyDbConfig(context, true);
-  }
+//  /**
+//   * 校验数据连接是否正常
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
+//  public void doVerifyDbConfigAdd(Context context) throws Exception {
+//    this.verifyDbConfig(context, true);
+//  }
 
   /**
    * 更新模式下校验
@@ -201,21 +201,21 @@ public class OfflineDatasourceAction extends BasicModule {
    * @param context
    * @throws Exception
    */
-  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
-  public void doVerifyDbConfigUpdate(Context context) throws Exception {
-    this.verifyDbConfig(context, false);
-  }
+//  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
+//  public void doVerifyDbConfigUpdate(Context context) throws Exception {
+//    this.verifyDbConfig(context, false);
+//  }
 
-  private void verifyDbConfig(Context context, boolean isNew) throws Exception {
-    TISDb dbConfig = getDb(context, isNew);
-    if (dbConfig == null) {
-      return;
-    }
-    OfflineManager.TestDbConnection verifyResult = this.offlineManager.testDbConnection(dbConfig, this, context);
-    if (verifyResult.valid) {
-      this.addActionMessage(context, dbConfig.isFacade() ? "数据库连接正常" : "子数据库" + verifyResult.getDbCount() + "个连接正常");
-    }
-  }
+//  private void verifyDbConfig(Context context, boolean isNew) throws Exception {
+//    TISDb dbConfig = getDb(context, isNew);
+//    if (dbConfig == null) {
+//      return;
+//    }
+//    OfflineManager.TestDbConnection verifyResult = this.offlineManager.testDbConnection(dbConfig, this, context);
+//    if (verifyResult.valid) {
+//      this.addActionMessage(context, dbConfig.isFacade() ? "数据库连接正常" : "子数据库" + verifyResult.getDbCount() + "个连接正常");
+//    }
+//  }
 
   /**
    * 更新facade数据库配置
@@ -452,7 +452,7 @@ public class OfflineDatasourceAction extends BasicModule {
       this.addErrorMessage(context, "sql语句不能为空且不能包含*");
       return null;
     }
-    TISTable tab = new TISTable(tableLogicName, tableName, partitionNum, dbId, partitionInterval, selectSql);
+    TISTable tab = new TISTable(tableName, partitionNum, dbId, partitionInterval, selectSql);
     com.alibaba.fastjson.JSONArray cols = form.getJSONArray("cols");
     com.alibaba.fastjson.JSONObject col = null;
     ColumnMetaData colMeta = null;
@@ -607,12 +607,24 @@ public class OfflineDatasourceAction extends BasicModule {
 
   @Func(PermissionConstant.DATAFLOW_UPDATE)
   public void doUpdateTopology(Context context) throws Exception {
-    this.doUpdateTopology(context, (topologyName, topology) -> {
-      SqlTaskNodeMeta.TopologyProfile profile = topology.getProfile();
-      if (profile.getDataflowId() < 1) {
-        profile.setDataflowId(this.getWorkflowId(topologyName));
+
+    this.doUpdateTopology(context, new TopologyUpdateCallback() {
+      @Override
+      public <T> T execute(String topologyName, SqlDataFlowTopology topology) {
+        SqlTaskNodeMeta.TopologyProfile profile = topology.getProfile();
+        if (profile.getDataflowId() < 1) {
+          profile.setDataflowId(getWorkflowId(topologyName));
+        }
+        return null;
       }
     });
+
+//    this.doUpdateTopology(context, (topologyName, topology) -> {
+//      SqlTaskNodeMeta.TopologyProfile profile = topology.getProfile();
+//      if (profile.getDataflowId() < 1) {
+//        profile.setDataflowId(this.getWorkflowId(topologyName));
+//      }
+//    });
   }
 
   /**
@@ -747,9 +759,9 @@ public class OfflineDatasourceAction extends BasicModule {
         dnode.setId(o.getString("id"));
         tableid = nodeMeta.getInt("tabid");
         Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap = Maps.newHashMap();
-        tab = getDatabase(dbMap, tableid);
+        tab = getDatabase(this.offlineDAOFacade, dbMap, tableid);
         dnode.setDbName(tab.db.getName());
-        dnode.setName(tab.tab.getTableLogicName());
+        dnode.setName(tab.tab.getName());
         dnode.setTabid(String.valueOf(tableid));
         dnode.setDbid(String.valueOf(nodeMeta.get("dbid")));
         dnode.setPosition(pos);
@@ -781,7 +793,8 @@ public class OfflineDatasourceAction extends BasicModule {
     // 校验一下是否只有一个最终输出节点
     List<SqlTaskNodeMeta> finalNodes = topologyPojo.getFinalNodes();
     if (finalNodes.size() > 1) {
-      this.addErrorMessage(context, "最终输出节点(" + finalNodes.stream().map((r) -> r.getExportName()).collect(Collectors.joining(",")) + ")不能多于一个");
+      this.addErrorMessage(context, "最终输出节点(" + finalNodes.stream()
+        .map((r) -> r.getExportName()).collect(Collectors.joining(",")) + ")不能多于一个");
       return;
     }
     if (finalNodes.size() < 1) {
@@ -836,16 +849,16 @@ public class OfflineDatasourceAction extends BasicModule {
     throw new IllegalStateException("topology:" + topologyName + " can not find workflow record in db");
   }
 
-  private Tab getDatabase(Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, int tableid) {
+  public static Tab getDatabase(IComDfireTisWorkflowDAOFacade wfDaoFacade, Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, int tableid) {
     Tab dtab = null;
-    DatasourceTable tab = this.getWorkflowDAOFacade().getDatasourceTableDAO().selectByPrimaryKey(tableid);
+    DatasourceTable tab = wfDaoFacade.getDatasourceTableDAO().selectByPrimaryKey(tableid);
     if (tab == null) {
       throw new IllegalStateException("tabid:" + tableid + " relevant 'TableDump' object can not be null");
     }
     dtab = new Tab(tab);
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = null;
     if ((db = dbMap.get(tab.getDbId())) == null) {
-      db = this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByPrimaryKey(tab.getDbId());
+      db = wfDaoFacade.getDatasourceDbDAO().selectByPrimaryKey(tab.getDbId());
       if (db == null) {
         throw new IllegalStateException("tabid:" + tableid + " relevant 'TableDump' object can not be null");
       }
@@ -1078,23 +1091,39 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_UPDATE)
   public void doSaveTopology(Context context) throws Exception {
-    this.doUpdateTopology(context, (tname, topology) -> {
+    this.doUpdateTopology(context, new CreateTopologyUpdateCallback(this.getUser(), this.getWorkflowDAOFacade()));
+  }
+
+  public static class CreateTopologyUpdateCallback implements TopologyUpdateCallback {
+    private final IUser user;
+    private final IComDfireTisWorkflowDAOFacade offlineDAOFacade;
+
+    public CreateTopologyUpdateCallback(IUser user, IComDfireTisWorkflowDAOFacade offlineDAOFacade) {
+      this.user = user;
+      this.offlineDAOFacade = offlineDAOFacade;
+    }
+
+    @Override
+    public <T> T execute(String tname, SqlDataFlowTopology topology) {
       final String topologyName = topology.getName();
       WorkFlow workFlow = new WorkFlow();
       workFlow.setName(topologyName);
-      IUser user = this.getUser();
+      //  IUser user = getUser();
       workFlow.setOpUserId(1);
       workFlow.setOpUserName(user.getName());
       workFlow.setGitPath(String.valueOf(topology.getTimestamp()));
       workFlow.setCreateTime(new Date());
       workFlow.setInChange(new Byte("1"));
-      topology.getProfile().setDataflowId(this.offlineDAOFacade.getWorkFlowDAO().insert(workFlow));
-    });
+      Integer dfId = offlineDAOFacade.getWorkFlowDAO().insert(workFlow);
+      topology.getProfile().setDataflowId(dfId);
+      workFlow.setId(dfId);
+      return (T) workFlow;
+    }
   }
 
   private interface TopologyUpdateCallback {
 
-    void execute(String topologyName, SqlDataFlowTopology topology);
+    <T> T execute(String topologyName, SqlDataFlowTopology topology);
   }
 
   /**
@@ -1441,7 +1470,6 @@ public class OfflineDatasourceAction extends BasicModule {
     DatasourceTable datasourceTable = new DatasourceTable();
     datasourceTable.setId(id);
     datasourceTable.setName(name);
-    datasourceTable.setTableLogicName(tableLogicName);
     datasourceTable.setDbId(dbId);
     datasourceTable.setGitTag(gitTag);
     Date now = new Date();

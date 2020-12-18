@@ -86,11 +86,21 @@ public class SchemaAction extends BasicModule {
   public void doGetTplFields(Context context) throws Exception {
     final String wfName = StringUtils.substringAfter(this.getString("wfname"), ":");
     WorkFlow workflow = getWorkflow(wfName);
+    SchemaResult tplSchema = mergeWfColsWithTplCollection(this, context, workflow);
+    Objects.requireNonNull(tplSchema, "tplSchema can not be null");
+//    if (tplSchema == null) return;
+    // writer.close();
+    // 序列化结果
+    this.doGetFields(context, tplSchema);
+  }
+
+  public static SchemaResult mergeWfColsWithTplCollection(BasicModule module, Context context
+    , WorkFlow workflow, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
     // 通过version取默认模板
-    Application tplApp = getTemplateApp();
-    SchemaResult tplSchema = getTemplateSchema(context, tplApp);
+    Application tplApp = getTemplateApp(module);
+    SchemaResult tplSchema = getTemplateSchema(module, context, tplApp);
     if (!tplSchema.success) {
-      return;
+      return null;
     }
     ParseResult parseResult = tplSchema.parseResult;
     SolrType strType = parseResult.getTisType(ISchemaField.DEFAULT_STRING_TYPE_NAME);
@@ -104,11 +114,13 @@ public class SchemaAction extends BasicModule {
       f.setIndexed(false);
       f.setMltiValued(false);
       f.setDocValue(false);
-      // f.setInputDisabled(true);
       parseResult.dFields.add(f);
     }
-    // parseResult.setSharedKey(null);
+
     parseResult.setUniqueKey(null);
+    for (SolrFieldsParser.ParseResultCallback c : parseResultCallback) {
+      c.process(cols, parseResult);
+    }
 
     parseResult.addReservedFields();
 
@@ -128,16 +140,14 @@ public class SchemaAction extends BasicModule {
         tplSchema.content = out.toByteArray();
       }
     }
-    // writer.close();
-    // 序列化结果
-    this.doGetFields(context, tplSchema);
+    return tplSchema;
   }
 
 
-  private SchemaResult getTemplateSchema(Context context, Application tplApp) throws Exception {
-    UploadResource schemaRes = getAppSchema(tplApp);
+  private static SchemaResult getTemplateSchema(BasicModule module, Context context, Application tplApp) throws Exception {
+    UploadResource schemaRes = getAppSchema(module, tplApp);
     // 需要将原始fields节点去掉
-    SchemaResult schemaResult = this.parseSchemaResult(context, schemaRes.getContent(), false, /* shallValidate */
+    SchemaResult schemaResult = parseSchemaResult(module, context, schemaRes.getContent(), false, /* shallValidate */
       false);
     if (!schemaResult.success) {
       return schemaResult;
@@ -165,7 +175,7 @@ public class SchemaAction extends BasicModule {
   public void doGetXmlContent(Context context) throws Exception {
     Application app = new Application();
     app.setAppId(this.getAppDomain().getAppid());
-    UploadResource schemaResource = getAppSchema(app);
+    UploadResource schemaResource = getAppSchema(this, app);
     this.doGetXmlContent(context, schemaResource, Collections.emptyList());
   }
 
@@ -337,7 +347,7 @@ public class SchemaAction extends BasicModule {
   }
 
   private boolean getStructSchema(Context context, Application app, ISchemaJsonVisitor... schemaVisitor) throws Exception {
-    UploadResource schemaRes = getAppSchema(app);
+    UploadResource schemaRes = getAppSchema(this, app);
     return this.getStructSchema(context, schemaRes.getContent(), schemaVisitor);
   }
 
@@ -386,7 +396,7 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   private boolean getStructSchema(Context context, byte[] schemaContent, ISchemaJsonVisitor... scmVisitor) throws Exception {
-    SchemaResult result = parseSchemaResult(context, schemaContent, false, /* shallValidate */
+    SchemaResult result = parseSchemaResult(this, context, schemaContent, false, /* shallValidate */
       true);
     if (!result.success) {
       return false;
@@ -406,7 +416,7 @@ public class SchemaAction extends BasicModule {
    * @return
    * @throws Exception
    */
-  private SchemaResult parseSchemaResult(Context context, byte[] schemaContent, boolean shallValidate, boolean xmlPost) throws Exception {
+  private static SchemaResult parseSchemaResult(BasicModule module, Context context, byte[] schemaContent, boolean shallValidate, boolean xmlPost) throws Exception {
     SchemaResult result = new SchemaResult(xmlPost);
     if (schemaContent == null) {
       throw new IllegalStateException("schemaContent can not be null");
@@ -424,7 +434,7 @@ public class SchemaAction extends BasicModule {
     }
     if (!parseResult.isValid() || parseResult.errlist.size() > 0) {
       for (String err : parseResult.errlist) {
-        this.addErrorMessage(context, err);
+        module.addErrorMessage(context, err);
       }
       return result;
     }
@@ -482,8 +492,8 @@ public class SchemaAction extends BasicModule {
   public void doGetFields(Context context) throws Exception {
     Application app = new Application();
     app.setAppId(this.getAppDomain().getAppid());
-    UploadResource schemaResource = this.getAppSchema(app);
-    SchemaResult schema = this.parseSchemaResult(context, schemaResource.getContent(), /* shallValidate */
+    UploadResource schemaResource = getAppSchema(this, app);
+    SchemaResult schema = parseSchemaResult(this, context, schemaResource.getContent(), /* shallValidate */
       false, /* xmlPost */
       false);
     // ParseResult parseResult = schema
@@ -497,7 +507,7 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   public void doGetFieldsBySnapshotId(Context context) throws Exception {
-    SchemaResult schema = this.parseSchemaResult(context, SaveFileContentAction.getResContent(this, context), /* shallValidate */
+    SchemaResult schema = parseSchemaResult(this, context, SaveFileContentAction.getResContent(this, context), /* shallValidate */
       false, /* xmlPost */
       false);
     this.doGetFields(context, schema);
@@ -639,62 +649,16 @@ public class SchemaAction extends BasicModule {
       f.put("tokenizerType", tokenizerType.getKey());
       //f.put("range", false);
     }
-    // f.put("rangequery", false);
-    // if (TokenizerType.tokenerTypes.contains(tokenizerType)) {
-    //
-    // f.put("fieldtype",
-    // TokenizerType.visualTypeMap.get(tokenizerType.getKey()).type);
-    // f.put("ttype", tokenizerType.getKey());
-    // } else {
-    //
-    // }
-    // 处理正则分词的情况
-    // if (StringUtils.startsWith(type, TokenizerType.REGULAR.getKey())) {
-    // f.put("fieldtype", TokenizerType.REGULAR.getKey());
-    // f.put("regularSymbol", parseRegularSymbol(type, "_"));
-    // f.put("ttype", TokenizerType.REGULAR.getKey());
-    // }
   }
 
-  // private String parseRegularSymbol(String s, String split) {
-  // String[] ss = s.split(split);
-  // String symbol = "";
-  // for (int i = 1; i < ss.length; i++) {
-  // if (StringUtils.isEmpty(ss[i])) {
-  // System.out.println(s + " is splited by " + split + " has a Empty");
-  // } else {
-  // int iValue = Integer.parseInt(ss[i], 10);
-  // char tempC = (char) iValue;// 转换为一个字符
-  // symbol = symbol + tempC;
-  // }
-  // }
-  // return symbol;
-  // }
-
-  /**
-   * @param
-   * @return
-   * @throws UnsupportedEncodingException
-   * @throws Exception
-   */
-  // protected ParseResult parseSchema(byte[] content, boolean shallValidate)
-  // throws UnsupportedEncodingException, Exception {
-  //
-  // return parseResult;
-  // }
-  public Application getAppById() {
-    // NewAppInfo appinfo = this.getAppinfoFromTair();
-    Application app = new Application();
-    return app;
-  }
 
   /**
    * @return
    */
-  private UploadResource getAppSchema(Application app) {
-    final Integer publishSnapshotId = getPublishSnapshotId(this.getServerGroupDAO(), app);
-    Snapshot snapshot = this.getSnapshotDAO().selectByPrimaryKey(publishSnapshotId);
-    UploadResource uploadRes = this.getUploadResourceDAO().selectByPrimaryKey(snapshot.getResSchemaId());
+  private static UploadResource getAppSchema(BasicModule module, Application app) {
+    final Integer publishSnapshotId = getPublishSnapshotId(module.getServerGroupDAO(), app);
+    Snapshot snapshot = module.getSnapshotDAO().selectByPrimaryKey(publishSnapshotId);
+    UploadResource uploadRes = module.getUploadResourceDAO().selectByPrimaryKey(snapshot.getResSchemaId());
     return uploadRes;
   }
 
@@ -716,7 +680,8 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    * @throws UnsupportedEncodingException
    */
-  protected SchemaResult getPostedSchema(Context context, boolean shallvalidate) throws Exception, UnsupportedEncodingException {
+  protected SchemaResult getPostedSchema(Context context, boolean shallvalidate)
+    throws Exception, UnsupportedEncodingException {
     // 页面中是由xml内容直接提交的
     boolean xmlPost = true;
     String schema = null;
@@ -725,7 +690,7 @@ public class SchemaAction extends BasicModule {
       schema = this.createSchema(this.getFormValues(), context);
     }
     // 校验提交的内容是否合法
-    SchemaResult result = parseSchemaResult(context, schema.getBytes(getEncode()), shallvalidate, /*
+    SchemaResult result = parseSchemaResult(this, context, schema.getBytes(getEncode()), shallvalidate, /*
        * shall validate schema
        */
       xmlPost);
@@ -798,7 +763,7 @@ public class SchemaAction extends BasicModule {
     return writer.toString(getEncode());
   }
 
-  private void updateSchemaXML(ISchema schemaForm, org.jdom2.Document document2, final XModifier modifier, final Set<String> intersectionKeys) {
+  private static void updateSchemaXML(ISchema schemaForm, org.jdom2.Document document2, final XModifier modifier, final Set<String> intersectionKeys) {
     for (ISchemaField field : schemaForm.getSchemaFields()) {
       modifySchemaProperty(modifier, field, "type", parseSolrFieldType(field, document2));
       modifySchemaProperty(modifier, field, "stored", field.isStored());
@@ -807,13 +772,13 @@ public class SchemaAction extends BasicModule {
       modifySchemaProperty(modifier, field, "multiValued", field.isMultiValue());
     }
     if (StringUtils.isNotBlank(schemaForm.getUniqueKey())) {
-      this.modifySchemaProperty("/uniqueKey/text()", schemaForm.getUniqueKey(), modifier);
+      modifySchemaProperty("/uniqueKey/text()", schemaForm.getUniqueKey(), modifier);
     } else {
       modifier.deleteUniqueKey();
     }
     // }
     if (StringUtils.isNotBlank(schemaForm.getSharedKey())) {
-      this.modifySchemaProperty("/sharedKey/text()", schemaForm.getSharedKey(), modifier);
+      modifySchemaProperty("/sharedKey/text()", schemaForm.getSharedKey(), modifier);
     } else {
       modifier.deleteSharedKey();
     }
@@ -827,7 +792,7 @@ public class SchemaAction extends BasicModule {
    * @param document2
    * @return
    */
-  protected String parseSolrFieldType(ISchemaField field, org.jdom2.Document document2) {
+  protected static String parseSolrFieldType(ISchemaField field, org.jdom2.Document document2) {
     if (ISchemaField.DEFAULT_STRING_TYPE_NAME.equalsIgnoreCase(field.getTisFieldTypeName()) && StringUtils.isNotBlank(field.getTokenizerType())) {
       return field.getTokenizerType();
     }
@@ -861,7 +826,7 @@ public class SchemaAction extends BasicModule {
 
   private static final Format xmlRawformat = Format.getRawFormat().setEncoding(TisUTF8.getName());
 
-  private void modifySchemaProperty(String key, Object value, XModifier modifier) {
+  private static void modifySchemaProperty(String key, Object value, XModifier modifier) {
     modifier.addModify(key, String.valueOf(value));
   }
 
@@ -869,7 +834,7 @@ public class SchemaAction extends BasicModule {
    * @param modifier
    * @param field
    */
-  private void modifySchemaProperty(XModifier modifier, ISchemaField field, String key, Object value) {
+  private static void modifySchemaProperty(XModifier modifier, ISchemaField field, String key, Object value) {
     if (value == null) {
       return;
     }
@@ -935,39 +900,6 @@ public class SchemaAction extends BasicModule {
     }
   }
 
-  /**
-   * 更新schema 只更新，不执行导数据的后续操作
-   *
-   * @param context
-   * @throws Exception
-   */
-  @SuppressWarnings("all")
-  public void doEditSchema(Context context) throws Exception {
-    // SchemaResult schema = getPostedSchema(context);
-    //
-    // if (!schema.success) {
-    // return;
-    // }
-    //
-    // Isv isv = this.getCurrentIsv();
-    // // 在从缓存中取得内容
-    // NewAppInfo appinfo = this.getAppinfoFromTair();
-    //
-    // if (appinfo.getAppId() == null) {
-    // throw new IllegalArgumentException("appid can not be null");
-    // }
-    //
-    // Application app = this.getAppById(appinfo.getAppId());
-    // if (!appendNewSchema(context,
-    // schema.content.getBytes(Charset.forName("utf8")), app)) {
-    // return;
-    // }
-    //
-    // // 缓存失效
-    // this.getCache().invalid(getAppInfoKey(isv));
-    //
-    // context.put("query_result", "{\"code\":\"200\"}");
-  }
 
   /**
    * 编辑完成schema之后需要跳转到索引確認頁面<br>
@@ -1012,7 +944,7 @@ public class SchemaAction extends BasicModule {
       // 专家模式
       schemaContent = confiemModel.getExpert().getXml();
     }
-    schemaParse = this.parseSchemaResult(context, schemaContent.getBytes(getEncode()), true, /* shallValidate */
+    schemaParse = parseSchemaResult(this, context, schemaContent.getBytes(getEncode()), true, /* shallValidate */
       confiemModel.isExpertModel());
     return schemaParse;
   }

@@ -191,6 +191,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
     }
 
+
+
     private static class MockDumpPartition extends TabPartitions {
 
 
@@ -303,6 +305,9 @@ public class SqlTaskNodeMeta implements ISqlTask {
      * @param topology
      */
     public static void persistence(SqlDataFlowTopology topology, File parent) throws Exception {
+        if (!parent.exists()) {
+            throw new IllegalStateException("parent not exist:" + parent.getAbsolutePath());
+        }
         if (topology.profile == null || StringUtils.isEmpty(topology.getName()) || topology.getTimestamp() < 1 || topology.getDataflowId() < 1) {
             throw new IllegalArgumentException("param topology's prop name timestamp or dataflowid neither can be null");
         }
@@ -547,9 +552,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         private Map<String, DependencyNode> dumpNodesMap;
 
         @JSONField(serialize = false)
-        public Map<String, /**
-         * table name
-         */
+        public Map<String, /*** table name */
                 DependencyNode> getDumpNodesMap() {
             if (this.dumpNodesMap == null) {
                 this.dumpNodesMap = Maps.newHashMap();

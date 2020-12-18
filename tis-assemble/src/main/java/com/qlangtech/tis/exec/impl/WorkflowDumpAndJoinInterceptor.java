@@ -59,9 +59,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         TisZkClient zkClient = execChainContext.getZkClient();
         // 执行工作流数据结构
         SqlDataFlowTopology topology = execChainContext.getAttribute(IFullBuildContext.KEY_WORKFLOW_ID);
-        Map<String, TaskAndMilestone> /**
-         * taskid
-         */
+        Map<String, TaskAndMilestone> /*** taskid*/
         taskMap = Maps.newHashMap();
         // 取得workflowdump需要依赖的表
         Collection<DependencyNode> tables = topology.getDumpNodes();

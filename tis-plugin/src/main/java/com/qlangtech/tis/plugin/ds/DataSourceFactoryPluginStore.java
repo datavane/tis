@@ -20,6 +20,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -106,8 +107,15 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
      * @param tableName
      * @throws Exception
      */
-    public void saveTable(String tableName) throws Exception {
+    public TableReflect saveTable(String tableName) throws Exception {
         List<ColumnMetaData> colMetas = this.getPlugin().getTableMetadata(tableName);
+        return this.saveTable(tableName, colMetas);
+    }
+
+    public TableReflect saveTable(String tableName, List<ColumnMetaData> colMetas) throws Exception {
+        if (CollectionUtils.isEmpty(colMetas)) {
+            throw new IllegalStateException("tableName:" + tableName + " relevant colMetas can not be empty");
+        }
         StringBuffer extractSQL = ColumnMetaData.buildExtractSQL(tableName, colMetas);
         XmlFile configFile = getTableReflectSerializer(tableName);
 
@@ -115,6 +123,7 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         reflectTab.setSql(extractSQL.toString());
         reflectTab.setCols(colMetas);
         configFile.write(reflectTab, Collections.emptySet());
+        return reflectTab;
     }
 
     private XmlFile getTableReflectSerializer(String tableName) {
@@ -133,7 +142,6 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
             tisTable.setReflectCols(tableMeta.getCols());
             tisTable.setSelectSql(tableMeta.getSql());
             tisTable.setTableName(tableName);
-            tisTable.setTableLogicName(tableName);
             tisTable.setDbName(this.key.keyVal);
             return tisTable;
         } catch (IOException e) {

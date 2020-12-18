@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.opensymphony.xwork2.ActionInvocation;
@@ -105,9 +107,9 @@ public class AppDomainSelectedCheckValve extends MethodFilterInterceptor {
     protected String doIntercept(ActionInvocation invocation) throws Exception {
         // return invocation.invoke();
         // }
-        // 
-        // 
-        // 
+        //
+        //
+        //
         // @Override
         // public void invoke(PipelineContext context) throws Exception {
         // TurbineRunDataInternal navigate = getRunData();
@@ -135,7 +137,7 @@ public class AppDomainSelectedCheckValve extends MethodFilterInterceptor {
                 rundata.forwardTo(StringUtils.substringBefore(specialTarget, ","));
             } else {
                 rundata.forwardTo("appdomainhasnotselected");
-                return BasicModule.key_FORWARD;
+                return Action.NONE;
             }
             // context.breakPipeline(0);
             return invocation.invoke();

@@ -277,75 +277,11 @@ public class DatasourceTableCriteria extends BasicCriteria {
             return this;
         }
 
-        public Criteria andTableLogicNameIsNull() {
-            addCriterion("table_logic_name is null");
-            return this;
-        }
+//        public Criteria andTableLogicNameEqualTo(String value) {
+//            addCriterion("table_logic_name =", value, "tableLogicName");
+//            return this;
+//        }
 
-        public Criteria andTableLogicNameIsNotNull() {
-            addCriterion("table_logic_name is not null");
-            return this;
-        }
-
-        public Criteria andTableLogicNameEqualTo(String value) {
-            addCriterion("table_logic_name =", value, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameNotEqualTo(String value) {
-            addCriterion("table_logic_name <>", value, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameGreaterThan(String value) {
-            addCriterion("table_logic_name >", value, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameGreaterThanOrEqualTo(String value) {
-            addCriterion("table_logic_name >=", value, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameLessThan(String value) {
-            addCriterion("table_logic_name <", value, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameLessThanOrEqualTo(String value) {
-            addCriterion("table_logic_name <=", value, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameLike(String value) {
-            addCriterion("table_logic_name like", value, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameNotLike(String value) {
-            addCriterion("table_logic_name not like", value, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameIn(List<String> values) {
-            addCriterion("table_logic_name in", values, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameNotIn(List<String> values) {
-            addCriterion("table_logic_name not in", values, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameBetween(String value1, String value2) {
-            addCriterion("table_logic_name between", value1, value2, "tableLogicName");
-            return this;
-        }
-
-        public Criteria andTableLogicNameNotBetween(String value1, String value2) {
-            addCriterion("table_logic_name not between", value1, value2, "tableLogicName");
-            return this;
-        }
 
         public Criteria andDbIdIsNull() {
             addCriterion("db_id is null");

@@ -47,7 +47,8 @@ public class ProcessResponse {
             result.respBody = respBody;
             result.result = resp;
         } catch (Exception pe) {
-            throw new RuntimeException("Expected JSON response from server but received: " + respBody + "\nTypically, this indicates a problem with the Solr server; check the Solr server logs for more information.");
+            throw new RuntimeException("Expected JSON response from server but received: " + respBody
+              + "\nTypically, this indicates a problem with the Solr server; check the Solr server logs for more information.");
         }
         Map<String, Object> json = null;
         if (resp != null && resp instanceof Map) {

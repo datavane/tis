@@ -98,7 +98,7 @@ public class TisIncrLauncher {
              * 下载增量组件相关的配置及plugin包
              * ==================================================================
              */
-            final String collectionRelativePath = TIS.KEY_TIS_PLUGIN_CONFIG + "/" + collection;
+            final String collectionRelativePath = StreamContextConstant.DIR_STREAMS_SCRIPT + "/" + collection;
             // List<String> subFiles = CenterResource.getSubFiles(collectionRelativePath, false, true);
             // Lists.newArrayList();
             List<File> subs = CenterResource.synchronizeSubFiles(collectionRelativePath);

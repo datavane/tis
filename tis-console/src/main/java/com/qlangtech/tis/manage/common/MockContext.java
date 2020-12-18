@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class MockContext implements Context {
 
-  private static final MockContext instance = new MockContext();
+  public static final MockContext instance = new MockContext();
 
   public static AjaxValve.ActionExecResult getActionExecResult() {
     return new AjaxValve.ActionExecResult(instance).invoke();

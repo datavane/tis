@@ -189,31 +189,42 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
   }
 
-  public static final String key_FORWARD = "forward";
+  //public static final String key_FORWARD = "forward";
 
   public static ActionContext getActionContext() {
     return ActionContext.getContext();
   }
 
   private String getReturnCode() {
+
+    ActionContext actionCtx = ActionContext.getContext();
+    ActionProxy proxy = actionCtx.getActionInvocation().getProxy();
     // 并且只有screen中的 模块可以设置forward
-    if (isScreenApply() && this.getRequest().getAttribute(TERMINATOR_FORWARD) != null) {
-      return key_FORWARD;
-    }
+//    if (isScreenApply() && this.getRequest().getAttribute(TERMINATOR_FORWARD) != null) {
+//      return key_FORWARD;
+//    }
     final String moduleName = this.getClass().getSimpleName();
-    ActionMapping mapping = ServletActionContext.getActionMapping();
-    if (mapping == null) {
-      return moduleName;
-    }
-    if ("action".equalsIgnoreCase(mapping.getExtension())) {
-      return NONE;
-    }
-    // 当前是否是action执行
-    if (isActionSubmit(mapping)) {
-      // moduleName + "_action";
-      return key_FORWARD;
-    }
-    return moduleName + (StringUtils.equals("ajax", mapping.getExtension()) ? "_ajax" : StringUtils.EMPTY);
+//    ActionContext actionContext = ServletActionContext.getActionContext(this.getRequest());
+//    ActionMapping mapping = ServletActionContext.getActionMapping();
+//    if (mapping == null) {
+//      return moduleName;
+//    }
+
+//    if (org.apache.commons.lang3.StringUtils.endsWith(proxy.getNamespace(), TisActionMapper.ACTION_TOKEN)) {
+//      return NONE;
+//    }
+
+//    if ("action".equalsIgnoreCase(mapping.getExtension())) {
+   // return NONE;
+//    }
+//    // 当前是否是action执行
+//    if (isActionSubmit(mapping)) {
+//      // moduleName + "_action";
+//      return key_FORWARD;
+//    }
+   //  return moduleName + (StringUtils.equals("ajax", mapping.getExtension()) ? "_ajax" : StringUtils.EMPTY);
+
+    return moduleName +  "_ajax" ;// : StringUtils.EMPTY);
   }
 
   public static boolean isScreenApply() {
@@ -221,7 +232,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   public static final boolean isActionSubmit(ActionMapping mapping) {
-    return "action".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#")) && !(StringUtils.equals("ajax", mapping.getExtension()));
+    return "action".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#"))
+      && !(StringUtils.equals("ajax", mapping.getExtension()));
   }
 
   public static final String TERMINATOR_FORWARD = "terminatorForward";
@@ -1124,10 +1136,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
   }
 
-  protected Application getTemplateApp() {
+  protected static Application getTemplateApp(BasicModule module) {
     // LuceneVersion.parse(this.getString("luceneversion"));
     LuceneVersion version = LuceneVersion.LUCENE_7;
-    Application tplApp = this.getApplicationDAO().selectByName(version.getTemplateIndexName());
+    Application tplApp = module.getApplicationDAO().selectByName(version.getTemplateIndexName());
     if (tplApp == null) {
       throw new IllegalStateException("tpl version:" + version + ", index:" + version.getTemplateIndexName() + ", relevant app can not be null");
     }

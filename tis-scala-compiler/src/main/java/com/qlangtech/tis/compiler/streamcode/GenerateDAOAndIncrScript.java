@@ -25,12 +25,11 @@ import com.qlangtech.tis.compiler.java.MyJavaFileObject;
 import com.qlangtech.tis.compiler.java.NestClassFileObject;
 import com.qlangtech.tis.coredefine.module.action.IbatorProperties;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
-import com.qlangtech.tis.plugin.ds.FacadeDataSource;
-import com.qlangtech.tis.plugin.ds.IDbMeta;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.FacadeDataSource;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
@@ -42,7 +41,6 @@ import org.apache.ibatis.ibator.config.IbatorContext;
 import scala.tools.ScalaCompilerSupport;
 import scala.tools.scala_maven_executions.LogProcessorUtils;
 
-import javax.sql.DataSource;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
@@ -89,6 +87,21 @@ public class GenerateDAOAndIncrScript {
         final KoubeiProgressCallback koubeiProgressCallback = new KoubeiProgressCallback();
         List<IbatorContext> daoFacadeList = Lists.newArrayList();
         Long lastOptime = null;
+        List<DataSourceFactoryPluginStore> leakFacadeDsPlugin = Lists.newArrayList();
+        for (Map.Entry<DBNode, List<String>> /* dbname */
+                entry : dbNameMap.entrySet()) {
+            dbPluginStore = getFacadePluginStore(entry);
+            if (dbPluginStore.getPlugin() == null) {
+                leakFacadeDsPlugin.add(dbPluginStore);
+            }
+        }
+        if (leakFacadeDsPlugin.size() > 0) {
+            this.msgHandler.addErrorMessage(context, "数据库:"
+                    + leakFacadeDsPlugin.stream().map((p) -> "'" + p.getDSKey().keyVal + "'")
+                    .collect(Collectors.joining(",")) + " 还没有定义对应的Facade数据源");
+            return;
+        }
+
         for (Map.Entry<DBNode, List<String>> /* dbname */
                 entry : dbNameMap.entrySet()) {
             lastOptime = dependencyDbs.get(entry.getKey().getDbId());
@@ -99,8 +112,7 @@ public class GenerateDAOAndIncrScript {
             long timestamp = lastOptime;
             //
 
-            dbPluginStore
-                    = TIS.getDataBasePluginStore(null, new PostedDSProp(entry.getKey().getDbName(), DbScope.FACADE));
+            dbPluginStore = getFacadePluginStore(entry);
             FacadeDataSource facadeDataSource = dbPluginStore.createFacadeDataSource();
 //            DataSourceFactory facadeFactory = dbPluginStore.getPlugin();
             // dbConfig = GitUtils.$().getDbLinkMetaData(entry.getKey().getDbName(), DbScope.DETAILED);
@@ -227,6 +239,13 @@ public class GenerateDAOAndIncrScript {
             }
             throw new RuntimeException(e);
         }
+    }
+
+    private DataSourceFactoryPluginStore getFacadePluginStore(Map.Entry<DBNode, List<String>> entry) {
+        DataSourceFactoryPluginStore dbPluginStore;
+        dbPluginStore
+                = TIS.getDataBasePluginStore(null, new PostedDSProp(entry.getKey().getDbName(), DbScope.FACADE));
+        return dbPluginStore;
     }
 
     private void appendClassFile(File parent, JavaCompilerProcess.FileObjectsContext fileObjects, final StringBuffer qualifiedClassName) throws IOException {

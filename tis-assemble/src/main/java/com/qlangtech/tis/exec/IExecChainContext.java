@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,7 +20,6 @@ import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.er.ERRules;
 import org.apache.solr.common.cloud.ZkStateReader;
 
 /**
@@ -29,13 +28,13 @@ import org.apache.solr.common.cloud.ZkStateReader;
  */
 public interface IExecChainContext extends IJoinTaskContext {
 
-    public TisZkClient getZkClient();
+    TisZkClient getZkClient();
 
-    public ZkStateReader getZkStateReader();
+    ZkStateReader getZkStateReader();
 
-    public String getPartitionTimestamp();
+    String getPartitionTimestamp();
 
-    public ExecutePhaseRange getExecutePhaseRange();
+    ExecutePhaseRange getExecutePhaseRange();
 
     IIndexMetaData getIndexMetaData();
 
@@ -44,18 +43,18 @@ public interface IExecChainContext extends IJoinTaskContext {
      *
      * @return
      */
-    public Integer getWorkflowId();
+    Integer getWorkflowId();
 
-    public String getWorkflowName();
+    String getWorkflowName();
 
-    public SqlTaskNodeMeta.SqlDataFlowTopology getTopology();
+    SqlTaskNodeMeta.SqlDataFlowTopology getTopology();
 
-    // public ERRules getERRules();
-    public ITISFileSystemFactory getIndexBuildFileSystem();
 
-    public TableDumpFactory getTableDumpFactory();
+    ITISFileSystemFactory getIndexBuildFileSystem();
 
-    public IndexBuilderTriggerFactory getIndexBuilderFactory();
+    TableDumpFactory getTableDumpFactory();
 
-    public void rebindLoggingMDCParams();
+    IndexBuilderTriggerFactory getIndexBuilderFactory();
+
+    void rebindLoggingMDCParams();
 }

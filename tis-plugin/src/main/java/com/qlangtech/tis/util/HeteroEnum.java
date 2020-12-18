@@ -79,7 +79,7 @@ public enum HeteroEnum {
 
     public final String caption;
 
-    private final String identity;
+    public final String identity;
 
     public final Class<? extends Describable> extensionPoint;
 

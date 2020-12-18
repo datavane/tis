@@ -4,7 +4,6 @@
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.workflow.pojo.DatasourceTable" >
     <result column="id" property="id" jdbcType="INTEGER" />
     <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="table_logic_name" property="tableLogicName" jdbcType="VARCHAR" />
     <result column="db_id" property="dbId" jdbcType="INTEGER" />
     <result column="sync_online" property="syncOnline" jdbcType="TINYINT" />
     <result column="git_tag" property="gitTag" jdbcType="VARCHAR" />
@@ -41,7 +40,7 @@
     </iterate>
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria" >
-    select aa.id, name, table_logic_name, db_id, sync_online, git_tag, create_time, op_time
+    select aa.id, name,  db_id, sync_online, git_tag, create_time, op_time
      from ( select id from datasource_table
     <isParameterPresent >
       <include refid="datasource_table.ibatorgenerated_Example_Where_Clause" />
@@ -57,7 +56,7 @@
         <include refid="datasource_table.ibatorgenerated_Example_Where_Clause" />
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceTable" >
-    select id, name, table_logic_name, db_id, sync_online, git_tag, create_time, op_time
+    select id, name, db_id, sync_online, git_tag, create_time, op_time
     from datasource_table
     where id = #id:INTEGER#
   </select>
@@ -70,9 +69,9 @@
     <include refid="datasource_table.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceTable" >
-    insert into datasource_table (id, name, table_logic_name, db_id, sync_online, git_tag,
+    insert into datasource_table (id, name, db_id, sync_online, git_tag,
       create_time, op_time)
-    values (#id:INTEGER#, #name:VARCHAR#, #tableLogicName:VARCHAR#, #dbId:INTEGER#,
+    values (#id:INTEGER#, #name:VARCHAR#, #dbId:INTEGER#,
       #syncOnline:BIT#, #gitTag:VARCHAR#, #createTime:TIMESTAMP#, #opTime:TIMESTAMP#)
     <selectKey resultClass="java.lang.Integer" >
       SELECT LAST_INSERT_ID();
@@ -87,9 +86,7 @@
       <isNotNull prepend="," property="name" >
         name
       </isNotNull>
-      <isNotNull prepend="," property="tableLogicName" >
-        table_logic_name
-      </isNotNull>
+
       <isNotNull prepend="," property="dbId" >
         db_id
       </isNotNull>
@@ -115,9 +112,7 @@
       <isNotNull prepend="," property="name" >
         #name:VARCHAR#
       </isNotNull>
-      <isNotNull prepend="," property="tableLogicName" >
-        #tableLogicName:VARCHAR#
-      </isNotNull>
+
       <isNotNull prepend="," property="dbId" >
         #dbId:INTEGER#
       </isNotNull>
@@ -152,9 +147,7 @@
       <isNotNull prepend="," property="record.name" >
         name = #record.name:VARCHAR#
       </isNotNull>
-      <isNotNull prepend="," property="record.tableLogicName" >
-        table_logic_name = #record.tableLogicName:VARCHAR#
-      </isNotNull>
+
       <isNotNull prepend="," property="record.dbId" >
         db_id = #record.dbId:INTEGER#
       </isNotNull>
@@ -179,7 +172,6 @@
     update datasource_table
     set id = #record.id:INTEGER#,
       name = #record.name:VARCHAR#,
-      table_logic_name = #record.tableLogicName:VARCHAR#,
       db_id = #record.dbId:INTEGER#,
       sync_online = #record.syncOnline:BIT#,
       git_tag = #record.gitTag:VARCHAR#,

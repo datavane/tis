@@ -25,9 +25,9 @@ import com.qlangtech.tis.util.UploadPluginMeta;
  */
 public class PostedDSProp {
 
-    private static final String KEY_DB_NAME = "dsname";
-    private static final String KEY_TYPE = "type";
-    private static final String KEY_UPDATE = "update";
+    public static final String KEY_DB_NAME = "dsname";
+    public static final String KEY_TYPE = "type";
+    public static final String KEY_UPDATE = "update";
 
     private String dbname;
     private final DbScope dbType;

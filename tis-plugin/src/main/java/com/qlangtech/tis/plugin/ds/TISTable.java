@@ -16,6 +16,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 
 /**
@@ -25,9 +26,7 @@ import java.util.List;
  * @date 2020/04/13
  */
 public class TISTable {
-
-    private String tableLogicName;
-
+    
     private String tableName;
 
     private int partitionNum;
@@ -59,9 +58,8 @@ public class TISTable {
         this.reflectCols = reflectCols;
     }
 
-    public TISTable(String tableLogicName, String tableName, int partitionNum, Integer dbId, int partitionInterval, String selectSql) {
-        // this.tabId = tabid;
-        this.tableLogicName = tableLogicName;
+    public TISTable(String tableName, int partitionNum
+            , Integer dbId, int partitionInterval, String selectSql) {
         this.tableName = tableName;
         this.partitionNum = partitionNum;
         this.dbId = dbId;
@@ -86,14 +84,6 @@ public class TISTable {
 
     public void setDbName(String dbName) {
         this.dbName = dbName;
-    }
-
-    public String getTableLogicName() {
-        return tableLogicName;
-    }
-
-    public void setTableLogicName(String tableLogicName) {
-        this.tableLogicName = tableLogicName;
     }
 
     public String getTableName() {

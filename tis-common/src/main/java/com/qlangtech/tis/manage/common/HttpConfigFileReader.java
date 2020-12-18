@@ -181,7 +181,8 @@ public class HttpConfigFileReader extends ConfigFileReader {
      * @param fileGetter
      * @return
      */
-    public static SnapshotDomain getResource(String appName, final long targetSnapshotid, RunEnvironment runtime, boolean unmergeglobalparams, boolean reThrowNewException, PropteryGetter... fileGetter) throws RepositoryException {
+    public static SnapshotDomain getResource(String appName, final long targetSnapshotid, RunEnvironment runtime
+            , boolean unmergeglobalparams, boolean reThrowNewException, PropteryGetter... fileGetter) throws RepositoryException {
         String tisUrl = Config.getConfigRepositoryHost();
         if (StringUtils.isEmpty(tisUrl)) {
             throw new IllegalArgumentException("parameter terminatorUrl can not be null");

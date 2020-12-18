@@ -32,7 +32,7 @@ public class TISCollectionUtils {
 
     public static String INDEX_BACKFLOW_ALL = "all";
 
-    private static String NAME_PREFIX = "search4";
+    public static String NAME_PREFIX = "search4";
 
     private static final Pattern coreNamePattern = Pattern.compile(NAME_PREFIX + "(.+?)_shard(\\d+?)_replica_n(\\d+?)");
 

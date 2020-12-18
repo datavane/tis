@@ -34,7 +34,8 @@ public interface ISqlTask {
 
     String getSql();
 
-    RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, IPrimaryTabFinder erRules, ITemplateContext templateContext, boolean isFinalNode);
+    RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, IPrimaryTabFinder erRules
+            , ITemplateContext templateContext, boolean isFinalNode);
 
     class RewriteSql {
 

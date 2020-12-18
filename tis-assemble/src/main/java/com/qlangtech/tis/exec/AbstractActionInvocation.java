@@ -18,10 +18,14 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.impl.*;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
+import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
+import com.qlangtech.tis.sql.parser.er.TableMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,14 +48,6 @@ public class AbstractActionInvocation implements ActionInvocation {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractActionInvocation.class);
 
-    // 原生的全流程構建，從dump開始到最後索引回流
-    // private static final IExecuteInterceptor[] fullints = new
-    // IExecuteInterceptor[] { new DumpInterceptor(), // new
-    // // BindTablePartitionInterceptor(),
-    // new TableJoinInterceptor(), ////
-    // new IndexBuildInterceptor(), //////////
-    // new IndexBackFlowInterceptor() };
-    // 由数据中心触发的直接進入索引build階段
     private static final IExecuteInterceptor[] directBuild = new IExecuteInterceptor[]{ // /////
             new IndexBuildWithHdfsPathInterceptor(), new IndexBackFlowInterceptor()};
 
@@ -78,10 +74,14 @@ public class AbstractActionInvocation implements ActionInvocation {
             TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange()));
             chainContext.setAttribute(IFullBuildContext.KEY_WORKFLOW_ID, workflowDetail);
             Optional<ERRules> erRule = ERRules.getErRule(workflowDetail.getName());
+            IPrimaryTabFinder pTabFinder = null;
             if (!erRule.isPresent()) {
-                throw new IllegalStateException("can not find erRule relevant topology:" + workflowDetail.getName() + ",workflowid:" + workflowId);
+                pTabFinder = new DftTabFinder();
+                //  throw new IllegalStateException("can not find erRule relevant topology:" + workflowDetail.getName() + ",workflowid:" + workflowId);
+            } else {
+                pTabFinder = erRule.get();
             }
-            chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, erRule.get());
+            chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
         } else {
             if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
                 ints = directBuild;
@@ -92,6 +92,7 @@ public class AbstractActionInvocation implements ActionInvocation {
         }
         return createInvocation(chainContext, ints);
     }
+
 
     public static ActionInvocation createInvocation(IExecChainContext chainContext, IExecuteInterceptor[] ints) {
         final ComponentOrders componentOrders = new ComponentOrders();
@@ -118,20 +119,6 @@ public class AbstractActionInvocation implements ActionInvocation {
         return preInvocation;
     }
 
-    // /**
-    // * 取得workflow的詳細信息
-    // *
-    // * @param workflowId
-    // * @return SqlDataFlowTopology
-    // */
-    // public static SqlDataFlowTopology getWorkflowDetail(int workflowId) {
-    // final String url = TrackableExecuteInterceptor.WORKFLOW_CONFIG_URL_FORMAT
-    // .format(new Object[]{"fullbuild_workflow_action", "do_get_workflow_detail", "advance_query_result"
-    // , String.format("&" + IFullBuildContext.KEY_WORKFLOW_ID + "=%d", workflowId)});
-    // 
-    // SqlDataFlowTopology bizresult = HttpUtils.soapRemote((url), SqlDataFlowTopology.class).getBizresult();
-    // return bizresult;
-    // }
     private ComponentOrders componentOrders;
 
     public static class ComponentOrders {
@@ -199,42 +186,7 @@ public class AbstractActionInvocation implements ActionInvocation {
         this.componentOrders = componentOrders;
     }
 
-    // public static void main(String[] arg) throws Exception {
-    // 
-    // BasicModule action = new BasicModule() {
-    // private static final long serialVersionUID = 1L;
-    // 
-    // @Override
-    // public String execute() throws Exception {
-    // System.out.println("BasicModule exec");
-    // return "basicModule";
-    // }
-    // };
-    // 
-    // AbstractActionInvocation actionInvoc = new AbstractActionInvocation();
-    // actionInvoc.setAction(action);
-    // 
-    // Interceptor inter = new Interceptor() {
-    // @Override
-    // public String intercept(ActionInvocation invocation)
-    // throws Exception {
-    // try {
-    // return "interc1";
-    // // return invocation.invoke();
-    // } finally {
-    // System.out.println("post interc1");
-    // }
-    // }
-    // };
-    // 
-    // AbstractActionInvocation actionInvoc2 = new AbstractActionInvocation();
-    // actionInvoc2.setAction(action);
-    // actionInvoc2.setInterceptor(inter);
-    // actionInvoc2.setSuccessor(actionInvoc);
-    // 
-    // System.out.println("forward:" + actionInvoc2.invoke());
-    // // action.execute();
-    // }
+
     @Override
     public IExecChainContext getContext() {
         return this.chainContext;
@@ -258,11 +210,19 @@ public class AbstractActionInvocation implements ActionInvocation {
         this.interceptor = successor;
     }
 
-    // @Override
-    // public IExecChainContext getAction() {
-    // return this.chainContext;
-    // }
     public void setContext(IExecChainContext action) {
         this.chainContext = action;
+    }
+
+    private static class DftTabFinder implements IPrimaryTabFinder {
+        @Override
+        public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

@@ -37,7 +37,7 @@ public class UploadPluginMeta {
 
     private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))+)?");
 
-    private static final String KEY_REQUIRE = "require";
+    public static final String KEY_REQUIRE = "require";
     private final String name;
 
     private boolean required;
@@ -50,40 +50,50 @@ public class UploadPluginMeta {
             throw new IllegalArgumentException("plugin size:" + plugins.length + " length can not small than 1");
         }
         List<UploadPluginMeta> metas = Lists.newArrayList();
-        UploadPluginMeta pmeta = null;
-        Matcher matcher = null;
-        Matcher attrMatcher = null;
-        String attr = null;
         for (String plugin : plugins) {
-            matcher = PATTERN_PLUGIN_META.matcher(plugin);
-            if (matcher.matches()) {
-                pmeta = new UploadPluginMeta(matcher.group(1));
-                if (matcher.group(2) != null) {
-                    attrMatcher = PATTERN_PLUGIN_ATTRIBUTE.matcher(matcher.group(2));
-                    while (attrMatcher.find()) {
-                        attr = attrMatcher.group();
-                        switch (attr) {
-                            case KEY_REQUIRE:
-                                pmeta.required = true;
-                                break;
-                            default:
-                                String[] pair = StringUtils.split(attr, ATTR_KEY_VALUE_SPLIT);
-                                if (pair.length != 2) {
-                                    throw new IllegalStateException("attr:" + attr + " is illegal");
-                                }
-                                pmeta.extraParams.put(pair[0], pair[1]);
-                        }
-                    }
-                }
-                metas.add(pmeta);
-            } else {
-                throw new IllegalStateException("plugin:'" + plugin + "' is not match the pattern:" + PATTERN_PLUGIN_META);
-            }
+            metas.add(parse(plugin));
         }
         if (plugins.length != metas.size()) {
             throw new IllegalStateException("param plugins length:" + plugins.length + " must equal with metaSize:" + metas.size());
         }
         return metas;
+    }
+
+    /**
+     *
+     * @param plugin
+     * @return
+     */
+    public static UploadPluginMeta parse(String plugin) {
+        Matcher matcher;
+        UploadPluginMeta pmeta;
+        Matcher attrMatcher;
+        String attr;
+        matcher = PATTERN_PLUGIN_META.matcher(plugin);
+        if (matcher.matches()) {
+            pmeta = new UploadPluginMeta(matcher.group(1));
+            if (matcher.group(2) != null) {
+                attrMatcher = PATTERN_PLUGIN_ATTRIBUTE.matcher(matcher.group(2));
+                while (attrMatcher.find()) {
+                    attr = attrMatcher.group();
+                    switch (attr) {
+                        case KEY_REQUIRE:
+                            pmeta.required = true;
+                            break;
+                        default:
+                            String[] pair = StringUtils.split(attr, ATTR_KEY_VALUE_SPLIT);
+                            if (pair.length != 2) {
+                                throw new IllegalStateException("attr:" + attr + " is illegal");
+                            }
+                            pmeta.extraParams.put(pair[0], pair[1]);
+                    }
+                }
+            }
+            return pmeta;
+            //metas.add(pmeta);
+        } else {
+            throw new IllegalStateException("plugin:'" + plugin + "' is not match the pattern:" + PATTERN_PLUGIN_META);
+        }
     }
 
     public HeteroEnum getHeteroEnum() {

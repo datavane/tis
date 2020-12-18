@@ -1166,7 +1166,9 @@ public class CoreAction extends BasicModule {
    * @throws MalformedURLException
    * @throws UnsupportedEncodingException
    */
-  public static boolean createCollection(BasicModule module, final Context context, final Integer groupNum, final Integer repliationCount, FCoreRequest request, int publishSnapshotId) throws Exception, MalformedURLException, UnsupportedEncodingException {
+  public static boolean createCollection(BasicModule module, final Context context, final Integer groupNum
+    , final Integer repliationCount, FCoreRequest request, int publishSnapshotId)
+    throws Exception, MalformedURLException, UnsupportedEncodingException {
     if (publishSnapshotId < 0) {
       throw new IllegalArgumentException("shall set publishSnapshotId");
     }

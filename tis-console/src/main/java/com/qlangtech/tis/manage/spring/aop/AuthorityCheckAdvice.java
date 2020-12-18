@@ -72,11 +72,11 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
             log.debug("target:" + proxy.getActionName() + ",method:" + method.getName() + " has not set FUNC");
             return invocation.invoke();
         }
-        if (!user.hasGrantAuthority(func.value())) {
-            log.warn("loginUser username:" + user.getName() + " userid:" + user.getId() + " has not grant authority on func:" + func.value());
-            rundata.forwardTo("runtime", "hasnopermission.vm");
-            return BasicModule.key_FORWARD;
-        }
+//        if (!user.hasGrantAuthority(func.value())) {
+//            log.warn("loginUser username:" + user.getName() + " userid:" + user.getId() + " has not grant authority on func:" + func.value());
+//            rundata.forwardTo("runtime", "hasnopermission.vm");
+//            return BasicModule.key_FORWARD;
+//        }
         return invocation.invoke();
     }
 }
