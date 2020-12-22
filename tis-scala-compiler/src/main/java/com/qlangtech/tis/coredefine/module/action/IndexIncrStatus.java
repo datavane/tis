@@ -22,6 +22,7 @@ import com.qlangtech.tis.realtime.yarn.rpc.IndexJobRunningStatus;
  */
 public class IndexIncrStatus {
 
+    private long  incrScriptTimestamp;
     // k8s的插件是否配置完成
     private boolean k8sPluginInitialized = false;
 
@@ -86,33 +87,12 @@ public class IndexIncrStatus {
     public void setIncrScriptCreated(boolean incrScriptCreated) {
         this.incrScriptCreated = incrScriptCreated;
     }
-    // public static class MqConfig {
-    // private String topic;
-    // private String consumeId;
-    // private String namesrvAddr;
-    // 
-    // public String getTopic() {
-    // return topic;
-    // }
-    // 
-    // public void setTopic(String topic) {
-    // this.topic = topic;
-    // }
-    // 
-    // public String getConsumeId() {
-    // return consumeId;
-    // }
-    // 
-    // public void setConsumeId(String consumeId) {
-    // this.consumeId = consumeId;
-    // }
-    // 
-    // public String getNamesrvAddr() {
-    // return namesrvAddr;
-    // }
-    // 
-    // public void setNamesrvAddr(String namesrvAddr) {
-    // this.namesrvAddr = namesrvAddr;
-    // }
-    // }
+
+    public long getIncrScriptTimestamp() {
+        return incrScriptTimestamp;
+    }
+
+    public void setIncrScriptTimestamp(long incrScriptTimestamp) {
+        this.incrScriptTimestamp = incrScriptTimestamp;
+    }
 }

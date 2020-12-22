@@ -5,8 +5,6 @@
     <result column="id" property="id" jdbcType="INTEGER" />
     <result column="name" property="name" jdbcType="VARCHAR" />
     <result column="db_id" property="dbId" jdbcType="INTEGER" />
-    <result column="sync_online" property="syncOnline" jdbcType="TINYINT" />
-    <result column="git_tag" property="gitTag" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="op_time" property="opTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -69,10 +67,10 @@
     <include refid="datasource_table.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceTable" >
-    insert into datasource_table (id, name, db_id, sync_online, git_tag,
+    insert into datasource_table (id, name, db_id, git_tag,
       create_time, op_time)
     values (#id:INTEGER#, #name:VARCHAR#, #dbId:INTEGER#,
-      #syncOnline:BIT#, #gitTag:VARCHAR#, #createTime:TIMESTAMP#, #opTime:TIMESTAMP#)
+       #createTime:TIMESTAMP#, #opTime:TIMESTAMP#)
     <selectKey resultClass="java.lang.Integer" >
       SELECT LAST_INSERT_ID();
     </selectKey>
@@ -90,12 +88,7 @@
       <isNotNull prepend="," property="dbId" >
         db_id
       </isNotNull>
-      <isNotNull prepend="," property="syncOnline" >
-        sync_online
-      </isNotNull>
-      <isNotNull prepend="," property="gitTag" >
-        git_tag
-      </isNotNull>
+
       <isNotNull prepend="," property="createTime" >
         create_time
       </isNotNull>
@@ -115,12 +108,6 @@
 
       <isNotNull prepend="," property="dbId" >
         #dbId:INTEGER#
-      </isNotNull>
-      <isNotNull prepend="," property="syncOnline" >
-        #syncOnline:BIT#
-      </isNotNull>
-      <isNotNull prepend="," property="gitTag" >
-        #gitTag:VARCHAR#
       </isNotNull>
       <isNotNull prepend="," property="createTime" >
         #createTime:TIMESTAMP#
@@ -151,12 +138,6 @@
       <isNotNull prepend="," property="record.dbId" >
         db_id = #record.dbId:INTEGER#
       </isNotNull>
-      <isNotNull prepend="," property="record.syncOnline" >
-        sync_online = #record.syncOnline:BIT#
-      </isNotNull>
-      <isNotNull prepend="," property="record.gitTag" >
-        git_tag = #record.gitTag:VARCHAR#
-      </isNotNull>
       <isNotNull prepend="," property="record.createTime" >
         create_time = #record.createTime:TIMESTAMP#
       </isNotNull>
@@ -173,8 +154,6 @@
     set id = #record.id:INTEGER#,
       name = #record.name:VARCHAR#,
       db_id = #record.dbId:INTEGER#,
-      sync_online = #record.syncOnline:BIT#,
-      git_tag = #record.gitTag:VARCHAR#,
       create_time = #record.createTime:TIMESTAMP#,
       op_time = #record.opTime:TIMESTAMP#
     <isParameterPresent >

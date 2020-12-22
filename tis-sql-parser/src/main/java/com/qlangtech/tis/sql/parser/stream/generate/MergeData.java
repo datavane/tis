@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 public class MergeData {
 
     private final String collection;
+    private final boolean excludeFacadeDAOSupport;
 
     private final Map<EntityName, StreamComponentCodeGenerator.MapDataMethodCreator> mapDataMethodCreatorMap;
 
@@ -77,8 +78,12 @@ public class MergeData {
      * @param tabTriggers
      * @param facadeContextList       索引主表集合，当索引为两个表union起来的时候Set中就存在多个实体
      */
-    public MergeData(String collection, Map<EntityName, StreamComponentCodeGenerator.MapDataMethodCreator> mapDataMethodCreatorMap, FunctionVisitor.FuncFormat aliasListBuilder, Map<TableTupleCreator, List<ValChain>> tabTriggers, List<FacadeContext> facadeContextList, ERRules erRules) {
+    public MergeData(
+            String collection, Map<EntityName, StreamComponentCodeGenerator.MapDataMethodCreator> mapDataMethodCreatorMap
+            , FunctionVisitor.FuncFormat aliasListBuilder, Map<TableTupleCreator, List<ValChain>> tabTriggers
+            , List<FacadeContext> facadeContextList, ERRules erRules,boolean excludeFacadeDAOSupport) {
         super();
+        this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
         this.collection = collection;
         this.mapDataMethodCreatorMap = mapDataMethodCreatorMap;
         this.aliasListBuilder = aliasListBuilder;
@@ -103,6 +108,10 @@ public class MergeData {
     }
 
     private final Stack<FlatTableRelation> unprocessedTableRelations = new Stack<>();
+
+    public boolean isFacadeDAOSupport() {
+        return !excludeFacadeDAOSupport;
+    }
 
     /**
      * 将子表主表关系压入关系栈,通过velocit模版（parsePKGetter.vm）中调用

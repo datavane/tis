@@ -40,12 +40,13 @@ import com.qlangtech.tis.realtime.${i.javaPropDbName}.pojo.${i.javaPropTableName
 #end
 // END import Criteria and POJO
 *#
-#foreach($i in $config.dumpTables  )
+#if($config.facadeDAOSupport)
+    #foreach($i in $config.dumpTables  )
 import com.qlangtech.tis.realtime.${i.javaPropDbName()}.pojo.${i.javaPropTableName()}ColEnum
 import com.qlangtech.tis.realtime.${i.javaPropDbName()}.pojo.${i.javaPropTableName()}Criteria
 import com.qlangtech.tis.realtime.${i.javaPropDbName()}.pojo.${i.javaPropTableName()}
+    #end
 #end
-
 #foreach($d in $config.facadeContextList )
 import ${d.fullFacadeClassName}
 #end
@@ -103,7 +104,6 @@ private val ENTITY_ID: String = "entity_id"
 private val NUM_CONSUME_NUM_5: Int = 5
 
 
-
 }
 
 @TISExtension(name = "default", ordinal = 0)
@@ -127,13 +127,13 @@ shardIdVal
 
 
 protected override def processColsMeta(builder: BuilderList): Unit = {
-  ${config.colsMetaBuilderList}
+${config.colsMetaBuilderList}
 }
 
 
 
 #foreach($i in $config.mapDataMethodCreatorList  )
-  $i.generateMapDataMethodBody
+    $i.generateMapDataMethodBody
 #end
 
 override def createRowsWrapper(): DefaultPojo = new BasicRuleDrivenWrapper(this)
@@ -162,57 +162,57 @@ this.${d.facadeInstanceName} = ${d.facadeInstanceName}
  * 生成getPK部分
  ************************************************************#
 /**
- * 取得索引宽表主键
- * @return
- */
+* 取得索引宽表主键
+* @return
+*/
 override def getPk( row : ITable) : DefaultPk = {
 
-  if (row.getEventType() == DTO.EventType.DELETE) {
-     return null;
-  }
+if (row.getEventType() == DTO.EventType.DELETE) {
+return null;
+}
 
-  val resultPK = row.getTableName() match {
+val resultPK = row.getTableName() match {
 #foreach($i in $config.dumpTables  )
     #if(!$config.isTriggerIgnore($i))
     case "${i.tabName}" => get${i.javaPropTableName()}PK(row)
     #end
 #end
-    case _=> throw new IllegalArgumentException("table name:"+ row.getTableName()+" is illegal");
-  }
+case _=> throw new IllegalArgumentException("table name:"+ row.getTableName()+" is illegal");
+}
 resultPK
 }
 
 protected override def getTableFocuse() : java.util.Set[String] = {
-  if(_tabsFocuse == null){
-     _tabsFocuse = com.google.common.collect.Sets.newHashSet( $config.tableFocuseJoinerLiteria);
-  }
-  _tabsFocuse
+if(_tabsFocuse == null){
+_tabsFocuse = com.google.common.collect.Sets.newHashSet( $config.tableFocuseJoinerLiteria);
+}
+_tabsFocuse
 }
 
 #foreach($i in $config.dumpTables  )
     #if(!$config.isTriggerIgnore($i))
-private def get${i.javaPropTableName()}PK(row : ITable) : DefaultPk = {
+    private def get${i.javaPropTableName()}PK(row : ITable) : DefaultPk = {
 
-  val columnMeta : AliasList = tabColumnMetaMap.get("${i.tabName}");
-  if (columnMeta == null) {
-     throw new IllegalStateException("tableName: ${i.tabName} is not exist in tabColumnMetaMap");
-  }
-    #if($config.isPrimaryTable($i.tabName))
-  return new CompositePK(row.getColumn("$config.getPTableDBPKName($i.tabName)")  $config.getPTableRouterKeysName($i.tabName));
-    #else
+    val columnMeta : AliasList = tabColumnMetaMap.get("${i.tabName}");
+    if (columnMeta == null) {
+    throw new IllegalStateException("tableName: ${i.tabName} is not exist in tabColumnMetaMap");
+    }
+        #if($config.isPrimaryTable($i.tabName))
+        return new CompositePK(row.getColumn("$config.getPTableDBPKName($i.tabName)")  $config.getPTableRouterKeysName($i.tabName));
+        #else
         #* Optional<TableRelation>*#
-        #set($parentTabRef=$config.getFirstParent($i.tabName))
-        #set($tabName=$i.tabName)
+            #set($parentTabRef=$config.getFirstParent($i.tabName))
+            #set($tabName=$i.tabName)
         #* List<TableRelation> *#
-        #set($childTabRef=$config.getChildTabReference($i.tabName))
-        #parse("/com/qlangtech/tis/classtpl/parsePKGetter.vm")
-    #end
-} // END get${i.javaPropTableName()}PK
+            #set($childTabRef=$config.getChildTabReference($i.tabName))
+            #parse("/com/qlangtech/tis/classtpl/parsePKGetter.vm")
+        #end
+    } // END get${i.javaPropTableName()}PK
     #end
 #end
 // globalScripts
 #foreach($g in $config.globalScripts)
-$g
+    $g
 #end
 #*
          // 判断是否是主表

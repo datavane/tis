@@ -16,6 +16,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * DS update extra params posted form client

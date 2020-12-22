@@ -1,31 +1,32 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.compiler.streamcode;
 
-import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
-import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.meta.DependencyNode;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
-import com.qlangtech.tis.sql.parser.stream.generate.StreamComponentCodeGenerator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
+import com.qlangtech.tis.sql.parser.DBNode;
+import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
+import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
+import com.qlangtech.tis.sql.parser.stream.generate.StreamComponentCodeGenerator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.util.List;
@@ -37,8 +38,6 @@ import java.util.Stack;
  * @date 2020/04/13
  */
 public class IndexStreamCodeGenerator {
-
-    // private final String  ;
     public final String collection;
 
     private SqlTaskNodeMeta.SqlDataFlowTopology dfTopology;
@@ -53,10 +52,13 @@ public class IndexStreamCodeGenerator {
 
     private final IDBTableNamesGetter dbTableNamesGetter;
 
-    // private WorkFlow workFlow;
     private String workflowName;
 
-    public IndexStreamCodeGenerator(String collection, String workflowName, long incrScriptTimestamp, IDBTableNamesGetter dbTableNamesGetter) throws Exception {
+    // 自动生成的incr脚本中需要dao支持吗？
+    private final boolean excludeFacadeDAOSupport;
+
+    public IndexStreamCodeGenerator(String collection, String workflowName, long incrScriptTimestamp
+            , IDBTableNamesGetter dbTableNamesGetter, boolean excludeFacadeDAOSupport) throws Exception {
         if (StringUtils.isEmpty(collection)) {
             throw new IllegalArgumentException("argument collection can not be null");
         }
@@ -68,6 +70,7 @@ public class IndexStreamCodeGenerator {
         if (incrScriptTimestamp < 1) {
             throw new IllegalArgumentException("illegal incrScriptTimestamp can not small than 1");
         }
+        this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
         // 增量脚本时间戳
         // ManageUtils.formatNowYyyyMMddHHmmss(latestOptime);
         this.incrScriptTimestamp = incrScriptTimestamp;
@@ -79,12 +82,13 @@ public class IndexStreamCodeGenerator {
         this.dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.workflowName);
         this.dbTables = getDependencyTables(dfTopology);
         facadeList = Lists.newArrayList();
-        streamCodeGenerator = new StreamComponentCodeGenerator(this.collection, incrScriptTimestamp, facadeList, dfTopology);
+        streamCodeGenerator = new StreamComponentCodeGenerator(
+                 this.collection, incrScriptTimestamp, facadeList, dfTopology, excludeFacadeDAOSupport);
         this.streamScriptRootDir = StreamContextConstant.getStreamScriptRootDir(this.collection, incrScriptTimestamp);
     }
 
     private Map<DBNode, List<String>> /* tables */
-    dbTables;
+            dbTables;
 
     public Map<DBNode, List<String>> getDbTables() {
         return this.dbTables;
@@ -157,8 +161,8 @@ public class IndexStreamCodeGenerator {
     public void generateStreamScriptCode() throws Exception {
         // 生成scala代码
         this.streamCodeGenerator.build();
-    // 生成spring配置文件
-    // this.streamCodeGenerator.generateConfigFiles(this.mqConfigMetas);
+        // 生成spring配置文件
+        // this.streamCodeGenerator.generateConfigFiles(this.mqConfigMetas);
     }
 
     public void saveDbDependencyMetaConfig() throws Exception {
@@ -176,13 +180,14 @@ public class IndexStreamCodeGenerator {
     // return new File(this.streamScriptRootDir
     // , StreamContextConstant.DIR_META + "/" + StreamContextConstant.FILE_DB_DEPENDENCY_CONFIG);
     // }
+
     /**
      * 取得依赖的db->table映射关系
      */
     private Map<DBNode, /* dbname */
-    List<String>> getDependencyTables(SqlTaskNodeMeta.SqlDataFlowTopology dfTopology) throws Exception {
+            List<String>> getDependencyTables(SqlTaskNodeMeta.SqlDataFlowTopology dfTopology) throws Exception {
         Map<DBNode, List<String>> /* tables */
-        dbNameMap = Maps.newHashMap();
+                dbNameMap = Maps.newHashMap();
         List<String> tables = null;
         DBNode dbNode = null;
         for (DependencyNode node : dfTopology.getDumpNodes()) {
@@ -193,17 +198,17 @@ public class IndexStreamCodeGenerator {
                 // DB 下的全部table
                 tables = Lists.newArrayList();
                 dbNameMap.put(dbNode, tables);
-            // DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-            // tableCriteria.createCriteria().andDbIdEqualTo(Integer.parseInt(node.getDbid()));
-            // List<DatasourceTable> tableList = CoreAction.this.getWorkflowDAOFacade().getDatasourceTableDAO()
-            // .selectByExample(tableCriteria);
-            // dbNameMap.put(dbNode,
-            // tableList.stream().map((t) -> t.getName()).collect(Collectors.toList()));
+                // DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
+                // tableCriteria.createCriteria().andDbIdEqualTo(Integer.parseInt(node.getDbid()));
+                // List<DatasourceTable> tableList = CoreAction.this.getWorkflowDAOFacade().getDatasourceTableDAO()
+                // .selectByExample(tableCriteria);
+                // dbNameMap.put(dbNode,
+                // tableList.stream().map((t) -> t.getName()).collect(Collectors.toList()));
             }
             tables.add(node.getName());
         }
         for (Map.Entry<DBNode, List<String>> /* tables */
-        entry : dbNameMap.entrySet()) {
+                entry : dbNameMap.entrySet()) {
             entry.setValue(dbTableNamesGetter.getTableNames(entry.getKey().getDbId(), entry.getValue()));
         }
         return dbNameMap;

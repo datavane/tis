@@ -176,12 +176,14 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
      * @throws RepositoryException
      * @throws IOException
      */
-    public static SnapshotDomain downConfigFromConsoleRepository(final long targetSnapshotid, String collectionName, File collectionConfigDir, PropteryGetter[] fileGetter, boolean modifyFileSys) throws RepositoryException, IOException {
+    public static SnapshotDomain downConfigFromConsoleRepository(final long targetSnapshotid, String collectionName
+            , File collectionConfigDir, PropteryGetter[] fileGetter, boolean modifyFileSys) throws RepositoryException, IOException {
         // TSearcherConfigFetcher configFetcher = TSearcherConfigFetcher.get();
         SnapshotDomain snapshotDomain = HttpConfigFileReader.getResource(collectionName, targetSnapshotid, RunEnvironment.getSysRuntime(), fileGetter);
         // 期望下载的 和远端的配置文件版本不同则肯定有问题了，需要抛出异常
         if (targetSnapshotid > 0 && snapshotDomain.getSnapshot().getSnId() != targetSnapshotid) {
-            throw new SolrException(ErrorCode.SERVER_ERROR, "local config snapshotid:" + targetSnapshotid + ",config repository snapshotid:" + snapshotDomain.getSnapshot().getSnId() + " is not match");
+            throw new SolrException(ErrorCode.SERVER_ERROR, "local config snapshotid:" + targetSnapshotid
+                    + ",config repository snapshotid:" + snapshotDomain.getSnapshot().getSnId() + " is not match");
         }
         if (// && localSnapshotid < 1
         modifyFileSys) {

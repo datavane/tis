@@ -20,8 +20,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.coredefine.module.action.*;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
@@ -44,8 +46,14 @@ import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,8 +65,9 @@ import java.util.stream.Collectors;
  */
 public class CollectionAction extends com.qlangtech.tis.runtime.module.action.AddAppAction {
   private static final Position DEFAULT_SINGLE_TABLE_POSITION;
-
   private static final Position DEFAULT_SINGLE_JOINER_POSITION;
+  private static final Logger logger = LoggerFactory.getLogger(CollectionAction.class);
+  private static final int SHARED_COUNT = 1;
 
   static {
     DEFAULT_SINGLE_TABLE_POSITION = new Position();
@@ -70,6 +79,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     DEFAULT_SINGLE_JOINER_POSITION.setY(296);
   }
 
+  private String indexName = null;
+
+
   /**
    * 创建索实例
    *
@@ -79,6 +91,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   public void doCreate(Context context) throws Exception {
     JSONObject post = this.parseJsonPost();
     JSONObject datasource = post.getJSONObject("datasource");
+    JSONObject incrCfg = post.getJSONObject("incr");
     if (datasource == null) {
       throw new IllegalStateException("prop 'datasource' can not be null");
     }
@@ -86,9 +99,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (StringUtils.isEmpty(targetTable)) {
       throw new IllegalStateException("param 'table' can not be null");
     }
-    String indexName = StringUtils.defaultIfEmpty(post.getString("indexName"), targetTable);
-
-
+    this.indexName = StringUtils.defaultIfEmpty(post.getString("indexName"), targetTable);
     PluginItems dataSourceItems = getDataSourceItems(datasource);
     if (dataSourceItems.items.size() < 1) {
       throw new IllegalStateException("datasource item can not small than 1,now:" + dataSourceItems.items.size());
@@ -133,10 +144,60 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     WorkFlow df = dbSaver.execute(topologyName, topology);
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topology, parent);
-
     // 在在引擎节点上创建实例节点
     this.createCollection(context, df, indexName, targetColMetas);
 
+    if (incrCfg != null) {
+      logger.info("start incr channel create");
+      if (!createIncrSyncChannel(context, df, incrCfg)) { return;}
+    }
+
+    // 现在需要开始触发全量索引了
+    CoreAction.TriggerBuildResult triggerBuildResult
+      = CoreAction.triggerFullIndexSwape(this, context, df.getId(), df.getName(), SHARED_COUNT);
+    this.setBizResult(context, triggerBuildResult);
+  }
+
+  @Override
+  public String getCollectionName() {
+    if (StringUtils.isEmpty(this.indexName)) {
+      throw new IllegalStateException("indexName:" + indexName + " can not be null");
+    }
+    return TISCollectionUtils.NAME_PREFIX + indexName;
+  }
+
+  /**
+   * 会调获取索引创建的状态
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetTaskStatus(Context context) throws Exception {
+
+  }
+
+  /**
+   * @param context
+   * @throws Exception
+   */
+  public void doQuery(Context context) throws Exception {
+    Connection con = null;
+    Statement stmt = null;
+    ResultSet rs = null;
+//org.apache.solr.client.solrj.io.sql.DriverImpl
+    try {
+      con = DriverManager.getConnection("jdbc:solr://zkHost:port?collection=collection&amp;aggregationMode=map_reduce");
+      stmt = con.createStatement();
+      rs = stmt.executeQuery("select a, sum(b) from tablex group by a");
+      while (rs.next()) {
+        String a = rs.getString("a");
+        rs.getString("sum(b)");
+      }
+    } finally {
+      rs.close();
+      stmt.close();
+      con.close();
+    }
   }
 
   private TargetColumnMeta getTargetColumnMeta(
@@ -157,7 +218,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     Map<String, TargetCol> targetColMap = getTargetCols(post);
     columnMeta.targetColMap = targetColMap;
     ColumnMetaData colMeta = null;
-    //List<ColumnMetaData> targetColMetas = Lists.newArrayList();
+
     for (Map.Entry<String, TargetCol> tc : targetColMap.entrySet()) {
       colMeta = colMetas.get(tc.getKey());
       if (colMeta == null) {
@@ -229,10 +290,15 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     SelectableServer.CoreNode[] coreNodeInfo
       = SelectableServer.getCoreNodeInfo(this.getRequest(), this, false, true);
 
-    coreNode.setReplicaCount(1);
-    coreNode.setShardCount(1);
+    //FIXME 这一步应该是去掉的最终提交的host内容应该是一个ip格式的，应该是取getNodeName的内容，UI中的内容应该要改一下
+    for (SelectableServer.CoreNode n : coreNodeInfo) {
+      n.setHostName(n.getNodeName());
+    }
 
+    coreNode.setReplicaCount(1);
+    coreNode.setShardCount(SHARED_COUNT);
     coreNode.setHosts(coreNodeInfo);
+
     confirmModel.setCoreNode(coreNode);
     confirmModel.setTplAppId(getTemplateApp(this).getAppId());
     ExtendApp extendApp = new ExtendApp();
@@ -286,6 +352,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     DependencyNode dNode = new DependencyNode();
     dNode.setId(String.valueOf(UUID.randomUUID()));
+    dNode.setDbName(dsTable.getDBName());
     dNode.setName(dsTable.getName());
     dNode.setDbid(String.valueOf(dsTable.getDbId()));
     dNode.setTabid(String.valueOf(dsTable.getId()));
@@ -306,6 +373,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     topology.addNodeMeta(joinNodeMeta);
 
+
+   // topology
+
     return topology;
   }
 
@@ -322,30 +392,92 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     return targetColMap;
   }
 
+  /**
+   * 创建增量同步通道
+   *
+   * @param incrCfg
+   */
+  private boolean createIncrSyncChannel(Context context, WorkFlow df, JSONObject incrCfg) throws Exception {
+
+    // 生成DAO脚本
+    HeteroEnum pluginType = HeteroEnum.MQ;
+    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(pluginType.identity + ":" + UploadPluginMeta.KEY_REQUIRE);
+    PluginItems incrPluginItems = getPluginItems(incrCfg, pluginType, pluginMeta);
+    if (incrPluginItems.items.size() < 1) {
+      throw new IllegalStateException("incr plugin item size can not small than 1");
+    }
+
+    for (AttrValMap vals : incrPluginItems.items) {
+      if (!vals.validate(context)) {
+        // return columnMeta.invalid();
+        return false;
+      }
+      // MQListenerFactory mqListenerFactory = (MQListenerFactory) vals.createDescribable().instance;
+      break;
+    }
+    incrPluginItems.save(context);
+
+    /**=======================================
+     *开始生成脚本并且编译打包
+     *=======================================*/
+    IndexIncrStatus incrStatus = CoreAction.generateDAOAndIncrScript(
+      this, context, df.getId(), true, true, true);
+
+    if (context.hasErrors()) {
+      return false;
+    }
+
+    IncrSpec incrPodSpec = new IncrSpec();
+    //FIXME 目前先写死
+    incrPodSpec.setReplicaCount(1);
+    incrPodSpec.setMemoryRequest(Specification.parse("1G"));
+    incrPodSpec.setMemoryLimit(Specification.parse("2G"));
+    incrPodSpec.setCpuRequest(Specification.parse("500m"));
+    incrPodSpec.setCpuLimit(Specification.parse("1"));
+
+//    IncrUtils.IncrSpecResult applySpec = IncrUtils.parseIncrSpec(context, this.parseJsonPost(), this);
+//    if (!applySpec.isSuccess()) {
+//      return;
+//    }
+    // 将打包好的构建，发布到k8s集群中去
+    // https://github.com/kubernetes-client/java
+    TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+    // 通过k8s发布
+    k8sClient.deploy(incrPodSpec, incrStatus.getIncrScriptTimestamp());
+    return true;
+  }
 
   private PluginItems getDataSourceItems(JSONObject datasource) {
+
+    HeteroEnum pluginType = HeteroEnum.DATASOURCE;
+
+    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(pluginType.identity
+      + ":" + UploadPluginMeta.KEY_REQUIRE + "," + PostedDSProp.KEY_TYPE + "_detailed,update_false");
+    return getPluginItems(datasource, pluginType, pluginMeta);
+    // items.save(context);
+  }
+
+
+  private PluginItems getPluginItems(JSONObject pluginCfg, HeteroEnum pluginType, UploadPluginMeta pluginMeta) {
     Map<String, String> dsParams = Maps.newHashMap();
-    for (String dsKey : datasource.keySet()) {
-      dsParams.put(dsKey, datasource.getString(dsKey));
+    for (String dsKey : pluginCfg.keySet()) {
+      dsParams.put(dsKey, pluginCfg.getString(dsKey));
     }
-    List<Descriptor<DataSourceFactory>> descriptorList = TIS.get().getDescriptorList(DataSourceFactory.class);
+    List<Descriptor<?>> descriptorList = TIS.get().getDescriptorList((Class) pluginType.extensionPoint);
     final String plugin = dsParams.remove("plugin");
     if (StringUtils.isEmpty(plugin)) {
-      throw new IllegalStateException("datasource/plugin can not be null");
+      throw new IllegalStateException("pluginCfg/plugin can not be null");
     }
-    Optional<Descriptor<DataSourceFactory>> dsPluginDesc
+    Optional<Descriptor<?>> pluginDesc
       = descriptorList.stream().filter((des) -> plugin.equals(des.getDisplayName())).findFirst();
-    Descriptor<DataSourceFactory> dsDescriptpr = null;
-    if (!dsPluginDesc.isPresent()) {
+    Descriptor<?> dsDescriptpr = null;
+    if (!pluginDesc.isPresent()) {
       throw new IllegalStateException("plugin:'" + plugin + "' relevant plugin descriper can not be null");
     }
-    dsDescriptpr = dsPluginDesc.get();
+    dsDescriptpr = pluginDesc.get();
 
 
-    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.DATASOURCE.identity
-      + ":" + UploadPluginMeta.KEY_REQUIRE + "," + PostedDSProp.KEY_TYPE + "_detailed,update_false");
-
-    PluginItems items = new PluginItems(new DftPluginContext(), pluginMeta);
+    PluginItems items = new PluginItems(new DftPluginContext(pluginType), pluginMeta);
     JSONArray itemsArray = new JSONArray();
     JSONObject item = new JSONObject();
     JSONObject vals = new JSONObject();
@@ -360,7 +492,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     itemsArray.add(item);
     items.items = AttrValMap.describableAttrValMapList(this, itemsArray);
     return items;
-    // items.save(context);
   }
 
 
@@ -395,14 +526,26 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   }
 
   private class DftPluginContext implements IPluginContext {
+
+    private final HeteroEnum pluginType;
+
+    public DftPluginContext(HeteroEnum pluginType) {
+      this.pluginType = pluginType;
+    }
+
     @Override
     public boolean isCollectionAware() {
-      return false;
+      return this.pluginType == HeteroEnum.MQ;
+    }
+
+    @Override
+    public String getCollectionName() {
+      return CollectionAction.this.getCollectionName();
     }
 
     @Override
     public boolean isDataSourceAware() {
-      return true;
+      return pluginType == HeteroEnum.DATASOURCE;
     }
 
     @Override
@@ -410,10 +553,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       CollectionAction.this.addDb(dbName, context);
     }
 
-    @Override
-    public String getCollectionName() {
-      return null;
-    }
+
   }
 
 }

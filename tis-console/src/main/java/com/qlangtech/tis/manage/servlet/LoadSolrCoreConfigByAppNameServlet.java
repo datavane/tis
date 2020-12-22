@@ -122,7 +122,8 @@ public class LoadSolrCoreConfigByAppNameServlet extends BasicServlet {
    * @return
    * @throws ServletException
    */
-  public static SnapshotDomain getSnapshotDomain(List<PropteryGetter> needRes, final AppKey appKey, RunContext runContext) throws ServletException {
+  public static SnapshotDomain getSnapshotDomain(
+    List<PropteryGetter> needRes, final AppKey appKey, RunContext runContext) throws ServletException {
     SnapshotDomain snapshot = null;
     snapshot = (SnapshotDomain) resourceCache.get(appKey.hashCode());
     try {

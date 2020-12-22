@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 public class StreamComponentCodeGenerator extends StreamCodeContext {
 
     private final SqlTaskNodeMeta.SqlDataFlowTopology topology;
+    private final boolean excludeFacadeDAOSupport;
 
 
     private final List<FacadeContext> daoFacadeList;
@@ -53,10 +54,16 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
     public StreamComponentCodeGenerator(String collectionName, long timestamp,
                                         List<FacadeContext> daoFacadeList, SqlTaskNodeMeta.SqlDataFlowTopology topology) {
+        this(collectionName, timestamp, daoFacadeList, topology, false);
+    }
+
+    public StreamComponentCodeGenerator(String collectionName, long timestamp,
+                                        List<FacadeContext> daoFacadeList, SqlTaskNodeMeta.SqlDataFlowTopology topology, boolean excludeFacadeDAOSupport) {
         super(collectionName, timestamp);
         this.erRules = ERRules.getErRule(topology.getName());
         this.topology = topology;
         this.daoFacadeList = daoFacadeList;
+        this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
     }
 
 
@@ -154,7 +161,6 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
         try {
             TableTupleCreator finalTableNode = this.parseFinalSqlTaskNode();
-            // ERRules erRules = ERRules.totalpayErRules;
             ERRules erR = erRules.get();
             TaskNodeTraversesCreatorVisitor visitor = new TaskNodeTraversesCreatorVisitor(erR);
             finalTableNode.accept(visitor);
@@ -457,70 +463,73 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                 }
                 //<<<<<<<<<<<<<<
 
-                // create setGetterRowsFromOuterPersistence
-                aliasListBuffer.append(entityName.getJavaEntityName())
-                        .append("Builder.setGetterRowsFromOuterPersistence(/*gencode5*/").methodBody(" (rowTabName, rvals, pk ) =>", (f) -> {
-                    Set<String> selectCols = Sets.union(relevantCols, linkCols);
-                    if (primaryFind.isPresent()) {
-                        // 主索引表
-                        PrimaryTableMeta ptabMeta = (PrimaryTableMeta) primaryFind.get();
+                if (!this.excludeFacadeDAOSupport) {
+                    // create setGetterRowsFromOuterPersistence
+                    aliasListBuffer.append(entityName.getJavaEntityName())
+                            .append("Builder.setGetterRowsFromOuterPersistence(/*gencode5*/")
+                            .methodBody(" (rowTabName, rvals, pk ) =>", (f) -> {
+                                Set<String> selectCols = Sets.union(relevantCols, linkCols);
+                                if (primaryFind.isPresent()) {
+                                    // 主索引表
+                                    PrimaryTableMeta ptabMeta = (PrimaryTableMeta) primaryFind.get();
 
-                        f.appendLine(entityName.buildDefineRowMapListLiteria());
-                        f.appendLine(entityName.buildDefineCriteriaEqualLiteria());
+                                    f.appendLine(entityName.buildDefineRowMapListLiteria());
+                                    f.appendLine(entityName.buildDefineCriteriaEqualLiteria());
 
-                        List<PrimaryLinkKey> primaryKeyNames = ptabMeta.getPrimaryKeyNames();
-                        for (PrimaryLinkKey linkKey : primaryKeyNames) {
-                            if (!linkKey.isPk()) {
-                                TisGroupBy.TisColumn routerKey = new TisGroupBy.TisColumn(linkKey.getName());
-                                f.appendLine(routerKey.buildDefineGetPkRouterVar());
-                            }
-                        }
-                        f.appendLine(entityName.buildCreateCriteriaLiteria());
-                        for (PrimaryLinkKey linkKey : primaryKeyNames) {
-                            if (linkKey.isPk()) {
-                                TisGroupBy.TisColumn pk = new TisGroupBy.TisColumn(linkKey.getName());
-                                f.append(pk.buildPropCriteriaEqualLiteria("pk.getValue()"));
-                            } else {
-                                TisGroupBy.TisColumn pk = new TisGroupBy.TisColumn(linkKey.getName());
-                                f.append(pk.buildPropCriteriaEqualLiteria());
-                            }
-                        }
-                        f.appendLine(entityName.buildAddSelectorColsLiteria(selectCols));
-                        f.appendLine(entityName.buildExecuteQueryDAOLiteria());
-                        f.appendLine(entityName.entities());
-                    } else {
-                        if (allChild.size() > 0) {
-                            f.appendLine(entityName.buildDefineRowMapListLiteria());
-                            f.appendLine(entityName.buildDefineCriteriaEqualLiteria()).returnLine();
-                            f.appendLine(entityName.buildAddSelectorColsLiteria(selectCols));
-                            f.methodBody("rowTabName match ", (ff) -> {
-                                for (TableRelation rel : allChild) {
-                                    EntityName childEntity = rel.getChild().parseEntityName();
-
-                                    ff.methodBody("case \"" + childEntity.getTabName() + "\" =>", (fff) -> {
-                                        fff.appendLine(entityName.buildCreateCriteriaLiteria());
-                                        for (JoinerKey jk : rel.getJoinerKeys()) {
-                                            TisGroupBy.TisColumn k = new TisGroupBy.TisColumn(jk.getParentKey());
-                                            fff.append(k.buildPropCriteriaEqualLiteria("rvals.getColumn(\"" + jk.getChildKey() + "\")"));
+                                    List<PrimaryLinkKey> primaryKeyNames = ptabMeta.getPrimaryKeyNames();
+                                    for (PrimaryLinkKey linkKey : primaryKeyNames) {
+                                        if (!linkKey.isPk()) {
+                                            TisGroupBy.TisColumn routerKey = new TisGroupBy.TisColumn(linkKey.getName());
+                                            f.appendLine(routerKey.buildDefineGetPkRouterVar());
                                         }
-                                        fff.returnLine();
+                                    }
+                                    f.appendLine(entityName.buildCreateCriteriaLiteria());
+                                    for (PrimaryLinkKey linkKey : primaryKeyNames) {
+                                        if (linkKey.isPk()) {
+                                            TisGroupBy.TisColumn pk = new TisGroupBy.TisColumn(linkKey.getName());
+                                            f.append(pk.buildPropCriteriaEqualLiteria("pk.getValue()"));
+                                        } else {
+                                            TisGroupBy.TisColumn pk = new TisGroupBy.TisColumn(linkKey.getName());
+                                            f.append(pk.buildPropCriteriaEqualLiteria());
+                                        }
+                                    }
+                                    f.appendLine(entityName.buildAddSelectorColsLiteria(selectCols));
+                                    f.appendLine(entityName.buildExecuteQueryDAOLiteria());
+                                    f.appendLine(entityName.entities());
+                                } else {
+                                    if (allChild.size() > 0) {
+                                        f.appendLine(entityName.buildDefineRowMapListLiteria());
+                                        f.appendLine(entityName.buildDefineCriteriaEqualLiteria()).returnLine();
+                                        f.appendLine(entityName.buildAddSelectorColsLiteria(selectCols));
+                                        f.methodBody("rowTabName match ", (ff) -> {
+                                            for (TableRelation rel : allChild) {
+                                                EntityName childEntity = rel.getChild().parseEntityName();
 
-                                        fff.appendLine(entityName.buildExecuteQueryDAOLiteria());
-                                        fff.appendLine(entityName.entities());
-                                    });
+                                                ff.methodBody("case \"" + childEntity.getTabName() + "\" =>", (fff) -> {
+                                                    fff.appendLine(entityName.buildCreateCriteriaLiteria());
+                                                    for (JoinerKey jk : rel.getJoinerKeys()) {
+                                                        TisGroupBy.TisColumn k = new TisGroupBy.TisColumn(jk.getParentKey());
+                                                        fff.append(k.buildPropCriteriaEqualLiteria("rvals.getColumn(\"" + jk.getChildKey() + "\")"));
+                                                    }
+                                                    fff.returnLine();
+
+                                                    fff.appendLine(entityName.buildExecuteQueryDAOLiteria());
+                                                    fff.appendLine(entityName.entities());
+                                                });
+                                            }
+                                            ff.appendLine("case unexpected => null");
+                                        });
+                                    } else {
+                                        f.appendLine(" null");
+                                    }
                                 }
-                                ff.appendLine("case unexpected => null");
-                            });
-                        } else {
-                            f.appendLine(" null");
-                        }
-                    }
-                }).appendLine(") // end setGetterRowsFromOuterPersistence").returnLine().returnLine();
+                            }).appendLine(") // end setGetterRowsFromOuterPersistence").returnLine().returnLine();
+                }
             }
 
 
             MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, aliasListBuffer,
-                    tabTriggers, this.daoFacadeList, erRules.get());
+                    tabTriggers, this.daoFacadeList, erRules.get(), this.excludeFacadeDAOSupport);
             mergeGenerate(mergeData);
         } finally {
             // traversesAllNodeOut.close();
@@ -536,7 +545,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
 
         MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, new FunctionVisitor.FuncFormat(),
-                Collections.emptyMap(), this.daoFacadeList, this.erRules.get());
+                Collections.emptyMap(), this.daoFacadeList, this.erRules.get(), this.excludeFacadeDAOSupport);
 
 
         File parentDir =

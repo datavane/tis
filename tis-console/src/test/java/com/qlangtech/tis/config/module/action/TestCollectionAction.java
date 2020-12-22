@@ -17,9 +17,13 @@ package com.qlangtech.tis.config.module.action;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionProxy;
+import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
+import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
+import com.qlangtech.tis.openapi.impl.AppKey;
+import com.qlangtech.tis.runtime.module.action.AddAppAction;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
@@ -28,6 +32,8 @@ import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.struts2.StrutsSpringTestCase;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -39,10 +45,23 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     CenterResource.setNotFetchFromCenterRepository();
     HttpUtils.addMockGlobalParametersConfig();
     AbstractTisCloudSolrClient.initHashcodeRouter();
+
+    // stub create collection
+    HttpUtils.addMockApply(CoreAction.CREATE_COLLECTION_PATH, () -> {
+      return TestCollectionAction.class.getResourceAsStream("s4employees_create_success.json");
+    });
+
+    // stub trigger collection indexbuild
+    HttpUtils.addMockApply(CoreAction.TRIGGER_FULL_BUILD_COLLECTION_PATH, () -> {
+      return TestCollectionAction.class.getResourceAsStream("s4employees_trigger_index_build_success.json");
+    });
+
   }
 
   private static final String TEST_TABLE_NAME = "employees";
   private static final String TEST_DS_NAME = "employees";
+
+  private static final String COLLECTION_NAME = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_NAME;
 
 
   public void testDoCreate() throws Exception {
@@ -53,6 +72,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     request.setParameter("action", "collection_action");
 
     JSONObject content = new JSONObject();
+
     JSONObject datasource = new JSONObject();
 
     datasource.put("plugin", "TiKV");
@@ -62,6 +82,13 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     content.put("indexName", TEST_TABLE_NAME);
     content.put("table", TEST_TABLE_NAME);
 
+    JSONObject incrCfg = new JSONObject();
+    incrCfg.put("plugin", "TiCDC-Kafka");
+    incrCfg.put("mqAddress", "192.168.28.201:9092");
+    incrCfg.put("topic", "baisui");
+    incrCfg.put("groupId", "consume_test1");
+    incrCfg.put("offsetResetStrategy", "earliest");
+    content.put("incr", incrCfg);
     JSONArray columns = getBuildTargetCols();
 
     content.put("columns", columns);
@@ -70,6 +97,11 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     assertNotNull(proxy);
     CollectionAction collectionAction = (CollectionAction) proxy.getAction();
     assertNotNull(collectionAction);
+    AtomicReference<AppKey> appKeyRef = new AtomicReference<>();
+    AddAppAction.appKeyProcess = (key) -> {
+      appKeyRef.set(key);
+    };
+    // 执行
     String result = proxy.execute();
     // assertEquals(Action.NONE, result);
     AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
@@ -77,6 +109,19 @@ public class TestCollectionAction extends StrutsSpringTestCase {
       System.out.println(AjaxValve.buildResultStruct(MockContext.instance));
       // actionExecResult.getErrorPageShow()
     }
+
+    CoreAction.TriggerBuildResult triggerResult = (CoreAction.TriggerBuildResult) actionExecResult.getBizResult();
+    assertNotNull("triggerResult can not be null", triggerResult);
+
+    assertTrue(triggerResult.success);
+    assertEquals("taskId must large than 0", 1234, triggerResult.getTaskid());
+
+    // SnapshotDomain snapshotDomain = HttpConfigFileReader.getResource(COLLECTION_NAME, targetSnapshotid, RunEnvironment.getSysRuntime(), ConfigFileReader.getAry);
+    // 判断缓存中应该已经有snapshotDomain了
+    assertNotNull("appKeyRef can not be null", appKeyRef.get());
+    SnapshotDomain snapshotDomain = LoadSolrCoreConfigByAppNameServlet.getSnapshotDomain(
+      ConfigFileReader.getConfigList(), appKeyRef.get().setFromCache(true), null);
+    assertNotNull("snapshotDomain can not null", snapshotDomain);
     assertTrue(actionExecResult.isSuccess());
   }
 

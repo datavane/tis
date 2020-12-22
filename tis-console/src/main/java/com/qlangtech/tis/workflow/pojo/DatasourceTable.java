@@ -23,21 +23,18 @@ import java.util.Date;
  */
 public class DatasourceTable implements Serializable, Comparable<DatasourceTable> {
 
+  private static final long serialVersionUID = 1L;
+
   private Integer id;
 
   private String name;
 
   private Integer dbId;
 
-  private Byte syncOnline;
-
-  private String gitTag;
-
   private Date createTime;
 
   private Date opTime;
 
-  private static final long serialVersionUID = 1L;
 
   public Integer getId() {
     return id;
@@ -63,21 +60,6 @@ public class DatasourceTable implements Serializable, Comparable<DatasourceTable
     this.dbId = dbId;
   }
 
-  public Byte getSyncOnline() {
-    return syncOnline;
-  }
-
-  public void setSyncOnline(Byte syncOnline) {
-    this.syncOnline = syncOnline;
-  }
-
-  public String getGitTag() {
-    return gitTag;
-  }
-
-  public void setGitTag(String gitTag) {
-    this.gitTag = gitTag == null ? null : gitTag.trim();
-  }
 
   public Date getCreateTime() {
     return createTime;

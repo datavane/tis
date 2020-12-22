@@ -70,7 +70,8 @@ public class GCJmxUtils {
         long curr = System.currentTimeMillis();
         for (int i = 0; i < 1000000; i++) {
             GCJmxUtils.getFullGC();
-            getYongGC();
+            System.out.println( getYongGC() );
+             Thread.sleep(1000);
         }
         System.out.println(System.currentTimeMillis() - curr);
     }

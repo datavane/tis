@@ -1466,12 +1466,10 @@ public class OfflineDatasourceAction extends BasicModule {
       this.setBizResult(context, false);
       return;
     }
-    String gitTag = this.getString("git_tag");
     DatasourceTable datasourceTable = new DatasourceTable();
     datasourceTable.setId(id);
     datasourceTable.setName(name);
     datasourceTable.setDbId(dbId);
-    datasourceTable.setGitTag(gitTag);
     Date now = new Date();
     datasourceTable.setCreateTime(now);
     this.offlineManager.syncTableRecord(datasourceTable, this, context);

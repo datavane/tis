@@ -273,9 +273,9 @@ public class OfflineManager {
       dsTable.setName(tableName);
 //      dsTable.setTableLogicName(tableName);
       dsTable.setDbId(dbId);
-      dsTable.setGitTag(tableName);
+     // dsTable.setGitTag(tableName);
       // 标示是否有同步到线上去
-      dsTable.setSyncOnline(new Byte("0"));
+     // dsTable.setSyncOnline(new Byte("0"));
       dsTable.setCreateTime(new Date());
       dsTable.setOpTime(new Date());
       tableId = workflowDAOFacade.getDatasourceTableDAO().insertSelective(dsTable);
@@ -289,22 +289,31 @@ public class OfflineManager {
     action.setBizResult(context, table);
     // return dsTable;
     DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(action, new PostedDSProp(db.getName()));
-    return new ProcessedTable(dbPlugin.saveTable(tableName), dsTable);
+    return new ProcessedTable(dbPlugin.saveTable(tableName), db, dsTable);
   }
 
   public static class ProcessedTable {
     private final TableReflect tabReflect;
     private final DatasourceTable tabMeta;
+    private final DatasourceDb db;
 
-    public ProcessedTable(TableReflect tabReflect, DatasourceTable tabMeta) {
+    public ProcessedTable(TableReflect tabReflect, DatasourceDb db, DatasourceTable tabMeta) {
       if (tabReflect == null) {
         throw new IllegalStateException("tabReflect  can not be null");
       }
       if (tabMeta == null) {
         throw new IllegalStateException("tabMeta  can not be null");
       }
+      if (db == null) {
+        throw new IllegalArgumentException("param db can not be null");
+      }
       this.tabReflect = tabReflect;
       this.tabMeta = tabMeta;
+      this.db = db;
+    }
+
+    public String getDBName() {
+      return this.db.getName();
     }
 
     public String getName() {

@@ -4,7 +4,6 @@
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.workflow.pojo.DatasourceDb" >
     <result column="id" property="id" jdbcType="INTEGER" />
     <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="sync_online" property="syncOnline" jdbcType="BIT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="op_time" property="opTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -38,7 +37,7 @@
     </iterate>
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria" >
-    select aa.id, name, sync_online, create_time, op_time
+    select aa.id, name, create_time, op_time
      from ( select id from datasource_db
     <isParameterPresent >
       <include refid="datasource_db.ibatorgenerated_Example_Where_Clause" />
@@ -54,7 +53,7 @@
         <include refid="datasource_db.ibatorgenerated_Example_Where_Clause" />
     </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDb" >
-    select id, name, sync_online, create_time, op_time
+    select id, name, create_time, op_time
     from datasource_db
     where id = #id:INTEGER#
   </select>
@@ -67,8 +66,8 @@
     <include refid="datasource_db.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDb" >
-    insert into datasource_db (id, name, sync_online, create_time, op_time)
-    values (#id:INTEGER#, #name:VARCHAR#, #syncOnline:BIT#, #createTime:TIMESTAMP#,
+    insert into datasource_db (id, name, create_time, op_time)
+    values (#id:INTEGER#, #name:VARCHAR#, #createTime:TIMESTAMP#,
       #opTime:TIMESTAMP#)
     <selectKey resultClass="java.lang.Integer" >
       SELECT LAST_INSERT_ID();
@@ -82,9 +81,6 @@
       </isNotNull>
       <isNotNull prepend="," property="name" >
         name
-      </isNotNull>
-      <isNotNull prepend="," property="syncOnline" >
-        sync_online
       </isNotNull>
       <isNotNull prepend="," property="createTime" >
         create_time
@@ -101,9 +97,6 @@
       </isNotNull>
       <isNotNull prepend="," property="name" >
         #name:VARCHAR#
-      </isNotNull>
-      <isNotNull prepend="," property="syncOnline" >
-        #syncOnline:BIT#
       </isNotNull>
       <isNotNull prepend="," property="createTime" >
         #createTime:TIMESTAMP#
@@ -130,9 +123,6 @@
       <isNotNull prepend="," property="record.name" >
         name = #record.name:VARCHAR#
       </isNotNull>
-      <isNotNull prepend="," property="record.syncOnline" >
-        sync_online = #record.syncOnline:BIT#
-      </isNotNull>
       <isNotNull prepend="," property="record.createTime" >
         create_time = #record.createTime:TIMESTAMP#
       </isNotNull>
@@ -148,7 +138,6 @@
     update datasource_db
     set id = #record.id:INTEGER#,
       name = #record.name:VARCHAR#,
-      sync_online = #record.syncOnline:BIT#,
       create_time = #record.createTime:TIMESTAMP#,
       op_time = #record.opTime:TIMESTAMP#
     <isParameterPresent >

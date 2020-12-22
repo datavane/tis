@@ -147,9 +147,11 @@ public abstract class GroupAction extends BasicModule {
     Assert.assertNotNull(appid);
     ServerGroupCriteria query = new ServerGroupCriteria();
     query.createCriteria().andRuntEnvironmentEqualTo(runtime.getId()).andGroupIndexEqualTo(groupIndex.shortValue()).andAppIdEqualTo(appid).andNotDelete();
-    if (serverGroupDAO.countByExample(query) > 0) {
+    int serverGroupCount;
+    if ((serverGroupCount = serverGroupDAO.countByExample(query)) > 0) {
       // basicModule.addErrorMessage(context, "gruop index重复");
-      throw new IllegalStateException("appid:" + appid + ",groupIndex:" + groupIndex + " relevant group can not duplicate");
+      throw new IllegalStateException("appid:" + appid + ",groupIndex:" + groupIndex
+        + " relevant group can not duplicate,current serverGroupCount:" + serverGroupCount);
     }
     ServerGroup group = new ServerGroup();
     group.setRuntEnvironment(runtime.getId());

@@ -277,7 +277,6 @@ enum CoreAdminOperation implements CoreAdminOp {
         } catch (Exception e) {
             throw new SolrException(ErrorCode.SERVER_ERROR, "collection get resource faild " + collection + ",snapshot:" + snapshotid, e);
         }
-    // super.handleCreateAction(req, rsp);
     }
 
     /**

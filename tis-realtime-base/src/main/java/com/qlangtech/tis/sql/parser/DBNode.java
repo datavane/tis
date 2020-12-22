@@ -23,6 +23,7 @@ import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -147,6 +148,12 @@ public class DBNode {
     }
 
     public DBNode(String dbName, int dbId) {
+        if (StringUtils.isBlank(dbName)) {
+            throw new IllegalArgumentException("param dbName can not be null");
+        }
+        if (dbId < 1) {
+            throw new IllegalArgumentException("param dbId can not be null");
+        }
         this.dbName = dbName;
         this.dbId = dbId;
     }

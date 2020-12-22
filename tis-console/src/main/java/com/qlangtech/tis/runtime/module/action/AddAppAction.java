@@ -60,6 +60,9 @@ import java.util.regex.Pattern;
  * @date 2012-4-1
  */
 public class AddAppAction extends SchemaAction implements ModelDriven<Application> {
+  // 单元测试用，生产环境中不需要使用
+  public static AppKey.IAppKeyProcess appKeyProcess = (key) -> {
+  };
 
   private static final long serialVersionUID = 1L;
 
@@ -183,7 +186,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     Application app = new Application();
     app.setAppId(confiemModel.getTplAppId());
     Integer publishSnapshotId = getPublishSnapshotId(this.getServerGroupDAO(), app);
-   // IUser loginUser = this.getUser();
+    // IUser loginUser = this.getUser();
     byte[] content = schemaResult.content;
     SelectableServer.ServerNodeTopology coreNode = confiemModel.getCoreNode();
     final int gourpCount = coreNode.getShardCount();
@@ -201,13 +204,16 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     /**
      * *************************************************************************************
      * 因为这里数据库的事务还没有提交，需要先将schema配置信息保存到缓存中去以便solrcore节点能获取到
+     * 设置缓存
      * **************************************************************************************
      */
-    final AppKey appKey = new AppKey(extApp.getProjectName(), /* appName ========== */
-      (short) 0, /* groupIndex */
-      RunEnvironment.getSysRuntime(), false);
+    final AppKey appKey = AppKey.create(extApp.getProjectName());
+//      new AppKey(extApp.getProjectName(), /* appName ========== */
+//      (short) 0, /* groupIndex */
+//      RunEnvironment.getSysRuntime(), false);
     appKey.setTargetSnapshotId((long) createResult.getNewId());
     appKey.setFromCache(false);
+    appKeyProcess.process(appKey);
     LoadSolrCoreConfigByAppNameServlet.getSnapshotDomain(ConfigFileReader.getConfigList(), appKey, this);
     CoreAction.createCollection(this, context, gourpCount, repliation, request, createResult.getNewId());
   }
@@ -551,7 +557,6 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
 
     this.addActionMessage(context, "拷贝源应用“" + fromApp.getProjectName() + "”已经成功复制到目标应用“" + destinationApp.getProjectName() + "”");
   }
-
 
 
   /**
