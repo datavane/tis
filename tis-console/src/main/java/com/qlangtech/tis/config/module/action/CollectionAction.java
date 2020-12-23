@@ -38,9 +38,8 @@ import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.meta.DependencyNode;
-import com.qlangtech.tis.sql.parser.meta.NodeType;
-import com.qlangtech.tis.sql.parser.meta.Position;
+import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
@@ -149,7 +148,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     if (incrCfg != null) {
       logger.info("start incr channel create");
-      if (!createIncrSyncChannel(context, df, incrCfg)) { return;}
+      if (!createIncrSyncChannel(context, df, incrCfg)) {
+        return;
+      }
     }
 
     // 现在需要开始触发全量索引了
@@ -241,6 +242,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     private Map<String, TargetCol> targetColMap = null;
     final List<ColumnMetaData> targetColMetas = Lists.newArrayList();
 
+    /**
+     * 目前只取得一个
+     *
+     * @return
+     */
     public ColumnMetaData getPKMeta() {
       List<ColumnMetaData> pks = targetColMetas.stream().filter((c) -> c.isPk()).collect(Collectors.toList());
       if (pks.size() > 1) {
@@ -343,22 +349,14 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   }
 
   private SqlTaskNodeMeta.SqlDataFlowTopology createTopology(
-    String topologyName, OfflineManager.ProcessedTable dsTable, TargetColumnMeta targetColMetas) {
+    String topologyName, OfflineManager.ProcessedTable dsTable, TargetColumnMeta targetColMetas) throws Exception {
     SqlTaskNodeMeta.SqlDataFlowTopology topology = new SqlTaskNodeMeta.SqlDataFlowTopology();
     SqlTaskNodeMeta.TopologyProfile profile = new SqlTaskNodeMeta.TopologyProfile();
     profile.setName(topologyName);
     profile.setTimestamp(System.currentTimeMillis());
     topology.setProfile(profile);
 
-    DependencyNode dNode = new DependencyNode();
-    dNode.setId(String.valueOf(UUID.randomUUID()));
-    dNode.setDbName(dsTable.getDBName());
-    dNode.setName(dsTable.getName());
-    dNode.setDbid(String.valueOf(dsTable.getDbId()));
-    dNode.setTabid(String.valueOf(dsTable.getId()));
-    dNode.setExtraSql(dsTable.getExtraSql());
-    dNode.setPosition(DEFAULT_SINGLE_TABLE_POSITION);
-    dNode.setType(NodeType.DUMP.getType());
+    DependencyNode dNode = createDumpNode(dsTable);
     topology.addDumpTab(dNode);
 
     SqlTaskNodeMeta joinNodeMeta = new SqlTaskNodeMeta();
@@ -374,9 +372,50 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     topology.addNodeMeta(joinNodeMeta);
 
 
-   // topology
+
+    /***********************************************************
+     * 设置TabExtraMeta
+     **********************************************************/
+    ERRules erRules = new ERRules();
+    DependencyNode node = createDumpNode(dsTable);
+    node.setExtraSql(null);
+    ColumnMetaData pkMeta = targetColMetas.getPKMeta();
+    TabExtraMeta extraMeta = new TabExtraMeta();
+    extraMeta.setSharedKey(pkMeta.getKey());
+    extraMeta.setMonitorTrigger(true);
+    List<PrimaryLinkKey> primaryIndexColumnName = Lists.newArrayList();
+    PrimaryLinkKey pk = new PrimaryLinkKey();
+    pk.setName(pkMeta.getKey());
+    pk.setPk(true);
+    primaryIndexColumnName.add(pk);
+    extraMeta.setPrimaryIndexColumnNames(primaryIndexColumnName);
+    extraMeta.setPrimaryIndexTab(true);
+    //extraMeta.setTimeVerColName();
+    node.setExtraMeta(extraMeta);
+    erRules.addDumpNode(node);
+    // erRules.setRelationList();
+    ERRules.write(topologyName, erRules);
+    /***********************************************************
+     * <<<<<<<<
+     **********************************************************/
+
+
+    // topology
 
     return topology;
+  }
+
+  private DependencyNode createDumpNode(OfflineManager.ProcessedTable dsTable) {
+    DependencyNode dNode = new DependencyNode();
+    dNode.setId(String.valueOf(UUID.randomUUID()));
+    dNode.setDbName(dsTable.getDBName());
+    dNode.setName(dsTable.getName());
+    dNode.setDbid(String.valueOf(dsTable.getDbId()));
+    dNode.setTabid(String.valueOf(dsTable.getId()));
+    dNode.setExtraSql(dsTable.getExtraSql());
+    dNode.setPosition(DEFAULT_SINGLE_TABLE_POSITION);
+    dNode.setType(NodeType.DUMP.getType());
+    return dNode;
   }
 
   private Map<String, TargetCol> getTargetCols(JSONObject post) {

@@ -29,10 +29,15 @@ import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
+import org.apache.commons.io.IOUtils;
 import org.apache.struts2.StrutsSpringTestCase;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -63,6 +68,27 @@ public class TestCollectionAction extends StrutsSpringTestCase {
 
   private static final String COLLECTION_NAME = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_NAME;
 
+  public void testSend2RemoteServer() throws Exception {
+    URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
+    HttpUtils.post(url, getPostJSONContent().toJSONString().getBytes(TisUTF8.get()), new PostFormStreamProcess<Void>() {
+
+      @Override
+      public ContentType getContentType() {
+        return ContentType.Multipart_byteranges;
+      }
+
+      @Override
+      public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+        try {
+          System.out.println(IOUtils.toString(stream, TisUTF8.get()));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        return null;
+      }
+    });
+  }
+
 
   public void testDoCreate() throws Exception {
 
@@ -71,27 +97,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     request.setParameter("emethod", "create");
     request.setParameter("action", "collection_action");
 
-    JSONObject content = new JSONObject();
-
-    JSONObject datasource = new JSONObject();
-
-    datasource.put("plugin", "TiKV");
-    datasource.put("pdAddrs", "192.168.28.202:2379");
-    datasource.put("dbName", TEST_DS_NAME);
-    content.put("datasource", datasource);
-    content.put("indexName", TEST_TABLE_NAME);
-    content.put("table", TEST_TABLE_NAME);
-
-    JSONObject incrCfg = new JSONObject();
-    incrCfg.put("plugin", "TiCDC-Kafka");
-    incrCfg.put("mqAddress", "192.168.28.201:9092");
-    incrCfg.put("topic", "baisui");
-    incrCfg.put("groupId", "consume_test1");
-    incrCfg.put("offsetResetStrategy", "earliest");
-    content.put("incr", incrCfg);
-    JSONArray columns = getBuildTargetCols();
-
-    content.put("columns", columns);
+    JSONObject content = getPostJSONContent();
     request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
     ActionProxy proxy = getActionProxy("/config/config.ajax");
     assertNotNull(proxy);
@@ -123,6 +129,32 @@ public class TestCollectionAction extends StrutsSpringTestCase {
       ConfigFileReader.getConfigList(), appKeyRef.get().setFromCache(true), null);
     assertNotNull("snapshotDomain can not null", snapshotDomain);
     assertTrue(actionExecResult.isSuccess());
+  }
+
+  private JSONObject getPostJSONContent() {
+    JSONObject content = new JSONObject();
+
+    JSONObject datasource = new JSONObject();
+
+    datasource.put("plugin", "TiKV");
+    datasource.put("pdAddrs", "192.168.28.202:2379");
+    datasource.put("dbName", TEST_DS_NAME);
+    content.put("datasource", datasource);
+    content.put("indexName", TEST_TABLE_NAME);
+    content.put("table", TEST_TABLE_NAME);
+
+    JSONObject incrCfg = new JSONObject();
+    incrCfg.put("plugin", "TiCDC-Kafka");
+    incrCfg.put("mqAddress", "192.168.28.201:9092");
+    incrCfg.put("topic", "baisui");
+    incrCfg.put("groupId", "consume_test1");
+    incrCfg.put("offsetResetStrategy", "earliest");
+    content.put("incr", incrCfg);
+    JSONArray columns = getBuildTargetCols();
+
+    content.put("columns", columns);
+    System.out.println(content.toJSONString());
+    return content;
   }
 
   private void clearUpDB() {

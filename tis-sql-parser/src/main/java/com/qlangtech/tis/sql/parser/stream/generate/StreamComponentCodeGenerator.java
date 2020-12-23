@@ -161,6 +161,9 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
         try {
             TableTupleCreator finalTableNode = this.parseFinalSqlTaskNode();
+            if (!erRules.isPresent()) {
+                throw new IllegalStateException("topology:" + this.topology.getName() + " relevant erRule can not be null");
+            }
             ERRules erR = erRules.get();
             TaskNodeTraversesCreatorVisitor visitor = new TaskNodeTraversesCreatorVisitor(erR);
             finalTableNode.accept(visitor);

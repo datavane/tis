@@ -1063,9 +1063,12 @@ public class OfflineDatasourceAction extends BasicModule {
     if (this.hasErrors(context)) {
       return;
     }
-    File parent = new File(SqlTaskNode.parent, topology);
-    FileUtils.forceMkdir(parent);
-    FileUtils.write(new File(parent, ERRules.ER_RULES_FILE_NAME), ERRules.serialize(erRules), getEncode(), false);
+//    File parent = new File(SqlTaskNode.parent, topology);
+//    FileUtils.forceMkdir(parent);
+//    FileUtils.write(new File(parent, ERRules.ER_RULES_FILE_NAME), ERRules.serialize(erRules), getEncode(), false);
+
+    ERRules.write(topology, erRules);
+
     // System.out.println(j.toJSONString());
     long wfId = df.getProfile().getDataflowId();
     if (wfId < 1) {
