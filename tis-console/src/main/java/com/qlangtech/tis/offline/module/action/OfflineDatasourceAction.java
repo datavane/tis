@@ -1100,15 +1100,30 @@ public class OfflineDatasourceAction extends BasicModule {
   public static class CreateTopologyUpdateCallback implements TopologyUpdateCallback {
     private final IUser user;
     private final IComDfireTisWorkflowDAOFacade offlineDAOFacade;
+    private final boolean idempotent;
 
     public CreateTopologyUpdateCallback(IUser user, IComDfireTisWorkflowDAOFacade offlineDAOFacade) {
+      this(user, offlineDAOFacade, false);
+    }
+
+    public CreateTopologyUpdateCallback(IUser user, IComDfireTisWorkflowDAOFacade offlineDAOFacade, boolean idempotent) {
       this.user = user;
       this.offlineDAOFacade = offlineDAOFacade;
+      this.idempotent = idempotent;
     }
 
     @Override
     public <T> T execute(String tname, SqlDataFlowTopology topology) {
       final String topologyName = topology.getName();
+      if (idempotent) {
+        WorkFlowCriteria wfCriteria = new WorkFlowCriteria();
+        wfCriteria.createCriteria().andNameEqualTo(topologyName);
+        for (WorkFlow wf : offlineDAOFacade.getWorkFlowDAO().selectByExample(wfCriteria)) {
+          return (T) wf;
+        }
+      }
+
+
       WorkFlow workFlow = new WorkFlow();
       workFlow.setName(topologyName);
       //  IUser user = getUser();

@@ -91,6 +91,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   public void setTransactionManager(PlatformTransactionManager transactionManager) {
     this.transactionManager = transactionManager;
   }
+
   /**
    * 创建索实例
    *
@@ -154,7 +155,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     final SqlTaskNodeMeta.SqlDataFlowTopology topology = this.createTopology(topologyName, dsTable, targetColMetas);
 
     OfflineDatasourceAction.CreateTopologyUpdateCallback dbSaver
-      = new OfflineDatasourceAction.CreateTopologyUpdateCallback(this.getUser(), this.getWorkflowDAOFacade());
+      = new OfflineDatasourceAction.CreateTopologyUpdateCallback(this.getUser(), this.getWorkflowDAOFacade(), true);
     WorkFlow df = dbSaver.execute(topologyName, topology);
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topology, parent);
@@ -171,7 +172,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     // 需要提交一下事务
     TransactionStatus tranStatus
       = (TransactionStatus) ActionContext.getContext().get(TransactionStatus.class.getSimpleName());
-    Objects.requireNonNull(tranStatus,"transtatus can not be null");
+    Objects.requireNonNull(tranStatus, "transtatus can not be null");
     transactionManager.commit(tranStatus);
 
     // 现在需要开始触发全量索引了
