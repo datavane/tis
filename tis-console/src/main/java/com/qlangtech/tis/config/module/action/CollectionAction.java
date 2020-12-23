@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.*;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
@@ -48,6 +49,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 
 import java.io.File;
 import java.sql.Connection;
@@ -81,7 +85,12 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
   private String indexName = null;
 
+  private PlatformTransactionManager transactionManager;
 
+  @Autowired
+  public void setTransactionManager(PlatformTransactionManager transactionManager) {
+    this.transactionManager = transactionManager;
+  }
   /**
    * 创建索实例
    *
@@ -158,6 +167,12 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
         return;
       }
     }
+
+    // 需要提交一下事务
+    TransactionStatus tranStatus
+      = (TransactionStatus) ActionContext.getContext().get(TransactionStatus.class.getSimpleName());
+    Objects.requireNonNull(tranStatus,"transtatus can not be null");
+    transactionManager.commit(tranStatus);
 
     // 现在需要开始触发全量索引了
     CoreAction.TriggerBuildResult triggerBuildResult

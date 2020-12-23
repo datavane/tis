@@ -55,6 +55,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
     this.transactionManager = transactionManager;
   }
 
+
   @Override
   protected String doIntercept(ActionInvocation invocation) throws Exception {
     HttpServletResponse response = ServletActionContext.getResponse();
@@ -64,7 +65,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
     //final ActionMapping mapping = ServletActionContext.getActionMapping();
     AjaxValve.ActionExecResult execResult = null;
     try {
-
+      invocation.getInvocationContext().put(TransactionStatus.class.getSimpleName(), status);
       final String result = invocation.invoke();
       execResult = MockContext.getActionExecResult();
       // 一定要invoke之后再执行
