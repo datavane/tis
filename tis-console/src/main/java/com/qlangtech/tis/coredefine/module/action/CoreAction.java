@@ -61,6 +61,7 @@ import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -96,8 +97,8 @@ import static org.apache.solr.common.cloud.ZkStateReader.CORE_NAME_PROP;
  * @date 2016年8月4日
  */
 public class CoreAction extends BasicModule {
-
-  public static final String CREATE_COLLECTION_PATH = "/solr/admin/collections?action=CREATE&name=";
+  public static final String ADMIN_COLLECTION_PATH = "/solr/admin/collections";
+  public static final String CREATE_COLLECTION_PATH = ADMIN_COLLECTION_PATH + "?action=CREATE&name=";
   public static final String TRIGGER_FULL_BUILD_COLLECTION_PATH = "/trigger";
 
   public static final String DEFAULT_SOLR_CONFIG = "tis_mock_config";
@@ -878,6 +879,37 @@ public class CoreAction extends BasicModule {
   }
 
   /**
+   * 显示集群中的 索引实例
+   *
+   * @param module
+   * @param context
+   * @return
+   */
+  public static List<String> listCollection(BasicModule module, final Context context) throws Exception {
+    final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
+    // : "plain";
+    List<String> collections = Lists.newArrayList();
+    URL url = new URL("http://" + cloudOverseer + ADMIN_COLLECTION_PATH + "?action=LIST");
+    log.info("list collection in  cloud url:" + url);
+    HttpUtils.processContent(url, new StreamProcess<Object>() {
+
+      @Override
+      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+        ProcessResponse result = null;
+        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
+          Map<String, Object> biz = (Map<String, Object>) result.result;
+          List<String> clist = (List<String>) biz.get("collections");
+          if (!CollectionUtils.isEmpty(clist)) {
+            collections.addAll(clist);
+          }
+        }
+        return null;
+      }
+    });
+    return collections;
+  }
+
+  /**
    * 创建集群索引
    *
    * @param module
@@ -891,8 +923,7 @@ public class CoreAction extends BasicModule {
    * @throws UnsupportedEncodingException
    */
   public static boolean createCollection(BasicModule module, final Context context, final Integer groupNum
-    , final Integer repliationCount, FCoreRequest request, int publishSnapshotId)
-    throws Exception, MalformedURLException, UnsupportedEncodingException {
+    , final Integer repliationCount, FCoreRequest request, int publishSnapshotId) throws Exception {
     if (publishSnapshotId < 0) {
       throw new IllegalArgumentException("shall set publishSnapshotId");
     }
@@ -934,7 +965,7 @@ public class CoreAction extends BasicModule {
     return true;
   }
 
-  private static String getCloudOverseerNode(TisZkClient zkClient) throws Exception {
+  private static String getCloudOverseerNode(TisZkClient zkClient) {
     Map v = JSON.parseObject(zkClient.getData("/overseer_elect/leader", null, new Stat(), true), Map.class, Feature.AllowUnQuotedFieldNames);
     String id = (String) v.get("id");
     if (id == null) {

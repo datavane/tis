@@ -99,6 +99,12 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       throw new IllegalStateException("param 'table' can not be null");
     }
     this.indexName = StringUtils.defaultIfEmpty(post.getString("indexName"), targetTable);
+    List<String> existCollection = CoreAction.listCollection(this, context);
+    if (existCollection.contains(this.indexName)) {
+      //throw new IllegalStateException();
+      this.addErrorMessage(context, "index:" + this.indexName + " already exist in cloud");
+      return;
+    }
     PluginItems dataSourceItems = getDataSourceItems(datasource);
     if (dataSourceItems.items.size() < 1) {
       throw new IllegalStateException("datasource item can not small than 1,now:" + dataSourceItems.items.size());
@@ -117,7 +123,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     OfflineManager offlineManager = new OfflineManager();
     offlineManager.setComDfireTisWorkflowDAOFacade(this.getWorkflowDAOFacade());
-    //TISTable table, BasicModule action, Context context, boolean updateMode
     TISTable table = new TISTable();
     table.setTableName(targetTable);
     table.setDbId(dsDb.getId());
@@ -241,6 +246,37 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     boolean valid = true;
     private Map<String, TargetCol> targetColMap = null;
     final List<ColumnMetaData> targetColMetas = Lists.newArrayList();
+    //  ref: com.pingcap.tikv.types.MySQLType
+    static final int TypeTimestamp = 7;
+    static final int TypeDatetime = 12;
+    static final int TypeDate = 10;
+
+
+    /**
+     * 这个是一个暂时的实现，类似设置记录的evenetTime，应该是让用户手工设置
+     *
+     * @return
+     */
+    public ColumnMetaData getTimeVerColName() {
+      //  ref: com.pingcap.tikv.types.MySQLType
+      for (ColumnMetaData cMeta : targetColMetas) {
+        if (cMeta.getType() == TypeTimestamp || cMeta.getType() == TypeDatetime) {
+          return cMeta;
+        }
+      }
+      for (ColumnMetaData cMeta : targetColMetas) {
+        if (cMeta.getType() == TypeDate) {
+          return cMeta;
+        }
+      }
+
+      for (ColumnMetaData cMeta : targetColMetas) {
+        if (StringUtils.lowerCase(cMeta.getKey()).indexOf("time") > -1) {
+          return cMeta;
+        }
+      }
+      return getPKMeta();
+    }
 
     /**
      * 目前只取得一个
@@ -372,7 +408,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     topology.addNodeMeta(joinNodeMeta);
 
 
-
     /***********************************************************
      * 设置TabExtraMeta
      **********************************************************/
@@ -390,6 +425,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     primaryIndexColumnName.add(pk);
     extraMeta.setPrimaryIndexColumnNames(primaryIndexColumnName);
     extraMeta.setPrimaryIndexTab(true);
+
+    ColumnMetaData timeVerColName = targetColMetas.getTimeVerColName();
+    extraMeta.setTimeVerColName(timeVerColName.getKey());
     //extraMeta.setTimeVerColName();
     node.setExtraMeta(extraMeta);
     erRules.addDumpNode(node);
