@@ -102,11 +102,11 @@ public abstract class BasicTestCase extends TestCase {
         // 本地就是远程仓库，不需要再同步了
 
         System.out.println("mockConnMaker set===================================================================");
-        System.setProperty("notdownloadjar", "true");
-        // if (!TisIncrLauncher.notDownload) {
-        // // System.setProperty("data.dir", "/tmp/tis");
-        // Config.setDataDir("/tmp/tis");
-        // }
+//        System.setProperty("notdownloadjar", "true");
+//        if (!TisIncrLauncher.notDownload) {
+//            // System.setProperty("data.dir", "/tmp/tis");
+//            Config.setDataDir("/tmp/tis");
+//        }
     }
 
     // public static final String menuId = "999320135eb8b638015ebd85b1c39999";

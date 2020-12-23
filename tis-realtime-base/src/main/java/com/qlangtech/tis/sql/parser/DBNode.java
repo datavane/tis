@@ -106,7 +106,6 @@ public class DBNode {
                         , (db) -> TIS.getDataBasePluginStore(null, new PostedDSProp(db.getDbName(), DbScope.FACADE))));
 //
                 for (Map.Entry<String, DataSourceFactoryPluginStore> entry : dbConfigsMap.entrySet()) {
-                    //  datasourceName = entry.getKey() + "Datasource";
                     factory.registerSingleton(entry.getKey() + "Datasource", entry.getValue().createFacadeDataSource());
                 }
 

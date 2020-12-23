@@ -190,7 +190,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return ActionContext.getContext();
   }
 
-  private String getReturnCode() {
+  protected String getReturnCode() {
 
     ActionContext actionCtx = ActionContext.getContext();
     ActionProxy proxy = actionCtx.getActionInvocation().getProxy();

@@ -111,9 +111,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
     this.indexName = StringUtils.defaultIfEmpty(post.getString("indexName"), targetTable);
     List<String> existCollection = CoreAction.listCollection(this, context);
-    if (existCollection.contains(this.indexName)) {
+    if (existCollection.contains(this.getCollectionName())) {
       //throw new IllegalStateException();
-      this.addErrorMessage(context, "index:" + this.indexName + " already exist in cloud");
+      this.addErrorMessage(context, "index:" + this.getCollectionName() + " already exist in cloud");
       return;
     }
     PluginItems dataSourceItems = getDataSourceItems(datasource);

@@ -18,7 +18,6 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.plugin.ds.DBConfig;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.realtime.yarn.TransferIncrContainer;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.sql.parser.DBNode;
@@ -92,13 +91,13 @@ public class TisIncrLauncher {
         }
         try {
             TIS.permitInitialize = false;
-            final RunEnvironment runtime = RunEnvironment.getSysRuntime();
+            //final RunEnvironment runtime = RunEnvironment.getSysRuntime();
             /**
              * ==================================================================
              * 下载增量组件相关的配置及plugin包
              * ==================================================================
              */
-            final String collectionRelativePath = StreamContextConstant.DIR_STREAMS_SCRIPT + "/" + collection;
+            final String collectionRelativePath = TIS.KEY_TIS_PLUGIN_CONFIG + "/collection/" + collection;
             // List<String> subFiles = CenterResource.getSubFiles(collectionRelativePath, false, true);
             // Lists.newArrayList();
             List<File> subs = CenterResource.synchronizeSubFiles(collectionRelativePath);
