@@ -1119,6 +1119,7 @@ public class OfflineDatasourceAction extends BasicModule {
         WorkFlowCriteria wfCriteria = new WorkFlowCriteria();
         wfCriteria.createCriteria().andNameEqualTo(topologyName);
         for (WorkFlow wf : offlineDAOFacade.getWorkFlowDAO().selectByExample(wfCriteria)) {
+          topology.getProfile().setDataflowId(wf.getId());
           return (T) wf;
         }
       }
