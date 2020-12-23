@@ -128,7 +128,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     table.setTableName(targetTable);
     table.setDbId(dsDb.getId());
 
-    OfflineManager.ProcessedTable dsTable = offlineManager.addDatasourceTable(table, this, context, false);
+    OfflineManager.ProcessedTable dsTable = offlineManager.addDatasourceTable(table, this, context, false, true);
     if (context.hasErrors()) {
       return;
     }
@@ -634,6 +634,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       int exist = CollectionAction.this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
       // 如果数据库已经存在则直接跳过
       if (exist > 0) {
+        for (DatasourceDb db : CollectionAction.this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByExample(criteria)) {
+          CollectionAction.this.setBizResult(context, db);
+        }
         return;
       }
 

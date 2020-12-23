@@ -481,7 +481,7 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     // 2. 添加表
-    offlineManager.addDatasourceTable(pojo, this, context, pojo.getTabId() != null);
+    offlineManager.addDatasourceTable(pojo, this, context, pojo.getTabId() != null, false);
   }
 
   // /**
