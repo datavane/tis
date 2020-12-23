@@ -42,6 +42,7 @@ import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
+import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -627,6 +628,15 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     @Override
     public void addDb(String dbName, Context context) {
+      // CollectionAction.this.
+      DatasourceDbCriteria criteria = new DatasourceDbCriteria();
+      criteria.createCriteria().andNameEqualTo(dbName);
+      int exist = CollectionAction.this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
+      // 如果数据库已经存在则直接跳过
+      if (exist > 0) {
+        return;
+      }
+
       CollectionAction.this.addDb(dbName, context);
     }
 

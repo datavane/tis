@@ -91,6 +91,7 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
             Context ctx = context.get();
             String dbName = this.key.keyVal;
             // 对数据库记录进行添加
+
             pluginContext.addDb(dbName, ctx);
             if (ctx.hasErrors()) {
                 return false;
