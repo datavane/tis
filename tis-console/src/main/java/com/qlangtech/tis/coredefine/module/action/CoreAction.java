@@ -879,6 +879,31 @@ public class CoreAction extends BasicModule {
   }
 
   /**
+   * 删除索引实例
+   *
+   * @param module
+   * @param context
+   * @throws Exception
+   */
+  public static void deleteCollection(BasicModule module, final Context context) throws Exception {
+
+    URL url = new URL("http://" + getCloudOverseerNode(module.getSolrZkClient()) + ADMIN_COLLECTION_PATH
+      + "?action=DELETE&name" + module.getCollectionName());
+    log.info("delete collection in  cloud url:" + url);
+    HttpUtils.processContent(url, new StreamProcess<Object>() {
+
+      @Override
+      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+        ProcessResponse result = null;
+        if (!(result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
+          throw new IllegalStateException("collection:" + module.getCollectionName() + " has not been delete");
+        }
+        return null;
+      }
+    });
+  }
+
+  /**
    * 显示集群中的 索引实例
    *
    * @param module

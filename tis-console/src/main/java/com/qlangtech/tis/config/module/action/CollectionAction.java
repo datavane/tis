@@ -376,6 +376,8 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
         TargetCol tcol = null;
         for (ISchemaField f : schemaParseResult.getSchemaFields()) {
           field = (PSchemaField) f;
+
+
           if (StringUtils.equals(pkMeta.getKey(), field.getName())) {
             field.setIndexed(true);
           }

@@ -31,7 +31,7 @@ public class ColumnMetaData {
 
     public static StringBuffer buildExtractSQL(String tableName, boolean useAlias, List<ColumnMetaData> cols) {
         if (CollectionUtils.isEmpty(cols)) {
-            throw new IllegalStateException("tableName:"+ tableName+"");
+            throw new IllegalStateException("tableName:" + tableName + "");
         }
         StringBuffer sql = new StringBuffer();
         sql.append("SELECT ");
@@ -54,6 +54,7 @@ public class ColumnMetaData {
     private final int type;
 
     private final int index;
+    private ReservedFieldType schemaFieldType;
 
     // private final String dbType;
     // private final String hiveType;
@@ -72,6 +73,14 @@ public class ColumnMetaData {
         this.index = index;
     }
 
+    public ReservedFieldType getSchemaFieldType() {
+        return schemaFieldType;
+    }
+
+    public void setSchemaFieldType(ReservedFieldType schemaFieldType) {
+        this.schemaFieldType = schemaFieldType;
+    }
+
     public int getIndex() {
         return index;
     }
@@ -86,5 +95,16 @@ public class ColumnMetaData {
 
     public boolean isPk() {
         return this.pk;
+    }
+
+    public enum ReservedFieldType {
+        STRING("string"), INT("int"), FLOAT("float"), LONG("long") //
+        , DOUBLE("double"), IK("ik"), TEXT_WS("text_ws"), LIKE("like"), PINYIN("pinyin");
+
+        public final String literia;
+
+        private ReservedFieldType(String literia) {
+            this.literia = literia;
+        }
     }
 }

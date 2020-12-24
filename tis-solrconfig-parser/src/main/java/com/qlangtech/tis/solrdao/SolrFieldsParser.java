@@ -714,7 +714,11 @@ public class SolrFieldsParser {
         }
 
         public SolrType getTisType(String fieldName) {
-            return types.get(fieldName);
+            SolrType t = types.get(fieldName);
+            if (t == null) {
+                throw new IllegalStateException("fieldName:" + fieldName + " relevant FieldType can not be null");
+            }
+            return t;
         }
 
         public String getErrorSummary() {
@@ -795,7 +799,7 @@ public class SolrFieldsParser {
          * 添加保留字段
          */
         public void addReservedFields() {
-            SolrType strType = this.getTisType(ISchemaField.DEFAULT_STRING_TYPE_NAME);
+            SolrType strType = this.getTisType(ISchemaField.ReservedFieldType.STRING.literia);
             SolrType longType = this.getTisType("long");
             PSchemaField verField = new PSchemaField();
             verField.setName("_version_");

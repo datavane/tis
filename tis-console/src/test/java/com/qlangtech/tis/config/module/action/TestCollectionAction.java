@@ -18,7 +18,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
+import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
@@ -69,6 +71,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
   private static final String COLLECTION_NAME = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_NAME;
 
   public void testSend2RemoteServer() throws Exception {
+    this.clearUpDB();
     URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
     HttpUtils.post(url, getPostJSONContent().toJSONString().getBytes(TisUTF8.get()), new PostFormStreamProcess<Void>() {
 
@@ -177,7 +180,14 @@ public class TestCollectionAction extends StrutsSpringTestCase {
 
     ApplicationCriteria appCriteria = new ApplicationCriteria();
     appCriteria.createCriteria().andProjectNameEqualTo(TISCollectionUtils.NAME_PREFIX + TEST_TABLE_NAME);
+    for (Application app : daoContext.getApplicationDAO().selectByExample(appCriteria)) {
+      ServerGroupCriteria sgCriteria = new ServerGroupCriteria();
+      sgCriteria.createCriteria().andAppIdEqualTo(app.getAppId());
+      daoContext.getServerGroupDAO().deleteByExample(sgCriteria);
+    }
     daoContext.getApplicationDAO().deleteByExample(appCriteria);
+
+
   }
 
   private JSONArray getBuildTargetCols() {
