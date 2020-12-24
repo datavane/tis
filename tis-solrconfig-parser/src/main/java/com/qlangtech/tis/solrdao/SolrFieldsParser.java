@@ -800,7 +800,7 @@ public class SolrFieldsParser {
          * 添加保留字段
          */
         public void addReservedFields() {
-            SolrType strType = this.getTisType(ColumnMetaData.ReservedFieldType.STRING.literia);
+            SolrType strType = this.getTisType(ColumnMetaData.ReflectSchemaFieldType.STRING.literia);
             SolrType longType = this.getTisType("long");
             PSchemaField verField = new PSchemaField();
             verField.setName("_version_");

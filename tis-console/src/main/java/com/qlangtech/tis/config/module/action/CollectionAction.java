@@ -392,7 +392,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
             // 设置主键
             isPk = true;
             field.setIndexed(true);
-            field.setType(schemaParseResult.getTisType(ColumnMetaData.ReservedFieldType.STRING.literia));
+            field.setType(schemaParseResult.getTisType(ColumnMetaData.ReflectSchemaFieldType.STRING.literia));
           } else {
             field.setType(schemaParseResult.getTisType(rft.getSchemaFieldType()));
           }
@@ -401,13 +401,16 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
             if (tcol.isIndexable()) {
               field.setIndexed(true);
             }
-            if (StringUtils.isNotEmpty(tcol.getToken())) {
-              field.setTokenizerType(tcol.getToken());
-            } else {
-              // 主键不需要分词
-              if (!isPk && rft.isTypeOf(ColumnMetaData.ReservedFieldType.STRING)) {
-                // String类型默认使用like分词
-                field.setTokenizerType(ColumnMetaData.ReservedFieldType.LIKE.literia);
+
+            if (rft.colMeta.getSchemaFieldType().tokenizer) {
+              if (StringUtils.isNotEmpty(tcol.getToken())) {
+                field.setTokenizerType(tcol.getToken());
+              } else {
+                // 主键不需要分词
+                if (!isPk && rft.isTypeOf(ColumnMetaData.ReflectSchemaFieldType.STRING)) {
+                  // String类型默认使用like分词
+                  field.setTokenizerType(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia);
+                }
               }
             }
           }
@@ -658,11 +661,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
 
     public String getSchemaFieldType() {
-      return colMeta.getSchemaFieldType().literia;
+      return colMeta.getSchemaFieldType().type.literia;
     }
 
-    public boolean isTypeOf(ColumnMetaData.ReservedFieldType type) {
-      return colMeta.getSchemaFieldType() == type;
+    public boolean isTypeOf(ColumnMetaData.ReflectSchemaFieldType type) {
+      return colMeta.getSchemaFieldType().type == type;
     }
 
   }

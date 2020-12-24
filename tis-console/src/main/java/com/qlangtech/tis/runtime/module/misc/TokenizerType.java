@@ -28,11 +28,11 @@ import java.util.Map;
  * @date 2015年1月6日下午6:31:17
  */
 public enum TokenizerType {
-  NULL(ColumnMetaData.ReservedFieldType.STRING.literia, "无分词") //
-  , IK(ColumnMetaData.ReservedFieldType.IK.literia, "IK分词") //
-  , LIKE(ColumnMetaData.ReservedFieldType.LIKE.literia, "LIKE分词") //
-  , BLANK_SPLIT(ColumnMetaData.ReservedFieldType.TEXT_WS.literia, "空格分词") //
-  , PINGYIN(ColumnMetaData.ReservedFieldType.PINYIN.literia, "拼音分词");
+  NULL(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, "无分词") //
+  , IK(ColumnMetaData.ReflectSchemaFieldType.IK.literia, "IK分词") //
+  , LIKE(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia, "LIKE分词") //
+  , BLANK_SPLIT(ColumnMetaData.ReflectSchemaFieldType.TEXT_WS.literia, "空格分词") //
+  , PINGYIN(ColumnMetaData.ReflectSchemaFieldType.PINYIN.literia, "拼音分词");
 
   public static final Map<String, VisualType> visualTypeMap;
 
@@ -43,7 +43,7 @@ public enum TokenizerType {
   static {
     visualTypeMap = new HashMap<>();
     numericTypeMap = Maps.newHashMap();
-    visualTypeMap.put(ColumnMetaData.ReservedFieldType.STRING.literia, VisualType.STRING_TYPE);
+    visualTypeMap.put(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, VisualType.STRING_TYPE);
     addNumericType("double");
     addNumericType("int");
     addNumericType("float");

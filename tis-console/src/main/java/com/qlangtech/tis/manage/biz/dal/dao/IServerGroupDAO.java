@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,6 +16,7 @@ package com.qlangtech.tis.manage.biz.dal.dao;
 
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
+
 import java.util.List;
 
 /**
@@ -24,31 +25,34 @@ import java.util.List;
  */
 public interface IServerGroupDAO {
 
-    int countByExample(ServerGroupCriteria example);
+  int countByExample(ServerGroupCriteria example);
 
-    int countFromWriteDB(ServerGroupCriteria example);
+  int countFromWriteDB(ServerGroupCriteria example);
 
-    int deleteByExample(ServerGroupCriteria criteria);
+  int deleteByExample(ServerGroupCriteria criteria);
 
-    int deleteByPrimaryKey(Integer gid);
+  int deleteByPrimaryKey(Integer gid);
 
-    int insert(ServerGroup record);
+  int insert(ServerGroup record);
 
-    Integer insertSelective(ServerGroup record);
+  Integer insertSelective(ServerGroup record);
 
-    List<ServerGroup> selectByExample(ServerGroupCriteria criteria);
+  List<ServerGroup> selectByExample(ServerGroupCriteria criteria);
 
-    List<ServerGroup> selectByExample(ServerGroupCriteria example, int page, int pageSize);
+  List<ServerGroup> selectByExample(ServerGroupCriteria example, int page, int pageSize);
 
-    ServerGroup selectByPrimaryKey(Integer gid);
+  ServerGroup selectByPrimaryKey(Integer gid);
 
-    int updateByExampleSelective(ServerGroup record, ServerGroupCriteria example);
+  int updateByExampleSelective(ServerGroup record, ServerGroupCriteria example);
 
-    int updateByExample(ServerGroup record, ServerGroupCriteria example);
+  int updateByExample(ServerGroup record, ServerGroupCriteria example);
 
-    ServerGroup loadFromWriteDB(Integer gid);
+  ServerGroup loadFromWriteDB(Integer gid);
 
-    // 百岁添加
-    ServerGroup load(String appName, Short groupIndex, Short runtime);
-    // end
+  // 百岁添加
+
+  List<Long> getServergroupWithoutAppReference();
+
+  ServerGroup load(String appName, Short groupIndex, Short runtime);
+  // end
 }

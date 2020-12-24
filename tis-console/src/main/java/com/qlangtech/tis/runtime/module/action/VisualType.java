@@ -10,7 +10,7 @@ import com.qlangtech.tis.runtime.module.misc.TokenizerType;
 public class VisualType {
 
   public static final VisualType STRING_TYPE
-    = new VisualType(ColumnMetaData.ReservedFieldType.STRING.literia, true);
+    = new VisualType(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, true);
 
   public final String type;
 

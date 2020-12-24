@@ -109,7 +109,7 @@ public class SchemaAction extends BasicModule {
     }
     ParseResult parseResult = tplSchema.parseResult;
     // ISchemaField.DEFAULT_STRING_TYPE_NAME
-    SolrType strType = parseResult.getTisType(ColumnMetaData.ReservedFieldType.STRING.literia);
+    SolrType strType = parseResult.getTisType(ColumnMetaData.ReflectSchemaFieldType.STRING.literia);
     SqlTaskNodeMeta.SqlDataFlowTopology dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workflow.getName());
     List<ColName> cols = dfTopology.getFinalTaskNodeCols();
     for (ColName colName : cols) {
@@ -652,7 +652,7 @@ public class SchemaAction extends BasicModule {
     } else {
       // 分词字段
       f.put("split", true);
-      f.put(ISchemaField.KEY_FIELD_TYPE, ColumnMetaData.ReservedFieldType.STRING.literia);
+      f.put(ISchemaField.KEY_FIELD_TYPE, ColumnMetaData.ReflectSchemaFieldType.STRING.literia);
       f.put("tokenizerType", tokenizerType.getKey());
       //f.put("range", false);
     }
@@ -800,14 +800,14 @@ public class SchemaAction extends BasicModule {
    * @return
    */
   protected static String parseSolrFieldType(ISchemaField field, org.jdom2.Document document2) {
-    if (ColumnMetaData.ReservedFieldType.STRING.literia.equalsIgnoreCase(field.getTisFieldTypeName())
+    if (ColumnMetaData.ReflectSchemaFieldType.STRING.literia.equalsIgnoreCase(field.getTisFieldTypeName())
       && StringUtils.isNotBlank(field.getTokenizerType())) {
       return field.getTokenizerType();
     }
     VisualType type = null;
     for (Map.Entry<String, VisualType> entry : TokenizerType.visualTypeMap.entrySet()) {
       type = entry.getValue();
-      if (!ColumnMetaData.ReservedFieldType.STRING.literia.equalsIgnoreCase(field.getTisFieldTypeName())
+      if (!ColumnMetaData.ReflectSchemaFieldType.STRING.literia.equalsIgnoreCase(field.getTisFieldTypeName())
         && StringUtils.equals(field.getTisFieldTypeName(), entry.getValue().type)) {
         return type.getType();
       }

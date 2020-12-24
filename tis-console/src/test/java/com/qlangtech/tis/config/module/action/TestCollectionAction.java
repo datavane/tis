@@ -127,37 +127,37 @@ public class TestCollectionAction extends StrutsSpringTestCase {
       ISchemaField pk = fields.get(emp_no);
       assertNotNull(pk);
       assertTrue(StringUtils.isEmpty(pk.getTokenizerType()));
-      assertEquals(ColumnMetaData.ReservedFieldType.STRING.literia, pk.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, pk.getTisFieldTypeName());
       assertEquals(emp_no, schemaParseResult.getUniqueKey());
       assertEquals(emp_no, schemaParseResult.getSharedKey());
       String birth_date = "birth_date";
       ISchemaField field = fields.get(birth_date);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReservedFieldType.LONG.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.LONG.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
 
       String first_name = "first_name";
       field = fields.get(first_name);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReservedFieldType.STRING.literia, field.getTisFieldTypeName());
-      assertEquals(ColumnMetaData.ReservedFieldType.LIKE.literia, field.getTokenizerType());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia, field.getTokenizerType());
 
       String last_name = "last_name";
       field = fields.get(last_name);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReservedFieldType.STRING.literia, field.getTisFieldTypeName());
-      assertEquals(ColumnMetaData.ReservedFieldType.LIKE.literia, field.getTokenizerType());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia, field.getTokenizerType());
 
       String gender = "gender";
       field = fields.get(gender);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReservedFieldType.INT.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
 
       String hire_date = "hire_date";
       field = fields.get(hire_date);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReservedFieldType.LONG.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.LONG.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
       schemaParseResultProcessed.set(true);
     };
@@ -239,6 +239,14 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     }
     daoContext.getApplicationDAO().deleteByExample(appCriteria);
 
+    for (Long gid : daoContext.getServerGroupDAO().getServergroupWithoutAppReference()) {
+      //assertNotNull(g.getGid());
+      daoContext.getServerGroupDAO().deleteByPrimaryKey(gid.intValue());
+    }
+
+//    select g.gid
+//    from server_group g left join application a on g.app_id = a.app_id
+//    where a.app_id is null
 
   }
 

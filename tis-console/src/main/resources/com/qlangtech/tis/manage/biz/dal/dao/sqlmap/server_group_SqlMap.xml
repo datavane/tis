@@ -96,6 +96,15 @@
 		      and gg.group_index = #groupIndex:INTEGER# and gg.is_deleted = 'N'
 	</select>
 
+  <select id="ibatorgenerated_get_servergroup_without_app_reference" resultClass="java.lang.Long">
+		   select g.gid
+       from server_group g left join application a on g.app_id = a.app_id
+       where a.app_id is null
+	</select>
+
+
+
+
 	<delete id="ibatorgenerated_deleteByPrimaryKey"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup">
 		<!--
