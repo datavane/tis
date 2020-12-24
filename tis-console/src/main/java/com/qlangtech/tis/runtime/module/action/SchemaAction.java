@@ -26,6 +26,7 @@ import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction;
 import com.qlangtech.tis.runtime.module.misc.*;
@@ -103,7 +104,8 @@ public class SchemaAction extends BasicModule {
       return null;
     }
     ParseResult parseResult = tplSchema.parseResult;
-    SolrType strType = parseResult.getTisType(ISchemaField.DEFAULT_STRING_TYPE_NAME);
+    // ISchemaField.DEFAULT_STRING_TYPE_NAME
+    SolrType strType = parseResult.getTisType(ColumnMetaData.ReservedFieldType.STRING.literia);
     SqlTaskNodeMeta.SqlDataFlowTopology dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workflow.getName());
     List<ColName> cols = dfTopology.getFinalTaskNodeCols();
     for (ColName colName : cols) {
@@ -645,7 +647,7 @@ public class SchemaAction extends BasicModule {
     } else {
       // 分词字段
       f.put("split", true);
-      f.put(ISchemaField.KEY_FIELD_TYPE, ISchemaField.DEFAULT_STRING_TYPE_NAME);
+      f.put(ISchemaField.KEY_FIELD_TYPE, ColumnMetaData.ReservedFieldType.STRING.literia);
       f.put("tokenizerType", tokenizerType.getKey());
       //f.put("range", false);
     }
@@ -793,13 +795,14 @@ public class SchemaAction extends BasicModule {
    * @return
    */
   protected static String parseSolrFieldType(ISchemaField field, org.jdom2.Document document2) {
-    if (ISchemaField.DEFAULT_STRING_TYPE_NAME.equalsIgnoreCase(field.getTisFieldTypeName()) && StringUtils.isNotBlank(field.getTokenizerType())) {
+    if (ColumnMetaData.ReservedFieldType.STRING.literia.equalsIgnoreCase(field.getTisFieldTypeName())
+      && StringUtils.isNotBlank(field.getTokenizerType())) {
       return field.getTokenizerType();
     }
     VisualType type = null;
     for (Map.Entry<String, VisualType> entry : TokenizerType.visualTypeMap.entrySet()) {
       type = entry.getValue();
-      if (!ISchemaField.DEFAULT_STRING_TYPE_NAME.equalsIgnoreCase(field.getTisFieldTypeName())
+      if (!ColumnMetaData.ReservedFieldType.STRING.literia.equalsIgnoreCase(field.getTisFieldTypeName())
         && StringUtils.equals(field.getTisFieldTypeName(), entry.getValue().type)) {
         return type.getType();
       }

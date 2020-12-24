@@ -21,6 +21,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.solrdao.extend.IndexBuildHook;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
@@ -799,7 +800,7 @@ public class SolrFieldsParser {
          * 添加保留字段
          */
         public void addReservedFields() {
-            SolrType strType = this.getTisType(ISchemaField.ReservedFieldType.STRING.literia);
+            SolrType strType = this.getTisType(ColumnMetaData.ReservedFieldType.STRING.literia);
             SolrType longType = this.getTisType("long");
             PSchemaField verField = new PSchemaField();
             verField.setName("_version_");

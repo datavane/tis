@@ -1,7 +1,7 @@
 package com.qlangtech.tis.runtime.module.action;
 
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.misc.TokenizerType;
-import com.qlangtech.tis.solrdao.ISchemaField;
 
 /**
  * @author: baisui 百岁
@@ -9,7 +9,8 @@ import com.qlangtech.tis.solrdao.ISchemaField;
  **/
 public class VisualType {
 
-  public static final VisualType STRING_TYPE = new VisualType(ISchemaField.DEFAULT_STRING_TYPE_NAME, true);
+  public static final VisualType STRING_TYPE
+    = new VisualType(ColumnMetaData.ReservedFieldType.STRING.literia, true);
 
   public final String type;
 

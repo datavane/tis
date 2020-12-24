@@ -15,9 +15,9 @@
 package com.qlangtech.tis.runtime.module.misc;
 
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.SchemaAction.NumericVisualType;
 import com.qlangtech.tis.runtime.module.action.VisualType;
-import com.qlangtech.tis.solrdao.ISchemaField;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -28,11 +28,11 @@ import java.util.Map;
  * @date 2015年1月6日下午6:31:17
  */
 public enum TokenizerType {
-  NULL(ISchemaField.DEFAULT_STRING_TYPE_NAME, "无分词") //
-  , IK("ik", "IK分词") //
-  , LIKE("like", "LIKE分词") //
-  , BLANK_SPLIT("text_ws", "空格分词") //
-  , PINGYIN("pinyin", "拼音分词");
+  NULL(ColumnMetaData.ReservedFieldType.STRING.literia, "无分词") //
+  , IK(ColumnMetaData.ReservedFieldType.IK.literia, "IK分词") //
+  , LIKE(ColumnMetaData.ReservedFieldType.LIKE.literia, "LIKE分词") //
+  , BLANK_SPLIT(ColumnMetaData.ReservedFieldType.TEXT_WS.literia, "空格分词") //
+  , PINGYIN(ColumnMetaData.ReservedFieldType.PINYIN.literia, "拼音分词");
 
   public static final Map<String, VisualType> visualTypeMap;
 
@@ -41,9 +41,9 @@ public enum TokenizerType {
   // private static final TokenizerString splitableTokenType = new TokenizerString();
 
   static {
-    visualTypeMap = new HashMap<String, VisualType>();
+    visualTypeMap = new HashMap<>();
     numericTypeMap = Maps.newHashMap();
-    visualTypeMap.put(ISchemaField.DEFAULT_STRING_TYPE_NAME, VisualType.STRING_TYPE);
+    visualTypeMap.put(ColumnMetaData.ReservedFieldType.STRING.literia, VisualType.STRING_TYPE);
     addNumericType("double");
     addNumericType("int");
     addNumericType("float");
@@ -57,16 +57,6 @@ public enum TokenizerType {
     //numericTypeMap.put('t' + numericType, NumericVisualType.create(type));
   }
 
-//    public static class TokenizerString extends VisualType {
-//
-//        public TokenizerString() {
-//            super("string", false);
-//        }
-//
-//        public TokenizerType[] getTokenerTypes() {
-//            return TokenizerType.values();
-//        }
-//    }
 
   public static boolean isContain(String key) {
     return parseVisualType(key) != null;

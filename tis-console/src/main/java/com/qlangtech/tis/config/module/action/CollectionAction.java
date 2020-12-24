@@ -373,11 +373,17 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       , context, df, (cols, schemaParseResult) -> {
         ColumnMetaData pkMeta = targetColMetas.getPKMeta();
         PSchemaField field = null;
+        ColumnMetaData.ReservedFieldType rft = null;
         TargetCol tcol = null;
         for (ISchemaField f : schemaParseResult.getSchemaFields()) {
           field = (PSchemaField) f;
 
+          rft = pkMeta.getSchemaFieldType();
+          if (rft == null) {
+            throw new IllegalStateException("field:" + f.getName() + " relevant reflect 'SchemaFieldType' can not be null");
+          }
 
+          field.setType(schemaParseResult.getTisType(rft.literia));
           if (StringUtils.equals(pkMeta.getKey(), field.getName())) {
             field.setIndexed(true);
           }
@@ -388,6 +394,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
             }
             if (StringUtils.isNotEmpty(tcol.getToken())) {
               field.setTokenizerType(tcol.getToken());
+            } else {
+              if (ColumnMetaData.ReservedFieldType.STRING == rft) {
+                // String类型默认使用like分词
+                field.setTokenizerType(ColumnMetaData.ReservedFieldType.LIKE.literia);
+              }
             }
           }
         }
