@@ -318,10 +318,13 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       throw new IllegalStateException();
     }
 
-    public Map<String, TargetCol> getTargetColMap() {
+    public Map<String, ColMetaTuple> getTargetCols() {
       Objects.requireNonNull(targetColMap, "targetColMap can not be bull");
-      return this.targetColMap;
+      return this.targetColMetas.stream().collect(
+        Collectors.toMap((c) -> c.getKey(), (c) -> new ColMetaTuple(targetColMap.get(c.getKey()), c)));
+      //   return this.targetColMap;
     }
+
 
     private TargetColumnMeta invalid() {
       this.valid = false;
@@ -373,19 +376,25 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       , context, df, (cols, schemaParseResult) -> {
         ColumnMetaData pkMeta = targetColMetas.getPKMeta();
         PSchemaField field = null;
-        ColumnMetaData.ReservedFieldType rft = null;
+        ColMetaTuple rft = null;
         TargetCol tcol = null;
+        final Map<String, ColMetaTuple> targetCols = targetColMetas.getTargetCols();
         for (ISchemaField f : schemaParseResult.getSchemaFields()) {
           field = (PSchemaField) f;
 
-          rft = pkMeta.getSchemaFieldType();
+          rft = targetCols.get(f.getName());
           if (rft == null) {
             throw new IllegalStateException("field:" + f.getName() + " relevant reflect 'SchemaFieldType' can not be null");
           }
 
-          field.setType(schemaParseResult.getTisType(rft.literia));
+          boolean isPk = false;
           if (StringUtils.equals(pkMeta.getKey(), field.getName())) {
+            // 设置主键
+            isPk = true;
             field.setIndexed(true);
+            field.setType(schemaParseResult.getTisType(ColumnMetaData.ReservedFieldType.STRING.literia));
+          } else {
+            field.setType(schemaParseResult.getTisType(rft.getSchemaFieldType()));
           }
           tcol = targetColMetas.targetColMap.get(field.getName());
           if (tcol != null) {
@@ -395,7 +404,8 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
             if (StringUtils.isNotEmpty(tcol.getToken())) {
               field.setTokenizerType(tcol.getToken());
             } else {
-              if (ColumnMetaData.ReservedFieldType.STRING == rft) {
+              // 主键不需要分词
+              if (!isPk && rft.isTypeOf(ColumnMetaData.ReservedFieldType.STRING)) {
                 // String类型默认使用like分词
                 field.setTokenizerType(ColumnMetaData.ReservedFieldType.LIKE.literia);
               }
@@ -630,6 +640,31 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     public void setIndexable(boolean indexable) {
       this.indexable = indexable;
     }
+  }
+
+  private static class ColMetaTuple {
+    public final TargetCol targetCol;
+    public final ColumnMetaData colMeta;
+
+    public ColMetaTuple(TargetCol targetCol, ColumnMetaData colMeta) {
+      if (targetCol == null) {
+        throw new IllegalArgumentException("targetCol can not be null");
+      }
+      if (colMeta == null) {
+        throw new IllegalArgumentException("colMeta can not be null");
+      }
+      this.targetCol = targetCol;
+      this.colMeta = colMeta;
+    }
+
+    public String getSchemaFieldType() {
+      return colMeta.getSchemaFieldType().literia;
+    }
+
+    public boolean isTypeOf(ColumnMetaData.ReservedFieldType type) {
+      return colMeta.getSchemaFieldType() == type;
+    }
+
   }
 
   private class DftPluginContext implements IPluginContext {

@@ -19,6 +19,11 @@ first:tis.employees.last_name
 tis.employees.last_name
 -->employees.employees.last_name
 -------------------------------
+last:employees.employees.hire_date
+first:tis.employees.hire_date
+tis.employees.hire_date
+-->employees.employees.hire_date
+-------------------------------
 last:employees.employees.first_name
 first:tis.employees.first_name
 tis.employees.first_name

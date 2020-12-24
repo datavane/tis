@@ -95,6 +95,10 @@ public class SchemaAction extends BasicModule {
     this.doGetFields(context, tplSchema);
   }
 
+  // 单元测试用
+  public static SolrFieldsParser.ParseResultCallback parseResultCallback4test = (cols, result) -> {
+  };
+
   public static SchemaResult mergeWfColsWithTplCollection(BasicModule module, Context context
     , WorkFlow workflow, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
     // 通过version取默认模板
@@ -142,6 +146,7 @@ public class SchemaAction extends BasicModule {
         tplSchema.content = out.toByteArray();
       }
     }
+    parseResultCallback4test.process(cols, parseResult);
     return tplSchema;
   }
 

@@ -25,7 +25,10 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
 import com.qlangtech.tis.openapi.impl.AppKey;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.AddAppAction;
+import com.qlangtech.tis.runtime.module.action.SchemaAction;
+import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
@@ -33,6 +36,7 @@ import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.commons.io.IOUtils;
 import org.apache.struts2.StrutsSpringTestCase;
+import org.shai.xmodifier.util.StringUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -40,7 +44,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -110,6 +116,51 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     AddAppAction.appKeyProcess = (key) -> {
       appKeyRef.set(key);
     };
+    AtomicBoolean schemaParseResultProcessed = new AtomicBoolean(false);
+    SchemaAction.parseResultCallback4test = (cols, schemaParseResult) -> {
+      List<ISchemaField> schemaFields = schemaParseResult.getSchemaFields();
+      assertNotNull(schemaFields);
+      assertEquals(8, schemaFields.size());
+
+      Map<String, ISchemaField> fields = schemaFields.stream().collect(Collectors.toMap((c) -> c.getName(), (c) -> c));
+      String emp_no = "emp_no";
+      ISchemaField pk = fields.get(emp_no);
+      assertNotNull(pk);
+      assertTrue(StringUtils.isEmpty(pk.getTokenizerType()));
+      assertEquals(ColumnMetaData.ReservedFieldType.STRING.literia, pk.getTisFieldTypeName());
+      assertEquals(emp_no, schemaParseResult.getUniqueKey());
+      assertEquals(emp_no, schemaParseResult.getSharedKey());
+      String birth_date = "birth_date";
+      ISchemaField field = fields.get(birth_date);
+      assertNotNull(field);
+      assertEquals(ColumnMetaData.ReservedFieldType.LONG.literia, field.getTisFieldTypeName());
+      assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
+
+      String first_name = "first_name";
+      field = fields.get(first_name);
+      assertNotNull(field);
+      assertEquals(ColumnMetaData.ReservedFieldType.STRING.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReservedFieldType.LIKE.literia, field.getTokenizerType());
+
+      String last_name = "last_name";
+      field = fields.get(last_name);
+      assertNotNull(field);
+      assertEquals(ColumnMetaData.ReservedFieldType.STRING.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReservedFieldType.LIKE.literia, field.getTokenizerType());
+
+      String gender = "gender";
+      field = fields.get(gender);
+      assertNotNull(field);
+      assertEquals(ColumnMetaData.ReservedFieldType.INT.literia, field.getTisFieldTypeName());
+      assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
+
+      String hire_date = "hire_date";
+      field = fields.get(hire_date);
+      assertNotNull(field);
+      assertEquals(ColumnMetaData.ReservedFieldType.LONG.literia, field.getTisFieldTypeName());
+      assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
+      schemaParseResultProcessed.set(true);
+    };
     // 执行
     String result = proxy.execute();
     // assertEquals(Action.NONE, result);
@@ -132,6 +183,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
       ConfigFileReader.getConfigList(), appKeyRef.get().setFromCache(true), null);
     assertNotNull("snapshotDomain can not null", snapshotDomain);
     assertTrue(actionExecResult.isSuccess());
+    assertTrue("schemaParseResultProcessed must be processd", schemaParseResultProcessed.get());
   }
 
   private JSONObject getPostJSONContent() {
@@ -215,6 +267,11 @@ public class TestCollectionAction extends StrutsSpringTestCase {
 
     col = new JSONObject();
     col.put("name", "gender");
+    col.put("search", true);
+    columns.add(col);
+
+    col = new JSONObject();
+    col.put("name", "hire_date");
     col.put("search", true);
     columns.add(col);
 
