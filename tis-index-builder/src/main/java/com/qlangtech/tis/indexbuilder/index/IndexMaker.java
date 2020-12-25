@@ -208,7 +208,6 @@ public class IndexMaker implements Runnable {
                         continue;
                     }
                     addRAMToMergeQueue(indexWriter);
-                    // successFlag.setFlag(SuccessFlag.Flag.SUCCESS);
                     successFlag.setMsg(SuccessFlag.Flag.SUCCESS, "LuceneDocMaker success");
                     return;
                 }

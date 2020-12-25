@@ -24,8 +24,6 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.util.XStream2;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -181,6 +179,15 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
             }
 
             file.unmarshal(this);
+            if (plugins.size() < 1) {
+                // 如果load一次 没有家在到，再尝试一次。在测试中发现刚启动时第一次加载会加载不到
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                file.unmarshal(this);
+            }
             this.loaded = true;
         } catch (IOException e) {
             throw new RuntimeException(e);

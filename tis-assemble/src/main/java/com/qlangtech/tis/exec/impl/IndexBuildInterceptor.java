@@ -228,7 +228,8 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
      * @param grouIndex
      * @return
      */
-    protected final AbstractIndexBuildJob createRemoteIndexBuildJob(final IExecChainContext execContext, ImportDataProcessInfo processinfo, int grouIndex, SnapshotDomain domain, BuildPhaseStatus phaseStatus) {
+    protected final AbstractIndexBuildJob createRemoteIndexBuildJob(final IExecChainContext execContext, ImportDataProcessInfo processinfo
+            , int grouIndex, SnapshotDomain domain, BuildPhaseStatus phaseStatus) {
         // 暂时全部提交到32G机器上构建索引吧
         // final BuildPhaseStatus phaseStatus = this.getPhaseStatus(execContext, FullbuildPhase.BUILD);
         // 

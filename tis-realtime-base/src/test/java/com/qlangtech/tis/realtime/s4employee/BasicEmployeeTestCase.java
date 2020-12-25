@@ -33,10 +33,10 @@ public class BasicEmployeeTestCase extends BasicIncrTestCase {
     }
 
 
-    public static ApplicationContext createTestSpringContext() {
-        //String collectionName, long wfTimestamp, String[] configLocations
-        return BasicIncrTestCase.createTestSpringContext(collectionName, wfTimestamp, new String[]{employees_test_dao_context});
-    }
+//    public static ApplicationContext createTestSpringContext() {
+//        //String collectionName, long wfTimestamp, String[] configLocations
+//        return BasicIncrTestCase.createTestSpringContext(collectionName, wfTimestamp, new String[]{employees_test_dao_context});
+//    }
 
 
 }

@@ -14,29 +14,26 @@
  */
 package com.qlangtech.tis.realtime.s4employee;
 
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.realtime.TisIncrLauncher;
 import junit.framework.TestCase;
 
 /**
+ * 监听employee 通过TiDB TiCDC kafka这条通道的数据
+ *
  * @author 百岁（baisui@qlangtech.com）
- * @date 2020-12-23 15:52
+ * @date 2020-12-25 13:32
  */
-public class TestS4employeeResourceDownload extends TestCase {
-    String collectionName = "search4employees";
-    long wfTimestamp = 20201223151616l;
+public class TestS4employeeSingleTableEmployees extends TestCase {
 
-    static {
-        Config.setDataDir("/tmp/tis");
-    }
 
-    public void testResourceDownload() throws Exception {
+    public void testReceiveMQ() throws Exception {
+        String[] args = new String[]{"search4employees", "20201225113828"};
+        TisIncrLauncher.main(args);
 
-        System.out.println(TIS.permitInitialize);
-
-        final TisIncrLauncher incrLauncher = new TisIncrLauncher(collectionName, wfTimestamp);
-        incrLauncher.downloadDependencyJarsAndPlugins();
+        //java -Ddata.dir=/opt/data -Denv_props=true -Dlog.dir=/opt/logs -Druntime=daily -Djava.security.egd=file:/dev/./urandom -jar /opt/tis/tis-incr/tis-incr.jar search4employees 20201225113828
+        synchronized (this) {
+            this.wait();
+        }
     }
 
 }

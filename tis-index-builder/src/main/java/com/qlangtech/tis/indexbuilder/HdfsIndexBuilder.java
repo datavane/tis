@@ -167,7 +167,8 @@ public class HdfsIndexBuilder implements TaskMapper {
             List<IndexMaker> indexMakers = Lists.newArrayList();
             // 多线程构建索引
             for (int i = 0; i < indexMakerCount; i++) {
-                IndexMaker indexMaker = createIndexMaker(indexMetaConfig, "indexMaker-" + i, indexConf, counters, messages, indexMetaConfig.indexSchema, aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues, dirQueue);
+                IndexMaker indexMaker = createIndexMaker(indexMetaConfig, "indexMaker-" + i, indexConf, counters
+                        , messages, indexMetaConfig.indexSchema, aliveIndexMakerCount, aliveDocMakerCount, docPoolQueues, dirQueue);
                 indexMakers.add(indexMaker);
                 executorService.submit(indexMaker, indexMaker.getResultFlag());
             }

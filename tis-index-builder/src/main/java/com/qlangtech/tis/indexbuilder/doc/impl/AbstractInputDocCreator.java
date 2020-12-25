@@ -71,14 +71,6 @@ public abstract class AbstractInputDocCreator implements IInputDocCreator {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    // if (DOC_CREATOR_TYPE_SEQUENCE_NEST_DOC.equals(typeName)) {
-    // logger.info("inputdoc type:" + DOC_CREATOR_TYPE_SEQUENCE_NEST_DOC);
-    // return new SequenceFileNestInputDocCreator(rawDataProcessor,
-    // indexSchema,
-    // newVersion);
-    // } else {
-    // 
-    // }
     }
 
     AbstractInputDocCreator(RawDataProcessor rawDataProcessor, IndexSchema indexSchema, String newVersion) {
