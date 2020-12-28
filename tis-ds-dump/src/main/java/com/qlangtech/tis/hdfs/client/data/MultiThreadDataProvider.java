@@ -114,7 +114,8 @@ public class MultiThreadDataProvider  {
 
     private final int maxPoolSize;
 
-    public MultiThreadDataProvider(TableDumpFactory flatTableBuilder, DataSourceFactory dataSourceFactory, int maxPoolSize, int waitQueueSize) {
+    public MultiThreadDataProvider(TableDumpFactory flatTableBuilder, DataSourceFactory dataSourceFactory
+            , int maxPoolSize, int waitQueueSize) {
         super();
         this.maxPoolSize = maxPoolSize;
         Objects.requireNonNull(flatTableBuilder, "param flatTableBuilder can not be null");
@@ -145,7 +146,7 @@ public class MultiThreadDataProvider  {
 
     public IPath createColumnMetaDataPath(String utf8StrTime) {
         return createPath((sbPath) -> {
-            sbPath.append("cols-metadata");
+            sbPath.append(ColumnMetaData.KEY_COLS_METADATA);
         }, utf8StrTime);
     }
 
@@ -156,7 +157,8 @@ public class MultiThreadDataProvider  {
         // .append("user").append(Path.SEPARATOR).append(dumpContext.getCurrentUserName())
         sbPath.append("/");
         EntityName dumptable = this.dumpContext.getDumpTable();
-        sbPath.append(dumptable.getDbName() + "/" + dumptable.getTableName()).append("/").append(isIncrOrNot ? "incr" : "all").append("/").append(utf8StrTime).append("/");
+        sbPath.append(dumptable.getDbName() + "/" + dumptable.getTableName()).append("/")
+                .append(isIncrOrNot ? "incr" : "all").append("/").append(utf8StrTime).append("/");
         appender.append(sbPath);
         return this.getFileSystem().getPath(sbPath.toString());
     }

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,6 +26,7 @@ import com.qlangtech.tis.indexbuilder.utils.SimpleStringTokenizer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -139,8 +140,9 @@ public class HDFSReader implements SourceReader {
             line = bridge.target.toString();
             String[] columns = SimpleStringTokenizer.split(line, this.delimiter);
             if (columns.length != this.titleText.length) {
-                String error = "[error] cloumns length[" + columns.length + "] and titleText length[" + this.titleText.length + "] is mismatch......line [" + line + "]" + ",\n path:" + this.split.getPath() + "\n line:" + readline;
-                throw new RowException(error, map.toString());
+                String error = "[error] cloumns length[" + columns.length + "] and titleText length[" + this.titleText.length
+                        + "] is mismatch......line [" + line + "]" + ",\n path:" + this.split.getPath() + "\n line:" + readline;
+                throw new RowException(parselineContent(columns, this.titleText).append("\n").append(error).toString(), map.toString());
             }
             for (int i = 0; i < columns.length; i++) {
                 if (StringUtils.trim(columns[i]).length() != 0) {
@@ -199,19 +201,10 @@ public class HDFSReader implements SourceReader {
         return bytes;
     }
 
-    // public String[] getTitleText() {
-    // return this.titleText;
-    // }
     public void setTitleText(String[] titleText) {
         this.titleText = titleText;
     }
 
-    // public String getUniqueKey() {
-    // return uniqueKey;
-    // }
-    // public void setUniqueKey(String uniqueKey) {
-    // this.uniqueKey = uniqueKey;
-    // }
     public void close() throws IOException {
         this.in.close();
         this.buffer.close();

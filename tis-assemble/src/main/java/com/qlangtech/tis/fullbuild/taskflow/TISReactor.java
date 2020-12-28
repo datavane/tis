@@ -51,7 +51,6 @@ public class TISReactor {
         // System.out.println("----");
         final PrintWriter w = new PrintWriter(sw, true);
         ReactorListener listener = new ReactorListener() {
-
             // TODO: Does it really needs handlers to be synchronized?
             @Override
             public synchronized void onTaskStarted(Task t) {
@@ -62,7 +61,6 @@ public class TISReactor {
             public synchronized void onTaskCompleted(Task t) {
                 w.println("Ended " + t.getDisplayName());
                 processTaskResult((TaskImpl) t, new ITaskResultProcessor() {
-
                     @Override
                     public void process(DumpPhaseStatus dumpPhase, TaskImpl task) {
                     }

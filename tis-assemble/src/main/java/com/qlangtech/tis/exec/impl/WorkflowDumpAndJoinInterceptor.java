@@ -66,7 +66,8 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         StringBuffer dumps = new StringBuffer("dependency table:\n");
         dumps.append("\t\t=======================\n");
         for (DependencyNode t : tables) {
-            dumps.append("\t\t").append(t.getDbName()).append(".").append(t.getName()).append("[").append(t.getTabid()).append(",").append("] \n");
+            dumps.append("\t\t").append(t.getDbName()).append(".").append(t.getName())
+                    .append("[").append(t.getTabid()).append(",").append("] \n");
         }
         dumps.append("\t\t=======================\n");
         logger.info(dumps.toString());

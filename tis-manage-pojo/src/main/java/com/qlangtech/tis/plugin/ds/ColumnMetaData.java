@@ -25,6 +25,8 @@ import java.util.List;
  */
 public class ColumnMetaData {
 
+    public static final String KEY_COLS_METADATA = "cols-metadata";
+
     public static StringBuffer buildExtractSQL(String tableName, List<ColumnMetaData> cols) {
         return buildExtractSQL(tableName, false, cols);
     }
@@ -113,7 +115,8 @@ public class ColumnMetaData {
 
     public enum ReflectSchemaFieldType {
         STRING("string"), INT("int"), FLOAT("float"), LONG("long") //
-        , DOUBLE("double"), IK("ik"), TEXT_WS("text_ws"), LIKE("like"), PINYIN("pinyin");
+        , DOUBLE("double"), IK("ik"), TEXT_WS("text_ws"), LIKE("like"), PINYIN("pinyin")//
+        , DATE("date"), TIMESTAMP("timestamp");
 
         public final String literia;
 

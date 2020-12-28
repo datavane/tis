@@ -758,7 +758,7 @@ public class OfflineManager {
       OfflineDatasourceAction.DatasourceDb datasourceDb1 = new OfflineDatasourceAction.DatasourceDb();
       datasourceDb1.setId(datasourceDb.getId());
       datasourceDb1.setName(datasourceDb.getName());
-      datasourceDb1.setSyncOnline(datasourceDb.getSyncOnline());
+      //datasourceDb1.setSyncOnline(datasourceDb.getSyncOnline());
       dbsMap.put(datasourceDb.getId(), datasourceDb1);
     }
     for (DatasourceTable datasourceTable : tableList) {
