@@ -19,4 +19,5 @@ package com.qlangtech.tis.sql.parser.er;
  * @date 2020-12-28 15:53
  */
 public enum TimeCharacteristic {
+    EventTime, ProcessTime;
 }

@@ -231,6 +231,15 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                 // 判断out的列是否已经输出
                 Set<String> outCol = Sets.newHashSet();
                 boolean firstAdd = true;
+                boolean hasSetTimestampVerColumn;
+                if (!(hasSetTimestampVerColumn = erR.hasSetTimestampVerColumn(entityName))) {
+                    if (erR.getTimeCharacteristic() != TimeCharacteristic.ProcessTime) {
+                        throw new IllegalStateException("table:" + entityName.getTabName() + "either have not set timestampVer col name or global timeCharacteristic is not 'ProcessTime'");
+                    }
+                    firstAdd = false;
+                    aliasListBuffer.append("(\"processTime\").processTimeVer()").returnLine();
+                }
+
                 for (ValChain tupleLink : e.getValue()) {
                     first = tupleLink.first();
                     last = tupleLink.last();
@@ -266,7 +275,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                         aliasListBuffer.append(".PK()");
                     }
 
-                    if (erR.isTimestampVerColumn(entityName, last.getOutputColName().getName())) {
+                    if (hasSetTimestampVerColumn && erR.isTimestampVerColumn(entityName, last.getOutputColName().getName())) {
                         // 时间戳字段
                         aliasListBuffer.append(".timestampVer()");
                         timestampVerColumnProcessed = true;
@@ -434,7 +443,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
 
                 // timestampVer标记没有添加，且本表不要监听增量消息
-                if (!timestampVerColumnProcessed && !erR.isTriggerIgnore(entityName)) {
+                if (hasSetTimestampVerColumn && !timestampVerColumnProcessed && !erR.isTriggerIgnore(entityName)) {
                     if (!firstAdd) {
                         aliasListBuffer.appendLine(",");
                     } else {

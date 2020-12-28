@@ -40,6 +40,7 @@ import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.er.TimeCharacteristic;
 import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
@@ -269,31 +270,31 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     static final int TypeDate = 10;
 
 
-    /**
-     * 这个是一个暂时的实现，类似设置记录的evenetTime，应该是让用户手工设置
-     *
-     * @return
-     */
-    public ColumnMetaData getTimeVerColName() {
-      //  ref: com.pingcap.tikv.types.MySQLType
-      for (ColumnMetaData cMeta : targetColMetas) {
-        if (cMeta.getType() == TypeTimestamp || cMeta.getType() == TypeDatetime) {
-          return cMeta;
-        }
-      }
-      for (ColumnMetaData cMeta : targetColMetas) {
-        if (cMeta.getType() == TypeDate) {
-          return cMeta;
-        }
-      }
-
-      for (ColumnMetaData cMeta : targetColMetas) {
-        if (StringUtils.lowerCase(cMeta.getKey()).indexOf("time") > -1) {
-          return cMeta;
-        }
-      }
-      return getPKMeta();
-    }
+//    /**
+//     * 这个是一个暂时的实现，类似设置记录的evenetTime，应该是让用户手工设置
+//     *
+//     * @return
+//     */
+//    public ColumnMetaData getTimeVerColName() {
+//      //  ref: com.pingcap.tikv.types.MySQLType
+//      for (ColumnMetaData cMeta : targetColMetas) {
+//        if (cMeta.getType() == Types.TIMESTAMP) {
+//          return cMeta;
+//        }
+//      }
+//      for (ColumnMetaData cMeta : targetColMetas) {
+//        if (cMeta.getType() == TypeDate) {
+//          return cMeta;
+//        }
+//      }
+//
+//      for (ColumnMetaData cMeta : targetColMetas) {
+//        if (StringUtils.lowerCase(cMeta.getKey()).indexOf("time") > -1) {
+//          return cMeta;
+//        }
+//      }
+//      return getPKMeta();
+//    }
 
     /**
      * 目前只取得一个
@@ -469,12 +470,13 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     extraMeta.setPrimaryIndexColumnNames(primaryIndexColumnName);
     extraMeta.setPrimaryIndexTab(true);
 
-    ColumnMetaData timeVerColName = targetColMetas.getTimeVerColName();
-    extraMeta.setTimeVerColName(timeVerColName.getKey());
+//    ColumnMetaData timeVerColName = targetColMetas.getTimeVerColName();
+//    extraMeta.setTimeVerColName(timeVerColName.getKey());
     //extraMeta.setTimeVerColName();
     node.setExtraMeta(extraMeta);
     erRules.addDumpNode(node);
     // erRules.setRelationList();
+    erRules.setTimeCharacteristic(TimeCharacteristic.ProcessTime);
     ERRules.write(topologyName, erRules);
     /***********************************************************
      * <<<<<<<<

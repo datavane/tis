@@ -14,9 +14,11 @@
  */
 package com.qlangtech.tis.wangjubao.jingwei;
 
+import com.qlangtech.tis.realtime.transfer.BasicRMListener;
 import com.qlangtech.tis.realtime.transfer.IRowValueGetter;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 
+import java.util.Date;
 import java.util.concurrent.Callable;
 
 /**
@@ -24,6 +26,8 @@ import java.util.concurrent.Callable;
  * @date 2016年10月14日
  */
 public class Alias {
+
+    public static final ProcessTimeColCreator processTimeColCreator = new ProcessTimeColCreator();
 
     private final String name;
 
@@ -46,9 +50,9 @@ public class Alias {
 
     // 该列是否为代表记录时间戳生成的列
     // = false;
-    final boolean timeVer;
+    // final boolean timeVer;
 
-    private Alias(ICreator creator, String name, String toName, boolean copy, boolean ignoreChange, boolean pk, boolean timeVer) {
+    private Alias(ICreator creator, String name, String toName, boolean copy, boolean ignoreChange, boolean pk) {
         super();
         this.name = name;
         this.toName = toName;
@@ -56,7 +60,7 @@ public class Alias {
         this.copy = copy;
         this.ignoreChange = ignoreChange;
         this.pk = pk;
-        this.timeVer = timeVer;
+        // this.timeVer = timeVer;
     }
 
     public ILazyTransfer getValLazyTransfer() {
@@ -89,6 +93,9 @@ public class Alias {
 
         // 该列是否为代表记录时间戳生成的列
         boolean timeVer = false;
+        //com.qlangtech.tis.sql.parser.er.TimeCharacteristic
+        // 是否使用processTime？
+        boolean processTime;
 
         private ICreator creator;
 
@@ -161,6 +168,11 @@ public class Alias {
             return this;
         }
 
+        public Builder processTimeVer() {
+            this.processTime = true;
+            return this.timestampVer();
+        }
+
         public Builder timestampVer() {
             this.timeVer = true;
             return this;
@@ -176,9 +188,9 @@ public class Alias {
             build = true;
             Alias result = null;
             if (this.creator != null) {
-                result = new Alias(this.creator, null, this.toName, copy, ignoreChange, pk, timeVer);
+                result = new Alias(this.creator, null, this.toName, copy, ignoreChange, pk);
             } else {
-                result = new Alias(null, this.name, this.toName, copy, ignoreChange, pk, timeVer);
+                result = new Alias(null, this.name, this.toName, copy, ignoreChange, pk);
             }
             if (this.valTransfer != null) {
                 result.valTransfer = this.valTransfer;
@@ -329,5 +341,23 @@ public class Alias {
             }
         }
         return val;
+    }
+
+
+    public static class ProcessTimeColCreator extends Alias {
+        public ProcessTimeColCreator() {
+            super(null, "processTime", "processTime", true, false, false);
+        }
+
+        @Override
+        public String getRawVal(IRowValueGetter row) {
+            return BasicRMListener.formatYyyyMMddHHmmss.get().format(new Date());
+        }
+
+
+        @Override
+        public Object getVal(IRowValueGetter tab, boolean force) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

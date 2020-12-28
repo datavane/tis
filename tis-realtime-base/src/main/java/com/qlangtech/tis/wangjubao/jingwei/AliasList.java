@@ -92,12 +92,12 @@ public class AliasList {
                 }
                 pk = a;
             }
-            if (a.timeVer) {
-                if (timeVersionCol != null) {
-                    throw new IllegalStateException("timeVersionCol have been set,timeVersionCol:" + timeVersionCol.getName() + ",new:" + a.getName());
-                }
-                timeVersionCol = a;
-            }
+//            if (a.timeVer) {
+//                if (timeVersionCol != null) {
+//                    throw new IllegalStateException("timeVersionCol have been set,timeVersionCol:" + timeVersionCol.getName() + ",new:" + a.getName());
+//                }
+//                timeVersionCol = a;
+//            }
             return !a.ignoreChange;
         }).map(Alias::getName).collect(toSet());
         this.tableName = tableName;
@@ -115,7 +115,12 @@ public class AliasList {
      * @return
      */
     public Alias getTimeVersionCol() {
+        Objects.requireNonNull(this.timeVersionCol, "timeVersionCol can not be null");
         return this.timeVersionCol;
+    }
+
+    public void setTimeVersionCol(Alias timeVersionCol) {
+        this.timeVersionCol = timeVersionCol;
     }
 
     private static final List<RowMap> emptyGetterList = Collections.emptyList();
@@ -201,7 +206,7 @@ public class AliasList {
             Map<String, AliasList> /*** TableName  */
                     tabColumnMetaMap = Maps.newHashMap();
             for (AliasList.Builder colsBuilder : builders) {
-                tabColumnMetaMap.put(colsBuilder.getTabName(), colsBuilder.build());
+                tabColumnMetaMap.put(colsBuilder.getTabName(), colsBuilder.buildMetaList());
             }
             // 设置表的关联
             for (AliasList.Builder colsBuilder : builders) {
@@ -338,7 +343,7 @@ public class AliasList {
             }
         }
 
-        private AliasList build() {
+        private AliasList buildMetaList() {
             // <<<<<<<<<< 为了去除集合中有重复的列
             Map<String, AliasColBuilderWrapper> /*** from colum name */removeDuplicateColumnMap = Maps.newHashMap();
 
@@ -346,6 +351,9 @@ public class AliasList {
             // new Alias[aliasListBuilder.size()];
             List<Alias> aliasArray = Lists.newArrayList();
             for (Alias.Builder cbuilder : aliasListBuilder) {
+                if (cbuilder.processTime) {
+                    continue;
+                }
                 preBuilder = removeDuplicateColumnMap.get(cbuilder.getToName());
                 if (preBuilder == null) {
                     removeDuplicateColumnMap.put(cbuilder.getToName(), new AliasColBuilderWrapper(tabName, cbuilder));
@@ -356,7 +364,24 @@ public class AliasList {
             for (Map.Entry<String, AliasColBuilderWrapper> /*** from colum name */entry : removeDuplicateColumnMap.entrySet()) {
                 aliasArray.addAll(entry.getValue().buildColumnAlias());
             }
+
+
             AliasList result = new AliasList(tabName, this.primaryIndexOfIndex, this.ignoreIncrTrigger, aliasArray.toArray(new Alias[aliasArray.size()]));
+
+
+            for (Alias.Builder cb : aliasListBuilder) {
+                if (cb.timeVer) {
+                    if (result.getTimeVersionCol() != null) {
+                        throw new IllegalStateException("tabName:" + tabName + " have set");
+                    }
+                    if (cb.processTime) {
+                        result.setTimeVersionCol(Alias.processTimeColCreator);
+                    } else {
+                        result.setTimeVersionCol(cb.build());
+                    }
+                }
+            }
+            Objects.requireNonNull(result.getTimeVersionCol(), "timeVersionCol can not be null");
             result.nestChildRow = this.nestChildRow;
             result.getterRowsFromOuterPersistence = this.getterRowsFromOuterPersistence;
             build = true;
@@ -377,6 +402,7 @@ public class AliasList {
             this.firstColBuilder = colBuilder;
             this.tableName = tableName;
         }
+
 
         public Collection<Alias> buildColumnAlias() {
             if (firstColBuilder.pk) {

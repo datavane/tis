@@ -133,7 +133,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
       String birth_date = "birth_date";
       ISchemaField field = fields.get(birth_date);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.LONG.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.DATE.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
 
       String first_name = "first_name";
@@ -157,7 +157,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
       String hire_date = "hire_date";
       field = fields.get(hire_date);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.LONG.literia, field.getTisFieldTypeName());
+      assertEquals(ColumnMetaData.ReflectSchemaFieldType.DATE.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
       schemaParseResultProcessed.set(true);
     };

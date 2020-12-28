@@ -51,6 +51,8 @@ public class ERRules implements IPrimaryTabFinder {
     public static final String ER_RULES_FILE_NAME = "er_rules.yaml";
 
     private static final Yaml yaml;
+    // 类似flink的时间处理
+    private TimeCharacteristic timeCharacteristic = TimeCharacteristic.EventTime;
 
     private List<TableRelation> relationList = Lists.newArrayList();
 
@@ -204,6 +206,14 @@ public class ERRules implements IPrimaryTabFinder {
         return parentRefs;
     }
 
+    public TimeCharacteristic getTimeCharacteristic() {
+        return timeCharacteristic;
+    }
+
+    public void setTimeCharacteristic(TimeCharacteristic timeCharacteristic) {
+        this.timeCharacteristic = timeCharacteristic;
+    }
+
     /**
      * 是否是主表
      *
@@ -282,15 +292,21 @@ public class ERRules implements IPrimaryTabFinder {
     }
 
     public boolean isTimestampVerColumn(EntityName tableName, String colName) {
-        if (this.isTriggerIgnore(tableName)) {
-            return false;
-        }
+//        if (this.isTriggerIgnore(tableName)) {
+//            return false;
+//        }
+//        DependencyNode dumpNode = getDumpNode(tableName);
+//        TabExtraMeta extraMeta = dumpNode.getExtraMeta();
+//        if (extraMeta == null || StringUtils.isEmpty(extraMeta.getTimeVerColName())) {
+//            throw new IllegalStateException("table:" + tableName + " can not find 'timeVerColName' prop");
+//        }
+        return StringUtils.equals(getTimestampVerColumn(tableName), colName);
+    }
+
+    public boolean hasSetTimestampVerColumn(EntityName tableName) {
         DependencyNode dumpNode = getDumpNode(tableName);
         TabExtraMeta extraMeta = dumpNode.getExtraMeta();
-        if (extraMeta == null || StringUtils.isEmpty(extraMeta.getTimeVerColName())) {
-            throw new IllegalStateException("table:" + tableName + " can not find 'timeVerColName' prop");
-        }
-        return StringUtils.equals(extraMeta.getTimeVerColName(), colName);
+        return extraMeta == null && StringUtils.isNotEmpty(extraMeta.getTimeVerColName());
     }
 
     /**
