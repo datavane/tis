@@ -1,32 +1,32 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import junit.framework.Test;
+package org.apache.solr.util;
+
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
-import org.apache.solr.util.TestDateMathParser;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2020/09/25
+ * @date 2020-12-28 11:22
  */
-public class TestAll extends TestCase {
+public class TestDateMathParser extends TestCase {
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(TestDateMathParser.class);
+    public void test() {
 
-        return suite;
+
+
+        System.out.println(DateMathParser.parseMath(null, "2020-11-09T12:22:12.000Z"));
+        System.out.println(DateMathParser.parseMath(null, "2020-11-09T00:00:00Z"));
     }
 }

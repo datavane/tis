@@ -194,6 +194,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     datasource.put("plugin", "TiKV");
     datasource.put("pdAddrs", "192.168.28.202:2379");
     datasource.put("dbName", TEST_DS_NAME);
+    datasource.put("datetimeFormat", true);
     content.put("datasource", datasource);
     content.put("indexName", TEST_TABLE_NAME);
     content.put("table", TEST_TABLE_NAME);
