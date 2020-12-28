@@ -37,10 +37,10 @@ public class TisDateField extends DatePointField {
         return super.getPointRangeQuery(parser, field, min + TIME_SUFFIX, max + TIME_SUFFIX, minInclusive, maxInclusive);
     }
 
-    @Override
-    public Query getRangeQuery(QParser parser, SchemaField field, String part1, String part2, boolean minInclusive, boolean maxInclusive) {
-        return super.getRangeQuery(parser, field, part1 + TIME_SUFFIX, part2 + TIME_SUFFIX, minInclusive, maxInclusive);
-    }
+//    @Override
+//    public Query getRangeQuery(QParser parser, SchemaField field, String part1, String part2, boolean minInclusive, boolean maxInclusive) {
+//        return super.getRangeQuery(parser, field, part1 + TIME_SUFFIX, part2 + TIME_SUFFIX, minInclusive, maxInclusive);
+//    }
 
 
     public Object toNativeType(Object val) {
