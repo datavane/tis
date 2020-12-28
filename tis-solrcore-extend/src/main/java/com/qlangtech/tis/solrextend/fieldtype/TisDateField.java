@@ -14,12 +14,14 @@
  */
 package com.qlangtech.tis.solrextend.fieldtype;
 
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.Query;
 import org.apache.solr.schema.DatePointField;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.QParser;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +41,19 @@ public class TisDateField extends DatePointField {
             return super.toNativeType(val + TIME_SUFFIX);
         } else {
             return super.toNativeType(val);
+        }
+    }
+
+    @Override
+    public IndexableField createField(SchemaField field, Object value) {
+//        Date date = (value instanceof Date)
+//                ? ((Date)value)
+//                : DateMathParser.parseMath(null, value.toString());
+//        return new LongPoint(field.getName(), date.getTime());
+        if (value instanceof Date) {
+            return super.createField(field, value);
+        } else {
+            return super.createField(field, value + TIME_SUFFIX);
         }
     }
 
