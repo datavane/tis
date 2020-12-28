@@ -32,9 +32,16 @@ public class TisDateField extends DatePointField {
 
     private static final String TIME_SUFFIX = "T00:00:00Z";
 
+    @Override
     public Query getPointRangeQuery(QParser parser, SchemaField field, String min, String max, boolean minInclusive, boolean maxInclusive) {
         return super.getPointRangeQuery(parser, field, min + TIME_SUFFIX, max + TIME_SUFFIX, minInclusive, maxInclusive);
     }
+
+    @Override
+    public Query getRangeQuery(QParser parser, SchemaField field, String part1, String part2, boolean minInclusive, boolean maxInclusive) {
+        return super.getRangeQuery(parser, field, part1 + TIME_SUFFIX, part2 + TIME_SUFFIX, minInclusive, maxInclusive);
+    }
+
 
     public Object toNativeType(Object val) {
         if (val instanceof CharSequence) {
