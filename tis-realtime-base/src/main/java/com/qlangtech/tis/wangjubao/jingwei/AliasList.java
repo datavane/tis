@@ -104,9 +104,9 @@ public class AliasList {
         if (pk == null) {
             throw new IllegalStateException("table:" + tableName + " have not been set PK");
         }
-        if (!this.isIgnoreIncrTrigger() && timeVersionCol == null) {
-            throw new IllegalStateException("table:" + tableName + " have not set 'timeVersionCol'");
-        }
+//        if (!this.isIgnoreIncrTrigger() && timeVersionCol == null) {
+//            throw new IllegalStateException("table:" + tableName + " have not set 'timeVersionCol'");
+//        }
     }
 
     /**
@@ -381,7 +381,9 @@ public class AliasList {
                     }
                 }
             }
-            Objects.requireNonNull(result.getTimeVersionCol(), "timeVersionCol can not be null");
+            if(!result.isIgnoreIncrTrigger()){
+                Objects.requireNonNull(result.getTimeVersionCol(), "timeVersionCol can not be null");
+            }
             result.nestChildRow = this.nestChildRow;
             result.getterRowsFromOuterPersistence = this.getterRowsFromOuterPersistence;
             build = true;
