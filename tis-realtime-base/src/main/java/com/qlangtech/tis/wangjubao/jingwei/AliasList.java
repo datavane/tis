@@ -115,7 +115,7 @@ public class AliasList {
      * @return
      */
     public Alias getTimeVersionCol() {
-        Objects.requireNonNull(this.timeVersionCol, "timeVersionCol can not be null");
+        //Objects.requireNonNull(this.timeVersionCol, "timeVersionCol can not be null");
         return this.timeVersionCol;
     }
 
