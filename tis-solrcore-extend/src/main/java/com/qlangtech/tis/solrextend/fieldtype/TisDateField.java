@@ -23,6 +23,8 @@ import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.QParser;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Date;
@@ -42,7 +44,15 @@ public class TisDateField extends DatePointField {
 //        }
 //    };
 
-    private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter format
+            = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("GMT+8"));
+
+    public static void main(String[] args) {
+        System.out.println(format.format(LocalDateTime.now()));
+
+        System.out.println(format.format(Instant.ofEpochMilli(-483494400000l)));
+
+    }
 
     @Override
     public String toExternal(IndexableField f) {
