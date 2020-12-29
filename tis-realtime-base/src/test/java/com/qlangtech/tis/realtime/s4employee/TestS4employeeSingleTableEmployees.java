@@ -15,6 +15,7 @@
 package com.qlangtech.tis.realtime.s4employee;
 
 import com.qlangtech.tis.realtime.TisIncrLauncher;
+import com.qlangtech.tis.spring.LauncherResourceUtils;
 import junit.framework.TestCase;
 
 /**
@@ -27,6 +28,9 @@ public class TestS4employeeSingleTableEmployees extends TestCase {
 
 
     public void testReceiveMQ() throws Exception {
+
+        LauncherResourceUtils.resourceFilter = (r) -> false;
+
         String[] args = new String[]{"search4employees", "20201225113828"};
         TisIncrLauncher.main(args);
 

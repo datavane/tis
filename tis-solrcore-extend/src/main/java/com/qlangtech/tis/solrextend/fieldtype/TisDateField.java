@@ -14,12 +14,16 @@
  */
 package com.qlangtech.tis.solrextend.fieldtype;
 
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.util.BytesRef;
 import org.apache.solr.schema.DatePointField;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.QParser;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -31,6 +35,22 @@ import java.util.stream.Collectors;
 public class TisDateField extends DatePointField {
 
     private static final String TIME_SUFFIX = "T00:00:00Z";
+//    private static final ThreadLocal<SimpleDateFormat> format = new ThreadLocal<SimpleDateFormat>() {
+//        @Override
+//        protected SimpleDateFormat initialValue() {
+//            return new SimpleDateFormat("yyyy-MM-dd");
+//        }
+//    };
+
+    private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    @Override
+    public String toExternal(IndexableField f) {
+        // super.toExternal()
+        BytesRef indexedForm = f.binaryValue();
+        return format.format(Instant.ofEpochMilli(LongPoint.decodeDimension(indexedForm.bytes, indexedForm.offset)));//.for .toString();
+//        return super.toExternal(f);
+    }
 
     @Override
     public Query getPointRangeQuery(QParser parser, SchemaField field, String min, String max, boolean minInclusive, boolean maxInclusive) {
