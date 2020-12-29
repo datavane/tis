@@ -14,8 +14,10 @@
  */
 package com.qlangtech.tis.solrextend.fieldtype;
 
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.util.BytesRef;
 import org.apache.solr.schema.DatePointField;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.QParser;
@@ -91,5 +93,10 @@ public class TisDateField extends DatePointField {
     public Query getSetQuery(QParser parser, SchemaField field, Collection<String> externalVals) {
         return super.getSetQuery(parser, field
                 , externalVals.stream().map((r) -> r + TIME_SUFFIX).collect(Collectors.toList()));
+    }
+
+    @Override
+    protected String indexedToReadable(BytesRef indexedForm) {
+        return format.format(Instant.ofEpochMilli(LongPoint.decodeDimension(indexedForm.bytes, indexedForm.offset)));
     }
 }
