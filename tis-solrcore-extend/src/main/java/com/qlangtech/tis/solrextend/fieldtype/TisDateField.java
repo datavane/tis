@@ -77,7 +77,7 @@ public class TisDateField extends DatePointField {
 
     @Override
     protected Query getExactQuery(SchemaField field, String externalVal) {
-        return getExactQuery(field, externalVal + TIME_SUFFIX);
+        return super.getExactQuery(field, externalVal + TIME_SUFFIX);
     }
 
     @Override
