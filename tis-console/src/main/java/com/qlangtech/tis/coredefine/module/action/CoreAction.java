@@ -270,12 +270,25 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT)
   public void doCompileAndPackage(Context context) throws Exception {
+
+    final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
+
     IndexStreamCodeGenerator indexStreamCodeGenerator
-      = getIndexStreamCodeGenerator(this, this.getAppDomain().getApp().getWorkFlowId());
+      = getIndexStreamCodeGenerator(this, wf.getId());
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(this, indexStreamCodeGenerator);
-    Map<Integer, Long> dependencyDbs = getDependencyDbsMap(this, indexStreamCodeGenerator);
-    daoAndIncrScript.generate(context, incrStatus, true, dependencyDbs);
+
+    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
+
+    boolean excludeFacadeDAOSupport = wfTopology.isSingleDumpTableDependency();
+
+    if (excludeFacadeDAOSupport) {
+      daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap());
+    } else {
+      Map<Integer, Long> dependencyDbs = getDependencyDbsMap(this, indexStreamCodeGenerator);
+      // 需要facadeDAO支持
+      daoAndIncrScript.generate(context, incrStatus, true, dependencyDbs);
+    }
   }
 
   /**
