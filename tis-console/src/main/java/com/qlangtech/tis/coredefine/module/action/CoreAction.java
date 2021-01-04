@@ -34,7 +34,6 @@ import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.PermissionConstant;
-import com.qlangtech.tis.manage.biz.dal.dao.IClusterSnapshotDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
@@ -57,6 +56,7 @@ import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
+import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
@@ -73,7 +73,6 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -200,9 +199,11 @@ public class CoreAction extends BasicModule {
 
   private static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
-
-    return generateDAOAndIncrScript(module, context, module.getAppDomain().getApp().getWorkFlowId()
-      , validateGlobalIncrStreamFactory, compilerAndPackage, false);
+    Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
+    WorkFlow wf = module.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(workFlowId);
+    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
+    return generateDAOAndIncrScript(module, context, workFlowId
+      , validateGlobalIncrStreamFactory, compilerAndPackage, wfTopology.isSingleDumpTableDependency());
   }
 
   /**
@@ -591,7 +592,7 @@ public class CoreAction extends BasicModule {
     result.put("app", module.getAppDomain());
     ClusterStateCollectAction.StatusCollectStrategy collectStrategy
       = ClusterStateCollectAction.getCollectStrategy(
-        module.getClusterSnapshotDAO(), module.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
+      module.getClusterSnapshotDAO(), module.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
     ClusterSnapshot.Summary metricSummary = collectStrategy.getMetricSummary();
     result.put("metrics", metricSummary);
     return result;
@@ -616,9 +617,6 @@ public class CoreAction extends BasicModule {
     // }
     // });
   }
-
-
-
 
 
   public static ServerGroupAdapter getServerGroup0(AppDomainInfo domain, BasicModule module) {
