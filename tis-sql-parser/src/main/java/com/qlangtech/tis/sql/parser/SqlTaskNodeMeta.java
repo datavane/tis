@@ -192,7 +192,6 @@ public class SqlTaskNodeMeta implements ISqlTask {
     }
 
 
-
     private static class MockDumpPartition extends TabPartitions {
 
 
@@ -520,6 +519,15 @@ public class SqlTaskNodeMeta implements ISqlTask {
             return JSON.parseObject(jsonContent, SqlDataFlowTopology.class);
         }
 
+        /**
+         * 是否是单表数据导入方式
+         *
+         * @return
+         */
+        public boolean isSingleDumpTableDependency() {
+            return this.dumpNodes.size() < 2;
+        }
+
         @JSONField(serialize = false)
         public long getTimestamp() {
             return profile.getTimestamp();
@@ -565,16 +573,6 @@ public class SqlTaskNodeMeta implements ISqlTask {
             return this.dumpNodesMap;
         }
 
-        // /**
-        // * 取得dump表的Map数据结构
-        // *
-        // * @return
-        // */
-        // public Map<String /**table name*/, DependencyNode> getDumpNodesMap() {
-        // Map<String, DependencyNode> result = Maps.newHashMap();
-        // dumpNodes.stream().forEach((r) -> result.put(r.getName(), r));
-        // return result;
-        // }
         @JSONField(serialize = false)
         public String getDAGSessionSpec() {
             StringBuffer dagSessionSpec = new StringBuffer();
@@ -594,13 +592,6 @@ public class SqlTaskNodeMeta implements ISqlTask {
          *
          * @return
          */
-        // public List<TabPair> getTabPair() {
-        // List<TabPair> result = null;
-        // for (SqlTaskNodeMeta pnode : this.getNodeMetas()) {
-        // pnode.getSql();
-        // }
-        // return result;
-        // }
         private Map<EntityName, List<TableTupleCreator>> createDumpNodesMap() {
             final Map<EntityName, List<TableTupleCreator>> result = Maps.newHashMap();
             this.dumpNodes.stream().forEach((node) -> {

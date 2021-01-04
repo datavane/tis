@@ -200,6 +200,7 @@ public class CoreAction extends BasicModule {
 
   private static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
+
     return generateDAOAndIncrScript(module, context, module.getAppDomain().getApp().getWorkFlowId()
       , validateGlobalIncrStreamFactory, compilerAndPackage, false);
   }

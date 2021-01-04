@@ -92,7 +92,8 @@ public class TestCollectionAction extends StrutsSpringTestCase {
 
   public void testSend2RemoteServer() throws Exception {
     this.clearUpDB();
-    URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
+   // URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
+    URL url = new URL("http://localhost:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
     HttpUtils.post(url, getPostJSONContent(TEST_TABLE_EMPLOYEES_NAME).toJSONString().getBytes(TisUTF8.get()), new PostFormStreamProcess<Void>() {
 
       @Override

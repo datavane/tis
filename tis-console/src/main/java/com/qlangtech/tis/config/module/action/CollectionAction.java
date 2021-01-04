@@ -598,8 +598,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     /**=======================================
      *开始生成脚本并且编译打包
      *=======================================*/
+    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(df.getName());
     IndexIncrStatus incrStatus = CoreAction.generateDAOAndIncrScript(
-      this, context, df.getId(), true, true, true);
+      this, context, df.getId(), true, true, wfTopology.isSingleDumpTableDependency());
 
     if (context.hasErrors()) {
       return false;
