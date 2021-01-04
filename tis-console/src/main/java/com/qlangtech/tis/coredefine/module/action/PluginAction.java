@@ -19,10 +19,16 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.workflow.pojo.DatasourceDb;
+import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX;
@@ -33,6 +39,7 @@ import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandle
  */
 public class PluginAction extends BasicModule {
 
+  private OfflineManager offlineManager;
 
   /**
    * @param context
@@ -143,5 +150,54 @@ public class PluginAction extends BasicModule {
     return pluginMeta.size() == 1 && pluginMeta.stream().findFirst().get().getHeteroEnum() == HeteroEnum.DATASOURCE;
   }
 
+  /**
+   * description: 添加一个 数据源库 date: 2:30 PM 4/28/2017
+   */
+  @Override
+  public final void addDb(String dbName, Context context, boolean shallUpdateDB) {
+    createDatabase(this, dbName, context, shallUpdateDB, this.offlineManager);
+  }
+
+  public static void createDatabase(BasicModule module, String dbName, Context context
+    , boolean shallUpdateDB, OfflineManager offlineManager) {
+    DatasourceDb datasourceDb = null;
+    if (shallUpdateDB) {
+      datasourceDb = new DatasourceDb();
+      datasourceDb.setName(dbName);
+      datasourceDb.setSyncOnline(new Byte("0"));
+      datasourceDb.setCreateTime(new Date());
+      datasourceDb.setOpTime(new Date());
+      DatasourceDbCriteria criteria = new DatasourceDbCriteria();
+      criteria.createCriteria().andNameEqualTo(dbName);
+      int exist = module.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
+      if (exist > 0) {
+        module.addErrorMessage(context, "已经有了同名(" + dbName + ")的数据库");
+        return;
+      }
+      /**
+       * 校验数据库连接是否正常
+       */
+      int dbId = module.getWorkflowDAOFacade().getDatasourceDbDAO().insertSelective(datasourceDb);
+      datasourceDb.setId(dbId);
+      // this.setBizResult(context, datasourceDb);
+    } else {
+      // 更新状态
+      DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
+      dbCriteria.createCriteria().andNameEqualTo(dbName);
+      for (DatasourceDb db : module.getWorkflowDAOFacade().getDatasourceDbDAO().selectByExample(dbCriteria)) {
+        datasourceDb = db;
+        break;
+      }
+      Objects.requireNonNull(datasourceDb, "datasourceDb can not be null");
+    }
+
+    module.setBizResult(context, offlineManager.getDbConfig(module, datasourceDb));
+  }
+
+
+  @Autowired
+  public void setOfflineManager(OfflineManager offlineManager) {
+    this.offlineManager = offlineManager;
+  }
 
 }

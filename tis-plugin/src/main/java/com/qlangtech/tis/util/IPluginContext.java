@@ -42,7 +42,7 @@ public interface IPluginContext {
      * @param dbName
      * @param context
      */
-    void addDb(String dbName, Context context);
+    void addDb(String dbName, Context context, boolean shallUpdateDB);
 
     String getCollectionName();
 }

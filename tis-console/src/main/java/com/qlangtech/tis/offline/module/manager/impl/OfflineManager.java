@@ -227,7 +227,7 @@ public class OfflineManager {
    * @return
    * @throws Exception
    */
-  public ProcessedTable addDatasourceTable(TISTable table, BasicModule action, Context context, boolean updateMode, boolean idempotent) throws Exception {
+  public ProcessedTable addDatasourceTable(TISTable table, BasicModule action, IPluginContext pluginContext, Context context, boolean updateMode, boolean idempotent) throws Exception {
     final String tableName = table.getTableName();
     // 检查db是否存在
     final DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
@@ -306,7 +306,7 @@ public class OfflineManager {
     table.setTabId(dsTable.getId());
     action.setBizResult(context, table);
     // return dsTable;
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(action, new PostedDSProp(db.getName()));
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(db.getName()));
     return new ProcessedTable(dbPlugin.saveTable(tableName), db, dsTable);
   }
 
@@ -407,7 +407,7 @@ public class OfflineManager {
     action.setBizResult(context, db.getDbId());
   }
 
-  public void editDatasourceTable(TISTable table, BasicModule action, Context context) throws Exception {
+  public void editDatasourceTable(TISTable table, BasicModule action, IPluginContext pluginContext, Context context) throws Exception {
     String dbName = table.getDbName();
     String tableLogicName = table.getTableName();
     // 检查db是否存在
@@ -428,7 +428,7 @@ public class OfflineManager {
       return;
     }
     int tableId = tableList.get(0).getId();
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(action, new PostedDSProp(dbName));
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(dbName));
     dbPlugin.saveTable(tableLogicName);
     // update git
     // String path = dbName + "/" + tableLogicName;
@@ -773,9 +773,9 @@ public class OfflineManager {
     return dbsMap.values();
   }
 
-  public DBConfigSuit getDbConfig(IPluginContext pluginContext, Integer dbId, DbScope dbScope) {
-    DatasourceDb db = getDB(dbId);
-    DBConfigSuit dbSuit = new DBConfigSuit();
+  public DBConfigSuit getDbConfig(IPluginContext pluginContext, DatasourceDb db) {
+    Objects.requireNonNull(db, "instance of DatasourceDb can not be null");
+    DBConfigSuit dbSuit = new DBConfigSuit(db);
 
     PostedDSProp dbProp = new PostedDSProp(db.getName(), DbScope.DETAILED);
 
@@ -790,6 +790,10 @@ public class OfflineManager {
       dbSuit.setFacade(facadeStore.getPlugin());
     }
     return dbSuit;
+  }
+
+  public DBConfigSuit getDbConfig(IPluginContext pluginContext, Integer dbId) {
+    return this.getDbConfig(pluginContext, getDB(dbId));
   }
 
   public DatasourceDb getDB(Integer dbId) {
@@ -1099,7 +1103,7 @@ public class OfflineManager {
   // this.disableTableDump(datasourceTable.getId(), action, context);
   // }
   // }
-  public void deleteDatasourceDbById(int dbId, BasicModule action, Context context) throws Exception {
+  public void deleteDatasourceDbById(int dbId, DbScope dbModel, BasicModule action, Context context) throws Exception {
     // 1 先检查db是否存在
     DatasourceDb db = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
     if (db == null) {
@@ -1111,18 +1115,20 @@ public class OfflineManager {
     DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
     tableCriteria.createCriteria().andDbIdEqualTo(dbId);
     List<DatasourceTable> datasourceTables = this.workflowDAOFacade.getDatasourceTableDAO().minSelectByExample(tableCriteria);
-    if (!CollectionUtils.isEmpty(datasourceTables)) {
+    if (dbModel == DbScope.DETAILED && !CollectionUtils.isEmpty(datasourceTables)) {
       action.addErrorMessage(context, "该数据库下仍然有数据表，请先删除所有的表");
       return;
     }
 //    DataSourceFactoryPluginStore dsPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
 //    dsPluginStore.deleteDB();
-    TIS.deleteDB(db.getName());
+    TIS.deleteDB(db.getName(), dbModel);
     // GitUser user = GitUser.dft();
     // 3 删除git
     //GitUtils.$().deleteDb(db.getName(), user);
     // 4 删除db
-    this.workflowDAOFacade.getDatasourceDbDAO().deleteByPrimaryKey(dbId);
+    if (dbModel == DbScope.DETAILED) {
+      this.workflowDAOFacade.getDatasourceDbDAO().deleteByPrimaryKey(dbId);
+    }
     action.addActionMessage(context, "成功删除'" + db.getName() + "'");
   }
 

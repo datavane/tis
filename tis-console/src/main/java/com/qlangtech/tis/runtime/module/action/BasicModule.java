@@ -28,6 +28,7 @@ import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.config.entities.ActionConfig;
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
@@ -37,10 +38,9 @@ import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
-import com.qlangtech.tis.workflow.pojo.DatasourceDb;
-import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
@@ -76,6 +76,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   // public static final int PAGE_SIZE = 30;
   private final Context context = new MockContext();
+  protected IClusterSnapshotDAO clusterSnapshotDAO;
 
   protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
     Integer wfid = module.getAppDomain().getApp().getWorkFlowId();
@@ -97,6 +98,29 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return getReturnCode();
   }
 
+  public IClusterSnapshotDAO getClusterSnapshotDAO() {
+    return clusterSnapshotDAO;
+  }
+
+  private ServerGroupAdapter groupConfig;
+
+  public ServerGroupAdapter getConfigGroup0() {
+    if (groupConfig == null) {
+      groupConfig = this.getServerGroup0();
+    }
+    return groupConfig;
+  }
+
+  /**
+   * 该应用下的第0组配置
+   *
+   * @return
+   */
+  protected ServerGroupAdapter getServerGroup0() {
+    final AppDomainInfo domain = CheckAppDomainExistValve.getAppDomain(this);
+    return CoreAction.getServerGroup0(domain, this);
+  }
+
   /**
    * 插件运行环境是否和数据源相关
    *
@@ -107,31 +131,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return false;
   }
 
-  /**
-   * description: 添加一个 数据源库 date: 2:30 PM 4/28/2017
-   */
   @Override
-  public final void addDb(String dbName, Context context) {
-    // update db
-    //String dbName = db.getDbName();
-    DatasourceDb datasourceDb = new DatasourceDb();
-    datasourceDb.setName(dbName);
-    datasourceDb.setSyncOnline(new Byte("0"));
-    datasourceDb.setCreateTime(new Date());
-    datasourceDb.setOpTime(new Date());
-    DatasourceDbCriteria criteria = new DatasourceDbCriteria();
-    criteria.createCriteria().andNameEqualTo(dbName);
-    int exist = this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
-    if (exist > 0) {
-      this.addErrorMessage(context, "已经有了同名(" + dbName + ")的数据库");
-      return;
-    }
-    /**
-     * 校验数据库连接是否正常
-     */
-    int dbId = this.getWorkflowDAOFacade().getDatasourceDbDAO().insertSelective(datasourceDb);
-    datasourceDb.setId(dbId);
-    this.setBizResult(context, datasourceDb);
+  public void addDb(String dbName, Context context, boolean shallUpdateDB) {
+    throw new UnsupportedOperationException(this.getClass().getName());
   }
 
 
@@ -162,7 +164,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   /**
    * @return
    */
-  protected DocCollection getIndex() {
+  public DocCollection getIndex() {
     String index = this.getAppDomain().getAppName();
     if (StringUtils.isEmpty(index)) {
       throw new IllegalStateException("index name can not be null");
@@ -210,16 +212,16 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 //    }
 
 //    if ("action".equalsIgnoreCase(mapping.getExtension())) {
-   // return NONE;
+    // return NONE;
 //    }
 //    // 当前是否是action执行
 //    if (isActionSubmit(mapping)) {
 //      // moduleName + "_action";
 //      return key_FORWARD;
 //    }
-   //  return moduleName + (StringUtils.equals("ajax", mapping.getExtension()) ? "_ajax" : StringUtils.EMPTY);
+    //  return moduleName + (StringUtils.equals("ajax", mapping.getExtension()) ? "_ajax" : StringUtils.EMPTY);
 
-    return moduleName +  "_ajax" ;// : StringUtils.EMPTY);
+    return moduleName + "_ajax";// : StringUtils.EMPTY);
   }
 
   public static boolean isScreenApply() {
@@ -314,6 +316,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   private static Rundata rundata;
+
+  @Autowired
+  public void setClusterSnapshotDAO(IClusterSnapshotDAO clusterSnapshotDAO) {
+    this.clusterSnapshotDAO = clusterSnapshotDAO;
+  }
 
   public static interface Rundata {
 
@@ -883,41 +890,13 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   @Autowired
   private IServerPoolDAO serverPoolDAO;
 
-  @Autowired
-  private IZookeeperServerDAO zookeeperServerDAO;
-
   private RunContextGetter daoContextGetter;
 
-  // private AdminUserService authService;
-  // @Autowired
-  // private AuthProvider authProvider;
-  //
-  // public AuthProvider getAuthProvider() {
-  // return authProvider;
-  // }
-  //
-  // public void setAuthProvider(AuthProvider authProvider) {
-  // this.authProvider = authProvider;
-  // }
-  // @Autowired
-  // public void setAuthService(AdminUserService authService) {
-  // // this.authService = new DelegateAdminUserService(authService, this
-  // // .getRequest());// ;
-  // this.authService = authService;
-  // }
   @Autowired
   public final void setRunContextGetter(RunContextGetter daoContextGetter) {
     this.daoContextGetter = daoContextGetter;
   }
 
-  protected IZookeeperServerDAO getZookeeperServerDAO() {
-    return this.zookeeperServerDAO;
-  }
-
-  // // @Override
-  // public DelegateAdminUserService getAuthService() {
-  // return (DelegateAdminUserService) this.getDaoContext().getAuthService();
-  // }
   @Override
   public IResourceParametersDAO getResourceParametersDAO() {
     return getDaoContext().getResourceParametersDAO();
@@ -1144,7 +1123,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   /**
    * @return the daoContext
    */
-  protected RunContext getDaoContext() {
+  public RunContext getDaoContext() {
     Assert.assertNotNull("daoContextGetter can not be null", daoContextGetter);
     return daoContextGetter.get();
   }

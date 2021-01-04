@@ -44,10 +44,10 @@ public class PluginItems {
         observable.addObserver(obsv);
     }
 
-    public PluginItems(IPluginContext collectionName, UploadPluginMeta pluginMeta) {
+    public PluginItems(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         this.heteroEnum = pluginMeta.getHeteroEnum();
         this.pluginMeta = pluginMeta;
-        this.pluginContext = collectionName;
+        this.pluginContext = pluginContext;
     }
 
     public void save(Context context) {

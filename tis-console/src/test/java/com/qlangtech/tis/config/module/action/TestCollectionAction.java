@@ -16,6 +16,8 @@ package com.qlangtech.tis.config.module.action;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
+import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -25,6 +27,7 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
 import com.qlangtech.tis.openapi.impl.AppKey;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.AddAppAction;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -71,15 +74,26 @@ public class TestCollectionAction extends StrutsSpringTestCase {
 
   }
 
-  private static final String TEST_TABLE_NAME = "employees";
+  private static final String TEST_TABLE_EMPLOYEES_NAME = "employees";
+  private static final String TEST_TABLE_SALARIES_NAME = "salaries";
+  private static final String TEST_TABLE_DEPARTMENT_NAME = "departments";
   private static final String TEST_DS_NAME = "employees";
 
-  private static final String COLLECTION_NAME = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_NAME;
+  private static final Map<String, JSONArray> tabCols = Maps.newHashMap();
+
+  static {
+
+    tabCols.put(TEST_TABLE_EMPLOYEES_NAME, getBuildEmployeesCols());
+    tabCols.put(TEST_TABLE_SALARIES_NAME, getBuildSaLariesCols());
+    tabCols.put(TEST_TABLE_DEPARTMENT_NAME, getBuildDepartmentCols());
+  }
+
+  private static final String COLLECTION_NAME = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
 
   public void testSend2RemoteServer() throws Exception {
     this.clearUpDB();
     URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
-    HttpUtils.post(url, getPostJSONContent().toJSONString().getBytes(TisUTF8.get()), new PostFormStreamProcess<Void>() {
+    HttpUtils.post(url, getPostJSONContent(TEST_TABLE_DEPARTMENT_NAME).toJSONString().getBytes(TisUTF8.get()), new PostFormStreamProcess<Void>() {
 
       @Override
       public ContentType getContentType() {
@@ -98,6 +112,18 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     });
   }
 
+  public void testDoGetTaskStatus() throws Exception {
+    request.setParameter("emethod", "getTaskStatus");
+    request.setParameter("action", "collection_action");
+    JSONObject content = new JSONObject();
+    content.put(IParamContext.KEY_TASK_ID, 644);
+    content.put(CollectionAction.KEY_SHOW_LOG, true);
+    request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
+    ActionProxy proxy = getActionProxy();
+    String result = proxy.execute();
+    assertEquals("CollectionAction_ajax", result);
+    showBizResult();
+  }
 
   public void testDoCreate() throws Exception {
 
@@ -106,12 +132,9 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     request.setParameter("emethod", "create");
     request.setParameter("action", "collection_action");
 
-    JSONObject content = getPostJSONContent();
+    JSONObject content = getPostJSONContent(TEST_TABLE_EMPLOYEES_NAME);
     request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
-    ActionProxy proxy = getActionProxy("/config/config.ajax");
-    assertNotNull(proxy);
-    CollectionAction collectionAction = (CollectionAction) proxy.getAction();
-    assertNotNull(collectionAction);
+    ActionProxy proxy = getActionProxy();
     AtomicReference<AppKey> appKeyRef = new AtomicReference<>();
     AddAppAction.appKeyProcess = (key) -> {
       appKeyRef.set(key);
@@ -164,11 +187,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     // 执行
     String result = proxy.execute();
     // assertEquals(Action.NONE, result);
-    AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
-    if (!actionExecResult.isSuccess()) {
-      System.out.println(AjaxValve.buildResultStruct(MockContext.instance));
-      // actionExecResult.getErrorPageShow()
-    }
+    AjaxValve.ActionExecResult actionExecResult = showBizResult();
 
     CoreAction.TriggerBuildResult triggerResult = (CoreAction.TriggerBuildResult) actionExecResult.getBizResult();
     assertNotNull("triggerResult can not be null", triggerResult);
@@ -186,7 +205,26 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     assertTrue("schemaParseResultProcessed must be processd", schemaParseResultProcessed.get());
   }
 
-  private JSONObject getPostJSONContent() {
+  private AjaxValve.ActionExecResult showBizResult() {
+    AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
+    if (!actionExecResult.isSuccess()) {
+      System.err.println(AjaxValve.buildResultStruct(MockContext.instance));
+      // actionExecResult.getErrorPageShow()
+    }else{
+      System.out.println(AjaxValve.buildResultStruct(MockContext.instance));
+    }
+    return actionExecResult;
+  }
+
+  private ActionProxy getActionProxy() {
+    ActionProxy proxy = getActionProxy("/config/config.ajax");
+    assertNotNull(proxy);
+    CollectionAction collectionAction = (CollectionAction) proxy.getAction();
+    assertNotNull(collectionAction);
+    return proxy;
+  }
+
+  private JSONObject getPostJSONContent(String tableName) {
     JSONObject content = new JSONObject();
 
     JSONObject datasource = new JSONObject();
@@ -196,8 +234,8 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     datasource.put("dbName", TEST_DS_NAME);
     datasource.put("datetimeFormat", true);
     content.put("datasource", datasource);
-    content.put("indexName", TEST_TABLE_NAME);
-    content.put("table", TEST_TABLE_NAME);
+    content.put("indexName", tableName);
+    content.put("table", tableName);
 
     JSONObject incrCfg = new JSONObject();
     incrCfg.put("plugin", "TiCDC-Kafka");
@@ -206,7 +244,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     incrCfg.put("groupId", "consume_test1");
     incrCfg.put("offsetResetStrategy", "earliest");
     content.put("incr", incrCfg);
-    JSONArray columns = getBuildTargetCols();
+    JSONArray columns = tabCols.get(tableName);// getBuildEmployeesCols();
 
     content.put("columns", columns);
     System.out.println(content.toJSONString());
@@ -218,7 +256,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
       = applicationContext.getBean("wfDaoFacade", IComDfireTisWorkflowDAOFacade.class);
 
     DatasourceTableCriteria tabCriteria = new DatasourceTableCriteria();
-    tabCriteria.createCriteria().andNameEqualTo(TEST_TABLE_NAME);
+    tabCriteria.createCriteria().andNameEqualTo(TEST_TABLE_EMPLOYEES_NAME);
     wfDaoFacade.getDatasourceTableDAO().deleteByExample(tabCriteria);
 
     DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
@@ -226,13 +264,13 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     wfDaoFacade.getDatasourceDbDAO().deleteByExample(dbCriteria);
 
     WorkFlowCriteria wfCriteria = new WorkFlowCriteria();
-    wfCriteria.createCriteria().andNameEqualTo(TEST_TABLE_NAME);
+    wfCriteria.createCriteria().andNameEqualTo(TEST_TABLE_EMPLOYEES_NAME);
     wfDaoFacade.getWorkFlowDAO().deleteByExample(wfCriteria);
     // daoContext" class="com.qlangtech.tis.manage.common.RunContextImpl
     RunContext daoContext = applicationContext.getBean("daoContext", RunContext.class);
 
     ApplicationCriteria appCriteria = new ApplicationCriteria();
-    appCriteria.createCriteria().andProjectNameEqualTo(TISCollectionUtils.NAME_PREFIX + TEST_TABLE_NAME);
+    appCriteria.createCriteria().andProjectNameEqualTo(TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME);
     for (Application app : daoContext.getApplicationDAO().selectByExample(appCriteria)) {
       ServerGroupCriteria sgCriteria = new ServerGroupCriteria();
       sgCriteria.createCriteria().andAppIdEqualTo(app.getAppId());
@@ -251,7 +289,49 @@ public class TestCollectionAction extends StrutsSpringTestCase {
 
   }
 
-  private JSONArray getBuildTargetCols() {
+  private static JSONArray getBuildDepartmentCols() {
+    JSONArray columns = new JSONArray();
+    JSONObject col = null;
+    col = new JSONObject();
+    col.put("name", "dept_no");
+    col.put("search", true);
+    columns.add(col);
+
+    col = new JSONObject();
+    col.put("name", "dept_name");
+    col.put("search", true);
+    columns.add(col);
+
+    return columns;
+  }
+
+  private static JSONArray getBuildSaLariesCols() {
+    JSONArray columns = new JSONArray();
+    JSONObject col = null;
+    col = new JSONObject();
+    col.put("name", "emp_no");
+    col.put("search", true);
+    columns.add(col);
+
+    col = new JSONObject();
+    col.put("name", "salary");
+    col.put("search", true);
+    columns.add(col);
+
+    col = new JSONObject();
+    col.put("name", "from_date");
+    col.put("search", true);
+    columns.add(col);
+
+    col = new JSONObject();
+    col.put("name", "to_date");
+    col.put("search", true);
+    columns.add(col);
+
+    return columns;
+  }
+
+  private static JSONArray getBuildEmployeesCols() {
     JSONArray columns = new JSONArray();
     JSONObject col = null;
     col = new JSONObject();

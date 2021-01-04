@@ -17,12 +17,27 @@ package com.qlangtech.tis.db.parser;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.util.DescribableJSON;
+import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public class DBConfigSuit {
+  private final DatasourceDb db;
+
+  public DBConfigSuit(DatasourceDb db) {
+    this.db = db;
+  }
+
+  public Integer getDbId() {
+    return this.db.getId();
+  }
+
+  public String getName() {
+    return this.db.getName();
+  }
+
 
   private DescribableJSON detailed;
   private DescribableJSON facade;
@@ -51,22 +66,4 @@ public class DBConfigSuit {
     }
     this.facade = new DescribableJSON(facade);
   }
-  //
-//    private DBConfig facade;
-
-//    public DBConfig getDetailed() {
-//        return this.detailed;
-//    }
-//
-//    public void setDetailed(DBConfig detailed) {
-//        this.detailed = detailed;
-//    }
-//
-//    public DBConfig getFacade() {
-//        return this.facade;
-//    }
-//
-//    public void setFacade(DBConfig facade) {
-//        this.facade = facade;
-//    }
 }

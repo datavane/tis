@@ -226,20 +226,6 @@ public class LogCollectorClient implements ILogReporter {
             throw new IllegalStateException("in valid logtype:" + logtypeKind);
         }
         return type;
-        // switch (logtypeKind) {
-        // case LogType.MQ_TAGS_STATUS.typeKind:
-        // return PExecuteState.LogType.MQ_TAGS_STATUS;
-        // case LogType.INCR_SEND.typeKind:
-        // return PExecuteState.LogType.INCR_SEND;
-        // case LogType.INCR_DEPLOY_STATUS_CHANGE.typeKind:
-        // return PExecuteState.LogType.INCR_DEPLOY_STATUS_CHANGE;
-        // case LogType.FULL.typeKind:
-        // return PExecuteState.LogType.FULL;
-        // case LogType.INCR.typeKind:
-        // return PExecuteState.LogType.INCR;
-        // default:
-        // throw new IllegalStateException("in valid logtype:" + logtypeKind);
-        // }
     }
 
     @Override

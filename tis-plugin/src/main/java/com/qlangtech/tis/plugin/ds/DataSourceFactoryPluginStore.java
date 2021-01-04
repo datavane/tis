@@ -66,7 +66,13 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
 
     public void deleteDB() throws Exception {
         File targetFile = this.getTargetFile();
-        FileUtils.deleteDirectory(targetFile.getParentFile());
+        if (getDSKey().isFacadeType()) {
+            // 如果删除detail类型的数据库，则只删除facade类型
+            FileUtils.forceDelete(targetFile);
+        } else {
+            // 如果删除detail类型的数据库，则要把整个数据库目录删除
+            FileUtils.deleteDirectory(targetFile.getParentFile());
+        }
     }
 
     @Override
@@ -81,24 +87,18 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     }
 
     @Override
-    public synchronized boolean setPlugins(Optional<Context> context, List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
+    public synchronized boolean setPlugins(Optional<Context> context
+            , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
         if (!context.isPresent()) {
             throw new IllegalArgumentException("Context shall exist");
         }
-
-        if (shallUpdateDB && !update) {
-            // shall skip in update model
-            Context ctx = context.get();
-            String dbName = this.key.keyVal;
-            // 对数据库记录进行添加
-
-            pluginContext.addDb(dbName, ctx);
-            if (ctx.hasErrors()) {
-                return false;
-            }
+        Context ctx = context.get();
+        final String dbName = this.key.keyVal;
+        if (!super.setPlugins(context, dlist, update)) {
+            return false;
         }
-
-        return super.setPlugins(context, dlist, update);
+        pluginContext.addDb(dbName, ctx, (shallUpdateDB && !update));
+        return ctx.hasErrors();
     }
 
 

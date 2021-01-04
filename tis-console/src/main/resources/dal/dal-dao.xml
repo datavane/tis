@@ -33,9 +33,7 @@
   <bean id="serverPoolDAO"
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.ServerPoolDAOImpl"
         parent="basicEndSearchDao"/>
-  <bean id="zookeeperServerDAOImpl"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.ZookeeperServerDAOImpl"
-        parent="basicEndSearchDao"/>
+
   <bean id="snapshotViewDAO"
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO"
         parent="basicEndSearchDao">

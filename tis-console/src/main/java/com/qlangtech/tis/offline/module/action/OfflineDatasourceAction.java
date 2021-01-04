@@ -163,124 +163,6 @@ public class OfflineDatasourceAction extends BasicModule {
     }).collect(Collectors.toList()));
   }
 
-  /**
-   * 添加数据库
-   *
-   * @param context the context
-   * @throws Exception the exception
-   */
-  public void doAddDatasourceDb(Context context) throws Exception {
-    // 1. 先校验输入合法性
-    TISDb dbPojo = getDb(context, true);
-    if (dbPojo == null) {
-      return;
-    }
-    // 2. 测试数据库连接
-    // if (!testDbConnection(dbPojo, context)) {
-    // return;
-    // }
-    // 3. 添加数据库
-    //  offlineManager.addDb(dbPojo.getDbName(), this, context);
-    // 4. 返回最新的数据源信息
-  }
-
-//  /**
-//   * 校验数据连接是否正常
-//   *
-//   * @param context
-//   * @throws Exception
-//   */
-//  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
-//  public void doVerifyDbConfigAdd(Context context) throws Exception {
-//    this.verifyDbConfig(context, true);
-//  }
-
-  /**
-   * 更新模式下校验
-   *
-   * @param context
-   * @throws Exception
-   */
-//  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
-//  public void doVerifyDbConfigUpdate(Context context) throws Exception {
-//    this.verifyDbConfig(context, false);
-//  }
-
-//  private void verifyDbConfig(Context context, boolean isNew) throws Exception {
-//    TISDb dbConfig = getDb(context, isNew);
-//    if (dbConfig == null) {
-//      return;
-//    }
-//    OfflineManager.TestDbConnection verifyResult = this.offlineManager.testDbConnection(dbConfig, this, context);
-//    if (verifyResult.valid) {
-//      this.addActionMessage(context, dbConfig.isFacade() ? "数据库连接正常" : "子数据库" + verifyResult.getDbCount() + "个连接正常");
-//    }
-//  }
-
-  /**
-   * 更新facade数据库配置
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT)
-  public void doEditFacadeDb(Context context) throws Exception {
-    this.processFacadeDB(context, false);
-  }
-
-  /**
-   * 添加门面数据源
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT)
-  public void doAddFacadeDb(Context context) throws Exception {
-    this.processFacadeDB(context, true);
-  }
-
-  private void processFacadeDB(Context context, boolean isNew) throws Exception {
-    // 1. 先校验输入合法性
-    TISDb db = getDb(context, isNew);
-    if (db == null) {
-      return;
-    }
-    db.setFacade(true);
-    offlineManager.updateFacadeDBConfig(Integer.parseInt(db.getDbId()), db, this, context);
-    db.setPassword("******");
-    this.setBizResult(context, db.getDbId());
-    // 4. 返回最新的数据源信息
-    this.addActionMessage(context, "添加数据源成功");
-  }
-
-  /**
-   * 修改db配置
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT)
-  public void doEditDatasourceDb(Context context) throws Exception {
-    // 1. 先校验输入合法性
-    TISDb dbPojo = getDb(context, false);
-    if (dbPojo == null) {
-      return;
-    }
-    // Integer dbId = this.getInt("id");
-    // 3. 更新git
-    offlineManager.editDatasourceDb(dbPojo, this, context);
-    // 4. 需要把之前所有的dump全部失效
-    // offlineManager.disableDbDump(dbId, this, context);
-    this.addActionMessage(context, "数据源修改成功");
-  }
-
-  static {
-    try {
-      Class.forName("com.mysql.jdbc.Driver");
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   private class DbEnumShow implements Comparable<DbEnumShow> {
 
@@ -322,91 +204,6 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context, offlineManager.getUsableDbNames());
   }
 
-  private TISDb getDb(Context context, boolean isNew) throws Exception {
-    throw new UnsupportedOperationException();
-//    this.errorsPageShow(context);
-//    TISDb pojo = new TISDb();
-//    Map<String, Validator.FieldValidators> validateRule = //
-//      Validator.fieldsValidator("dbName", new Validator.FieldValidators(Validator.require, Validator.identity) {
-//
-//        @Override
-//        public void setFieldVal(String val) {
-//          pojo.setDbName(val);
-//        }
-//      }, "encoding", new Validator.FieldValidators(Validator.require) {
-//
-//        @Override
-//        public void setFieldVal(String val) {
-//          pojo.setEncoding(val);
-//        }
-//      }, "dbType", new Validator.FieldValidators(Validator.require) {
-//
-//        @Override
-//        public void setFieldVal(String val) {
-//          pojo.setDbType(val);
-//        }
-//      }, "userName", new Validator.FieldValidators(Validator.require) {
-//
-//        @Override
-//        public void setFieldVal(String val) {
-//          pojo.setUserName(val);
-//        }
-//      }, "port", new Validator.FieldValidators(Validator.require, Validator.integer) {
-//
-//        @Override
-//        public void setFieldVal(String val) {
-//          pojo.setPort(val);
-//        }
-//      }, "host", new Validator.FieldValidators(Validator.require) {
-//
-//        @Override
-//        public void setFieldVal(String val) {
-//          pojo.setHost(val);
-//        }
-//      });
-//    this.addPasswordValidator(isNew, pojo, validateRule);
-//    IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());
-//    Boolean facade = null;
-//    try {
-//      facade = handler.getBoolean("facade");
-//    } catch (Exception e) {
-//      throw new IllegalArgumentException("param facade is illegal");
-//    }
-//    if (!isNew || facade) {
-//      validateRule.put("dbId", new Validator.FieldValidators(Validator.require) {
-//
-//        @Override
-//        public void setFieldVal(String val) {
-//          pojo.setDbId(val);
-//        }
-//      });
-//    }
-//    if (!Validator.validate(handler, context, validateRule)) {
-//      return null;
-//    }
-//    DbScope dbScope = facade ? DbScope.FACADE : DbScope.DETAILED;
-//    if (!isNew && StringUtils.isEmpty(pojo.getPassword())) {
-//      // 更新流程下需要将系统中已经保存的密码取回
-//      com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineManager.getDB(Integer.parseInt(pojo.getDbId()));
-//      DBConfig dbConfig = null;
-//      if (GitUtils.$().isDbConfigExist(db.getName(), dbScope) && StringUtils.equals((dbConfig = GitUtils.$().getDbLinkMetaData(db.getName(), dbScope)).getName(), pojo.getDbName())) {
-//        pojo.setPassword(dbConfig.getPassword());
-//      } else if (StringUtils.isBlank(pojo.getPassword())) {
-//        this.addPasswordValidator(true, pojo, validateRule);
-//        if (!Validator.validate(handler, context, validateRule)) {
-//          return null;
-//        }
-//      }
-//    }
-//    String extraParams = handler.getString("extraParams");
-//    String shardingType = handler.getString("shardingType");
-//    String shardingEnum = handler.getString("shardingEnum");
-//    pojo.setFacade(facade);
-//    pojo.setExtraParams(extraParams);
-//    pojo.setShardingType(shardingType);
-//    pojo.setShardingEnum(shardingEnum);
-//    return pojo;
-  }
 
   private void addPasswordValidator(boolean isNew, TISDb pojo, Map<String, Validator.FieldValidators> validateRule) {
     Validator[] validators = isNew ? new Validator[]{Validator.require} : new Validator[0];
@@ -481,7 +278,7 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     // 2. 添加表
-    offlineManager.addDatasourceTable(pojo, this, context, pojo.getTabId() != null, false);
+    offlineManager.addDatasourceTable(pojo, this, this, context, pojo.getTabId() != null, false);
   }
 
   // /**
@@ -1239,7 +1036,7 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   public void doGetDatasourceDbById(Context context) {
     Integer dbId = this.getInt("id");
-    DBConfigSuit configSuit = offlineManager.getDbConfig(this, dbId, DbScope.DETAILED);
+    DBConfigSuit configSuit = offlineManager.getDbConfig(this, dbId);
 
     this.setBizResult(context, configSuit);
   }
@@ -1502,11 +1299,12 @@ public class OfflineDatasourceAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT)
   public void doDeleteDatasourceDbById(Context context) throws Exception {
     Integer id = this.getInt("id");
+    DbScope dbModel = DbScope.parse(this.getString("dbModel"));
     if (id == null) {
       this.addErrorMessage(context, "db id不能为空");
       return;
     }
-    this.offlineManager.deleteDatasourceDbById(id, this, context);
+    this.offlineManager.deleteDatasourceDbById(id, dbModel, this, context);
   }
 
   /**

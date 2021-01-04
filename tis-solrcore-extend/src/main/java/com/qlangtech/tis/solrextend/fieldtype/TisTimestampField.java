@@ -30,17 +30,17 @@ import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
- * 日期类型字段，原始内容中符合'yyyy-MM-dd'这样的格式
+ * 日期类型字段，原始内容中符合'yyyy-MM-dd HH:mm:ss这样的格式'这样的格式
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020-12-28 13:03
  */
-public class TisDateField extends DatePointField {
+public class TisTimestampField extends DatePointField {
 
     private static final String TIME_SUFFIX = "T00:00:00Z";
 
     private static final DateTimeFormatter format
-            = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("GMT+8"));
+            = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("GMT+8"));
 
     @Override
     public String toExternal(IndexableField f) {

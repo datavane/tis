@@ -119,13 +119,18 @@ public class TIS {
         return pluginStore;
     }
 
-    public static void deleteDB(String dbName) {
+    public static void deleteDB(String dbName, DbScope dbScope) {
         try {
-            DataSourceFactoryPluginStore dsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName));
-            dsPluginStore.deleteDB();
+            if (dbScope == DbScope.DETAILED) {
+                DataSourceFactoryPluginStore dsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, DbScope.DETAILED));
+                dsPluginStore.deleteDB();
+                databasePluginStore.clear(dsPluginStore.getDSKey());
+            }
+
             DataSourceFactoryPluginStore facetDsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, DbScope.FACADE));
-            databasePluginStore.clear(dsPluginStore.getDSKey());
+            facetDsPluginStore.deleteDB();
             databasePluginStore.clear(facetDsPluginStore.getDSKey());
+
         } catch (Exception e) {
             throw new RuntimeException(dbName, e);
         }

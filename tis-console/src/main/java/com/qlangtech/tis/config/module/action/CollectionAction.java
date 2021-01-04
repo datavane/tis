@@ -23,14 +23,19 @@ import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.*;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
+import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.ds.TISTable;
+import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
+import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
+import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
@@ -42,10 +47,15 @@ import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.TimeCharacteristic;
 import com.qlangtech.tis.sql.parser.meta.*;
+import com.qlangtech.tis.trigger.jst.ILogListener;
+import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
+import com.tis.hadoop.rpc.StatusRpcClient;
+import io.grpc.stub.StreamObserver;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -55,11 +65,13 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 //import com.qlangtech.tis.coredefine.biz.CoreNode;
@@ -73,6 +85,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   private static final Position DEFAULT_SINGLE_JOINER_POSITION;
   private static final Logger logger = LoggerFactory.getLogger(CollectionAction.class);
   private static final int SHARED_COUNT = 1;
+  public static final String KEY_SHOW_LOG = "log";
+
+//  private
 
   static {
     DEFAULT_SINGLE_TABLE_POSITION = new Position();
@@ -87,10 +102,62 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   private String indexName = null;
 
   private PlatformTransactionManager transactionManager;
+  private OfflineManager offlineManager;
 
   @Autowired
   public void setTransactionManager(PlatformTransactionManager transactionManager) {
     this.transactionManager = transactionManager;
+  }
+
+  /**
+   * 回调获取索引当前状态
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetIndexStatus(Context context) throws Exception {
+    this.setBizResult(context, CoreAction.getCollectionStatus(this));
+  }
+
+  /**
+   * 回调获取索引创建的状态
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetTaskStatus(Context context) throws Exception {
+    JSONObject post = this.parseJsonPost();
+    Integer taskId = post.getInteger(IParamContext.KEY_TASK_ID);
+    boolean showLog = post.getBooleanValue(KEY_SHOW_LOG);
+
+    WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskId);
+    if (buildHistory == null) {
+      throw new IllegalStateException("taskid:" + taskId + "relevant buildHistory can not be null");
+    }
+    if (StringUtils.isEmpty(buildHistory.getAppName())) {
+      throw new IllegalStateException("the prop appname of buildHistory can not be empty");
+    }
+    LogReader logReader = new LogReader();
+    if (showLog) {
+      AtomicReference<StatusRpcClient.AssembleSvcCompsite> service = StatusRpcClient.getService(getSolrZkClient());
+      PMonotorTarget.Builder t = PMonotorTarget.newBuilder();
+      t.setLogtype(LogCollectorClient.convert(LogType.FULL.typeKind));
+      t.setCollection(buildHistory.getAppName());
+      if (taskId > 0) {
+        t.setTaskid(taskId);
+      }
+      StreamObserver<PMonotorTarget> observer = service.get().registerMonitorEvent(logReader);
+      observer.onNext(t.build());
+      Thread.sleep(3000);
+      observer.onCompleted();
+    }
+    Map<String, Object> bizResult = Maps.newHashMap();
+    bizResult.put("status", new ExtendWorkFlowBuildHistory(buildHistory));
+    if (showLog) {
+      bizResult.put("log", logReader.logContent.toString());
+    }
+    this.setBizResult(context, bizResult);
+
   }
 
   /**
@@ -130,16 +197,14 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (context.hasErrors()) {
       return;
     }
-    DatasourceDb dsDb = (DatasourceDb) context.get(IMessageHandler.ACTION_BIZ_RESULT);
+    DBConfigSuit dsDb = (DBConfigSuit) context.get(IMessageHandler.ACTION_BIZ_RESULT);
     Objects.requireNonNull(dsDb, "can not find dsDb which has insert into DB just now");
 
-    OfflineManager offlineManager = new OfflineManager();
-    offlineManager.setComDfireTisWorkflowDAOFacade(this.getWorkflowDAOFacade());
     TISTable table = new TISTable();
     table.setTableName(targetTable);
-    table.setDbId(dsDb.getId());
+    table.setDbId(dsDb.getDbId());
 
-    OfflineManager.ProcessedTable dsTable = offlineManager.addDatasourceTable(table, this, context, false, true);
+    OfflineManager.ProcessedTable dsTable = offlineManager.addDatasourceTable(table, this, this, context, false, true);
     if (context.hasErrors()) {
       return;
     }
@@ -190,15 +255,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     return TISCollectionUtils.NAME_PREFIX + indexName;
   }
 
-  /**
-   * 会调获取索引创建的状态
-   *
-   * @param context
-   * @throws Exception
-   */
-  public void doGetTaskStatus(Context context) throws Exception {
-
-  }
 
   /**
    * @param context
@@ -570,13 +626,10 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   }
 
   private PluginItems getDataSourceItems(JSONObject datasource) {
-
     HeteroEnum pluginType = HeteroEnum.DATASOURCE;
-
     UploadPluginMeta pluginMeta = UploadPluginMeta.parse(pluginType.identity
       + ":" + UploadPluginMeta.KEY_REQUIRE + "," + PostedDSProp.KEY_TYPE + "_detailed,update_false");
     return getPluginItems(datasource, pluginType, pluginMeta);
-    // items.save(context);
   }
 
 
@@ -672,6 +725,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
   }
 
+  @Autowired
+  public void setOfflineManager(OfflineManager offlineManager) {
+    this.offlineManager = offlineManager;
+  }
+
   private class DftPluginContext implements IPluginContext {
 
     private final HeteroEnum pluginType;
@@ -695,24 +753,47 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       return pluginType == HeteroEnum.DATASOURCE;
     }
 
+
     @Override
-    public void addDb(String dbName, Context context) {
+    public void addDb(String dbName, Context context, boolean shallUpdateDB) {
       // CollectionAction.this.
       DatasourceDbCriteria criteria = new DatasourceDbCriteria();
       criteria.createCriteria().andNameEqualTo(dbName);
       int exist = CollectionAction.this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
       // 如果数据库已经存在则直接跳过
       if (exist > 0) {
-        for (DatasourceDb db : CollectionAction.this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByExample(criteria)) {
+        for (DatasourceDb db : CollectionAction.this.getWorkflowDAOFacade()
+          .getDatasourceDbDAO().selectByExample(criteria)) {
           CollectionAction.this.setBizResult(context, db);
         }
         return;
       }
+      if (shallUpdateDB) {
+        PluginAction.createDatabase(CollectionAction.this, dbName, context, true, offlineManager);
+      }
 
-      CollectionAction.this.addDb(dbName, context);
+    }
+  }
+
+  private static class LogReader implements ILogListener {
+    private final StringBuffer logContent = new StringBuffer();
+
+    @Override
+    public void sendMsg2Client(Object biz) throws IOException {
+
     }
 
+    @Override
+    public void read(Object event) {
+      final PExecuteState state = (PExecuteState) event;
+      //System.out.println(state.getMsg());
+      logContent.append(state.getMsg()).append("\n");
+    }
 
+    @Override
+    public boolean isClosed() {
+      return false;
+    }
   }
 
 }

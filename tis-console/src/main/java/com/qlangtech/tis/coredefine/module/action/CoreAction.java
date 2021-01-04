@@ -118,8 +118,6 @@ public class CoreAction extends BasicModule {
 
   public static final String CREATE_CORE_SELECT_COREINFO = "selectCoreinfo";
 
-  private IClusterSnapshotDAO clusterSnapshotDAO;
-
   /**
    * 重新启动增量执行进程
    *
@@ -580,19 +578,27 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doGetViewData(Context context) throws Exception {
-    Map<String, Object> result = new HashMap<>();
-    result.put("instanceDirDesc", getInstanceDirDesc());
-    result.put("topology", getCollectionTopology());
-    result.put("config", getConfigGroup0());
-    result.put("app", this.getAppDomain());
-    ClusterStateCollectAction.StatusCollectStrategy collectStrategy = ClusterStateCollectAction.getCollectStrategy(this.clusterSnapshotDAO, this.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
-    ClusterSnapshot.Summary metricSummary = collectStrategy.getMetricSummary();
-    result.put("metrics", metricSummary);
+    Map<String, Object> result = getCollectionStatus(this);
     this.setBizResult(context, result);
   }
 
-  private CollectionTopology getCollectionTopology() throws Exception {
-    final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(this.getAppDomain(), this.getRequest(), this.getResponse(), this.getDaoContext());
+  public static Map<String, Object> getCollectionStatus(BasicModule module) throws Exception {
+    Map<String, Object> result = new HashMap<>();
+    result.put("instanceDirDesc", getInstanceDirDesc(module));
+    result.put("topology", getCollectionTopology(module));
+    result.put("config", module.getConfigGroup0());
+    result.put("app", module.getAppDomain());
+    ClusterStateCollectAction.StatusCollectStrategy collectStrategy
+      = ClusterStateCollectAction.getCollectStrategy(
+        module.getClusterSnapshotDAO(), module.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
+    ClusterSnapshot.Summary metricSummary = collectStrategy.getMetricSummary();
+    result.put("metrics", metricSummary);
+    return result;
+  }
+
+  private static CollectionTopology getCollectionTopology(BasicModule module) throws Exception {
+    final QueryResutStrategy queryResutStrategy
+      = QueryIndexServlet.createQueryResutStrategy(module.getAppDomain(), module.getRequest(), module.getResponse(), module.getDaoContext());
     return queryResutStrategy.createCollectionTopology();
     // //
     // URL url = new URL("http://192.168.28.200:8080/solr/admin/zookeeper?_=1587217613386&detail=true&path=%2Fcollections%2Fsearch4totalpay%2Fstate.json&wt=json");
@@ -610,24 +616,9 @@ public class CoreAction extends BasicModule {
     // });
   }
 
-  private ServerGroupAdapter groupConfig;
 
-  private ServerGroupAdapter getConfigGroup0() {
-    if (groupConfig == null) {
-      groupConfig = this.getServerGroup0();
-    }
-    return groupConfig;
-  }
 
-  /**
-   * 该应用下的第0组配置
-   *
-   * @return
-   */
-  protected ServerGroupAdapter getServerGroup0() {
-    final AppDomainInfo domain = CheckAppDomainExistValve.getAppDomain(this);
-    return getServerGroup0(domain, this);
-  }
+
 
   public static ServerGroupAdapter getServerGroup0(AppDomainInfo domain, BasicModule module) {
     List<ServerGroupAdapter> groupList = BasicScreen.createServerGroupAdapterList(new BasicScreen.ServerGroupCriteriaSetter() {
@@ -665,10 +656,10 @@ public class CoreAction extends BasicModule {
    * @return
    * @throws Exception
    */
-  private InstanceDirDesc getInstanceDirDesc() throws Exception {
+  private static InstanceDirDesc getInstanceDirDesc(BasicModule module) throws Exception {
     InstanceDirDesc dirDesc = new InstanceDirDesc();
     dirDesc.setValid(false);
-    DocCollection collection = this.getIndex();
+    DocCollection collection = module.getIndex();
     final Set<String> instanceDir = new HashSet<String>();
     if (collection.getSlices().isEmpty()) {
       dirDesc.setDesc("实例尚未创建,未发现副本节点");
@@ -1768,10 +1759,6 @@ public class CoreAction extends BasicModule {
     return result;
   }
 
-  @Autowired
-  public void setClusterSnapshotDAO(IClusterSnapshotDAO clusterSnapshotDAO) {
-    this.clusterSnapshotDAO = clusterSnapshotDAO;
-  }
   // private static abstract class ReplicaUpdate {
   // /**
   // * @param request
