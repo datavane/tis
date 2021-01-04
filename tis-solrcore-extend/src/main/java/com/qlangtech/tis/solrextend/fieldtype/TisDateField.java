@@ -50,7 +50,8 @@ public class TisDateField extends DatePointField {
 
     @Override
     public Query getPointRangeQuery(QParser parser, SchemaField field, String min, String max, boolean minInclusive, boolean maxInclusive) {
-        return super.getPointRangeQuery(parser, field, min + TIME_SUFFIX, max + TIME_SUFFIX, minInclusive, maxInclusive);
+        return super.getPointRangeQuery(parser, field
+                , (min != null) ? (min + TIME_SUFFIX) : null, (max != null) ? (max + TIME_SUFFIX) : null, minInclusive, maxInclusive);
     }
 
 
