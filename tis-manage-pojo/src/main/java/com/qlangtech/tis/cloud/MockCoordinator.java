@@ -20,30 +20,31 @@ import org.apache.zookeeper.data.Stat;
 import java.util.List;
 
 /**
- * zk的抽象
- *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface ITISCoordinator {
+public class MockCoordinator implements ITISCoordinator {
+    @Override
+    public boolean shallConnect2RemoteIncrStatusServer() {
+        return false;
+    }
 
-    /**
-     * 是否应该连接Assemble日志收集服务，单元测试过程中需要返回false
-     *
-     * @return
-     */
-    boolean shallConnect2RemoteIncrStatusServer();
+    @Override
+    public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
+        throw new UnsupportedOperationException();
+    }
 
-    List<String> getChildren(String zkPath, Watcher watcher, boolean b);
+    @Override
+    public void addOnReconnect(IOnReconnect onReconnect) {
+    }
 
-    void addOnReconnect(IOnReconnect onReconnect);
+    @Override
+    public boolean exists(String s, boolean b) {
+        return false;
+    }
 
-    byte[] getData(String s, Watcher o, Stat stat, boolean b);
-
-    boolean exists(String path, boolean watch);
-
-    public interface IOnReconnect {
-
-        public void command();
+    @Override
+    public byte[] getData(String s, Watcher o, Stat stat, boolean b) {
+        throw new UnsupportedOperationException();
     }
 }

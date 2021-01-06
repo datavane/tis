@@ -62,7 +62,8 @@ public class IndexQueryAction extends BasicModule {
         final String[] fqs = this.getStringArray("fq");
         final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(this.getAppDomain(), request, getResponse(), getDaoContext());
         final List<ServerJoinGroup> serverlist = queryResutStrategy.queryProcess();
-        QueryIndexServlet.execuetQuery(this, this.getAppDomain(), requestContext, this.getDaoContext(), queryResutStrategy, serverlist, query, sort, fqs, shownum, sfields);
+        QueryIndexServlet.execuetQuery(this, this.getAppDomain(), requestContext, this.getDaoContext()
+          , queryResutStrategy, serverlist, query, sort, fqs, shownum, sfields);
     }
 
     /**

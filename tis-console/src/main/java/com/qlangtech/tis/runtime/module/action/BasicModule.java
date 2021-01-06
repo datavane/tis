@@ -27,7 +27,7 @@ import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.config.entities.ActionConfig;
-import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
@@ -40,7 +40,7 @@ import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
@@ -80,7 +80,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
     Integer wfid = module.getAppDomain().getApp().getWorkFlowId();
-    WorkFlow dataflow = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
+    WorkFlow dataflow = module.loadDF(wfid);// module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
     if (dataflow == null) {
       throw new IllegalStateException("wfid relevant dataflow can not be null");
     }
@@ -120,7 +120,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     final AppDomainInfo domain = CheckAppDomainExistValve.getAppDomain(this);
     return CoreAction.getServerGroup0(domain, this);
   }
-
+  public WorkFlow loadDF(Integer wfId) {
+    return this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(wfId);
+  }
   /**
    * 插件运行环境是否和数据源相关
    *
@@ -240,7 +242,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   public static final String Layout_template = "layout_template";
 
   @Override
-  public TisZkClient getSolrZkClient() {
+  public ITISCoordinator getSolrZkClient() {
     return getDaoContext().getSolrZkClient();
   }
 
@@ -1013,7 +1015,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   @Override
-  public IComDfireTisWorkflowDAOFacade getWorkflowDAOFacade() {
+  public IWorkflowDAOFacade getWorkflowDAOFacade() {
     return getDaoContext().getWorkflowDAOFacade();
   }
 

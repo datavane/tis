@@ -16,7 +16,7 @@
 
   <context-param>
     <param-name>contextConfigLocation</param-name>
-    <param-value>classpath:/tis.application.context.xml</param-value>
+    <param-value>classpath:/tis.application.context.xml,classpath:/tis.application.mockable.context.xml</param-value>
   </context-param>
 
 

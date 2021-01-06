@@ -15,6 +15,8 @@
 package com.qlangtech.tis.manage.spring;
 
 import java.util.regex.Matcher;
+
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.qlangtech.tis.TisZkClient;
@@ -25,7 +27,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2012-8-15
  */
-public class ZooKeeperGetter extends EnvironmentBindService<TisZkClient> {
+public class ZooKeeperGetter extends EnvironmentBindService<ITISCoordinator> {
 
     private static final Log log = LogFactory.getLog(ZooKeeperGetter.class);
 
@@ -37,7 +39,7 @@ public class ZooKeeperGetter extends EnvironmentBindService<TisZkClient> {
     }
 
     @Override
-    protected TisZkClient createSerivce(final RunEnvironment runtime) {
+    protected ITISCoordinator createSerivce(final RunEnvironment runtime) {
         // SolrZkClient zookeeper = null;
         final String zkAddress = Config.getZKHost();
         validateMultiServerIsReachable(zkAddress);
@@ -52,7 +54,7 @@ public class ZooKeeperGetter extends EnvironmentBindService<TisZkClient> {
         }
     }
 
-    public TisZkClient getOnlineTerminatorZooKeeper() {
+    public ITISCoordinator getOnlineTerminatorZooKeeper() {
         // createSerivce(RunEnvironment.ONLINE);
         return this.getInstance(RunEnvironment.ONLINE);
     }

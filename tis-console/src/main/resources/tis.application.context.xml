@@ -8,7 +8,7 @@
 
   <context:property-placeholder location="classpath:tis-web-config/config.properties"/>
 
-  <bean id="zooKeeperGetter" class="com.qlangtech.tis.manage.spring.ZooKeeperGetter"/>
+
   <bean id="clusterStateReader" class="com.qlangtech.tis.manage.spring.ClusterStateReader">
     <property name="zooKeeperGetter" ref="zooKeeperGetter"/>
   </bean>
@@ -27,7 +27,7 @@
     <import resource="classpath:/conf/terminator-job-trigger-relation-context.xml"/>
 
   <import resource="classpath:/conf/terminatorTriggerBizDal-dao-context.xml"/>
--->
+  -->
   <import resource="classpath:/conf/comDfireTisWorkflow-dao-context.xml"/>
 
 

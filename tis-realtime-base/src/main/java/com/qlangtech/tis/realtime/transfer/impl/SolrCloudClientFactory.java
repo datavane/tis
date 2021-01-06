@@ -72,6 +72,15 @@ public class SolrCloudClientFactory implements ITisCloudClientFactory {
                 }
 
                 @Override
+                public boolean exists(String s, boolean b) {
+                    try {
+                        return solrClient.getZkClient().exists(s, b);
+                    } catch (Exception e) {
+                        throw new RuntimeException("path:" + s, e);
+                    }
+                }
+
+                @Override
                 public void addOnReconnect(IOnReconnect onReconnect) {
                     if (tisZkClient == null) {
                         synchronized (SolrCloudClient.this) {

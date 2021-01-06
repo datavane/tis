@@ -356,7 +356,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         return result;
     }
 
-    private static TopologyDir getTopologyDir(String topologyName) {
+    public static TopologyDir getTopologyDir(String topologyName) {
         File wfDir = SqlTaskNode.parent;
         wfDir = new File(wfDir, topologyName);
         try {
@@ -369,7 +369,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 wfDir, SqlTaskNode.NAME_DATAFLOW_DIR + "/" + topologyName);
     }
 
-    private static class TopologyDir {
+    public static class TopologyDir {
 
         private final File dir;
 
@@ -394,6 +394,14 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 subs.add(synchronizeRemoteRes(f));
             }
             return subs;
+        }
+
+        public void delete() {
+            try {
+                FileUtils.forceDelete(this.dir);
+            } catch (IOException e) {
+                throw new RuntimeException("path:" + this.dir.getAbsolutePath(), e);
+            }
         }
     }
 

@@ -16,7 +16,7 @@ package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.ISolrZKClientGetter;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
-import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import org.apache.solr.common.cloud.TISZkStateReader;
 
 /**
@@ -81,5 +81,5 @@ public interface RunContext extends ISolrZKClientGetter {
   public TISZkStateReader getZkStateReader();
 
   // 全量构建需要的一些dao
-  public IComDfireTisWorkflowDAOFacade getWorkflowDAOFacade();
+  public IWorkflowDAOFacade getWorkflowDAOFacade();
 }

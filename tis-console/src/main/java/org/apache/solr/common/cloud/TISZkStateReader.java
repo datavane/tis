@@ -582,7 +582,7 @@ public class TISZkStateReader {
     /**
      * Watches the legacy clusterstate.json.
      */
-    private DocCollection fetchCollectionState(String coll, Watcher watcher) throws KeeperException, InterruptedException {
+    public DocCollection fetchCollectionState(String coll, Watcher watcher) throws KeeperException, InterruptedException {
         String collectionPath = ZkStateReader.getCollectionPath(coll);
         try {
             Stat stat = new Stat();

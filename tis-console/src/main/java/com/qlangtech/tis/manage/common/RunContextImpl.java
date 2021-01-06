@@ -14,11 +14,11 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
 import com.qlangtech.tis.manage.spring.ClusterStateReader;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
-import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import org.apache.solr.common.cloud.TISZkStateReader;
 
 /**
@@ -74,7 +74,7 @@ public class RunContextImpl implements RunContext {
 
     private final ClusterStateReader clusterStateReader;
 
-    private final IComDfireTisWorkflowDAOFacade comDfireTisWorkflowDAOFacade;
+    private final IWorkflowDAOFacade comDfireTisWorkflowDAOFacade;
 
     private final IUsrDptRelationDAO usrDptRelationDAO;
 
@@ -105,7 +105,7 @@ public class RunContextImpl implements RunContext {
     IFuncRoleRelationDAO funcRoleRelationDAO, // IIsvDAO isvDAO,
     IRoleDAO roleDAO, // IIsvDAO isvDAO,
     IResourceParametersDAO resourceParametersDAO, // IIsvDAO isvDAO,
-    IUsrDptExtraRelationDAO usrDptExtraRelationDAO, IUsrApplyDptRecordDAO usrApplyDptRecordDAO, IRdsDbDAO rdsDbDAO, IRdsTableDAO rdsTableDAO, IApplicationExtendDAO applicationExtendDAO, ZooKeeperGetter zooKeeperGetter, ClusterStateReader clusterStateReader, IComDfireTisWorkflowDAOFacade comDfireTisWorkflowDAOFacade) {
+    IUsrDptExtraRelationDAO usrDptExtraRelationDAO, IUsrApplyDptRecordDAO usrApplyDptRecordDAO, IRdsDbDAO rdsDbDAO, IRdsTableDAO rdsTableDAO, IApplicationExtendDAO applicationExtendDAO, ZooKeeperGetter zooKeeperGetter, ClusterStateReader clusterStateReader, IWorkflowDAOFacade comDfireTisWorkflowDAOFacade) {
         super();
         this.appPackageDAO = appPackageDAO;
         this.applicationDAO = applicationDAO;
@@ -148,7 +148,7 @@ public class RunContextImpl implements RunContext {
     }
 
     @Override
-    public TisZkClient getSolrZkClient() {
+    public ITISCoordinator getSolrZkClient() {
         return zooKeeperGetter.getInstance();
     }
 
@@ -277,7 +277,7 @@ public class RunContextImpl implements RunContext {
     }
 
     @Override
-    public IComDfireTisWorkflowDAOFacade getWorkflowDAOFacade() {
+    public IWorkflowDAOFacade getWorkflowDAOFacade() {
         return this.comDfireTisWorkflowDAOFacade;
     }
 }

@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
 import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
@@ -99,6 +99,7 @@ public class CoreAction extends BasicModule {
   public static final String ADMIN_COLLECTION_PATH = "/solr/admin/collections";
   public static final String CREATE_COLLECTION_PATH = ADMIN_COLLECTION_PATH + "?action=CREATE&name=";
   public static final String TRIGGER_FULL_BUILD_COLLECTION_PATH = "/trigger";
+  public static final String ZK_PATH_OVERSEER_ELECT_LEADER = "/overseer_elect/leader";
 
   public static final String DEFAULT_SOLR_CONFIG = "tis_mock_config";
 
@@ -146,8 +147,12 @@ public class CoreAction extends BasicModule {
       return;
     }
     incrStatus.setK8sPluginInitialized(true);
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
-    StreamCodeContext streamCodeContext = new StreamCodeContext(this.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
+
+
+    IndexStreamCodeGenerator indexStreamCodeGenerator
+      = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
+    StreamCodeContext streamCodeContext
+      = new StreamCodeContext(this.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
     TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
     IncrDeployment rcConfig = k8s.getRcConfig(cache);
@@ -164,7 +169,7 @@ public class CoreAction extends BasicModule {
     this.setBizResult(context, incrStatus);
   }
 
-  private static PluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module) {
+  public static PluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module) {
     return getIncrStreamFactoryStore(module, false);
   }
 
@@ -223,7 +228,7 @@ public class CoreAction extends BasicModule {
       throw new IllegalArgumentException("param workflowId can not be null");
     }
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module, workflowId, excludeFacadeDAOSupport);
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module, module.loadDF(workflowId), excludeFacadeDAOSupport);
     List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
     PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
@@ -273,8 +278,7 @@ public class CoreAction extends BasicModule {
 
     final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator
-      = getIndexStreamCodeGenerator(this, wf.getId());
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, wf.getId());
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(this, indexStreamCodeGenerator);
 
@@ -305,12 +309,13 @@ public class CoreAction extends BasicModule {
     }
     // 编译并且打包
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
-    IndexIncrStatus incrStatus = new IndexIncrStatus();
+
     // 将打包好的构建，发布到k8s集群中去
     // https://github.com/kubernetes-client/java
     TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
     // 通过k8s发布
     k8sClient.deploy(applySpec.getSpec(), indexStreamCodeGenerator.getIncrScriptTimestamp());
+    IndexIncrStatus incrStatus = new IndexIncrStatus();
     this.setBizResult(context, incrStatus);
   }
 
@@ -329,18 +334,21 @@ public class CoreAction extends BasicModule {
 
   private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
     BasicModule module, Integer workflowid) throws Exception {
-    return getIndexStreamCodeGenerator(module, workflowid, false);
+    final WorkFlow workFlow = module.loadDF(workflowid);
+
+    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workFlow.getName());
+    return getIndexStreamCodeGenerator(module, workFlow, wfTopology.isSingleDumpTableDependency());
   }
 
-  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
-    BasicModule module, Integer workflowid, boolean excludeFacadeDAOSupport) throws Exception {
+  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
+    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
-    WorkFlow workFlow = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(workflowid);
+    // final WorkFlow workFlow = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(workflowid);
     return new IndexStreamCodeGenerator(module.getCollectionName(), workFlow.getName()
-      , ManageUtils.formatNowYyyyMMddHHmmss(workFlow.getOpTime()), (dbid, rewriteableTables) -> {
+      , ManageUtils.formatNowYyyyMMddHHmmss(workFlow.getOpTime()), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
       DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-      tableCriteria.createCriteria().andDbIdEqualTo(dbid);
+      tableCriteria.createCriteria().andDbIdEqualTo(dbId);
       List<DatasourceTable> tableList = module.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(tableCriteria);
       return tableList.stream().map((t) -> t.getName()).collect(Collectors.toList());
     }, excludeFacadeDAOSupport);
@@ -361,10 +369,14 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.DATAFLOW_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
     Application app = this.getApplicationDAO().selectByPrimaryKey(this.getAppDomain().getAppid());
+    triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
+  }
+
+  public static void triggerFullIndexSwape(BasicModule module, Context context, Application app, int sharedCount) throws Exception {
     Assert.assertNotNull(app);
-    WorkFlow df = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId());
+    WorkFlow df = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId());
     Assert.assertNotNull(df);
-    triggerFullIndexSwape(this, context, app.getWorkFlowId(), df.getName(), getIndex().getSlices().size());
+    triggerFullIndexSwape(module, context, app.getWorkFlowId(), df.getName(), sharedCount);
   }
 
   /**
@@ -759,6 +771,10 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doIncrDelete(Context context) throws Exception {
+
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
+    indexStreamCodeGenerator.deleteScript();
+
     TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
     // 删除增量实例
     k8sDelegate.removeIncrProcess();
@@ -993,8 +1009,8 @@ public class CoreAction extends BasicModule {
     return true;
   }
 
-  private static String getCloudOverseerNode(TisZkClient zkClient) {
-    Map v = JSON.parseObject(zkClient.getData("/overseer_elect/leader", null, new Stat(), true), Map.class, Feature.AllowUnQuotedFieldNames);
+  public static String getCloudOverseerNode(ITISCoordinator zkClient) {
+    Map v = JSON.parseObject(zkClient.getData(ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true), Map.class, Feature.AllowUnQuotedFieldNames);
     String id = (String) v.get("id");
     if (id == null) {
       throw new IllegalStateException("collection cluster overseer node has not launch");

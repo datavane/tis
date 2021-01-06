@@ -254,15 +254,16 @@ public class SingleTableDump extends DataflowTask {
             }, new Stat(), true);
             pt = new String(bytes);
             return true;
-        } catch (KeeperException e) {
+        } catch (Exception e) {
             // System.out.println("zookeeper path " + path + " not exists");
             logger.warn("zookeeper path " + path + " not exists", e);
             return false;
-        } catch (InterruptedException e) {
-            // System.out.println( + " InterruptedException");
-            logger.warn("zookeeper path " + path, e);
-            return false;
         }
+//        catch (InterruptedException e) {
+//            // System.out.println( + " InterruptedException");
+//            logger.warn("zookeeper path " + path, e);
+//            return false;
+//        }
     }
 
     private void addTableDumpRecord(ExecResult execResult, String pt) {

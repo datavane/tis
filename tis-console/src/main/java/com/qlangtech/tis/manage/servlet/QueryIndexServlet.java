@@ -181,7 +181,7 @@ public class QueryIndexServlet extends BasicServlet {
     // StringBuffer servers = new StringBuffer();
     // for (ServerJoinGroup server : serverlist) {
     // servers.append("[").append(server.getIpAddress()).append("]");
-    // 
+    //
     // }
     // throw new ServletException("remote server faild,remote servers:" +
     // servers.toString());
@@ -320,7 +320,10 @@ public class QueryIndexServlet extends BasicServlet {
      * @param
      * @param getContext
      */
-    public static void execuetQuery(IParamGetter params, final AppDomainInfo domain, final QueryRequestContext requestContext, RunContext getContext, final QueryResutStrategy queryResutStrategy, final List<ServerJoinGroup> serverlist, final String querystr, final String sort, final String[] fqs, final Integer shownumf, final List<String> showFields) {
+    public static void execuetQuery(IParamGetter params, final AppDomainInfo domain, final QueryRequestContext requestContext
+      , RunContext getContext, final QueryResutStrategy queryResutStrategy, final List<ServerJoinGroup> serverlist
+      , final String querystr, final String sort, final String[] fqs, final Integer shownumf, final List<String> showFields) {
+
         Assert.assertNotNull("param SolrQueryModuleCreator can not be null", queryResutStrategy.getRequest());
         Assert.assertNotNull(queryResutStrategy);
         Assert.assertNotNull(serverlist);
@@ -450,7 +453,7 @@ public class QueryIndexServlet extends BasicServlet {
     @SuppressWarnings("all")
     private static List<Row> convert2Html(QueryRequestContext requestContext, QueryResponse response, ServerJoinGroup server, boolean distrib) {
         // StringBuffer result = new StringBuffer();
-        // 
+        //
         SolrDocumentList solrDocumentList = response.getResults();
         String uniqueKey = null;
         List<Row> result = new ArrayList<Row>();

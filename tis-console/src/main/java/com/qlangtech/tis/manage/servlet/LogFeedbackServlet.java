@@ -40,7 +40,7 @@ import com.qlangtech.tis.trigger.jst.PayloadMonitorTarget;
 import com.qlangtech.tis.trigger.jst.RegisterMonotorTarget;
 import com.qlangtech.tis.trigger.socket.ExecuteState;
 import com.qlangtech.tis.trigger.socket.LogType;
-import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang.StringUtils;
@@ -74,7 +74,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
   private AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
 
-  private IComDfireTisWorkflowDAOFacade wfDao;
+  private IWorkflowDAOFacade wfDao;
 
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -98,7 +98,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     factory.setCreator((req, rep) -> {
       return new LogSocket();
     });
-    this.wfDao = BasicServlet.getBeanByType(getServletContext(), IComDfireTisWorkflowDAOFacade.class);
+    this.wfDao = BasicServlet.getBeanByType(getServletContext(), IWorkflowDAOFacade.class);
   }
 
   public class LogSocket extends WebSocketAdapter implements ILogListener, LogCollectorClient.IPhaseStatusCollectionListener {

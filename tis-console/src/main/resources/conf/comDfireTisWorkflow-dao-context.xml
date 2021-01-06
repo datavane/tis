@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
 <beans >
-  <bean id="workFlowPublishHistoryDAO" class="com.qlangtech.tis.workflow.dao.impl.WorkFlowPublishHistoryDAOImpl" parent="comDfireTisWorkflowDAO" />
+
   <bean id="workFlowDAO" class="com.qlangtech.tis.workflow.dao.impl.WorkFlowDAOImpl" parent="comDfireTisWorkflowDAO" />
   <bean id="workFlowBuildHistoryDAO" class="com.qlangtech.tis.workflow.dao.impl.WorkFlowBuildHistoryDAOImpl" parent="comDfireTisWorkflowDAO" />
 <!--
@@ -20,10 +20,9 @@
     </property>
   </bean>
   <bean id="wfDaoFacade" class="com.qlangtech.tis.workflow.dao.impl.ComDfireTisWorkflowDAOFacadeImpl" >
-    <constructor-arg index="0" ref="workFlowPublishHistoryDAO" />
-    <constructor-arg index="1" ref="workFlowDAO" />
-    <constructor-arg index="2" ref="workFlowBuildHistoryDAO" />
-    <constructor-arg index="3" ref="datasourceTableDAO" />
-    <constructor-arg index="4" ref="datasourceDbDAO" />
+    <constructor-arg index="0" ref="workFlowDAO" />
+    <constructor-arg index="1" ref="workFlowBuildHistoryDAO" />
+    <constructor-arg index="2" ref="datasourceTableDAO" />
+    <constructor-arg index="3" ref="datasourceDbDAO" />
   </bean>
 </beans>

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,6 +19,7 @@ import com.qlangtech.tis.solr.common.cloud.ZkRepeatClientConnectionStrategy;
 import org.apache.solr.common.cloud.*;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -116,8 +117,12 @@ public class TisZkClient implements ITISCoordinator {
         return zkclient.exists(path, watcher, retryOnConnLoss);
     }
 
-    public Boolean exists(String path, boolean retryOnConnLoss) throws KeeperException, InterruptedException {
-        return zkclient.exists(path, retryOnConnLoss);
+    public boolean exists(String path, boolean retryOnConnLoss) {
+        try {
+            return zkclient.exists(path, retryOnConnLoss);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<String> getChildren(String path, Watcher watcher, boolean retryOnConnLoss) {

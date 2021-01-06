@@ -21,18 +21,27 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
 import com.qlangtech.tis.coredefine.module.action.*;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
+import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.servlet.QueryCloudSolrClient;
+import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
+import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.ds.TISTable;
+import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
+import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
@@ -50,14 +59,16 @@ import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.util.*;
-import com.qlangtech.tis.workflow.pojo.DatasourceDb;
-import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
-import com.qlangtech.tis.workflow.pojo.WorkFlow;
-import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
+import com.qlangtech.tis.workflow.pojo.*;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrRequest;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.CommonParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,10 +77,8 @@ import org.springframework.transaction.TransactionStatus;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -81,11 +90,23 @@ import java.util.stream.Collectors;
  * @date 2020-12-13 16:10
  */
 public class CollectionAction extends com.qlangtech.tis.runtime.module.action.AddAppAction {
+  private static final String QUERY_PARSIING_DEF_TYPE = "defType";
   private static final Position DEFAULT_SINGLE_TABLE_POSITION;
   private static final Position DEFAULT_SINGLE_JOINER_POSITION;
   private static final Logger logger = LoggerFactory.getLogger(CollectionAction.class);
   private static final int SHARED_COUNT = 1;
   public static final String KEY_SHOW_LOG = "log";
+  public static final String KEY_INDEX_NAME = "indexName";
+  public static final String KEY_QUERY_SEARCH_FIELDS = "search_fields";
+  public static final String KEY_QUERY_FIELDS = "fields";
+  //public static final String KEY_QUERY_QUERY_FIELDS = "queryFields";
+  public static final String KEY_QUERY_LIMIT = "limit";
+  public static final String KEY_QUERY_ORDER_BY = "orderBy";
+  public static final String KEY_QUERY_ROWS_OFFSET = "rowsOffset";
+
+  public static final String RESULT_KEY_ROWS_COUNT = "rowsCount";
+  public static final String RESULT_KEY_ROWS = "rows";
+
 
 //  private
 
@@ -177,7 +198,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (StringUtils.isEmpty(targetTable)) {
       throw new IllegalStateException("param 'table' can not be null");
     }
-    this.indexName = StringUtils.defaultIfEmpty(post.getString("indexName"), targetTable);
+    this.indexName = StringUtils.defaultIfEmpty(post.getString(KEY_INDEX_NAME), targetTable);
     List<String> existCollection = CoreAction.listCollection(this, context);
     if (existCollection.contains(this.getCollectionName())) {
       //throw new IllegalStateException();
@@ -255,30 +276,194 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     return TISCollectionUtils.NAME_PREFIX + indexName;
   }
 
+  /**
+   * 触发全量构建
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doFullbuild(Context context) throws Exception {
+    this.getIndexWithPost();
+
+    Application app = this.getApplicationDAO().selectByName(this.indexName);
+
+    WorkFlow wf = this.loadDF(app.getWorkFlowId());
+
+    this.setBizResult(context
+      , CoreAction.triggerFullIndexSwape(this, context, app.getWorkFlowId(), wf.getName(), 1));
+  }
+
+  private JSONObject getIndexWithPost() {
+    JSONObject post = this.parseJsonPost();
+    if (StringUtils.isEmpty(post.getString(KEY_INDEX_NAME))) {
+      throw new IllegalArgumentException("indexName can not be null");
+    }
+    this.indexName = TISCollectionUtils.NAME_PREFIX + post.getString(KEY_INDEX_NAME);
+    return post;
+  }
 
   /**
+   * 删除索引实例
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doDeleteIndex(Context context) throws Exception {
+    getIndexWithPost();
+    // 删除
+    Application app = this.getApplicationDAO().selectByName(this.indexName);
+    final WorkFlow workFlow = this.loadDF(app.getWorkFlowId());
+    this.rescycleAppDB(app.getAppId());
+    this.getWorkflowDAOFacade().getWorkFlowDAO().deleteByPrimaryKey(workFlow.getId());
+    WorkFlowBuildHistoryCriteria wfHistoryCriteria = new WorkFlowBuildHistoryCriteria();
+    wfHistoryCriteria.createCriteria().andWorkFlowIdEqualTo(workFlow.getId());
+    this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().deleteByExample(wfHistoryCriteria);
+
+    // 删除索引实例
+    try {
+      URL url = new URL("http://" + CoreAction.getCloudOverseerNode(this.getSolrZkClient())
+        + CoreAction.ADMIN_COLLECTION_PATH + "?action=DELETE&name=" + app.getProjectName());
+      HttpUtils.processContent(url, new ConfigFileContext.StreamProcess<Object>() {
+        @Override
+        public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+          ProcessResponse result = null;
+          if ((result = ProcessResponse.processResponse(stream, (err) -> addErrorMessage(context, err))).success) {
+            addActionMessage(context, "成功删除了索引实例'" + app.getProjectName() + "'");
+          }
+          return null;
+        }
+      });
+    } catch (Throwable e) {
+      logger.warn(e.getMessage(), e);
+    }
+
+    // 删除workflow数据库及本地存储文件
+    SqlTaskNodeMeta.TopologyDir topologyDir = SqlTaskNodeMeta.getTopologyDir(workFlow.getName());
+    if (topologyDir.synchronizeSubRemoteRes().size() > 0) {
+      IndexStreamCodeGenerator indexStreamCodeGenerator
+        = CoreAction.getIndexStreamCodeGenerator(this, workFlow, false);
+      indexStreamCodeGenerator.deleteScript();
+    }
+    topologyDir.delete();
+
+    PluginStore<IncrStreamFactory> store = CoreAction.getIncrStreamFactoryStore(this);
+    if (store.getPlugin() != null) {
+      // 删除增量实例
+      TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+      k8sDelegate.removeIncrProcess();
+    }
+
+  }
+
+  /**
+   * 利用solr的disMax QP进行查询
+   *
    * @param context
    * @throws Exception
    */
   public void doQuery(Context context) throws Exception {
-    Connection con = null;
-    Statement stmt = null;
-    ResultSet rs = null;
-//org.apache.solr.client.solrj.io.sql.DriverImpl
-    try {
-      con = DriverManager.getConnection("jdbc:solr://zkHost:port?collection=collection&amp;aggregationMode=map_reduce");
-      stmt = con.createStatement();
-      rs = stmt.executeQuery("select a, sum(b) from tablex group by a");
-      while (rs.next()) {
-        String a = rs.getString("a");
-        rs.getString("sum(b)");
+    JSONObject post = this.parseJsonPost();
+    if (StringUtils.isEmpty(post.getString(KEY_INDEX_NAME))) {
+      throw new IllegalArgumentException("indexName can not be null");
+    }
+    this.indexName = TISCollectionUtils.NAME_PREFIX + post.getString(KEY_INDEX_NAME);
+
+    JSONArray searchFields = post.getJSONArray(KEY_QUERY_SEARCH_FIELDS);
+    Objects.requireNonNull(searchFields, "param " + KEY_QUERY_SEARCH_FIELDS + " can not be null ");
+    if (searchFields.size() < 1) {
+      throw new IllegalArgumentException(KEY_QUERY_SEARCH_FIELDS + " relevant field can not be empty");
+    }
+    final List<Option> queryCriteria = Lists.newArrayList();
+    searchFields.forEach((f) -> {
+      JSONObject o = (JSONObject) f;
+      String field = o.getString("field");
+      String word = o.getString("word");
+      if (StringUtils.isEmpty(field) || StringUtils.isEmpty(word)) {
+        throw new IllegalArgumentException("query field:" + o.toJSONString() + "either key or val can not be null");
       }
-    } finally {
-      rs.close();
-      stmt.close();
-      con.close();
+      queryCriteria.add(new Option(field, word));
+    });
+
+    final String fields = post.getString(KEY_QUERY_FIELDS);
+    if (StringUtils.isEmpty(fields)) {
+      throw new IllegalArgumentException("param 'fields' can not be null");
+    }
+    final Integer limit = post.getInteger(KEY_QUERY_LIMIT);
+    if (limit == null) {
+      throw new IllegalArgumentException("param limit can not be null");
+    }
+//    final String queryFields = post.getString(KEY_QUERY_QUERY_FIELDS);
+//    if (StringUtils.isEmpty(queryFields)) {
+//      throw new IllegalArgumentException("'queryFields' can not be null");
+//    }
+    final String orderBy = post.getString(KEY_QUERY_ORDER_BY);
+
+    Integer rowsOffset = post.getInteger(KEY_QUERY_ROWS_OFFSET);
+
+
+    Application application = this.getApplicationDAO().selectByName(indexName);
+    AppDomainInfo app = new AppDomainInfo(0, application.getAppId(), RunEnvironment.getSysRuntime(), application);
+    final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(app, this.getRequest(), getResponse(), getDaoContext());
+
+    final List<ServerJoinGroup> serverlist = queryResutStrategy.queryProcess();
+    for (ServerJoinGroup server : serverlist) {
+
+      // 组装url
+      final String url = server.getIpAddress();
+
+      QueryCloudSolrClient solrClient = new QueryCloudSolrClient(url);
+      SolrQuery query = new SolrQuery();
+      query.set(CommonParams.FL, fields);
+      // query.setParam(QUERY_PARSIING_DEF_TYPE, "dismax");
+      // query.setParam(DisMaxParams.QF, queryFields);
+      query.setQuery(queryCriteria.stream().map((f) -> f.getName() + ":" + f.getValue()).collect(Collectors.joining(" AND ")));
+      query.setRows(limit);
+      if (rowsOffset != null) {
+        query.setStart(rowsOffset);
+      }
+      if (StringUtils.isNotEmpty(orderBy)) {
+        query.add(CommonParams.SORT, orderBy);
+      }
+      QueryResponse result = solrClient.query(indexName, query, SolrRequest.METHOD.POST);
+      solrClient.close();
+      Map<String, Object> biz = Maps.newHashMap();
+      long c = result.getResults().getNumFound();
+      biz.put(RESULT_KEY_ROWS_COUNT, c);
+
+      List<Map<String, Object>> resultList = Lists.newArrayList();
+      Map<String, Object> row = null;
+      for (SolrDocument doc : result.getResults()) {
+        row = Maps.newHashMap();
+        for (Map.Entry<String, Object> f : doc.entrySet()) {
+          row.put(f.getKey(), f.getValue());
+        }
+        resultList.add(row);
+      }
+      biz.put(RESULT_KEY_ROWS, resultList);
+      this.setBizResult(context, biz);
+      return;
     }
   }
+
+
+//    Connection con = null;
+//    Statement stmt = null;
+//    ResultSet rs = null;
+////org.apache.solr.client.solrj.io.sql.DriverImpl
+//    try {
+//      con = DriverManager.getConnection("jdbc:solr://zkHost:port?collection=collection&amp;aggregationMode=map_reduce");
+//      stmt = con.createStatement();
+//      rs = stmt.executeQuery("select a, sum(b) from tablex group by a");
+//      while (rs.next()) {
+//        String a = rs.getString("a");
+//        rs.getString("sum(b)");
+//      }
+//    } finally {
+//      rs.close();
+//      stmt.close();
+//      con.close();
+//    }
+//}
 
   private TargetColumnMeta getTargetColumnMeta(
     Context context, JSONObject post, String targetTable, PluginItems dataSourceItems) {
@@ -321,36 +506,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     private Map<String, TargetCol> targetColMap = null;
     final List<ColumnMetaData> targetColMetas = Lists.newArrayList();
     //  ref: com.pingcap.tikv.types.MySQLType
-    static final int TypeTimestamp = 7;
-    static final int TypeDatetime = 12;
-    static final int TypeDate = 10;
-
-
-//    /**
-//     * 这个是一个暂时的实现，类似设置记录的evenetTime，应该是让用户手工设置
-//     *
-//     * @return
-//     */
-//    public ColumnMetaData getTimeVerColName() {
-//      //  ref: com.pingcap.tikv.types.MySQLType
-//      for (ColumnMetaData cMeta : targetColMetas) {
-//        if (cMeta.getType() == Types.TIMESTAMP) {
-//          return cMeta;
-//        }
-//      }
-//      for (ColumnMetaData cMeta : targetColMetas) {
-//        if (cMeta.getType() == TypeDate) {
-//          return cMeta;
-//        }
-//      }
-//
-//      for (ColumnMetaData cMeta : targetColMetas) {
-//        if (StringUtils.lowerCase(cMeta.getKey()).indexOf("time") > -1) {
-//          return cMeta;
-//        }
-//      }
-//      return getPKMeta();
-//    }
+//    static final int TypeTimestamp = 7;
+//    static final int TypeDatetime = 12;
+//    static final int TypeDate = 10;
 
     /**
      * 目前只取得一个

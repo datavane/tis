@@ -57,7 +57,7 @@ import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
@@ -108,7 +108,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
   private static final diff_match_patch DIFF_MATCH_PATCH = new diff_match_patch();
 
-  private IComDfireTisWorkflowDAOFacade offlineDAOFacade;
+  private IWorkflowDAOFacade offlineDAOFacade;
 
   private static boolean isWordCharacter(String word) {
     return WORD_CHARACTER_PATTERN.matcher(word).matches();
@@ -646,7 +646,7 @@ public class OfflineDatasourceAction extends BasicModule {
     throw new IllegalStateException("topology:" + topologyName + " can not find workflow record in db");
   }
 
-  public static Tab getDatabase(IComDfireTisWorkflowDAOFacade wfDaoFacade, Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, int tableid) {
+  public static Tab getDatabase(IWorkflowDAOFacade wfDaoFacade, Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, int tableid) {
     Tab dtab = null;
     DatasourceTable tab = wfDaoFacade.getDatasourceTableDAO().selectByPrimaryKey(tableid);
     if (tab == null) {
@@ -896,14 +896,14 @@ public class OfflineDatasourceAction extends BasicModule {
 
   public static class CreateTopologyUpdateCallback implements TopologyUpdateCallback {
     private final IUser user;
-    private final IComDfireTisWorkflowDAOFacade offlineDAOFacade;
+    private final IWorkflowDAOFacade offlineDAOFacade;
     private final boolean idempotent;
 
-    public CreateTopologyUpdateCallback(IUser user, IComDfireTisWorkflowDAOFacade offlineDAOFacade) {
+    public CreateTopologyUpdateCallback(IUser user, IWorkflowDAOFacade offlineDAOFacade) {
       this(user, offlineDAOFacade, false);
     }
 
-    public CreateTopologyUpdateCallback(IUser user, IComDfireTisWorkflowDAOFacade offlineDAOFacade, boolean idempotent) {
+    public CreateTopologyUpdateCallback(IUser user, IWorkflowDAOFacade offlineDAOFacade, boolean idempotent) {
       this.user = user;
       this.offlineDAOFacade = offlineDAOFacade;
       this.idempotent = idempotent;
@@ -1348,43 +1348,26 @@ public class OfflineDatasourceAction extends BasicModule {
     // this.doGetWorkflows(context);
   }
 
-  /**
-   * 获取工作流变更管理列表
-   *
-   * @param context
-   * @throws Exception
-   */
-  public void doGetWorkflowChanges(Context context) {
-    Integer page = this.getInt("page");
-    if (page == null) {
-      page = 1;
-    }
-    Integer workflowId = this.getInt("workflowId");
-    if (workflowId == null) {
-      this.setBizResult(context, this.offlineManager.getWorkflowChanges(page));
-    } else {
-      this.setBizResult(context, this.offlineManager.getWorkflowChanges(page, workflowId));
-    }
-  }
 
-  /**
-   * 创建一个工作流变更
-   *
-   * @param context
-   */
-  public void doCreateWorkflowChange(Context context) {
-    String changeReason = this.getString("changeReason");
-    if (StringUtils.isBlank(changeReason)) {
-      this.addErrorMessage(context, "请输入变更理由");
-      return;
-    }
-    String workflowName = this.getString("workflowName");
-    if (StringUtils.isBlank(workflowName)) {
-      this.addErrorMessage(context, "请选择工作流");
-      return;
-    }
-    this.offlineManager.createWorkflowChange(changeReason, workflowName, this, context);
-  }
+
+//  /**
+//   * 创建一个工作流变更
+//   *
+//   * @param context
+//   */
+//  public void doCreateWorkflowChange(Context context) {
+//    String changeReason = this.getString("changeReason");
+//    if (StringUtils.isBlank(changeReason)) {
+//      this.addErrorMessage(context, "请输入变更理由");
+//      return;
+//    }
+//    String workflowName = this.getString("workflowName");
+//    if (StringUtils.isBlank(workflowName)) {
+//      this.addErrorMessage(context, "请选择工作流");
+//      return;
+//    }
+//    this.offlineManager.createWorkflowChange(changeReason, workflowName, this, context);
+//  }
 
   /**
    * 获取一个工作流的配置
@@ -1475,7 +1458,7 @@ public class OfflineDatasourceAction extends BasicModule {
   // return sb.toString();
   // }
   @Autowired
-  public void setWfDaoFacade(IComDfireTisWorkflowDAOFacade facade) {
+  public void setWfDaoFacade(IWorkflowDAOFacade facade) {
     this.offlineDAOFacade = facade;
   }
 

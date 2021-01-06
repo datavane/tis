@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.tools.JavaFileObject;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -77,13 +78,24 @@ public class IndexStreamCodeGenerator {
         this.initialize();
     }
 
+    /**
+     * 删除生成的脚本
+     */
+    public void deleteScript() {
+        try {
+            FileUtils.forceDelete(streamScriptRootDir);
+        } catch (IOException e) {
+            throw new RuntimeException("path:" + streamScriptRootDir, e);
+        }
+    }
+
     private void initialize() throws Exception {
         // FullbuildWorkflowAction.getDataflowTopology(CoreAction.this, this.workFlow);
         this.dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.workflowName);
         this.dbTables = getDependencyTables(dfTopology);
         facadeList = Lists.newArrayList();
         streamCodeGenerator = new StreamComponentCodeGenerator(
-                 this.collection, incrScriptTimestamp, facadeList, dfTopology, excludeFacadeDAOSupport);
+                this.collection, incrScriptTimestamp, facadeList, dfTopology, excludeFacadeDAOSupport);
         this.streamScriptRootDir = StreamContextConstant.getStreamScriptRootDir(this.collection, incrScriptTimestamp);
     }
 
@@ -213,6 +225,7 @@ public class IndexStreamCodeGenerator {
         }
         return dbNameMap;
     }
+
 
     public interface IDBTableNamesGetter {
 

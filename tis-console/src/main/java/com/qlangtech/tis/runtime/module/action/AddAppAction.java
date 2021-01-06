@@ -16,7 +16,9 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.ModelDriven;
 import com.qlangtech.tis.coredefine.biz.FCoreRequest;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
@@ -380,16 +382,38 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       this.addErrorMessage(context, "集群中存在索引实例“" + collection.getName() + "”，请先联系管理员将该实例删除");
       return;
     }
+    rescycleAppDB(appid);
+    this.addActionMessage(context, "索引实例“" + this.getAppDomain().getAppName() + "”该应用被成功删除");
+  }
+
+  protected void rescycleAppDB(Integer appid) {
+    if (appid < 1) {
+      throw new IllegalArgumentException("appid can not empty");
+    }
     ServerGroupCriteria criteria = new ServerGroupCriteria();
     criteria.createCriteria().andAppIdEqualTo(appid);
     // group 表删除
-    this.getServerGroupDAO().deleteByExample(criteria);
+    for (ServerGroup sg : this.getServerGroupDAO().selectByExample(criteria)) {
+      this.getServerGroupDAO().deleteByPrimaryKey(sg.getGid());
+    }
+
+    SnapshotCriteria snCriteria = new SnapshotCriteria();
+    snCriteria.createCriteria().andAppidEqualTo(appid);
+    Set<Long> resIds = Sets.newHashSet();
+    for (Snapshot snapshot : this.getSnapshotDAO().selectByExample(snCriteria)) {
+      resIds.add(snapshot.getResSchemaId());
+      resIds.add(snapshot.getResSolrId());
+      this.getSnapshotDAO().deleteByPrimaryKey(snapshot.getSnId());
+    }
+    UploadResourceCriteria urCriteria = new UploadResourceCriteria();
+    urCriteria.createCriteria().andUrIdIn(Lists.newArrayList(resIds));
+    this.getUploadResourceDAO().deleteByExample(urCriteria);
+
     AppTriggerJobRelationCriteria acriteria = new AppTriggerJobRelationCriteria();
     acriteria.createCriteria().andAppIdEqualTo(appid);
     // 触发表刪除
     this.getAppTriggerJobRelationDAO().deleteByExample(acriteria);
     this.getApplicationDAO().deleteByPrimaryKey(appid);
-    this.addActionMessage(context, "索引实例“" + this.getAppDomain().getAppName() + "”该应用被成功删除");
   }
 
   /**

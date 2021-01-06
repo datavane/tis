@@ -14,10 +14,7 @@
  */
 package com.qlangtech.tis.realtime.test.client;
 
-import com.qlangtech.tis.cloud.CloudServerException;
-import com.qlangtech.tis.cloud.ICloudInputDocument;
-import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.cloud.ITisCloudClient;
+import com.qlangtech.tis.cloud.*;
 import com.google.common.collect.Maps;
 import org.apache.solr.common.SolrDocument;
 import java.util.Map;

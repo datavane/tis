@@ -35,7 +35,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -60,9 +60,9 @@ import java.util.*;
 public class OfflineManager {
 
   // private static final String URL_ONLINE = "10.1.4.208:8080/config/config.ajax?action=offline_datasource_action";
-  private IComDfireTisWorkflowDAOFacade workflowDAOFacade;
+  private IWorkflowDAOFacade workflowDAOFacade;
 
-  public void setComDfireTisWorkflowDAOFacade(IComDfireTisWorkflowDAOFacade comDfireTisWorkflowDAOFacade) {
+  public void setComDfireTisWorkflowDAOFacade(IWorkflowDAOFacade comDfireTisWorkflowDAOFacade) {
     this.workflowDAOFacade = comDfireTisWorkflowDAOFacade;
   }
 
@@ -1212,17 +1212,17 @@ public class OfflineManager {
       this.workflowDAOFacade.getWorkFlowDAO().updateByExample(workFlow, criteria);
     }
     // 更新变更记录
-    WorkFlowPublishHistoryCriteria criteria1 = new WorkFlowPublishHistoryCriteria();
-    criteria1.createCriteria().andWorkflowIdEqualTo(workflowId).andPublishStateEqualTo(new Byte("3"));
-    List<WorkFlowPublishHistory> workFlowPublishHistories = this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().selectByExampleWithoutBLOBs(criteria1);
-    if (CollectionUtils.isEmpty(workFlowPublishHistories)) {
-      action.addErrorMessage(context, "找不到这条变更记录");
-      return;
-    } else {
-      WorkFlowPublishHistory workFlowPublishHistory = workFlowPublishHistories.get(0);
-      workFlowPublishHistory.setPublishState(new Byte("2"));
-      this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleWithoutBLOBs(workFlowPublishHistory, criteria1);
-    }
+//    WorkFlowPublishHistoryCriteria criteria1 = new WorkFlowPublishHistoryCriteria();
+//    criteria1.createCriteria().andWorkflowIdEqualTo(workflowId).andPublishStateEqualTo(new Byte("3"));
+//    List<WorkFlowPublishHistory> workFlowPublishHistories = this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().selectByExampleWithoutBLOBs(criteria1);
+//    if (CollectionUtils.isEmpty(workFlowPublishHistories)) {
+//      action.addErrorMessage(context, "找不到这条变更记录");
+//      return;
+//    } else {
+//      WorkFlowPublishHistory workFlowPublishHistory = workFlowPublishHistories.get(0);
+//      workFlowPublishHistory.setPublishState(new Byte("2"));
+//      this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleWithoutBLOBs(workFlowPublishHistory, criteria1);
+//    }
     action.addActionMessage(context, "删除变更成功");
   }
 
@@ -1257,167 +1257,26 @@ public class OfflineManager {
     criteria.createCriteria().andIdEqualTo(workflowId);
     this.workflowDAOFacade.getWorkFlowDAO().updateByExample(workFlow, criteria);
     // 变更历史
-    WorkFlowPublishHistoryCriteria criteria1 = new WorkFlowPublishHistoryCriteria();
-    criteria1.createCriteria().andWorkflowIdEqualTo(workflowId).andPublishStateEqualTo(new Byte("3"));
-    List<WorkFlowPublishHistory> workFlowPublishHistories = this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().selectByExampleWithoutBLOBs(criteria1);
-    if (CollectionUtils.isEmpty(workFlowPublishHistories)) {
-      action.addErrorMessage(context, "找不到这条变更记录");
-      return;
-    } else {
-      // 把之前在使用中的变为未使用
-      WorkFlowPublishHistoryCriteria inUseCriteria = new WorkFlowPublishHistoryCriteria();
-      inUseCriteria.createCriteria().andWorkflowIdEqualTo(workflowId).andInUseEqualTo(true);
-      WorkFlowPublishHistory notInUse = new WorkFlowPublishHistory();
-      notInUse.setInUse(false);
-      this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleSelective(notInUse, inUseCriteria);
-      // 把新建的记录给确定下来
-      WorkFlowPublishHistory workFlowPublishHistory = workFlowPublishHistories.get(0);
-      workFlowPublishHistory.setPublishState(new Byte("1"));
-      workFlowPublishHistory.setGitSha1(GitUtils.$().getLatestSha(GitUtils.WORKFLOW_GIT_PROJECT_ID));
-      workFlowPublishHistory.setInUse(true);
-      this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleSelective(workFlowPublishHistory, criteria1);
-    }
+//    WorkFlowPublishHistoryCriteria criteria1 = new WorkFlowPublishHistoryCriteria();
+//    criteria1.createCriteria().andWorkflowIdEqualTo(workflowId).andPublishStateEqualTo(new Byte("3"));
+//    List<WorkFlowPublishHistory> workFlowPublishHistories = this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().selectByExampleWithoutBLOBs(criteria1);
+//    if (CollectionUtils.isEmpty(workFlowPublishHistories)) {
+//      action.addErrorMessage(context, "找不到这条变更记录");
+//      return;
+//    } else {
+//      // 把之前在使用中的变为未使用
+//      WorkFlowPublishHistoryCriteria inUseCriteria = new WorkFlowPublishHistoryCriteria();
+//      inUseCriteria.createCriteria().andWorkflowIdEqualTo(workflowId).andInUseEqualTo(true);
+//      WorkFlowPublishHistory notInUse = new WorkFlowPublishHistory();
+//      notInUse.setInUse(false);
+//      this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleSelective(notInUse, inUseCriteria);
+//      // 把新建的记录给确定下来
+//      WorkFlowPublishHistory workFlowPublishHistory = workFlowPublishHistories.get(0);
+//      workFlowPublishHistory.setPublishState(new Byte("1"));
+//      workFlowPublishHistory.setGitSha1(GitUtils.$().getLatestSha(GitUtils.WORKFLOW_GIT_PROJECT_ID));
+//      workFlowPublishHistory.setInUse(true);
+//      this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleSelective(workFlowPublishHistory, criteria1);
+//    }
     action.addActionMessage(context, "变更提交成功");
   }
-
-  public List<WorkFlowPublishHistory> getWorkflowChanges(int page) {
-    WorkFlowPublishHistoryCriteria criteria = new WorkFlowPublishHistoryCriteria();
-    criteria.createCriteria();
-    criteria.setOrderByClause("id desc");
-    return this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().selectByExampleWithBLOBs(criteria, page, 20);
-  }
-
-  public List<WorkFlowPublishHistory> getWorkflowChanges(int page, Integer workflowId) {
-    WorkFlowPublishHistoryCriteria criteria = new WorkFlowPublishHistoryCriteria();
-    criteria.createCriteria().andWorkflowIdEqualTo(workflowId);
-    criteria.setOrderByClause("id desc");
-    return this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().selectByExampleWithBLOBs(criteria, page, 20);
-  }
-
-  public void createWorkflowChange(String changeReason, String workflowName, BasicModule action, Context context) {
-    WorkFlowCriteria workFlowCriteria = new WorkFlowCriteria();
-    workFlowCriteria.createCriteria().andNameEqualTo(workflowName);
-    List<WorkFlow> workFlows = this.workflowDAOFacade.getWorkFlowDAO().selectByExample(workFlowCriteria);
-    if (CollectionUtils.isEmpty(workFlows)) {
-      action.addErrorMessage(context, "找不到工作流" + workflowName);
-      return;
-    }
-    WorkFlow workFlow = workFlows.get(0);
-    if (workFlow.getInChange().intValue() != 0) {
-      action.addErrorMessage(context, "工作流" + workflowName + "已经在变更状态，不能再新建变更了");
-      return;
-    }
-    // 1 git新建分支
-    try {
-      GitUtils.$().createWorkflowBarnch(workflowName);
-    } catch (Exception e) {
-      action.addErrorMessage(context, "git分支创建失败");
-      action.addErrorMessage(context, e.getMessage());
-      return;
-    }
-    // 2 创建一个新的变更
-    WorkFlowPublishHistory workFlowPublishHistory = new WorkFlowPublishHistory();
-    workFlowPublishHistory.setCreateTime(new Date());
-    workFlowPublishHistory.setOpUserId(1);
-    workFlowPublishHistory.setOpUserName(action.getUser().getName());
-    workFlowPublishHistory.setWorkflowId(workFlow.getId());
-    workFlowPublishHistory.setWorkflowName(workflowName);
-    workFlowPublishHistory.setPublishState(new Byte("3"));
-    workFlowPublishHistory.setType(new Byte("2"));
-    workFlowPublishHistory.setPublishReason(changeReason);
-    workFlowPublishHistory.setInUse(false);
-    this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().insert(workFlowPublishHistory);
-    // 3 工作流状态改为变更中
-    workFlow.setInChange(new Byte("2"));
-    this.workflowDAOFacade.getWorkFlowDAO().updateByExample(workFlow, workFlowCriteria);
-  }
-  // public void useWorkflowChange(Integer id, BasicModule action, Context
-  // context) {
-  // WorkFlowPublishHistory workFlowPublishHistory =
-  // this.workflowDAOFacade.getWorkFlowPublishHistoryDAO()
-  // .selectByPrimaryKey(id);
-  // // 1. 检查变更是否存在
-  // if (workFlowPublishHistory == null) {
-  // action.addErrorMessage(context, "找不到id为" + id + "的变更");
-  // return;
-  // }
-  //
-  // // 2. 检查变更是否在使用中
-  // if (workFlowPublishHistory.getInUse()) {
-  // action.addErrorMessage(context, "id为" + id + "的变更正在使用中");
-  // return;
-  // }
-  //
-  // // 3. 检查变更是否已经提交
-  // if (workFlowPublishHistory.getPublishState().intValue() != 1) {
-  // action.addErrorMessage(context, "id为" + id + "的变更还没有完成，请在完成之后再使用变更");
-  // return;
-  // }
-  //
-  // // 4. 检查变更类型是否为'修改'
-  // if (workFlowPublishHistory.getType().intValue() != 2) {
-  // action.addErrorMessage(context, "只有变更类型为'修改'的变更才能回滚");
-  // return;
-  // }
-  //
-  // int workflowId = workFlowPublishHistory.getWorkflowId();
-  // WorkFlow workFlow =
-  // this.workflowDAOFacade.getWorkFlowDAO().selectByPrimaryKey(workflowId);
-  //
-  // // // 5. 检查对应的工作流是否存在
-  // // if (workFlow == null) {
-  // // action.addErrorMessage(context, "找不到id为" + workflowId + "的变更");
-  // // return;
-  // // }
-  // //
-  // // // 6. 检查工作流的状态是否为变更中
-  // // if (workFlow.getInChange().intValue() != 0) {
-  // // action.addErrorMessage(context, "工作流'" + workFlow.getName() +
-  // // "'还在变更中");
-  // // return;
-  // // }
-  //
-  // String workflowName = workFlowPublishHistory.getWorkflowName();
-  // // 7. 获取此版本的文件
-  // WorkflowPojo gitWorkflowPojo =
-  // GitUtils.$().getWorkflowSha(GitUtils.WORKFLOW_GIT_PROJECT_ID,
-  // workFlowPublishHistory.getGitSha1(), workflowName);
-  // JSONObject jsonObject = new JSONObject();
-  // jsonObject.put("name", gitWorkflowPojo.getName());
-  // jsonObject.put("tables",
-  // StringUtils.join(gitWorkflowPojo.getDependTableIds(), ","));
-  // jsonObject.put("task", gitWorkflowPojo.getTask());
-  //
-  // // 8. 更新git，重新做一次提交
-  // try {
-  // GitUtils.$().updateWorkflowFile(workflowName, "master",
-  // jsonObject.toString(1),
-  // "revert workflow " + workflowName + " and sha=" +
-  // workFlowPublishHistory.getGitSha1());
-  // } catch (JSONException e) {
-  // action.addErrorMessage(context, "回滚文件失败");
-  // action.addErrorMessage(context, e.getMessage());
-  // return;
-  // }
-  //
-  // // 9. 把原来的使用中变为未使用
-  // WorkFlowPublishHistoryCriteria inUseCriteria = new
-  // WorkFlowPublishHistoryCriteria();
-  // inUseCriteria.createCriteria().andWorkflowIdEqualTo(workFlowPublishHistory.getWorkflowId())
-  // .andInUseEqualTo(true);
-  // WorkFlowPublishHistory noInUse = new WorkFlowPublishHistory();
-  // noInUse.setInUse(false);
-  // this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleSelective(noInUse,
-  // inUseCriteria);
-  //
-  // // 10. 把最新的变为使用中
-  // inUseCriteria.clear();
-  // inUseCriteria.createCriteria().andIdEqualTo(id);
-  // workFlowPublishHistory.setInUse(true);
-  // this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleSelective(workFlowPublishHistory,
-  // inUseCriteria);
-  //
-  // // 11. 把最新的变更传过去
-  // action.setBizResult(context, this.getWorkflowChanges(1, workflowId));
-  // }
 }

@@ -16,16 +16,20 @@ package com.qlangtech.tis.config.module.action;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionProxy;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
+import com.qlangtech.tis.manage.spring.MockClusterStateReader;
+import com.qlangtech.tis.manage.spring.MockZooKeeperGetter;
 import com.qlangtech.tis.openapi.impl.AppKey;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
@@ -33,18 +37,25 @@ import com.qlangtech.tis.runtime.module.action.AddAppAction;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
-import com.qlangtech.tis.workflow.dao.IComDfireTisWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.commons.io.IOUtils;
+import org.apache.solr.common.cloud.DocCollection;
+import org.apache.solr.common.cloud.Replica;
+import org.apache.solr.common.cloud.Slice;
+import org.apache.solr.common.cloud.TISZkStateReader;
 import org.apache.struts2.StrutsSpringTestCase;
+import org.apache.zookeeper.data.Stat;
+import org.easymock.EasyMock;
 import org.shai.xmodifier.util.StringUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -79,6 +90,10 @@ public class TestCollectionAction extends StrutsSpringTestCase {
   private static final String TEST_TABLE_DEPARTMENT_NAME = "departments";
   private static final String TEST_DS_NAME = "employees";
 
+  private static final String FIELD_EMPLOYEES_FIRST_NAME = "first_name";
+  private static final String FIELD_EMPLOYEES_LAST_NAME = "last_name";
+
+
   private static final Map<String, JSONArray> tabCols = Maps.newHashMap();
 
   static {
@@ -92,8 +107,8 @@ public class TestCollectionAction extends StrutsSpringTestCase {
 
   public void testSend2RemoteServer() throws Exception {
     this.clearUpDB();
-   // URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
-    URL url = new URL("http://localhost:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
+    URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
+    // URL url = new URL("http://localhost:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
     HttpUtils.post(url, getPostJSONContent(TEST_TABLE_EMPLOYEES_NAME).toJSONString().getBytes(TisUTF8.get()), new PostFormStreamProcess<Void>() {
 
       @Override
@@ -113,17 +128,147 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     });
   }
 
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    this.clearMocks();
+  }
+
+  public void testDeleteCollection() throws Exception {
+
+    ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
+
+    try (InputStream input = this.getClass().getResourceAsStream("/com/qlangtech/tis/overseer_elect_leader.json")) {
+      EasyMock.expect(zkCoordinator.getData(CoreAction.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true))
+        .andReturn(IOUtils.toByteArray(input));
+    }
+
+    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
+
+    request.setParameter("emethod", "deleteIndex");
+    request.setParameter("action", "collection_action");
+    JSONObject content = new JSONObject();
+    content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
+    request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
+
+    ActionProxy proxy = getActionProxy();
+    this.replay();
+    String result = proxy.execute();
+    assertEquals("CollectionAction_ajax", result);
+    AjaxValve.ActionExecResult aResult = showBizResult();
+    assertNotNull(aResult);
+    assertTrue(aResult.isSuccess());
+    this.verifyAll();
+  }
+
+
+  public void testDoFullbuild() throws Exception {
+    ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
+    // Watcher watcher = mock("watcher", Watcher.class);
+    String incrStatecollect = "/tis/incr-transfer-group/incr-state-collect";
+    String childPath = "nodes0000000361";
+    String childPathContent = "192.168.28.200:38293";
+    List<String> incrStatecollectList = Lists.newArrayList(childPath);
+    EasyMock.expect(zkCoordinator.getChildren(incrStatecollect, null, true)).andReturn(incrStatecollectList);
+    EasyMock.expect(zkCoordinator.getData(incrStatecollect + "/" + childPath, null, new Stat(), true))
+      .andReturn(childPathContent.getBytes(TisUTF8.get()));
+
+    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
+
+    request.setParameter("emethod", "fullbuild");
+    request.setParameter("action", "collection_action");
+    JSONObject content = new JSONObject();
+    content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
+    request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
+    ActionProxy proxy = getActionProxy();
+    this.replay();
+    String result = proxy.execute();
+    assertEquals("CollectionAction_ajax", result);
+    AjaxValve.ActionExecResult aResult = showBizResult();
+    assertNotNull(aResult);
+    assertTrue(aResult.isSuccess());
+    CoreAction.TriggerBuildResult triggerResult = (CoreAction.TriggerBuildResult) aResult.getBizResult();
+    assertNotNull(triggerResult);
+    assertEquals(1234, triggerResult.getTaskid());
+    this.verifyAll();
+  }
+
+  public void testQuery() throws Exception {
+
+//    URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
+//    URLStreamHandler streamHandler = mock("httpStreamHander", StubStreamHandlerFactory.StubHttpURLStreamHander.class);
+//    StubStreamHandlerFactory.streamHander = streamHandler;
+
+    String collectionName = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
+
+    TISZkStateReader tisZkStateReader = this.mock("tisZkStateReader", TISZkStateReader.class);
+    MockClusterStateReader.mockStateReader = tisZkStateReader;
+
+    DocCollection docCollection = this.mock("docCollection", DocCollection.class);
+    Map<String, Slice> sliceMap = Maps.newHashMap();
+    Slice slice = this.mock("shard1Slice", Slice.class);
+    Replica replica = this.mock("core_node2_replica", Replica.class);
+    sliceMap.put("shard1", slice);
+    EasyMock.expect(slice.getReplicas()).andReturn(Collections.singleton(replica));
+    EasyMock.expect(replica.getBool("leader", false)).andReturn(true);
+    EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4employees_shard1_replica_n1");
+    EasyMock.expect(docCollection.getSlicesMap()).andReturn(sliceMap);
+    EasyMock.expect(tisZkStateReader.fetchCollectionState(collectionName, null))
+      .andReturn(docCollection);
+
+    request.setParameter("emethod", "query");
+    request.setParameter("action", "collection_action");
+    int rowsLimit = 3;
+    JSONObject content = new JSONObject();
+    content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
+    JSONArray searchFields = new JSONArray();
+    JSONObject queryField = new JSONObject();
+    queryField.put("field", FIELD_EMPLOYEES_FIRST_NAME);
+    queryField.put("word", "Nirm");
+    searchFields.add(queryField);
+    content.put(CollectionAction.KEY_QUERY_SEARCH_FIELDS, searchFields);
+    content.put(CollectionAction.KEY_QUERY_FIELDS, FIELD_EMPLOYEES_FIRST_NAME + "," + FIELD_EMPLOYEES_LAST_NAME);
+    // content.put(CollectionAction.KEY_QUERY_QUERY_FIELDS, FIELD_EMPLOYEES_FIRST_NAME + " " + FIELD_EMPLOYEES_LAST_NAME);
+    content.put(CollectionAction.KEY_QUERY_LIMIT, rowsLimit);
+    content.put(CollectionAction.KEY_QUERY_ROWS_OFFSET, 2);
+    //  content.put(CollectionAction.KEY_QUERY_ORDER_BY, );
+
+    request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
+    ActionProxy proxy = getActionProxy();
+    this.replay();
+    String result = proxy.execute();
+    assertEquals("CollectionAction_ajax", result);
+    AjaxValve.ActionExecResult actionExecResult = showBizResult();
+    Map<String, Object> bizResult = (Map<String, Object>) actionExecResult.getBizResult();
+    assertNotNull("bizResult can not be null", bizResult);
+    Long rowsCount = (Long) bizResult.get(CollectionAction.RESULT_KEY_ROWS_COUNT);
+    assertEquals("", 227l, (long) rowsCount);
+    List<Map<String, String>> rows = (List<Map<String, String>>) bizResult.get(CollectionAction.RESULT_KEY_ROWS);
+    assertNotNull(rows);
+    assertEquals(rowsLimit, rows.size());
+    this.verifyAll();
+  }
+
   public void testDoGetTaskStatus() throws Exception {
     request.setParameter("emethod", "getTaskStatus");
     request.setParameter("action", "collection_action");
     JSONObject content = new JSONObject();
-    content.put(IParamContext.KEY_TASK_ID, 644);
+    int taskId = 644;
+    content.put(IParamContext.KEY_TASK_ID, taskId);
     content.put(CollectionAction.KEY_SHOW_LOG, true);
     request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
     ActionProxy proxy = getActionProxy();
     String result = proxy.execute();
     assertEquals("CollectionAction_ajax", result);
-    showBizResult();
+    AjaxValve.ActionExecResult aResult = showBizResult();
+    assertNotNull(aResult);
+    assertTrue(aResult.isSuccess());
+    Map<String, Object> bizResult = (Map<String, Object>) aResult.getBizResult();
+    assertNotNull(bizResult.get("log"));
+    ExtendWorkFlowBuildHistory status = (ExtendWorkFlowBuildHistory) bizResult.get("status");
+    assertNotNull(status);
+    assertEquals(taskId, status.getId().intValue());
+
   }
 
   public void testDoCreate() throws Exception {
@@ -160,14 +305,14 @@ public class TestCollectionAction extends StrutsSpringTestCase {
       assertEquals(ColumnMetaData.ReflectSchemaFieldType.DATE.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
 
-      String first_name = "first_name";
-      field = fields.get(first_name);
+      // String first_name = "first_name";
+      field = fields.get(FIELD_EMPLOYEES_FIRST_NAME);
       assertNotNull(field);
       assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
       assertEquals(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia, field.getTokenizerType());
 
-      String last_name = "last_name";
-      field = fields.get(last_name);
+      // String last_name = "last_name";
+      field = fields.get(FIELD_EMPLOYEES_LAST_NAME);
       assertNotNull(field);
       assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
       assertEquals(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia, field.getTokenizerType());
@@ -211,7 +356,7 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     if (!actionExecResult.isSuccess()) {
       System.err.println(AjaxValve.buildResultStruct(MockContext.instance));
       // actionExecResult.getErrorPageShow()
-    }else{
+    } else {
       System.out.println(AjaxValve.buildResultStruct(MockContext.instance));
     }
     return actionExecResult;
@@ -253,8 +398,8 @@ public class TestCollectionAction extends StrutsSpringTestCase {
   }
 
   private void clearUpDB() {
-    IComDfireTisWorkflowDAOFacade wfDaoFacade
-      = applicationContext.getBean("wfDaoFacade", IComDfireTisWorkflowDAOFacade.class);
+    IWorkflowDAOFacade wfDaoFacade
+      = applicationContext.getBean("wfDaoFacade", IWorkflowDAOFacade.class);
 
     DatasourceTableCriteria tabCriteria = new DatasourceTableCriteria();
     tabCriteria.createCriteria().andNameEqualTo(TEST_TABLE_EMPLOYEES_NAME);
@@ -391,10 +536,32 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, applicationContext);
   }
 
+  private static List<Object> mocks = Lists.newArrayList();
+
+  private void clearMocks() {
+    mocks.clear();
+  }
+
+  private void verifyAll() {
+    mocks.forEach((r) -> {
+      EasyMock.verify(r);
+    });
+  }
+
+  public <T> T mock(String name, Class<?> toMock) {
+    Object mock = EasyMock.createMock(name, toMock);
+    mocks.add(mock);
+    return (T) mock;
+  }
+
+  public void replay() {
+    mocks.forEach((r) -> {
+      EasyMock.replay(r);
+    });
+  }
 
   @Override
   protected String[] getContextLocations() {
-    //classpath:/tis.application.context.xml
-    return new String[]{"classpath:/tis.application.context.xml"};
+    return new String[]{"classpath:/tis.application.context.xml", "classpath:/tis.test.context.xml"};
   }
 }
