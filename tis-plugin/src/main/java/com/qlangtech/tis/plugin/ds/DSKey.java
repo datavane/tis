@@ -16,7 +16,6 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.util.IPluginContext;
 
 import java.io.File;
 import java.util.Objects;
@@ -28,8 +27,8 @@ import java.util.Objects;
 public class DSKey extends KeyedPluginStore.Key<DataSourceFactory> {
     private final DbScope dbScope;
 
-    public DSKey(String groupName, DbScope dbScope, String keyVal, Class<DataSourceFactory> pluginClass, IPluginContext pluginContext) {
-        super(groupName, keyVal, pluginClass, pluginContext);
+    public DSKey(String groupName, DbScope dbScope, String keyVal, Class<DataSourceFactory> pluginClass) {
+        super(groupName, keyVal, pluginClass);
         this.dbScope = dbScope;
     }
 

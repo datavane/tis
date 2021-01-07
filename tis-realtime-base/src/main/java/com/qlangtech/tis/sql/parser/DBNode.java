@@ -103,7 +103,7 @@ public class DBNode {
                 // 这样可以去重
                 dbConfigsMap
                         = DBNode.load(input).stream().collect(Collectors.toMap((db) -> db.getDbName()
-                        , (db) -> TIS.getDataBasePluginStore(null, new PostedDSProp(db.getDbName(), DbScope.FACADE))));
+                        , (db) -> TIS.getDataBasePluginStore(new PostedDSProp(db.getDbName(), DbScope.FACADE))));
 //
                 for (Map.Entry<String, DataSourceFactoryPluginStore> entry : dbConfigsMap.entrySet()) {
                     factory.registerSingleton(entry.getKey() + "Datasource", entry.getValue().createFacadeDataSource());

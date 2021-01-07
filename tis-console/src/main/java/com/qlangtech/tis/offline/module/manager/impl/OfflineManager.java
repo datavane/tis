@@ -306,7 +306,7 @@ public class OfflineManager {
     table.setTabId(dsTable.getId());
     action.setBizResult(context, table);
     // return dsTable;
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(db.getName()));
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore( new PostedDSProp(db.getName()));
     return new ProcessedTable(dbPlugin.saveTable(tableName), db, dsTable);
   }
 
@@ -428,7 +428,7 @@ public class OfflineManager {
       return;
     }
     int tableId = tableList.get(0).getId();
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(dbName));
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore( new PostedDSProp(dbName));
     dbPlugin.saveTable(tableLogicName);
     // update git
     // String path = dbName + "/" + tableLogicName;
@@ -780,12 +780,12 @@ public class OfflineManager {
 
     PostedDSProp dbProp = new PostedDSProp(db.getName(), DbScope.DETAILED);
 
-    PluginStore<DataSourceFactory> dbStore = TIS.getDataBasePluginStore(pluginContext, dbProp);
+    PluginStore<DataSourceFactory> dbStore = TIS.getDataBasePluginStore( dbProp);
 
     DataSourceFactory dsPlugin = dbStore.getPlugin();
     dbSuit.setDetailed(dsPlugin);
     DataSourceFactoryPluginStore facadeStore
-      = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(db.getName(), DbScope.FACADE));
+      = TIS.getDataBasePluginStore( new PostedDSProp(db.getName(), DbScope.FACADE));
 
     if (facadeStore.getPlugin() != null) {
       dbSuit.setFacade(facadeStore.getPlugin());
@@ -808,7 +808,7 @@ public class OfflineManager {
   public TISTable getTableConfig(IPluginContext pluginContext, Integer tableId) {
     DatasourceTable tab = this.workflowDAOFacade.getDatasourceTableDAO().selectByPrimaryKey(tableId);
     DatasourceDb db = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(tab.getDbId());
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(pluginContext, new PostedDSProp(db.getName()));
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore( new PostedDSProp(db.getName()));
     TISTable t = dbPlugin.loadTableMeta(tab.getName());
     t.setDbName(db.getName());
     t.setTableName(tab.getName());

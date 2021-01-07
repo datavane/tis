@@ -116,14 +116,14 @@ public enum HeteroEnum {
     public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         PluginStore store = null;
         if (pluginContext.isCollectionAware()) {
-            store = TIS.getPluginStore(pluginContext, pluginContext.getCollectionName(), this.extensionPoint);
+            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
         } else if (pluginContext.isDataSourceAware()) {
 
             PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
             if (StringUtils.isEmpty(dsProp.getDbname())) {
                 return Collections.emptyList();
             }
-            store = TIS.getDataBasePluginStore(pluginContext, dsProp);
+            store = TIS.getDataBasePluginStore(dsProp);
         } else {
             store = TIS.getPluginStore(this.extensionPoint);
         }

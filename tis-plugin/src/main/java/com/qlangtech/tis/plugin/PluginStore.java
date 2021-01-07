@@ -22,6 +22,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.XStream2;
 import org.apache.commons.lang.StringUtils;
 
@@ -120,7 +121,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
      *
      * @param other
      */
-    public synchronized void copyFrom(PluginStore<T> other) {
+    public synchronized void copyFrom(IPluginContext pluginContext, PluginStore<T> other) {
         if (this.getPlugin() != null) {
             throw new IllegalStateException("destination plugin store have saved ,can not copy from other");
         }
@@ -130,14 +131,14 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         Descriptor.ParseDescribable<T> parseDescribable = new Descriptor.ParseDescribable<>(other.getPlugin());
         ComponentMeta cmetas = new ComponentMeta(other);
         parseDescribable.extraPluginMetas.addAll(cmetas.loadPluginMeta());
-        this.setPlugins(Optional.empty(), Collections.singletonList(parseDescribable));
+        this.setPlugins(pluginContext, Optional.empty(), Collections.singletonList(parseDescribable));
     }
 
     @Override
-    public synchronized boolean setPlugins(Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
+    public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
         // as almost the process is process file shall not care of process model whether update or add,bu some times have
         // extra process like db process ,shall pass a bool flag form client
-        return this.setPlugins(context, dlist, false);
+        return this.setPlugins(pluginContext, context, dlist, false);
     }
 
     /**
@@ -146,7 +147,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
      * @param dlist
      */
     @Override
-    public synchronized boolean setPlugins(Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
+    public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
         try {
             Set<XStream2.PluginMeta> pluginsMeta = Sets.newHashSet();
             List<T> collect = dlist.stream().map((r) -> {

@@ -48,7 +48,7 @@ public class TestPluginStore extends TestCase {
         Descriptor.ParseDescribable parseDescribable = new Descriptor.ParseDescribable(p);
         parseDescribable.extraPluginMetas.add(new XStream2.PluginMeta("testmeta", "1.0.0"));
         dlist.add(parseDescribable);
-        pstore.setPlugins(Optional.empty(), dlist);
+        pstore.setPlugins(null, Optional.empty(), dlist);
         pstore.cleanPlugins();
         List<TestPlugin> plugins = pstore.getPlugins();
         assertEquals(1, plugins.size());

@@ -157,7 +157,7 @@ public abstract class NodeMaster {
         if (StringUtils.isEmpty(dbName)) {
             throw new IllegalStateException("param 'dbName' can not be null");
         }
-        return TIS.getDataBasePluginStore(null, new PostedDSProp(dbName));
+        return TIS.getDataBasePluginStore(new PostedDSProp(dbName));
     }
 
     private static void finalReportTaskStatus(CommandLine commandLine, boolean faild) {

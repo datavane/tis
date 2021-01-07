@@ -21,7 +21,6 @@ import com.qlangtech.tis.fs.ITaskContext;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
-import com.qlangtech.tis.hdfs.client.data.SourceDataProvider;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.TableDumpFactory;
@@ -63,7 +62,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
     public void testDumpTotalpayinfo() throws Exception {
         GitUtils.ExecuteGetTableConfigCount = 0;
         PluginStore<TableDumpFactory> pluginStore = TIS.getPluginStore(TableDumpFactory.class);
-        DataSourceFactoryPluginStore dataBasePluginStore = TIS.getDataBasePluginStore(null, new PostedDSProp(DB_ORDER));
+        DataSourceFactoryPluginStore dataBasePluginStore = TIS.getDataBasePluginStore(new PostedDSProp(DB_ORDER));
         assertNotNull(pluginStore);
         TableDumpFactory tableDumpPlugin = pluginStore.getPlugin();
         assertNotNull(tableDumpPlugin);

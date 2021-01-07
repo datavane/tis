@@ -29,7 +29,7 @@ public class TestDataSourceFactoryPluginStore extends BasicTestCase {
     private static final String TABLE_NAME = "totalpayinfo";
 
     public void testLoadTableMeta() {
-        DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(null, new PostedDSProp(DB_NAME));
+        DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(DB_NAME));
         //dbPluginStore.getPlugin()
         assertNotNull(dbPluginStore.getPlugin());
         TISTable tab = dbPluginStore.loadTableMeta(TABLE_NAME);
@@ -40,7 +40,7 @@ public class TestDataSourceFactoryPluginStore extends BasicTestCase {
 
     public void testLoadFacadeTableMeta() throws Exception {
         DataSourceFactoryPluginStore employeesPluginStore
-                = TIS.getDataBasePluginStore(null, new PostedDSProp(DB_EMPLOYEE_NAME, DbScope.FACADE));
+                = TIS.getDataBasePluginStore(new PostedDSProp(DB_EMPLOYEE_NAME, DbScope.FACADE));
         assertNotNull(employeesPluginStore);
 
         Class<?> aClass = Class.forName("com.qlangtech.tis.plugin.ds.DBConfig");
@@ -48,7 +48,7 @@ public class TestDataSourceFactoryPluginStore extends BasicTestCase {
 
         DataSourceFactory plugin = employeesPluginStore.getPlugin();
         assertNotNull(plugin);
-       // plugin.createFacadeDataSource();
+        // plugin.createFacadeDataSource();
 
     }
 }

@@ -34,7 +34,10 @@ import com.qlangtech.tis.plugin.ds.DSKey;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
-import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.util.Memoizer;
+import com.qlangtech.tis.util.RobustReflectionConverter;
+import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.util.XStream2PluginInfoReader;
 import org.jvnet.hudson.reactor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,20 +105,20 @@ public class TIS {
         }
     };
 
-    /**
-     * Get db relevant plugin config
-     *
-     * @param dsProp
-     * @return
-     */
-    public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
-        return getDataBasePluginStore(null, dsProp);
-    }
+//    /**
+//     * Get db relevant plugin config
+//     *
+//     * @param dsProp
+//     * @return
+//     */
+//    public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
+//        return getDataBasePluginStore(null, dsProp);
+//    }
 
-    public static DataSourceFactoryPluginStore getDataBasePluginStore(IPluginContext pluginContext, PostedDSProp dsProp) {
+    public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
         DataSourceFactoryPluginStore pluginStore
                 = databasePluginStore.get(new DSKey(DB_GROUP_NAME
-                , dsProp.getDbType(), dsProp.getDbname(), DataSourceFactory.class, pluginContext));
+                , dsProp.getDbType(), dsProp.getDbname(), DataSourceFactory.class));
         return pluginStore;
     }
 
@@ -145,12 +148,11 @@ public class TIS {
      * @param <T>
      * @return
      */
+//    public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
+//        return getPluginStore(null, collection, key);
+//    }
     public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
-        return getPluginStore(null, collection, key);
-    }
-
-    public static <T extends Describable> PluginStore<T> getPluginStore(IPluginContext pluginContext, String collection, Class<T> key) {
-        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key("collection", collection, key, pluginContext));
+        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key("collection", collection, key));
         if (pluginStore == null) {
             // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
             return getPluginStore(key);

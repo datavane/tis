@@ -174,7 +174,7 @@ public class CoreAction extends BasicModule {
   }
 
   private static PluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module, boolean validateNull) {
-    PluginStore<IncrStreamFactory> store = TIS.getPluginStore(module, module.getCollectionName(), IncrStreamFactory.class);
+    PluginStore<IncrStreamFactory> store = TIS.getPluginStore(module.getCollectionName(), IncrStreamFactory.class);
     if (validateNull && store.getPlugin() == null) {
       throw new IllegalStateException("collection:" + module.getCollectionName() + " relevant IncrStreamFactory store can not be null");
     }
@@ -242,7 +242,7 @@ public class CoreAction extends BasicModule {
       PluginStore<IncrStreamFactory> collectionBindIncrStreamFactoryStore = getIncrStreamFactoryStore(module);
       if (collectionBindIncrStreamFactoryStore.getPlugin() == null) {
         // 需要将全局插件属性拷贝到collection绑定的插件属性上来
-        collectionBindIncrStreamFactoryStore.copyFrom(store);
+        collectionBindIncrStreamFactoryStore.copyFrom(module, store);
       }
     }
     // 这里永远是false应该

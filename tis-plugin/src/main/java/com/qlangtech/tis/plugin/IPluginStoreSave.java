@@ -17,6 +17,7 @@ package com.qlangtech.tis.plugin;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,8 +28,8 @@ import java.util.Optional;
  */
 public interface IPluginStoreSave<T extends Describable> {
 
-    default boolean setPlugins(Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
-        return this.setPlugins(context, dlist, false);
+    default boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
+        return this.setPlugins(pluginContext, context, dlist, false);
     }
 
     /**
@@ -37,5 +38,5 @@ public interface IPluginStoreSave<T extends Describable> {
      * @param update  whether the process is update or create
      * @return
      */
-    boolean setPlugins(Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update);
+    boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update);
 }

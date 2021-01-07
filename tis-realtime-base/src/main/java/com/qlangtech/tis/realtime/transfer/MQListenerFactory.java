@@ -44,7 +44,7 @@ public class MQListenerFactory implements InitializingBean {
             throw new IllegalStateException("collection name have not be set");
         }
         PluginStore<com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory> mqFactory
-                = TIS.getPluginStore(null, this.collection, com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory.class);
+                = TIS.getPluginStore(this.collection, com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory.class);
         List<com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory> mqListenerFactory = mqFactory.getPlugins();
         if (this.consumer == null) {
             throw new IllegalStateException("consume can not be null");

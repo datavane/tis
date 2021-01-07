@@ -66,19 +66,20 @@ public class PluginItems {
         }
         IPluginStoreSave<?> store = null;
         if (this.pluginContext.isCollectionAware()) {
-            store = TIS.getPluginStore(this.pluginContext, this.pluginContext.getCollectionName(), heteroEnum.extensionPoint);
+            store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.extensionPoint);
         } else if (this.pluginContext.isDataSourceAware()) {
 
             store = new IPluginStoreSave<DataSourceFactory>() {
                 @Override
-                public boolean setPlugins(Optional<Context> context, List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
+                public boolean setPlugins(IPluginContext pluginContext, Optional<Context> context
+                        , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
                     for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
 
                         PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
                         dbExtraProps.setDbname(plugin.instance.identityValue());
 
-                        boolean success = TIS.getDataBasePluginStore(pluginContext, dbExtraProps)
-                                .setPlugins(context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
+                        boolean success = TIS.getDataBasePluginStore(dbExtraProps)
+                                .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
                         if (!success) {
                             return false;
                         }
@@ -92,7 +93,7 @@ public class PluginItems {
             store = TIS.getPluginStore(heteroEnum.extensionPoint);
         }
         //dlist
-        if (!store.setPlugins(Optional.of(context), convert(dlist))) {
+        if (!store.setPlugins(pluginContext, Optional.of(context), convert(dlist))) {
             return;
         }
         observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList));

@@ -33,13 +33,13 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     //protected transient final String keyVal;
     protected transient final Key key;
 
-    protected transient final IPluginContext pluginContext;
+    //protected transient final IPluginContext pluginContext;
 
     public KeyedPluginStore(Key key) {
         super(key.pluginClass, key.getSotreFile());
         // this.serializeFileName = key.getSerializeFileName();
         this.key = key;
-        this.pluginContext = key.pluginContext;
+       // this.pluginContext = key.pluginContext;
         // this.keyVal = key.keyVal;
     }
 
@@ -52,26 +52,26 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         public final String keyVal;
         protected final String groupName;
-        private final IPluginContext pluginContext;
+        //private final IPluginContext pluginContext;
 
         protected final Class<T> pluginClass;
 
-        public Key(String groupName, String keyVal, Class<T> pluginClass, IPluginContext pluginContext) {
+        public Key(String groupName, String keyVal, Class<T> pluginClass) {
             if (StringUtils.isEmpty(keyVal)) {
                 throw new IllegalArgumentException("param key.collection can not be null");
             }
             this.keyVal = keyVal;
             this.pluginClass = pluginClass;
             this.groupName = groupName;
-            this.pluginContext = pluginContext;
+           // this.pluginContext = pluginContext;
         }
 
-        public IPluginContext getPluginContext() {
-            if (this.pluginContext == null) {
-                throw new IllegalStateException("pluginContext can not be null");
-            }
-            return this.pluginContext;
-        }
+//        public IPluginContext getPluginContext() {
+//            if (this.pluginContext == null) {
+//                throw new IllegalStateException("pluginContext can not be null");
+//            }
+//            return this.pluginContext;
+//        }
 
         protected String getSerializeFileName() {
             return this.getSubDirPath() + File.separator + pluginClass.getName();

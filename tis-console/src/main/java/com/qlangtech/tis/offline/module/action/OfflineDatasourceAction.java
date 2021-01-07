@@ -57,8 +57,8 @@ import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
@@ -153,7 +153,7 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doSelectDbChange(Context context) throws Exception {
     Integer dbid = this.getInt("dbid");
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
-    PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(this, new PostedDSProp(db.getName(), DbScope.DETAILED));
+    PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
 
     List<String> tabs = dbPlugin.getPlugin().getTablesInDB();
     // 通过DB的连接信息找到找到db下所有表信息
@@ -1095,7 +1095,7 @@ public class OfflineDatasourceAction extends BasicModule {
       }
 
       // tabCfg = GitUtils.$().getTableConfig(dumpNode.getDbName(), dumpNode.getName());
-      DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(this, new PostedDSProp(dumpNode.getDbName()));
+      DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
       TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
       if (CollectionUtils.isEmpty(tisTable.getReflectCols())) {
         throw new IllegalStateException("db:" + dumpNode.getDbName() + ",table:" + dumpNode.getName() + " relevant table col reflect cols can not be empty");
@@ -1186,7 +1186,7 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
 
-    PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(this, new PostedDSProp(db.getName(), DbScope.DETAILED));
+    PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
 
     List<ColumnMetaData> cols = dbPlugin.getPlugin().getTableMetadata(table);// offlineManager.getTableMetadata(db.getName(), table);
     if (cols.size() < 1) {
@@ -1347,7 +1347,6 @@ public class OfflineDatasourceAction extends BasicModule {
     this.offlineManager.confirmWorkflowChange(id, this, context);
     // this.doGetWorkflows(context);
   }
-
 
 
 //  /**

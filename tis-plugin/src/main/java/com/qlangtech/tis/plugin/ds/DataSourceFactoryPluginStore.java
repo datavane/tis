@@ -20,6 +20,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -87,14 +88,14 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     }
 
     @Override
-    public synchronized boolean setPlugins(Optional<Context> context
+    public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context
             , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
         if (!context.isPresent()) {
             throw new IllegalArgumentException("Context shall exist");
         }
         Context ctx = context.get();
         final String dbName = this.key.keyVal;
-        if (!super.setPlugins(context, dlist, update)) {
+        if (!super.setPlugins(pluginContext, context, dlist, update)) {
             return false;
         }
         pluginContext.addDb(dbName, ctx, (shallUpdateDB && !update));

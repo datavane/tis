@@ -252,7 +252,7 @@ public class GenerateDAOAndIncrScript {
     private DataSourceFactoryPluginStore getFacadePluginStore(Map.Entry<DBNode, List<String>> entry) {
         DataSourceFactoryPluginStore dbPluginStore;
         dbPluginStore
-                = TIS.getDataBasePluginStore(null, new PostedDSProp(entry.getKey().getDbName(), DbScope.FACADE));
+                = TIS.getDataBasePluginStore( new PostedDSProp(entry.getKey().getDbName(), DbScope.FACADE));
         return dbPluginStore;
     }
 

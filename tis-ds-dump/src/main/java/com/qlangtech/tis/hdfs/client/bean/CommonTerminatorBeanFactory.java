@@ -93,7 +93,7 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         }
         dumpContext.setDataSourceFactory(this.dataSourceFactory);
 
-        DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(null, new PostedDSProp(dumpTable.getDbName()));
+        DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(dumpTable.getDbName()));
         TISTable tisTable = dbPluginStore.loadTableMeta(dumpTable.getTableName());
         Objects.requireNonNull(tisTable, "tisTable can not be null");
         dumpContext.setTisTable(tisTable);
