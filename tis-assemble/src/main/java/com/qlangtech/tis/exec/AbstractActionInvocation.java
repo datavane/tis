@@ -30,11 +30,8 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -221,8 +218,9 @@ public class AbstractActionInvocation implements ActionInvocation {
         }
 
         @Override
-        public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
-            throw new UnsupportedOperationException();
+        public final Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
+            //throw new UnsupportedOperationException();
+            return Collections.emptyMap();
         }
     }
 }

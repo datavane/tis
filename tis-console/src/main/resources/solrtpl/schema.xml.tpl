@@ -8,8 +8,8 @@
     <fieldType name="long" class="solr.LongPointField" docValues="false" />
     <fieldType name="double" class="solr.DoublePointField" docValues="false" />
 
-    <fieldType name="date" class="com.qlangtech.tis.solrextend.fieldtype.TisDateField" docValues="false" />
-    <fieldType name="timestamp" class="solr.DatePointField" docValues="false" />
+    <fieldType name="date"      class="com.qlangtech.tis.solrextend.fieldtype.TisDateField" docValues="false" />
+    <fieldType name="timestamp" class="com.qlangtech.tis.solrextend.fieldtype.TisTimestampField" docValues="false" />
 
 	  <fieldType name="bitwise" class="com.qlangtech.tis.solrextend.fieldtype.BitwiseField"   omitNorms="true"  omitTermFreqAndPositions="true" />
 

@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.opensymphony.xwork2.ActionProxy;
+import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
@@ -35,6 +36,7 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.AddAppAction;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
+import com.qlangtech.tis.runtime.module.action.TestSysInitializeAction;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -66,7 +68,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020-12-16 10:39
  */
-public class TestCollectionAction extends StrutsSpringTestCase {
+public class TestCollectionAction extends BasicActionTestCase {
 
   static {
     CenterResource.setNotFetchFromCenterRepository();
@@ -227,7 +229,11 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     queryField.put("word", "Nirm");
     searchFields.add(queryField);
     content.put(CollectionAction.KEY_QUERY_SEARCH_FIELDS, searchFields);
-    content.put(CollectionAction.KEY_QUERY_FIELDS, FIELD_EMPLOYEES_FIRST_NAME + "," + FIELD_EMPLOYEES_LAST_NAME);
+    JSONArray returnFields = new JSONArray();
+    returnFields.add(FIELD_EMPLOYEES_FIRST_NAME);
+    returnFields.add(FIELD_EMPLOYEES_LAST_NAME);
+    content.put(CollectionAction.KEY_QUERY_FIELDS, returnFields);//FIELD_EMPLOYEES_FIRST_NAME + "," + FIELD_EMPLOYEES_LAST_NAME);
+
     // content.put(CollectionAction.KEY_QUERY_QUERY_FIELDS, FIELD_EMPLOYEES_FIRST_NAME + " " + FIELD_EMPLOYEES_LAST_NAME);
     content.put(CollectionAction.KEY_QUERY_LIMIT, rowsLimit);
     content.put(CollectionAction.KEY_QUERY_ROWS_OFFSET, 2);
@@ -536,32 +542,5 @@ public class TestCollectionAction extends StrutsSpringTestCase {
     servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, applicationContext);
   }
 
-  private static List<Object> mocks = Lists.newArrayList();
 
-  private void clearMocks() {
-    mocks.clear();
-  }
-
-  private void verifyAll() {
-    mocks.forEach((r) -> {
-      EasyMock.verify(r);
-    });
-  }
-
-  public <T> T mock(String name, Class<?> toMock) {
-    Object mock = EasyMock.createMock(name, toMock);
-    mocks.add(mock);
-    return (T) mock;
-  }
-
-  public void replay() {
-    mocks.forEach((r) -> {
-      EasyMock.replay(r);
-    });
-  }
-
-  @Override
-  protected String[] getContextLocations() {
-    return new String[]{"classpath:/tis.application.context.xml", "classpath:/tis.test.context.xml"};
-  }
 }

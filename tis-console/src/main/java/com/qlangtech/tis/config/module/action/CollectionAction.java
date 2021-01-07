@@ -225,7 +225,8 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     table.setTableName(targetTable);
     table.setDbId(dsDb.getDbId());
 
-    OfflineManager.ProcessedTable dsTable = offlineManager.addDatasourceTable(table, this, this, context, false, true);
+    OfflineManager.ProcessedTable dsTable = offlineManager.addDatasourceTable(table, this
+      , this, context, false, true);
     if (context.hasErrors()) {
       return;
     }
@@ -384,10 +385,16 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       queryCriteria.add(new Option(field, word));
     });
 
-    final String fields = post.getString(KEY_QUERY_FIELDS);
-    if (StringUtils.isEmpty(fields)) {
+    JSONArray storedFields = post.getJSONArray(KEY_QUERY_FIELDS);
+    if (storedFields == null) {
       throw new IllegalArgumentException("param 'fields' can not be null");
     }
+    storedFields.stream().map((r) -> (String) r).collect(Collectors.toList());
+
+//    final String fields = post.getString(KEY_QUERY_FIELDS);
+//    if (StringUtils.isEmpty(fields)) {
+//      throw new IllegalArgumentException("param 'fields' can not be null");
+//    }
     final Integer limit = post.getInteger(KEY_QUERY_LIMIT);
     if (limit == null) {
       throw new IllegalArgumentException("param limit can not be null");
@@ -397,11 +404,12 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //      throw new IllegalArgumentException("'queryFields' can not be null");
 //    }
     final String orderBy = post.getString(KEY_QUERY_ORDER_BY);
-
     Integer rowsOffset = post.getInteger(KEY_QUERY_ROWS_OFFSET);
 
-
     Application application = this.getApplicationDAO().selectByName(indexName);
+    if (application == null) {
+      throw new IllegalStateException("indexName:" + indexName + " relevant app can not be null");
+    }
     AppDomainInfo app = new AppDomainInfo(0, application.getAppId(), RunEnvironment.getSysRuntime(), application);
     final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(app, this.getRequest(), getResponse(), getDaoContext());
 
@@ -413,7 +421,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
       QueryCloudSolrClient solrClient = new QueryCloudSolrClient(url);
       SolrQuery query = new SolrQuery();
-      query.set(CommonParams.FL, fields);
+      query.set(CommonParams.FL, storedFields.stream().map((r) -> (String) r).collect(Collectors.joining(",")));
       // query.setParam(QUERY_PARSIING_DEF_TYPE, "dismax");
       // query.setParam(DisMaxParams.QF, queryFields);
       query.setQuery(queryCriteria.stream().map((f) -> f.getName() + ":" + f.getValue()).collect(Collectors.joining(" AND ")));

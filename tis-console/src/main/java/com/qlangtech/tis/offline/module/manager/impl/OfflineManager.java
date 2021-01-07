@@ -767,7 +767,8 @@ public class OfflineManager {
         OfflineDatasourceAction.DatasourceDb datasourceDb = dbsMap.get(dbId);
         datasourceDb.addTable(datasourceTable);
       } else {
-        throw new IllegalStateException(datasourceTable + "找不到对应的db, dbId=" + datasourceTable.getDbId());
+        throw new IllegalStateException(datasourceTable + "找不到对应的db, dbId="
+          + datasourceTable.getDbId() + ",tableId:" + datasourceTable.getName());
       }
     }
     return dbsMap.values();
