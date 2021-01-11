@@ -697,7 +697,7 @@ public class CoreAction extends BasicModule {
           dirDesc.setAllcount(getAllRowsCount(collection.getName(), replica.getCoreUrl()));
           hasGetAllCount = true;
         }
-        url = new URL(ZkCoreNodeProps.getCoreUrl(replica.getCoreUrl(), "/admin/mbeans?stats=true&cat=CORE&key=core&wt=xml"));
+        url = new URL(ZkCoreNodeProps.getCoreUrl(replica.getCoreUrl(), "admin/mbeans?stats=true&cat=CORE&key=core&wt=xml"));
         // http://192.168.28.200:8080/solr/search4supplyGoods2_shard1_replica_n1/admin/mbeans?stats=true&cat=CORE&key=core&wt=xml
         ConfigFileContext.processContent(url, new StreamProcess<Object>() {
 
