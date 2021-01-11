@@ -368,26 +368,33 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
    * @throws Exception
    */
   public void doQuery(Context context) throws Exception {
-    JSONObject post = this.parseJsonPost();
-    if (StringUtils.isEmpty(post.getString(KEY_INDEX_NAME))) {
-      throw new IllegalArgumentException("indexName can not be null");
-    }
-    this.indexName = TISCollectionUtils.NAME_PREFIX + post.getString(KEY_INDEX_NAME);
+    JSONObject post = getIndexWithPost();//this.parseJsonPost();
+
+//    if (StringUtils.isEmpty(post.getString(KEY_INDEX_NAME))) {
+//      throw new IllegalArgumentException("indexName can not be null");
+//    }
+    // this.indexName = TISCollectionUtils.NAME_PREFIX + post.getString(KEY_INDEX_NAME);
 
     JSONArray searchFields = post.getJSONArray(KEY_QUERY_SEARCH_FIELDS);
     Objects.requireNonNull(searchFields, "param " + KEY_QUERY_SEARCH_FIELDS + " can not be null ");
     if (searchFields.size() < 1) {
       throw new IllegalArgumentException(KEY_QUERY_SEARCH_FIELDS + " relevant field can not be empty");
     }
-    final List<Option> queryCriteria = Lists.newArrayList();
+    final List<SubCriteria> andQueryCriteria = Lists.newArrayList();
     searchFields.forEach((f) -> {
+      SubCriteria subCriteria = new SubCriteria();
       JSONObject o = (JSONObject) f;
-      String field = o.getString("field");
-      String word = o.getString("word");
-      if (StringUtils.isEmpty(field) || StringUtils.isEmpty(word)) {
-        throw new IllegalArgumentException("query field:" + o.toJSONString() + "either key or val can not be null");
+      Option opt = null;
+      String word = null;
+      for (String key : o.keySet()) {
+        word = o.getString(key);
+        if (StringUtils.isEmpty(word)) {
+          throw new IllegalArgumentException("query field:" + key + ",relevant:" + word + ",val can not be null");
+        }
+        opt = new Option(key, word);
+        subCriteria.addOr(opt);
       }
-      queryCriteria.add(new Option(field, word));
+      andQueryCriteria.add(subCriteria);
     });
 
     JSONArray storedFields = post.getJSONArray(KEY_QUERY_FIELDS);
@@ -425,7 +432,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       query.set(CommonParams.FL, storedFields.stream().map((r) -> (String) r).collect(Collectors.joining(",")));
       // query.setParam(QUERY_PARSIING_DEF_TYPE, "dismax");
       // query.setParam(DisMaxParams.QF, queryFields);
-      query.setQuery(queryCriteria.stream().map((f) -> f.getName() + ":" + f.getValue()).collect(Collectors.joining(" AND ")));
+      query.setQuery(this.createQuery(andQueryCriteria));
       query.setRows(limit);
       if (rowsOffset != null) {
         query.setStart(rowsOffset);
@@ -452,6 +459,12 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       this.setBizResult(context, biz);
       return;
     }
+  }
+
+  private String createQuery(List<SubCriteria> andQueryCriteria) {
+    return andQueryCriteria.stream().map(sc -> {
+      return "(" + sc.ors.stream().map((or) -> or.getName() + ":" + or.getValue()).collect(Collectors.joining(" OR ")) + ")";
+    }).collect(Collectors.joining(" AND "));
   }
 
   @Override

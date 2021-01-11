@@ -44,7 +44,6 @@ import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.cloud.*;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
@@ -54,6 +53,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -211,8 +211,9 @@ public class TestCollectionAction extends BasicActionTestCase {
     content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
     JSONArray searchFields = new JSONArray();
     JSONObject queryField = new JSONObject();
-    queryField.put("field", FIELD_EMPLOYEES_FIRST_NAME);
-    queryField.put("word", "Nirm");
+   // queryField.put("field", FIELD_EMPLOYEES_FIRST_NAME);
+    queryField.put(FIELD_EMPLOYEES_FIRST_NAME, "Nirm");
+    queryField.put(FIELD_EMPLOYEES_LAST_NAME, "Nirm");
     searchFields.add(queryField);
     content.put(CollectionAction.KEY_QUERY_SEARCH_FIELDS, searchFields);
     JSONArray returnFields = new JSONArray();
@@ -241,36 +242,63 @@ public class TestCollectionAction extends BasicActionTestCase {
     this.verifyAll();
   }
 
-  private void buildZkStateReaderMock() throws KeeperException, InterruptedException {
+  private void buildZkStateReaderMock() throws Exception {
     String collectionName = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
     // getClusterState
     TISZkStateReader tisZkStateReader = this.mock("tisZkStateReader", TISZkStateReader.class);
     MockClusterStateReader.mockStateReader = tisZkStateReader;
 
-    DocCollection docCollection = buildDocCollectionMock(true);
-    EasyMock.expect(tisZkStateReader.fetchCollectionState(collectionName, null))
-      .andReturn(docCollection);
+    DocCollection docCollection = buildDocCollectionMock(true, tisZkStateReader);
+
   }
 
-  private DocCollection buildDocCollectionMock(boolean getSlicesMap) {
+  private DocCollection buildDocCollectionMock(boolean getSlicesMap, TISZkStateReader tisZkStateReader) throws Exception {
     DocCollection docCollection = this.mock("docCollection", DocCollection.class);
     Map<String, Slice> sliceMap = Maps.newHashMap();
     Slice slice = this.mock("shard1Slice", Slice.class);
     Replica replica = this.mock("core_node2_replica", Replica.class);
     sliceMap.put("shard1", slice);
-    EasyMock.expect(slice.getReplicas()).andReturn(Collections.singleton(replica));
-
+    IExpectationSetters<Collection<Replica>> collectionIExpectationSetters
+      = EasyMock.expect(slice.getReplicas()).andReturn(Collections.singleton(replica));
+    if (!getSlicesMap) {
+      collectionIExpectationSetters.times(2);
+    }
+    IExpectationSetters<Boolean> leaderSetters
+      = EasyMock.expect(replica.getBool("leader", false)).andReturn(true);
+    if (!getSlicesMap) {
+      leaderSetters.times(1);
+    }
     IExpectationSetters<String> getCoreUrlExpectationSetters
-      = EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4employees_shard1_replica_n1");
-    if (getSlicesMap) {
-      getCoreUrlExpectationSetters.times(1);
-      EasyMock.expect(replica.getBool("leader", false)).andReturn(true);
-      EasyMock.expect(docCollection.getSlicesMap()).andReturn(sliceMap);
-    } else {
-      getCoreUrlExpectationSetters.times(2);
+      = EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4employees_shard1_replica_n1/");
+
+
+    if (!getSlicesMap) {
+      String shard1 = "shard1";
+      getCoreUrlExpectationSetters.times(4);
+      EasyMock.expect(slice.getName()).andReturn("shard1");
+
+      EasyMock.expect(replica.getName()).andReturn("search4employees_shard1_replica_n1").times(2);
+      EasyMock.expect(replica.getBaseUrl()).andReturn("baseurl").times(2);
+      EasyMock.expect(replica.getCollection()).andReturn(COLLECTION_NAME).times(2);
+      EasyMock.expect(replica.getCoreName()).andReturn("search4employees_shard1_replica_n1").times(2);
+      EasyMock.expect(replica.getState()).andReturn(Replica.State.ACTIVE).times(3);
+      EasyMock.expect(replica.getNodeName()).andReturn("192.168.28.200:8080_solr").times(3);
+      EasyMock.expect(replica.getProperties()).andReturn(Collections.emptyMap()).times(2);
+      EasyMock.expect(replica.getType()).andReturn(Replica.Type.NRT).times(2);
+      EasyMock.expect(replica.getSlice()).andReturn(shard1).times(2);
+
       EasyMock.expect(docCollection.getName()).andReturn(COLLECTION_NAME);
       EasyMock.expect(docCollection.getSlices()).andReturn(sliceMap.values()).times(2);
+    } else {
+      getCoreUrlExpectationSetters.times(1);
+      EasyMock.expect(replica.getBaseUrl()).andReturn("baseurl").times(1);
     }
+
+    EasyMock.expect(docCollection.getSlicesMap()).andReturn(sliceMap);
+
+    EasyMock.expect(tisZkStateReader.fetchCollectionState(COLLECTION_NAME, null))
+      .andReturn(docCollection);
+
     return docCollection;
   }
 
@@ -284,7 +312,7 @@ public class TestCollectionAction extends BasicActionTestCase {
     ClusterState.CollectionRef collectionRef = this.mock(COLLECTION_NAME + "CollectionRef", ClusterState.CollectionRef.class);
     EasyMock.expect(clusterState.getCollectionRef(COLLECTION_NAME)).andReturn(collectionRef);
 
-    DocCollection coll = buildDocCollectionMock(false);
+    DocCollection coll = buildDocCollectionMock(false, tisZkStateReader);
     EasyMock.expect(collectionRef.get()).andReturn(coll);
 
     MockClusterStateReader.mockStateReader = tisZkStateReader;

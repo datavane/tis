@@ -615,8 +615,7 @@ public class CoreAction extends BasicModule {
     result.put("topology", getCollectionTopology(module));
     result.put("config", module.getConfigGroup0());
     result.put("app", module.getAppDomain());
-    ClusterStateCollectAction.StatusCollectStrategy collectStrategy
-      = ClusterStateCollectAction.getCollectStrategy(
+    ClusterStateCollectAction.StatusCollectStrategy collectStrategy = ClusterStateCollectAction.getCollectStrategy(
       module.getClusterSnapshotDAO(), module.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
     ClusterSnapshot.Summary metricSummary = collectStrategy.getMetricSummary();
     result.put("metrics", metricSummary);
@@ -718,7 +717,8 @@ public class CoreAction extends BasicModule {
               replicState.setInvalidDesc("未完成全量构建");
             }
             replicState.setNodeName(StringUtils.substringBefore(replica.getNodeName(), ":"));
-            replicState.setCoreName(StringUtils.substringAfter(replica.getStr(CORE_NAME_PROP), "_"));
+            ;
+            replicState.setCoreName(StringUtils.substringAfter((String) core.get("class"), "_"));
             replicState.setState(replica.getState().toString());
             replicState.setLeader(replica.getBool("leader", false));
             dirDesc.addReplicState(slice.getName(), replicState);
