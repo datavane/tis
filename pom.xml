@@ -12,7 +12,7 @@
 
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis-solr-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <packaging>pom</packaging>
     <name>tis-solr-parent</name>
     <url>http://maven.apache.org</url>
@@ -34,21 +34,12 @@
     <modules>
         <module>xmodifier</module>
         <module>tis-manage-pojo</module>
-
-
         <module>tis-hadoop-rpc</module>
         <module>tis-solrconfig-parser</module>
         <module>tis-solrj-client</module>
 
-
         <module>tis-common</module>
-        <!--
-        <module>tis-rpc</module>
--->
         <module>tis-builder-api</module>
-        <!--
-        <module>tis-client-standalone</module>
--->
         <module>tis-web-start</module>
         <module>tis-assemble</module>
 
@@ -59,17 +50,10 @@
         <module>tis-solrcore-extend</module>
 
         <module>tis-index-builder</module>
-        <!--
-       <module>tis-index-builder-yarn</module>
 
-               <module>terminator-job-trigger-server</module>
-       -->
         <module>tis-realtime-base</module>
         <module>tis-sql-parser</module>
-
-        <!---->
         <module>tis-collection-info-collect</module>
-
         <module>tis-console</module>
         <module>solr-webapp</module>
         <module>tis-scala-compiler</module>

@@ -137,6 +137,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
    * @throws Exception
    */
   public void doGetIndexStatus(Context context) throws Exception {
+    this.getIndexWithPost();
     this.setBizResult(context, CoreAction.getCollectionStatus(this));
   }
 
@@ -274,8 +275,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (StringUtils.isEmpty(this.indexName)) {
       throw new IllegalStateException("indexName:" + indexName + " can not be null");
     }
-    return TISCollectionUtils.NAME_PREFIX + indexName;
+    return this.indexName;
   }
+
 
   /**
    * 触发全量构建
@@ -313,6 +315,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     getIndexWithPost();
     // 删除
     Application app = this.getApplicationDAO().selectByName(this.indexName);
+    if (app == null) {
+      throw new IllegalStateException("indexName:" + this.indexName + " relevant instance in db can not be empty");
+    }
     final WorkFlow workFlow = this.loadDF(app.getWorkFlowId());
     this.rescycleAppDB(app.getAppId());
     this.getWorkflowDAOFacade().getWorkFlowDAO().deleteByPrimaryKey(workFlow.getId());
@@ -406,11 +411,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     final String orderBy = post.getString(KEY_QUERY_ORDER_BY);
     Integer rowsOffset = post.getInteger(KEY_QUERY_ROWS_OFFSET);
 
-    Application application = this.getApplicationDAO().selectByName(indexName);
-    if (application == null) {
-      throw new IllegalStateException("indexName:" + indexName + " relevant app can not be null");
-    }
-    AppDomainInfo app = new AppDomainInfo(0, application.getAppId(), RunEnvironment.getSysRuntime(), application);
+    AppDomainInfo app = getAppDomain();
     final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(app, this.getRequest(), getResponse(), getDaoContext());
 
     final List<ServerJoinGroup> serverlist = queryResutStrategy.queryProcess();
@@ -451,6 +452,15 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       this.setBizResult(context, biz);
       return;
     }
+  }
+
+  @Override
+  public AppDomainInfo getAppDomain() {
+    Application application = this.getApplicationDAO().selectByName(this.getCollectionName());
+    if (application == null) {
+      throw new IllegalStateException("indexName:" + indexName + " relevant app can not be null");
+    }
+    return new AppDomainInfo(0, application.getAppId(), RunEnvironment.getSysRuntime(), application);
   }
 
 

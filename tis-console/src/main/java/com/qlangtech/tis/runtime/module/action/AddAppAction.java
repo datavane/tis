@@ -402,7 +402,8 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     Set<Long> resIds = Sets.newHashSet();
     for (Snapshot snapshot : this.getSnapshotDAO().selectByExample(snCriteria)) {
       resIds.add(snapshot.getResSchemaId());
-      resIds.add(snapshot.getResSolrId());
+      // 先不删除 solrConfig的配置，很有可能把 模版配置里面的solrconfig也删除掉的
+      //  resIds.add(snapshot.getResSolrId());
       this.getSnapshotDAO().deleteByPrimaryKey(snapshot.getSnId());
     }
     UploadResourceCriteria urCriteria = new UploadResourceCriteria();

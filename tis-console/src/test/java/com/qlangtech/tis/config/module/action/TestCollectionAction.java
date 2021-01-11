@@ -36,7 +36,6 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.AddAppAction;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
-import com.qlangtech.tis.runtime.module.action.TestSysInitializeAction;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -44,13 +43,11 @@ import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.common.cloud.DocCollection;
-import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.cloud.Slice;
-import org.apache.solr.common.cloud.TISZkStateReader;
-import org.apache.struts2.StrutsSpringTestCase;
+import org.apache.solr.common.cloud.*;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
+import org.easymock.IExpectationSetters;
 import org.shai.xmodifier.util.StringUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
@@ -88,6 +85,10 @@ public class TestCollectionAction extends BasicActionTestCase {
   }
 
   private static final String TEST_TABLE_EMPLOYEES_NAME = "employees";
+
+  // private static final String TEST_TABLE_EMPLOYEES_NAME = "singleEmployee";
+
+
   private static final String TEST_TABLE_SALARIES_NAME = "salaries";
   private static final String TEST_TABLE_DEPARTMENT_NAME = "departments";
   private static final String TEST_DS_NAME = "employees";
@@ -201,22 +202,7 @@ public class TestCollectionAction extends BasicActionTestCase {
 //    URLStreamHandler streamHandler = mock("httpStreamHander", StubStreamHandlerFactory.StubHttpURLStreamHander.class);
 //    StubStreamHandlerFactory.streamHander = streamHandler;
 
-    String collectionName = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
-
-    TISZkStateReader tisZkStateReader = this.mock("tisZkStateReader", TISZkStateReader.class);
-    MockClusterStateReader.mockStateReader = tisZkStateReader;
-
-    DocCollection docCollection = this.mock("docCollection", DocCollection.class);
-    Map<String, Slice> sliceMap = Maps.newHashMap();
-    Slice slice = this.mock("shard1Slice", Slice.class);
-    Replica replica = this.mock("core_node2_replica", Replica.class);
-    sliceMap.put("shard1", slice);
-    EasyMock.expect(slice.getReplicas()).andReturn(Collections.singleton(replica));
-    EasyMock.expect(replica.getBool("leader", false)).andReturn(true);
-    EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4employees_shard1_replica_n1");
-    EasyMock.expect(docCollection.getSlicesMap()).andReturn(sliceMap);
-    EasyMock.expect(tisZkStateReader.fetchCollectionState(collectionName, null))
-      .andReturn(docCollection);
+    buildZkStateReaderMock();
 
     request.setParameter("emethod", "query");
     request.setParameter("action", "collection_action");
@@ -252,6 +238,69 @@ public class TestCollectionAction extends BasicActionTestCase {
     List<Map<String, String>> rows = (List<Map<String, String>>) bizResult.get(CollectionAction.RESULT_KEY_ROWS);
     assertNotNull(rows);
     assertEquals(rowsLimit, rows.size());
+    this.verifyAll();
+  }
+
+  private void buildZkStateReaderMock() throws KeeperException, InterruptedException {
+    String collectionName = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
+    // getClusterState
+    TISZkStateReader tisZkStateReader = this.mock("tisZkStateReader", TISZkStateReader.class);
+    MockClusterStateReader.mockStateReader = tisZkStateReader;
+
+    DocCollection docCollection = buildDocCollectionMock(true);
+    EasyMock.expect(tisZkStateReader.fetchCollectionState(collectionName, null))
+      .andReturn(docCollection);
+  }
+
+  private DocCollection buildDocCollectionMock(boolean getSlicesMap) {
+    DocCollection docCollection = this.mock("docCollection", DocCollection.class);
+    Map<String, Slice> sliceMap = Maps.newHashMap();
+    Slice slice = this.mock("shard1Slice", Slice.class);
+    Replica replica = this.mock("core_node2_replica", Replica.class);
+    sliceMap.put("shard1", slice);
+    EasyMock.expect(slice.getReplicas()).andReturn(Collections.singleton(replica));
+
+    IExpectationSetters<String> getCoreUrlExpectationSetters
+      = EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4employees_shard1_replica_n1");
+    if (getSlicesMap) {
+      getCoreUrlExpectationSetters.times(1);
+      EasyMock.expect(replica.getBool("leader", false)).andReturn(true);
+      EasyMock.expect(docCollection.getSlicesMap()).andReturn(sliceMap);
+    } else {
+      getCoreUrlExpectationSetters.times(2);
+      EasyMock.expect(docCollection.getName()).andReturn(COLLECTION_NAME);
+      EasyMock.expect(docCollection.getSlices()).andReturn(sliceMap.values()).times(2);
+    }
+    return docCollection;
+  }
+
+  public void testDoGetIndexStatus() throws Exception {
+    // this.buildZkStateReaderMock();
+    TISZkStateReader tisZkStateReader = this.mock("tisZkStateReader", TISZkStateReader.class);
+    //getClusterState
+    ClusterState clusterState = this.mock("clusterState", ClusterState.class);
+    EasyMock.expect(tisZkStateReader.getClusterState()).andReturn(clusterState);
+
+    ClusterState.CollectionRef collectionRef = this.mock(COLLECTION_NAME + "CollectionRef", ClusterState.CollectionRef.class);
+    EasyMock.expect(clusterState.getCollectionRef(COLLECTION_NAME)).andReturn(collectionRef);
+
+    DocCollection coll = buildDocCollectionMock(false);
+    EasyMock.expect(collectionRef.get()).andReturn(coll);
+
+    MockClusterStateReader.mockStateReader = tisZkStateReader;
+
+    request.setParameter("emethod", "getIndexStatus");
+    request.setParameter("action", "collection_action");
+    JSONObject content = new JSONObject();
+    content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
+    request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
+    this.replay();
+    ActionProxy proxy = getActionProxy();
+    String result = proxy.execute();
+    assertEquals("CollectionAction_ajax", result);
+    AjaxValve.ActionExecResult aResult = showBizResult();
+    assertNotNull(aResult);
+    assertTrue(aResult.isSuccess());
     this.verifyAll();
   }
 
