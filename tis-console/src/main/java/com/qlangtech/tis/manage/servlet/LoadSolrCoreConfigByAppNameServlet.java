@@ -48,7 +48,7 @@ public class LoadSolrCoreConfigByAppNameServlet extends BasicServlet {
 
   private static final Log log = LogFactory.getLog(LoadSolrCoreConfigByAppNameServlet.class);
 
-  private static final Pattern resourcePattern = Pattern.compile(DownloadServlet.replace(ConfigConstant.FILE_APPLICATION + "|" + ConfigConstant.FILE_DATA_SOURCE + "|" + ConfigConstant.FILE_SCHEMA + "|" + ConfigConstant.FILE_SOLR + "|" + ConfigConstant.FILE_CORE_PROPERTIES + "|" + ConfigConstant.FILE_JAR));
+  private static final Pattern resourcePattern = Pattern.compile(DownloadServlet.replace(ConfigConstant.FILE_SCHEMA + "|" + ConfigConstant.FILE_SOLR));
 
   public static final String pattern_runtime = "/(" + RunEnvironment.DAILY.getKeyName() + "|" + RunEnvironment.ONLINE.getKeyName() + ")";
 
@@ -152,18 +152,18 @@ public class LoadSolrCoreConfigByAppNameServlet extends BasicServlet {
     SnapshotDomain colon = new SnapshotDomain(snapshot.getSnapshot());
     // while (isFindAll || (matcher).find()) {
     for (PropteryGetter getter : needRes) {
-      if (isFindAll || ConfigConstant.FILE_DATA_SOURCE.equals(getter.getFileName())) {
-        colon.setDatasource(snapshot.getDatasource());
-        debugResContent(snapshot.getDatasource());
-      }
-      if (isFindAll || ConfigConstant.FILE_APPLICATION.equals(getter.getFileName())) {
-        colon.setApplication(snapshot.getApplication());
-        debugResContent(snapshot.getApplication());
-      }
-      if (isFindAll || ConfigConstant.FILE_CORE_PROPERTIES.equals(getter.getFileName())) {
-        colon.setCoreProp(snapshot.getCoreProp());
-        debugResContent(snapshot.getCoreProp());
-      }
+//      if (isFindAll || ConfigConstant.FILE_DATA_SOURCE.equals(getter.getFileName())) {
+//        colon.setDatasource(snapshot.getDatasource());
+//        debugResContent(snapshot.getDatasource());
+//      }
+//      if (isFindAll || ConfigConstant.FILE_APPLICATION.equals(getter.getFileName())) {
+//        colon.setApplication(snapshot.getApplication());
+//        debugResContent(snapshot.getApplication());
+//      }
+//      if (isFindAll || ConfigConstant.FILE_CORE_PROPERTIES.equals(getter.getFileName())) {
+//        colon.setCoreProp(snapshot.getCoreProp());
+//        debugResContent(snapshot.getCoreProp());
+//      }
       if (isFindAll || ConfigConstant.FILE_SCHEMA.equals(getter.getFileName())) {
         colon.setSolrSchema(snapshot.getSolrSchema());
         debugResContent(snapshot.getSolrSchema());
@@ -172,9 +172,9 @@ public class LoadSolrCoreConfigByAppNameServlet extends BasicServlet {
         colon.setSolrConfig(snapshot.getSolrConfig());
         debugResContent(snapshot.getSolrConfig());
       }
-      if (isFindAll || ConfigConstant.FILE_JAR.equals(getter.getFileName())) {
-        colon.setJarFile(snapshot.getJarFile());
-      }
+//      if (isFindAll || ConfigConstant.FILE_JAR.equals(getter.getFileName())) {
+//        colon.setJarFile(snapshot.getJarFile());
+//      }
       if (isFindAll) {
         break;
       }

@@ -21,7 +21,7 @@ import com.qlangtech.tis.manage.common.BasicOperationDomainLogger;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public final class ServerGroup extends BasicOperationDomainLogger implements IYuntiPath {
+public final class ServerGroup extends BasicOperationDomainLogger {
 
     private Integer gid;
 

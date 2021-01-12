@@ -26,6 +26,7 @@ import com.qlangtech.tis.coredefine.module.action.*;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
 import com.qlangtech.tis.manage.common.*;
@@ -120,7 +121,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     DEFAULT_SINGLE_JOINER_POSITION.setY(296);
   }
 
-  private String indexName = null;
+  private IndexName indexName = null;
 
   private PlatformTransactionManager transactionManager;
   private OfflineManager offlineManager;
@@ -189,7 +190,10 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
    * @throws Exception
    */
   public void doCreate(Context context) throws Exception {
-    JSONObject post = this.parseJsonPost();
+    //JSONObject post = this.parseJsonPost();
+
+    JSONObject post = getIndexWithPost();
+
     JSONObject datasource = post.getJSONObject("datasource");
     JSONObject incrCfg = post.getJSONObject("incr");
     if (datasource == null) {
@@ -199,7 +203,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (StringUtils.isEmpty(targetTable)) {
       throw new IllegalStateException("param 'table' can not be null");
     }
-    this.indexName = StringUtils.defaultIfEmpty(post.getString(KEY_INDEX_NAME), targetTable);
+    // this.indexName = StringUtils.defaultIfEmpty(post.getString(KEY_INDEX_NAME), targetTable);
     List<String> existCollection = CoreAction.listCollection(this, context);
     if (existCollection.contains(this.getCollectionName())) {
       //throw new IllegalStateException();
@@ -238,7 +242,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //    dsPluginStore.saveTable(targetTable, targetColMetas.targetColMetas);
 
     // 开始创建DF
-    final String topologyName = indexName;
+    final String topologyName = indexName.param;
     File parent = new File(SqlTaskNode.parent, topologyName);
     FileUtils.forceMkdir(parent);
     final SqlTaskNodeMeta.SqlDataFlowTopology topology = this.createTopology(topologyName, dsTable, targetColMetas);
@@ -249,7 +253,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topology, parent);
     // 在在引擎节点上创建实例节点
-    this.createCollection(context, df, indexName, targetColMetas);
+    this.createCollection(context, df, indexName.param, targetColMetas);
 
     if (incrCfg != null) {
       logger.info("start incr channel create");
@@ -272,10 +276,10 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
   @Override
   public String getCollectionName() {
-    if (StringUtils.isEmpty(this.indexName)) {
-      throw new IllegalStateException("indexName:" + indexName + " can not be null");
+    if ((this.indexName) == null) {
+      throw new IllegalStateException("indexName can not be null");
     }
-    return this.indexName;
+    return this.indexName.getCollectionName();
   }
 
 
@@ -288,7 +292,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   public void doFullbuild(Context context) throws Exception {
     this.getIndexWithPost();
 
-    Application app = this.getApplicationDAO().selectByName(this.indexName);
+    Application app = this.getApplicationDAO().selectByName(this.indexName.getCollectionName());
 
     WorkFlow wf = this.loadDF(app.getWorkFlowId());
 
@@ -301,7 +305,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (StringUtils.isEmpty(post.getString(KEY_INDEX_NAME))) {
       throw new IllegalArgumentException("indexName can not be null");
     }
-    this.indexName = TISCollectionUtils.NAME_PREFIX + post.getString(KEY_INDEX_NAME);
+    this.indexName = new IndexName(post.getString(KEY_INDEX_NAME)); // TISCollectionUtils.NAME_PREFIX + ;
     return post;
   }
 
@@ -314,9 +318,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   public void doDeleteIndex(Context context) throws Exception {
     getIndexWithPost();
     // 删除
-    Application app = this.getApplicationDAO().selectByName(this.indexName);
+    Application app = this.getApplicationDAO().selectByName(this.indexName.getCollectionName());
     if (app == null) {
-      throw new IllegalStateException("indexName:" + this.indexName + " relevant instance in db can not be empty");
+      throw new IllegalStateException("indexName:" + this.indexName.getCollectionName() + " relevant instance in db can not be empty");
     }
     final WorkFlow workFlow = this.loadDF(app.getWorkFlowId());
     this.rescycleAppDB(app.getAppId());
@@ -440,7 +444,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       if (StringUtils.isNotEmpty(orderBy)) {
         query.add(CommonParams.SORT, orderBy);
       }
-      QueryResponse result = solrClient.query(indexName, query, SolrRequest.METHOD.POST);
+      QueryResponse result = solrClient.query(indexName.getCollectionName(), query, SolrRequest.METHOD.POST);
       solrClient.close();
       Map<String, Object> biz = Maps.newHashMap();
       long c = result.getResults().getNumFound();
@@ -602,7 +606,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     for (SelectableServer.CoreNode n : coreNodeInfo) {
       n.setHostName(n.getNodeName());
     }
-
     coreNode.setReplicaCount(1);
     coreNode.setShardCount(SHARED_COUNT);
     coreNode.setHosts(coreNodeInfo);
@@ -714,10 +717,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     primaryIndexColumnName.add(pk);
     extraMeta.setPrimaryIndexColumnNames(primaryIndexColumnName);
     extraMeta.setPrimaryIndexTab(true);
-
-//    ColumnMetaData timeVerColName = targetColMetas.getTimeVerColName();
-//    extraMeta.setTimeVerColName(timeVerColName.getKey());
-    //extraMeta.setTimeVerColName();
     node.setExtraMeta(extraMeta);
     erRules.addDumpNode(node);
     // erRules.setRelationList();
@@ -726,8 +725,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     /***********************************************************
      * <<<<<<<<
      **********************************************************/
-
-
     // topology
 
     return topology;
@@ -747,13 +744,28 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   }
 
   private Map<String, TargetCol> getTargetCols(JSONObject post) {
-    JSONArray targetCols = post.getJSONArray("columns");
+    ThreadLocal<SnapshotViewImplDAO.MergeData> mergeDataContext = SnapshotViewImplDAO.mergeDataContext;
+    mergeDataContext.remove();
+    SnapshotViewImplDAO.MergeData mergeData = mergeDataContext.get();
+    JSONObject colMeta = post.getJSONObject("colMeta");
+    JSONObject options = colMeta.getJSONObject("options");
+    if (options != null) {
+      List<String> acceptKeys = this.getSnapshotViewDAO().getOptionParamKeys();
+      options.forEach((key, val) -> {
+        if (!acceptKeys.contains(key)) {
+          throw new IllegalArgumentException("key:" + key + " is not acceptable,params:"
+            + acceptKeys.stream().collect(Collectors.joining(",")));
+        }
+        mergeData.put(key, val);
+      });
+    }
+    JSONArray targetCols = colMeta.getJSONArray("columns");
     Map<String, TargetCol> targetColMap = targetCols.stream().map((c) -> {
       JSONObject o = (JSONObject) c;
       TargetCol targetCol = new TargetCol(o.getString("name"));
       Boolean indexable = o.getBoolean("search");
       targetCol.setIndexable(indexable == null ? true : indexable);
-      targetCol.setToken(o.getString("token"));
+      targetCol.setToken(o.getString("parser"));
       return targetCol;
     }).collect(Collectors.toMap((c) -> c.getName(), (c) -> c));
     return targetColMap;
@@ -983,6 +995,20 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     @Override
     public boolean isClosed() {
       return false;
+    }
+  }
+
+  public static class IndexName {
+    private final String param;
+    private final String collectionName;
+
+    public IndexName(String param) {
+      this.param = param;
+      this.collectionName = TISCollectionUtils.NAME_PREFIX + param;
+    }
+
+    public String getCollectionName() {
+      return this.collectionName;
     }
   }
 

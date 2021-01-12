@@ -664,8 +664,9 @@ public class SchemaAction extends BasicModule {
    */
   private static UploadResource getAppSchema(BasicModule module, Application app) {
     final Integer publishSnapshotId = getPublishSnapshotId(module.getServerGroupDAO(), app);
-    Snapshot snapshot = module.getSnapshotDAO().selectByPrimaryKey(publishSnapshotId);
-    UploadResource uploadRes = module.getUploadResourceDAO().selectByPrimaryKey(snapshot.getResSchemaId());
+    SnapshotDomain snapshot = module.getSnapshotViewDAO().getView(publishSnapshotId);
+   // Snapshot snapshot = module.getSnapshotDAO().selectByPrimaryKey(publishSnapshotId);
+    UploadResource uploadRes = snapshot.getSolrSchema();// module.getUploadResourceDAO().selectByPrimaryKey(snapshot.getResSchemaId());
     return uploadRes;
   }
 

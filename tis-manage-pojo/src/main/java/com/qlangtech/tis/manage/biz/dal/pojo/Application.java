@@ -21,7 +21,7 @@ import java.util.Date;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class Application implements Serializable, IYuntiPath {
+public class Application implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

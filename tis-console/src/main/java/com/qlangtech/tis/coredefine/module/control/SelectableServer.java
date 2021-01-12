@@ -110,9 +110,7 @@ public class SelectableServer {
     private int solrCoreCount;
 
     public String getNodeName() {
-      // StringUtils.substringBefore(this.nodeName,
       return this.nodeName;
-      // "_");
     }
 
     public String getHostName() {
@@ -125,12 +123,10 @@ public class SelectableServer {
 
     public String getLuceneVersion() {
       return luceneSpecVersion;
-      // return String.valueOf(LuceneVersion.parseByVersionNumber(luceneSpecVersion).getVersion());
     }
 
     public String getLuceneSpecVersion() {
       return luceneSpecVersion;
-      // return LuceneVersion.parseByVersionNumber(luceneSpecVersion).getVersion();
     }
 
     public void setLuceneSpecVersion(String luceneSpecVersion) {

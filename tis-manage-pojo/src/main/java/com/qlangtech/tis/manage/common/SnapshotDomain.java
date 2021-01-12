@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,14 +22,6 @@ import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
  * @date 2012-3-26
  */
 public class SnapshotDomain {
-
-    private UploadResource application = new UploadResource();
-
-    private UploadResource coreProp = new UploadResource();
-
-    private UploadResource datasource = new UploadResource();
-
-    private UploadResource jarFile = new UploadResource();
 
     private UploadResource solrSchema = new UploadResource();
 
@@ -50,37 +42,15 @@ public class SnapshotDomain {
         this.snapshot = snapshot;
     }
 
-    // public Integer getPackId() {
-    // return snapshot.getPid();
-    // }
     public Integer getAppId() {
         return snapshot.getAppId();
     }
 
-    // public void setSnapshot(Snapshot snapshot) {
-    // this.snapshot = snapshot;
-    // }
     public Snapshot getSnapshot() {
         if (this.snapshot == null) {
             throw new NullPointerException("this.snapshot can not be null");
         }
         return snapshot;
-    }
-
-    public void setApplication(UploadResource application) {
-        this.application = application;
-    }
-
-    public void setCoreProp(UploadResource coreProp) {
-        this.coreProp = coreProp;
-    }
-
-    public void setDatasource(UploadResource datasource) {
-        this.datasource = datasource;
-    }
-
-    public void setJarFile(UploadResource jarFile) {
-        this.jarFile = jarFile;
     }
 
     public void setSolrSchema(UploadResource solrSchema) {
@@ -91,21 +61,6 @@ public class SnapshotDomain {
         this.solrConfig = solrConfig;
     }
 
-    public UploadResource getApplication() {
-        return application;
-    }
-
-    public UploadResource getCoreProp() {
-        return coreProp;
-    }
-
-    public UploadResource getDatasource() {
-        return datasource;
-    }
-
-    public UploadResource getJarFile() {
-        return jarFile;
-    }
 
     public UploadResource getSolrSchema() {
         return solrSchema;

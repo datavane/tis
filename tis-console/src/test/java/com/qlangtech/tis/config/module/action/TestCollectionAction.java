@@ -23,6 +23,8 @@ import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
+import com.qlangtech.tis.coredefine.module.control.SelectableServer;
+import com.qlangtech.tis.manage.biz.dal.dao.ISnapshotViewDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
@@ -37,20 +39,27 @@ import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.AddAppAction;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.solrdao.ISchemaField;
+import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
+import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.cloud.*;
+import org.apache.solr.common.util.DOMUtil;
 import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
 import org.shai.xmodifier.util.StringUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
@@ -59,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -139,18 +149,13 @@ public class TestCollectionAction extends BasicActionTestCase {
 
   public void testDeleteCollection() throws Exception {
 
-    ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
-
-    try (InputStream input = this.getClass().getResourceAsStream("/com/qlangtech/tis/overseer_elect_leader.json")) {
-      EasyMock.expect(zkCoordinator.getData(CoreAction.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true))
-        .andReturn(IOUtils.toByteArray(input));
-    }
-
-    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
+    buildCoordinatorMock((r) -> {
+    });
 
     request.setParameter("emethod", "deleteIndex");
     request.setParameter("action", "collection_action");
     JSONObject content = new JSONObject();
+    // search4search4employees
     content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
     request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
 
@@ -164,17 +169,25 @@ public class TestCollectionAction extends BasicActionTestCase {
     this.verifyAll();
   }
 
+  private IExpectationSetters<byte[]> buildCoordinatorMock(Consumer<ITISCoordinator> consumer) throws IOException {
+    ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
+    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
+    consumer.accept(zkCoordinator);
+    try (InputStream input = this.getClass().getResourceAsStream("/com/qlangtech/tis/overseer_elect_leader.json")) {
+      IExpectationSetters<byte[]> expect = EasyMock.expect(zkCoordinator.getData(CoreAction.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true));
+      expect
+        .andReturn(IOUtils.toByteArray(input));
+      return expect;
+    }
+
+  }
+
 
   public void testDoFullbuild() throws Exception {
     ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
     // Watcher watcher = mock("watcher", Watcher.class);
-    String incrStatecollect = "/tis/incr-transfer-group/incr-state-collect";
-    String childPath = "nodes0000000361";
-    String childPathContent = "192.168.28.200:38293";
-    List<String> incrStatecollectList = Lists.newArrayList(childPath);
-    EasyMock.expect(zkCoordinator.getChildren(incrStatecollect, null, true)).andReturn(incrStatecollectList);
-    EasyMock.expect(zkCoordinator.getData(incrStatecollect + "/" + childPath, null, new Stat(), true))
-      .andReturn(childPathContent.getBytes(TisUTF8.get()));
+    // String incrStatecollect = "/tis/incr-transfer-group/incr-state-collect";
+    createAssembleLogCollectPathMock(zkCoordinator);
 
     MockZooKeeperGetter.mockCoordinator = zkCoordinator;
 
@@ -196,6 +209,15 @@ public class TestCollectionAction extends BasicActionTestCase {
     this.verifyAll();
   }
 
+  private void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator) {
+    String childPath = "nodes0000000361";
+    String childPathContent = "192.168.28.200:38293";
+    List<String> incrStatecollectList = Lists.newArrayList(childPath);
+    EasyMock.expect(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true)).andReturn(incrStatecollectList);
+    EasyMock.expect(zkCoordinator.getData(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + "/" + childPath, null, new Stat(), true))
+      .andReturn(childPathContent.getBytes(TisUTF8.get()));
+  }
+
   public void testQuery() throws Exception {
 
 //    URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
@@ -211,7 +233,7 @@ public class TestCollectionAction extends BasicActionTestCase {
     content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
     JSONArray searchFields = new JSONArray();
     JSONObject queryField = new JSONObject();
-   // queryField.put("field", FIELD_EMPLOYEES_FIRST_NAME);
+    // queryField.put("field", FIELD_EMPLOYEES_FIRST_NAME);
     queryField.put(FIELD_EMPLOYEES_FIRST_NAME, "Nirm");
     queryField.put(FIELD_EMPLOYEES_LAST_NAME, "Nirm");
     searchFields.add(queryField);
@@ -243,13 +265,16 @@ public class TestCollectionAction extends BasicActionTestCase {
   }
 
   private void buildZkStateReaderMock() throws Exception {
-    String collectionName = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
-    // getClusterState
-    TISZkStateReader tisZkStateReader = this.mock("tisZkStateReader", TISZkStateReader.class);
-    MockClusterStateReader.mockStateReader = tisZkStateReader;
+    TISZkStateReader tisZkStateReader = buildTisZkStateReaderMock();
 
     DocCollection docCollection = buildDocCollectionMock(true, tisZkStateReader);
 
+  }
+
+  private TISZkStateReader buildTisZkStateReaderMock() {
+    TISZkStateReader tisZkStateReader = this.mock("tisZkStateReader", TISZkStateReader.class);
+    MockClusterStateReader.mockStateReader = tisZkStateReader;
+    return tisZkStateReader;
   }
 
   private DocCollection buildDocCollectionMock(boolean getSlicesMap, TISZkStateReader tisZkStateReader) throws Exception {
@@ -357,6 +382,17 @@ public class TestCollectionAction extends BasicActionTestCase {
   public void testDoCreate() throws Exception {
 
     this.clearUpDB();
+    IExpectationSetters<byte[]> iExpectationSetters = buildCoordinatorMock((coord) -> {
+//      EasyMock.expect(coord.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true))
+//        .andReturn();
+      createAssembleLogCollectPathMock(coord);
+    });
+    iExpectationSetters.times(2);
+    TISZkStateReader tisZkStateReader = buildTisZkStateReaderMock();
+    SelectableServer.CoreNode coreNode = new SelectableServer.CoreNode();
+    coreNode.setHostName("hostname");
+    coreNode.setNodeName("nodename");
+    EasyMock.expect(tisZkStateReader.getSelectTableNodes()).andReturn(Collections.singletonList(coreNode));
 
     request.setParameter("emethod", "create");
     request.setParameter("action", "collection_action");
@@ -413,6 +449,7 @@ public class TestCollectionAction extends BasicActionTestCase {
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
       schemaParseResultProcessed.set(true);
     };
+    this.replay();
     // 执行
     String result = proxy.execute();
     // assertEquals(Action.NONE, result);
@@ -432,6 +469,53 @@ public class TestCollectionAction extends BasicActionTestCase {
     assertNotNull("snapshotDomain can not null", snapshotDomain);
     assertTrue(actionExecResult.isSuccess());
     assertTrue("schemaParseResultProcessed must be processd", schemaParseResultProcessed.get());
+    this.verifyAll();
+
+    AtomicBoolean executed = new AtomicBoolean(false);
+    SolrFieldsParser.fieldTypeVisitor = (nodes) -> {
+      NamedNodeMap tokenizerAttrs = null;
+      outter:
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Node node = nodes.item(i);
+        NamedNodeMap attrs = node.getAttributes();
+        String typeName = DOMUtil.getAttr(attrs, "name");
+        if ("like".equals(typeName)) {
+          NodeList childNodes = node.getChildNodes();
+
+          for (int ii = 0; ii < childNodes.getLength(); ii++) {
+            Node item = childNodes.item(ii);
+            if ("analyzer".equals(item.getNodeName())) {
+              Node tokenizerNode = null;
+              NodeList analyzerChildNodes = item.getChildNodes();
+              for (int jj = 0; jj < analyzerChildNodes.getLength(); jj++) {
+                tokenizerNode = analyzerChildNodes.item(jj);
+                if ("tokenizer".equals(tokenizerNode.getNodeName())) {
+                  tokenizerAttrs = tokenizerNode.getAttributes();
+
+                  assertEquals(ISnapshotViewDAO.KEY_MIN_GRAM_SIZE, minGramSize
+                    , Integer.parseInt(DOMUtil.getAttr(tokenizerAttrs, ISnapshotViewDAO.KEY_MIN_GRAM_SIZE)));
+                  assertEquals(ISnapshotViewDAO.KEY_MAX_GRAM_SIZE, maxGramSize
+                    , Integer.parseInt(DOMUtil.getAttr(tokenizerAttrs, ISnapshotViewDAO.KEY_MAX_GRAM_SIZE))
+                  );
+                  break outter;
+                }
+              }
+              assertNotNull("tokenizerNode can not be null", tokenizerNode);
+              //=childNodes.item(0).getChildNodes().item(0);
+              break;
+            }
+          }
+
+
+        }
+      }
+      assertNotNull("tokenizerAttrs can not be null", tokenizerAttrs);
+      executed.set(true);
+    };
+    SolrFieldsParser.parse(() -> {
+      return snapshotDomain.getSolrSchema().getContent();
+    });
+    assertTrue("must have execute", executed.get());
   }
 
   private AjaxValve.ActionExecResult showBizResult() {
@@ -453,6 +537,9 @@ public class TestCollectionAction extends BasicActionTestCase {
     return proxy;
   }
 
+  private static final int minGramSize = 666;
+  private static final int maxGramSize = 999;
+
   private JSONObject getPostJSONContent(String tableName) {
     JSONObject content = new JSONObject();
 
@@ -473,9 +560,14 @@ public class TestCollectionAction extends BasicActionTestCase {
     incrCfg.put("groupId", "consume_test1");
     incrCfg.put("offsetResetStrategy", "earliest");
     content.put("incr", incrCfg);
+    JSONObject colMeta = new JSONObject();
+    JSONObject opts = new JSONObject();
+    opts.put(ISnapshotViewDAO.KEY_MIN_GRAM_SIZE, minGramSize);
+    opts.put(ISnapshotViewDAO.KEY_MAX_GRAM_SIZE, maxGramSize);
     JSONArray columns = tabCols.get(tableName);// getBuildEmployeesCols();
-
-    content.put("columns", columns);
+    colMeta.put("columns", columns);
+    colMeta.put("options", opts);
+    content.put("colMeta", colMeta);
     System.out.println(content.toJSONString());
     return content;
   }

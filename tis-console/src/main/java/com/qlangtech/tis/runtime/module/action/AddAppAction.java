@@ -167,7 +167,8 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     });
   }
 
-  protected void createCollection(Context context, CreateIndexConfirmModel confiemModel, SchemaResult schemaResult, ICreateNewApp appCreator) throws Exception {
+  protected void createCollection(Context context, CreateIndexConfirmModel confiemModel
+    , SchemaResult schemaResult, ICreateNewApp appCreator) throws Exception {
     ExtendApp extApp = confiemModel.getAppform();
     appendPrefix(extApp);
     String workflow = confiemModel.getAppform().getWorkflow();

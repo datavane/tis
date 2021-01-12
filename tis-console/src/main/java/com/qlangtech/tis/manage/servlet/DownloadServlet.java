@@ -39,7 +39,8 @@ import com.qlangtech.tis.pubhook.common.ConfigConstant;
  */
 public class DownloadServlet extends BasicServlet {
 
-    private static final Pattern download_pattern = Pattern.compile(".+?/download/publish/(\\d+)/(\\d+)/group(\\d+)/r(\\d+)/(" + replace(ConfigConstant.FILE_APPLICATION + "|" + ConfigConstant.FILE_DATA_SOURCE + "|" + ConfigConstant.FILE_SCHEMA + "|" + ConfigConstant.FILE_SOLR) + "|" + DownloadResource.JAR_NAME + ")");
+    private static final Pattern download_pattern = Pattern.compile(".+?/download/publish/(\\d+)/(\\d+)/group(\\d+)/r(\\d+)/("
+      + replace(  ConfigConstant.FILE_SCHEMA + "|" + ConfigConstant.FILE_SOLR) + "|" + DownloadResource.JAR_NAME + ")");
 
     // private static final Pattern temp = Pattern
     // .compile("(applicationContext\\.xml|ds\\.xml|schema\\.xml|solrconfig\\.xml)");
@@ -59,32 +60,32 @@ public class DownloadServlet extends BasicServlet {
             DownloadResource downloadRes = getDownloadResource(matcher);
             // Integer bizid = Integer.parseInt(matcher.group(1));
             // Integer appid = Integer.parseInt(matcher.group(2));
-            // 
+            //
             // Short groupIndex = Short.parseShort(matcher.group(3));
             // // 开发环境 线上 线下。。。。
             // Short runtime = Short.parseShort(matcher.group(4));
-            // 
+            //
             // final String resourceName = matcher.group(5);
             // AppDomainInfo appdomain = new AppDomainInfo(downloadRes
             // .getApplication().getBizId(), downloadRes.getApplication()
             // .getAppId(), runtime.intValue(), this.getContext());
             // 先判断是否是jar包下载？
             // if (JAR_NAME.equalsIgnoreCase(downloadRes.getResourceName())) {
-            // 
+            //
             // JarFileManager manager = new JarFileManager(downloadRes
             // .getApplication(), downloadRes.getPack()
             // .getUploadTimestamp());
-            // 
+            //
             // inputStream = manager.readFile(downloadRes.getPack()
             // .getValidateCode());
             // response.setContentType(JAR_CONTENT_TYPE);
-            // 
+            //
             // // response.addHeader("Content-Disposition",
             // // "attachment; filename=\"" + appdomain.getAppName()
             // // + "_" + group.getGroupIndex() + "_"
             // // + group.getRuntEnvironment() + "." + JAR_NAME
             // // + "\"");
-            // 
+            //
             // response.setContentLength((int) manager.getFileSize());
             // IOUtils.copy(inputStream, response.getOutputStream());
             // return;

@@ -64,6 +64,9 @@ public class SolrFieldsParser {
 
     static final XPathFactory xpathFactory = XPathFactory.newInstance();
 
+    public static  IFieldTypesVisit fieldTypeVisitor = (typeNodes) -> {
+    };
+
     private static final DocumentBuilder solrConfigDocumentbuilder;
 
     private static SolrFieldsParser solrFieldsParser = new SolrFieldsParser();
@@ -280,6 +283,7 @@ public class SolrFieldsParser {
             }
             parseResult.types.put(typeName, parseFieldType(typeName, DOMUtil.getAttr(attrs, "class", "class definition")));
         }
+        fieldTypeVisitor.visit(nodes);
         addExtenionProcessor(parseResult, xpath, document);
         // addColumnProcessor(parseResult, xpath, document);
         // 取得fields
@@ -557,8 +561,6 @@ public class SolrFieldsParser {
     }
 
     public static class SolrType {
-
-
         private Class<?> javaType;
 
         private Type solrType;
@@ -566,7 +568,7 @@ public class SolrFieldsParser {
         private Method valueof;
 
         public Class<?> getJavaType() {
-            return javaType;
+            return this.javaType;
         }
 
         public Object valueOf(Object val) throws Exception {
@@ -652,7 +654,7 @@ public class SolrFieldsParser {
 
         public Set<String> dFieldsNames;
 
-        private final Map<String, SolrType> types = new HashMap<String, SolrType>();
+        private final Map<String, SolrType> types = new HashMap<>();
 
         private String uniqueKey;
 
@@ -823,5 +825,9 @@ public class SolrFieldsParser {
 
     public static String getFieldPropRequiredErr(String fieldName) {
         return "字段:‘" + fieldName + "’的属性'stored'或'indexed'或'docvalue'至少有一项为true";
+    }
+
+    public interface IFieldTypesVisit {
+        public void visit(NodeList typeNodes);
     }
 }

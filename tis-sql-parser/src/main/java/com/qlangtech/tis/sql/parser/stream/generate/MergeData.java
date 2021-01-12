@@ -66,7 +66,7 @@ public class MergeData {
     public static String getJavaName(String collection) {
         Matcher matcher = PATTERN_COLLECTION_NAME.matcher(collection);
         if (!matcher.matches()) {
-            throw new IllegalStateException("collection is not match the Pattern:" + PATTERN_COLLECTION_NAME);
+            throw new IllegalStateException("collection:" + collection + " is not match the Pattern:" + PATTERN_COLLECTION_NAME);
         }
         return matcher.replaceFirst("S4$2");
     }
@@ -81,7 +81,7 @@ public class MergeData {
     public MergeData(
             String collection, Map<EntityName, StreamComponentCodeGenerator.MapDataMethodCreator> mapDataMethodCreatorMap
             , FunctionVisitor.FuncFormat aliasListBuilder, Map<TableTupleCreator, List<ValChain>> tabTriggers
-            , List<FacadeContext> facadeContextList, ERRules erRules,boolean excludeFacadeDAOSupport) {
+            , List<FacadeContext> facadeContextList, ERRules erRules, boolean excludeFacadeDAOSupport) {
         super();
         this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
         this.collection = collection;
