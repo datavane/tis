@@ -143,6 +143,16 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   }
 
   /**
+   * 取得增量执行状态
+   *
+   * @param context
+   */
+  public void doGetIncrStatus(Context context) throws Exception {
+    this.getIndexWithPost();
+    this.setBizResult(context, CoreAction.getIndexIncrStatus(this, true));
+  }
+
+  /**
    * 回调获取索引创建的状态
    *
    * @param context

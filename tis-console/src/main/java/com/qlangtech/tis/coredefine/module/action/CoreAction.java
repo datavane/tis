@@ -137,36 +137,39 @@ public class CoreAction extends BasicModule {
    * @param context
    */
   public void doGetIncrStatus(Context context) throws Exception {
+    final boolean cache = this.getBoolean("cache");
+    IndexIncrStatus incrStatus = getIndexIncrStatus(this, cache);
+    this.setBizResult(context, incrStatus);
+  }
+
+  public static IndexIncrStatus getIndexIncrStatus(BasicModule module, boolean getRcConfigInCache) throws Exception {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
-    final boolean cache = this.getBoolean("cache");
-    PluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(this);
+    PluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
     if (store.getPlugin() == null) {
       incrStatus.setK8sPluginInitialized(false);
-      this.setBizResult(context, incrStatus);
-      return;
+      //this.setBizResult(context, incrStatus);
+      return incrStatus;
     }
     incrStatus.setK8sPluginInitialized(true);
-
-
     IndexStreamCodeGenerator indexStreamCodeGenerator
-      = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
+      = getIndexStreamCodeGenerator(module, module.getAppDomain().getApp().getWorkFlowId());
     StreamCodeContext streamCodeContext
-      = new StreamCodeContext(this.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
+      = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
-    TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
-    IncrDeployment rcConfig = k8s.getRcConfig(cache);
+    TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
+    IncrDeployment rcConfig = k8s.getRcConfig(getRcConfigInCache);
     incrStatus.setK8sReplicationControllerCreated(rcConfig != null);
     if (rcConfig != null) {
       incrStatus.setIncrDeployment(rcConfig);
       JobType.RemoteCallResult<IndexJobRunningStatus> callResult
         = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
-        this.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
+        module.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
       if (callResult.success) {
         incrStatus.setIncrProcess(callResult.biz);
       }
     }
-    this.setBizResult(context, incrStatus);
+    return incrStatus;
   }
 
   public static PluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module) {

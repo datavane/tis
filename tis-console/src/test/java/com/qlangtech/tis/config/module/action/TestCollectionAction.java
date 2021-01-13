@@ -182,6 +182,24 @@ public class TestCollectionAction extends BasicActionTestCase {
 
   }
 
+  /**
+   * 测试增量执行状态
+   *
+   * @throws Exception
+   */
+  public void testDoGetIncrStatus() throws Exception {
+    request.setParameter("emethod", "getIncrStatus");
+    request.setParameter("action", "collection_action");
+    JSONObject content = new JSONObject();
+    content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
+    request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
+    ActionProxy proxy = getActionProxy();
+    String result = proxy.execute();
+    assertEquals("CollectionAction_ajax", result);
+    AjaxValve.ActionExecResult aResult = showBizResult();
+    assertNotNull(aResult);
+    assertTrue(aResult.isSuccess());
+  }
 
   public void testDoFullbuild() throws Exception {
     ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
