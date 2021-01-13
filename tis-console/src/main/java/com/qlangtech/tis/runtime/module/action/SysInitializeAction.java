@@ -71,7 +71,7 @@ public class SysInitializeAction extends BasicModule {
   public static final int TEMPLATE_APPLICATION_DEFAULT_ID = 1;
 
   public static final String ADMIN_ID = "9999";
-  public static final String ADMIN_NAME= "admin";
+  public static final String ADMIN_NAME = "admin";
 
   public static final String APP_NAME_TEMPLATE = "search4template";
   private static final Pattern PATTERN_ZK_ADDRESS = Pattern.compile("([^/]+)(/.+)$");
@@ -111,7 +111,7 @@ public class SysInitializeAction extends BasicModule {
 //		<property name="validationQuery" value="select 1" />
     try {
       dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-      dataSource.setUrl("jdbc:mysql://" + dbCfg.url + ":3306?useUnicode=yes&amp;characterEncoding=utf8");
+      dataSource.setUrl("jdbc:mysql://" + dbCfg.url + ":" + dbCfg.port + "?useUnicode=yes&amp;characterEncoding=utf8");
       if (StringUtils.isBlank(dbCfg.dbname)) {
         throw new IllegalStateException("dbCfg.dbname in config.properites can not be null");
       }

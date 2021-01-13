@@ -32,7 +32,7 @@
     </fieldType>
     <fieldType name="like" class="solr.TextField" sortMissingLast="true" omitNorms="true" autoGeneratePhraseQueries="false" omitTermFreqAndPositions="true">
       <analyzer type="index">
-        <tokenizer class="solr.NGramTokenizerFactory" minGramSize="2" maxGramSize="5" />
+        <tokenizer class="solr.NGramTokenizerFactory" minGramSize="${cfg.minGramSize}" maxGramSize="${cfg.maxGramSize}" />
         <filter class="solr.LowerCaseFilterFactory" />
       </analyzer>
       <analyzer type="query">
