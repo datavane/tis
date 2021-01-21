@@ -89,7 +89,7 @@ public abstract class OrgAuthorityAction extends BasicModule {
         query.createCriteria().andUsrIdEqualTo(user.getId());
         Assert.assertNotNull(user.getId());
         runContext.getUsrDptRelationDAO().deleteByExample(query);
-        runContext.getUsrDptRelationDAO().insert(relation);
+        runContext.getUsrDptRelationDAO().insertSelective(relation);
     }
 
     public static String getDepartmentName(IDepartmentDAO departmentDAO, Integer dptId) {

@@ -54,10 +54,10 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
 
     // private static final ServletFileUpload servletFileUpload;
     // static {
-    // 
+    //
     // DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
     // diskFileItemFactory.setKeepFormFieldInMemory(true);
-    // 
+    //
     // servletFileUpload = new ServletFileUpload(diskFileItemFactory);
     // }
     private UploadJarForm form = new UploadJarForm();
@@ -79,7 +79,8 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
         }
         Snapshot snapshot = parseSnapshot(context, this.form);
         // 最后 创建snapshot对象
-        this.addActionMessage(context, "成功添加snapshotID:" + this.getSnapshotDAO().insert(snapshot) + "的快照记录");
+        this.addActionMessage(context, "成功添加snapshotID:"
+          + this.getSnapshotDAO().insertSelective(snapshot) + "的快照记录");
     }
 
     /**
@@ -142,7 +143,7 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // public void doUploadGlobalResource(
     // @FormGroup("globalres") GlobalResource form, Navigator nav,
     // Context context) throws Exception {
-    // 
+    //
     // Assert.assertNotNull(form);
     // Assert.assertNotNull(form.getMemo());
     // Assert.assertNotNull(form.getResource());
@@ -150,12 +151,12 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // this.addErrorMessage(context, "文件属性应该为.jar");
     // return;
     // }
-    // 
+    //
     // InputStream reader = null;
     // try {
-    // 
+    //
     // reader = form.getResource().getInputStream();
-    // 
+    //
     // UploadResource solrCoreDependedResource = new UploadResource();
     // solrCoreDependedResource.setCreateTime(new Date());
     // solrCoreDependedResource.setContent(IOUtils.toByteArray(reader));
@@ -166,13 +167,13 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // solrCoreDependedResource.setMemo(form.getMemo());
     // Integer newid = this.getUploadResourceDAO().insert(
     // solrCoreDependedResource);
-    // 
+    //
     // this.addActionMessage(context, "成功上传一条全局依赖资源 ID:" + newid);
-    // 
+    //
     // } finally {
     // IOUtils.closeQuietly(reader);
     // }
-    // 
+    //
     // }
     /**
      * 绑定全局资源
@@ -308,19 +309,19 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
         }
     }
 
-    // 
+    //
     // // 用户上传的文件
     // final FileItem upload = form.getUploadfile();
     // final String memo = form.getMemo();
-    // 
+    //
     // if (!StringUtils.endsWith(upload.getName(), ".jar")) {
     // addActionMessage(context, "文件扩展名必须为“.jar”");
     // return;
     // }
-    // 
+    //
     // AppDomainInfo appDomain = this.getAppDomain();
     // // final long currentTimestamp = System.currentTimeMillis();
-    // 
+    //
     // // 将文件保存到本地目录中
     // // final File saveDir = getAppDomainDir();
     // // OutputStream writer = null;
@@ -332,11 +333,11 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // // throw new IllegalStateException("file:"
     // // + saveFile.getAbsolutePath() + " can not be null");
     // // }
-    // 
+    //
     // // JarFileManager jarFileManager = new JarFileManager(this
     // // .getApplicationDAO().selectByPrimaryKey(appDomain.getAppid()),
     // // currentTimestamp);
-    // 
+    //
     // // 将流保存到预定目录
     // AppPackage pack = new AppPackage();
     // // pack.setValidateCode(jarFileManager.save(upload.getInputStream()));
@@ -346,7 +347,7 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // // pack.setUploadTimestamp(currentTimestamp);
     // pack.setTestStatus((short) 0);
     // pack.setUploadUser(this.getLoginUserName());
-    // 
+    //
     // // InputStream savedStream = null;
     // // try {
     // // savedStream = new FileInputStream(saveFile);
@@ -358,19 +359,19 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // // } catch (Throwable e) {
     // // }
     // // }
-    // 
+    //
     // // TODO 需要添加设置 memo的属性
     // // pack.set
     // pack.setPid(this.getAppPackageDAO().insert(pack));
-    // 
+    //
     // JarInputStream jarStream = null;
     // try {
     // jarStream = new JarInputStream(upload.getInputStream());
-    // 
+    //
     // // 从上传的jar包中 取出内容
     // extraConfigFromJarFile(context, jarFileManager.getSaveFile(),
     // getAppDomainDir(), pack, appDomain);
-    // 
+    //
     // nav.redirectTo("manageModule").withTarget("jarlist");
     // } finally {
     // IOUtils.closeQuietly(jarStream);
@@ -405,31 +406,31 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // private void extraConfigFromJarFile(Context context,
     // JarInputStream jarStream, // File saveDir,
     // AppPackage pack, AppDomainInfo appdomain) throws Exception {
-    // 
+    //
     // if (jarStream == null) {
     // throw new IllegalArgumentException("jarStream can not be null");
     // }
-    // 
+    //
     // final Snapshot snapshot = new Snapshot();
     // // final long currentTimestamp = System.currentTimeMillis();
-    // 
+    //
     // // JarEntry entry = null;
     // // while ((entry = jarStream.getNextJarEntry()) != null) {
     // //
     // // }
-    // 
+    //
     // // for (PropteryGetter getter : ConfigFileReader.getConfigList()) {
     // // processConfigFile(jarFile, context, getter, snapshot);
     // // }
-    // 
+    //
     // snapshot.setCreateTime(new Date());
     // // snapshot.setPid(pack.getPid());
     // snapshot.setPreSnId(-1);
     // snapshot.setSnId(null);
-    // 
+    //
     // // 最后 创建snapshot对象
     // this.getSnapshotDAO().insert(snapshot);
-    // 
+    //
     // // // 处理applicationcontext.xml 配置文件
     // // processConfigFile(jarFile, context, // saveDir,
     // // // new SetSolrCoreDependency() {
@@ -448,7 +449,7 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // // ConfigFileReader.FILE_APPLICATION, snapshot
     // // // ,currentTimestamp
     // // );
-    // 
+    //
     // // // 处理datasource 配置文件
     // // processConfigFile(jarFile, context, saveDir,
     // // new SetSolrCoreDependency() {
@@ -475,9 +476,9 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // // snapshot.setSolrCode(md5);
     // // }
     // // }, FILE_SOLOR, currentTimestamp);
-    // 
+    //
     // // 找到日常环境的group
-    // 
+    //
     // }
     /**
      * @param snapshot
@@ -521,10 +522,10 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // .md5file(solrCoreDependedResource.getContent()));
     // solrCoreDependedResource.setResourceType(getter.getterStrategy
     // .getFileName());
-    // 
+    //
     // Integer newid = this.getUploadResourceDAO().insert(
     // solrCoreDependedResource);
-    // 
+    //
     // return getter.getterStrategy.createNewSnapshot(newid, snapshot);
     // } finally {
     // IOUtils.closeQuietly(reader);
@@ -532,7 +533,7 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // InputStream reader = null;
     // try {
     // reader = getter.formItem.getInputStream();
-    // 
+    //
     // UploadResource solrCoreDependedResource = new UploadResource();
     // solrCoreDependedResource.setCreateTime(new Date());
     // solrCoreDependedResource.setContent(IOUtils.toByteArray(reader));
@@ -540,10 +541,10 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // .md5file(solrCoreDependedResource.getContent()));
     // solrCoreDependedResource.setResourceType(getter.getterStrategy
     // .getFileName());
-    // 
+    //
     // Integer newid = this.getUploadResourceDAO().insert(
     // solrCoreDependedResource);
-    // 
+    //
     // return getter.getterStrategy.createNewSnapshot(newid, snapshot);
     // } finally {
     // IOUtils.closeQuietly(reader);
@@ -561,11 +562,11 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // * @return
     // */
     // private File createDir(File tempDir) {
-    // 
+    //
     // if (tempDir == null) {
     // throw new IllegalArgumentException("tempdir can not be null");
     // }
-    // 
+    //
     // if (!tempDir.exists() && !tempDir.mkdirs()) {
     // throw new IllegalStateException("tempdir:"
     // + tempDir.getAbsolutePath() + " can not be create");
@@ -578,14 +579,14 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // ZipEntry query = new
     // ZipEntry("checkitem/daily/applicationContext.xml");
     // InputStream reader = jarFile.getInputStream(query);
-    // 
+    //
     // LineIterator it = IOUtils.lineIterator(reader, "utf8");
     // while (it.hasNext()) {
     // System.out.println(it.nextLine());
     // }
     // InputStream reader = null;
     // reader = findEntry(jarFile, "applicationContext.xml");
-    // 
+    //
     // LineIterator it = IOUtils.lineIterator(reader, "utf8");
     // while (it.hasNext()) {
     // System.out.println(it.nextLine());
@@ -611,7 +612,7 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // // return file.getInputStream(entry);
     // // }
     // // }
-    // 
+    //
     // JarEntry entry = null;
     // while ((entry = jarinputStream.getNextJarEntry()) != null) {
     // // entry = entryList.nextElement();
@@ -623,9 +624,9 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     // // return entry.
     // // }
     // }
-    // 
+    //
     // return null;
-    // 
+    //
     // }
     // @Autowired
     // public void setParameterParser(ParameterParser parameterParser) {

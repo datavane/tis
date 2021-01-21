@@ -18,6 +18,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import junit.framework.Assert;
 
 import java.util.List;
@@ -64,6 +65,11 @@ public class MockContext implements Context {
 
   @Override
   public void put(String key, Object value) {
+
+//    if (value instanceof DatasourceDb) {
+//      throw new IllegalStateException(value.toString());
+//    }
+
     ActionContext.getContext().put(key, value);
   }
 

@@ -367,10 +367,15 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     topologyDir.delete();
 
     PluginStore<IncrStreamFactory> store = CoreAction.getIncrStreamFactoryStore(this);
-    if (store.getPlugin() != null) {
-      // 删除增量实例
-      TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
-      k8sDelegate.removeIncrProcess();
+    try {
+      if (store.getPlugin() != null) {
+        // 删除增量实例
+        TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+        k8sDelegate.removeIncrProcess();
+      }
+    } catch (Throwable e) {
+      // 可能创建过程增量没有正常，不能导致删除失败
+      logger.warn("k8sDelegate illegal", e);
     }
 
   }
@@ -976,9 +981,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       if (exist > 0) {
         for (DatasourceDb db : CollectionAction.this.getWorkflowDAOFacade()
           .getDatasourceDbDAO().selectByExample(criteria)) {
-          CollectionAction.this.setBizResult(context, db);
+          CollectionAction.this.setBizResult(context, offlineManager.getDbConfig(CollectionAction.this, db));
+          return;
         }
-        return;
       }
       if (shallUpdateDB) {
         PluginAction.createDatabase(CollectionAction.this, dbName, context, true, offlineManager);

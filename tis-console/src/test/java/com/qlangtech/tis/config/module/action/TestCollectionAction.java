@@ -578,6 +578,7 @@ public class TestCollectionAction extends BasicActionTestCase {
     incrCfg.put("groupId", "consume_test1");
     incrCfg.put("offsetResetStrategy", "earliest");
     content.put("incr", incrCfg);
+
     JSONObject colMeta = new JSONObject();
     JSONObject opts = new JSONObject();
     opts.put(ISnapshotViewDAO.KEY_MIN_GRAM_SIZE, minGramSize);

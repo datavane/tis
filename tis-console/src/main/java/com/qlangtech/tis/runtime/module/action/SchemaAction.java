@@ -1055,7 +1055,7 @@ public class SchemaAction extends BasicModule {
       messageHandler.addErrorMessage(context, validateResult.getValidateResult());
       throw new SchemaFileInvalidException(validateResult.getValidateResult());
     }
-    return runContext.getUploadResourceDAO().insert(resource);
+    return runContext.getUploadResourceDAO().insertSelective(resource);
   }
 
   public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter, byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler, String memo, Long userId, String userName) throws UnsupportedEncodingException {
@@ -1105,7 +1105,7 @@ public class SchemaAction extends BasicModule {
       snapshot.setMemo(memo);
     }
     // 插入一条新纪录
-    newId = runContext.getSnapshotDAO().insert(snapshot);
+    newId = runContext.getSnapshotDAO().insertSelective(snapshot);
     if (newId == null) {
       throw new IllegalArgumentException(" have not create a new snapshot id");
     }

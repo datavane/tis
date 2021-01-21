@@ -251,7 +251,7 @@ public class SaveFileContentAction extends BasicModule {
       snapshot.setMemo(memo);
     }
     // 插入一条新纪录
-    newId = runContext.getSnapshotDAO().insert(snapshot);
+    newId = runContext.getSnapshotDAO().insertSelective(snapshot);
     if (newId == null) {
       throw new IllegalArgumentException(" have not create a new snapshot id");
     }

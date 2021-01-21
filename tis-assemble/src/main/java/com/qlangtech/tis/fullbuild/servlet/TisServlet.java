@@ -373,7 +373,7 @@ public class TisServlet extends HttpServlet {
 
         @Override
         boolean validateParam() throws ServletException {
-            if (shallValidateCollectionExist() && !indexSwapTaskflowLauncher.getIndexNames().contains(indexName)) {
+            if (shallValidateCollectionExist() && !indexSwapTaskflowLauncher.containIndex(indexName)) {
                 String msg = "indexName:" + indexName + " is not acceptable";
                 getLog().warn(msg + ",exist collection:{}", indexSwapTaskflowLauncher.getIndexNames());
                 writeResult(false, msg, res);

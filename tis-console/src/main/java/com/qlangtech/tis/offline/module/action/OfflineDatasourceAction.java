@@ -930,7 +930,7 @@ public class OfflineDatasourceAction extends BasicModule {
       workFlow.setGitPath(String.valueOf(topology.getTimestamp()));
       workFlow.setCreateTime(new Date());
       workFlow.setInChange(new Byte("1"));
-      Integer dfId = offlineDAOFacade.getWorkFlowDAO().insert(workFlow);
+      Integer dfId = offlineDAOFacade.getWorkFlowDAO().insertSelective(workFlow);
       topology.getProfile().setDataflowId(dfId);
       workFlow.setId(dfId);
       return (T) workFlow;

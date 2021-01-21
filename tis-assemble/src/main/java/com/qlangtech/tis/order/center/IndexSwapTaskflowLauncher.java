@@ -180,6 +180,22 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
     private List<String> indexNames;
 
+    public boolean containIndex(String collection) {
+        int retry = 0;
+        while (retry++ < 4) {
+            List<String> indexNames = getIndexNames();
+            if (indexNames.contains(collection)) {
+                return true;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+
+            }
+        }
+        return false;
+    }
+
     public List<String> getIndexNames() {
         List<String> result = null;
         try {

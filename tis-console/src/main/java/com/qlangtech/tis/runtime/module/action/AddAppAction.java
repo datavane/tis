@@ -321,7 +321,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
 
   private static Integer createNewResource(Context context, final byte[] uploadContent, final String md5, PropteryGetter fileGetter, BasicModule module) throws SchemaFileInvalidException {
     UploadResource resource = getUploadResource(context, uploadContent, md5, fileGetter, module);
-    return module.getUploadResourceDAO().insert(resource);
+    return module.getUploadResourceDAO().insertSelective(resource);
   }
 
   private static UploadResource getUploadResource(Context context, byte[] uploadContent, String md5, PropteryGetter fileGetter, BasicModule module) throws SchemaFileInvalidException {
@@ -361,7 +361,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       snapshot.setMemo(memo);
     }
     // 插入一条新纪录
-    newId = runContext.getSnapshotDAO().insert(snapshot);
+    newId = runContext.getSnapshotDAO().insertSelective(snapshot);
     if (newId == null) {
       throw new IllegalArgumentException(" have not create a new snapshot id");
     }

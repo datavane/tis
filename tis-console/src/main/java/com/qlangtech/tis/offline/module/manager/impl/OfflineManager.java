@@ -1038,7 +1038,7 @@ public class OfflineManager {
   // }
   public void syncDbRecord(DatasourceDb datasourceDb, BasicModule action, Context context) {
     try {
-      this.workflowDAOFacade.getDatasourceDbDAO().insert(datasourceDb);
+      this.workflowDAOFacade.getDatasourceDbDAO().insertSelective(datasourceDb);
       action.setBizResult(context, true);
     } catch (Exception e) {
       action.addErrorMessage(context, e.getMessage());
@@ -1048,7 +1048,7 @@ public class OfflineManager {
 
   public void syncTableRecord(DatasourceTable datasourceTable, BasicModule action, Context context) {
     try {
-      this.workflowDAOFacade.getDatasourceTableDAO().insert(datasourceTable);
+      this.workflowDAOFacade.getDatasourceTableDAO().insertSelective(datasourceTable);
       action.setBizResult(context, true);
     } catch (Exception e) {
       action.addErrorMessage(context, e.getMessage());

@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.tools.JavaFileObject;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -82,11 +81,7 @@ public class IndexStreamCodeGenerator {
      * 删除生成的脚本
      */
     public void deleteScript() {
-        try {
-            FileUtils.forceDelete(streamScriptRootDir);
-        } catch (IOException e) {
-            throw new RuntimeException("path:" + streamScriptRootDir, e);
-        }
+        FileUtils.deleteQuietly(streamScriptRootDir);
     }
 
     private void initialize() throws Exception {

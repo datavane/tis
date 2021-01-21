@@ -296,7 +296,7 @@ public final class ResSynManager {
             throw new SchemaFileInvalidException(validateResult.getValidateResult());
         // return -1;
         }
-        return runContext.getUploadResourceDAO().insert(resource);
+        return runContext.getUploadResourceDAO().insertSelective(resource);
     }
 
     public List<ResSyn> getCompareResult() {
@@ -392,13 +392,13 @@ public final class ResSynManager {
     // query.createCriteria().andAppIdEqualTo(appId)
     // .andRuntEnvironmentEqualTo(environment.getId())
     // .andGroupIndexEqualTo((short) 0);
-    // 
+    //
     // List<ServerGroup> groupList = context.getServerGroupDAO()
     // .selectByExample(query);
     // for (ServerGroup group : groupList) {
     // return group;
     // }
-    // 
+    //
     // return null;
     // }
     public static void main(String[] ar) throws Exception {

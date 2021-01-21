@@ -18,6 +18,8 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,13 +38,15 @@ import java.util.Optional;
  * @create: 2020-04-26 21:14
  */
 public class CenterResource {
-
+    private static final Logger logger = LoggerFactory.getLogger(CenterResource.class);
     public static final String KEY_LAST_MODIFIED_EXTENDION = ".lastmodified";
 
     private static final String KEY_notFetchFromCenterRepository = "notFetchFromCenterRepository";
 
     public static boolean notFetchFromCenterRepository() {
-        return Boolean.getBoolean(KEY_notFetchFromCenterRepository);
+        boolean notFetchFromCenterRepository = Boolean.getBoolean(KEY_notFetchFromCenterRepository);
+        logger.info("notFetchFromCenterRepository:{}", notFetchFromCenterRepository);
+        return notFetchFromCenterRepository;
     }
 
     public static void setNotFetchFromCenterRepository() {
