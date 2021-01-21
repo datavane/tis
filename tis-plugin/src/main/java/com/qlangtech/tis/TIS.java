@@ -24,6 +24,7 @@ import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
+import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.plugin.ComponentMeta;
@@ -34,10 +35,7 @@ import com.qlangtech.tis.plugin.ds.DSKey;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
-import com.qlangtech.tis.util.Memoizer;
-import com.qlangtech.tis.util.RobustReflectionConverter;
-import com.qlangtech.tis.util.XStream2;
-import com.qlangtech.tis.util.XStream2PluginInfoReader;
+import com.qlangtech.tis.util.*;
 import org.jvnet.hudson.reactor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -431,9 +429,7 @@ public class TIS {
     }
 
     public static ComponentMeta getDumpAndIndexBuilderComponent(IRepositoryResource... extractRes) {
-        if (initialized) {
-            throw new IllegalStateException("TIS plugins has initialized");
-        }
+        checkNotInitialized();
         permitInitialize = false;
         List<IRepositoryResource> resources = Lists.newArrayList();
         resources.add(getPluginStore(ParamsConfig.class));
@@ -442,6 +438,24 @@ public class TIS {
         for (IRepositoryResource r : extractRes) {
             resources.add(r);
         }
+        return new ComponentMeta(resources);
+    }
+
+    private static void checkNotInitialized() {
+        if (initialized) {
+            throw new IllegalStateException("TIS plugins has initialized");
+        }
+    }
+
+    public static ComponentMeta getAssembleComponent() {
+        checkNotInitialized();
+        permitInitialize = false;
+
+        List<IRepositoryResource> resources = Lists.newArrayList();
+        resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
+        resources.add(TIS.getPluginStore(FlatTableBuilder.class));
+        resources.add(TIS.getPluginStore(TableDumpFactory.class));
+        resources.add(TIS.getPluginStore(ParamsConfig.class));
         return new ComponentMeta(resources);
     }
 

@@ -14,12 +14,10 @@
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
-import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -35,7 +33,6 @@ import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.ComponentMeta;
-import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -86,16 +83,9 @@ public class TisServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         this.indexSwapTaskflowLauncher = IndexSwapTaskflowLauncher.getIndexSwapTaskflowLauncher(config.getServletContext());
-
-        List<IRepositoryResource> resources = Lists.newArrayList();
-        resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
-        resources.add(TIS.getPluginStore(FlatTableBuilder.class));
-        resources.add(TIS.getPluginStore(TableDumpFactory.class));
-        resources.add(TIS.getPluginStore(ParamsConfig.class));
-
-        ComponentMeta assembleComponent = new ComponentMeta(resources);
+        ComponentMeta assembleComponent = TIS.getAssembleComponent();
         assembleComponent.synchronizePluginsFromRemoteRepository();
-
+        log.info("synchronize Plugins FromRemoteRepository success");
     }
 
     private static final ExecutorService executeService = Executors.newCachedThreadPool(new ThreadFactory() {
