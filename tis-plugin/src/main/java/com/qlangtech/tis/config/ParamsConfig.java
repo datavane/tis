@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,6 +21,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,7 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
                 return i;
             }
         }
-        throw new IllegalStateException("Name:" + identityName + " can not find relevant config in["
+        throw new IllegalStateException("Name:" + identityName + ",type:" + type.getName() + " can not find relevant config in["
                 + items.stream().map((r) -> r.identityValue()).collect(Collectors.joining(",")) + "]");
     }
 
