@@ -116,11 +116,15 @@ public class Config {
 //        tis.datasource.password=123456
 //        tis.datasource.dbname=tis_console
         this.dbCfg = new TisDbConfig();
-        this.dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
-        this.dbCfg.url = p.getString("tis.datasource.url");
-        this.dbCfg.userName = p.getString("tis.datasource.username");
-        this.dbCfg.password = p.getString("tis.datasource.password");
-        this.dbCfg.dbname = p.getString("tis.datasource.dbname");
+        try {
+            this.dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
+            this.dbCfg.url = p.getString("tis.datasource.url");
+            this.dbCfg.userName = p.getString("tis.datasource.username");
+            this.dbCfg.password = p.getString("tis.datasource.password");
+            this.dbCfg.dbname = p.getString("tis.datasource.dbname");
+        } catch (Exception e) {
+           throw new IllegalStateException("please check the tis datasource cfg",e);
+        }
     }
 
 
