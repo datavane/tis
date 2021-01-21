@@ -19,6 +19,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
+import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -90,6 +91,8 @@ public class TisServlet extends HttpServlet {
         resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
         resources.add(TIS.getPluginStore(FlatTableBuilder.class));
         resources.add(TIS.getPluginStore(TableDumpFactory.class));
+        resources.add(TIS.getPluginStore(ParamsConfig.class));
+
         ComponentMeta assembleComponent = new ComponentMeta(resources);
         assembleComponent.synchronizePluginsFromRemoteRepository();
 
