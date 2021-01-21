@@ -94,7 +94,8 @@ public class ComponentMeta {
             for (XStream2.PluginMeta m : pluginMetas) {
                 m.copyFromRemote();
             }
-            logger.info("download plugin from remote repository:" + pluginMetas.stream().map((m) -> m.toString()).collect(Collectors.joining(",")));
+            logger.info("download plugin from remote repository:"
+                    + pluginMetas.stream().map((m) -> m.toString()).collect(Collectors.joining(",")));
         } finally {
             TIS.permitInitialize = true;
         }

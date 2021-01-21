@@ -1,19 +1,20 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
@@ -32,6 +33,8 @@ import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
+import com.qlangtech.tis.plugin.ComponentMeta;
+import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -41,6 +44,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -63,8 +67,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * tableJoin&ps=20160622110738'<br>
  * curl 'http://localhost:8080/trigger?component.start=indexBackflow&ps=
  * 20160623001000&appname=search4_fat_instance' <br>
-curl 'http://localhost:8080/tis-assemble/trigger?component.start=indexBuild&ps=20200525134425&appname=search4totalpay&workflow_id=45&workflow_name=totalpay&index_shard_count=1&history.task.id=1'
- <br>
+ * curl 'http://localhost:8080/tis-assemble/trigger?component.start=indexBuild&ps=20200525134425&appname=search4totalpay&workflow_id=45&workflow_name=totalpay&index_shard_count=1&history.task.id=1'
+ * <br>
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年11月6日 下午1:32:24
@@ -81,6 +85,14 @@ public class TisServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         this.indexSwapTaskflowLauncher = IndexSwapTaskflowLauncher.getIndexSwapTaskflowLauncher(config.getServletContext());
+
+        List<IRepositoryResource> resources = Lists.newArrayList();
+        resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
+        resources.add(TIS.getPluginStore(FlatTableBuilder.class));
+        resources.add(TIS.getPluginStore(TableDumpFactory.class));
+        ComponentMeta assembleComponent = new ComponentMeta(resources);
+        assembleComponent.synchronizePluginsFromRemoteRepository();
+
     }
 
     private static final ExecutorService executeService = Executors.newCachedThreadPool(new ThreadFactory() {
@@ -108,6 +120,7 @@ public class TisServlet extends HttpServlet {
     // public TisServlet() {
     // super();
     // }
+
     /**
      * 校验参数是否正确
      *
@@ -216,7 +229,7 @@ public class TisServlet extends HttpServlet {
                 } finally {
                     mdcContext.removeParam();
                 }
-            // end run
+                // end run
             }));
             try {
                 countDown.await(30, TimeUnit.SECONDS);
