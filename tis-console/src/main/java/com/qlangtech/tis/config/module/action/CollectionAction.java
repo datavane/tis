@@ -200,9 +200,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
    * @throws Exception
    */
   public void doCreate(Context context) throws Exception {
-    //JSONObject post = this.parseJsonPost();
 
     JSONObject post = getIndexWithPost();
+    Objects.requireNonNull(this.indexName, "indexName can not be null");
 
     JSONObject datasource = post.getJSONObject("datasource");
     JSONObject incrCfg = post.getJSONObject("incr");
@@ -262,16 +262,24 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     WorkFlow df = dbSaver.execute(topologyName, topology);
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topology, parent);
-    // 在在引擎节点上创建实例节点
-    this.createCollection(context, df, indexName.param, targetColMetas);
-
-    if (incrCfg != null) {
-      logger.info("start incr channel create");
-      if (!createIncrSyncChannel(context, df, incrCfg)) {
-        return;
+    boolean hasCreateCollection = false;
+    try {
+      // 在在引擎节点上创建实例节点
+      this.createCollection(context, df, indexName.param, targetColMetas);
+      hasCreateCollection = true;
+      if (incrCfg != null) {
+        logger.info("start incr channel create");
+        if (!createIncrSyncChannel(context, df, incrCfg)) {
+          return;
+        }
       }
+    } catch (Throwable e) {
+      if (hasCreateCollection) {
+        // 需要将已经 创建的索引删除
+        this.deleteCollectionInCloud(context, indexName.getCollectionName());
+      }
+      throw e;
     }
-
     // 需要提交一下事务
     TransactionStatus tranStatus
       = (TransactionStatus) ActionContext.getContext().get(TransactionStatus.class.getSimpleName());
@@ -339,23 +347,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     wfHistoryCriteria.createCriteria().andWorkFlowIdEqualTo(workFlow.getId());
     this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().deleteByExample(wfHistoryCriteria);
 
-    // 删除索引实例
-    try {
-      URL url = new URL("http://" + CoreAction.getCloudOverseerNode(this.getSolrZkClient())
-        + CoreAction.ADMIN_COLLECTION_PATH + "?action=DELETE&name=" + app.getProjectName());
-      HttpUtils.processContent(url, new ConfigFileContext.StreamProcess<Object>() {
-        @Override
-        public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-          ProcessResponse result = null;
-          if ((result = ProcessResponse.processResponse(stream, (err) -> addErrorMessage(context, err))).success) {
-            addActionMessage(context, "成功删除了索引实例'" + app.getProjectName() + "'");
-          }
-          return null;
-        }
-      });
-    } catch (Throwable e) {
-      logger.warn(e.getMessage(), e);
-    }
+    this.deleteCollectionInCloud(context, app.getProjectName());
 
     // 删除workflow数据库及本地存储文件
     SqlTaskNodeMeta.TopologyDir topologyDir = SqlTaskNodeMeta.getTopologyDir(workFlow.getName());
@@ -378,6 +370,26 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       logger.warn("k8sDelegate illegal", e);
     }
 
+  }
+
+  private void deleteCollectionInCloud(Context context, String collectionName) {
+    // 删除索引实例
+    try {
+      URL url = new URL("http://" + CoreAction.getCloudOverseerNode(this.getSolrZkClient())
+        + CoreAction.ADMIN_COLLECTION_PATH + "?action=DELETE&name=" + collectionName);
+      HttpUtils.processContent(url, new ConfigFileContext.StreamProcess<Object>() {
+        @Override
+        public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+          ProcessResponse result = null;
+          if ((result = ProcessResponse.processResponse(stream, (err) -> addErrorMessage(context, err))).success) {
+            addActionMessage(context, "成功删除了索引实例'" + collectionName + "'");
+          }
+          return null;
+        }
+      });
+    } catch (Throwable e) {
+      logger.warn(e.getMessage(), e);
+    }
   }
 
   /**
@@ -495,25 +507,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     return new AppDomainInfo(0, application.getAppId(), RunEnvironment.getSysRuntime(), application);
   }
 
-
-//    Connection con = null;
-//    Statement stmt = null;
-//    ResultSet rs = null;
-////org.apache.solr.client.solrj.io.sql.DriverImpl
-//    try {
-//      con = DriverManager.getConnection("jdbc:solr://zkHost:port?collection=collection&amp;aggregationMode=map_reduce");
-//      stmt = con.createStatement();
-//      rs = stmt.executeQuery("select a, sum(b) from tablex group by a");
-//      while (rs.next()) {
-//        String a = rs.getString("a");
-//        rs.getString("sum(b)");
-//      }
-//    } finally {
-//      rs.close();
-//      stmt.close();
-//      con.close();
-//    }
-//}
 
   private TargetColumnMeta getTargetColumnMeta(
     Context context, JSONObject post, String targetTable, PluginItems dataSourceItems) {

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -17,11 +17,11 @@ package com.qlangtech.tis.realtime.yarn.rpc;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -81,8 +81,9 @@ public enum JobType {
     }
 
     public <T> RemoteCallResult<T> assembIncrControlWithResult(
+            String getAssembleHttpHost,
             String collectionName, List<HttpUtils.PostParam> extraParams, Class<T> clazz) throws MalformedURLException {
-        return assembIncrControl(collectionName, extraParams, clazz == null ? null : new IAssembIncrControlResult() {
+        return assembIncrControl(getAssembleHttpHost, collectionName, extraParams, clazz == null ? null : new IAssembIncrControlResult() {
 
             public T deserialize(JSONObject json) {
                 return JSON.toJavaObject(json, clazz);
@@ -97,34 +98,35 @@ public enum JobType {
      * @return
      * @throws MalformedURLException
      */
-    public <T> RemoteCallResult<T> assembIncrControl(String collectionName, List<HttpUtils.PostParam> extraParams, IAssembIncrControlResult deserialize) throws MalformedURLException {
-        URL applyUrl = new URL(Config.getAssembleHttpHost() + "/incr-control");
+    public <T> RemoteCallResult<T> assembIncrControl(String getAssembleHttpHost, String collectionName
+            , List<HttpUtils.PostParam> extraParams, IAssembIncrControlResult deserialize) throws MalformedURLException {
+        URL applyUrl = new URL(getAssembleHttpHost + "/incr-control");
         List<HttpUtils.PostParam> params = Lists.newArrayList();
         params.add(new HttpUtils.PostParam("collection", collectionName));
         params.add(new HttpUtils.PostParam("action", this.getName()));
         params.addAll(extraParams);
         return // 
-        HttpUtils.post(// 
-        applyUrl, // 
-        params, new PostFormStreamProcess<RemoteCallResult>() {
+                HttpUtils.post(//
+                        applyUrl, //
+                        params, new PostFormStreamProcess<RemoteCallResult>() {
 
-            public RemoteCallResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                RemoteCallResult<T> result = new RemoteCallResult<>();
-                try {
-                    // System.out.println(IOUtils.toString(stream, TisUTF8.get()));
-                    com.alibaba.fastjson.JSONObject j = JSON.parseObject(IOUtils.toString(stream, TisUTF8.get()));
-                    result.success = j.getBoolean("success");
-                    result.msg = j.getString("msg");
-                    if (deserialize != null && j.containsKey(KEY_BIZ)) {
-                        // JSON.toJavaObject(j.getJSONObject(KEY_BIZ), clazz);
-                        result.biz = deserialize.deserialize(j.getJSONObject(KEY_BIZ));
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                return result;
-            }
-        });
+                            public RemoteCallResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                                RemoteCallResult<T> result = new RemoteCallResult<>();
+                                try {
+                                    // System.out.println(IOUtils.toString(stream, TisUTF8.get()));
+                                    com.alibaba.fastjson.JSONObject j = JSON.parseObject(IOUtils.toString(stream, TisUTF8.get()));
+                                    result.success = j.getBoolean("success");
+                                    result.msg = j.getString("msg");
+                                    if (deserialize != null && j.containsKey(KEY_BIZ)) {
+                                        // JSON.toJavaObject(j.getJSONObject(KEY_BIZ), clazz);
+                                        result.biz = deserialize.deserialize(j.getJSONObject(KEY_BIZ));
+                                    }
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                return result;
+                            }
+                        });
     }
 
     public interface IAssembIncrControlResult {

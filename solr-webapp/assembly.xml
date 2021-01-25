@@ -55,14 +55,12 @@
 			<excludes>
 				<exclude>org.apache.logging.log4j*</exclude>
 				<exclude>org.eclipse.jetty*</exclude>
-				<!--	-->
 				<exclude>${groupId}:${artifactId}</exclude>
-
-				<exclude>*:log4j*</exclude>
+				<exclude>*:logback-*</exclude>
 				<exclude>*:slf4j-log4j12*</exclude>
+				<exclude>*:log4j*</exclude>
 				<exclude>*:commons-logging*</exclude>
-				<!-- <exclude>*:commons-io*</exclude> <exclude>*:jetty*.jar</exclude>
-                    -->
+
 				<exclude>*:servlet-api-*</exclude>
 				<exclude>*:javax.servlet-*</exclude>
 			</excludes>

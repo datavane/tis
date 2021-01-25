@@ -32,11 +32,6 @@ public class TisFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
 
     public TisFlumeLogstashV1Appender() {
         super();
-        // this.execGroupName = System.getProperty(TisIncrLauncher.ENVIRONMENT_INCR_EXEC_GROUP);
-        // if (StringUtils.isEmpty(execGroupName)) {
-        // throw new IllegalArgumentException("param:" + execGroupName + " can not be null");
-        // }
-        // super.setFlumeAgents(TSearcherConfigFetcher.get().getLogFlumeAddress());
         super.setFlumeAgents(Config.getAssembleHost() + ":" + Config.LogFlumeAddressPORT);
     }
 

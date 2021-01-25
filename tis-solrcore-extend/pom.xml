@@ -115,6 +115,11 @@
             <artifactId>tis-solr-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-solr-core</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
@@ -137,6 +142,11 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-manage-pojo</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-core</artifactId>
+            <version>8.7.0</version>
         </dependency>
 
 

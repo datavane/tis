@@ -164,6 +164,7 @@ public class CoreAction extends BasicModule {
       incrStatus.setIncrDeployment(rcConfig);
       JobType.RemoteCallResult<IndexJobRunningStatus> callResult
         = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
+        getAssembleNodeAddress(module.getSolrZkClient()),
         module.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
       if (callResult.success) {
         incrStatus.setIncrProcess(callResult.biz);
@@ -471,49 +472,57 @@ public class CoreAction extends BasicModule {
 
   public static TriggerBuildResult triggerBuild(
     BasicModule module, final Context context, List<PostParam> appendParams) throws MalformedURLException {
-    // 增量状态收集节点
-    final String incrStateCollectAddress = // reConnect
-      ZkUtils.getFirstChildValue(// reConnect
-        module.getSolrZkClient(), // reConnect
-        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, // reConnect
-        null, true);
-    String assembleNodeIp = StringUtils.substringBefore(incrStateCollectAddress, ":") + ":8080" + Config.CONTEXT_ASSEMBLE;
-    TriggerBuildResult triggerResult = HttpUtils.post(new URL("http://" + assembleNodeIp + TRIGGER_FULL_BUILD_COLLECTION_PATH), appendParams, new PostFormStreamProcess<TriggerBuildResult>() {
+    final String assembleNodeAddress = getAssembleNodeAddress(module.getSolrZkClient());
 
-      @Override
-      public ContentType getContentType() {
-        return ContentType.Application_x_www_form_urlencoded;
-      }
+    TriggerBuildResult triggerResult
+      = HttpUtils.post(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH)
+      , appendParams, new PostFormStreamProcess<TriggerBuildResult>() {
 
-      @Override
-      public TriggerBuildResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-        TriggerBuildResult triggerResult = null;
-        try {
-          JSONTokener token = new JSONTokener(stream);
-          JSONObject result = new JSONObject(token);
-          final String successKey = "success";
-          if (result.isNull(successKey)) {
-            return new TriggerBuildResult(false);
-          }
-          triggerResult = new TriggerBuildResult(true);
-          if (!result.isNull(bizKey)) {
-            JSONObject o = result.getJSONObject(bizKey);
-            if (!o.isNull("taskid")) {
-              triggerResult.taskid = Integer.parseInt(o.getString("taskid"));
-            }
-            module.setBizResult(context, o);
-          }
-          if (result.getBoolean(successKey)) {
-            return triggerResult;
-          }
-          module.addErrorMessage(context, result.getString("msg"));
-          return new TriggerBuildResult(false);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+        @Override
+        public ContentType getContentType() {
+          return ContentType.Application_x_www_form_urlencoded;
         }
-      }
-    });
+
+        @Override
+        public TriggerBuildResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+          TriggerBuildResult triggerResult = null;
+          try {
+            JSONTokener token = new JSONTokener(stream);
+            JSONObject result = new JSONObject(token);
+            final String successKey = "success";
+            if (result.isNull(successKey)) {
+              return new TriggerBuildResult(false);
+            }
+            triggerResult = new TriggerBuildResult(true);
+            if (!result.isNull(bizKey)) {
+              JSONObject o = result.getJSONObject(bizKey);
+              if (!o.isNull("taskid")) {
+                triggerResult.taskid = Integer.parseInt(o.getString("taskid"));
+              }
+              module.setBizResult(context, o);
+            }
+            if (result.getBoolean(successKey)) {
+              return triggerResult;
+            }
+            module.addErrorMessage(context, result.getString("msg"));
+            return new TriggerBuildResult(false);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
+      });
     return triggerResult;
+  }
+
+  public static String getAssembleNodeAddress(ITISCoordinator coordinator) {
+    // 增量状态收集节点
+    final String incrStateCollectAddress =
+      ZkUtils.getFirstChildValue(
+        coordinator,
+        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
+        null, true);
+    return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
+      + ":8080" + Config.CONTEXT_ASSEMBLE;
   }
 
   public static class TriggerBuildResult {
@@ -782,10 +791,6 @@ public class CoreAction extends BasicModule {
     TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
     // 删除增量实例
     k8sDelegate.removeIncrProcess();
-    // PluginStore<IncrStreamFactory> incrPluginStore = TIS.getPluginStore(this.getCollectionName(), IncrStreamFactory.class);
-    // IncrStreamFactory streamFactory = incrPluginStore.getPlugin();
-    // IIncrSync incrSync = streamFactory.getIncrSync();
-    // incrSync.removeInstance(this.getCollectionName());
   }
 
   /**
@@ -798,7 +803,9 @@ public class CoreAction extends BasicModule {
   public void doIncrResumePause(Context context) throws Exception {
     boolean pause = this.getBoolean("pause");
     final String collection = this.getAppDomain().getAppName();
-    JobType.RemoteCallResult<?> callResult = JobType.IndexJobRunning.assembIncrControl(collection, Lists.newArrayList(new PostParam("stop", pause)), null);
+
+    JobType.RemoteCallResult<?> callResult = JobType.IndexJobRunning.assembIncrControl(
+      getAssembleNodeAddress(this.getSolrZkClient()), collection, Lists.newArrayList(new PostParam("stop", pause)), null);
     if (!callResult.success) {
       this.addErrorMessage(context, callResult.msg);
       return;

@@ -54,8 +54,8 @@ public class ZooKeeperGetter extends EnvironmentBindService<ITISCoordinator> {
         }
     }
 
-    public ITISCoordinator getOnlineTerminatorZooKeeper() {
-        // createSerivce(RunEnvironment.ONLINE);
-        return this.getInstance(RunEnvironment.ONLINE);
-    }
+//    public ITISCoordinator getOnlineTerminatorZooKeeper() {
+//        // createSerivce(RunEnvironment.ONLINE);
+//        return this.getInstance(RunEnvironment.ONLINE);
+//    }
 }

@@ -123,7 +123,7 @@ public class Config {
             this.dbCfg.password = p.getString("tis.datasource.password");
             this.dbCfg.dbname = p.getString("tis.datasource.dbname");
         } catch (Exception e) {
-           throw new IllegalStateException("please check the tis datasource cfg",e);
+            throw new IllegalStateException("please check the tis datasource cfg", e);
         }
     }
 
@@ -144,9 +144,9 @@ public class Config {
         return getInstance().assembleHost;
     }
 
-    public static String getAssembleHttpHost() {
-        return "http://" + getInstance().assembleHost + ":8080" + CONTEXT_ASSEMBLE;
-    }
+//    public static String getAssembleHttpHost() {
+    //   return "http://" + getInstance().assembleHost + ":8080" + CONTEXT_ASSEMBLE;
+//    }
 
     public static TisDbConfig getDbCfg() {
         return getInstance().dbCfg;

@@ -21,6 +21,8 @@ import com.google.protobuf.util.JsonFormat;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
+import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TISK8sDelegate;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
@@ -75,6 +77,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
   private AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
 
   private IWorkflowDAOFacade wfDao;
+  private ZooKeeperGetter zkGetter;
 
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -83,7 +86,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
       return this.statusRpc;
     }
     try {
-      ZooKeeperGetter zkGetter = BasicServlet.getBeanByType(getServletContext(), ZooKeeperGetter.class);
+      Objects.requireNonNull(zkGetter, "zkGetter can not be null");
       this.statusRpc = StatusRpcClient.getService(zkGetter.getInstance());
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -98,6 +101,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     factory.setCreator((req, rep) -> {
       return new LogSocket();
     });
+    this.zkGetter = BasicServlet.getBeanByType(getServletContext(), ZooKeeperGetter.class);
     this.wfDao = BasicServlet.getBeanByType(getServletContext(), IWorkflowDAOFacade.class);
   }
 
@@ -261,13 +265,13 @@ public class LogFeedbackServlet extends WebSocketServlet {
           transferTagStatus = new HashMap<>();
         final Map<String, TopicTagStatus> /* this.tag */
           binlogTopicTagStatus = new HashMap<>();
-        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(collectionName);
+        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName);
         // 如果size为0，则说明远程工作节点没有正常执行
         if (focusTags.size() > 0) {
           TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
           executorService.execute(() -> {
             IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName, this
-              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, plugin.createConsumerStatus());
+              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, plugin.createConsumerStatus(), zkGetter);
             incrTagHeatBeatMonitor.build();
           });
         }
@@ -380,9 +384,11 @@ public class LogFeedbackServlet extends WebSocketServlet {
     }
   }
 
-  public static List<TopicTagIncrStatus.FocusTags> getFocusTags(String collectionName) throws MalformedURLException {
+  public static List<TopicTagIncrStatus.FocusTags> getFocusTags(ITISCoordinator zookeeper, String collectionName) throws MalformedURLException {
     //
-    JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(collectionName, Collections.emptyList(), TopicInfo.class);
+    JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(
+      CoreAction.getAssembleNodeAddress(zookeeper),
+      collectionName, Collections.emptyList(), TopicInfo.class);
     if (topicInfo.biz.getTopicWithTags().size() < 1) {
       // 返回为空的话可以证明没有正常启动
       return Collections.emptyList();

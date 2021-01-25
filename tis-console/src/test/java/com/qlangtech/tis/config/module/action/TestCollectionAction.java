@@ -61,7 +61,6 @@ import org.w3c.dom.NodeList;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -72,6 +71,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
+ * httpClient Stub 测试
+ * https://rieckpil.de/how-to-test-java-http-client-usages-e-g-okhttp-apache-httpclient/
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020-12-16 10:39
  */
@@ -118,28 +119,28 @@ public class TestCollectionAction extends BasicActionTestCase {
 
   private static final String COLLECTION_NAME = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
 
-  public void testSend2RemoteServer() throws Exception {
-    this.clearUpDB();
-    URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
-    // URL url = new URL("http://localhost:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
-    HttpUtils.post(url, getPostJSONContent(TEST_TABLE_EMPLOYEES_NAME).toJSONString().getBytes(TisUTF8.get()), new PostFormStreamProcess<Void>() {
-
-      @Override
-      public ContentType getContentType() {
-        return ContentType.Multipart_byteranges;
-      }
-
-      @Override
-      public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-        try {
-          System.out.println(IOUtils.toString(stream, TisUTF8.get()));
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-        return null;
-      }
-    });
-  }
+//  public void testSend2RemoteServer() throws Exception {
+//    this.clearUpDB();
+//    URL url = new URL("http://192.168.28.200:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
+//    // URL url = new URL("http://localhost:8080/tjs/config/config.ajax?emethod=create&action=collection_action");
+//    HttpUtils.post(url, getPostJSONContent(TEST_TABLE_EMPLOYEES_NAME).toJSONString().getBytes(TisUTF8.get()), new PostFormStreamProcess<Void>() {
+//
+//      @Override
+//      public ContentType getContentType() {
+//        return ContentType.Multipart_byteranges;
+//      }
+//
+//      @Override
+//      public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+//        try {
+//          System.out.println(IOUtils.toString(stream, TisUTF8.get()));
+//        } catch (Exception e) {
+//          throw new RuntimeException(e);
+//        }
+//        return null;
+//      }
+//    });
+//  }
 
   @Override
   protected void setUp() throws Exception {
@@ -227,13 +228,17 @@ public class TestCollectionAction extends BasicActionTestCase {
     this.verifyAll();
   }
 
-  private void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator) {
+  private static void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator) {
+    createAssembleLogCollectPathMock(zkCoordinator, 1);
+  }
+
+  public static void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator, int times) {
     String childPath = "nodes0000000361";
     String childPathContent = "192.168.28.200:38293";
     List<String> incrStatecollectList = Lists.newArrayList(childPath);
-    EasyMock.expect(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true)).andReturn(incrStatecollectList);
+    EasyMock.expect(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true)).andReturn(incrStatecollectList).times(times);
     EasyMock.expect(zkCoordinator.getData(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + "/" + childPath, null, new Stat(), true))
-      .andReturn(childPathContent.getBytes(TisUTF8.get()));
+      .andReturn(childPathContent.getBytes(TisUTF8.get())).times(times);
   }
 
   public void testQuery() throws Exception {

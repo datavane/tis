@@ -90,18 +90,12 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     public void setZkStateReader(ZkStateReader zkStateReader) {
         this.zkStateReader = zkStateReader;
     }
-
-    // private List<String> indexs;
     private Collection<IOnsListenerStatus> incrChannels;
 
-    // private TriggerLogServer logServer;
     public Collection<IOnsListenerStatus> getIncrChannels() {
         return incrChannels;
     }
 
-    // public List<String> getIndexs() {
-    // return this.indexs;
-    // }
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         AbstractTisCloudSolrClient.initHashcodeRouter();
