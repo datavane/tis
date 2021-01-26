@@ -86,20 +86,20 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
     }
 
 
-
     @Override
     public <T> T newInstance(String cname, Class<T> expectedType, String[] subPackages, Class[] params, Object[] args) {
 
-        throw new UnsupportedOperationException();
+        //  throw new UnsupportedOperationException();
 
-//        PluginInfo.ClassName cName = new PluginInfo.ClassName(cname);
-//        if (cName.pkg == null) {
-//            return coreResourceLoader.newInstance(cname, expectedType, subPackages, params, args);
-//        } else {
-////            PackageLoader.Package.Version version = findPkgVePackageLoader.Package.Version version = findPkgVersion(cName);
-//////            return applyResourceLoaderAware(version, version.getLoader().newInstance(cName.className, expectedType, subPackages, params, args));rsion(cName);
-////            return applyResourceLoaderAware(version, version.getLoader().newInstance(cName.className, expectedType, subPackages, params, args));
-//        }
+        PluginInfo.ClassName cName = new PluginInfo.ClassName(cname);
+        if (cName.pkg == null) {
+            return coreResourceLoader.newInstance(cname, expectedType, subPackages, params, args);
+        } else {
+//            PackageLoader.Package.Version version = findPkgVePackageLoader.Package.Version version = findPkgVersion(cName);
+////            return applyResourceLoaderAware(version, version.getLoader().newInstance(cName.className, expectedType, subPackages, params, args));rsion(cName);
+//            return applyResourceLoaderAware(version, version.getLoader().newInstance(cName.className, expectedType, subPackages, params, args));
+            throw new UnsupportedOperationException("cname:" + cName.original + ",expectedType:" + expectedType);
+        }
 //
 //        return null;
     }
