@@ -26,12 +26,12 @@ solrAdminApp.controller('ReplicationController',
                 var timeout;
                 var interval;
                 if ($scope.interval) $interval.cancel($scope.interval);
-                $scope.isSlave = (response.details.isSlave === 'true');
-                if ($scope.isSlave) {
+                $scope.isFollower = (response.details.isSlave === 'true');
+                if ($scope.isFollower) {
                     $scope.progress = getProgressDetails(response.details.slave);
                     $scope.iterations = getIterations(response.details.slave);
-                    $scope.versions = getSlaveVersions(response.details);
-                    $scope.settings = getSlaveSettings(response.details);
+                    $scope.versions = getFollowerVersions(response.details);
+                    $scope.settings = getFollowerSettings(response.details);
                     if ($scope.settings.isReplicating) {
                         timeout = $timeout($scope.refresh, 1000);
                     } else if(!$scope.settings.isPollingDisabled && $scope.settings.pollInterval) {
@@ -41,9 +41,9 @@ solrAdminApp.controller('ReplicationController',
                         timeout = $timeout($scope.refresh, 1000*(1+$scope.settings.tick));
                     }
                 } else {
-                    $scope.versions = getMasterVersions(response.details);
+                    $scope.versions = getLeaderVersions(response.details);
                 }
-                $scope.master = getMasterSettings(response.details, $scope.isSlave);
+                $scope.leader = getLeaderSettings(response.details, $scope.isFollower);
 
                 var onRouteChangeOff = $scope.$on('$routeChangeStart', function() {
                     if (interval) $interval.cancel(interval);
@@ -56,7 +56,7 @@ solrAdminApp.controller('ReplicationController',
 
         $scope.execute = function(command) {
             Replication.command({core:$routeParams.core, command:command}, function(data){$scope.refresh()});
-        };
+        }
 
         $scope.showIterations = function() { $scope.iterationCount = 100000}; // limitTo should accept undefined, but doesn't work.
         $scope.hideIterations = function() { $scope.iterationCount = 1};
@@ -85,7 +85,7 @@ var getProgressDetails = function(progress) {
     return progress;
 };
 
-var getIterations = function(slave) {
+var getIterations = function(follower) {
 
     var iterations = [];
 
@@ -93,26 +93,26 @@ var getIterations = function(slave) {
         return list.filter(function(e) {return e.date == date});
     };
 
-    for (var i in slave.indexReplicatedAtList) {
-        var date = slave.indexReplicatedAtList[i];
+    for (var i in follower.indexReplicatedAtList) {
+        var date = follower.indexReplicatedAtList[i];
         var iteration = {date:date, status:"replicated", latest: false};
-        if (date == slave.indexReplicatedAt) {
+        if (date == follower.indexReplicatedAt) {
             iteration.latest = true;
         }
         iterations.push(iteration);
     }
 
-    for (var i in slave.replicationFailedAtList) {
-        var failedDate = slave.replicationFailedAtList[i];
+    for (var i in follower.replicationFailedAtList) {
+        var failedDate = follower.replicationFailedAtList[i];
         var matchingIterations = find(iterations, failedDate);
-        if (matchingIterations) {
+        if (matchingIterations[0]) {
             iteration = matchingIterations[0];
+            iteration.status = "failed";
         } else {
-            iteration = {date: failedDate, latest:false};
+            iteration = {date: failedDate, status:"failed", latest:false};
             iterations.push(iteration);
         }
-        iteration.status = "failed";
-        if (failedDate == slave.replicationFailedAt) {
+        if (failedDate == follower.replicationFailedAt) {
             iteration.latest = true;
         }
     }
@@ -120,34 +120,34 @@ var getIterations = function(slave) {
     return iterations;
 };
 
-var getMasterVersions = function(data) {
-    versions = {masterSearch:{}, master:{}};
+var getLeaderVersions = function(data) {
+    versions = {leaderSearch:{}, leader:{}};
 
-    versions.masterSearch.version = data.indexVersion;
-    versions.masterSearch.generation = data.generation;
-    versions.masterSearch.size = data.indexSize;
+    versions.leaderSearch.version = data.indexVersion;
+    versions.leaderSearch.generation = data.generation;
+    versions.leaderSearch.size = data.indexSize;
 
-    versions.master.version = data.master.replicableVersion || '-';
-    versions.master.generation = data.master.replicableGeneration || '-';
-    versions.master.size = '-';
+    versions.leader.version = data.master.replicableVersion || '-';
+    versions.leader.generation = data.master.replicableGeneration || '-';
+    versions.leader.size = '-';
 
     return versions;
 };
 
-var getSlaveVersions = function(data) {
-    versions = {masterSearch: {}, master: {}, slave: {}};
+var getFollowerVersions = function(data) {
+    versions = {leaderSearch: {}, leader: {}, follower: {}};
 
-    versions.slave.version = data.indexVersion;
-    versions.slave.generation = data.generation;
-    versions.slave.size = data.indexSize;
+    versions.follower.version = data.indexVersion;
+    versions.follower.generation = data.generation;
+    versions.follower.size = data.indexSize;
 
-    versions.master.version = data.slave.masterDetails.replicableVersion || '-';
-    versions.master.generation = data.slave.masterDetails.replicableGeneration || '-';
-    versions.master.size = '-';
+    versions.leader.version = data.slave.masterDetails.replicableVersion || '-';
+    versions.leader.generation = data.slave.masterDetails.replicableGeneration || '-';
+    versions.leader.size = '-';
 
-    versions.masterSearch.version = data.slave.masterDetails.indexVersion;
-    versions.masterSearch.generation = data.slave.masterDetails.generation;
-    versions.masterSearch.size = data.slave.masterDetails.indexSize;
+    versions.leaderSearch.version = data.slave.masterDetails.indexVersion;
+    versions.leaderSearch.generation = data.slave.masterDetails.generation;
+    versions.leaderSearch.size = data.slave.masterDetails.indexSize;
 
     versions.changedVersion = data.indexVersion !== data.slave.masterDetails.indexVersion;
     versions.changedGeneration = data.generation !== data.slave.masterDetails.generation;
@@ -162,11 +162,11 @@ var parseDateToEpoch = function(date) {
     // "Sat Mar 03 2012 10:37:33"
     var d = new Date( parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + parts[6] + ' ' + parts[4] );
     return d.getTime();
-};
+}
 
 var parseSeconds = function(time) {
     var seconds = 0;
-    var arr = String(time || '').split('.');
+    var arr = new String(time || '').split('.');
     var parts = arr[0].split(':').reverse();
 
     for (var i = 0; i < parts.length; i++) {
@@ -179,11 +179,11 @@ var parseSeconds = function(time) {
     }
 
     return seconds;
-};
+}
 
-var getSlaveSettings = function(data) {
+var getFollowerSettings = function(data) {
     var settings = {};
-    settings.masterUrl = data.slave.masterUrl;
+    settings.leaderUrl = data.slave.masterUrl;
     settings.isPollingDisabled = data.slave.isPollingDisabled == 'true';
     settings.pollInterval = data.slave.pollInterval;
     settings.isReplicating = data.slave.isReplicating == 'true';
@@ -195,7 +195,7 @@ var getSlaveSettings = function(data) {
     } else if (!settings.isPollingDisabled && settings.pollInterval) {
         if( settings.nextExecutionAt ) {
             settings.nextExecutionAtEpoch = parseDateToEpoch(settings.nextExecutionAt);
-            settings.currentTime = parseDateToEpoch(data.slave.currentDate);
+            settings.currentTime = parseDateToEpoch(data.follower.currentDate);
 
             if( settings.nextExecutionAtEpoch > settings.currentTime) {
                 settings.isApprox = false;
@@ -206,15 +206,15 @@ var getSlaveSettings = function(data) {
     return settings;
 };
 
-var getMasterSettings = function(details, isSlave) {
-    var master = {};
-    var masterData = isSlave ? details.slave.masterDetails.master : details.master;
-    master.replicationEnabled = masterData.replicationEnabled == "true";
-    master.replicateAfter = masterData.replicateAfter.join(", ");
+var getLeaderSettings = function(details, isFollower) {
+    var leader = {};
+    var leaderData = isFollower ? details.slave.masterDetails.master : details.master;
+    leader.replicationEnabled = leaderData.replicationEnabled == "true";
+    leader.replicateAfter = leaderData.replicateAfter.join(", ");
 
-    if (masterData.confFiles) {
-        master.files = [];
-        var confFiles = masterData.confFiles.split(',');
+    if (leaderData.confFiles) {
+        leader.files = [];
+        var confFiles = leaderData.confFiles.split(',');
         for (var i=0; i<confFiles.length; i++) {
             var file = confFiles[i];
             var short = file;
@@ -222,14 +222,14 @@ var getMasterSettings = function(details, isSlave) {
             if (file.indexOf(":")>=0) {
                 title = file.replace(':', ' » ');
                 var parts = file.split(':');
-                if (isSlave) {
+                if (isFollower) {
                     short = parts[1];
                 } else {
                     short = parts[0];
                 }
             }
-            master.files.push({title:title, name:short});
+            leader.files.push({title:title, name:short});
         }
     }
-    return master;
-};
+    return leader;
+}

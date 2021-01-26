@@ -1149,7 +1149,7 @@ d3.interpolateObject = function(a, b) {
     for (k in i) c[k] = i[k](t);
     return c;
   };
-};
+}
 
 var d3_interpolate_number = /[-+]?(?:\d*\.?\d+)(?:[eE][-+]?\d+)?/g;
 
@@ -1859,7 +1859,7 @@ d3_selectionPrototype.data = function(value, key) {
       }
 
       for (i = -1; ++i < m;) {
-        keyValue = key.call(groupData, nodeData = groupData[i], i);
+        keyValue = key.call(groupData, nodeData = groupData[i], i)
         if (nodeByKeyValue.has(keyValue)) {
           updateNodes[i] = node = nodeByKeyValue.get(keyValue);
           node.__data__ = nodeData;
@@ -2442,7 +2442,7 @@ d3.timer = function(callback, delay, then) {
     d3_timer_interval = 1;
     d3_timer_frame(d3_timer_step);
   }
-};
+}
 
 function d3_timer_step() {
   var elapsed,
@@ -2534,8 +2534,9 @@ function d3_transform(m) {
   this.translate = [m.e, m.f];
   this.scale = [kx, ky];
   this.skew = ky ? Math.atan2(kz, ky) * d3_transformDegrees : 0;
-}
-    d3_transform.prototype.toString = function() {
+};
+
+d3_transform.prototype.toString = function() {
   return "translate(" + this.translate
       + ")rotate(" + this.rotate
       + ")skewX(" + this.skew
@@ -2596,8 +2597,8 @@ function d3_mousePoint(container, e) {
   }
   var rect = container.getBoundingClientRect();
   return [e.clientX - rect.left - container.clientLeft, e.clientY - rect.top - container.clientTop];
-}
-    d3.touches = function(container, touches) {
+};
+d3.touches = function(container, touches) {
   if (arguments.length < 2) touches = d3_eventSource().touches;
   return touches ? d3_array(touches).map(function(touch) {
     var point = d3_mousePoint(container, touch);
@@ -5701,7 +5702,7 @@ d3.layout.stack = function() {
   };
 
   return stack;
-};
+}
 
 function d3_layout_stackX(d) {
   return d.x;
@@ -7754,7 +7755,7 @@ d3.geo.circle = function() {
   };
 
   return circle;
-};
+}
 d3.geo.greatArc = function() {
   var source = d3_geo_greatArcSource,
       target = d3_geo_greatArcTarget,
@@ -8003,7 +8004,7 @@ d3.geom.hull = function(vertices) {
     poly.push(vertices[stack[i]]);
   }
   return poly;
-};
+}
 
 // are three points in counter-clockwise order?
 function d3_geom_hullCCW(i1, i2, i3, v) {
@@ -8396,7 +8397,7 @@ function d3_voronoi_tessellate(vertices, callback) {
         if (he.ystar > next.ystar ||
           (he.ystar == next.ystar &&
           site.x > next.vertex.x)) {
-
+          continue;
         } else {
           break;
         }

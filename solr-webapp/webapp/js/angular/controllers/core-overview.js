@@ -30,63 +30,16 @@ function($scope, $rootScope, $routeParams, Luke, CoreSystem, Update, Replication
     );
   };
 
-  $scope.optimizeIndex = function(core) {
-    Update.optimize({core: $routeParams.core},
-      function(response) {
-        $scope.refresh();
-        delete $scope.indexMessage;
-      },
-      function(error) {
-        $scope.statisticsDisabled = true;
-        $scope.indexMessage = "Optimize broken.";
-      });
-  };
-
   $scope.refreshReplication = function() {
     Replication.details({core: $routeParams.core},
       function(data) {
-        $scope.isSlave = data.details.isSlave == "true";
-        $scope.isMaster = data.details.isMaster == "true";
+        $scope.isFollower = data.details.isSlave == "true";
+        $scope.isLeader = data.details.isMaster == "true";
         $scope.replication = data.details;
       },
       function(error) {
         $scope.replicationMessage = "Replication is not configured";
       });
-  /*
-      /replication?command=details&wt=json
-
-              if( is_slave )
-              {
-
-                // warnings if slave version|gen doesn't match what's replicable
-                if( data.indexVersion !== master_data.master.replicableVersion )
-                {
-                  $( '.version', details_element )
-                    .addClass( 'diff' );
-                }
-                else
-                {
-                  $( '.version', details_element )
-                    .removeClass( 'diff' );
-                }
-
-                if( data.generation !== master_data.master.replicableGeneration )
-                {
-                  $( '.generation', details_element )
-                    .addClass( 'diff' );
-                }
-                else
-                {
-                  $( '.generation', details_element )
-                    .removeClass( 'diff' );
-                }
-              }
-            },
-
-*/
-  };
-
-  $scope.refreshAdminExtra = function() {
   };
 
   $scope.refreshSystem = function() {
@@ -131,7 +84,6 @@ function($scope, $rootScope, $routeParams, Luke, CoreSystem, Update, Replication
   $scope.refresh = function() {
     $scope.refreshIndex();
     $scope.refreshReplication();
-    $scope.refreshAdminExtra();
     $scope.refreshSystem();
     $scope.refreshPing();
   };
@@ -139,86 +91,3 @@ function($scope, $rootScope, $routeParams, Luke, CoreSystem, Update, Replication
   $scope.refresh();
 });
 
-/*******
-
-// @todo admin-extra
-    var core_basepath = this.active_core.attr( 'data-basepath' );
-    var content_element = $( '#content' );
-
-    content_element
-      .removeClass( 'single' );
-
-    if( !app.core_menu.data( 'admin-extra-loaded' ) )
-    {
-      app.core_menu.data( 'admin-extra-loaded', new Date() );
-
-      $.get
-      (
-        core_basepath + '/admin/file/?file=admin-extra.menu-top.html&contentType=text/html;charset=utf-8',
-        function( menu_extra )
-        {
-          app.core_menu
-            .prepend( menu_extra );
-        }
-      );
-
-      $.get
-      (
-        core_basepath + '/admin/file/?file=admin-extra.menu-bottom.html&contentType=text/html;charset=utf-8',
-        function( menu_extra )
-        {
-          app.core_menu
-            .append( menu_extra );
-        }
-      );
-    }
-
-
-
-////////////////////////////////// ADMIN EXTRA
-        $.ajax
-        (
-          {
-            url : core_basepath + '/admin/file/?file=admin-extra.html',
-            dataType : 'html',
-            context : $( '#admin-extra', dashboard_element ),
-            beforeSend : function( xhr, settings )
-            {
-              $( 'h2', this )
-                .addClass( 'loader' );
-
-              $( '.message', this )
-                .show()
-                .html( 'Loading' );
-
-              $( '.content', this )
-                .hide();
-            },
-            success : function( response, text_status, xhr )
-            {
-              $( '.message', this )
-                .hide()
-                .empty();
-
-              $( '.content', this )
-                .show()
-                .html( response );
-            },
-            error : function( xhr, text_status, error_thrown)
-            {
-              this
-                .addClass( 'disabled' );
-
-              $( '.message', this )
-                .show()
-                .html( 'We found no "admin-extra.html" file.' );
-            },
-            complete : function( xhr, text_status )
-            {
-              $( 'h2', this )
-                .removeClass( 'loader' );
-            }
-          }
-        );
-
-***/

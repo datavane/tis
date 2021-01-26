@@ -22,7 +22,7 @@ solrAdminApp.controller('DataImportController',
         $scope.resetMenu("dataimport", Constants.IS_COLLECTION_PAGE);
 
         $scope.refresh = function () {
-            Mbeans.info({core: $routeParams.core, cat: 'QUERYHANDLER'}, function (data) {
+            Mbeans.info({core: $routeParams.core, cat: 'QUERY'}, function (data) {
                 var mbeans = data['solr-mbeans'][1];
                 $scope.handlers = [];
                 for (var key in mbeans) {
@@ -39,59 +39,65 @@ solrAdminApp.controller('DataImportController',
                 }
             });
 
-            DataImport.config({core: $routeParams.core}, function (data) {
-                try {
-                    var xml = $.parseXML(data.config);
-                } catch (err) {
-                    $scope.hasHandlers = false;
-                    return;
-                }
-                $scope.config = data.config;
-                $scope.entities = [];
-                $('document > entity', xml).each(function (i, element) {
-                    $scope.entities.push($(element).attr('name'));
+            $scope.handler = $routeParams.handler;
+            if ($scope.handler && $scope.handler[0]=="/") {
+                $scope.handler = $scope.handler.substr(1);
+            }
+            if ($scope.handler) {
+                DataImport.config({core: $routeParams.core, name: $scope.handler}, function (data) {
+                    try {
+                        $scope.config = data.config;
+                        var xml = $.parseXML(data.config);
+                        $scope.entities = [];
+                        $('document > entity', xml).each(function (i, element) {
+                            $scope.entities.push($(element).attr('name'));
+                        });
+                        $scope.refreshStatus();
+                    } catch (err) {
+                        console.log(err);
+                    }
                 });
-            });
-
+            }
             $scope.lastUpdate = "unknown";
             $scope.lastUpdateUTC = "";
-
-            $scope.refreshStatus();
         };
 
         $scope.toggleDebug = function () {
             $scope.isDebugMode = !$scope.isDebugMode;
+            if ($scope.isDebugMode) {
+                // also enable Debug checkbox
+                $scope.form.showDebug = true;
+            }
             $scope.showConfiguration = true;
-        };
+        }
 
         $scope.toggleConfiguration = function () {
             $scope.showConfiguration = !$scope.showConfiguration;
-        };
+        }
 
         $scope.toggleRawStatus = function () {
             $scope.showRawStatus = !$scope.showRawStatus;
-        };
+        }
 
         $scope.toggleRawDebug = function () {
             $scope.showRawDebug = !$scope.showRawDebug;
-        };
+        }
 
         $scope.reload = function () {
-            DataImport.reload({core: $routeParams.core}, function () {
+            DataImport.reload({core: $routeParams.core, name: $scope.handler}, function () {
                 $scope.reloaded = true;
                 $timeout(function () {
                     $scope.reloaded = false;
                 }, 5000);
                 $scope.refresh();
             });
-        };
+        }
 
         $scope.form = {
             command: "full-import",
             verbose: false,
-            clean: true,
+            clean: false,
             commit: true,
-            optimize: false,
             showDebug: false,
             custom: "",
             core: $routeParams.core
@@ -100,7 +106,13 @@ solrAdminApp.controller('DataImportController',
         $scope.submit = function () {
             var params = {};
             for (var key in $scope.form) {
-                params[key] = $scope.form[key];
+                if (key == "showDebug") {
+                    if ($scope.form.showDebug) {
+                        params["debug"] = true;
+                    }
+                } else {
+                    params[key] = $scope.form[key];
+                }
             }
             if (params.custom.length) {
                 var customParams = $scope.form.custom.split("&");
@@ -111,11 +123,12 @@ solrAdminApp.controller('DataImportController',
             }
             delete params.custom;
 
-            if (params.isDebugMode) {
-                params.dataConfig = $scope.rawConfig;
+            if ($scope.isDebugMode) {
+                params.dataConfig = $scope.config;
             }
-            delete params.showDebug;
+
             params.core = $routeParams.core;
+            params.name = $scope.handler;
 
             DataImport.post(params, function (data) {
                 $scope.rawResponse = JSON.stringify(data, null, 2);
@@ -125,20 +138,20 @@ solrAdminApp.controller('DataImportController',
 
         $scope.abort = function () {
             $scope.isAborting = true;
-            DataImport.abort({core: $routeParams.core}, function () {
+            DataImport.abort({core: $routeParams.core, name: $scope.handler}, function () {
                 $timeout(function () {
                     $scope.isAborting = false;
                     $scope.refreshStatus();
                 }, 4000);
             });
-        };
+        }
 
         $scope.refreshStatus = function () {
 
             console.log("Refresh Status");
 
             $scope.isStatusLoading = true;
-            DataImport.status({core: $routeParams.core}, function (data) {
+            DataImport.status({core: $routeParams.core, name: $scope.handler}, function (data) {
                 if (data[0] == "<") {
                     $scope.hasHandlers = false;
                     return;
@@ -271,11 +284,11 @@ var showInfo = function (messages, showFull, info_text, elapsed_seconds) {
         }
     }
     return info;
-};
+}
 
 var parseSeconds = function(time) {
     var seconds = 0;
-    var arr = String(time || '').split('.');
+    var arr = new String(time || '').split('.');
     var parts = arr[0].split(':').reverse();
 
     for (var i = 0; i < parts.length; i++) {
@@ -286,4 +299,4 @@ var parseSeconds = function(time) {
         seconds++; // treat more or equal than .5 as additional second
     }
     return seconds;
-};
+}

@@ -21,7 +21,7 @@ var format_time_content = function( time, timeZone ) {
     format_time_options.timeZone = timeZone;
   }
   return time.toLocaleString( undefined, format_time_options );
-};
+}
 
 solrAdminApp.controller('LoggingController',
   function($scope, $timeout, $cookies, Logging, Constants){
@@ -78,11 +78,19 @@ solrAdminApp.controller('LoggingController',
       });
     };
     $scope.refresh();
-
+    $scope.toggleRefresh = function() {
+      if(!$scope.stopped) {
+        $scope.stopped = true;
+        $timeout.cancel($scope.timeout);
+      } else {
+        $scope.stopped = false;
+        $scope.timeout = $timeout($scope.refresh, 10000);
+      }
+    };
     $scope.toggleTimezone = function() {
       $scope.timezone = ($scope.timezone=="Local") ? "UTC":"Local";
       $cookies.logging_timezone = $scope.timezone;
-    };
+    }
     $scope.toggleRow = function(event) {
       event.showTrace =! event.showTrace;
     };
@@ -98,7 +106,7 @@ solrAdminApp.controller('LoggingController',
       return !parts.pop() ? "" : parts.join(".");
     };
 
-    var shortNameOf = function(logger) {return logger.name.split(".").pop();};
+    var shortNameOf = function(logger) {return logger.name.split(".").pop();}
 
     var makeTree = function(loggers, packag) {
       var tree = [];

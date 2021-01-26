@@ -15,9 +15,8 @@
  limitations under the License.
 */
 
-// @todo test optimize (delete stuff, watch button appear, test button/form)
 solrAdminApp.controller('CoreAdminController',
-    function($scope, $routeParams, $location, $timeout, Cores, Update, Constants){
+    function($scope, $routeParams, $location, $timeout, $route, Cores, Update, Constants){
       $scope.resetMenu("cores", Constants.IS_ROOT_PAGE);
       $scope.selectedCore = $routeParams.corename; // use 'corename' not 'core' to distinguish from /solr/:core/
       $scope.refresh = function() {
@@ -129,15 +128,15 @@ solrAdminApp.controller('CoreAdminController',
       };
 
       $scope.swapCores = function() {
-        if ($scope.swapOther) {
-          $swapMessage = "Please select a core to swap with";
+        if (!$scope.swapOther) {
+          $scope.swapMessage = "Please select a core to swap with";
         } else if ($scope.swapOther == $scope.selectedCore) {
-          $swapMessage = "Cannot swap with the same core";
+          $scope.swapMessage = "Cannot swap with the same core";
         } else {
           Cores.swap({core: $scope.selectedCore, other: $scope.swapOther}, function(data) {
             $location.path("/~cores/" + $scope.swapOther);
             delete $scope.swapOther;
-            $scope.cancelSwap();
+            $scope.cancelSwapCores();
           });
         }
       };
@@ -145,7 +144,7 @@ solrAdminApp.controller('CoreAdminController',
       $scope.cancelSwapCores = function() {
         delete $scope.swapMessage;
         $scope.showSwap = false;
-      };
+      }
 
       $scope.reloadCore = function() {
         if ($scope.initFailures[$scope.selectedCore]) {
@@ -176,303 +175,6 @@ solrAdminApp.controller('CoreAdminController',
         $scope.showSwap = false;
       };
 
-      $scope.optimizeCore = function() {
-        Update.optimize({core: $scope.selectedCore},
-          function(successData) {
-            $scope.optimizeSuccess = true;
-            $timeout(function() {$scope.optimizeSuccess=false}, 1000);
-            $scope.refresh();
-          },
-          function(failureData) {
-            $scope.optimizeFailure = true;
-            $timeout(function () {$scope.optimizeFailure=false}, 1000);
-            $scope.refresh();
-          });
-      };
-
       $scope.refresh();
     }
 );
-
-/**************
-  'cores_load_data',
-  function( event, params )
-  {
-    $.ajax
-    (
-      {
-        url : app.config.solr_path + app.config.core_admin_path + '?wt=json',
-        dataType : 'json',
-        success : function( response, text_status, xhr )
-        {
-          if( params.only_failures )
-          {
-            app.check_for_init_failures( response );
-            return true;
-          }
-
-
-=========== NO CORES
-        error : function()
-        {
-          sammy.trigger
-          (
-            'cores_load_template',
-            {
-              content_element : content_element,
-              callback : function()
-              {
-                var cores_element = $( '#cores', content_element );
-                var navigation_element = $( '#navigation', cores_element );
-                var data_element = $( '#data', cores_element );
-                var core_data_element = $( '#core-data', data_element );
-                var index_data_element = $( '#index-data', data_element );
-
-                // layout
-
-                var ui_block = $( '#ui-block' );
-                var actions_element = $( '.actions', cores_element );
-                var div_action = $( 'div.action', actions_element );
-
-                ui_block
-                  .css( 'opacity', 0.7 )
-                  .width( cores_element.width() + 10 )
-                  .height( cores_element.height() );
-
-                if( $( '#cloud.global' ).is( ':visible' ) )
-                {
-                  $( '.cloud', div_action )
-                    .show();
-                }
-
-                $( 'button.action', actions_element )
-                  .die( 'click' )
-                  .live
-                  (
-                    'click',
-                    function( event )
-                    {
-                      var self = $( this );
-
-                      self
-                        .toggleClass( 'open' );
-
-                      $( '.action.' + self.attr( 'id' ), actions_element )
-                        .trigger( 'open' );
-
-                      return false;
-                    }
-                  );
-
-                div_action
-                  .die( 'close' )
-                  .live
-                  (
-                    'close',
-                    function( event )
-                    {
-                      div_action.hide();
-                      ui_block.hide();
-                    }
-                  )
-                  .die( 'open' )
-                  .live
-                  (
-                    'open',
-                    function( event )
-                    {
-                      var self = $( this );
-                      var rel = $( '#' + self.data( 'rel' ) );
-
-                      self
-                        .trigger( 'close' )
-                        .show()
-                        .css( 'left', rel.position().left );
-
-                      ui_block
-                        .show();
-                    }
-                  );
-
-                $( 'form button.reset', actions_element )
-                  .die( 'click' )
-                  .live
-                  (
-                    'click',
-                    function( event )
-                    {
-                      $( this ).closest( 'div.action' )
-                        .trigger( 'close' );
-                    }
-                  );
-
-                $( 'form', div_action )
-                  .ajaxForm
-                  (
-                    {
-                      url : app.config.solr_path + app.config.core_admin_path + '?wt=json&indexInfo=false',
-                      dataType : 'json',
-                      beforeSubmit : function( array, form, options )
-                      {
-                        $( 'button[type="submit"] span', form )
-                          .addClass( 'loader' );
-                      },
-                      success : function( response, status_text, xhr, form )
-                      {
-                        delete app.cores_data;
-                        sammy.refresh();
-
-                        $( 'button.reset', form )
-                          .trigger( 'click' );
-                      },
-                      error : function( xhr, text_status, error_thrown )
-                      {
-                        var response = null;
-                        eval( 'response = ' + xhr.responseText + ';' );
-
-                        var error_elem = $( '.error', div_action.filter( ':visible' ) );
-                        error_elem.show();
-                        $( 'span', error_elem ).text( response.error.msg );
-                      },
-                      complete : function()
-                      {
-                        $( 'button span.loader', actions_element )
-                          .removeClass( 'loader' );
-                      }
-                    }
-                  );
-
-                // --
-
-                $( '#add', content_element )
-                  .trigger( 'click' );
-
-                $( '[data-rel="add"] input[type="text"]:first', content_element )
-                  .focus();
-              }
-            }
-          );
-        }
-      }
-    );
-  }
-);
-
-// #/~cores
-sammy.get
-(
-  /^#\/(~cores)\//,
-  function( context )
-  {
-    var content_element = $( '#content' );
-
-    var path_parts = this.path.match( /^(.+\/~cores\/)(.*)$/ );
-    var current_core = path_parts[2];
-
-    sammy.trigger
-    (
-      'cores_load_data',
-      {
-        error : function()
-        {
-          context.redirect( '#/' + context.params.splat[0] );
-        },
-        success : function( cores )
-        {
-          sammy.trigger
-          (
-            'cores_load_template',
-            {
-              content_element : content_element,
-              callback : function()
-              {
-                var cores_element = $( '#cores', content_element );
-                var navigation_element = $( '#navigation', cores_element );
-                var data_element = $( '#data', cores_element );
-                var core_data_element = $( '#core-data', data_element );
-                var index_data_element = $( '#index-data', data_element );
-
-                cores_element
-                  .removeClass( 'empty' );
-
-                var core_data = cores[current_core];
-                var core_basepath = $( '#' + current_core, app.menu_element ).attr( 'data-basepath' );
-
-                var core_names = [];
-                var core_selects = $( '#actions select', cores_element );
-
-                $( 'option[value="' + current_core + '"]', core_selects.filter( '.other' ) )
-                  .remove();
-
-                $( 'input[data-core="current"]', cores_element )
-                  .val( current_core );
-
-                // layout
-
-                var ui_block = $( '#ui-block' );
-                var actions_element = $( '.actions', cores_element );
-                var div_action = $( 'div.action', actions_element );
-
-                ui_block
-                  .css( 'opacity', 0.7 )
-                  .width( cores_element.width() + 10 )
-                  .height( cores_element.height() );
-
-                if( $( '#cloud.global' ).is( ':visible' ) )
-                {
-                  $( '.cloud', div_action )
-                    .show();
-                }
-
-                var form_callback = {
-
-                  rename : function( form, response )
-                  {
-                    var url = path_parts[1] + $( 'input[name="other"]', form ).val();
-                    context.redirect( url );
-                  }
-
-                };
-
-                $( 'form', div_action )
-                  .ajaxForm
-                  (
-                    {
-                      url : app.config.solr_path + app.config.core_admin_path + '?wt=json&indexInfo=false',
-                      success : function( response, status_text, xhr, form )
-                      {
-                        var action = $( 'input[name="action"]', form ).val().toLowerCase();
-
-                        delete app.cores_data;
-
-                        if( form_callback[action] )
-                        {
-                         form_callback[action]( form, response );
-                        }
-                        else
-                        {
-                          sammy.refresh();
-                        }
-
-                        $( 'button.reset', form )
-                          .trigger( 'click' );
-                      },
-                  );
-
-                $( '#actions #unload', cores_element )
-                      var ret = confirm( 'Do you really want to unload Core "' + current_core + '"?' );
-                      if( !ret )
-                        return false;
-
-                          url : app.config.solr_path + app.config.core_admin_path + '?wt=json&action=UNLOAD&core=' + current_core,
-                          success : function( response, text_status, xhr )
-                          {
-                            delete app.cores_data;
-                            context.redirect( path_parts[1].substr( 0, path_parts[1].length - 1 ) );
-                          },
-
-                optimize_button
-                          url : core_basepath + '/update?optimize=true&waitFlush=true&wt=json',
-                          success : function( response, text_status, xhr )
-
-******/

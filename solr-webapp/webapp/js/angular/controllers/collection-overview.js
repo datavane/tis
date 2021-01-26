@@ -29,11 +29,11 @@ function($scope, $routeParams, Collections, Constants) {
 
   $scope.showReplica = function(replica) {
     replica.show = !replica.show;
-  };
+  }
 
   $scope.hideShard = function(shard) {
     shard.hide = !shard.hide;
-  };
+  }
 
   $scope.refresh();
 });

@@ -16,7 +16,7 @@
 */
 
 var contentTypeMap = { xml : 'text/xml', html : 'text/html', js : 'text/javascript', json : 'application/json', 'css' : 'text/css' };
-var languages = {js: "javascript", xml:"xml", xsl:"xml", vm: "xml", html: "xml", json: "text", css: "css"};
+var languages = {js: "javascript", xml:"xml", xsl:"xml", vm: "xml", html: "xml", json: "json", css: "css"};
 
 solrAdminApp.controller('FilesController',
     function($scope, $rootScope, $routeParams, $location, Files, Constants) {
@@ -25,15 +25,15 @@ solrAdminApp.controller('FilesController',
         $scope.file = $location.search().file;
         $scope.content = null;
 
-        $scope.baseurl = $location.protocol()+ "://" + $location.host() + ":" + $location.port();
+        $scope.baseurl = $location.absUrl().substr(0,$location.absUrl().indexOf("#")); // Including /solr/ context
 
         $scope.refresh = function () {
 
             var process = function (path, tree) {
                 var params = {core: $routeParams.core};
-                if (path.slice(-1) == '/') {
+                if (path.slice(-1) === '/') {
                     params.file = path.slice(0, -1);
-                } else if (path!='') {
+                } else if (path!=='') {
                     params.file = path;
                 }
 
@@ -48,19 +48,17 @@ solrAdminApp.controller('FilesController',
 
                         if (filedata.directory) {
                             file = file + "/";
-                            if ($scope.file && $scope.file.indexOf(path + file) == 0) {
-                                state = "open";
+                            if ($scope.file && $scope.file.indexOf(path + file) === 0) {
+                                state = {"opened": true};
                             } else {
-                                state = "closed";
+                                state = {"opened": false};
                             }
                             children = [];
                             process(path + file, children);
                         }
                         tree.push({
-                            data: {
-                                title: file,
-                                attr: { id: path + file}
-                            },
+                            text: file,
+                            a_attr: { id: path + file},
                             children: children,
                             state: state
                         });
@@ -70,9 +68,9 @@ solrAdminApp.controller('FilesController',
             $scope.tree = [];
             process("", $scope.tree);
 
-            if ($scope.file && $scope.file != '' && $scope.file.split('').pop()!='/') {
+            if ($scope.file && $scope.file !== '' && $scope.file.split('').pop()!=='/') {
                 var extension;
-                if ($scope.file == "managed-schema") {
+                if ($scope.file === "managed-schema") {
                   extension = contentTypeMap['xml'];
                 } else {
                   extension = $scope.file.match( /\.(\w+)$/)[1] || '';
@@ -81,18 +79,18 @@ solrAdminApp.controller('FilesController',
 
                 Files.get({core: $routeParams.core, file: $scope.file, contentType: contentType}, function(data) {
                     $scope.content = data.data;
-                    $scope.url = $scope.baseurl + data.config.url + "?" + $.param(data.config.params);
-                    if (contentType.indexOf("text/plain") && data.data.indexOf("<?xml") || data.data.indexOf("<!--")) {
+                    $scope.url = data.config.url + "?" + $.param(data.config.params);  // relative URL
+                    if (contentType.indexOf("text/plain") && (data.data.indexOf("<?xml")>=0) || data.data.indexOf("<!--")>=0) {
                         $scope.lang = "xml";
                     } else {
-                        $scope.lang = languages[extension] || "text";
+                        $scope.lang = languages[extension] || "txt";
                     }
                 });
             }
         };
 
         $scope.showTreeLink = function(data) {
-            var file = data.args[0].id;
+            var file = data.node.a_attr.id;
             $location.search({file:file});
         };
 

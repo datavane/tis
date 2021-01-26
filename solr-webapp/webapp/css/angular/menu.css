@@ -49,6 +49,12 @@ limitations under the License.
   padding-right: 10px;
 }
 
+#core-selector .chosen-container,
+#collection-selector .chosen-container
+{
+  width: 100% !important;
+}
+
 #core-selector a,
 #collection-selector a
 {
@@ -71,7 +77,7 @@ limitations under the License.
 #core-selector #has-no-cores span,
 #collection-selector #has-no-collections span
 {
-  color: #c0c0c0;
+  color: #8D8D8D;
   display: block;
 }
 
@@ -220,7 +226,6 @@ limitations under the License.
 {
   background-position: 7px 50%;
   border-bottom: 1px solid #f0f0f0;
-  color: #bbb;
   margin-left: 15px;
   padding-left: 26px;
 }
@@ -243,10 +248,12 @@ limitations under the License.
 {
   background-color: #d0d0d0;
   border-color: #d0d0d0;
-  color: #333;
+  color: #FFF;
 }
 
 #menu #index.global p a { background-image: url( ../../img/ico/dashboard.png ); }
+
+#menu #login.global p a { background-image: url( ../../img/ico/users.png ); }
 
 #menu #logging.global p a { background-image: url( ../../img/ico/inbox-document-text.png ); }
 #menu #logging.global .level a { background-image: url( ../../img/ico/gear.png ); }
@@ -257,16 +264,17 @@ limitations under the License.
 
 #menu #collections.global p a { background-image: url( ../../img/ico/documents-stack.png ); }
 #menu #cores.global p a { background-image: url( ../../img/ico/databases.png ); }
+#menu #cluster-suggestions.global p a { background-image: url( ../../img/ico/idea.png ); }
 
 #menu #cloud.global p a { background-image: url( ../../img/ico/network-cloud.png ); }
 #menu #cloud.global .tree a { background-image: url( ../../img/ico/folder-tree.png ); }
+#menu #cloud.global .nodes a { background-image: url( ../../img/solr-ico.png ); }
+#menu #cloud.global .zkstatus a { background-image: url( ../../img/ico/node-leader.png ); }
 #menu #cloud.global .graph a { background-image: url( ../../img/ico/molecule.png ); }
-#menu #cloud.global .rgraph a { background-image: url( ../../img/ico/asterisk.png ); }
-#menu #cloud.global .dump a { background-image: url( ../../img/ico/download-cloud.png ); }
 
 .sub-menu .ping.error a
 {
-  
+
   background-color: #ffcccc;
   background-image: url( ../../img/ico/system-monitor--exclamation.png );
   border-color: #ffcccc;
@@ -275,6 +283,7 @@ limitations under the License.
 
 .sub-menu .overview a { background-image: url( ../../img/ico/home.png ); }
 .sub-menu .query a { background-image: url( ../../img/ico/magnifier.png ); }
+.sub-menu .stream a { background-image: url( ../../img/ico/node.png ); }
 .sub-menu .analysis a { background-image: url( ../../img/ico/funnel.png ); }
 .sub-menu .documents a { background-image: url( ../../img/ico/documents-stack.png ); }
 .sub-menu .files a { background-image: url( ../../img/ico/folder.png ); }
