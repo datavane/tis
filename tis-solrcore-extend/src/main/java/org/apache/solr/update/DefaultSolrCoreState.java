@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.MergePolicy;
 import org.apache.lucene.search.Sort;
@@ -48,7 +49,6 @@ import org.slf4j.LoggerFactory;
  * @date 2020/09/25
  */
 public final class DefaultSolrCoreState extends SolrCoreState implements RecoveryStrategy.RecoveryListener {
-
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final boolean SKIP_AUTO_RECOVERY = Boolean.getBoolean("solrcloud.skip.autorecovery");
@@ -66,9 +66,7 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
     private final ReentrantReadWriteLock iwLock = new ReentrantReadWriteLock();
 
     private SolrIndexWriter indexWriter = null;
-
     private DirectoryFactory directoryFactory;
-
     private final RecoveryStrategy.Builder recoveryStrategyBuilder;
 
     private volatile RecoveryStrategy recoveryStrat;
@@ -83,11 +81,12 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
 
     protected final ReentrantLock commitLock = new ReentrantLock();
 
+
     private AtomicBoolean cdcrRunning = new AtomicBoolean();
 
     private volatile Future<Boolean> cdcrBootstrapFuture;
 
-    @SuppressWarnings({ "rawtypes" })
+    @SuppressWarnings({"rawtypes"})
     private volatile Callable cdcrBootstrapCallable;
 
     @Deprecated
@@ -95,7 +94,8 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
         this(directoryFactory, new RecoveryStrategy.Builder());
     }
 
-    public DefaultSolrCoreState(DirectoryFactory directoryFactory, RecoveryStrategy.Builder recoveryStrategyBuilder) {
+    public DefaultSolrCoreState(DirectoryFactory directoryFactory,
+                                RecoveryStrategy.Builder recoveryStrategyBuilder) {
         this.directoryFactory = directoryFactory;
         this.recoveryStrategyBuilder = recoveryStrategyBuilder;
     }
@@ -117,9 +117,11 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
     }
 
     @Override
-    public RefCounted<IndexWriter> getIndexWriter(SolrCore core) throws IOException {
+    public RefCounted<IndexWriter> getIndexWriter(SolrCore core)
+            throws IOException {
         if (core != null && (!core.indexEnabled || core.readOnly)) {
-            throw new SolrException(SolrException.ErrorCode.SERVICE_UNAVAILABLE, "Indexing is temporarily disabled");
+            throw new SolrException(SolrException.ErrorCode.SERVICE_UNAVAILABLE,
+                    "Indexing is temporarily disabled");
         }
         boolean succeeded = false;
         lock(iwLock.readLock());
@@ -129,28 +131,31 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
                 if (core == null) {
                     // core == null is a signal to just return the current writer, or null if none.
                     initRefCntWriter();
-                    if (refCntWriter == null)
-                        return null;
+                    if (refCntWriter == null) return null;
                 } else {
                     if (indexWriter == null) {
                         indexWriter = createMainIndexWriter(core, "DirectUpdateHandler2");
                     }
                     initRefCntWriter();
                 }
+
                 refCntWriter.incref();
-                // the returned RefCounted<IndexWriter> will release the readLock on a decref()
-                succeeded = true;
+                succeeded = true;  // the returned RefCounted<IndexWriter> will release the readLock on a decref()
                 return refCntWriter;
             }
+
         } finally {
             // if we failed to return the IW for some other reason, we should unlock.
             if (!succeeded) {
                 iwLock.readLock().unlock();
             }
         }
+
     }
 
     private void initRefCntWriter() {
+        // TODO: since we moved to a read-write lock, and don't rely on the count to close the writer, we don't really
+        // need this class any more.  It could also be a singleton created at the same time as SolrCoreState
         // or we could change the API of SolrCoreState to just return the writer and then add a releaseWriter() call.
         if (refCntWriter == null && indexWriter != null) {
             refCntWriter = new RefCounted<IndexWriter>(indexWriter) {
@@ -158,13 +163,12 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
                 @Override
                 public void decref() {
                     iwLock.readLock().unlock();
-                    // This is now redundant (since we switched to read-write locks), we don't really need to maintain our own reference count.
-                    super.decref();
+                    super.decref();  // This is now redundant (since we switched to read-write locks), we don't really need to maintain our own reference count.
                 }
 
                 @Override
                 public void close() {
-                // We rely on other code to actually close the IndexWriter, and there's nothing special to do when the ref count hits 0
+                    //  We rely on other code to actually close the IndexWriter, and there's nothing special to do when the ref count hits 0
                 }
             };
         }
@@ -179,6 +183,7 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
             } catch (InterruptedException e) {
                 log.warn("WARNING - Dangerous interrupt", e);
             }
+
             // even if we failed to acquire, check if we are closed
             if (closed) {
                 if (acquired) {
@@ -192,13 +197,13 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
     // closes and opens index writers without any locking
     private void changeWriter(SolrCore core, boolean rollback, boolean openNewWriter) throws IOException {
         String coreName = core.getName();
+
         // We need to null this so it picks up the new writer next get call.
         // We do this before anything else in case we hit an exception.
         refCntWriter = null;
-        // temp reference just for closing
-        IndexWriter iw = indexWriter;
-        // null this out now in case we fail, so we won't use the writer again
-        indexWriter = null;
+        IndexWriter iw = indexWriter; // temp reference just for closing
+        indexWriter = null; // null this out now in case we fail, so we won't use the writer again
+
         if (iw != null) {
             if (!rollback) {
                 try {
@@ -216,6 +221,7 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
                 }
             }
         }
+
         if (openNewWriter) {
             indexWriter = createMainIndexWriter(core, "DirectUpdateHandler2");
             log.info("New IndexWriter is ready to be used.");
@@ -236,7 +242,7 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
     public void closeIndexWriter(SolrCore core, boolean rollback) throws IOException {
         lock(iwLock.writeLock());
         changeWriter(core, rollback, false);
-    // Do not unlock the writeLock in this method.  It will be unlocked by the openIndexWriter call (see base class javadoc)
+        // Do not unlock the writeLock in this method.  It will be unlocked by the openIndexWriter call (see base class javadoc)
     }
 
     @Override
@@ -244,8 +250,7 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
         try {
             changeWriter(core, false, true);
         } finally {
-            // unlock even if we failed
-            iwLock.writeLock().unlock();
+            iwLock.writeLock().unlock();  //unlock even if we failed
         }
     }
 
@@ -255,7 +260,9 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
     }
 
     protected SolrIndexWriter createMainIndexWriter(SolrCore core, String name) throws IOException {
-        return SolrIndexWriter.create(core, name, core.getNewIndexDir(), core.getDirectoryFactory(), false, core.getLatestSchema(), core.getSolrConfig().indexConfig, core.getDeletionPolicy(), core.getCodec());
+        return SolrIndexWriter.create(core, name, core.getNewIndexDir(),
+                core.getDirectoryFactory(), false, core.getLatestSchema(),
+                core.getSolrConfig().indexConfig, core.getDeletionPolicy(), core.getCodec());
     }
 
     public Sort getMergePolicySort() throws IOException {
@@ -264,7 +271,7 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
             if (indexWriter != null) {
                 final MergePolicy mergePolicy = indexWriter.getConfig().getMergePolicy();
                 if (mergePolicy instanceof SortingMergePolicy) {
-                    return ((SortingMergePolicy) mergePolicy).getSort();
+                    return ((SortingMergePolicy)mergePolicy).getSort();
                 }
             }
         } finally {
@@ -284,19 +291,14 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
     }
 
     public void doRecovery(CoreContainer cc, CoreDescriptor cd) {
+        // baisui add 2021/1/26
         this.doRecovery(cc, cd, false);
     }
 
-    /**
-     * baisui add 20200820
-     * @param cc
-     * @param cd
-     * @param forceRecoveryIgnoreWetherIAmLeader
-     */
     @Override
-    public void doRecovery(CoreContainer cc, CoreDescriptor cd, boolean forceRecoveryIgnoreWetherIAmLeader) {
-        Runnable recoveryTask = new Runnable() {
+    public void doRecovery(CoreContainer cc, CoreDescriptor cd,boolean forceRecoveryIgnoreWetherIAmLeader) {
 
+        Runnable recoveryTask = new Runnable() {
             @Override
             public void run() {
                 MDCLoggingContext.setCoreDescriptor(cc, cd);
@@ -305,11 +307,13 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
                         log.warn("Skipping recovery according to sys prop solrcloud.skip.autorecovery");
                         return;
                     }
+
                     // check before we grab the lock
                     if (cc.isShutDown()) {
                         log.warn("Skipping recovery because Solr is shutdown");
                         return;
                     }
+
                     // if we can't get the lock, another recovery is running
                     // we check to see if there is already one waiting to go
                     // after the current one, and if there is, bail
@@ -318,8 +322,10 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
                         if (!locked && recoveryWaiting.get() > 0) {
                             return;
                         }
+
                         recoveryWaiting.incrementAndGet();
                         cancelRecovery();
+
                         recoveryLock.lock();
                         try {
                             // don't use recoveryLock.getQueueLength() for this
@@ -327,14 +333,17 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
                                 // another recovery waiting behind us, let it run now instead of after we finish
                                 return;
                             }
+
                             // to be air tight we must also check after lock
                             if (cc.isShutDown()) {
                                 log.warn("Skipping recovery because Solr is shutdown");
                                 return;
                             }
                             log.info("Running recovery");
+
                             recoveryThrottle.minimumWaitBetweenActions();
                             recoveryThrottle.markAttemptingAction();
+
                             recoveryStrat = recoveryStrategyBuilder.create(cc, cd, DefaultSolrCoreState.this);
                             recoveryStrat.setRecoveringAfterStartup(recoveringAfterStartup);
                             // baisui add
@@ -353,8 +362,7 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
                             recoveryLock.unlock();
                         }
                     } finally {
-                        if (locked)
-                            recoveryLock.unlock();
+                        if (locked) recoveryLock.unlock();
                     }
                 } finally {
                     MDCLoggingContext.clear();
@@ -366,11 +374,11 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
             // have to 'wait in line' a bit or bail if a recovery is
             // already queued up - the recovery execution itself is run
             // in another thread on another 'recovery' executor.
-            // 
+            //
             // avoid deadlock: we can't use the recovery executor here!
             cc.getUpdateShardHandler().getUpdateExecutor().submit(recoveryTask);
         } catch (RejectedExecutionException e) {
-        // fine, we are shutting down
+            // fine, we are shutting down
         }
     }
 
@@ -380,24 +388,19 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
             try {
                 recoveryStrat.close();
             } catch (NullPointerException e) {
-            // okay
+                // okay
             }
         }
     }
 
-    /**
-     * called from recoveryStrat on a successful recovery
-     */
+    /** called from recoveryStrat on a successful recovery */
     @Override
     public void recovered() {
         recoveryStrat = null;
-        // once we have successfully recovered, we no longer need to act as if we are recovering after startup
-        recoveringAfterStartup = false;
+        recoveringAfterStartup = false;  // once we have successfully recovered, we no longer need to act as if we are recovering after startup
     }
 
-    /**
-     * called from recoveryStrat on a failed recovery
-     */
+    /** called from recoveryStrat on a failed recovery */
     @Override
     public void failed() {
         recoveryStrat = null;
@@ -456,13 +459,13 @@ public final class DefaultSolrCoreState extends SolrCoreState implements Recover
     }
 
     @Override
-    @SuppressWarnings({ "rawtypes" })
+    @SuppressWarnings({"rawtypes"})
     public Callable getCdcrBootstrapCallable() {
         return cdcrBootstrapCallable;
     }
 
     @Override
-    public void setCdcrBootstrapCallable(@SuppressWarnings({ "rawtypes" }) Callable cdcrBootstrapCallable) {
+    public void setCdcrBootstrapCallable(@SuppressWarnings({"rawtypes"})Callable cdcrBootstrapCallable) {
         this.cdcrBootstrapCallable = cdcrBootstrapCallable;
     }
 }

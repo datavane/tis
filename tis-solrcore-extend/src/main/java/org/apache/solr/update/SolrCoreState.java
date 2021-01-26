@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
+
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.Sort;
 import org.apache.solr.cloud.ActionThrottle;
@@ -40,13 +41,10 @@ import org.slf4j.LoggerFactory;
  * @date 2020/09/25
  */
 public abstract class SolrCoreState {
-
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     protected boolean closed = false;
-
     private final Object updateLock = new Object();
-
     private final Object reloadLock = new Object();
 
     public Object getUpdateLock() {
@@ -56,6 +54,7 @@ public abstract class SolrCoreState {
     public Object getReloadLock() {
         return reloadLock;
     }
+
 
     private int solrCoreStateRefCnt = 1;
 
@@ -78,6 +77,7 @@ public abstract class SolrCoreState {
                 close = true;
             }
         }
+
         if (close) {
             try {
                 log.debug("Closing SolrCoreState");
@@ -99,6 +99,7 @@ public abstract class SolrCoreState {
      * @throws IOException If there is a low-level I/O error.
      */
     public abstract void newIndexWriter(SolrCore core, boolean rollback) throws IOException;
+
 
     /**
      * Expert method that closes the IndexWriter - you must call {@link #openIndexWriter(SolrCore)}
@@ -152,8 +153,8 @@ public abstract class SolrCoreState {
      */
     public abstract RecoveryStrategy.Builder getRecoveryStrategyBuilder();
 
-    public interface IndexWriterCloser {
 
+    public interface IndexWriterCloser {
         void closeWriter(IndexWriter writer) throws IOException;
     }
 
@@ -211,8 +212,7 @@ public abstract class SolrCoreState {
 
     public Throwable getTragicException() throws IOException {
         RefCounted<IndexWriter> ref = getIndexWriter(null);
-        if (ref == null)
-            return null;
+        if (ref == null) return null;
         try {
             return ref.get().getTragicException();
         } finally {

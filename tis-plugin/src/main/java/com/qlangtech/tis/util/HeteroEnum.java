@@ -27,6 +27,7 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
+import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -75,7 +76,12 @@ public enum HeteroEnum {
             DataSourceFactory.class, //
             "datasource", //
             "数据源", //
-            Selectable.Single);
+            Selectable.Single),
+    SOLR_FIELD_TYPE(//
+            FieldTypeFactory.class, //
+            "field-type", //
+            "字段类型", //
+            Selectable.Multi);
 
     public final String caption;
 

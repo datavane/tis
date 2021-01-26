@@ -58,7 +58,7 @@ public class PluginAction extends BasicModule {
 
   public void doGetPluginConfigInfo(Context context) throws Exception {
     //Thread.sleep(1000);
-
+    
     List<UploadPluginMeta> plugins = getPluginMeta();
 
     // final String[] plugins = this.getStringArray("plugin");

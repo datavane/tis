@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,8 +16,10 @@ package org.apache.solr.handler.admin;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.fs.*;
 import com.qlangtech.tis.manage.common.PropteryGetter;
+import com.qlangtech.tis.manage.common.RepositoryException;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils.TisCoreName;
 import com.qlangtech.tis.offline.FileSystemFactory;
@@ -39,6 +41,8 @@ import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.CommonAdminParams;
 import org.apache.solr.common.params.CoreAdminParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
@@ -46,6 +50,7 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import store.hdfs.TisHdfsDirectory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -86,16 +91,58 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
     // handleCreateAction(req, rsp);
     // }
     // }
+
     /**
+     * Helper method to remove a task from a tracking map.
+     */
+    private void removeRunningTask(String taskId) {
+        synchronized (getRequestStatusMap(RUNNING)) {
+            getRequestStatusMap(RUNNING).remove(taskId);
+        }
+    }
+
+    /**
+     *
      */
     @Override
     protected void handleCustomAction(SolrQueryRequest req, SolrQueryResponse rsp) {
+
+        // baisui add 2019/01/22
+        SolrParams solrParams = req.getParams();
+        String action = solrParams.get(ICoreAdminAction.EXEC_ACTION);
         try {
-            SolrParams solrParams = req.getParams();
-            String action = solrParams.get("exec" + CoreAdminParams.ACTION);
-            if (StringUtils.equals("swapindexfile", action)) {
-                // 执行替换全量的流程
-                this.handleSwapindexfileAction(req, rsp);
+            if (StringUtils.equals(ICoreAdminAction.ACTION_UPDATE_CONFIG, action)) {
+                // 更新配置文件
+                this.updateConfig(req, rsp);
+                return;
+            }
+            // baisui add end
+
+            //SolrParams solrParams = req.getParams();
+            //String action = solrParams.get("exec" + CoreAdminParams.ACTION);
+            if (StringUtils.equals(ICoreAdminAction.ACTION_SWAP_INDEX_FILE, action)) {
+                final String taskId = req.getParams().get(CommonAdminParams.ASYNC);
+                final TaskObject taskObject = getRequestStatusMap(RUNNING).get(taskId);
+
+                parallelExecutor.execute(() -> {
+                    boolean exceptionCaught = false;
+                    try {
+                        // 执行替换全量的流程
+                        this.handleSwapindexfileAction(req, rsp);
+                        taskObject.setRspObject(rsp);
+                    } catch (Exception e) {
+                        exceptionCaught = true;
+                        taskObject.setRspObjectFromException(e);
+                    } finally {
+                        removeRunningTask(taskObject.taskId);
+                        if (exceptionCaught) {
+                            addTask(FAILED, taskObject, true);
+                        } else {
+                            addTask(COMPLETED, taskObject, true);
+                        }
+                    }
+                });
+
                 return;
             }
             throw new IllegalArgumentException("param exec" + CoreAdminParams.ACTION + " is not illegal");
@@ -109,6 +156,82 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
             throw new SolrException(ErrorCode.SERVER_ERROR, e.getMessage(), e);
         }
     }
+
+    /**
+     * 百岁 add 2016/06/14 start 更新配置文件
+     *
+     * @param req
+     * @param rsp
+     * @throws Exception
+     */
+    private void updateConfig(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        SolrParams params = req.getParams();
+        String cname = params.get(CoreAdminParams.CORE);
+        String collection = params.get(CoreAdminParams.COLLECTION);
+        boolean needReload = params.getBool("needReload", true);
+        // TisSolrResourceLoader.getRemoteSnapshotId(collection);
+        int snapshotId = params.getInt(ICoreAdminAction.TARGET_SNAPSHOT_ID, -1);
+        if (snapshotId < 0) {
+            throw new IllegalStateException("param " + ICoreAdminAction.TARGET_SNAPSHOT_ID + " can not be null");
+        }
+        updateConfig(req, rsp, collection, cname, needReload, snapshotId);
+    }
+
+    /**
+     * baisui add
+     *
+     * @param req
+     * @param rsp
+     * @param collection
+     * @param needReload
+     * @param newSnapshotId
+     * @throws RepositoryException
+     * @throws IOException
+     */
+    protected boolean updateConfig(SolrQueryRequest req, SolrQueryResponse rsp, String collection, String cname, boolean needReload, int newSnapshotId) throws RepositoryException, IOException {
+        // try (SolrCore core = coreContainer.getCore(cname)) {
+        File collectionDir = TisSolrResourceLoader.getCollectionConfigDir(new File(coreContainer.getSolrHome()), collection);
+        // 本地版本号
+        int loalSnapshot = TisSolrResourceLoader.getConfigSnapshotId(collectionDir);
+        if (loalSnapshot == newSnapshotId) {
+            String errorMsg = "repository snapshot is same to local snapshotid:" + loalSnapshot + "shall not update config";
+            log.warn(errorMsg);
+            SimpleOrderedMap<String> errors = new SimpleOrderedMap<String>();
+            errors.add("err1", errorMsg);
+            rsp.add("failure", errors);
+            return false;
+        }
+        PropteryGetter[] getters = TisSolrResourceLoader.configFileNames.values().toArray(new PropteryGetter[0]);
+        // -1,
+        // -1,
+        TisSolrResourceLoader.downConfigFromConsoleRepository(newSnapshotId, collection, collectionDir, getters, true);
+        try {
+            if (needReload) {
+                // 重新加载索引,当需要重新通过full build才能生效的时候，就先不reload
+                // this.handleReloadAction(req, rsp);
+                this.handReloadOperation(req, rsp);
+            }
+        } catch (Exception e) {
+            // 回滚配置文件
+            TisSolrResourceLoader.saveConfigFileSnapshotId(collectionDir, loalSnapshot);
+            log.warn(e.getMessage(), e);
+            SimpleOrderedMap<String> errors = new SimpleOrderedMap<String>();
+            errors.add("err1", e.getMessage());
+            rsp.add("failure", errors);
+            rsp.setException(e);
+            return false;
+        }
+        return true;
+        // }
+    }
+
+    // 百岁 add 2016/06/14 end
+    // baisui add for reload start
+    public void handReloadOperation(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        final CallInfo callInfo = new CallInfo(this, req, rsp, CoreAdminOperation.RELOAD_OP);
+        callInfo.call();
+    }
+
 
     public static void main(String[] args) {
         Matcher m = INDEX_DATA_PATTERN.matcher("index20160318001000");
@@ -252,7 +375,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
                 log.info("after flowback update the config:" + cname + " to snapshot:" + newSnapshotId);
                 // 重新加载索引,只更新一下配置，不做reload，因为目标版本和localsnapshot如果是一致的就不加载了
                 updateConfig(req, rsp, core.getCoreDescriptor().getCollectionName(), cname, false, /* needReload */
-                newSnapshotId);
+                        newSnapshotId);
             }
             log.info("download index consume:" + (System.currentTimeMillis() - downloadStart) + "ms");
             if (coreReloadSleepTime != null && coreReloadSleepTime > 0) {
@@ -289,6 +412,13 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         // 已经从hdfs传输到本地磁盘的文件bytes
         private final AtomicLong readBytesCount;
 
+        public static void add2Resp(SolrQueryResponse rsp, long allLength, AtomicLong allReadBytesCount) {
+            rsp.add(KEY_INDEX_BACK_FLOW_STATUS, new IndexBackflowStatus(allLength, allReadBytesCount));
+            NamedList<Object> toLog = rsp.getToLog();
+            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + TISCollectionUtils.INDEX_BACKFLOW_ALL, allLength);
+            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + TISCollectionUtils.INDEX_BACKFLOW_READED, allReadBytesCount);
+        }
+
         public IndexBackflowStatus(long allContentLength, AtomicLong readBytesCount) {
             super();
             this.allContentLength = allContentLength;
@@ -320,6 +450,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
     // private static final String SEGMENT_FILE = "segments_1";
     // private static final Pattern coreNamePattern =
     // Pattern.compile("(search4.+?)_shard(\\d+?)_replica_n\\d+");
+
     /**
      * 将刚刚构建好的全量文件放置到本地目标文件夹中
      *
@@ -363,16 +494,21 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
                 throw new IllegalStateException("taskId:" + taskId + " relevant TaskObject can not be null");
             }
             // 设置目录下所有文件占用的size
-            rsp.add(KEY_INDEX_BACK_FLOW_STATUS, new IndexBackflowStatus(summary.getLength(), allReadBytesCount));
+//            rsp.add(KEY_INDEX_BACK_FLOW_STATUS, new IndexBackflowStatus(summary.getLength(), allReadBytesCount));
+//            NamedList<Object> toLog = rsp.getToLog();
+//            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + "summary", summary.getLength());
+//            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + "allReadBytesCount", allReadBytesCount);
+            IndexBackflowStatus.add2Resp(rsp, summary.getLength(), allReadBytesCount);
             taskObj.setRspObject(rsp);
+
             this.copy2LocalDir(indexWriter, filesystem, hdfsPath, indexDir);
             log.info("remote hdfs [" + hdfsPath + "] copy to local[" + indexDir + "] consome:" + (System.currentTimeMillis() - starttime));
             indexWriter.commit();
-        // 将一个初始segment_1 文件放到文件夹中去
-        // segmentStream = core.getResourceLoader().openResource(
-        // "com/tis/" + SEGMENT_FILE);
-        // FileUtils.copyInputStreamToFile(segmentStream, new File(indexDir,
-        // SEGMENT_FILE));
+            // 将一个初始segment_1 文件放到文件夹中去
+            // segmentStream = core.getResourceLoader().openResource(
+            // "com/tis/" + SEGMENT_FILE);
+            // FileUtils.copyInputStreamToFile(segmentStream, new File(indexDir,
+            // SEGMENT_FILE));
         } catch (SolrException e) {
             throw e;
         } catch (Exception e) {

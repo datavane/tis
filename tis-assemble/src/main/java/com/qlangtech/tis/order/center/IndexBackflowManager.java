@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,6 +16,7 @@ package com.qlangtech.tis.order.center;
 
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
@@ -34,14 +35,15 @@ import org.apache.solr.common.params.CommonAdminParams;
 import org.apache.solr.common.params.CoreAdminParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+
 import static org.apache.solr.common.cloud.ZkStateReader.BASE_URL_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.CORE_NAME_PROP;
 
@@ -60,7 +62,7 @@ public class IndexBackflowManager {
     private static final ConcurrentHashMap<String, ReentrantLock> /*
      * nodename,example:10.1.5.19
      */
-    nodeLockMap = new ConcurrentHashMap<>();
+            nodeLockMap = new ConcurrentHashMap<>();
 
     private final ExecutorService backFlowExecutor;
 
@@ -72,10 +74,10 @@ public class IndexBackflowManager {
     private final IExecChainContext execContext;
 
     private Map<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */
-    nodeBackflowLock;
+            nodeBackflowLock;
 
     private final Map<String, List<Replica>> /* shardName,example:shard1 */
-    shardMap;
+            shardMap;
 
     private final int nodeSize;
 
@@ -117,9 +119,9 @@ public class IndexBackflowManager {
         this.taskPhaseinfo = taskinfo;
         this.execContext = execContext;
         final Map<String, List<Replica>> /* shardName,example:shard1 */
-        shardMap = new HashMap<>();
+                shardMap = new HashMap<>();
         final Map<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */
-        nodeBackflowLock = new HashMap<>();
+                nodeBackflowLock = new HashMap<>();
         List<Replica> nodeReplics = null;
         ConcurrentLinkedQueue<BuildResult> lock = null;
         int replicaCount = 0;
@@ -182,7 +184,7 @@ public class IndexBackflowManager {
     public void startSwapClusterIndex(final int taskid) throws Exception {
         // this.execContext.get
         for (final Map.Entry<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */
-        entry : nodeBackflowLock.entrySet()) {
+                entry : nodeBackflowLock.entrySet()) {
             this.backFlowExecutor.execute(() -> {
                 // MDC.put("app", collection.getName());
                 this.execContext.rebindLoggingMDCParams();
@@ -260,8 +262,11 @@ public class IndexBackflowManager {
         if (replica == null) {
             throw new IllegalArgumentException("replica can not be null");
         }
+
         log.info("start " + replica.getCoreUrl() + " index back");
-        URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&execaction=swapindexfile&core=" + replica.getStr(CORE_NAME_PROP) + "&property.hdfs_timestamp=" + timestamp + "&property.hdfs_user=admin&" + CommonAdminParams.ASYNC + "=" + requestId);
+        URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&execaction="
+                + ICoreAdminAction.ACTION_SWAP_INDEX_FILE + "&core=" + replica.getStr(CORE_NAME_PROP)
+                + "&property.hdfs_timestamp=" + timestamp + "&property.hdfs_user=admin&" + CommonAdminParams.ASYNC + "=" + requestId);
         log.debug("apply swap index url :" + url);
         BackflowResult result = HttpUtils.processContent(url, new StreamProcess<BackflowResult>() {
 
@@ -302,8 +307,8 @@ public class IndexBackflowManager {
                 public BackflowResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                     BackflowResult callbackResult = null;
                     try {
-                        String body = IOUtils.toString(stream, Charset.forName("utf8"));
-                        callbackResult = (BackflowResult) JSON.parseObject(body, BackflowResult.class);
+                        String body = IOUtils.toString(stream, TisUTF8.get());
+                        callbackResult = JSON.parseObject(body, BackflowResult.class);
                         callbackResult.setResponseBody(body);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -326,15 +331,16 @@ public class IndexBackflowManager {
                     throw new RuntimeException(e);
                 }
                 coreName = replica.getStr(CORE_NAME_PROP);
-                log.info("waitting index flowback " + coreName + "," + callbackResult.getCopyStatus() + "retry count:" + applyCount + ",remain:" + this.replicaCountDown.getCount() + "nodes");
+                log.info("waitting index flowback " + coreName + "," + callbackResult.getCopyStatus()
+                        + "retry count:" + applyCount + ",remain:" + this.replicaCountDown.getCount() + "nodes");
                 // ▼▼▼ 取得当前阶段的执行状态
-                nodeStatus.setAllSize((int) callbackResult.getIndexflowback_status().getAll());
-                nodeStatus.setReaded((int) callbackResult.getIndexflowback_status().getReaded());
+                nodeStatus.setAllSize((int) callbackResult.indexflowback_status.getAll());
+                nodeStatus.setReaded((int) callbackResult.indexflowback_status.getReaded());
                 // ▲▲▲
                 continue;
             } else {
                 // 执行完成
-                final int allSize = (int) callbackResult.getIndexflowback_status().getAll();
+                final int allSize = (int) callbackResult.indexflowback_status.getAll();
                 nodeStatus.setAllSize(allSize);
                 nodeStatus.setReaded(allSize);
                 nodeStatus.setComplete(true);
@@ -371,19 +377,21 @@ public class IndexBackflowManager {
 
         private IndexflowbackStatus indexflowback_status = new IndexflowbackStatus();
 
-        public IndexflowbackStatus getIndexflowback_status() {
-            return indexflowback_status;
-        }
+//        public IndexflowbackStatus getIndexflowback_status() {
+//            return indexflowback_status;
+//        }
 
-        public void setIndexflowback_status(IndexflowbackStatus indexflowback_status) {
-            this.indexflowback_status = indexflowback_status;
-        }
+//        public void setIndexflowback_status(IndexflowbackStatus indexflowback_status) {
+//            this.indexflowback_status = indexflowback_status;
+//        }
 
         public String getCopyStatus() {
             if (indexflowback_status.all < 1) {
                 return StringUtils.EMPTY;
             }
-            return FileUtils.byteCountToDisplaySize(indexflowback_status.readed) + "/" + FileUtils.byteCountToDisplaySize(indexflowback_status.all) + "(" + (int) ((((double) indexflowback_status.readed) / indexflowback_status.all) * 100) + "%),";
+            return FileUtils.byteCountToDisplaySize(indexflowback_status.readed)
+                    + "/" + FileUtils.byteCountToDisplaySize(indexflowback_status.all)
+                    + "(" + (int) ((((double) indexflowback_status.readed) / indexflowback_status.all) * 100) + "%),";
         }
 
         public boolean isFaild() {
@@ -459,12 +467,12 @@ public class IndexBackflowManager {
     }
 
     public static void main(String[] args) throws Exception {
-    // IndexBackflowManager backflow = new IndexBackflowManager();
-    // BackflowResult result = backflow.getCallbackResult(null, new URL(
-    // "http://10.1.7.42:8983/solr/admin/cores?action=requeststatus&requestid=123&wt=json"));
-    // 
-    // System.out.println(result.getMsg() + " " + result.getSTATUS() +
-    // result.isFaild() + " "
-    // + result.isSuccess());
+        // IndexBackflowManager backflow = new IndexBackflowManager();
+        // BackflowResult result = backflow.getCallbackResult(null, new URL(
+        // "http://10.1.7.42:8983/solr/admin/cores?action=requeststatus&requestid=123&wt=json"));
+        //
+        // System.out.println(result.getMsg() + " " + result.getSTATUS() +
+        // result.isFaild() + " "
+        // + result.isSuccess());
     }
 }

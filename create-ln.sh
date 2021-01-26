@@ -8,6 +8,7 @@ ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-asyncmsg-rocketmq-plug
 ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-ds-mysql-plugin/target/tis-ds-mysql-plugin.tpi  /opt/data/tis/libs/plugins/tis-ds-mysql-plugin.tpi
 ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-ds-tidb-plugin/target/tis-ds-tidb-plugin.tpi  /opt/data/tis/libs/plugins/tis-ds-tidb-plugin.tpi
 ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-kafka-plugin/target/tis-kafka-plugin.tpi  /opt/data/tis/libs/plugins/tis-kafka-plugin.tpi
+ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-solr-plugin/target/tis-solr-plugin.tpi  /opt/data/tis/libs/plugins/tis-solr-plugin.tpi
 
 #for f in `find /Users/mozhenghua/j2ee_solution/project/plugins  -name '*.tpi' -print`
 #do

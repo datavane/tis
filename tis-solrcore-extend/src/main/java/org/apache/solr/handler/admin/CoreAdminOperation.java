@@ -1,18 +1,27 @@
-/**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.solr.handler.admin;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.nio.file.Path;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
@@ -33,7 +42,7 @@ import org.apache.solr.core.SolrInfoBean;
 import org.apache.solr.core.snapshots.SolrSnapshotManager;
 import org.apache.solr.core.snapshots.SolrSnapshotMetaDataManager;
 import org.apache.solr.core.snapshots.SolrSnapshotMetaDataManager.SnapshotMetaData;
-import org.apache.solr.handler.admin.CoreAdminHandler.*;
+import org.apache.solr.handler.admin.CoreAdminHandler.CoreAdminOp;
 import org.apache.solr.metrics.SolrMetricManager;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.SolrIndexSearcher;
@@ -44,18 +53,23 @@ import org.apache.solr.util.RefCounted;
 import org.apache.solr.util.TestInjection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import static com.qlangtech.tis.manage.common.TISCollectionUtils.*;
+
 import static org.apache.solr.common.params.CommonParams.NAME;
-import static org.apache.solr.common.params.CoreAdminParams.*;
+import static org.apache.solr.common.params.CoreAdminParams.COLLECTION;
 import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.*;
-import static org.apache.solr.handler.admin.CoreAdminHandler.*;
+import static org.apache.solr.common.params.CoreAdminParams.REPLICA;
+import static org.apache.solr.common.params.CoreAdminParams.REPLICA_TYPE;
+import static org.apache.solr.common.params.CoreAdminParams.SHARD;
+import static org.apache.solr.handler.admin.CoreAdminHandler.COMPLETED;
+import static org.apache.solr.handler.admin.CoreAdminHandler.CallInfo;
+import static org.apache.solr.handler.admin.CoreAdminHandler.FAILED;
+import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE;
+import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE_MESSAGE;
+import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE_STATUS;
+import static org.apache.solr.handler.admin.CoreAdminHandler.RUNNING;
+import static org.apache.solr.handler.admin.CoreAdminHandler.buildCoreParams;
+import static org.apache.solr.handler.admin.CoreAdminHandler.normalizePath;
+
 
 /**
  * ▲▲▲ baisui add 20200820
@@ -67,6 +81,7 @@ enum CoreAdminOperation implements CoreAdminOp {
 
     CREATE_OP(CREATE, it -> {
         assert TestInjection.injectRandomDelayInCoreCreation();
+
         SolrParams params = it.req.getParams();
         log().info("core create command {}", params);
         String coreName = params.required().get(CoreAdminParams.NAME);
@@ -85,13 +100,17 @@ enum CoreAdminOperation implements CoreAdminOp {
         } else {
             instancePath = coreContainer.getCoreRootDirectory().resolve(coreName);
         }
+
         boolean newCollection = params.getBool(CoreAdminParams.NEW_COLLECTION, false);
+
         coreContainer.create(coreName, instancePath, coreParams, newCollection);
+
         it.rsp.add("core", coreName);
     }),
     UNLOAD_OP(UNLOAD, it -> {
         SolrParams params = it.req.getParams();
         String cname = params.required().get(CoreAdminParams.CORE);
+
         boolean deleteIndexDir = params.getBool(CoreAdminParams.DELETE_INDEX, false);
         boolean deleteDataDir = params.getBool(CoreAdminParams.DELETE_DATA_DIR, false);
         boolean deleteInstanceDir = params.getBool(CoreAdminParams.DELETE_INSTANCE_DIR, false);
@@ -107,17 +126,22 @@ enum CoreAdminOperation implements CoreAdminOp {
                     registry = SolrMetricManager.getRegistryName(SolrInfoBean.Group.core, cname);
                 } else {
                     String replicaName = Utils.parseMetricsReplicaName(cd.getCollectionName(), cname);
-                    registry = SolrMetricManager.getRegistryName(SolrInfoBean.Group.core, cd.getCollectionName(), cd.getShardId(), replicaName);
+                    registry = SolrMetricManager.getRegistryName(SolrInfoBean.Group.core,
+                            cd.getCollectionName(),
+                            cd.getShardId(),
+                            replicaName);
                 }
                 historyHandler.checkSystemCollection();
                 historyHandler.removeHistory(registry);
             }
         }
+
         assert TestInjection.injectNonExistentCoreExceptionAfterUnload(cname);
     }),
     RELOAD_OP(RELOAD, it -> {
         SolrParams params = it.req.getParams();
         String cname = params.required().get(CoreAdminParams.CORE);
+
         it.handler.coreContainer.reload(cname);
     }),
     STATUS_OP(STATUS, new StatusOp()),
@@ -127,21 +151,28 @@ enum CoreAdminOperation implements CoreAdminOp {
         String other = params.required().get(CoreAdminParams.OTHER);
         it.handler.coreContainer.swap(cname, other);
     }),
+
     RENAME_OP(RENAME, it -> {
         SolrParams params = it.req.getParams();
         String name = params.required().get(CoreAdminParams.OTHER);
         String cname = params.required().get(CoreAdminParams.CORE);
-        if (cname.equals(name))
-            return;
+
+        if (cname.equals(name)) return;
+
         it.handler.coreContainer.rename(cname, name);
     }),
+
     MERGEINDEXES_OP(MERGEINDEXES, new MergeIndexesOp()),
+
     SPLIT_OP(SPLIT, new SplitOp()),
+
     PREPRECOVERY_OP(PREPRECOVERY, new PrepRecoveryOp()),
+
     REQUESTRECOVERY_OP(REQUESTRECOVERY, it -> {
         final SolrParams params = it.req.getParams();
         final String cname = params.required().get(CoreAdminParams.CORE);
         log().info("It has been requested that we recover: core=" + cname);
+
         try (SolrCore core = it.handler.coreContainer.getCore(cname)) {
             if (core != null) {
                 // This can take a while, but doRecovery is already async so don't worry about it here
@@ -152,10 +183,12 @@ enum CoreAdminOperation implements CoreAdminOp {
         }
     }),
     REQUESTSYNCSHARD_OP(REQUESTSYNCSHARD, new RequestSyncShardOp()),
+
     REQUESTBUFFERUPDATES_OP(REQUESTBUFFERUPDATES, it -> {
         SolrParams params = it.req.getParams();
         String cname = params.required().get(CoreAdminParams.NAME);
         log().info("Starting to buffer updates on core:" + cname);
+
         try (SolrCore core = it.handler.coreContainer.getCore(cname)) {
             if (core == null)
                 throw new SolrException(ErrorCode.BAD_REQUEST, "Core [" + cname + "] does not exist");
@@ -172,27 +205,27 @@ enum CoreAdminOperation implements CoreAdminOp {
             else
                 throw new SolrException(ErrorCode.SERVER_ERROR, "Could not start buffering updates", e);
         } finally {
-            if (it.req != null)
-                it.req.close();
+            if (it.req != null) it.req.close();
         }
     }),
     REQUESTAPPLYUPDATES_OP(REQUESTAPPLYUPDATES, new RequestApplyUpdatesOp()),
+
     REQUESTSTATUS_OP(REQUESTSTATUS, it -> {
-        // ▼▼▼ 百岁 baisui 20190213 add for index backflow read byte size report
         SolrParams params = it.req.getParams();
         String requestId = params.required().get(CoreAdminParams.REQUESTID);
         log().info("Checking request status for : " + requestId);
+
         if (it.handler.getRequestStatusMap(RUNNING).containsKey(requestId)) {
             it.rsp.add(RESPONSE_STATUS, RUNNING);
             // 百岁add for执行过程中索引回流了多少了,状态要告诉客户端的调用者,20160818
             printIndexBackflowStatus(it, RUNNING, requestId);
-        // 百岁add end
+            // 百岁add end
         } else if (it.handler.getRequestStatusMap(COMPLETED).containsKey(requestId)) {
             it.rsp.add(RESPONSE_STATUS, COMPLETED);
             it.rsp.add(RESPONSE, it.handler.getRequestStatusMap(COMPLETED).get(requestId).getRspObject());
             // 百岁add for执行过程中索引回流了多少了,状态要告诉客户端的调用者,20160818
             printIndexBackflowStatus(it, COMPLETED, requestId);
-        // 百岁add end
+            // 百岁add end
         } else if (it.handler.getRequestStatusMap(FAILED).containsKey(requestId)) {
             it.rsp.add(RESPONSE_STATUS, FAILED);
             it.rsp.add(RESPONSE, it.handler.getRequestStatusMap(FAILED).get(requestId).getRspObject());
@@ -200,8 +233,9 @@ enum CoreAdminOperation implements CoreAdminOp {
             it.rsp.add(RESPONSE_STATUS, "notfound");
             it.rsp.add(RESPONSE_MESSAGE, "No task found in running, completed or failed tasks");
         }
-    // ▲▲▲▲ end 百岁 baisui 20190213
+        // ▲▲▲▲ end 百岁 baisui 20190213
     }),
+
     OVERSEEROP_OP(OVERSEEROP, it -> {
         ZkController zkController = it.handler.coreContainer.getZkController();
         if (zkController != null) {
@@ -214,8 +248,10 @@ enum CoreAdminOperation implements CoreAdminOp {
             }
         }
     }),
+
     REJOINLEADERELECTION_OP(REJOINLEADERELECTION, it -> {
         ZkController zkController = it.handler.coreContainer.getZkController();
+
         if (zkController != null) {
             zkController.rejoinShardLeaderElection(it.req.getParams());
         } else {
@@ -227,21 +263,24 @@ enum CoreAdminOperation implements CoreAdminOp {
     RESTORECORE_OP(RESTORECORE, new RestoreCoreOp()),
     CREATESNAPSHOT_OP(CREATESNAPSHOT, new CreateSnapshotOp()),
     DELETESNAPSHOT_OP(DELETESNAPSHOT, new DeleteSnapshotOp()),
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     LISTSNAPSHOTS_OP(LISTSNAPSHOTS, it -> {
         final SolrParams params = it.req.getParams();
         String cname = params.required().get(CoreAdminParams.CORE);
+
         CoreContainer cc = it.handler.getCoreContainer();
-        try (SolrCore core = cc.getCore(cname)) {
+
+        try ( SolrCore core = cc.getCore(cname) ) {
             if (core == null) {
                 throw new SolrException(ErrorCode.BAD_REQUEST, "Unable to locate core " + cname);
             }
+
             SolrSnapshotMetaDataManager mgr = core.getSnapshotMetaDataManager();
-            @SuppressWarnings({ "rawtypes" })
+            @SuppressWarnings({"rawtypes"})
             NamedList result = new NamedList();
             for (String name : mgr.listSnapshots()) {
                 Optional<SnapshotMetaData> metadata = mgr.getSnapshotMetaData(name);
-                if (metadata.isPresent()) {
+                if ( metadata.isPresent() ) {
                     NamedList<String> props = new NamedList<>();
                     props.add(SolrSnapshotManager.GENERATION_NUM, String.valueOf(metadata.get().getGenerationNumber()));
                     props.add(SolrSnapshotManager.INDEX_DIR_PATH, metadata.get().getIndexDirPath());
@@ -251,6 +290,21 @@ enum CoreAdminOperation implements CoreAdminOp {
             it.rsp.add(SolrSnapshotManager.SNAPSHOTS_INFO, result);
         }
     });
+
+    /**
+     * ▼▼▼ baisui add 20200820
+     */
+    protected static void printIndexBackflowStatus(CallInfo callInfo, String phrase, String requestId) {
+        CoreAdminHandler.TaskObject taskObj = callInfo.handler.getRequestStatusMap(phrase).get(requestId);
+        callInfo.rsp.add(RESPONSE, taskObj.getRspObject());
+//        TisCoreAdminHandler.IndexBackflowStatus backflowStatus = null;
+//        if ((backflowStatus = taskObj.getBackflowStatus()) != null) {
+//            Map<String, Long> status = new HashMap<>();
+//            status.put(INDEX_BACKFLOW_ALL, backflowStatus.getAllContentLength());
+//            status.put(INDEX_BACKFLOW_READED, backflowStatus.getHaveReaded());
+//            callInfo.rsp.add(INDEX_BACKFLOW_STATUS, status);
+//        }
+    }
 
     // @Override
     /**
@@ -279,26 +333,7 @@ enum CoreAdminOperation implements CoreAdminOp {
         }
     }
 
-    /**
-     * ▼▼▼ baisui add 20200820
-     */
-    protected static void printIndexBackflowStatus(CallInfo callInfo, String phrase, String requestId) {
-        CoreAdminHandler.TaskObject taskObj = callInfo.handler.getRequestStatusMap(phrase).get(requestId);
-        callInfo.rsp.add(RESPONSE, taskObj.getRspObject());
-        TisCoreAdminHandler.IndexBackflowStatus backflowStatus = null;
-        if ((backflowStatus = taskObj.getBackflowStatus()) != null) {
-            Map<String, Long> status = new HashMap<>();
-            status.put(INDEX_BACKFLOW_ALL, backflowStatus.getAllContentLength());
-            status.put(INDEX_BACKFLOW_READED, backflowStatus.getHaveReaded());
-            callInfo.rsp.add(INDEX_BACKFLOW_STATUS, status);
-        }
-    }
-
-    /**
-     * ▲▲▲ baisui add 20200820
-     */
     final CoreAdminParams.CoreAdminAction action;
-
     final CoreAdminOp fun;
 
     CoreAdminOperation(CoreAdminParams.CoreAdminAction action, CoreAdminOp fun) {
@@ -312,25 +347,27 @@ enum CoreAdminOperation implements CoreAdminOp {
         return log;
     }
 
+
+
+
     /**
      * Returns the core status for a particular core.
-     *
-     * @param cores             - the enclosing core container
-     * @param cname             - the core to return
+     * @param cores - the enclosing core container
+     * @param cname - the core to return
      * @param isIndexInfoNeeded - add what may be expensive index information. NOT returned if the core is not loaded
      * @return - a named list of key/value pairs from the core.
      * @throws IOException - LukeRequestHandler can throw an I/O exception
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     static NamedList<Object> getCoreStatus(CoreContainer cores, String cname, boolean isIndexInfoNeeded) throws IOException {
         NamedList<Object> info = new SimpleOrderedMap<>();
+
         if (cores.isCoreLoading(cname)) {
             info.add(NAME, cname);
             info.add("isLoaded", "false");
             info.add("isLoading", "true");
         } else {
-            if (!cores.isLoaded(cname)) {
-                // Lazily-loaded core, fill in what we can.
+            if (!cores.isLoaded(cname)) { // Lazily-loaded core, fill in what we can.
                 // It would be a real mistake to load the cores just to get the status
                 CoreDescriptor desc = cores.getUnloadedCoreDescriptor(cname);
                 if (desc != null) {
@@ -338,14 +375,11 @@ enum CoreAdminOperation implements CoreAdminOp {
                     info.add("instanceDir", desc.getInstanceDir());
                     // None of the following are guaranteed to be present in a not-yet-loaded core.
                     String tmp = desc.getDataDir();
-                    if (StringUtils.isNotBlank(tmp))
-                        info.add("dataDir", tmp);
+                    if (StringUtils.isNotBlank(tmp)) info.add("dataDir", tmp);
                     tmp = desc.getConfigName();
-                    if (StringUtils.isNotBlank(tmp))
-                        info.add("config", tmp);
+                    if (StringUtils.isNotBlank(tmp)) info.add("config", tmp);
                     tmp = desc.getSchemaName();
-                    if (StringUtils.isNotBlank(tmp))
-                        info.add("schema", tmp);
+                    if (StringUtils.isNotBlank(tmp)) info.add("schema", tmp);
                     info.add("isLoaded", "false");
                 }
             } else {

@@ -12,24 +12,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.plugin.solr;
+package com.qlangtech.tis.plugin.solr.schema;
 
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.IdentityName;
-import org.apache.solr.schema.FieldType;
+import com.qlangtech.tis.extension.IdentityDescribale;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-01-22 17:44
+ * @date 2021-01-26 10:59
  */
-public abstract class FieldTypeFactory implements Describable<FieldTypeFactory>, IdentityName {
-
-    public abstract FieldType createFieldType();
+public abstract class TokenFilterFactoryFactory implements IdentityDescribale<TokenFilterFactoryFactory, ISolrTokenFilterFactory> {
 
     @Override
-    public final Descriptor<FieldTypeFactory> getDescriptor() {
+    public Descriptor<TokenFilterFactoryFactory> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }
+
 }

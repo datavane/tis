@@ -29,7 +29,6 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.search.QueryParsing;
-import org.restlet.engine.io.IoUtils;
 import junit.framework.TestCase;
 
 /**

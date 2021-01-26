@@ -1,16 +1,18 @@
-/**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.solr.core;
 
@@ -20,10 +22,10 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.qlangtech.tis.solrextend.cloud.TisConfigSetService;
-import org.apache.solr.cloud.CloudConfigSetService;
 import org.apache.solr.cloud.ZkController;
 import org.apache.solr.cloud.ZkSolrResourceLoader;
 import org.apache.solr.common.SolrException;
@@ -36,9 +38,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Service class used by the CoreContainer to load ConfigSets for use in SolrCore
  * creation.
- *
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/09/25
  */
 public abstract class ConfigSetService {
 
@@ -47,18 +46,15 @@ public abstract class ConfigSetService {
     public static ConfigSetService createConfigSetService(NodeConfig nodeConfig, SolrResourceLoader loader, ZkController zkController) {
         if (zkController == null) {
             return new Standalone(loader, nodeConfig.hasSchemaCache(), nodeConfig.getConfigSetBaseDirectory());
-        } else {
-            // baisui modify for custome
+        } else { // baisui modify for custome
             return new TisConfigSetService(loader);
-        // return new CloudConfigSetService(loader, nodeConfig.hasSchemaCache(), zkController);
+            // return new CloudConfigSetService(loader, nodeConfig.hasSchemaCache(), zkController);
         }
     }
 
     protected final SolrResourceLoader parentLoader;
 
-    /**
-     * Optional cache of schemas, key'ed by a bunch of concatenated things
-     */
+    /** Optional cache of schemas, key'ed by a bunch of concatenated things */
     private final Cache<String, IndexSchema> schemaCache;
 
     /**
@@ -66,21 +62,33 @@ public abstract class ConfigSetService {
      * @param dcore the core's CoreDescriptor
      * @return a ConfigSet
      */
-    @SuppressWarnings({ "rawtypes" })
+    @SuppressWarnings({"rawtypes"})
     public final ConfigSet loadConfigSet(CoreDescriptor dcore) {
+
         SolrResourceLoader coreLoader = createCoreResourceLoader(dcore);
+
         try {
+
             // ConfigSet properties are loaded from ConfigSetProperties.DEFAULT_FILENAME file.
             NamedList properties = loadConfigSetProperties(dcore, coreLoader);
             // ConfigSet flags are loaded from the metadata of the ZK node of the configset.
             NamedList flags = loadConfigSetFlags(dcore, coreLoader);
-            boolean trusted = (coreLoader instanceof ZkSolrResourceLoader && flags != null && flags.get("trusted") != null && !flags.getBooleanArg("trusted")) ? false : true;
+
+            boolean trusted =
+                    (coreLoader instanceof ZkSolrResourceLoader
+                            && flags != null
+                            && flags.get("trusted") != null
+                            && !flags.getBooleanArg("trusted")
+                    ) ? false: true;
+
             SolrConfig solrConfig = createSolrConfig(dcore, coreLoader, trusted);
-            IndexSchema schema = createIndexSchema(dcore, solrConfig);
-            return new ConfigSet(configSetName(dcore), solrConfig, schema, properties, trusted);
+            return new ConfigSet(configSetName(dcore), solrConfig, force -> createIndexSchema(dcore, solrConfig, force), properties, trusted);
         } catch (Exception e) {
-            throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Could not load conf for core " + dcore.getName() + ": " + e.getMessage(), e);
+            throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+                    "Could not load conf for core " + dcore.getName() +
+                            ": " + e.getMessage(), e);
         }
+
     }
 
     /**
@@ -110,15 +118,16 @@ public abstract class ConfigSetService {
      * @param solrConfig the core's SolrConfig
      * @return an IndexSchema
      */
-    protected IndexSchema createIndexSchema(CoreDescriptor cd, SolrConfig solrConfig) {
+    protected IndexSchema createIndexSchema(CoreDescriptor cd, SolrConfig solrConfig, boolean forceFetch) {
         // This is the schema name from the core descriptor.  Sometimes users specify a custom schema file.
-        // Important:  indexSchemaFactory.create wants this!
+        //   Important:  indexSchemaFactory.create wants this!
         String cdSchemaName = cd.getSchemaName();
         // This is the schema name that we think will actually be used.  In the case of a managed schema,
-        // we don't know for sure without examining what files exists in the configSet, and we don't
-        // want to pay the overhead of that at this juncture.  If we guess wrong, no schema sharing.
-        // The fix is usually to name your schema managed-schema instead of schema.xml.
+        //  we don't know for sure without examining what files exists in the configSet, and we don't
+        //  want to pay the overhead of that at this juncture.  If we guess wrong, no schema sharing.
+        //  The fix is usually to name your schema managed-schema instead of schema.xml.
         IndexSchemaFactory indexSchemaFactory = IndexSchemaFactory.newIndexSchemaFactory(solrConfig);
+
         String configSet = cd.getConfigSet();
         if (configSet != null && schemaCache != null) {
             String guessSchemaName = indexSchemaFactory.getSchemaResourceName(cdSchemaName);
@@ -126,12 +135,14 @@ public abstract class ConfigSetService {
             if (modVersion != null) {
                 // note: luceneMatchVersion influences the schema
                 String cacheKey = configSet + "/" + guessSchemaName + "/" + modVersion + "/" + solrConfig.luceneMatchVersion;
-                return schemaCache.get(cacheKey, (key) -> indexSchemaFactory.create(cdSchemaName, solrConfig));
+                return schemaCache.get(cacheKey,
+                        (key) -> indexSchemaFactory.create(cdSchemaName, solrConfig));
             } else {
                 log.warn("Unable to get schema modification version, configSet={} schema={}", configSet, guessSchemaName);
-            // see explanation above; "guessSchema" is a guess
+                // see explanation above; "guessSchema" is a guess
             }
         }
+
         return indexSchemaFactory.create(cdSchemaName, solrConfig);
     }
 
@@ -148,7 +159,7 @@ public abstract class ConfigSetService {
      * @param loader the core's resource loader
      * @return the ConfigSet properties
      */
-    @SuppressWarnings({ "rawtypes" })
+    @SuppressWarnings({"rawtypes"})
     protected NamedList loadConfigSetProperties(CoreDescriptor cd, SolrResourceLoader loader) {
         return ConfigSetProperties.readFromResourceLoader(loader, cd.getConfigSetPropertiesName());
     }
@@ -157,7 +168,7 @@ public abstract class ConfigSetService {
      * Return the ConfigSet flags or null if none.
      */
     // TODO should fold into configSetProps -- SOLR-14059
-    @SuppressWarnings({ "rawtypes" })
+    @SuppressWarnings({"rawtypes"})
     protected NamedList loadConfigSetFlags(CoreDescriptor cd, SolrResourceLoader loader) {
         return null;
     }
@@ -196,7 +207,7 @@ public abstract class ConfigSetService {
         @Override
         public SolrResourceLoader createCoreResourceLoader(CoreDescriptor cd) {
             Path instanceDir = locateInstanceDir(cd);
-            return new SolrResourceLoader(instanceDir, parentLoader.getClassLoader(), cd.getSubstitutableProperties());
+            return new SolrResourceLoader(instanceDir, parentLoader.getClassLoader());
         }
 
         @Override
@@ -210,7 +221,8 @@ public abstract class ConfigSetService {
                 return cd.getInstanceDir();
             Path configSetDirectory = configSetBase.resolve(configSet);
             if (!Files.isDirectory(configSetDirectory))
-                throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Could not load configuration from directory " + configSetDirectory);
+                throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+                        "Could not load configuration from directory " + configSetDirectory);
             return configSetDirectory;
         }
 
@@ -220,13 +232,13 @@ public abstract class ConfigSetService {
             try {
                 return Files.getLastModifiedTime(schemaFile).toMillis();
             } catch (FileNotFoundException e) {
-                // acceptable
-                return null;
+                return null; // acceptable
             } catch (IOException e) {
                 log.warn("Unexpected exception when getting modification time of {}", schemaFile, e);
-                // debatable; we'll see an error soon if there's a real problem
-                return null;
+                return null; // debatable; we'll see an error soon if there's a real problem
             }
         }
+
     }
+
 }

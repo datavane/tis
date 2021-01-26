@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,20 +22,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
-import org.apache.solr.core.CoreContainer;
-import org.apache.solr.core.SolrPaths;
-import org.apache.solr.core.SolrResourceLoader;
-import org.apache.solr.core.SolrResourceNotFoundException;
+import org.apache.solr.common.cloud.SolrClassLoader;
+import org.apache.solr.core.*;
 import org.apache.solr.handler.IndexFetcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -51,6 +47,8 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
 
     private static final Logger log = LoggerFactory.getLogger(TisSolrResourceLoader.class);
 
+    private TISPluginClassLoader pluginClassLoader;
+
     static {
         Map<String, PropteryGetter> names = new HashMap<String, PropteryGetter>();
         for (PropteryGetter getter : ConfigFileReader.getConfigList()) {
@@ -59,11 +57,37 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
         configFileNames = Collections.unmodifiableMap(names);
     }
 
+    private String coreNodeName;
+    private UUID coreUUId;
+
     public TisSolrResourceLoader(Path instanceDir, ClassLoader parent, String collectionName) {
         super(instanceDir, parent);
         this.collectionName = collectionName;
         this.solrhomeDir = SolrPaths.locateSolrHome().toFile();
     }
+
+    @Override
+    public void inform(SolrCore core) {
+        super.inform(core);
+        this.coreNodeName = core.getName();
+        this.coreUUId = core.uniqueId;
+    }
+
+    public SolrClassLoader getSchemaLoader() {
+        super.getSchemaLoader();
+        if (pluginClassLoader == null) {
+            this.pluginClassLoader = new TISPluginClassLoader(this.collectionName, this.getCoreContainer(), this, () -> {
+                if(getCoreContainer() == null || getSolrConfig() == null || coreNodeName == null || coreUUId==null) return;
+                try (SolrCore c = getCoreContainer().getCore(coreNodeName, coreUUId)) {
+                    if (c != null) {
+                        c.fetchLatestSchema();
+                    }
+                }
+            });
+        }
+        return this.pluginClassLoader;
+    }
+
 
     // public TisSolrResourceLoader(Path instanceDir, String configSet, ClassLoader parent //
     // , Properties coreProperties, ZkController zooKeeperController, String collection) {
@@ -78,7 +102,7 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
 
     @Override
     public String[] listConfigDir() {
-        return new String[] {};
+        return new String[]{};
     }
 
     @Override
@@ -146,7 +170,7 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
      * @throws Exception
      */
     public static int getRemoteSnapshotId(String collectionName) throws Exception {
-        SnapshotDomain snapshotDomain = downConfigFromConsoleRepository(-1, collectionName, null, new PropteryGetter[] { ConfigFileReader.FILE_SOLR }, false);
+        SnapshotDomain snapshotDomain = downConfigFromConsoleRepository(-1, collectionName, null, new PropteryGetter[]{ConfigFileReader.FILE_SOLR}, false);
         return snapshotDomain.getSnapshot().getSnId();
     }
 
@@ -186,7 +210,7 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
                     + ",config repository snapshotid:" + snapshotDomain.getSnapshot().getSnId() + " is not match");
         }
         if (// && localSnapshotid < 1
-        modifyFileSys) {
+                modifyFileSys) {
             // 修改配置文件
             saveConfigFileSnapshotId(collectionConfigDir, snapshotDomain.getSnapshot().getSnId());
         }
@@ -250,7 +274,7 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
                     // dir.deleteFile(IndexFetcher.INDEX_PROPERTIES);
                     FileUtils.forceDelete(configFile);
                 } catch (IOException e) {
-                // no problem
+                    // no problem
                 }
             }
             p.put(configsnapshotid, String.valueOf(snapshotId));
@@ -263,7 +287,7 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
             } finally {
                 IOUtils.closeQuietly(os);
             }
-        // return true;
+            // return true;
         } catch (IOException e1) {
             throw new RuntimeException(e1);
         } finally {
