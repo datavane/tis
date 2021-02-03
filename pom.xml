@@ -92,7 +92,7 @@
                        </dependency>
             -->
             <dependency>
-                <groupId>com.gilt.logback</groupId>
+                <groupId>com.qlangtech.tis</groupId>
                 <artifactId>logback-flume-appender</artifactId>
                 <version>1.0.3</version>
             </dependency>
