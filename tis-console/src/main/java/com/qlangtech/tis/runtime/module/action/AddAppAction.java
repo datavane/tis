@@ -42,6 +42,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JavaBeanMsgHandler;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
+import com.qlangtech.tis.solrdao.SchemaResult;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.DocCollection;
@@ -183,7 +184,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       return;
     }
     // }
-    if (!schemaResult.success) {
+    if (!schemaResult.isSuccess()) {
       return;
     }
     Application app = new Application();

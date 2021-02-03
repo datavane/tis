@@ -14,11 +14,8 @@
  */
 package com.qlangtech.tis.runtime.module.misc;
 
-import com.google.common.collect.Maps;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.runtime.module.action.SchemaAction.NumericVisualType;
-import com.qlangtech.tis.runtime.module.action.VisualType;
-import org.apache.commons.lang3.StringUtils;
+import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,22 +25,21 @@ import java.util.Map;
  * @date 2015年1月6日下午6:31:17
  */
 public enum TokenizerType {
-  NULL(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, "无分词") //
-  , IK(ColumnMetaData.ReflectSchemaFieldType.IK.literia, "IK分词") //
-  , LIKE(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia, "LIKE分词") //
-  , BLANK_SPLIT(ColumnMetaData.ReflectSchemaFieldType.TEXT_WS.literia, "空格分词") //
-  , PINGYIN(ColumnMetaData.ReflectSchemaFieldType.PINYIN.literia, "拼音分词");
+  NULL(ReflectSchemaFieldType.STRING.literia, "无分词") //
+  , IK(ReflectSchemaFieldType.IK.literia, "IK分词") //
+  , LIKE(ReflectSchemaFieldType.LIKE.literia, "LIKE分词") //
+  , BLANK_SPLIT(ReflectSchemaFieldType.TEXT_WS.literia, "空格分词") //
+  , PINGYIN(ReflectSchemaFieldType.PINYIN.literia, "拼音分词");
 
   public static final Map<String, VisualType> visualTypeMap;
 
-  public static final Map<String, NumericVisualType> numericTypeMap;
+  // public static final Map<String, NumericVisualType> numericTypeMap;
 
-  // private static final TokenizerString splitableTokenType = new TokenizerString();
 
   static {
     visualTypeMap = new HashMap<>();
-    numericTypeMap = Maps.newHashMap();
-    visualTypeMap.put(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, VisualType.STRING_TYPE);
+    // numericTypeMap = Maps.newHashMap();
+    visualTypeMap.put(ReflectSchemaFieldType.STRING.literia, VisualType.STRING_TYPE);
     addNumericType("double");
     addNumericType("int");
     addNumericType("float");
@@ -52,9 +48,8 @@ public enum TokenizerType {
 
   protected static void addNumericType(String numericType) {
     VisualType type = new VisualType(numericType, false);
-    visualTypeMap.put(numericType, type);
-    numericTypeMap.put('p' + numericType, NumericVisualType.create(type));
-    //numericTypeMap.put('t' + numericType, NumericVisualType.create(type));
+    visualTypeMap.put('p' + numericType, type);
+    //numericTypeMap.put('p' + numericType, NumericVisualType.create(type));
   }
 
 
@@ -68,17 +63,18 @@ public enum TokenizerType {
    */
   public static VisualType parseVisualType(String key) {
     VisualType result = visualTypeMap.get(key);
-    NumericVisualType numericVisualType = null;
+    // NumericVisualType numericVisualType = null;
     if (result != null) {
       return result;
-    } else if ((numericVisualType = numericTypeMap.get(key)) != null) {
-      return numericVisualType;
+    }
+//    else if ((numericVisualType = numericTypeMap.get(key)) != null) {
+//      return numericVisualType;
 //            for (VisualType type : visualTypeMap.values()) {
 //                if (type.isRanageQueryAware() && type.getRangedFieldName().equals(key)) {
 //                    return type;
 //                }
 //            }
-    }
+    //}
     for (TokenizerType type : TokenizerType.values()) {
       if (StringUtils.equals(type.getKey(), key)) {
         return VisualType.STRING_TYPE;

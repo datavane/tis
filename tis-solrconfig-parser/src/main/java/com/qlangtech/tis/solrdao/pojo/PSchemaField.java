@@ -140,6 +140,7 @@ public class PSchemaField implements ISchemaField {
         return name;
     }
 
+
     public void setName(String name) {
         this.name = name;
     }
@@ -190,6 +191,15 @@ public class PSchemaField implements ISchemaField {
     public String getTisFieldTypeName() {
         // return this.type.getSolrType();
         return this.type.getSType().getName();
+    }
+
+    @Override
+    public String toString() {
+        return "{ name='" + name + '\'' +
+                ", indexed=" + indexed +
+                ", stored=" + stored +
+                ", docValue=" + docValue +
+                '}';
     }
 
     /**

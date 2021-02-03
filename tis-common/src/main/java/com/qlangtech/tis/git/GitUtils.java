@@ -15,13 +15,13 @@
 package com.qlangtech.tis.git;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.HTTPMethod;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.pojo.*;
-import junit.framework.Assert;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

@@ -29,6 +29,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.XStream2;
@@ -45,8 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.popFieldStack;
-import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.pushFieldStack;
+import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -297,7 +297,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param formData
      * @return
      */
-    public final boolean validate(IControlMsgHandler msgHandler
+    public final PluginValidateResult validate(IControlMsgHandler msgHandler
             , Context context //
             , Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> formData) {
         String impl = null;
@@ -311,7 +311,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         Map<String, PropertyType> /** * fieldname */
                 propertyTypes = this.getPropertyTypes();
         PostFormVals postFormVals = new PostFormVals(formData);
-
+        //  context.put(KEY_VALIDATE_ITEM_INDEX, new Integer(itemIndex));
+        //        context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
+        PluginValidateResult validateResult = new PluginValidateResult(postFormVals
+                , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
+                , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
         for (Map.Entry<String, PropertyType> entry : propertyTypes.entrySet()) {
             attr = entry.getKey();
             attrDesc = entry.getValue();
@@ -335,7 +339,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 AttrValMap attrValMap = AttrValMap.parseDescribableMap(msgHandler, descVal);
                 pushFieldStack(context, attr, 0);
                 try {
-                    if (!attrValMap.validate(context)) {
+                    if (!attrValMap.validate(context).isValid()) {
                         valid = false;
                         continue;
                     }
@@ -377,8 +381,59 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (valid && !this.validate(msgHandler, context, postFormVals)) {
             valid = false;
         }
+        validateResult.valid = valid;
+        return validateResult;
+    }
 
-        return valid;
+    public static class PluginValidateResult {
+        private final PostFormVals itemForm;
+        private boolean valid;
+        private Descriptor descriptor;
+
+        // 标注当前 item表单在整个大表单中的位置
+        private final Integer validatePluginIndex;
+        private final Integer validatePluginItemIndex;
+
+        public void setDescriptor(Descriptor descriptor) {
+            this.descriptor = descriptor;
+        }
+
+        public static void setValidateItemPos(Context context, Integer pluginIndex, Integer itemIndex) {
+            context.put(KEY_VALIDATE_PLUGIN_INDEX, (pluginIndex));
+            context.put(KEY_VALIDATE_ITEM_INDEX, (itemIndex));
+        }
+
+        public void addIdentityFieldValueDuplicateError(IControlMsgHandler handler, Context context) {
+            setValidateItemPos(context, validatePluginIndex, validatePluginItemIndex);
+            handler.addFieldError(context, descriptor.getIdentityField().displayName, "名称重复冲突");
+        }
+
+        public String getIdentityFieldValue() {
+            if (descriptor == null) {
+                throw new IllegalStateException("descriptor can not be null");
+            }
+            return itemForm.getField(descriptor.getIdentityField().displayName);
+        }
+
+        public PostFormVals getItemForm() {
+            return itemForm;
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public PluginValidateResult(PostFormVals itemForm, Integer validatePluginIndex, Integer validatePluginItemIndex) {
+            this.itemForm = itemForm;
+            if (validatePluginIndex == null) {
+                throw new IllegalArgumentException("param validatePluginIndex can not be null");
+            }
+            if (validatePluginItemIndex == null) {
+                throw new IllegalArgumentException("param validatePluginItemIndex can not be null");
+            }
+            this.validatePluginIndex = validatePluginIndex;
+            this.validatePluginItemIndex = validatePluginItemIndex;
+        }
     }
 
     /**

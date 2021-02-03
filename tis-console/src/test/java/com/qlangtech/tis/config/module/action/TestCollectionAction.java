@@ -35,7 +35,7 @@ import com.qlangtech.tis.manage.spring.MockClusterStateReader;
 import com.qlangtech.tis.manage.spring.MockZooKeeperGetter;
 import com.qlangtech.tis.openapi.impl.AppKey;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 import com.qlangtech.tis.runtime.module.action.AddAppAction;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.solrdao.ISchemaField;
@@ -79,8 +79,7 @@ import java.util.stream.Collectors;
 public class TestCollectionAction extends BasicActionTestCase {
 
   static {
-    CenterResource.setNotFetchFromCenterRepository();
-    HttpUtils.addMockGlobalParametersConfig();
+
     AbstractTisCloudSolrClient.initHashcodeRouter();
 
     // stub create collection
@@ -438,37 +437,37 @@ public class TestCollectionAction extends BasicActionTestCase {
       ISchemaField pk = fields.get(emp_no);
       assertNotNull(pk);
       assertTrue(StringUtils.isEmpty(pk.getTokenizerType()));
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, pk.getTisFieldTypeName());
+      assertEquals(ReflectSchemaFieldType.STRING.literia, pk.getTisFieldTypeName());
       assertEquals(emp_no, schemaParseResult.getUniqueKey());
       assertEquals(emp_no, schemaParseResult.getSharedKey());
       String birth_date = "birth_date";
       ISchemaField field = fields.get(birth_date);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.DATE.literia, field.getTisFieldTypeName());
+      assertEquals(ReflectSchemaFieldType.DATE.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
 
       // String first_name = "first_name";
       field = fields.get(FIELD_EMPLOYEES_FIRST_NAME);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia, field.getTokenizerType());
+      assertEquals(ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
+      assertEquals(ReflectSchemaFieldType.LIKE.literia, field.getTokenizerType());
 
       // String last_name = "last_name";
       field = fields.get(FIELD_EMPLOYEES_LAST_NAME);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia, field.getTokenizerType());
+      assertEquals(ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
+      assertEquals(ReflectSchemaFieldType.LIKE.literia, field.getTokenizerType());
 
       String gender = "gender";
       field = fields.get(gender);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
+      assertEquals(ReflectSchemaFieldType.STRING.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
 
       String hire_date = "hire_date";
       field = fields.get(hire_date);
       assertNotNull(field);
-      assertEquals(ColumnMetaData.ReflectSchemaFieldType.DATE.literia, field.getTisFieldTypeName());
+      assertEquals(ReflectSchemaFieldType.DATE.literia, field.getTisFieldTypeName());
       assertTrue(StringUtils.isEmpty(field.getTokenizerType()));
       schemaParseResultProcessed.set(true);
     };
@@ -541,16 +540,7 @@ public class TestCollectionAction extends BasicActionTestCase {
     assertTrue("must have execute", executed.get());
   }
 
-  private AjaxValve.ActionExecResult showBizResult() {
-    AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
-    if (!actionExecResult.isSuccess()) {
-      System.err.println(AjaxValve.buildResultStruct(MockContext.instance));
-      // actionExecResult.getErrorPageShow()
-    } else {
-      System.out.println(AjaxValve.buildResultStruct(MockContext.instance));
-    }
-    return actionExecResult;
-  }
+
 
   private ActionProxy getActionProxy() {
     ActionProxy proxy = getActionProxy("/config/config.ajax");

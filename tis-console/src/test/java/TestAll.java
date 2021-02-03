@@ -17,6 +17,7 @@ import com.qlangtech.tis.coredefine.module.action.TestCoreAction;
 import com.qlangtech.tis.coredefine.module.action.TestTISK8sDelegate;
 import com.qlangtech.tis.manage.servlet.TestIncrTagHeatBeatMonitor;
 import com.qlangtech.tis.runtime.module.action.TestSysInitializeAction;
+import com.qlangtech.tis.solrdao.TestSchemaResult;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -34,6 +35,7 @@ public class TestAll extends TestCase {
     suite.addTestSuite(TestCoreAction.class);
 
     suite.addTestSuite(TestSysInitializeAction.class);
+    suite.addTestSuite(TestSchemaResult.class);
 
 
     return suite;

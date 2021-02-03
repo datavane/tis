@@ -12,28 +12,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.plugin.solr.schema;
-
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IdentityDescribale;
-
+package com.qlangtech.tis.plugin.ds;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-01-22 17:44
+ * @date 2021-01-27 13:28
  */
-public abstract class FieldTypeFactory implements IdentityDescribale<FieldTypeFactory, ISolrFieldType> {
+public enum ReflectSchemaFieldType {
+    STRING("string"), INT("int"), FLOAT("float"), LONG("long") //
+    , DOUBLE("double"), IK("ik"), TEXT_WS("text_ws"), LIKE("like"), PINYIN("pinyin")//
+    , DATE("date"), TIMESTAMP("timestamp");
 
-    /**
-     * 是否针对处理String类型的字段，例如json，tags等。是，则在console页面处理的时候会显示到fieldtype的关联下啦菜单
-     *
-     * @return
-     */
-    public abstract boolean forStringTokenizer();
+    public final String literia;
 
-    @Override
-    public final Descriptor<FieldTypeFactory> getDescriptor() {
-        return TIS.get().getDescriptor(this.getClass());
+    private ReflectSchemaFieldType(String literia) {
+        this.literia = literia;
     }
 }

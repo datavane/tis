@@ -18,7 +18,9 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.*;
@@ -28,10 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-
-import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX;
-import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -58,7 +58,7 @@ public class PluginAction extends BasicModule {
 
   public void doGetPluginConfigInfo(Context context) throws Exception {
     //Thread.sleep(1000);
-    
+
     List<UploadPluginMeta> plugins = getPluginMeta();
 
     // final String[] plugins = this.getStringArray("plugin");
@@ -99,11 +99,14 @@ public class PluginAction extends BasicModule {
     List<PluginItems> categoryPlugins = Lists.newArrayList();
     PluginItems pluginItems = null;
     HeteroEnum hEnum = null;
+    Descriptor.PluginValidateResult validateResult = null;
+    List<Descriptor.PluginValidateResult> items = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
+      items = Lists.newArrayList();
       pluginMeta = plugins.get(pluginIndex);
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
       hEnum = pluginMeta.getHeteroEnum();
-      context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
+      //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
       pluginItems = new PluginItems(this, pluginMeta);
       List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(this, itemsArray);
       if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
@@ -112,13 +115,36 @@ public class PluginAction extends BasicModule {
       pluginItems.items = describableAttrValMapList;
       categoryPlugins.add(pluginItems);
       AttrValMap attrValMap = null;
-      for (int i = 0; i < describableAttrValMapList.size(); i++) {
-        attrValMap = describableAttrValMapList.get(i);
-        context.put(KEY_VALIDATE_ITEM_INDEX, new Integer(i));
-        if (!attrValMap.validate(context)) {
+      for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
+        attrValMap = describableAttrValMapList.get(itemIndex);
+//        context.put(KEY_VALIDATE_ITEM_INDEX, new Integer(itemIndex));
+//        context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
+        Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
+        if (!(validateResult = attrValMap.validate(context)).isValid()) {
           faild = true;
+        } else {
+          validateResult.setDescriptor(attrValMap.descriptor);
+          items.add(validateResult);
         }
       }
+
+      /**===============================================
+       * 校验Item字段的identity字段不能重复，不然就报错
+       ===============================================*/
+      Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
+      Descriptor.PluginValidateResult previous = null;
+      if (!faild && hEnum.isIdentityUnique()
+        && hEnum.selectable == Selectable.Multi
+        && items.size() > 1) {
+        for (Descriptor.PluginValidateResult i : items) {
+          if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
+            previous.addIdentityFieldValueDuplicateError(this, context);
+            i.addIdentityFieldValueDuplicateError(this, context);
+            return;
+          }
+        }
+      }
+
     }
     if (this.hasErrors(context) || this.getBoolean("verify")) {
       return;

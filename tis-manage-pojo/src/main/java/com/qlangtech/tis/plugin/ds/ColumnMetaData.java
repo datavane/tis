@@ -99,29 +99,4 @@ public class ColumnMetaData {
         return this.pk;
     }
 
-    public static class ReservedFieldType {
-        public final ReflectSchemaFieldType type;
-        public final boolean tokenizer;
-
-        public ReservedFieldType(ReflectSchemaFieldType type) {
-            this(type, false);
-        }
-
-        public ReservedFieldType(ReflectSchemaFieldType type, boolean tokenizer) {
-            this.type = type;
-            this.tokenizer = tokenizer;
-        }
-    }
-
-    public enum ReflectSchemaFieldType {
-        STRING("string"), INT("int"), FLOAT("float"), LONG("long") //
-        , DOUBLE("double"), IK("ik"), TEXT_WS("text_ws"), LIKE("like"), PINYIN("pinyin")//
-        , DATE("date"), TIMESTAMP("timestamp");
-
-        public final String literia;
-
-        private ReflectSchemaFieldType(String literia) {
-            this.literia = literia;
-        }
-    }
 }

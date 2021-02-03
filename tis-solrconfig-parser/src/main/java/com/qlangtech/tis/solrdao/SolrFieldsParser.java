@@ -21,7 +21,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 import com.qlangtech.tis.solrdao.extend.IndexBuildHook;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
@@ -64,7 +64,7 @@ public class SolrFieldsParser {
 
     static final XPathFactory xpathFactory = XPathFactory.newInstance();
 
-    public static  IFieldTypesVisit fieldTypeVisitor = (typeNodes) -> {
+    public static IFieldTypesVisit fieldTypeVisitor = (typeNodes) -> {
     };
 
     private static final DocumentBuilder solrConfigDocumentbuilder;
@@ -93,13 +93,13 @@ public class SolrFieldsParser {
     }
 
     public static IIndexMetaData parse(ISolrConfigGetter configGetter) throws Exception {
-        return parse(configGetter, false);
+        return parse(configGetter, (typeName) -> false, false);
     }
 
-    public static IIndexMetaData parse(ISolrConfigGetter configGetter, boolean validateSchema) throws Exception {
+    public static IIndexMetaData parse(ISolrConfigGetter configGetter, ILoadedSchemaPlugin schemaPlugin, boolean validateSchema) throws Exception {
         SolrFieldsParser.ParseResult schemaParseResult;
         try (ByteArrayInputStream reader = new ByteArrayInputStream(configGetter.getSchema())) {
-            schemaParseResult = solrFieldsParser.parseSchema(reader, validateSchema);
+            schemaParseResult = solrFieldsParser.parseSchema(reader, schemaPlugin, validateSchema);
         }
         return new IIndexMetaData() {
 
@@ -174,27 +174,27 @@ public class SolrFieldsParser {
         return false;
     }
 
-    public ArrayList<PSchemaField> readSchemaFields(InputStream is) throws Exception {
-        ParseResult result = this.parseSchema(is);
+    public ArrayList<PSchemaField> readSchemaFields(InputStream is, ILoadedSchemaPlugin schemaPlugin) throws Exception {
+        ParseResult result = this.parseSchema(is, schemaPlugin);
         if (!result.isValid()) {
             throw new IllegalStateException(result.getErrorSummary());
         }
         return result.dFields;
     }
 
-    public ParseResult readSchema(InputStream is) throws Exception {
-        ParseResult result = this.parseSchema(is);
+    public ParseResult readSchema(InputStream is, ILoadedSchemaPlugin schemaPlugin) throws Exception {
+        ParseResult result = this.parseSchema(is, schemaPlugin);
         if (!result.isValid()) {
             throw new IllegalStateException(result.getErrorSummary());
         }
         return result;
     }
 
-    public ParseResult parseSchema(InputStream is) throws Exception {
-        return parseSchema(is, true);
+    public ParseResult parseSchema(InputStream is, ILoadedSchemaPlugin schemaPlugin) throws Exception {
+        return parseSchema(is, schemaPlugin, true);
     }
 
-    public ParseResult parseSchema(InputStream is, boolean shallValidate) throws Exception {
+    public ParseResult parseSchema(InputStream is, ILoadedSchemaPlugin schemaPlugin, boolean shallValidate) throws Exception {
         DocumentBuilderFactory schemaDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
         // 只是读取schema不作校验
         schemaDocumentBuilderFactory.setValidating(shallValidate);
@@ -204,7 +204,6 @@ public class SolrFieldsParser {
         InputSource input = new InputSource(is);
         if (!shallValidate) {
             builder.setEntityResolver(new EntityResolver() {
-
                 public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
                     InputSource source = new InputSource();
                     source.setCharacterStream(new StringReader(""));
@@ -213,7 +212,6 @@ public class SolrFieldsParser {
             });
         } else {
             final DefaultHandler mh = new DefaultHandler() {
-
                 public void error(SAXParseException e) throws SAXException {
                     result.errlist.add("行号:" + e.getLineNumber() + " " + e.getMessage() + "<br/>");
                 }
@@ -224,7 +222,6 @@ public class SolrFieldsParser {
             };
             builder.setErrorHandler(mh);
             builder.setEntityResolver(new EntityResolver() {
-
                 @Override
                 public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
                     // final String tisrepository = TSearcherConfigFetcher.get().getTisConsoleHostAddress();
@@ -253,16 +250,16 @@ public class SolrFieldsParser {
         if (!result.isValid()) {
             return result;
         }
-        return parse(document, shallValidate);
+        return parse(document, schemaPlugin, shallValidate);
     }
 
     private static final Pattern SPACE = Pattern.compile("\\s+");
 
-    public static ParseResult parseDocument(Document document, boolean shallValidate) throws Exception {
-        return solrFieldsParser.parse(document, shallValidate);
+    public static ParseResult parseDocument(Document document, ILoadedSchemaPlugin schemaPlugin, boolean shallValidate) throws Exception {
+        return solrFieldsParser.parse(document, schemaPlugin, shallValidate);
     }
 
-    public ParseResult parse(Document document, boolean shallValidate) throws Exception {
+    public ParseResult parse(Document document, ILoadedSchemaPlugin schemaPlugin, boolean shallValidate) throws Exception {
         // .newXPath();
         final XPath xpath = createXPath();
         ParseResult parseResult = new ParseResult(shallValidate);
@@ -281,7 +278,8 @@ public class SolrFieldsParser {
                 parseResult.errlist.add("重复定义了字段类型‘" + typeName + "’");
                 return parseResult;
             }
-            parseResult.types.put(typeName, parseFieldType(typeName, DOMUtil.getAttr(attrs, "class", "class definition")));
+            parseResult.types.put(typeName
+                    , parseFieldType(typeName, DOMUtil.getAttr(attrs, "class", "class definition"), schemaPlugin.isTokenizer(typeName)));
         }
         fieldTypeVisitor.visit(nodes);
         addExtenionProcessor(parseResult, xpath, document);
@@ -505,14 +503,21 @@ public class SolrFieldsParser {
         return parseResult;
     }
 
+    public static SolrType parseFieldType(String name, String fieldType) {
+        return parseFieldType(name, fieldType, false);
+    }
+
+
     /**
      * 解析字段类型
      *
+     * @param name
      * @param fieldType
+     * @param splittable 是否可分词
      * @return
      */
-    private static SolrType parseFieldType(String name, String fieldType) {
-        SolrType type = new SolrType();
+    public static SolrType parseFieldType(String name, String fieldType, boolean splittable) {
+        SolrType type = new SolrType(splittable);
         Type t = new Type(name);
         t.setSolrType(fieldType);
         type.setSolrType(t);
@@ -561,6 +566,12 @@ public class SolrFieldsParser {
     }
 
     public static class SolrType {
+        public final boolean tokenizerable;
+
+        private SolrType(boolean tokenizerable) {
+            this.tokenizerable = tokenizerable;
+        }
+
         private Class<?> javaType;
 
         private Type solrType;
@@ -654,10 +665,9 @@ public class SolrFieldsParser {
 
         public Set<String> dFieldsNames;
 
-        private final Map<String, SolrType> types = new HashMap<>();
+        public final Map<String, SolrType> types = new HashMap<>();
 
         private String uniqueKey;
-
         private String sharedKey;
 
         private final boolean shallValidate;
@@ -714,6 +724,20 @@ public class SolrFieldsParser {
 
         public Collection<String> getFieldTypesKey() {
             return types.keySet();
+        }
+
+        public boolean containType(String typeName) {
+            return this.types.containsKey(typeName);
+        }
+
+        public void addFieldType(String typeName, SolrType type) {
+            if (StringUtils.isBlank(typeName)) {
+                throw new IllegalArgumentException("param typeName can not be null");
+            }
+            if (type == null) {
+                throw new IllegalArgumentException("param type can not be null");
+            }
+            types.put(typeName, type);
         }
 
         public SolrType getTisType(String fieldName) {
@@ -802,7 +826,7 @@ public class SolrFieldsParser {
          * 添加保留字段
          */
         public void addReservedFields() {
-            SolrType strType = this.getTisType(ColumnMetaData.ReflectSchemaFieldType.STRING.literia);
+            SolrType strType = this.getTisType(ReflectSchemaFieldType.STRING.literia);
             SolrType longType = this.getTisType("long");
             PSchemaField verField = new PSchemaField();
             verField.setName("_version_");

@@ -15,10 +15,13 @@
 package com.qlangtech.tis;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import org.apache.struts2.StrutsSpringTestCase;
 import org.easymock.EasyMock;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -27,11 +30,19 @@ import java.util.List;
 public class BasicActionTestCase extends StrutsSpringTestCase {
 
   private static List<Object> mocks = Lists.newArrayList();
+  protected RunContext runContext;
+
+  static {
+    CenterResource.setNotFetchFromCenterRepository();
+    HttpUtils.addMockGlobalParametersConfig();
+  }
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     this.clearMocks();
+    this.runContext = Objects.requireNonNull(applicationContext.getBean("runContextGetter", RunContextGetter.class)
+      , "runContextGetter can not be null").get();
   }
 
   protected void clearMocks() {
@@ -54,6 +65,17 @@ public class BasicActionTestCase extends StrutsSpringTestCase {
     mocks.forEach((r) -> {
       EasyMock.replay(r);
     });
+  }
+
+  protected AjaxValve.ActionExecResult showBizResult() {
+    AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
+    if (!actionExecResult.isSuccess()) {
+      System.err.println(AjaxValve.buildResultStruct(MockContext.instance));
+      // actionExecResult.getErrorPageShow()
+    } else {
+      System.out.println(AjaxValve.buildResultStruct(MockContext.instance));
+    }
+    return actionExecResult;
   }
 
   @Override

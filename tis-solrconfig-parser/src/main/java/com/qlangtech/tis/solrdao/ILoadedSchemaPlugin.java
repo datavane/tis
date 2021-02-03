@@ -12,28 +12,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.plugin.solr.schema;
-
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IdentityDescribale;
-
+package com.qlangtech.tis.solrdao;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-01-22 17:44
+ * @date 2021-01-29 15:08
  */
-public abstract class FieldTypeFactory implements IdentityDescribale<FieldTypeFactory, ISolrFieldType> {
-
+public interface ILoadedSchemaPlugin {
     /**
-     * 是否针对处理String类型的字段，例如json，tags等。是，则在console页面处理的时候会显示到fieldtype的关联下啦菜单
+     * 是否是可分词字段类型
      *
+     * @param typeName
      * @return
      */
-    public abstract boolean forStringTokenizer();
-
-    @Override
-    public final Descriptor<FieldTypeFactory> getDescriptor() {
-        return TIS.get().getDescriptor(this.getClass());
-    }
+    boolean isTokenizer(String typeName);
 }

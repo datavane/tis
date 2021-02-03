@@ -37,7 +37,7 @@ public class AttrValMap {
     private final Map<String, JSONObject> /*** attrName*/
             attrValMap;
 
-    private final Descriptor descriptor;
+    public final Descriptor descriptor;
 
     private IControlMsgHandler msgHandler;
 
@@ -79,7 +79,7 @@ public class AttrValMap {
      * @param context
      * @return true：校验没有错误 false：校验有错误
      */
-    public boolean validate(Context context) {
+    public Descriptor.PluginValidateResult validate(Context context) {
         return this.descriptor.validate(msgHandler, context, attrValMap);
     }
 

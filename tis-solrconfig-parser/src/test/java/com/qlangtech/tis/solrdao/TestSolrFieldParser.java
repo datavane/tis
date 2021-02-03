@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis;
+package com.qlangtech.tis.solrdao;
 
 import java.io.InputStream;
 import com.qlangtech.tis.exec.IIndexMetaData;

@@ -37,10 +37,7 @@ import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.plugin.ds.DataSourceFactory;
-import com.qlangtech.tis.plugin.ds.PostedDSProp;
-import com.qlangtech.tis.plugin.ds.TISTable;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
@@ -48,6 +45,7 @@ import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
+import com.qlangtech.tis.solrdao.SchemaResult;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.solrdao.ISchemaField;
@@ -513,7 +511,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     TargetColumnMeta columnMeta = new TargetColumnMeta(targetTable);
     Map<String, ColumnMetaData> colMetas = null;
     for (AttrValMap vals : dataSourceItems.items) {
-      if (!vals.validate(context)) {
+      if (!vals.validate(context).isValid()) {
         return columnMeta.invalid();
       }
       DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable().instance;
@@ -649,7 +647,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
             // 设置主键
             isPk = true;
             field.setIndexed(true);
-            field.setType(schemaParseResult.getTisType(ColumnMetaData.ReflectSchemaFieldType.STRING.literia));
+            field.setType(schemaParseResult.getTisType(ReflectSchemaFieldType.STRING.literia));
           } else {
             field.setType(schemaParseResult.getTisType(rft.getSchemaFieldType()));
           }
@@ -664,9 +662,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
                 field.setTokenizerType(tcol.getToken());
               } else {
                 // 主键不需要分词
-                if (!isPk && rft.isTypeOf(ColumnMetaData.ReflectSchemaFieldType.STRING)) {
+                if (!isPk && rft.isTypeOf(ReflectSchemaFieldType.STRING)) {
                   // String类型默认使用like分词
-                  field.setTokenizerType(ColumnMetaData.ReflectSchemaFieldType.LIKE.literia);
+                  field.setTokenizerType(ReflectSchemaFieldType.LIKE.literia);
                 }
               }
             }
@@ -795,7 +793,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
 
     for (AttrValMap vals : incrPluginItems.items) {
-      if (!vals.validate(context)) {
+      if (!vals.validate(context).isValid()) {
         // return columnMeta.invalid();
         return false;
       }
@@ -929,7 +927,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       return colMeta.getSchemaFieldType().type.literia;
     }
 
-    public boolean isTypeOf(ColumnMetaData.ReflectSchemaFieldType type) {
+    public boolean isTypeOf(ReflectSchemaFieldType type) {
       return colMeta.getSchemaFieldType().type == type;
     }
 

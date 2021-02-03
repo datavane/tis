@@ -37,6 +37,17 @@
     <listener-class>com.qlangtech.tis.servlet.listener.RemoveFieldCacheListener</listener-class>
   </listener>
 
+  <!--baisui add-->
+  <servlet>
+    <servlet-name>version</servlet-name>
+    <servlet-class>com.qlangtech.tis.servlet.VersionServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>version</servlet-name>
+    <url-pattern>/version</url-pattern>
+  </servlet-mapping>
+
   <!-- Any path (name) registered in solrconfig.xml will be sent to that filter -->
   <filter>
     <filter-name>SolrRequestFilter</filter-name>

@@ -61,8 +61,8 @@
         </dependency>
 
         <dependency>
+            <groupId>com.qlangtech.tis</groupId>
             <artifactId>logback-flume-appender</artifactId>
-            <groupId>com.gilt.logback</groupId>
         </dependency>
 
 
@@ -187,7 +187,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>

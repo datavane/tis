@@ -23,6 +23,7 @@ import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -102,6 +103,15 @@ public enum HeteroEnum {
         // this.itemGetter = itemGetter;
         this.identity = identity;
         this.selectable = selectable;
+    }
+
+    /**
+     * 判断实例是否是应该名称唯一的
+     *
+     * @return
+     */
+    public boolean isIdentityUnique() {
+        return IdentityName.class.isAssignableFrom(this.extensionPoint);
     }
 
     <// , IDescriptorsGetter descriptorsGetter//, ISaveable saveable

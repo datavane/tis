@@ -1,7 +1,6 @@
-package com.qlangtech.tis.runtime.module.action;
+package com.qlangtech.tis.runtime.module.misc;
 
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.runtime.module.misc.TokenizerType;
+import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 
 /**
  * @author: baisui 百岁
@@ -10,7 +9,7 @@ import com.qlangtech.tis.runtime.module.misc.TokenizerType;
 public class VisualType {
 
   public static final VisualType STRING_TYPE
-    = new VisualType(ColumnMetaData.ReflectSchemaFieldType.STRING.literia, true);
+    = new VisualType(ReflectSchemaFieldType.STRING.literia, true);
 
   public final String type;
 

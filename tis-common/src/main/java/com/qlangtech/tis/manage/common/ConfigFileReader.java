@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,10 +20,10 @@ import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
 import com.qlangtech.tis.pubhook.common.ConfigConstant;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
-import junit.framework.Assert;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 读取solrcore相关的配置文件，该类是读取本地文件<br>
@@ -136,9 +137,9 @@ public class ConfigFileReader {
         // try {
         File dir = new File(appDomainDir);
         return new File(dir, pGetter.getFileName() + (fileSufix == null ? StringUtils.EMPTY : String.valueOf(fileSufix)));
-    // } catch (URISyntaxException e) {
-    // throw new RuntimeException(e);
-    // }
+        // } catch (URISyntaxException e) {
+        // throw new RuntimeException(e);
+        // }
     }
 
     public String saveFile(final InputStream reader, PropteryGetter getter, Long fileSufix) throws IOException {
@@ -177,14 +178,14 @@ public class ConfigFileReader {
     public static String md5file(byte[] content) {
         // try {
         return (DigestUtils.md5Hex(content));
-    // } catch (IOException e) {
-    // throw new RuntimeException(e);
-    // }
+        // } catch (IOException e) {
+        // throw new RuntimeException(e);
+        // }
     }
 
     public static File getAppDomainDir(File localRepository, Integer bizid, Integer appid) {
-        Assert.assertNotNull("bizid can not be null", bizid);
-        Assert.assertNotNull("appid can not be null", appid);
+        Objects.requireNonNull(bizid, "bizid can not be null");
+        Objects.requireNonNull(appid, "appid can not be null");
         File saveDir = new File(localRepository, String.valueOf(bizid) + File.separatorChar + appid);
         if (!saveDir.exists() && !saveDir.mkdirs()) {
             throw new IllegalStateException("dir:" + saveDir.getAbsolutePath() + " can not be create");
@@ -225,12 +226,13 @@ public class ConfigFileReader {
 
         @Override
         public ConfigFileValidateResult validate(UploadResource resource) {
-            Assert.assertNotNull("resource can not be null", resource);
+            // Assert.assertNotNull("resource can not be null", );
+            Objects.requireNonNull(resource, "resource can not be null");
             // 校验schema 文件是否合法
             final byte[] content = resource.getContent();
             final ConfigFileValidateResult result = new ConfigFileValidateResult();
             try {
-                IIndexMetaData meta = SolrFieldsParser.parse(() -> content, true);
+                IIndexMetaData meta = SolrFieldsParser.parse(() -> content, (fieldType) -> false, true);
                 ParseResult parseResult = meta.getSchemaParseResult();
                 if (!parseResult.isValid()) {
                     result.setValid(false);
@@ -356,7 +358,7 @@ public class ConfigFileReader {
                 colon.setResSolrId(snapshot.getResSolrId());
             }
             return setSolrCoreResourceId((long) newUploadResourceId, colon);
-        // return colon;
+            // return colon;
         }
 
         public abstract Snapshot setSolrCoreResourceId(long newUploadResourceId, Snapshot colon);
@@ -371,9 +373,9 @@ public class ConfigFileReader {
         throw new IllegalStateException("res name:" + resName + " is illegal");
     }
 
-    public static final PropteryGetter[] getAry = new PropteryGetter[] { // , FILE_DATA_SOURCE // FILE_JAR, FILE_CORE_PROPERTIES
-    FILE_SCHEMA, // , FILE_DATA_SOURCE // FILE_JAR, FILE_CORE_PROPERTIES
-    FILE_SOLR };
+    public static final PropteryGetter[] getAry = new PropteryGetter[]{ // , FILE_DATA_SOURCE // FILE_JAR, FILE_CORE_PROPERTIES
+            FILE_SCHEMA, // , FILE_DATA_SOURCE // FILE_JAR, FILE_CORE_PROPERTIES
+            FILE_SOLR};
 
     public static List<PropteryGetter> getConfigList() {
         return Arrays.asList(getAry);

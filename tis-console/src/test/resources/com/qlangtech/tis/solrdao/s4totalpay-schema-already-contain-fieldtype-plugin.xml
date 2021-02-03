@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE schema SYSTEM    "solrres://tisrepository/dtd/solrschema.dtd">
+<schema name="search4dfireOrderInfo" version="1.5">
+    <types>
+        <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"
+                   omitTermFreqAndPositions="true"/>
+        <fieldType name="test" class="plugin:test" precisionStep="0" positionIncrementGap="0" sortMissingLast="true"/>
+    </types>
+    <fields>
+
+        <field name="totalpay_id" type="string" stored="true" indexed="true" required="true" docValues="true"/>
+        <field name="curr_date" type="test" stored="true" indexed="true" docValues="true" required="false"/>
+    </fields>
+    <sharedKey>entity_id</sharedKey>
+    <uniqueKey>totalpay_id</uniqueKey>
+</schema>

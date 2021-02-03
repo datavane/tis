@@ -1,30 +1,20 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.yushu.tis.xmodifier;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.xml.xpath.XPathExpressionException;
+import com.qlangtech.tis.runtime.module.action.IModifier;
 import org.jdom2.Content;
 import org.jdom2.DocType;
 import org.jdom2.Document;
@@ -45,6 +35,14 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.xml.xpath.XPathExpressionException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 基于jdom2的xml modifer
  *
@@ -52,6 +50,22 @@ import org.xml.sax.SAXException;
  * @date 2015年1月17日下午9:21:58
  */
 public class XModifier {
+
+    private static final SAXBuilder saxBuilder = new SAXBuilder(new XMLReaderSAX2Factory(false));
+    private static final Format xmlPrettyformat = Format.getPrettyFormat().setEncoding(StandardCharsets.UTF_8.name());
+
+    private static final Format xmlRawformat = Format.getRawFormat().setEncoding(StandardCharsets.UTF_8.name());
+
+    static {
+        XModifier.saxBuilder.setEntityResolver(new EntityResolver() {
+
+            public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+                InputSource source = new InputSource();
+                source.setCharacterStream(new StringReader(""));
+                return source;
+            }
+        });
+    }
 
     private final Document document;
 
@@ -63,13 +77,31 @@ public class XModifier {
         this.document = document;
     }
 
+    public static byte[] modifySchemaContent(byte[] content, IModifier contentModifier) throws Exception {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
+        Document document2 = saxBuilder.build(inputStream);
+        final XModifier modifier = new XModifier(document2);
+
+        contentModifier.process(document2, modifier);
+        modifier.modify();
+        XMLOutputter xmlout = new XMLOutputter(xmlPrettyformat);
+        xmlout.setFormat(xmlPrettyformat.setEncoding(StandardCharsets.UTF_8.name()));
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
+                xmlout.output(document2, writer);
+                writer.flush();
+                return out.toByteArray();
+            }
+        }
+    }
+
     public void setNamespace(String prefix, String url) {
         nsMap.put(prefix, url);
     }
 
     public void deleteUniqueKey() {
         this.addModify("/uniqueKey(:delete)");
-    // this.addModify("/defaultSearchField(:delete)");
+        // this.addModify("/defaultSearchField(:delete)");
     }
 
     public void deleteSharedKey() {
@@ -87,7 +119,7 @@ public class XModifier {
         xModifyNodes.add(new XModifyNode(nsMap, xPath, null));
     }
 
-    public void modify() {
+    private void modify() {
         initXPath();
         for (XModifyNode xModifyNode : xModifyNodes) {
             try {
@@ -166,29 +198,29 @@ public class XModifier {
 
     private void initXPath() {
         factory = XPathFactory.instance();
-    // XPath xPath = factory.
-    // xPath.setNamespaceContext(new NamespaceContext() {
-    // @Override
-    // public String getNamespaceURI(String prefix) {
-    // return nsMap.get(prefix);
-    // }
-    // 
-    // @Override
-    // public String getPrefix(String namespaceURI) {
-    // for (Map.Entry<String, String> entry : nsMap.entrySet()) {
-    // if (entry.getValue().equals(namespaceURI)) {
-    // return entry.getKey();
-    // }
-    // }
-    // return null;
-    // }
-    // 
-    // @Override
-    // public Iterator getPrefixes(String namespaceURI) {
-    // return nsMap.keySet().iterator();
-    // }
-    // });
-    // this.xPathEvaluator = xPath;
+        // XPath xPath = factory.
+        // xPath.setNamespaceContext(new NamespaceContext() {
+        // @Override
+        // public String getNamespaceURI(String prefix) {
+        // return nsMap.get(prefix);
+        // }
+        //
+        // @Override
+        // public String getPrefix(String namespaceURI) {
+        // for (Map.Entry<String, String> entry : nsMap.entrySet()) {
+        // if (entry.getValue().equals(namespaceURI)) {
+        // return entry.getKey();
+        // }
+        // }
+        // return null;
+        // }
+        //
+        // @Override
+        // public Iterator getPrefixes(String namespaceURI) {
+        // return nsMap.keySet().iterator();
+        // }
+        // });
+        // this.xPathEvaluator = xPath;
     }
 
     private void createAttributeByXPath(Content node, String current, String value) {
@@ -211,27 +243,27 @@ public class XModifier {
             return;
         }
         if (node.isInsertBefore()) {
-        // create new element without double check
-        // Element newCreatedNode = createNewElement(node.getNamespaceURI(),
-        // node.getLocalName(), node.getConditions());
-        // 
-        // XPathExpression<Element> xpath = factory.compile(
-        // node.getInsertBeforeXPath(), new ElementFilter());
-        // 
-        // Element referNode = xpath.evaluateFirst(parent);
-        // 
-        // parent.getParentElement().addContent(child)
-        // 
-        // parent.insertBefore(newCreatedNode, referNode);
-        // boolean canMoveToNext = node.moveNext();
-        // if (!canMoveToNext) {
-        // // last node
-        // newCreatedNode.setTextContent(node.getValue());
-        // } else {
-        // // next node
-        // create(newCreatedNode, node);
-        // }
-        // return;
+            // create new element without double check
+            // Element newCreatedNode = createNewElement(node.getNamespaceURI(),
+            // node.getLocalName(), node.getConditions());
+            //
+            // XPathExpression<Element> xpath = factory.compile(
+            // node.getInsertBeforeXPath(), new ElementFilter());
+            //
+            // Element referNode = xpath.evaluateFirst(parent);
+            //
+            // parent.getParentElement().addContent(child)
+            //
+            // parent.insertBefore(newCreatedNode, referNode);
+            // boolean canMoveToNext = node.moveNext();
+            // if (!canMoveToNext) {
+            // // last node
+            // newCreatedNode.setTextContent(node.getValue());
+            // } else {
+            // // next node
+            // create(newCreatedNode, node);
+            // }
+            // return;
         }
         XPathExpression<Element> xpath = factory.compile(node.getCurNodeXPath(), Filters.element());
         List<Element> existNodeList = xpath.evaluate(parent);
@@ -279,7 +311,7 @@ public class XModifier {
         if (namespaceURI != null) {
             // document.createElementNS(namespaceURI,
             newElement = new Element(local, namespaceURI);
-        // local);
+            // local);
         } else {
             newElement = new Element(local);
         }

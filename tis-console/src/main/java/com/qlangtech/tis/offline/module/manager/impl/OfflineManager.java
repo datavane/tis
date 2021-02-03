@@ -79,139 +79,22 @@ public class OfflineManager {
   }
 
 
-//  /**
-//   * description: 测试连接，true连接成功，false连接失败 date: 3:04 PM 5/25/2017
-//   */
-//  public TestDbConnection testDbConnection(TISDb database, BasicModule action, Context context) throws Exception {
-//    TestDbConnection testResult = new TestDbConnection();
-//    testResult.facade = database.isFacade();
-//    if (StringUtils.isBlank(database.getPassword()) || StringUtils.isBlank(database.getUserName())) {
-//      throw new IllegalArgumentException("password:" + database.getPassword() + " or username:[" + database.getUserName() + "] is illegal");
-//    }
-//    if (StringUtils.isBlank(database.getHost())) {
-//      throw new IllegalArgumentException("host can not be null");
-//    }
-//    // ///////////////////////////////////////////////////////////////////
-//    DBTokenizer tokenizer = new DBTokenizer("host:" + database.getHost());
-//    tokenizer.parse();
-//    DBConfigParser parser = new DBConfigParser(tokenizer.getTokenBuffer());
-//    parser.dbConfigResult.setName(database.getDbName());
-//    parser.dbConfigResult.setPort(Integer.parseInt(database.getPort()));
-//    if (!parser.parseHostDesc()) {
-//      action.addErrorMessage(context, database.getHost() + " 有误，请联系系统管理员");
-//      return testResult;
-//    }
-//    int dbCount = 0;
-//    DBConfig db = parser.dbConfigResult;
-//    for (Map.Entry<String, List<String>> entry : db.getDbEnum().entrySet()) {
-//      dbCount += entry.getValue().size();
-//    }
-//    testResult.dbCount = dbCount;
-//    if (database.isFacade() && dbCount > 1) {
-//      action.addErrorMessage(context, "门面数据库目标库不能为多库");
-//      return testResult;
-//    }
-//    StringBuilder connErrs = new StringBuilder();
-//    if (!db.vistDbURL(false, (dbName, jdbcUrl) -> {
-//      try {
-//        validateConnection(jdbcUrl, db, database.getUserName(), database.getPassword(), (conn) -> {
-//          Statement s = null;
-//          ResultSet result = null;
-//          try {
-//            s = conn.createStatement();
-//            result = s.executeQuery("select 1");
-//            if (result.next()) {
-//              result.getString(1);
-//            }
-//          } finally {
-//            try {
-//              result.close();
-//            } catch (SQLException e) {
-//            }
-//            try {
-//              s.close();
-//            } catch (SQLException e) {
-//            }
-//          }
-//        });
-//      } catch (Throwable e) {
-//        connErrs.append(dbName + " " + e.getMessage());
-//      }
-//    }, database.isFacade(), action, context)) {
-//      return testResult;
-//    }
-//    if (connErrs.length() > 0) {
-//      action.addErrorMessage(context, "连接异常:" + connErrs.toString());
-//      return testResult;
-//    }
-//    return testResult.success();
-//  }
 
-//  public static class TestDbConnection {
-//
-//    public boolean valid = false;
-//
-//    // DB门面连接
-//    private boolean facade = false;
-//
-//    private int dbCount;
-//
-//    private TestDbConnection success() {
-//      this.valid = true;
-//      return this;
-//    }
-//
-//    public int getDbCount() {
-//      return this.dbCount;
-//    }
-//
-//    public boolean isFacade() {
-//      return this.facade;
-//    }
-//  }
 
-//  public void visitConnection(DBConfig db, String ip, String dbName, String username, String password, IConnProcessor p) throws Exception {
-//    if (db == null) {
-//      throw new IllegalStateException("param db can not be null");
-//    }
-//    if (StringUtils.isEmpty(ip)) {
-//      throw new IllegalArgumentException("param ip can not be null");
-//    }
-//    if (StringUtils.isEmpty(dbName)) {
-//      throw new IllegalArgumentException("param dbName can not be null");
-//    }
-////    if (StringUtils.isEmpty(username)) {
-////      throw new IllegalArgumentException("param username can not be null");
-////    }
-//    if (StringUtils.isEmpty(password)) {
-//      throw new IllegalArgumentException("param password can not be null");
-//    }
-//    if (p == null) {
-//      throw new IllegalArgumentException("param IConnProcessor can not be null");
-//    }
+//  private void validateConnection(String jdbcUrl, DBConfig db, String username, String password, IConnProcessor p) throws Exception {
 //    Connection conn = null;
-//    final String jdbcUrl = "jdbc:mysql://" + ip + ":" + db.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
 //    try {
-//      validateConnection(jdbcUrl, db, username, password, p);
-//    } catch (Exception e) {
-//      throw new RuntimeException(jdbcUrl, e);
+//      conn = DriverManager.getConnection(jdbcUrl, username, password);
+//      p.vist(conn);
+//    } finally {
+//      if (conn != null) {
+//        try {
+//          conn.close();
+//        } catch (Throwable e) {
+//        }
+//      }
 //    }
 //  }
-
-  private void validateConnection(String jdbcUrl, DBConfig db, String username, String password, IConnProcessor p) throws Exception {
-    Connection conn = null;
-    try {
-      conn = DriverManager.getConnection(jdbcUrl, username, password);
-      p.vist(conn);
-    } finally {
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (Throwable e) {
-        }
-      }
-    }
-  }
 
   public interface IConnProcessor {
 
@@ -456,144 +339,17 @@ public class OfflineManager {
     return dbNameList;
   }
 
-//  /**
-//   * 取得某個DB下的所有的表
-//   *
-//   * @param dbName
-//   * @return
-//   * @throws Exception
-//   */
-//  public List<String> getTables(String dbName) throws Exception {
-//    final List<String> tabs = new ArrayList<>();
-//    // String dbEnumName = null;
-//    // try {
-//    // final Map<String, BasicDataSource> dsMap =
-//    // offlineManager.getDataSources(dbName);
-//    final DBConfig dbConfig = GitUtils.$().getDbLinkMetaData(dbName, DbScope.DETAILED);
-//    dbConfig.vistDbName((config, ip, databaseName) -> {
-//      visitConnection(config, ip, databaseName, config.getUserName(), config.getPassword(), (conn) -> {
-//        Statement statement = null;
-//        ResultSet resultSet = null;
-//        try {
-//          statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-//          statement.execute("show tables");
-//          resultSet = statement.getResultSet();
-//          while (resultSet.next()) {
-//            tabs.add(resultSet.getString(1));
-//          }
-//        } finally {
-//          if (resultSet != null) {
-//            resultSet.close();
-//          }
-//          if (statement != null) {
-//            statement.close();
-//          }
-//        }
-//      });
-//      return true;
-//    });
-//    return tabs;
-//  }
 
-//  /**
-//   * description: 获得所有的
-//   * <p>
-//   * date: 3:37 PM 5/11/2017
-//   */
-//  public List<ColumnMetaData> getTableMetadata(String dbName, String table) {
-//    if (StringUtils.isBlank(table)) {
-//      throw new IllegalArgumentException("param table can not be null");
-//    }
-//    List<ColumnMetaData> columns = new ArrayList<>();
-//    // String dbEnumName = null;
-//    try {
-//      // final Map<String, BasicDataSource> dsMap =
-//      // offlineManager.getDataSources(dbName);
-//      final DBConfig dbConfig = GitUtils.$().getDbLinkMetaData(dbName, DbScope.DETAILED);
-//      dbConfig.vistDbName((config, ip, dbname) -> {
-//        visitConnection(config, ip, dbname, config.getUserName(), config.getPassword(), (conn) -> {
-//          // Statement statement = null;
-//          // ResultSet resultSet = null;
-//          DatabaseMetaData metaData1 = null;
-//          ResultSet primaryKeys = null;
-//          ResultSet columns1 = null;
-//          try {
-//            metaData1 = conn.getMetaData();
-//            primaryKeys = metaData1.getPrimaryKeys(null, null, table);
-//            columns1 = metaData1.getColumns(null, null, table, null);
-//            Set<String> pkCols = Sets.newHashSet();
-//            while (primaryKeys.next()) {
-//              // $NON-NLS-1$
-//              String columnName = primaryKeys.getString("COLUMN_NAME");
-//              pkCols.add(columnName);
-//            }
-//            int i = 0;
-//            String colName = null;
-//            while (columns1.next()) {
-//              columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME")), columns1.getInt("DATA_TYPE"), pkCols.contains(colName)));
-//            }
-//            // metaData1.c
-//            // statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-//            // resultSet = statement.executeQuery("select * from " + table + " limit 1");
-//            // ResultSetMetaData metaData = resultSet.getMetaData();
-//            // int columnCnt = metaData.getColumnCount();
-//            // for (int i = 1; i <= columnCnt; i++) {
-//            // columns.add(
-//            // new ColumnMetaData((i - 1), metaData.getColumnLabel(i), metaData.getColumnType(i)));
-//            // }
-//          } finally {
-//            closeResultSet(columns1);
-//            closeResultSet(primaryKeys);
-//            // if (columns1 != null) {
-//            // columns1.close();
-//            // }
-//            // if (primaryKeys != null) {
-//            // primaryKeys.close();
-//            // }
-//          }
-//        });
-//        return true;
-//      });
-//      return columns;
-//      // for (Map.Entry<String, BasicDataSource> dsEntry :
-//      // dsMap.entrySet()) {
-//      // dbEnumName = dsEntry.getKey();
-//      // BasicDataSource dataSource = dsEntry.getValue();
-//      //
-//      // Connection connection = dataSource.getConnection();
-//      // Statement statement =
-//      // connection.createStatement(ResultSet.TYPE_FORWARD_ONLY,
-//      // ResultSet.CONCUR_READ_ONLY);
-//      // statement.execute("select * from " + table + " limit 0");
-//      // ResultSet resultSet = statement.getResultSet();
-//      // ResultSetMetaData metaData = resultSet.getMetaData();
-//      // int columnCnt = metaData.getColumnCount();
-//      // List<ColumnMetaData> columns = new ArrayList<>();
-//      // for (int i = 1; i <= columnCnt; i++) {
-//      // columns.add(new ColumnMetaData((i - 1),
-//      // metaData.getColumnLabel(i), metaData.getColumnType(i)));
-//      // }
-//      // columnMetaDataColumns = columns;
-//      // if (!repeat) {
-//      // break;
-//      // }
-//      // }
-//    } catch (Exception e) {
-//      // return null;
-//      throw new RuntimeException(e);
+//  private void closeResultSet(ResultSet rs) {
+//    if (rs != null) {
+//      try {
+//        rs.close();
+//      } catch (SQLException e) {
+//        // ignore
+//        ;
+//      }
 //    }
 //  }
-
-  private void closeResultSet(ResultSet rs) {
-    if (rs != null) {
-      try {
-        rs.close();
-      } catch (SQLException e) {
-        // ignore
-        ;
-      }
-    }
-  }
 
   /**
    * description: 获取数据源表 date: 6:21 PM 5/18/2017
