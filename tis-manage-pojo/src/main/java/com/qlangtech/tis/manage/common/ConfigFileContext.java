@@ -43,6 +43,7 @@ public class ConfigFileContext {
     public static final String KEY_HEAD_FILE_MD5 = "filemd5";
 
     public static final String KEY_HEAD_LAST_UPDATE = "lastupdate";
+    public static final String KEY_HEAD_FILE_NOT_EXIST = "notexist";
 
     public static final String KEY_HEAD_FILE_SIZE = "content-size";
 

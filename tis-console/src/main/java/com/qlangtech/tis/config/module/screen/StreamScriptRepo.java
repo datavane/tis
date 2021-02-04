@@ -55,22 +55,26 @@ public class StreamScriptRepo extends BasicScreen {
     if (StringUtils.isEmpty(path)) {
       throw new IllegalArgumentException("illegal argument 'path'");
     }
+    HttpServletResponse response = (HttpServletResponse) DefaultFilter.getRespone();
     File targetFile = new File(rootDir, path);
     if (!targetFile.exists()) {
-      throw new IllegalStateException("target file not exist:" + targetFile.getAbsolutePath());
+      // throw new IllegalStateException("target file not exist:" + targetFile.getAbsolutePath());
+      response.addHeader(ConfigFileContext.KEY_HEAD_FILE_NOT_EXIST
+        , String.valueOf(Boolean.TRUE.booleanValue()));
+      return;
     }
     boolean getMeta = Boolean.parseBoolean(this.getRequest().getHeader(ConfigFileContext.StreamProcess.HEADER_KEY_GET_FILE_META));
     logger.info("path:{},getChildren:{},local file exist:{},getMeta:{}", path, !targetFile.isFile(), targetFile.exists(), getMeta);
     if (targetFile.isFile()) {
       // 是否取文件meta信息
-      HttpServletResponse response = HdfsAction.getDownloadResponse(targetFile, !getMeta);
+      response = HdfsAction.getDownloadResponse(targetFile, !getMeta);
       if (!getMeta) {
         try (InputStream input = FileUtils.openInputStream(targetFile)) {
           IOUtils.copyLarge(input, response.getOutputStream());
         }
       }
     } else {
-      HttpServletResponse response = (HttpServletResponse) DefaultFilter.getRespone();
+
       response.addHeader(ConfigFileContext.KEY_HEAD_FILE_DOWNLOAD, String.valueOf(false));
       List<String> subs = new ArrayList<>();
       File sub = null;

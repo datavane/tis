@@ -15,6 +15,7 @@
 package com.qlangtech.tis.manage.common;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -156,8 +157,9 @@ public class CenterResource {
             return false;
         }
         final File lastModifiedFile = new File(local.getParentFile(), local.getName() + KEY_LAST_MODIFIED_EXTENDION);
+        Boolean shallWriteLocal = null;
         if (!directDownload) {
-            boolean shallWriteLocal = HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
+            shallWriteLocal = HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
                 @Override
                 public List<ConfigFileContext.Header> getHeaders() {
                     return HEADER_GET_META;
@@ -172,13 +174,19 @@ public class CenterResource {
                 return false;
             }
         }
+        Boolean[] shallWriteLocalAry = new Boolean[]{shallWriteLocal};
         return HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
 
             @Override
             public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                if (!shallWriteLocal(headerFields, url, local, lastModifiedFile)) {
-                    return false;
+
+                if (shallWriteLocalAry[0] == null) {
+                    if (!shallWriteLocal(headerFields, url, local, lastModifiedFile)) {
+                        return false;
+                    }
                 }
+                Assert.assertTrue("shallWriteLocalAry shall be true", shallWriteLocalAry[0]);
+
                 long lastUpdate = getLastUpdateTimeStamp(headerFields, url);
                 try {
                     FileUtils.copyInputStreamToFile(stream, local);
@@ -204,6 +212,14 @@ public class CenterResource {
      * @return
      */
     private static boolean shallWriteLocal(Map<String, List<String>> headerFields, URL url, File local, File lastModifiedFile) {
+        List<String> notExist = null;
+        if ((notExist = headerFields.get(ConfigFileContext.KEY_HEAD_FILE_NOT_EXIST)) != null
+                && notExist.contains(Boolean.TRUE.toString())) {
+            // 远端文件不存在不需要拷贝
+            logger.warn("remote file not exist:{},local:", url, local.getAbsolutePath());
+            return false;
+        }
+
         long lastUpdate = getLastUpdateTimeStamp(headerFields, url);
         if (local.exists()) {
             long localLastModified = 0;
