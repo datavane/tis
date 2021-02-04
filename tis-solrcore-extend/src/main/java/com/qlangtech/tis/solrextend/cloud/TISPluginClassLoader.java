@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @date 2021-01-26 10:31
  */
 public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.Listener {
-
+    public static final String KEY_PLUGIN = "plugin";
     private static final Map<Class<?>, Class<? extends IdentityDescribale>> expectedTypes;
 
     static {
@@ -73,7 +73,7 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
     private final Runnable onReload;
     private final String collectionName;
 
-    private static final String KEY_PLUGIN = "plugin";
+
 
     public TISPluginClassLoader(String collectionName, CoreContainer coreContainer,
                                 SolrResourceLoader coreResourceLoader,

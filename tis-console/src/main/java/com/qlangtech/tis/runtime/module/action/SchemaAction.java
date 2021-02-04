@@ -486,7 +486,7 @@ public class SchemaAction extends BasicModule {
         if (!entry.getValue()) {
           modifier.addModify(String.format("/types/fieldType[@name='%s']/@class", entry.getKey()), "plugin:" + entry.getKey());
           //precisionStep="0" positionIncrementGap="0"
-          modifier.addModify(String.format("/types/fieldType[@name='%s']/@precisionStep", entry.getKey()), "0");
+          //modifier.addModify(String.format("/types/fieldType[@name='%s']/@precisionStep", entry.getKey()), "0");
           modifier.addModify(String.format("/types/fieldType[@name='%s']/@positionIncrementGap", entry.getKey()), "0");
         }
       }
