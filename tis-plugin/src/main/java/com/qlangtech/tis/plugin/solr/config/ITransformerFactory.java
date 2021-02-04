@@ -14,18 +14,11 @@
  */
 package com.qlangtech.tis.plugin.solr.config;
 
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IdentityDescribale;
-
 /**
+ * org.apache.solr.response.transform.TransformerFactory
+ *
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-01-26 11:06
+ * @date 2021-02-04 08:34
  */
-public abstract class TISQueryParserFactory implements IdentityDescribale {
-
-    @Override
-    public Descriptor<TISQueryParserFactory> getDescriptor() {
-        return TIS.get().getDescriptor(this.getClass());
-    }
+public interface ITransformerFactory {
 }
