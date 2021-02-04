@@ -366,7 +366,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     // }
                     try {
                         Method validateMethod = this.validateMethodMap.get(attr);
-                        if (validateMethod != null) {
+                        if (validateMethod != null && StringUtils.isNotEmpty(attrVal)) {
                             if (!(boolean) validateMethod.invoke(this, msgHandler, context, attr, attrVal)) {
                                 valid = false;
                             }

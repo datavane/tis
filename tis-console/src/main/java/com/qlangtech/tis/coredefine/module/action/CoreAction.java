@@ -716,10 +716,14 @@ public class CoreAction extends BasicModule {
           @Override
           @SuppressWarnings("all")
           public Object p(int s, InputStream stream, Map<String, List<String>> headerFields) {
-            SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream, "utf8");
+            SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream, TisUTF8.getName());
             final SimpleOrderedMap mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
             SimpleOrderedMap core = (SimpleOrderedMap) ((SimpleOrderedMap) mbeans.get("CORE")).get("core");
             SimpleOrderedMap status = ((SimpleOrderedMap) core.get("stats"));
+            // core 节点刚创建status为空
+            if (status == null) {
+              return null;
+            }
             String indexDir = StringUtils.substringAfterLast((String) status.get("CORE.indexDir"), "/");
             instanceDir.add(indexDir);
             ReplicState replicState = new ReplicState();
