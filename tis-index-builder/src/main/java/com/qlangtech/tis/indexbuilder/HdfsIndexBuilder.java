@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -42,6 +42,7 @@ import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
+import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -55,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -113,10 +115,10 @@ public class HdfsIndexBuilder implements TaskMapper {
     @Override
     public void map(TaskContext context) {
         IndexConf indexConf = IndexGetConfig.getIndexConf(context);
+
         IndexMerger mergeTask = null;
         Counters counters = context.getCounters();
         Messages messages = context.getMessages();
-        // indexConf.loadFrom(context);
         IndexMetaConfig indexMetaConfig = parseIndexMetadata(context, indexConf);
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         final int taskid = context.getTaskId();
@@ -199,8 +201,8 @@ public class HdfsIndexBuilder implements TaskMapper {
             int allTaskCount = indexMakerCount + docMakerCount + mergeTaskCount;
             SuccessFlag result = null;
             for (// 
-            int threadCount = 0; // 
-            threadCount < allTaskCount; threadCount++) {
+                    int threadCount = 0; //
+                    threadCount < allTaskCount; threadCount++) {
                 result = this.executorService.take().get();
                 logger.info("({}/{})taskcomplete name:{},state:{},msg:{}", (threadCount + 1), allTaskCount, result.getName(), result.getFlag(), result.getMsg());
                 if (result.getFlag() != Flag.SUCCESS) {
@@ -208,7 +210,7 @@ public class HdfsIndexBuilder implements TaskMapper {
                     throw new IndexBuildException(result.getMsg());
                 }
             }
-        // return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
+            // return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
         } catch (IndexBuildException ee) {
             throw ee;
         } catch (Throwable e1) {
@@ -245,6 +247,7 @@ public class HdfsIndexBuilder implements TaskMapper {
      * @throws SAXException
      */
     private void getIndexSchema(IndexConf indexConf, IndexMetaConfig indexMetaConfig) throws Exception {
+
         Reader schemaInputStream = null;
         File schemaFile = IndexGetConfig.getLocalTmpSchemaFile(indexConf.getCollectionName());
         logger.warn(" local schema path ==>" + schemaFile.getAbsolutePath());
@@ -255,7 +258,8 @@ public class HdfsIndexBuilder implements TaskMapper {
                 String schemaContent = FileUtils.readFileToString(schemaFile, TisUTF8.get());
                 schemaInputStream = new StringReader(schemaContent);
                 // String name, InputSource is, Version luceneVersion, SolrResourceLoader resourceLoader, Properties substitutableProperties
-                indexMetaConfig.indexSchema = new IndexSchema(indexConf.getSchemaName(), new InputSource(schemaInputStream), Version.LATEST, createSolrResourceLoader(solrinputStream), new Properties());
+                indexMetaConfig.indexSchema = new IndexSchema(indexConf.getSchemaName()
+                        , new InputSource(schemaInputStream), Version.LATEST, createSolrResourceLoader(indexConf, solrinputStream), new Properties());
             }
         } finally {
             IOUtils.closeQuietly(schemaInputStream);
@@ -279,7 +283,7 @@ public class HdfsIndexBuilder implements TaskMapper {
                     rawDataProcessor.addColumnProcessor(ps.getTargetColumn(), processor);
                 }
             }
-        // }
+            // }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -319,7 +323,7 @@ public class HdfsIndexBuilder implements TaskMapper {
     @SuppressWarnings("all")
     private final // 
     IndexMaker createIndexMaker(// 
-    IndexMetaConfig indexMetaConfig, String name, IndexConf indexConf, Counters counters, Messages messages, final IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount, final BlockingQueue<SolrDocPack> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) throws Exception {
+                                IndexMetaConfig indexMetaConfig, String name, IndexConf indexConf, Counters counters, Messages messages, final IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount, final BlockingQueue<SolrDocPack> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) throws Exception {
         String indexMakerClassName = indexMetaConfig.schemaParse.getIndexMakerClassName();
         if (ParseResult.DEFAULT.equals(indexMakerClassName)) {
             logger.info("indexMakerClassName:{}", IndexMaker.class);
@@ -335,8 +339,10 @@ public class HdfsIndexBuilder implements TaskMapper {
     /**
      * @return
      */
-    protected SolrResourceLoader createSolrResourceLoader(InputStream solrinputStream) {
-        return new SolrResourceLoader(null) {
+    protected SolrResourceLoader createSolrResourceLoader(final IndexConf indexConf, InputStream solrinputStream) {
+
+
+        return new TisSolrResourceLoader(null, null, indexConf.getCollectionName()) {
 
             @Override
             public InputStream openResource(String resource) throws IOException {

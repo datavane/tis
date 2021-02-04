@@ -35,6 +35,7 @@ import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.solrextend.cloud.TISPluginClassLoader;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
@@ -103,11 +104,13 @@ public abstract class NodeMaster {
              */
             ComponentMeta dumpAndIndexBuilderComponent = null;
             if (IndexBuildParam.JOB_TYPE_DUMP.equals(jobType)) {
+                // dump import data
                 dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent(getDataSourceFactoryPluginStore(commandLine));
             } else {
-                dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent();
+                // index builder
+                dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent(
+                        TISPluginClassLoader.getSchemaRelevantResource(commandLine.getOptionValue(IndexBuildParam.INDEXING_SERVICE_NAME)));
             }
-
             dumpAndIndexBuilderComponent.synchronizePluginsFromRemoteRepository();
             logger.info("synchronizePluginsFromRemoteRepository success");
         }

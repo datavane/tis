@@ -424,21 +424,27 @@ public class TIS {
                 return RobustReflectionConverter.usedPluginInfo.get();
             }
         } catch (IOException e) {
-            throw new RuntimeException("collection:" + collection + " relevant configs:" + incrPluginConfigSet.stream().map((f) -> f.getAbsolutePath()).collect(Collectors.joining(",")), e);
+            throw new RuntimeException("collection:" + collection + " relevant configs:"
+                    + incrPluginConfigSet.stream().map((f) -> f.getAbsolutePath()).collect(Collectors.joining(",")), e);
         }
     }
 
-    public static ComponentMeta getDumpAndIndexBuilderComponent(IRepositoryResource... extractRes) {
+    public static ComponentMeta getDumpAndIndexBuilderComponent(List<IRepositoryResource> resources) {
         checkNotInitialized();
         permitInitialize = false;
-        List<IRepositoryResource> resources = Lists.newArrayList();
         resources.add(getPluginStore(ParamsConfig.class));
         resources.add(getPluginStore(TableDumpFactory.class));
         resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
+        return new ComponentMeta(resources);
+    }
+
+    public static ComponentMeta getDumpAndIndexBuilderComponent(IRepositoryResource... extractRes) {
+
+        List<IRepositoryResource> resources = Lists.newArrayList();
         for (IRepositoryResource r : extractRes) {
             resources.add(r);
         }
-        return new ComponentMeta(resources);
+        return getDumpAndIndexBuilderComponent(resources);
     }
 
     private static void checkNotInitialized() {

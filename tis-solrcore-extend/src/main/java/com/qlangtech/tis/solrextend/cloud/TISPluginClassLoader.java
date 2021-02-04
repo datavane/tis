@@ -16,13 +16,13 @@ package com.qlangtech.tis.solrextend.cloud;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.IdentityDescribale;
+import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.solr.schema.CharFilterFactoryFactory;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
-import com.qlangtech.tis.plugin.solr.schema.TokenFilterFactoryFactory;
 import com.qlangtech.tis.plugin.solr.schema.TokenizerFactoryFactory;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.util.CharFilterFactory;
-import org.apache.lucene.analysis.util.TokenFilterFactory;
 import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.solr.common.cloud.SolrClassLoader;
 import org.apache.solr.core.CoreContainer;
@@ -32,6 +32,10 @@ import org.apache.solr.pkg.PackageListeners;
 import org.apache.solr.pkg.PackageLoader;
 import org.apache.solr.schema.FieldType;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * is replacement of PackageListeningClassLoader
  *
@@ -39,6 +43,30 @@ import org.apache.solr.schema.FieldType;
  * @date 2021-01-26 10:31
  */
 public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.Listener {
+
+    private static final Map<Class<?>, Class<? extends IdentityDescribale>> expectedTypes;
+
+    static {
+        expectedTypes = com.google.common.collect.ImmutableMap.of(
+                FieldType.class, FieldTypeFactory.class //
+                , CharFilterFactory.class, CharFilterFactoryFactory.class //
+                , TokenizerFactory.class, TokenizerFactoryFactory.class
+        );
+    }
+
+    /**
+     * 与schema相关的插件资源
+     *
+     * @param collection
+     * @return
+     */
+    public static List<IRepositoryResource> getSchemaRelevantResource(String collection) {
+        if (StringUtils.isEmpty(collection)) {
+            throw new IllegalArgumentException("param collection can not be null");
+        }
+        return expectedTypes.values().stream().map((clazz) -> TIS.getPluginStore(collection, clazz)).collect(Collectors.toList());
+    }
+
 
     private final CoreContainer coreContainer;
     private final SolrResourceLoader coreResourceLoader;
@@ -68,17 +96,24 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
                 throw new IllegalStateException("plugin name:" + cName.pkg + " must be '" + KEY_PLUGIN + "'");
             }
 
-            if (expectedType == FieldType.class) {
-                return (T) findAndCreatePlugin(cName, FieldTypeFactory.class);
-            } else if (expectedType == CharFilterFactory.class) {
-                return (T) findAndCreatePlugin(cName, CharFilterFactoryFactory.class);
-            } else if (expectedType == TokenFilterFactory.class) {
-                return (T) findAndCreatePlugin(cName, TokenFilterFactoryFactory.class);
-            } else if (expectedType == TokenizerFactory.class) {
-                return (T) findAndCreatePlugin(cName, TokenizerFactoryFactory.class);
+            Class<? extends IdentityDescribale> targetClass = expectedTypes.get(expectedType);
+            if (targetClass != null) {
+                return (T) findAndCreatePlugin(cName, targetClass);
             } else {
                 throw new IllegalStateException("expectedType:" + expectedType + " is illegal");
             }
+
+//            if (expectedType == FieldType.class) {
+//                return (T) findAndCreatePlugin(cName, FieldTypeFactory.class);
+//            } else if (expectedType == CharFilterFactory.class) {
+//                return (T) findAndCreatePlugin(cName, CharFilterFactoryFactory.class);
+//            } else if (expectedType == TokenFilterFactory.class) {
+//                return (T) findAndCreatePlugin(cName, TokenFilterFactoryFactory.class);
+//            } else if (expectedType == TokenizerFactory.class) {
+//                return (T) findAndCreatePlugin(cName, TokenizerFactoryFactory.class);
+//            } else {
+//                throw new IllegalStateException("expectedType:" + expectedType + " is illegal");
+//            }
 //            PackageLoader.Package.Version version = findPkgVersion(cName);
 //            return applyResourceLoaderAware(version, version.getLoader().newInstance(cName.className, expectedType, subpackages));
             //   return null;
