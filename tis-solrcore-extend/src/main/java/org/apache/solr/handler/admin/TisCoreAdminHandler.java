@@ -22,7 +22,6 @@ import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.manage.common.RepositoryException;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils.TisCoreName;
-import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
@@ -559,14 +558,9 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         }
     }
 
-    private FileSystemFactory fsFactory;
-
     private ITISFileSystemFactory getFSFactory() {
-        if (fsFactory == null) {
-            PluginStore<IndexBuilderTriggerFactory> pluginStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
-            fsFactory = pluginStore.getPlugin().getFsFactory();
-        }
-        return fsFactory;
+        PluginStore<IndexBuilderTriggerFactory> pluginStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
+        return pluginStore.getPlugin().getFsFactory();
     }
 
     // private static FileSystem fileSystem;

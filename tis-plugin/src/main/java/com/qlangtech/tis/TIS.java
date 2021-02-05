@@ -103,16 +103,6 @@ public class TIS {
         }
     };
 
-//    /**
-//     * Get db relevant plugin config
-//     *
-//     * @param dsProp
-//     * @return
-//     */
-//    public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
-//        return getDataBasePluginStore(null, dsProp);
-//    }
-
     public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
         DataSourceFactoryPluginStore pluginStore
                 = databasePluginStore.get(new DSKey(DB_GROUP_NAME
@@ -434,6 +424,19 @@ public class TIS {
         permitInitialize = false;
         resources.add(getPluginStore(ParamsConfig.class));
         resources.add(getPluginStore(TableDumpFactory.class));
+        resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
+        return new ComponentMeta(resources);
+    }
+
+    /**
+     * 取得solrcore 启动相关的插件资源
+     *
+     * @param resources
+     * @return
+     */
+    public static ComponentMeta getCoreComponent(List<IRepositoryResource> resources) {
+        checkNotInitialized();
+        permitInitialize = false;
         resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
         return new ComponentMeta(resources);
     }

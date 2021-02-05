@@ -78,6 +78,12 @@
     <dependencyManagement>
         <dependencies>
 
+            <dependency>
+                <groupId>org.apache.derby</groupId>
+                <artifactId>derby</artifactId>
+                <version>10.9.1.0</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -745,29 +751,29 @@
         <pluginManagement>
             <plugins>
 
-<!--                <plugin>-->
-<!--                    <groupId>com.qlangtech.tis</groupId>-->
-<!--                    <artifactId>tisasm-maven-plugin</artifactId>-->
-<!--                    <version>${tisasm-maven-plugin.version}</version>-->
-<!--                    <configuration>-->
-<!--                    </configuration>-->
-<!--                    <executions>-->
-<!--                        <execution>-->
-<!--                            <id>make-assembly</id>-->
-<!--                            <phase>package</phase>-->
-<!--                            <goals>-->
-<!--                                <goal>tisasm</goal>-->
-<!--                            </goals>-->
-<!--                        </execution>-->
-<!--                        <execution>-->
-<!--                            <id>make-deploy</id>-->
-<!--                            <phase>deploy</phase>-->
-<!--                            <goals>-->
-<!--                                <goal>put</goal>-->
-<!--                            </goals>-->
-<!--                        </execution>-->
-<!--                    </executions>-->
-<!--                </plugin>-->
+                <!--                <plugin>-->
+                <!--                    <groupId>com.qlangtech.tis</groupId>-->
+                <!--                    <artifactId>tisasm-maven-plugin</artifactId>-->
+                <!--                    <version>${tisasm-maven-plugin.version}</version>-->
+                <!--                    <configuration>-->
+                <!--                    </configuration>-->
+                <!--                    <executions>-->
+                <!--                        <execution>-->
+                <!--                            <id>make-assembly</id>-->
+                <!--                            <phase>package</phase>-->
+                <!--                            <goals>-->
+                <!--                                <goal>tisasm</goal>-->
+                <!--                            </goals>-->
+                <!--                        </execution>-->
+                <!--                        <execution>-->
+                <!--                            <id>make-deploy</id>-->
+                <!--                            <phase>deploy</phase>-->
+                <!--                            <goals>-->
+                <!--                                <goal>put</goal>-->
+                <!--                            </goals>-->
+                <!--                        </execution>-->
+                <!--                    </executions>-->
+                <!--                </plugin>-->
 
 
                 <plugin>

@@ -77,7 +77,8 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
         super.getSchemaLoader();
         if (pluginClassLoader == null) {
             this.pluginClassLoader = new TISPluginClassLoader(this.collectionName, this.getCoreContainer(), this, () -> {
-                if(getCoreContainer() == null || getSolrConfig() == null || coreNodeName == null || coreUUId==null) return;
+                if (getCoreContainer() == null || getSolrConfig() == null || coreNodeName == null || coreUUId == null)
+                    return;
                 try (SolrCore c = getCoreContainer().getCore(coreNodeName, coreUUId)) {
                     if (c != null) {
                         c.fetchLatestSchema();
@@ -88,12 +89,6 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
         return this.pluginClassLoader;
     }
 
-
-    // public TisSolrResourceLoader(Path instanceDir, String configSet, ClassLoader parent //
-    // , Properties coreProperties, ZkController zooKeeperController, String collection) {
-    // super(instanceDir, configSet, parent, coreProperties, zooKeeperController);
-    // this.collectionName = collection;
-    // }
     @Override
     public String getConfigDir() {
         // throw new UnsupportedOperationException();
@@ -124,7 +119,8 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
             throw new IOException("Error opening " + resource, e);
         }
         if (is == null) {
-            throw new SolrResourceNotFoundException("Can't find resource '" + resource + "' in classpath or '" + collectionName + "', cwd=" + System.getProperty("user.dir"));
+            throw new SolrResourceNotFoundException("Can't find resource '" + resource + "' in classpath or '"
+                    + collectionName + "', cwd=" + System.getProperty("user.dir"));
         }
         return is;
     }
@@ -150,10 +146,12 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
                     return FileUtils.openInputStream(configFile);
                 }
             } catch (IOException e) {
-                throw new SolrException(ErrorCode.SERVER_ERROR, "can not find configfile:" + getter.getFileName() + snapshotid + " in " + collectionConfigDir.getAbsolutePath(), e);
+                throw new SolrException(ErrorCode.SERVER_ERROR, "can not find configfile:"
+                        + getter.getFileName() + snapshotid + " in " + collectionConfigDir.getAbsolutePath(), e);
             }
             try {
-                SnapshotDomain snapshotDomain = downConfigFromConsoleRepository(snapshotid, this.collectionName, collectionConfigDir, configFileNames.values().toArray(new PropteryGetter[0]), true);
+                SnapshotDomain snapshotDomain = downConfigFromConsoleRepository(snapshotid, this.collectionName
+                        , collectionConfigDir, configFileNames.values().toArray(new PropteryGetter[0]), true);
                 // 返回需要的文件
                 return new ByteArrayInputStream(getter.getContent(snapshotDomain));
             } catch (RepositoryException e1) {
@@ -187,7 +185,8 @@ public class TisSolrResourceLoader extends SolrResourceLoader {
      * @throws RepositoryException
      * @throws IOException
      */
-    public static void downConfigFromConsoleRepository(final long targetSnapshotid, String collectionName, CoreContainer coreContainer) throws RepositoryException, IOException {
+    public static void downConfigFromConsoleRepository(final long targetSnapshotid, String collectionName
+            , CoreContainer coreContainer) throws RepositoryException, IOException {
         File collectionDir = TisSolrResourceLoader.getCollectionConfigDir(new File(coreContainer.getSolrHome()), collectionName);
         downConfigFromConsoleRepository(targetSnapshotid, collectionName, collectionDir, ConfigFileReader.getAry, true);
     }
