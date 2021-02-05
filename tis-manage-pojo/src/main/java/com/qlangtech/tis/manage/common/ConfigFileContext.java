@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -101,8 +102,7 @@ public class ConfigFileContext {
     }
 
     public static <T> T processContent(URL url, StreamProcess<T> process, int retryCount) {
-        return processContent(url, process, HTTPMethod.GET, null, /* content */
-        retryCount);
+        return processContent(url, process, HTTPMethod.GET, null, /* content */        retryCount);
     }
 
     public static <T> T processContent(URL url, StreamProcess<T> process, HTTPMethod method, byte[] content, final int maxRetry) {
@@ -219,6 +219,7 @@ public class ConfigFileContext {
     }
 
     // //////////////////////////////////////////////////////////////////////////////////
+
     /**
      * 发送json请求给远端服务器
      *

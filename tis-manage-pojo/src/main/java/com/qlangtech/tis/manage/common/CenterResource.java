@@ -157,37 +157,37 @@ public class CenterResource {
             return false;
         }
         final File lastModifiedFile = new File(local.getParentFile(), local.getName() + KEY_LAST_MODIFIED_EXTENDION);
-        Boolean shallWriteLocal = null;
+        ShallWriteLocalResult shallWriteLocal = null;
         if (!directDownload) {
-            shallWriteLocal = HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
+            shallWriteLocal = HttpUtils.get(url, new ConfigFileContext.StreamProcess<ShallWriteLocalResult>() {
                 @Override
                 public List<ConfigFileContext.Header> getHeaders() {
                     return HEADER_GET_META;
                 }
 
                 @Override
-                public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                public ShallWriteLocalResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                     return shallWriteLocal(headerFields, url, local, lastModifiedFile);
                 }
             });
-            if (!shallWriteLocal) {
+            if (!shallWriteLocal.shall) {
                 return false;
             }
         }
-        Boolean[] shallWriteLocalAry = new Boolean[]{shallWriteLocal};
+        ShallWriteLocalResult[] shallWriteLocalAry = new ShallWriteLocalResult[]{shallWriteLocal};
         return HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
 
             @Override
             public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
 
                 if (shallWriteLocalAry[0] == null) {
-                    if (!shallWriteLocal(headerFields, url, local, lastModifiedFile)) {
+                    if (!(shallWriteLocalAry[0] = shallWriteLocal(headerFields, url, local, lastModifiedFile)).shall) {
                         return false;
                     }
                 }
-                Assert.assertTrue("shallWriteLocalAry shall be true", shallWriteLocalAry[0]);
+                Assert.assertTrue("shallWriteLocalAry shall be true", shallWriteLocalAry[0].shall);
 
-                long lastUpdate = getLastUpdateTimeStamp(headerFields, url);
+                long lastUpdate = shallWriteLocalAry[0].lastUpdateTimestamp;// getLastUpdateTimeStamp(headerFields, url);
                 try {
                     FileUtils.copyInputStreamToFile(stream, local);
                 } catch (IOException e) {
@@ -211,16 +211,19 @@ public class CenterResource {
      * @param local
      * @return
      */
-    private static boolean shallWriteLocal(Map<String, List<String>> headerFields, URL url, File local, File lastModifiedFile) {
+    private static ShallWriteLocalResult shallWriteLocal(Map<String, List<String>> headerFields, URL url, File local, File lastModifiedFile) {
+        ShallWriteLocalResult result = new ShallWriteLocalResult();
+        result.shall = false;
         List<String> notExist = null;
         if ((notExist = headerFields.get(ConfigFileContext.KEY_HEAD_FILE_NOT_EXIST)) != null
                 && notExist.contains(Boolean.TRUE.toString())) {
             // 远端文件不存在不需要拷贝
             logger.warn("remote file not exist:{},local:", url, local.getAbsolutePath());
-            return false;
+            return result;
         }
 
         long lastUpdate = getLastUpdateTimeStamp(headerFields, url);
+        result.lastUpdateTimestamp = lastUpdate;
         if (local.exists()) {
             long localLastModified = 0;
             try {
@@ -228,10 +231,16 @@ public class CenterResource {
             } catch (Throwable e) {
             }
             if (lastUpdate <= localLastModified) {
-                return false;
+                return result;
             }
         }
-        return true;
+        result.shall = true;
+        return result;
+    }
+
+    private static class ShallWriteLocalResult {
+        boolean shall;
+        long lastUpdateTimestamp;
     }
 
     private static long getLastUpdateTimeStamp(Map<String, List<String>> headerFields, URL url) {

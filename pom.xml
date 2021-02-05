@@ -73,6 +73,11 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -83,7 +88,12 @@
                 <artifactId>derby</artifactId>
                 <version>10.9.1.0</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.easymock</groupId>
+                <artifactId>easymock</artifactId>
+                <version>4.2</version>
+                <scope>test</scope>
+            </dependency>
 
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -109,12 +119,7 @@
                 <version>1.6</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.easymock</groupId>
-                <artifactId>easymock</artifactId>
-                <version>4.2</version>
-                <scope>test</scope>
-            </dependency>
+
 
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>

@@ -15,9 +15,11 @@
 package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ResourceBundle;
 
 /**
@@ -55,6 +57,22 @@ public class Config {
     private static Config config;
 
     private static final String KEY_DATA_DIR = "data.dir";
+
+
+    public static void setTestDataDir() {
+        String dataDir = null;
+        if ((dataDir = System.getProperty(KEY_DATA_DIR)) != null) {
+            throw new RuntimeException("dataDir:" + dataDir + " must be empty");
+        }
+        try {
+            File tmp = new File("/tmp/tis");
+            FileUtils.deleteQuietly(tmp);
+            FileUtils.forceMkdir(tmp);
+            Config.setDataDir(tmp.getAbsolutePath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void setDataDir(String path) {
         System.setProperty(KEY_DATA_DIR, path);

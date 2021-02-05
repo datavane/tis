@@ -45,6 +45,7 @@ public class MockHttpURLConnection extends HttpURLConnection {
         this.headerFields = headerFields;
     }
 
+    @Override
     public Map<String, List<String>> getHeaderFields() {
         return this.headerFields;
     }

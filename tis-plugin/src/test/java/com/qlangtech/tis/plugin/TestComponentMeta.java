@@ -14,19 +14,24 @@
  */
 package com.qlangtech.tis.plugin;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.config.yarn.IYarnConfig;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 import junit.framework.TestCase;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -35,14 +40,38 @@ import java.io.IOException;
 public class TestComponentMeta extends TestCase {
 
     static {
-        try {
-            File tmp = new File("/tmp/tis");
-            FileUtils.deleteQuietly(tmp);
-            FileUtils.forceMkdir(tmp);
-            Config.setDataDir(tmp.getAbsolutePath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Config.setTestDataDir();
+//
+        final String paramsConfig = "com.qlangtech.tis.config.ParamsConfig.xml";
+        HttpUtils.addMockApply(paramsConfig, new LatestUpdateTimestampClasspathRes() {
+            @Override
+            public InputStream getResourceAsStream() {
+                return TestComponentMeta.class.getResourceAsStream(paramsConfig);
+            }
+        });
+
+        String tableDumpFactory = "com.qlangtech.tis.offline.TableDumpFactory.xml";
+        HttpUtils.addMockApply(tableDumpFactory, new LatestUpdateTimestampClasspathRes() {
+            @Override
+            public InputStream getResourceAsStream() {
+                return TestComponentMeta.class.getResourceAsStream(tableDumpFactory);
+            }
+        });
+
+        String indexBuilderTriggerFactory = "com.qlangtech.tis.offline.IndexBuilderTriggerFactory.xml";
+        HttpUtils.addMockApply(indexBuilderTriggerFactory, new LatestUpdateTimestampClasspathRes() {
+            @Override
+            public InputStream getResourceAsStream() {
+                return TestComponentMeta.class.getResourceAsStream(indexBuilderTriggerFactory);
+            }
+        });
+    }
+
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        TIS.initialized = false;
     }
 
     /**
@@ -73,5 +102,12 @@ public class TestComponentMeta extends TestCase {
         IYarnConfig yarn1 = ParamsConfig.getItem("yarn1", IYarnConfig.class);
         assertNotNull(yarn1);
         assertEquals("yarn1", yarn1.identityValue());
+    }
+
+    protected static abstract class LatestUpdateTimestampClasspathRes implements HttpUtils.IClasspathRes {
+        @Override
+        public Map<String, List<String>> headerFields() {
+            return ImmutableMap.of(ConfigFileContext.KEY_HEAD_LAST_UPDATE, Lists.newArrayList(String.valueOf(System.currentTimeMillis())));
+        }
     }
 }
