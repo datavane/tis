@@ -71,7 +71,8 @@ public class ComponentMeta {
             for (IRepositoryResource res : this.resources) {
                 File targetFile = res.getTargetFile();
                 if (!targetFile.exists()) {
-                    throw new IllegalStateException("file:" + targetFile.getAbsolutePath() + " is not exist");
+                    //  throw new IllegalStateException("file:" + targetFile.getAbsolutePath() + " is not exist");
+                    continue;
                 }
                 try {
                     XmlFile xmlFile = new XmlFile(reader, targetFile);
