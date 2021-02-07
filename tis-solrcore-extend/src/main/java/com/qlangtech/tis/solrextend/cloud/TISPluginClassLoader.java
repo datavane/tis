@@ -75,7 +75,6 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
     private final String collectionName;
 
 
-
     public TISPluginClassLoader(String collectionName, CoreContainer coreContainer,
                                 SolrResourceLoader coreResourceLoader,
                                 Runnable onReload) {
@@ -149,7 +148,7 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
             }
         }
 
-        throw new IllegalStateException("can not find instance " + cName.className + " type:" + expectedType);
+        throw new IllegalStateException("can not find instance " + cName.className + ",collection:" + collectionName + " type:" + expectedType);
     }
 
     @Override
