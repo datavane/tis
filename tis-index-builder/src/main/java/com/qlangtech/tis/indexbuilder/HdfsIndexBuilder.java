@@ -210,6 +210,9 @@ public class HdfsIndexBuilder implements TaskMapper {
                     throw new IndexBuildException(result.getMsg());
                 }
             }
+
+            logger.info("shard:{} indexbuild complete all doc count:{}", indexConf.getCoreName(), indexMakers.stream().mapToInt((r) -> r.docMakeCount).sum());
+
             // return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
         } catch (IndexBuildException ee) {
             throw ee;
