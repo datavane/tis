@@ -1,31 +1,33 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.trigger.util;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2012-11-14
  */
-class JsonUtil {
+public class JsonUtil {
 
     private JsonUtil() {
     }
@@ -36,10 +38,9 @@ class JsonUtil {
      * @param value
      * @return
      */
-    public static TriggerParam deserialize(String value) {
-        return deserialize(value, new TriggerParam());
-    }
-
+    //   public static TriggerParam deserialize(String value) {
+    //     return deserialize(value, new TriggerParam());
+    // }
     @SuppressWarnings("unchecked")
     public static <T extends HashMap<String, String>> T deserialize(String value, T object) {
         try {
@@ -65,19 +66,13 @@ class JsonUtil {
      */
     public static String serialize(Map<String, String> param) {
         JSONObject json = new JSONObject(param);
-        return json.toString();
+        return toString(json);
     }
 
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-        TriggerParam param = new TriggerParam();
-        param.put("name", "bai\"sui");
-        param.put("age", "12");
-        // System.out.println(JsonUtil.serialize(param));
-        param = deserialize(JsonUtil.serialize(param));
-        System.out.println(param.get("name"));
-        System.out.println(param.get("age"));
+    public static String toString(Object json) {
+        return com.alibaba.fastjson.JSON.toJSONString(
+                json, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
     }
+
+
 }

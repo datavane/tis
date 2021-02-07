@@ -50,6 +50,7 @@ public class SchemaField implements ISchemaField {
   private boolean docval;
 
 
+
   public int getId() {
     return id;
   }
@@ -133,6 +134,7 @@ public class SchemaField implements ISchemaField {
   public Boolean getSortable() {
     return this.isDocValue();
   }
+
   @Override
   public boolean equals(Object obj) {
     return StringUtils.equals(name, ((SchemaField) obj).name);
@@ -213,4 +215,15 @@ public class SchemaField implements ISchemaField {
     this.stored = stored;
   }
 
+  @Override
+  public String toString() {
+    return "{" +
+      "name='" + name + '\'' +
+      ", fieldtype='" + fieldtype + '\'' +
+      ", indexed=" + indexed +
+      ", stored=" + stored +
+      ", textAnalysis='" + textAnalysis + '\'' +
+      ", docval=" + docval +
+      '}';
+  }
 }

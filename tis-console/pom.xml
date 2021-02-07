@@ -17,11 +17,12 @@
     <struts2.version>2.5.17</struts2.version>
   </properties>
 
-
   <profiles>
 
   </profiles>
   <dependencies>
+
+
 
     <dependency>
       <groupId>org.easymock</groupId>

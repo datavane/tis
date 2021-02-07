@@ -13,9 +13,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.qlangtech.tis.config.module.action.TestCollectionAction;
 import com.qlangtech.tis.coredefine.module.action.TestCoreAction;
 import com.qlangtech.tis.coredefine.module.action.TestTISK8sDelegate;
 import com.qlangtech.tis.manage.servlet.TestIncrTagHeatBeatMonitor;
+import com.qlangtech.tis.runtime.module.action.TestSchemaAction;
 import com.qlangtech.tis.runtime.module.action.TestSysInitializeAction;
 import com.qlangtech.tis.solrdao.TestSchemaResult;
 import junit.framework.Test;
@@ -36,7 +38,8 @@ public class TestAll extends TestCase {
 
     suite.addTestSuite(TestSysInitializeAction.class);
     suite.addTestSuite(TestSchemaResult.class);
-
+    suite.addTestSuite(TestSchemaAction.class);
+    suite.addTestSuite(TestCollectionAction.class);
 
     return suite;
   }

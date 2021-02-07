@@ -21,6 +21,7 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.solr.schema.CharFilterFactoryFactory;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import com.qlangtech.tis.plugin.solr.schema.TokenizerFactoryFactory;
+import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.util.CharFilterFactory;
 import org.apache.lucene.analysis.util.TokenizerFactory;
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
  * @date 2021-01-26 10:31
  */
 public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.Listener {
-    public static final String KEY_PLUGIN = "plugin";
+
     private static final Map<Class<?>, Class<? extends IdentityDescribale>> expectedTypes;
 
     static {
@@ -92,8 +93,8 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
         if (cName.pkg == null) {
             return coreResourceLoader.newInstance(cname, expectedType, subpackages);
         } else {
-            if (!KEY_PLUGIN.equals(cName.pkg)) {
-                throw new IllegalStateException("plugin name:" + cName.pkg + " must be '" + KEY_PLUGIN + "'");
+            if (!SolrFieldsParser.KEY_PLUGIN.equals(cName.pkg)) {
+                throw new IllegalStateException("plugin name:" + cName.pkg + " must be '" + SolrFieldsParser.KEY_PLUGIN + "'");
             }
 
             Class<? extends IdentityDescribale> targetClass = expectedTypes.get(expectedType);

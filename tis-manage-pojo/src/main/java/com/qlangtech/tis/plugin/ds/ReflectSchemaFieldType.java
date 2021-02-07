@@ -14,6 +14,12 @@
  */
 package com.qlangtech.tis.plugin.ds;
 
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.runtime.module.misc.TokenizerType;
+
+import java.util.List;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-01-27 13:28
@@ -22,6 +28,16 @@ public enum ReflectSchemaFieldType {
     STRING("string"), INT("int"), FLOAT("float"), LONG("long") //
     , DOUBLE("double"), IK("ik"), TEXT_WS("text_ws"), LIKE("like"), PINYIN("pinyin")//
     , DATE("date"), TIMESTAMP("timestamp");
+
+    public static List<Option> all() {
+        List<Option> all = Lists.newArrayList();
+        TokenizerType tokenizerType = null;
+        for (ReflectSchemaFieldType ft : ReflectSchemaFieldType.values()) {
+            tokenizerType = TokenizerType.parse(ft.literia);
+            all.add(new Option(tokenizerType != null ? tokenizerType.getDesc() : ft.literia, ft.literia));
+        }
+        return all;
+    }
 
     public final String literia;
 

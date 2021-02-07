@@ -84,7 +84,7 @@ public class SchemaResult {
      * @throws Exception
      */
     public static SchemaResult parseSchemaResult(IMessageHandler module, Context context, byte[] schemaContent, boolean shallValidate
-            , ILoadedSchemaPlugin schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) {
+            , ISchemaFieldTypeContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) {
         // SchemaResult result = new SchemaResult();
         if (schemaContent == null) {
             throw new IllegalStateException("schemaContent can not be null");

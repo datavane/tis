@@ -136,6 +136,7 @@
     <dynamicField name="m_*" type="string" stored="true" indexed="false" multiValued="false" docValues="false" />
     <field name="_version_" type="long" indexed="true" stored="true" docValues="true" multiValued="false" />
     <field name="text" type="string" indexed="true" stored="false" multiValued="true" docValues="false" />
+    <dynamicField name="json_*" type="string" stored="true" indexed="true" docValues="false" />
   </fields>
   <copyField source="all_menu" dest="menu_id" />
   <copyField source="all_menu" dest="kindmenu_id" />

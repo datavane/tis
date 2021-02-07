@@ -42,6 +42,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -246,12 +247,12 @@ public abstract class NodeMaster {
         return cli;
     }
 
-    private static Options getOptions(Option[] clientOptions) {
+    private static Options getOptions(org.apache.commons.cli.Option[] clientOptions) {
         Options options = new Options();
         options.addOption("h", "help", false, "Print this message");
         options.addOption("v", "verbose", false, "Generate verbose log messages");
         // ;
-        Option[] opts = clientOptions;
+        org.apache.commons.cli.Option[] opts = clientOptions;
         for (int i = 0; i < opts.length; i++) {
             options.addOption(opts[i]);
         }

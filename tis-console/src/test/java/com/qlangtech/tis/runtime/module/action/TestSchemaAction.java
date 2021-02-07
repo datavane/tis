@@ -14,12 +14,15 @@
  */
 package com.qlangtech.tis.runtime.module.action;
 
+import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
+import com.qlangtech.tis.manage.common.DefaultFilter;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,6 +34,35 @@ import java.io.InputStream;
  */
 public class TestSchemaAction extends BasicActionTestCase {
 
+  private static final String collection = "search4totalpay";
+
+  public void testGetFieldsBySnapshotId() throws Exception {
+    request.setParameter("emethod", "getFieldsBySnapshotId");
+    request.setParameter("action", "schema_action");
+    request.setParameter("snapshot", "21123");
+    request.setParameter("editable", "false");
+    request.setParameter("restype", "schema.xml");
+    setCollection(collection);
+
+    ActionProxy proxy = getActionProxy();
+
+    String result = proxy.execute();
+    assertEquals("SchemaAction_ajax", result);
+    AjaxValve.ActionExecResult aResult = showBizResult();
+    assertNotNull(aResult);
+    assertTrue(aResult.isSuccess());
+
+    JSONObject biz = (JSONObject) aResult.getBizResult();
+    assertNotNull(biz);
+    String assertFileName = "assert-testGetFieldsBySnapshotId.json";
+    try (InputStream assertInput = this.getClass().getResourceAsStream(assertFileName)) {
+      assertNotNull(assertInput);
+      //  FileUtils.write(new File("testGetFieldsBySnapshotId.json"), JsonUtil.toString(biz), TisUTF8.get());
+      assertEquals(IOUtils.toString(assertInput, TisUTF8.get()), JsonUtil.toString(biz));
+    }
+  }
+
+
   /**
    * 测试专家模式Schema保存, 将mall_id类型由string改成test类型,并且去掉了一个动态字段pt_*
    *
@@ -40,6 +72,8 @@ public class TestSchemaAction extends BasicActionTestCase {
     // event_submit_do_save_by_expert_model: y
     request.setParameter("emethod", "saveByExpertModel");
     request.setParameter("action", "schema_action");
+    //request.addHeader("appname", collection);
+    setCollection(collection);
 
     try (InputStream post = this.getClass().getResourceAsStream("schema-action-do-save-by-expert-model.json")) {
       request.setContent(IOUtils.toByteArray(post));
@@ -71,6 +105,12 @@ public class TestSchemaAction extends BasicActionTestCase {
     }
 
 
+  }
+
+  private void setCollection(String collection) {
+    DefaultFilter.AppAndRuntime app = new DefaultFilter.AppAndRuntime();
+    app.setAppName(collection);
+    DefaultFilter.setAppAndRuntime(app);
   }
 
   private ActionProxy getActionProxy() {

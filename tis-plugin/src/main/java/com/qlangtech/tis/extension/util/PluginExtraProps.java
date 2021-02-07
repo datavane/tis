@@ -22,6 +22,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * load extra prop desc like 'lable' and so on
@@ -31,13 +32,13 @@ import java.util.HashMap;
  */
 public class PluginExtraProps extends HashMap<String, JSONObject> {
 
-    public static PluginExtraProps load(Class<?> pluginClazz) throws IOException {
+    public static Optional<PluginExtraProps> load(Class<?> pluginClazz) throws IOException {
         try (InputStream i = pluginClazz.getResourceAsStream(pluginClazz.getSimpleName() + ".json")) {
             if (i == null) {
-                return null;
+                return Optional.empty();
             }
             PluginExtraProps props = JSON.parseObject(i, TisUTF8.get(), PluginExtraProps.class);
-            return props;
+            return Optional.of(props);
         }
     }
 

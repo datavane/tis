@@ -12,27 +12,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.extension.util;
 
+import junit.framework.Test;
 import junit.framework.TestCase;
-
-import java.util.Optional;
+import junit.framework.TestSuite;
 
 /**
- *
+ * @author 百岁（baisui@qlangtech.com）
+ * @date 2021-02-06 07:04
  */
-public class TestPluginExtraProps extends TestCase {
-    public void testLode() throws Exception {
-        Optional<PluginExtraProps> ep = PluginExtraProps.load(TestPluginExtraProps.class);
-        assertNotNull(ep);
-        assertTrue(ep.isPresent());
-        PluginExtraProps extraProps = ep.get();
-        PluginExtraProps.Prop prop = extraProps.getProp("dbName");
-        assertNotNull(prop);
-        assertNotNull("数据库名", prop.getLable());
+public class TestAll extends TestCase {
 
-        prop = extraProps.getProp("userName");
-        assertNotNull(prop);
-        assertNotNull("用户名", prop.getLable());
+    public static Test suite() {
+        TestSuite suite = new TestSuite();
+        return suite;
     }
 }

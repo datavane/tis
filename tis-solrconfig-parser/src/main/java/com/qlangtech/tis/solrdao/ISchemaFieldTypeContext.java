@@ -14,51 +14,18 @@
  */
 package com.qlangtech.tis.solrdao;
 
+import java.util.List;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2017年5月8日
+ * @date 2021-01-29 15:08
  */
-public interface ISchemaField {
-    //String DEFAULT_STRING_TYPE_NAME = "string";
-    String KEY_FIELD_TYPE = "fieldtype";
-
-    String getName();
-
+public interface ISchemaFieldTypeContext {
     /**
-     * 字段类型名称，不是全路径
+     * 是否是可分词字段类型
      *
+     * @param typeName
      * @return
      */
-    String getTisFieldTypeName();
-
-    String getTokenizerType();
-
-    boolean isIndexed();
-
-    boolean isStored();
-
-    boolean isDocValue();
-
-    // 是否是多值
-    boolean isMultiValue();
-
-    boolean isDynamic();
-
-//    /**
-//     * 类型是否是插件
-//     *
-//     * @return
-//     */
-//    default boolean isPluginType() {
-//        throw new UnsupportedOperationException();
-//    }
-
-    /**
-     * 默认值
-     *
-     * @return
-     */
-    String getDefaultValue();
-
-
+    boolean isTokenizer(String typeName);
 }

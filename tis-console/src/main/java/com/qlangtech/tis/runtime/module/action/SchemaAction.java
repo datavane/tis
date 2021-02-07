@@ -32,6 +32,7 @@ import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction;
 import com.qlangtech.tis.runtime.module.misc.*;
+import com.qlangtech.tis.runtime.utils.ILoadedSchemaPlugin;
 import com.qlangtech.tis.solrdao.ISchema;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.SchemaResult;
@@ -48,6 +49,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.DocType;
+import org.jdom2.Document;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -113,6 +115,7 @@ public class SchemaAction extends BasicModule {
    */
   public static SchemaResult mergeWfColsWithTplCollection(BasicModule module, Context context
     , WorkFlow workflow, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
+    String collectionName = module.getCollectionName();
     // 通过version取默认模板
     Application tplApp = getTemplateApp(module);
     SchemaResult tplSchema = getTemplateSchema(module, context, tplApp);
@@ -141,13 +144,13 @@ public class SchemaAction extends BasicModule {
     }
 
     parseResult.addReservedFields();
-
+    ILoadedSchemaPlugin schemaPlugin = createSchemaPlugin(collectionName);
     // modifySchemaContent(tplSchema, parseResult);
     tplSchema.content = XModifier.modifySchemaContent(tplSchema.content, (document2, modifier) -> {
       modifier.addModify("/fields/field(:delete)");
       modifier.addModify("/sharedKey(:delete)");
       modifier.deleteUniqueKey();
-      updateSchemaXML(parseResult, modifier);
+      updateSchemaXML(collectionName, parseResult.types, schemaPlugin, parseResult, document2, modifier);
     });
 
     parseResultCallback4test.process(cols, parseResult);
@@ -441,49 +444,74 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   public void doGetFieldsBySnapshotId(Context context) throws Exception {
-//    SchemaResult schema = SchemaResult.parseSchemaResult(this, context, SaveFileContentAction.getResContent(this, context), /* shallValidate */
-//      false);
+
     SchemaResult schema = parseSchemaResultWithPluginCfg(this.getCollectionName(), this
       , context, SaveFileContentAction.getResContent(this, context));
 
     this.setBizResult(context, schema.toJSON());
   }
 
-  public static SchemaResult parseSchemaResultWithPluginCfg(
-    String collection, IMessageHandler msgHandler, Context context, byte[] resContent) throws Exception {
-    final Map<String, Boolean> pluginTypeAddedMap = Maps.newHashMap();
-
+  /**
+   * 记载和Collection相关的plugin
+   *
+   * @param collection
+   * @return
+   */
+  public static ILoadedSchemaPlugin createSchemaPlugin(String collection) {
     PluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
-    // assertNotNull(fieldTypePluginStore);
     Objects.requireNonNull(fieldTypePluginStore, "fieldTypePluginStore can not be null");
-    //final String testFieldTypeName = "test";
-
     final List<FieldTypeFactory> plugins = fieldTypePluginStore.getPlugins();
 
     final Set<String> loadedFieldTypePlugins = plugins.stream()
       .filter(p -> p.forStringTokenizer()).map((p) -> p.identityValue()).collect(Collectors.toSet());
 
+    return new ILoadedSchemaPlugin() {
+      @Override
+      public List<FieldTypeFactory> getFieldTypeFactories() {
+        return plugins;
+      }
+
+      @Override
+      public FieldTypeFactory findFieldTypeFactory(String name) {
+        return fieldTypePluginStore.find(name);
+      }
+
+      @Override
+      public boolean isTokenizer(String typeName) {
+        return loadedFieldTypePlugins.contains(typeName);
+      }
+    };
+
+  }
+
+  public static SchemaResult parseSchemaResultWithPluginCfg(
+    String collection, IMessageHandler msgHandler, Context context, byte[] resContent) throws Exception {
+    final Map<String, Boolean> pluginTypeAddedMap = Maps.newHashMap();
+    ILoadedSchemaPlugin schemaPlugin = createSchemaPlugin(collection);
+
+
     SchemaResult schemaResult = SchemaResult.parseSchemaResult(
-      msgHandler, context, resContent, false,
-      (typeName) -> loadedFieldTypePlugins.contains(typeName)
+      msgHandler, context, resContent, false, schemaPlugin
       , (cols, sResult) -> {
         boolean pluginTypeAdded;
         String identityNameVal = null;
-        for (FieldTypeFactory plugin : plugins) {
+        for (FieldTypeFactory plugin : schemaPlugin.getFieldTypeFactories()) {
           identityNameVal = plugin.identityValue();
           if (!(pluginTypeAdded = sResult.containType(identityNameVal))) {
             sResult.addFieldType(identityNameVal
               , SolrFieldsParser.parseFieldType(identityNameVal, identityNameVal, plugin.forStringTokenizer()));
           }
-
           pluginTypeAddedMap.put(identityNameVal, pluginTypeAdded);
         }
       });
 
     schemaResult.content = XModifier.modifySchemaContent(schemaResult.content, (document2, modifier) -> {
-
+      // FieldTypeFactory fieldTypeFactory = null;
       for (Map.Entry<String, Boolean> entry : pluginTypeAddedMap.entrySet()) {
         if (!entry.getValue()) {
+//          fieldTypeFactory = fieldTypePluginStore.find(entry.getKey());
+//          Objects.requireNonNull(fieldTypeFactory, "the name:" + entry.getKey() + " relevant fieldTypeFactory can not be null");
+          // fieldTypeFactory.
           modifier.addModify(String.format("/types/fieldType[@name='%s']/@class", entry.getKey()), "plugin:" + entry.getKey());
           //precisionStep="0" positionIncrementGap="0"
           //modifier.addModify(String.format("/types/fieldType[@name='%s']/@precisionStep", entry.getKey()), "0");
@@ -560,8 +588,8 @@ public class SchemaAction extends BasicModule {
     // 原始内容
     final byte[] originContent = schemaForm.getSchemaXmlContent().getBytes(getEncode());
     org.w3c.dom.Document document = createDocument(originContent);
-    ParseResult parseResult = SolrFieldsParser.parseDocument(document, (fieldType) -> false, false);
-
+    ILoadedSchemaPlugin schemaPlugin = createSchemaPlugin(this.getCollectionName());
+    ParseResult parseResult = SolrFieldsParser.parseDocument(document, schemaPlugin, false);
     byte[] modifiedContent = XModifier.modifySchemaContent(originContent, (document2, modifier) -> {
       for (PSchemaField field : parseResult.dFields) {
         // 小白编辑模式下可能将字段删除，所以在高级模式下也要将字段删除
@@ -577,7 +605,7 @@ public class SchemaAction extends BasicModule {
           }
         }
       }
-      updateSchemaXML(schemaForm, modifier);
+      updateSchemaXML(this.getCollectionName(), parseResult.types, schemaPlugin, schemaForm, document2, modifier);
       DocType docType = new DocType("schema", "solrres://tisrepository/dtd/solrschema.dtd");
       document2.setDocType(docType);
     });
@@ -599,26 +627,50 @@ public class SchemaAction extends BasicModule {
 //    return writer.toString(getEncode());
   }
 
-  private static void updateSchemaXML(ISchema schemaForm, final XModifier modifier) {
+  /**
+   * @param collection
+   * @param fieldTypes 已经存在的字段类型
+   * @param schemaForm
+   * @param document2
+   * @param modifier
+   */
+  private static void updateSchemaXML(String collection, Map<String, SolrType> fieldTypes, ILoadedSchemaPlugin schemaPlugin, ISchema schemaForm, Document document2, final XModifier modifier) {
+    SolrType type = null;
+    String fieldTypeRef = null;
+    FieldTypeFactory fieldTypeFactory = null;
+    // PluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
+    // Objects.requireNonNull(fieldTypePluginStore, "fieldTypePluginStore can not be null");
+    String pluginName = null;
     for (ISchemaField field : schemaForm.getSchemaFields()) {
-      modifySchemaProperty(modifier, field, "type", parseSolrFieldType(field));
+      if (!(field instanceof SchemaField)) {
+        throw new IllegalStateException("field must be type of " + SchemaField.class + " but now is " + field.getClass());
+      }
+      modifySchemaProperty(modifier, field, "type", (fieldTypeRef = parseSolrFieldType(field)));
       modifySchemaProperty(modifier, field, "stored", field.isStored());
       modifySchemaProperty(modifier, field, "indexed", field.isIndexed());
       modifySchemaProperty(modifier, field, "docValues", field.isDocValue());
       modifySchemaProperty(modifier, field, "multiValued", field.isMultiValue());
+      type = fieldTypes.get(fieldTypeRef);
+      Objects.requireNonNull(type, "fieldName:" + field.getName() + " relevant fieldType can not be null");
+      if (type.plugin) {
+        // type = ((SchemaField) field).getType();
+        pluginName = StringUtils.substringAfter(type.getSolrType(), SolrFieldsParser.KEY_PLUGIN + ":");
+        fieldTypeFactory = schemaPlugin.findFieldTypeFactory(pluginName);// fieldTypePluginStore.find();
+        Objects.requireNonNull(fieldTypeFactory, "pluginName:" + pluginName + " relevant fieldTypeFactory can not be null");
+        fieldTypeFactory.process(document2, modifier);
+      }
+
     }
     if (StringUtils.isNotBlank(schemaForm.getUniqueKey())) {
       modifySchemaProperty("/uniqueKey/text()", schemaForm.getUniqueKey(), modifier);
     } else {
       modifier.deleteUniqueKey();
     }
-    // }
     if (StringUtils.isNotBlank(schemaForm.getSharedKey())) {
       modifySchemaProperty("/sharedKey/text()", schemaForm.getSharedKey(), modifier);
     } else {
       modifier.deleteSharedKey();
     }
-    // modifier.modify();
   }
 
   /**
@@ -643,11 +695,6 @@ public class SchemaAction extends BasicModule {
     return field.getTisFieldTypeName();
   }
 
-
-  // private static final Format xmlPrettyformat =
-  // Format.getPrettyFormat();
-
-
   private static void modifySchemaProperty(String key, Object value, XModifier modifier) {
     modifier.addModify(key, String.valueOf(value));
   }
@@ -660,9 +707,9 @@ public class SchemaAction extends BasicModule {
     if (value == null) {
       return;
     }
-    if(field.isDynamic()){
+    if (field.isDynamic()) {
       modifySchemaProperty(String.format("/fields/dynamicField[@name='%s']/@%s", field.getName(), key), value, modifier);
-    }else{
+    } else {
       modifySchemaProperty(String.format("/fields/field[@name='%s']/@%s", field.getName(), key), value, modifier);
     }
   }
@@ -858,7 +905,8 @@ public class SchemaAction extends BasicModule {
   // }
   // return appinfo.getSchemaXml();
   // }
-  private static Integer createNewResource(Context context, final byte[] uploadContent, final String md5, PropteryGetter fileGetter, IMessageHandler messageHandler, RunContext runContext) throws UnsupportedEncodingException, SchemaFileInvalidException {
+  private static Integer createNewResource(Context context, final byte[] uploadContent, final String md5, PropteryGetter fileGetter
+    , IMessageHandler messageHandler, RunContext runContext) throws UnsupportedEncodingException, SchemaFileInvalidException {
     UploadResource resource = new UploadResource();
     resource.setContent(uploadContent);
     resource.setCreateTime(new Date());

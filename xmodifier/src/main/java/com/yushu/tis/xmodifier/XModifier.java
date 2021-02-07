@@ -14,7 +14,7 @@
  */
 package com.yushu.tis.xmodifier;
 
-import com.qlangtech.tis.runtime.module.action.IModifier;
+import com.qlangtech.tis.runtime.module.action.IModifierProcess;
 import org.jdom2.Content;
 import org.jdom2.DocType;
 import org.jdom2.Document;
@@ -77,7 +77,7 @@ public class XModifier {
         this.document = document;
     }
 
-    public static byte[] modifySchemaContent(byte[] content, IModifier contentModifier) throws Exception {
+    public static byte[] modifySchemaContent(byte[] content, IModifierProcess contentModifier) throws Exception {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
         Document document2 = saxBuilder.build(inputStream);
         final XModifier modifier = new XModifier(document2);

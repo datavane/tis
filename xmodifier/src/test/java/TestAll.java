@@ -12,14 +12,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.runtime.module.action;
 
-import com.yushu.tis.xmodifier.XModifier;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+import org.shai.xmodifier.XModifierTest;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-01-29 11:51
+ * @date 2021-02-06 07:04
  */
-public interface IModifier {
-  void process(org.jdom2.Document document2, XModifier modifier);
+public class TestAll extends TestCase {
+
+    public static Test suite() {
+        TestSuite suite = new TestSuite(XModifierTest.class);
+        return suite;
+    }
 }

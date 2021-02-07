@@ -14,6 +14,7 @@
  */
 package org.shai.xmodifier;
 
+import junit.framework.TestCase;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Assert;
@@ -37,7 +38,7 @@ import java.io.StringWriter;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class XModifierTest {
+public class XModifierTest extends TestCase {
 
     static {
         XMLUnit.setIgnoreAttributeOrder(true);

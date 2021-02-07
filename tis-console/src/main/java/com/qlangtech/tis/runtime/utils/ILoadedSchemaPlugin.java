@@ -12,18 +12,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.solrdao;
+package com.qlangtech.tis.runtime.utils;
+
+import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
+import com.qlangtech.tis.solrdao.ISchemaFieldTypeContext;
+
+import java.util.List;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-01-29 15:08
+ * @date 2021-02-06 23:17
  */
-public interface ILoadedSchemaPlugin {
-    /**
-     * 是否是可分词字段类型
-     *
-     * @param typeName
-     * @return
-     */
-    boolean isTokenizer(String typeName);
+public interface ILoadedSchemaPlugin extends ISchemaFieldTypeContext {
+  List<FieldTypeFactory> getFieldTypeFactories();
+
+  FieldTypeFactory findFieldTypeFactory(String name);
 }

@@ -30,9 +30,9 @@ public class TriggerParam extends HashMap<String, String> {
 
     private static final long serialVersionUID = 1L;
 
-    public static TriggerParam deserialize(String value) {
-        return JsonUtil.deserialize(value);
-    }
+//    public static TriggerParam deserialize(String value) {
+//        return JsonUtil.deserialize(value);
+//    }
 
     public TriggerParam() {
         super();
@@ -53,13 +53,6 @@ public class TriggerParam extends HashMap<String, String> {
     // ▲▲▲ dump type end
     private static final String TIME = "time";
 
-    private static final String YUNTI_HOST = "yuntihost";
-
-    private static final String TUNTI_PATH = "yuntipath";
-
-    public static final String DATE_PATTERN = "datepattern";
-
-    private static final String YUNTI_USER_TOKEN = "yuntiusertoken";
 
     private static final String CURRENT_USER_NAME = "currentusername";
 
@@ -118,38 +111,5 @@ public class TriggerParam extends HashMap<String, String> {
 
     public String getTime() {
         return this.get(TIME);
-    }
-
-    public void setYuntiHost(String value) {
-        this.put(YUNTI_HOST, value);
-    }
-
-    public String getYuntiHost() {
-        return this.get(YUNTI_HOST);
-    }
-
-    public void setYuntiPath(String value) {
-        this.put(TUNTI_PATH, value);
-    }
-
-    public String getYuntiPath() {
-        return this.get(TUNTI_PATH);
-    }
-
-    public void setDatePattern(String value) {
-        this.put(DATE_PATTERN, value);
-    }
-
-    public String getDatePattern() {
-        return this.get(DATE_PATTERN);
-    }
-
-    // 
-    public void setYuntiUserToken(String value) {
-        this.put(YUNTI_USER_TOKEN, value);
-    }
-
-    public String getYuntiUserToken() {
-        return this.get(YUNTI_USER_TOKEN);
     }
 }

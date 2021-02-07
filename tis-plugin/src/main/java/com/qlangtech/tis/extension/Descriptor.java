@@ -22,10 +22,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -54,6 +57,7 @@ import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandle
  */
 public abstract class Descriptor<T extends Describable> implements Saveable, ISelectOptionsGetter {
 
+    public static final String KEY_ENUM_PROP = "enum";
     public static final String KEY_primaryVal = "_primaryVal";
 
     public static final String KEY_OPTIONS = "options";
@@ -265,9 +269,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         Map<String, PropertyType> r = new HashMap<String, PropertyType>();
         FormField formField = null;
         PropertyType ptype = null;
-
+        PluginExtraProps.Prop fieldExtraProps = null;
         try {
-            PluginExtraProps extraProps = PluginExtraProps.load(clazz);
+            Optional<PluginExtraProps> extraProps = PluginExtraProps.load(clazz);
 
             for (Field f : clazz.getDeclaredFields()) {
                 if (!Modifier.isPublic(f.getModifiers())) {
@@ -276,8 +280,42 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 formField = f.getAnnotation(FormField.class);
                 if (formField != null) {
                     ptype = new PropertyType(f, formField);
-                    if (extraProps != null) {
-                        ptype.setExtraProp(extraProps.getProp(f.getName()));
+                    if (extraProps.isPresent()) {
+                        fieldExtraProps = extraProps.get().getProp(f.getName());
+                        if (formField.type() == FormFieldType.ENUM) {
+                            Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
+                            if (anEnum == null) {
+                                throw new IllegalStateException("fieldName:" + f.getName() + "relevant enum descriptor in json config can not be null");
+                            }
+                            if (anEnum instanceof String) {
+                                // 使用了如下这种配置方式，需要使用groovy进行解析
+                                // "enum": "com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()"
+                                // 需要转化成以下这种格式:
+//                                "enum": [
+//                                {
+//                                    "label": "是",
+//                                        "val": true
+//                                },
+//                                {
+//                                    "label": "否",
+//                                        "val": false
+//                                }
+                                // ]
+
+                                List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
+                                JSONArray enums = new JSONArray();
+                                itEnums.forEach((key) -> {
+                                    JSONObject o = new JSONObject();
+                                    o.put("label", key.getName());
+                                    o.put("val", key.getValue());
+                                    enums.add(o);
+                                });
+                                fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
+                            }
+                        }
+
+
+                        ptype.setExtraProp(fieldExtraProps);
                     }
                     r.put(f.getName(), ptype);
                 }

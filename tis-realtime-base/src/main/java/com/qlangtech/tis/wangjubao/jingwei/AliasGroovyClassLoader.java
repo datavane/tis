@@ -15,7 +15,9 @@
 package com.qlangtech.tis.wangjubao.jingwei;
 
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyShell;
 import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.slf4j.Logger;
@@ -52,11 +54,15 @@ public class AliasGroovyClassLoader extends GroovyClassLoader {
     }
 
     public static void main(String[] arg) throws Exception {
+
+        GroovyShell shell = new GroovyShell(new CompilerConfiguration());
+        Object evaluate = shell.evaluate("com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()");
+        System.out.println(evaluate+",class:"+ evaluate.getClass());
         // GroovyClassLoader
-        AliasGroovyClassLoader loader = new AliasGroovyClassLoader();
-        String script = "	package groovytest ;" + "import java.util.Map;" + "class AliasFieldProcess implements groovytest.Iprocess {" + "	@Override" + "	public Object process(Map<String, String> value) {" + "		def result = value.get(\"hello\");" + "     return result;" + "	}" + "}";
-        loader.loadMyClass("name", script);
-        Class groovyClass = loader.loadClass("groovytest.AliasFieldProcess");
+//        AliasGroovyClassLoader loader = new AliasGroovyClassLoader();
+//        String script = "	package groovytest ;" + "import java.util.Map;" + "class AliasFieldProcess implements groovytest.Iprocess {" + "	@Override" + "	public Object process(Map<String, String> value) {" + "		def result = value.get(\"hello\");" + "     return result;" + "	}" + "}";
+//        loader.loadMyClass("name", script);
+//        Class groovyClass = loader.loadClass("groovytest.AliasFieldProcess");
     // Iprocess object = (Iprocess) groovyClass.newInstance();
     // Map<String,String> values = new HashMap<String,String>();
     // values.put("hello", "baisui");

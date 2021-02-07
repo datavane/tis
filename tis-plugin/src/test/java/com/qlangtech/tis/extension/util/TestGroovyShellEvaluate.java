@@ -15,24 +15,19 @@
 package com.qlangtech.tis.extension.util;
 
 import junit.framework.TestCase;
+import org.apache.commons.collections.CollectionUtils;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
- *
+ * @author 百岁（baisui@qlangtech.com）
+ * @date 2021-02-06 13:38
  */
-public class TestPluginExtraProps extends TestCase {
-    public void testLode() throws Exception {
-        Optional<PluginExtraProps> ep = PluginExtraProps.load(TestPluginExtraProps.class);
-        assertNotNull(ep);
-        assertTrue(ep.isPresent());
-        PluginExtraProps extraProps = ep.get();
-        PluginExtraProps.Prop prop = extraProps.getProp("dbName");
-        assertNotNull(prop);
-        assertNotNull("数据库名", prop.getLable());
+public class TestGroovyShellEvaluate extends TestCase {
+    public void testEval() {
+        List<String> fieldTyps = GroovyShellEvaluate.eval("com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()");
+        assertNotNull(fieldTyps);
 
-        prop = extraProps.getProp("userName");
-        assertNotNull(prop);
-        assertNotNull("用户名", prop.getLable());
+        assertTrue(CollectionUtils.isEqualCollection(com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all(), fieldTyps));
     }
 }
