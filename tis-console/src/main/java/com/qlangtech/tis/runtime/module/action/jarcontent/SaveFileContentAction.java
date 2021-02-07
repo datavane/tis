@@ -25,6 +25,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
+import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -130,8 +131,9 @@ public class SaveFileContentAction extends BasicModule {
       userid = new Long(this.getUserId());
     } catch (Throwable e) {
     }
+    ISchemaPluginContext schemaPlugin = SchemaAction.createSchemaPlugin(this.getCollectionName());
     CreateSnapshotResult createResult = createNewSnapshot(context
-      , this.getSnapshotViewDAO().getView(snapshotid, false), propertyGetter, xmlContent.getContentBytes()
+      , this.getSnapshotViewDAO().getView(snapshotid, false), propertyGetter, schemaPlugin, xmlContent.getContentBytes()
       , this, this, xmlContent.getMemo(), userid, this.getLoginUserName());
 
     if (!createResult.isSuccess()) {
@@ -156,14 +158,15 @@ public class SaveFileContentAction extends BasicModule {
    * @throws UnsupportedEncodingException
    */
   public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain
-    , PropteryGetter fileGetter
+    , PropteryGetter fileGetter, ISchemaPluginContext schemaPlugin
     , byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler
     , String memo, Long userId, String userName) throws UnsupportedEncodingException {
-    return createNewSnapshot(context, domain, fileGetter, uploadContent, runContext
+    return createNewSnapshot(context, domain, fileGetter, schemaPlugin, uploadContent, runContext
       , messageHandler, memo, userId, userName, true);
   }
 
-  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter, byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler, String memo, Long userId, String userName, boolean createNewSnapshot) throws UnsupportedEncodingException {
+  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
+    , ISchemaPluginContext schemaPlugin, byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler, String memo, Long userId, String userName, boolean createNewSnapshot) throws UnsupportedEncodingException {
     CreateSnapshotResult createResult = new CreateSnapshotResult();
     try {
       final String md5 = ConfigFileReader.md5file(uploadContent);
@@ -173,7 +176,7 @@ public class SaveFileContentAction extends BasicModule {
       }
       // 创建一条资源记录
       try {
-        Integer newResId = ResSynManager.createNewResource(context, uploadContent, md5, fileGetter, messageHandler, runContext);
+        Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, uploadContent, md5, fileGetter, messageHandler, runContext);
         final Snapshot snapshot = fileGetter.createNewSnapshot(newResId, domain.getSnapshot());
         if (createNewSnapshot) {
           snapshot.setMemo(memo);
@@ -187,10 +190,7 @@ public class SaveFileContentAction extends BasicModule {
         return createResult;
       }
     } finally {
-      // try {
-      // reader.close();
-      // } catch (Throwable e) {
-      // }
+
     }
     createResult.setSuccess(true);
     return createResult;
@@ -268,14 +268,6 @@ public class SaveFileContentAction extends BasicModule {
     }
   }
 
-  // public ISnapshotApplyDAO getSnapshotApplyDAO() {
-  // return snapshotApplyDAO;
-  // }
-  //
-  // @Autowired
-  // public void setSnapshotApplyDAO(ISnapshotApplyDAO snapshotApplyDAO) {
-  // this.snapshotApplyDAO = snapshotApplyDAO;
-  // }
   private static void saveHasNotModifyMessage(Context context, IMessageHandler messageHandler, Integer snapshotid) {
     messageHandler.addErrorMessage(context, "文件没有变更，保持当前snapshot:" + snapshotid);
   }

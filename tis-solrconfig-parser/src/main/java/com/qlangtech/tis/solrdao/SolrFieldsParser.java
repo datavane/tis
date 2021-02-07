@@ -93,7 +93,11 @@ public class SolrFieldsParser {
     }
 
     public static IIndexMetaData parse(ISolrConfigGetter configGetter) throws Exception {
-        return parse(configGetter, (typeName) -> false, false);
+        return parse(configGetter, (fieldType) -> false);
+    }
+
+    public static IIndexMetaData parse(ISolrConfigGetter configGetter, ISchemaFieldTypeContext schemaPlugin) throws Exception {
+        return parse(configGetter, schemaPlugin, false);
     }
 
     public static IIndexMetaData parse(ISolrConfigGetter configGetter, ISchemaFieldTypeContext schemaPlugin, boolean validateSchema) throws Exception {
@@ -102,7 +106,6 @@ public class SolrFieldsParser {
             schemaParseResult = solrFieldsParser.parseSchema(reader, schemaPlugin, validateSchema);
         }
         return new IIndexMetaData() {
-
             @Override
             public SolrFieldsParser.ParseResult getSchemaParseResult() {
                 return schemaParseResult;
@@ -116,12 +119,6 @@ public class SolrFieldsParser {
             @Override
             public LuceneVersion getLuceneVersion() {
                 return LuceneVersion.LUCENE_7;
-                // Version ver = getTISLuceneVersion(configGetter);
-                // if (ver.equals(Version.LUCENE_7_6_0)) {
-                // return LuceneVersion.LUCENE_7;
-                // }
-                //
-                // throw new IllegalStateException("illegal version ver:" + ver);
             }
         };
     }
@@ -174,7 +171,7 @@ public class SolrFieldsParser {
         return false;
     }
 
-    public ArrayList<PSchemaField> readSchemaFields(InputStream is, ISchemaFieldTypeContext schemaPlugin) throws Exception {
+    public ArrayList<PSchemaField> readSchemaFields(InputStream is, ISchemaPluginContext schemaPlugin) throws Exception {
         ParseResult result = this.parseSchema(is, schemaPlugin);
         if (!result.isValid()) {
             throw new IllegalStateException(result.getErrorSummary());
@@ -182,7 +179,7 @@ public class SolrFieldsParser {
         return result.dFields;
     }
 
-    public ParseResult readSchema(InputStream is, ISchemaFieldTypeContext schemaPlugin) throws Exception {
+    public ParseResult readSchema(InputStream is, ISchemaPluginContext schemaPlugin) throws Exception {
         ParseResult result = this.parseSchema(is, schemaPlugin);
         if (!result.isValid()) {
             throw new IllegalStateException(result.getErrorSummary());
@@ -198,7 +195,6 @@ public class SolrFieldsParser {
         DocumentBuilderFactory schemaDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
         // 只是读取schema不作校验
         schemaDocumentBuilderFactory.setValidating(shallValidate);
-        // schemaDocumentBuilderFactory.setSchema(schema)
         final ParseResult result = new ParseResult(shallValidate);
         DocumentBuilder builder = schemaDocumentBuilderFactory.newDocumentBuilder();
         InputSource input = new InputSource(is);
@@ -255,7 +251,7 @@ public class SolrFieldsParser {
 
     private static final Pattern SPACE = Pattern.compile("\\s+");
 
-    public static ParseResult parseDocument(Document document, ISchemaFieldTypeContext schemaPlugin, boolean shallValidate) throws Exception {
+    public static ParseResult parseDocument(Document document, ISchemaPluginContext schemaPlugin, boolean shallValidate) throws Exception {
         return solrFieldsParser.parse(document, schemaPlugin, shallValidate);
     }
 
@@ -574,6 +570,13 @@ public class SolrFieldsParser {
         private SolrType(boolean tokenizerable, boolean plugin) {
             this.tokenizerable = tokenizerable;
             this.plugin = plugin;
+        }
+
+        public String getPluginName() {
+            if (!plugin) {
+                return null;
+            }
+            return StringUtils.substringAfter(this.getSolrType(), SolrFieldsParser.KEY_PLUGIN + ":");
         }
 
         private Class<?> javaType;

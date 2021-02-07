@@ -40,8 +40,7 @@ public class SolrPojoBuilder {
         InputStream reader = null;
         try {
             writer = new PrintWriter((buildContext.getOutputStream()));
-            IIndexMetaData metaData = SolrFieldsParser.parse(() -> buildContext.getResourceInputStream());
-            // parser.readSchemaFields(reader);
+            IIndexMetaData metaData = SolrFieldsParser.parse(() -> buildContext.getResourceInputStream(), ISchemaPluginContext.NULL);
             ArrayList<PSchemaField> fields = metaData.getSchemaParseResult().dFields;
             writer.print("package ");
             writer.println(this.buildContext.getTargetNameSpace() + ";");

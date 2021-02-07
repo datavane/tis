@@ -18,6 +18,8 @@ import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
 import com.qlangtech.tis.pubhook.common.ConfigConstant;
+import com.qlangtech.tis.solrdao.IFieldTypeFactory;
+import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -225,15 +227,24 @@ public class ConfigFileReader {
         }
 
         @Override
-        public ConfigFileValidateResult validate(UploadResource resource) {
+        public ConfigFileValidateResult validate(ISchemaPluginContext schemaPlugin, UploadResource resource) {
             // Assert.assertNotNull("resource can not be null", );
             Objects.requireNonNull(resource, "resource can not be null");
             // 校验schema 文件是否合法
+            IFieldTypeFactory ftFactory = null;
             final byte[] content = resource.getContent();
             final ConfigFileValidateResult result = new ConfigFileValidateResult();
             try {
-                IIndexMetaData meta = SolrFieldsParser.parse(() -> content, (fieldType) -> false, true);
+                IIndexMetaData meta = SolrFieldsParser.parse(() -> content, schemaPlugin, true);
                 ParseResult parseResult = meta.getSchemaParseResult();
+
+
+                for (SolrFieldsParser.SolrType ftype : parseResult.getFieldTypes()) {
+                    if (ftype.plugin && (ftFactory = schemaPlugin.findFieldTypeFactory(ftype.getPluginName())) == null) {
+                        parseResult.errlist.add("fieldType:" + ftype.getSType().getName() + " relevant fieldType plugin has not find plugin in plugin define collection");
+                    }
+                }
+
                 if (!parseResult.isValid()) {
                     result.setValid(false);
                     for (Object error : parseResult.errlist) {
@@ -296,13 +307,13 @@ public class ConfigFileReader {
         }
 
         @Override
-        public ConfigFileValidateResult validate(UploadResource domain) {
+        public ConfigFileValidateResult validate(ISchemaPluginContext schemaFieldTypeContext, UploadResource domain) {
             // 文件合法
-            return validate(domain.getContent());
+            return validate(schemaFieldTypeContext, domain.getContent());
         }
 
         @Override
-        public ConfigFileValidateResult validate(byte[] resource) {
+        public ConfigFileValidateResult validate(ISchemaPluginContext schemaFieldTypeContext, byte[] resource) {
             return new ConfigFileValidateResult();
         }
 

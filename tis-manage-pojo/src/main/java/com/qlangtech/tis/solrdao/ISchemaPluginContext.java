@@ -20,12 +20,27 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-01-29 15:08
  */
-public interface ISchemaFieldTypeContext {
-    /**
-     * 是否是可分词字段类型
-     *
-     * @param typeName
-     * @return
-     */
-    boolean isTokenizer(String typeName);
+public interface ISchemaPluginContext extends ISchemaFieldTypeContext {
+
+    ISchemaPluginContext NULL = new ISchemaPluginContext() {
+        @Override
+        public <TYPE extends IFieldTypeFactory> List<TYPE> getFieldTypeFactories() {
+            return null;
+        }
+
+        @Override
+        public <TYPE extends IFieldTypeFactory> TYPE findFieldTypeFactory(String name) {
+            return null;
+        }
+
+        @Override
+        public boolean isTokenizer(String typeName) {
+            return false;
+        }
+    };
+
+
+    <TYPE extends IFieldTypeFactory> List<TYPE> getFieldTypeFactories();
+
+    <TYPE extends IFieldTypeFactory> TYPE findFieldTypeFactory(String name);
 }

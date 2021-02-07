@@ -18,6 +18,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IdentityDescribale;
 import com.qlangtech.tis.runtime.module.action.IModifierProcess;
+import com.qlangtech.tis.solrdao.IFieldTypeFactory;
 import com.yushu.tis.xmodifier.XModifier;
 import org.jdom2.Document;
 
@@ -26,8 +27,7 @@ import org.jdom2.Document;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-01-22 17:44
  */
-public abstract class FieldTypeFactory implements IdentityDescribale<FieldTypeFactory, ISolrFieldType>, IModifierProcess {
-
+public abstract class FieldTypeFactory implements IdentityDescribale<FieldTypeFactory, ISolrFieldType>, IModifierProcess, IFieldTypeFactory {
 
 
     @Override
@@ -36,6 +36,7 @@ public abstract class FieldTypeFactory implements IdentityDescribale<FieldTypeFa
     }
 
     /**
+     * ∂
      * 是否针对处理String类型的字段，例如json，tags等。是，则在console页面处理的时候会显示到fieldtype的关联下啦菜单
      *
      * @return

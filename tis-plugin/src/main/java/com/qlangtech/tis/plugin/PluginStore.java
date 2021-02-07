@@ -84,6 +84,10 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
     }
 
     public T find(String name) {
+        return find(name, true);
+    }
+
+    public T find(String name, boolean throwNotFoundErr) {
         List<T> plugins = this.getPlugins();
         if (!IdentityName.class.isAssignableFrom(this.pluginClass)) {
             throw new IllegalStateException(this.pluginClass + " can not find by name:" + name);
@@ -94,10 +98,14 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
                 return item;
             }
         }
-        final String instanceName = this.pluginClass.getSimpleName();
-        throw new IllegalStateException(instanceName + " has not be initialized,name:" + name + " can not find relevant '" + instanceName
-                + "' in ["
-                + plugins.stream().map((r) -> ((IdentityName) r).identityValue()).collect(Collectors.joining(",")) + "]");
+        if (throwNotFoundErr) {
+            final String instanceName = this.pluginClass.getSimpleName();
+            throw new IllegalStateException(instanceName + " has not be initialized,name:" + name + " can not find relevant '" + instanceName
+                    + "' in ["
+                    + plugins.stream().map((r) -> ((IdentityName) r).identityValue()).collect(Collectors.joining(",")) + "]");
+        } else {
+            return null;
+        }
     }
 
     public List<Descriptor<T>> allDescriptor() {

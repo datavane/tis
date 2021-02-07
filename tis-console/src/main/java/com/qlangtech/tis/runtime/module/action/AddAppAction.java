@@ -42,6 +42,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JavaBeanMsgHandler;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
+import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
@@ -125,7 +126,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   public void doCreateCollection(Context context) throws Exception {
     CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);
     confiemModel.setTplAppId(getTemplateApp(this).getAppId());
-    SchemaResult schemaResult = this.parseSchema(context, confiemModel);
+    SchemaResult schemaResult = this.parseSchema(context, ISchemaPluginContext.NULL, confiemModel);
     // if (!createNewApp(context, confiemModel.getAppform(), -1, /* publishSnapshotId */
     // null, /* schemaContent */
     // true).isSuccess()) {
@@ -154,7 +155,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   public void doAdvanceAddApp(Context context) throws Exception {
     CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);
     confiemModel.setTplAppId(getTemplateApp(this).getAppId());
-    SchemaResult schemaResult = this.parseSchema(context, confiemModel);
+    SchemaResult schemaResult = this.parseSchema(context, ISchemaPluginContext.NULL, confiemModel);
     if (!createNewApp(context, confiemModel.getAppform(), -1, /**
        * publishSnapshotId
        */
@@ -248,12 +249,15 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     }
   }
 
-  private static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter, byte[] uploadContent, BasicModule module, String memo, Long userId, String userName) {
+  private static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
+    , ISchemaPluginContext schemaPlugin, byte[] uploadContent, BasicModule module, String memo, Long userId, String userName) {
     CreateSnapshotResult createResult = new CreateSnapshotResult();
     final String md5 = ConfigFileReader.md5file(uploadContent);
     // 创建一条资源记录
     try {
-      Integer newResId = createNewResource(context, uploadContent, md5, fileGetter, module);
+
+      Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, uploadContent, md5, fileGetter, module, module);
+      //  Integer newResId = createNewResource(context, schemaPluginContext, uploadContent, md5, fileGetter, module);
       final Snapshot snapshot = fileGetter.createNewSnapshot(newResId, domain.getSnapshot());
       snapshot.setMemo(memo);
       createResult.setNewSnapshotId(createNewSnapshot(snapshot, memo, module, userId, userName));
@@ -320,26 +324,6 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     return result;
   }
 
-  private static Integer createNewResource(Context context, final byte[] uploadContent, final String md5, PropteryGetter fileGetter, BasicModule module) throws SchemaFileInvalidException {
-    UploadResource resource = getUploadResource(context, uploadContent, md5, fileGetter, module);
-    return module.getUploadResourceDAO().insertSelective(resource);
-  }
-
-  private static UploadResource getUploadResource(Context context, byte[] uploadContent, String md5, PropteryGetter fileGetter, BasicModule module) throws SchemaFileInvalidException {
-    UploadResource resource = new UploadResource();
-    resource.setContent(uploadContent);
-    resource.setCreateTime(new Date());
-    resource.setResourceType(fileGetter.getFileName());
-    resource.setMd5Code(md5);
-    ConfigFileValidateResult validateResult = fileGetter.validate(resource);
-    // 校验文件格式是否正确，通用用DTD来校验
-    if (!validateResult.isValid()) {
-      module.addErrorMessage(context, ResSynManager.ERROR_MSG_SCHEMA_TITLE);
-      module.addErrorMessage(context, validateResult.getValidateResult());
-      throw new SchemaFileInvalidException(validateResult.getValidateResult());
-    }
-    return resource;
-  }
 
   private static // BasicModule module
   Integer createNewSnapshot(// BasicModule module
@@ -442,6 +426,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
         context, // Long.parseLong(loginUser.getId())
         domain, // Long.parseLong(loginUser.getId())
         ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
+        ISchemaPluginContext.NULL,
         schemaContent, // Long.parseLong(loginUser.getId())
         module, // Long.parseLong(loginUser.getId())
         StringUtils.EMPTY, -1l, loginUser.getName());

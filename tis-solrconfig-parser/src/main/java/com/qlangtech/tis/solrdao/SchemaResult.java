@@ -71,10 +71,10 @@ public class SchemaResult {
         return schema;
     }
 
-    public static SchemaResult parseSchemaResult(IMessageHandler module, Context context, byte[] schemaContent, boolean shallValidate
-            , SolrFieldsParser.ParseResultCallback... parseResultCallback) {
-        return parseSchemaResult(module, context, schemaContent, shallValidate, (fieldTypeName) -> false, parseResultCallback);
-    }
+//    public static SchemaResult parseSchemaResult(IMessageHandler module, Context context, byte[] schemaContent, boolean shallValidate
+//            ,ISchemaFieldTypeContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) {
+//        return parseSchemaResult(module, context, schemaContent, shallValidate, schemaPlugin, parseResultCallback);
+//    }
 
     /**
      * 解析提交的schemaxml 内容
@@ -85,9 +85,11 @@ public class SchemaResult {
      */
     public static SchemaResult parseSchemaResult(IMessageHandler module, Context context, byte[] schemaContent, boolean shallValidate
             , ISchemaFieldTypeContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) {
-        // SchemaResult result = new SchemaResult();
         if (schemaContent == null) {
             throw new IllegalStateException("schemaContent can not be null");
+        }
+        if (schemaPlugin == null) {
+            throw new IllegalArgumentException("param schemaPlugin can not be null");
         }
         SolrFieldsParser.ParseResult parseResult;
         try {

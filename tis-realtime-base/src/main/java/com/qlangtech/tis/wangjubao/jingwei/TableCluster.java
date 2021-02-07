@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,6 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
@@ -83,15 +84,15 @@ public class TableCluster {
                 parseResult = fieldsMap.get(collection);
                 if (parseResult == null) {
                     SnapshotDomain domain = HttpConfigFileReader.getResource(collection, RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA);
-                    IIndexMetaData meta = SolrFieldsParser.parse(() -> ConfigFileReader.FILE_SCHEMA.getContent(domain));
+                    IIndexMetaData meta = SolrFieldsParser.parse(() -> ConfigFileReader.FILE_SCHEMA.getContent(domain), (fieldType) -> false);
                     parseResult = meta.getSchemaParseResult();
                     fieldsMap.put(collection, parseResult);
                     logger.info("doc acceptKeys:" + Joiner.on(",").join(parseResult.dFieldsNames));
-                // try (ByteArrayInputStream reader = new ByteArrayInputStream(ConfigFileReader.FILE_SCHEMA.getContent(domain))) {
-                // parseResult = (new SolrFieldsParser()).parseSchema(reader, false);
-                // 
-                // return parseResult;
-                // }
+                    // try (ByteArrayInputStream reader = new ByteArrayInputStream(ConfigFileReader.FILE_SCHEMA.getContent(domain))) {
+                    // parseResult = (new SolrFieldsParser()).parseSchema(reader, false);
+                    //
+                    // return parseResult;
+                    // }
                 }
             }
         }

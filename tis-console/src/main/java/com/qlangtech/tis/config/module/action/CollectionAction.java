@@ -45,10 +45,11 @@ import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
-import com.qlangtech.tis.solrdao.SchemaResult;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.solrdao.ISchemaField;
+import com.qlangtech.tis.solrdao.ISchemaPluginContext;
+import com.qlangtech.tis.solrdao.SchemaResult;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
@@ -628,7 +629,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     confirmModel.setAppform(extendApp);
 
     SchemaResult schemaResult = SchemaAction.mergeWfColsWithTplCollection(this
-      , context, df, (cols, schemaParseResult) -> {
+      , context, df, ISchemaPluginContext.NULL, (cols, schemaParseResult) -> {
         ColumnMetaData pkMeta = targetColMetas.getPKMeta();
         PSchemaField field = null;
         ColMetaTuple rft = null;

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,6 +19,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
+
 import java.io.InputStream;
 
 /**
@@ -53,7 +54,7 @@ public class TestTableClusterParser extends TestCase {
         // SolrFieldsParser solrFieldsParser = new SolrFieldsParser();
         SolrFieldsParser.ParseResult parseResult = null;
         try (InputStream reader = TestTableClusterParser.class.getResourceAsStream("s4totalpay-schema.xml")) {
-            IIndexMetaData meta = SolrFieldsParser.parse(() -> IOUtils.toByteArray(reader));
+            IIndexMetaData meta = SolrFieldsParser.parse(() -> IOUtils.toByteArray(reader), (fieldType) -> false);
             // solrFieldsParser.parseSchema(reader, false);
             parseResult = meta.getSchemaParseResult();
         }
