@@ -102,21 +102,6 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
             } else {
                 throw new IllegalStateException("expectedType:" + expectedType + " is illegal");
             }
-
-//            if (expectedType == FieldType.class) {
-//                return (T) findAndCreatePlugin(cName, FieldTypeFactory.class);
-//            } else if (expectedType == CharFilterFactory.class) {
-//                return (T) findAndCreatePlugin(cName, CharFilterFactoryFactory.class);
-//            } else if (expectedType == TokenFilterFactory.class) {
-//                return (T) findAndCreatePlugin(cName, TokenFilterFactoryFactory.class);
-//            } else if (expectedType == TokenizerFactory.class) {
-//                return (T) findAndCreatePlugin(cName, TokenizerFactoryFactory.class);
-//            } else {
-//                throw new IllegalStateException("expectedType:" + expectedType + " is illegal");
-//            }
-//            PackageLoader.Package.Version version = findPkgVersion(cName);
-//            return applyResourceLoaderAware(version, version.getLoader().newInstance(cName.className, expectedType, subpackages));
-            //   return null;
         }
     }
 
@@ -124,19 +109,12 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
     @Override
     public <T> T newInstance(String cname, Class<T> expectedType, String[] subPackages, Class[] params, Object[] args) {
 
-        //  throw new UnsupportedOperationException();
-
         PluginInfo.ClassName cName = new PluginInfo.ClassName(cname);
         if (cName.pkg == null) {
             return coreResourceLoader.newInstance(cname, expectedType, subPackages, params, args);
         } else {
-//            PackageLoader.Package.Version version = findPkgVePackageLoader.Package.Version version = findPkgVersion(cName);
-////            return applyResourceLoaderAware(version, version.getLoader().newInstance(cName.className, expectedType, subPackages, params, args));rsion(cName);
-//            return applyResourceLoaderAware(version, version.getLoader().newInstance(cName.className, expectedType, subPackages, params, args));
             throw new UnsupportedOperationException("cname:" + cName.original + ",expectedType:" + expectedType);
         }
-//
-//        return null;
     }
 
     private <T> T findAndCreatePlugin(PluginInfo.ClassName cName, Class<? extends IdentityDescribale> expectedType) {
@@ -148,7 +126,9 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
             }
         }
 
-        throw new IllegalStateException("can not find instance " + cName.className + ",collection:" + collectionName + " type:" + expectedType);
+        throw new IllegalStateException("can not find instance '" + cName.className + "',collection:" + collectionName
+                + " type:" + expectedType + ",exist:" + fieldTypeStore.getPlugins().stream().map((i) -> (i).identityValue() + ":"
+                + i.getDescriptor().getId()).collect(Collectors.joining(",")));
     }
 
     @Override
