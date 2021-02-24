@@ -168,7 +168,7 @@ public class WorkflowTaskConfigParser {
      * @throws Exception
      */
     public TaskWorkflow getWorkflow() throws Exception {
-        String joinTask = this.joinRuleGetter.getTaskContent(tplContext.getParams());
+        String joinTask = this.joinRuleGetter.getTaskContent(tplContext.getExecContext());
         Pattern p = Pattern.compile("\\$\\{.?+\\}");
         Matcher m = p.matcher(joinTask);
         TaskWorkflow taskList = this.parseTask(m.replaceAll("test"));

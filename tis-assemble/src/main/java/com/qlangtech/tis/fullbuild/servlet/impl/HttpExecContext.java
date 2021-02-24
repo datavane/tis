@@ -18,6 +18,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletRequest;
+
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -30,8 +32,12 @@ public class HttpExecContext implements IParamContext {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpExecContext.class);
 
-    // private final ServletRequest request;
     private final Map<String, String> params;
+
+    @Override
+    public ExecutePhaseRange getExecutePhaseRange() {
+        throw new UnsupportedOperationException();
+    }
 
     @SuppressWarnings("all")
     public HttpExecContext(ServletRequest request, Map<String, String> params) {
