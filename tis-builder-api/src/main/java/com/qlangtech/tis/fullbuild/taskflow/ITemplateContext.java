@@ -26,5 +26,5 @@ public interface ITemplateContext {
 
     public void putContextValue(String key, Object v);
 
-    public IJoinTaskContext joinTaskContext();
+    public IJoinTaskContext getExecContext();
 }

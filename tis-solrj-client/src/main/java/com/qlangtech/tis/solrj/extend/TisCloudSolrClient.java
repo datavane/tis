@@ -55,7 +55,19 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
 
     private static ExtendCloudSolrClient solrClient;
 
-    private static final StreamFactory streamFactory = new StreamFactoryWithClient().withFunctionName("searchExtend", ExtendCloudSolrStream.class).withFunctionName("search", CloudSolrStream.class).withFunctionName("unique", UniqueStream.class).withFunctionName("top", RankStream.class).withFunctionName("group", ReducerStream.class).withFunctionName("innerJoin", InnerJoinStream.class).withFunctionName("leftOuterJoin", LeftOuterJoinStream.class).withFunctionName("complement", ComplementStream.class).withFunctionName("notExist", NotExistStream.class).withFunctionName("count", CountStream.class).withFunctionName("unique", UniqueStream.class);
+    private static final StreamFactory streamFactory
+            = new StreamFactoryWithClient() //
+            .withFunctionName("searchExtend", ExtendCloudSolrStream.class) //
+            .withFunctionName("search", CloudSolrStream.class) //
+            .withFunctionName("unique", UniqueStream.class) //
+            .withFunctionName("top", RankStream.class) //
+            .withFunctionName("group", ReducerStream.class) //
+            .withFunctionName("innerJoin", InnerJoinStream.class) //
+            .withFunctionName("leftOuterJoin", LeftOuterJoinStream.class) //
+            .withFunctionName("complement", ComplementStream.class) //
+            .withFunctionName("notExist", NotExistStream.class) //
+            .withFunctionName("count", CountStream.class) //
+            .withFunctionName("unique", UniqueStream.class);
 
     private static final MessageFormat STREAM_QUERY_FORMAT = new MessageFormat("searchExtend({0}, qt=/export, " + "_route_={1}, q=\"{2}\", fl=\"{3}\", sort=\"{4}\")");
 
@@ -81,7 +93,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
                 if (solrClient == null) {
                     solrClient = new ExtendCloudSolrClient(zkHost[0], httpClient);
                     streamFactory.withDefaultZkHost(zkHost[0]);
-                    ((StreamFactoryWithClient) streamFactory).withExtendClient(solrClient);
+                    //((StreamFactoryWithClient) streamFactory).withExtendClient(solrClient);
                 }
             }
         }
@@ -143,7 +155,8 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
      *             the invocation target exception
      */
     @SuppressWarnings("all")
-    public <T> void queryAndStreamResponse(String query, final Class<T> clazz, final ResponseCallback<T> responseCallback) throws IOException, IntrospectionException, IllegalAccessException, InstantiationException, InvocationTargetException {
+    public <T> void queryAndStreamResponse(String query, final Class<T> clazz, final ResponseCallback<T> responseCallback)
+            throws IOException, IntrospectionException, IllegalAccessException, InstantiationException, InvocationTargetException {
         Map<String, SchemaPojoMapping> setMethods = null;
         TupleStream tupleStream = streamFactory.constructStream(query);
         tupleStream.open();

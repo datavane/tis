@@ -1,21 +1,23 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.order.center;
 
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.taskflow.IFlatTableBuilder;
+
 import java.util.Map;
 
 /**
@@ -23,10 +25,24 @@ import java.util.Map;
  * @create: 2020-05-20 12:10
  */
 public class TestJoinTaskContext implements IJoinTaskContext {
+    private final ExecutePhaseRange execPhaseRange;
+
+    public TestJoinTaskContext() {
+        this(ExecutePhaseRange.fullRange());
+    }
+
+    public TestJoinTaskContext(ExecutePhaseRange execPhaseRange) {
+        this.execPhaseRange = execPhaseRange;
+    }
 
     @Override
     public IFlatTableBuilder getFlatTableBuilder() {
         return null;
+    }
+
+    @Override
+    public ExecutePhaseRange getExecutePhaseRange() {
+        return this.execPhaseRange;
     }
 
     @Override

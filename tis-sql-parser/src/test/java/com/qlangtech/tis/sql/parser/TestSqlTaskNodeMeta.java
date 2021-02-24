@@ -113,7 +113,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         dumpPartition.put(EntityName.parse("scmdb.goods_sync_shop"), () -> pt);
         ITemplateContext tplContext = EasyMock.createMock("templateContext", ITemplateContext.class);
         IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
-        EasyMock.expect(tplContext.joinTaskContext()).andReturn(joinTaskContext);
+        EasyMock.expect(tplContext.getExecContext()).andReturn(joinTaskContext);
         Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
         assertTrue(erRule.isPresent());
         EasyMock.replay(tplContext, joinTaskContext);

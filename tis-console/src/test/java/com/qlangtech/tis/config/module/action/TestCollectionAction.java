@@ -42,12 +42,13 @@ import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.solrj.util.ZkUtils;
+import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
-import org.apache.commons.io.IOUtils;
-import org.apache.solr.common.cloud.*;
+import org.apache.solr.common.cloud.DocCollection;
+import org.apache.solr.common.cloud.TISZkStateReader;
 import org.apache.solr.common.util.DOMUtil;
 import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
@@ -59,20 +60,17 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * httpClient Stub 测试
  * https://rieckpil.de/how-to-test-java-http-client-usages-e-g-okhttp-apache-httpclient/
+ *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020-12-16 10:39
  */
@@ -147,9 +145,46 @@ public class TestCollectionAction extends BasicActionTestCase {
     this.clearMocks();
   }
 
+  public void testGetIndexTopology() throws Exception {
+//    createCoordinatorMock((r) -> {
+//    });
+//    buildZkStateReaderMock();
+    createMockCollection(COLLECTION_NAME);
+    request.setParameter("emethod", "getIndexTopology");
+    request.setParameter("action", "collection_action");
+    JSONObject content = new JSONObject();
+
+    content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
+    request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
+
+    ActionProxy proxy = getActionProxy();
+    this.replay();
+    String result = proxy.execute();
+    assertEquals("CollectionAction_ajax", result);
+    AjaxValve.ActionExecResult aResult = showBizResult();
+    assertNotNull(aResult);
+    assertTrue(aResult.isSuccess());
+    Object bizResult = aResult.getBizResult();
+    assertNotNull(bizResult);
+    this.verifyAll();
+    assertTrue(bizResult instanceof JSONObject);
+    JSONObject topology = (JSONObject) bizResult;
+    assertEquals("emp_no", topology.getString(CollectionAction.KEY_PK));
+    JSONArray shards = topology.getJSONArray(SqlTaskNodeMeta.KEY_PROFILE_TOPOLOGY);
+    assertEquals(1, shards.size());
+    JSONObject shard = shards.getJSONObject(0);
+    //replica_core_url
+    assertEquals(name_shard1, shard.getString(CollectionAction.KEY_SHARD_NAME));
+    JSONArray replics = shard.getJSONArray(CollectionAction.KEY_REPLICS);
+    assertEquals(1, replics.size());
+    JSONObject replic = replics.getJSONObject(0);
+    assertEquals(replica_core_url, replic.getString(CollectionAction.KEY_CORE_URL));
+    assertTrue(replic.getBoolean(CollectionAction.KEY_IS_ACTIVE));
+  }
+
   public void testDeleteCollection() throws Exception {
 
-    buildCoordinatorMock((r) -> {
+    createCoordinatorMock((r) -> {
     });
 
     request.setParameter("emethod", "deleteIndex");
@@ -169,18 +204,6 @@ public class TestCollectionAction extends BasicActionTestCase {
     this.verifyAll();
   }
 
-  private IExpectationSetters<byte[]> buildCoordinatorMock(Consumer<ITISCoordinator> consumer) throws IOException {
-    ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
-    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
-    consumer.accept(zkCoordinator);
-    try (InputStream input = this.getClass().getResourceAsStream("/com/qlangtech/tis/overseer_elect_leader.json")) {
-      IExpectationSetters<byte[]> expect = EasyMock.expect(zkCoordinator.getData(CoreAction.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true));
-      expect
-        .andReturn(IOUtils.toByteArray(input));
-      return expect;
-    }
-
-  }
 
   /**
    * 测试增量执行状态
@@ -227,7 +250,7 @@ public class TestCollectionAction extends BasicActionTestCase {
     this.verifyAll();
   }
 
-  private static void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator) {
+  public static void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator) {
     createAssembleLogCollectPathMock(zkCoordinator, 1);
   }
 
@@ -288,9 +311,7 @@ public class TestCollectionAction extends BasicActionTestCase {
 
   private void buildZkStateReaderMock() throws Exception {
     TISZkStateReader tisZkStateReader = buildTisZkStateReaderMock();
-
-    DocCollection docCollection = buildDocCollectionMock(true, tisZkStateReader);
-
+    DocCollection docCollection = buildDocCollectionMock(true, true, COLLECTION_NAME, tisZkStateReader);
   }
 
   private TISZkStateReader buildTisZkStateReaderMock() {
@@ -299,70 +320,10 @@ public class TestCollectionAction extends BasicActionTestCase {
     return tisZkStateReader;
   }
 
-  private DocCollection buildDocCollectionMock(boolean getSlicesMap, TISZkStateReader tisZkStateReader) throws Exception {
-    DocCollection docCollection = this.mock("docCollection", DocCollection.class);
-    Map<String, Slice> sliceMap = Maps.newHashMap();
-    Slice slice = this.mock("shard1Slice", Slice.class);
-    Replica replica = this.mock("core_node2_replica", Replica.class);
-    sliceMap.put("shard1", slice);
-    IExpectationSetters<Collection<Replica>> collectionIExpectationSetters
-      = EasyMock.expect(slice.getReplicas()).andReturn(Collections.singleton(replica));
-    if (!getSlicesMap) {
-      collectionIExpectationSetters.times(2);
-    }
-    IExpectationSetters<Boolean> leaderSetters
-      = EasyMock.expect(replica.getBool("leader", false)).andReturn(true);
-    if (!getSlicesMap) {
-      leaderSetters.times(1);
-    }
-    IExpectationSetters<String> getCoreUrlExpectationSetters
-      = EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4employees_shard1_replica_n1/");
-
-
-    if (!getSlicesMap) {
-      String shard1 = "shard1";
-      getCoreUrlExpectationSetters.times(4);
-      EasyMock.expect(slice.getName()).andReturn("shard1");
-
-      EasyMock.expect(replica.getName()).andReturn("search4employees_shard1_replica_n1").times(2);
-      EasyMock.expect(replica.getBaseUrl()).andReturn("baseurl").times(2);
-      EasyMock.expect(replica.getCollection()).andReturn(COLLECTION_NAME).times(2);
-      EasyMock.expect(replica.getCoreName()).andReturn("search4employees_shard1_replica_n1").times(2);
-      EasyMock.expect(replica.getState()).andReturn(Replica.State.ACTIVE).times(3);
-      EasyMock.expect(replica.getNodeName()).andReturn("192.168.28.200:8080_solr").times(3);
-      EasyMock.expect(replica.getProperties()).andReturn(Collections.emptyMap()).times(2);
-      EasyMock.expect(replica.getType()).andReturn(Replica.Type.NRT).times(2);
-      EasyMock.expect(replica.getSlice()).andReturn(shard1).times(2);
-
-      EasyMock.expect(docCollection.getName()).andReturn(COLLECTION_NAME);
-      EasyMock.expect(docCollection.getSlices()).andReturn(sliceMap.values()).times(2);
-    } else {
-      getCoreUrlExpectationSetters.times(1);
-      EasyMock.expect(replica.getBaseUrl()).andReturn("baseurl").times(1);
-    }
-
-    EasyMock.expect(docCollection.getSlicesMap()).andReturn(sliceMap);
-
-    EasyMock.expect(tisZkStateReader.fetchCollectionState(COLLECTION_NAME, null))
-      .andReturn(docCollection);
-
-    return docCollection;
-  }
 
   public void testDoGetIndexStatus() throws Exception {
     // this.buildZkStateReaderMock();
-    TISZkStateReader tisZkStateReader = this.mock("tisZkStateReader", TISZkStateReader.class);
-    //getClusterState
-    ClusterState clusterState = this.mock("clusterState", ClusterState.class);
-    EasyMock.expect(tisZkStateReader.getClusterState()).andReturn(clusterState);
-
-    ClusterState.CollectionRef collectionRef = this.mock(COLLECTION_NAME + "CollectionRef", ClusterState.CollectionRef.class);
-    EasyMock.expect(clusterState.getCollectionRef(COLLECTION_NAME)).andReturn(collectionRef);
-
-    DocCollection coll = buildDocCollectionMock(false, tisZkStateReader);
-    EasyMock.expect(collectionRef.get()).andReturn(coll);
-
-    MockClusterStateReader.mockStateReader = tisZkStateReader;
+    createMockCollection(COLLECTION_NAME);
 
     request.setParameter("emethod", "getIndexStatus");
     request.setParameter("action", "collection_action");
@@ -378,6 +339,7 @@ public class TestCollectionAction extends BasicActionTestCase {
     assertTrue(aResult.isSuccess());
     this.verifyAll();
   }
+
 
   public void testDoGetTaskStatus() throws Exception {
     request.setParameter("emethod", "getTaskStatus");
@@ -404,7 +366,7 @@ public class TestCollectionAction extends BasicActionTestCase {
   public void testDoCreate() throws Exception {
 
     this.clearUpDB();
-    IExpectationSetters<byte[]> iExpectationSetters = buildCoordinatorMock((coord) -> {
+    IExpectationSetters<byte[]> iExpectationSetters = createCoordinatorMock((coord) -> {
 //      EasyMock.expect(coord.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true))
 //        .andReturn();
       createAssembleLogCollectPathMock(coord);
@@ -539,7 +501,6 @@ public class TestCollectionAction extends BasicActionTestCase {
     });
     assertTrue("must have execute", executed.get());
   }
-
 
 
   private ActionProxy getActionProxy() {

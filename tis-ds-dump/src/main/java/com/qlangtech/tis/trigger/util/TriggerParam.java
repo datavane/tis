@@ -21,7 +21,7 @@ import java.util.HashMap;
  * @date 2020/04/13
  */
 public class TriggerParam extends HashMap<String, String> {
-
+    public static final String TASK_ID = "taskid";
     public static final String TRIGGER_SERVER_PORT = "8199";
 
     public static final int COMMON_FEDDBACK_PORT = 9997;
@@ -71,7 +71,7 @@ public class TriggerParam extends HashMap<String, String> {
         return this.get(DUMP_TYPE);
     }
 
-    private static final String TASK_ID = "taskid";
+
 
     public void setTriggerDumpTaskId(String triggerDumpTaskId) {
         this.put(TRIGGER_DUMP_TASK_ID, triggerDumpTaskId);

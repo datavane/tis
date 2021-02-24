@@ -154,7 +154,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             }
 
             @Override
-            public IJoinTaskContext joinTaskContext() {
+            public IJoinTaskContext getExecContext() {
                 return null;
             }
         };
@@ -242,7 +242,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             throw new IllegalStateException("dumpPartition set size can not small than 1");
         }
         Optional<List<Expression>> parameters = Optional.empty();
-        IJoinTaskContext joinContext = templateContext.joinTaskContext();
+        IJoinTaskContext joinContext = templateContext.getExecContext();
         SqlStringBuilder builder = new SqlStringBuilder();
         SqlRewriter rewriter = new SqlRewriter(builder, dumpPartition, erRules, parameters, isFinalNode, joinContext);
         // 执行rewrite

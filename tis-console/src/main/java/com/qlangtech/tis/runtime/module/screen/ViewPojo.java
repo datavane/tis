@@ -46,22 +46,28 @@ public class ViewPojo {
   // }
   public static boolean downloadResource(Context context, final AppDomainInfo appDomainInfo, BasicModule module, final Writer writer) throws Exception {
     return downloadResource(context, appDomainInfo, module, writer, new ResourcePrep() {
-
       @Override
       public void prepare(IBuilderContext builderContext) {
       }
     });
   }
 
-  public static boolean downloadResource(Context context, final AppDomainInfo appDomainInfo
-    , BasicModule module, final Writer writer, ResourcePrep prepare) throws Exception {
+  public static SnapshotDomain getSnapshotDoamin(BasicModule module, final AppDomainInfo appDomainInfo) {
     ServerGroup group = DownloadServlet.getServerGroup(appDomainInfo.getAppid(), (short) 0
       , appDomainInfo.getRunEnvironment().getId(), module.getServerGroupDAO());
     if (group == null) {
-      module.addErrorMessage(context, "您还没有为该应用配置Snapshot");
-      return false;
+      //module.addErrorMessage(context, "您还没有为该应用配置Snapshot");
+      // return false;
+      throw new IllegalStateException("application:" + appDomainInfo + " can not get relevant serverGroup");
     }
     final SnapshotDomain snapshot = module.getSnapshotViewDAO().getView(group.getPublishSnapshotId());
+    return snapshot;
+  }
+
+  public static boolean downloadResource(Context context, final AppDomainInfo appDomainInfo
+    , BasicModule module, final Writer writer, ResourcePrep prepare) throws Exception {
+
+    final SnapshotDomain snapshot = getSnapshotDoamin(module, appDomainInfo);
     // final StringWriter writer = new StringWriter();
     final IBuilderContext builderContext = new IBuilderContext() {
 

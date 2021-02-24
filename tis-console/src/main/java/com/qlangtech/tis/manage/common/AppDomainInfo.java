@@ -56,16 +56,6 @@ public class AppDomainInfo {
     // return application.getProjectName();
     }
 
-    // public AppDomainInfo(Integer bizid, Integer appid, Integer runEnvironment,
-    // RunContext context) {
-    // this(bizid, appid, RunEnvironment.getEnum(runEnvironment.shortValue()),
-    // context);
-    // }
-    // public AppDomainInfo(Integer bizid, Integer appid, Integer runEnvironment,
-    // IApplicationDAO applicationDao) {
-    // this(bizid, appid, RunEnvironment.getEnum(runEnvironment.shortValue()),
-    // applicationDao);
-    // }
     public Application getApp() {
         if (this.app == null) {
             throw new IllegalStateException("app can not be null");
@@ -74,22 +64,10 @@ public class AppDomainInfo {
     }
 
     public String getAppName() {
-        // }
         return this.app.getProjectName();
     }
 
-    // public AppDomainInfo(Application app, Integer runEnvironment, RunContext
-    // context) {
-    // this(app.getDptId(), app.getAppId(), runEnvironment, context);
-    // }
-    // 
-    // public AppDomainInfo(Application app, Integer runEnvironment, IApplicationDAO
-    // applicationDao) {
-    // this(app.getDptId(), app.getAppId(), runEnvironment, applicationDao);
-    // }
-    // public void setAppName(String appName) {
-    // this.appName = appName;
-    // }
+
     /**
      * 创建于应用无关的当前环境
      *
@@ -123,18 +101,6 @@ public class AppDomainInfo {
         }
     }
 
-    // public Integer getRunId() {
-    // return runEnvironment.getId().intValue();
-    // }
-    // 
-    // public short getShortRunId() {
-    // return runEnvironment.getId();
-    // }
-    // 
-    // public String getRunEnvir() {
-    // 
-    // return getRunEnvir(this.runEnvironment);
-    // }
     public static String getRunEnvir(int runEnvironment) {
         return RunEnvironment.getEnum((short) runEnvironment).getDescribe();
     }
@@ -153,4 +119,12 @@ public class AppDomainInfo {
     public Integer getAppid() {
         return appid;
     }
+
+  @Override
+  public String toString() {
+    return "{" +
+      "appid=" + appid +
+      ", runEnvironment=" + runEnvironment +
+      '}';
+  }
 }

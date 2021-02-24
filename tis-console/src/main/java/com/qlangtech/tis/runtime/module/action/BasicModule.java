@@ -39,6 +39,8 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
+import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
@@ -68,7 +70,7 @@ import java.util.regex.Pattern;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2014年4月18日下午7:58:02
  */
-public abstract class BasicModule extends ActionSupport implements RunContext, IControlMsgHandler, IPluginContext {
+public abstract class BasicModule extends ActionSupport implements RunContext, IControlMsgHandler, IPluginContext, IERRulesGetter {
 
   public static final long serialVersionUID = 1L;
 
@@ -77,6 +79,13 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   // public static final int PAGE_SIZE = 30;
   private final Context context = new MockContext();
   protected IClusterSnapshotDAO clusterSnapshotDAO;
+  private IERRulesGetter erRulesGetter;
+
+  @Override
+  public Optional<ERRules> getErRules(String dfName) {
+    Objects.requireNonNull(erRulesGetter, "erRulesGetter can not be null");
+    return erRulesGetter.getErRules(dfName);
+  }
 
   protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
     Integer wfid = module.getAppDomain().getApp().getWorkFlowId();
@@ -120,9 +129,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     final AppDomainInfo domain = CheckAppDomainExistValve.getAppDomain(this);
     return CoreAction.getServerGroup0(domain, this);
   }
+
   public WorkFlow loadDF(Integer wfId) {
     return this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(wfId);
   }
+
   /**
    * 插件运行环境是否和数据源相关
    *
@@ -897,6 +908,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   @Autowired
   public final void setRunContextGetter(RunContextGetter daoContextGetter) {
     this.daoContextGetter = daoContextGetter;
+  }
+
+  @Autowired
+  public void setErRulesGetter(IERRulesGetter erRulesGetter) {
+    this.erRulesGetter = erRulesGetter;
   }
 
   @Override

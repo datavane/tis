@@ -112,13 +112,6 @@ public class IndexQuery {
             }
         }
         requestContext.schema = new SolrFieldsParser.ParseResult(false);
-    // StringBuffer servers = new StringBuffer();
-    // for (ServerJoinGroup server : serverlist) {
-    // servers.append("[").append(server.getIpAddress()).append("]");
-    //
-    // }
-    // throw new ServletException("remote server faild,remote servers:" +
-    // servers.toString());
     }
 
     //

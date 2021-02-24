@@ -16,8 +16,6 @@ package com.qlangtech.tis.fullbuild.taskflow;
 
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.fs.ITaskContext;
-import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
-import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 
@@ -40,13 +38,13 @@ public abstract class AdapterTask extends DataflowTask {
     private ITaskContext taskContext;
 
     protected final TabPartitions getDumpPartition() {
-        TabPartitions dumpPartition = ExecChainContextUtils.getDependencyTablesPartitions(this.getContext().joinTaskContext());
+        TabPartitions dumpPartition = ExecChainContextUtils.getDependencyTablesPartitions(this.getContext().getExecContext());
         return dumpPartition;
     }
 
     @Override
     protected Map<String, Boolean> getTaskWorkStatus() {
-        return createTaskWorkStatus(this.getContext().joinTaskContext());
+        return createTaskWorkStatus(this.getContext().getExecContext());
     }
 
     public static Map<String, Boolean> createTaskWorkStatus(IJoinTaskContext chainContext) {

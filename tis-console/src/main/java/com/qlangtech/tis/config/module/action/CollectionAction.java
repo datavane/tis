@@ -47,9 +47,11 @@ import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
+import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
@@ -68,6 +70,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.params.CommonParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +110,12 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   public static final String RESULT_KEY_ROWS_COUNT = "rowsCount";
   public static final String RESULT_KEY_ROWS = "rows";
 
+  public static final String KEY_PK = "pk";
+  public static final String KEY_SHARD_NAME = "name";
+  public static final String KEY_CORE_URL = "coreUrl";
+  public static final String KEY_IS_ACTIVE = "active";
+  public static final String KEY_REPLICS = "replics";
+
 
 //  private
 
@@ -128,6 +137,47 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   @Autowired
   public void setTransactionManager(PlatformTransactionManager transactionManager) {
     this.transactionManager = transactionManager;
+  }
+
+  /**
+   * 给
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetIndexTopology(Context context) throws Exception {
+    this.getIndexWithPost();
+    JSONObject biz = new JSONObject();
+
+    CollectionTopology topology = CoreAction.getCollectionTopology(this);
+
+    JSONArray shards = new JSONArray();
+    JSONObject shard = null;
+    JSONArray replics = null;
+    JSONObject replic = null;
+    for (CollectionTopology.Shared s : topology.getShareds()) {
+      shard = new JSONObject();
+      replics = new JSONArray();
+      shard.put(KEY_SHARD_NAME, s.getName());
+      for (Replica r : s.getReplics()) {
+        replic = new JSONObject();
+        replic.put(KEY_CORE_URL, r.getCoreUrl());
+        replic.put(KEY_IS_ACTIVE, r.getState() == Replica.State.ACTIVE);
+        replics.add(replic);
+      }
+      shard.put(KEY_REPLICS, replics);
+      shards.add(shard);
+    }
+
+
+    biz.put(SqlTaskNodeMeta.KEY_PROFILE_TOPOLOGY, shards);
+    SnapshotDomain snapshot = ViewPojo.getSnapshotDoamin(this, this.getAppDomain());
+    SolrFieldsParser.ParseResult parseResult = SolrFieldsParser.parse(() -> {
+      return snapshot.getSolrSchema().getContent();
+    }).getSchemaParseResult();
+
+    biz.put(KEY_PK, parseResult.getUniqueKey());
+    this.setBizResult(context, biz);
   }
 
   /**

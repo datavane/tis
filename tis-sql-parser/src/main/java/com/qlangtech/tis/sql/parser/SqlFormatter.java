@@ -54,7 +54,7 @@ public final class SqlFormatter {
 
     public static String formatSql(Node root, Optional<List<Expression>> parameters) {
         SqlStringBuilder builder = new SqlStringBuilder();
-        new Formatter(builder, null, parameters).process(root, 0);
+        new Formatter(builder, Collections.emptyMap(), parameters).process(root, 0);
         return builder.toString();
     }
 
@@ -117,6 +117,7 @@ public final class SqlFormatter {
         public Formatter(SqlStringBuilder builder, final Map<EntityName, TabFieldProcessor> dumpNodeExtraMetaMap, Optional<List<Expression>> parameters) {
             this.builder = builder;
             this.parameters = parameters;
+            Objects.requireNonNull(dumpNodeExtraMetaMap,"dumpNodeExtraMetaMap can not be null");
             this.dumpNodeExtraMetaMap = dumpNodeExtraMetaMap;
         }
 

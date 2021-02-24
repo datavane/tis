@@ -48,6 +48,7 @@ public class TisDateField extends DatePointField {
         return format.format(Instant.ofEpochMilli(number.longValue()));
     }
 
+
     @Override
     public Query getPointRangeQuery(QParser parser, SchemaField field, String min, String max, boolean minInclusive, boolean maxInclusive) {
         return super.getPointRangeQuery(parser, field

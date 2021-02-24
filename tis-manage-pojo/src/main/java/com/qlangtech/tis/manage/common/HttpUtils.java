@@ -46,7 +46,6 @@ public class HttpUtils {
     private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
 
     public interface IMsgProcess {
-
         public void err(String content);
     }
 
@@ -85,8 +84,6 @@ public class HttpUtils {
             }
             cacheMockRes.resources.set(orderIndex, classpathRes);
         }
-
-        // mockConnMaker.resourceStore.put(testStr, classpathRes);
     }
 
     public static DefaultMockConnectionMaker mockConnMaker;

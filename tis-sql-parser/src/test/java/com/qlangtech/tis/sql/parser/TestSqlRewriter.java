@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,21 +18,28 @@ import com.facebook.presto.sql.parser.ParsingOptions;
 import com.facebook.presto.sql.parser.SqlParser;
 import com.facebook.presto.sql.tree.Expression;
 import com.google.common.collect.ImmutableMap;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.TestJoinTaskContext;
 import com.qlangtech.tis.sql.parser.SqlRewriter.AliasTable;
 import com.qlangtech.tis.sql.parser.SqlRewriter.RewriterDumpTable;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
+import com.qlangtech.tis.sql.parser.er.TableMeta;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.easymock.EasyMock;
+
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +49,9 @@ import java.util.Optional;
  * @date 2019年8月27日
  */
 public class TestSqlRewriter extends TestCase {
+    static {
+        CenterResource.setNotFetchFromCenterRepository();
+    }
 
     private final SqlParser sqlParser = new SqlParser();
 
@@ -51,6 +61,7 @@ public class TestSqlRewriter extends TestCase {
 
     // private static final Map<EntityName, ERRules.TabFieldProcessor> tabFieldProcessorMap;
     private static final ERRules totalpayERRules;
+    private static final RewriterDumpTable totalpayinfo = RewriterDumpTable.create("kkkk", "totalpayinfo");
 
     static {
         System.setProperty("data.dir", "dataflow");
@@ -67,7 +78,7 @@ public class TestSqlRewriter extends TestCase {
         mapBuilder.put(RewriterDumpTable.create("member", "customer"), () -> "20190430111159");
         mapBuilder.put(RewriterDumpTable.create("bbb", "specialfee"), () -> "20190230111159");
         mapBuilder.put(RewriterDumpTable.create("ccc", "payinfo"), () -> "20190330111159");
-        mapBuilder.put(RewriterDumpTable.create("kkkk", "totalpayinfo"), () -> "20180330111159");
+        mapBuilder.put(totalpayinfo, () -> "20180330111159");
         mapBuilder.put(RewriterDumpTable.create("hhhh", "order_instance"), () -> "20180329111159");
         mapBuilder.put(RewriterDumpTable.create("yyyyy", "tmp_pay"), () -> "20180328111159");
         mapBuilder.put(RewriterDumpTable.create("yyyyy", "tmp_group_specialfee"), () -> "20180328111159");
@@ -83,7 +94,7 @@ public class TestSqlRewriter extends TestCase {
         }
         Optional<ERRules> totalpayERRulesOption = ERRules.getErRule("totalpay");
         totalpayERRules = totalpayERRulesOption.get();
-    // tabFieldProcessorMap = totalpayERRules.getTabFieldProcessors().stream().collect(Collectors.toMap((r) -> r.tabName, (r) -> r));
+        // tabFieldProcessorMap = totalpayERRules.getTabFieldProcessors().stream().collect(Collectors.toMap((r) -> r.tabName, (r) -> r));
     }
 
     public void testTmp_pay() {
@@ -100,24 +111,74 @@ public class TestSqlRewriter extends TestCase {
         assertFull(order_instance, nodeMeta, taskContext, nodeMeta.getSql());
     }
 
+    final String totalpaySummary = "totalpay_summary";
+
     public void testTotalpaySummaryRewrite() {
-        final String totalpaySummary = "totalpay_summary";
+
         SqlTaskNodeMeta nodeMeta = getSqlTaskNodeMeta(totalpaySummary);
         final int sharedCount = 999;
-        TestJoinTaskContext taskContext = new TestJoinTaskContext() {
-
+        TestJoinTaskContext taskContext = new TestJoinTaskContext(ExecutePhaseRange.fullRange()) {
             @Override
             public int getIndexShardCount() {
                 return sharedCount;
             }
         };
-        // taskContext.setAttribute(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(999));
-        // Optional<ERRules> totalpay = ERRules.getErRule("totalpay");
-        // totalpay.get().getTabFieldProcessors()
-        // 过滤依赖的表有ExtraMeta属性，且有colTransfer属性
-        // Map<EntityName, ERRules.TabFieldProcessor> dumpNodeExtraMetaMap = SqlFormatter.getDumpNodeExtraMetaMap(nodeMeta);
-        // assertEquals(1, dumpNodeExtraMetaMap.size());
         assertFull(totalpaySummary, true, nodeMeta, taskContext, nodeMeta.getSql());
+    }
+
+    /**
+     * 执行索引全量构建过程中，测试ERRule没有定义主表，会导致final表的分区函数无法正常创建，需要主动抛出一个异常
+     */
+    public void testTotalpaySummaryRewriteByWithoutDefinePrimaryTable() {
+
+        TestJoinTaskContext taskContext = new TestJoinTaskContext(ExecutePhaseRange.fullRange());
+        SqlTaskNodeMeta nodeMeta = getSqlTaskNodeMeta(totalpaySummary);
+//        ERRules erRules = EasyMock.createMock("erRules", ERRules.class);
+//        EasyMock.expect(erRules.getTabFieldProcessorMap()).andReturn(Collections.emptyMap());
+//        EasyMock.expect(erRules.getPrimaryTab(totalpayinfo))
+//                .andReturn(Optional.empty()/** 没有定义主表*/).anyTimes();
+
+        ERRules erRules = createMockErRules(null);
+
+        EasyMock.replay(erRules);
+        Exception occurException = null;
+        try {
+            assertFull(totalpaySummary, true, nodeMeta, taskContext, erRules, nodeMeta.getSql());
+            fail("shall throw new exception");
+        } catch (Exception e) {
+            occurException = e;
+        }
+        assertNotNull("must throw an error", occurException);
+        assertEquals(SqlRewriter.ERROR_WithoutDefinePrimaryTableShareKey, ExceptionUtils.getRootCause(occurException).getMessage());
+        EasyMock.verify(erRules);
+    }
+
+    /**
+     * 执行索引全量构建过程中，测试ERRule没有定义主表的<b>shareKey</b>，会导致final表的分区函数无法正常创建，需要主动抛出一个异常
+     */
+    public void testTotalpaySummaryRewriteByWithoutDefinePrimaryTableShareKey() {
+        TestJoinTaskContext taskContext = new TestJoinTaskContext(ExecutePhaseRange.fullRange());
+        SqlTaskNodeMeta nodeMeta = getSqlTaskNodeMeta(totalpaySummary);
+        ERRules erRules = createMockErRules(new TableMeta(totalpayinfo.getTableName(), null));
+        EasyMock.replay(erRules);
+        Exception occurException = null;
+        try {
+            assertFull(totalpaySummary, true, nodeMeta, taskContext, erRules, nodeMeta.getSql());
+            fail("shall throw new exception");
+        } catch (Exception e) {
+            occurException = e;
+        }
+        assertNotNull("must throw an error", occurException);
+        assertEquals(SqlRewriter.ERROR_WithoutDefinePrimaryTableShareKey, ExceptionUtils.getRootCause(occurException).getMessage());
+        EasyMock.verify(erRules);
+    }
+
+    public static ERRules createMockErRules(TableMeta totalpayMeta) {
+        ERRules erRules = EasyMock.createMock("erRules", ERRules.class);
+        EasyMock.expect(erRules.getTabFieldProcessorMap()).andReturn(Collections.emptyMap());
+        EasyMock.expect(erRules.getPrimaryTab(totalpayinfo))
+                .andReturn(Optional.ofNullable(totalpayMeta)/** 没有定义主表*/).times(1);
+        return erRules;
     }
 
     public void testRewriteTable() throws Exception {
@@ -151,41 +212,40 @@ public class TestSqlRewriter extends TestCase {
     }
 
     private void assertFull(String exportName, boolean finalNode, SqlTaskNodeMeta nodeMeta, TestJoinTaskContext taskContext, String... extraSql) {
-        if (extraSql.length < 1) {
-            extraSql = new String[] { processFileContent(getScriptContent(exportName + ".txt")) };
-        }
-        String extraSqlAssert = processFileContent(getScriptContent(exportName + "_assert.txt"));
-        // int waitProcessAliasTabsSetSize = 0;
-        // try {
-        // waitProcessAliasTabsSetSize = Integer.parseInt(getScriptContent(exportName +
-        // "_meta.txt"));
-        // } catch (NumberFormatException e) {
-        // }
-        MetaContent metaContent = this.getMetaContent(exportName + "_meta.txt");
-        // try {
-        rewriteAssert(exportName, finalNode, nodeMeta, extraSqlAssert, extraSql[0], metaContent, taskContext);
-    // } catch (Throwable e) {
-    // throw new RuntimeException(exportName + "\n" + extraSql[0], e);
-    // }
+        assertFull(exportName, finalNode, nodeMeta, taskContext, totalpayERRules, extraSql);
     }
 
-    protected SqlRewriter rewriteAssert(String exportName, SqlTaskNodeMeta nodeMeta, String extraSqlAssert, final String extraSql, MetaContent metaContent, TestJoinTaskContext taskContext) {
+    private void assertFull(String exportName, boolean finalNode, SqlTaskNodeMeta nodeMeta
+            , TestJoinTaskContext taskContext, IPrimaryTabFinder erRules, String... extraSql) {
+        if (extraSql.length < 1) {
+            extraSql = new String[]{processFileContent(getScriptContent(exportName + ".txt"))};
+        }
+        String extraSqlAssert = processFileContent(getScriptContent(exportName + "_assert.txt"));
+
+        MetaContent metaContent = this.getMetaContent(exportName + "_meta.txt");
+        rewriteAssert(exportName, finalNode, nodeMeta, extraSqlAssert, extraSql[0], metaContent, taskContext, erRules);
+
+    }
+
+    protected SqlRewriter rewriteAssert(String exportName, SqlTaskNodeMeta nodeMeta, String extraSqlAssert
+            , final String extraSql, MetaContent metaContent, TestJoinTaskContext taskContext) {
         return rewriteAssert(exportName, false, nodeMeta, extraSqlAssert, extraSql, metaContent, taskContext);
     }
 
     protected SqlRewriter rewriteAssert(String exportName, boolean isFinal, SqlTaskNodeMeta nodeMeta, String extraSqlAssert
             , final String extraSql, MetaContent metaContent, TestJoinTaskContext taskContext) {
+        return rewriteAssert(exportName, isFinal, nodeMeta, extraSqlAssert, extraSql, metaContent, taskContext, totalpayERRules);
+    }
+
+    protected SqlRewriter rewriteAssert(String exportName, boolean isFinal, SqlTaskNodeMeta nodeMeta, String extraSqlAssert
+            , final String extraSql, MetaContent metaContent, TestJoinTaskContext taskContext, IPrimaryTabFinder erRules) {
         SqlStringBuilder builder;
         SqlRewriter rewriter;
         Optional<List<Expression>> parameters = Optional.empty();
         Assert.assertNotNull(extraSqlAssert);
         Assert.assertNotNull(extraSql);
         builder = new SqlStringBuilder();
-        // totalpayERRules.getPrimaryTab();
-        // totalpayERRules.get
-        // totalpayERRules
-        // DefaultChainContext
-        rewriter = new SqlRewriter(builder, tabPartition, totalpayERRules, parameters, isFinal, taskContext);
+        rewriter = new SqlRewriter(builder, tabPartition, erRules, parameters, isFinal, taskContext);
         // 执行rewrite
         rewriter.process(sqlParser.createStatement(extraSql, new ParsingOptions()), 0);
         final String rewriteSql = processFileContent(builder.toString());
@@ -213,7 +273,6 @@ public class TestSqlRewriter extends TestCase {
 
     public static String getScriptContent(String fileName) {
         try {
-            // orderInstance.get().getSql();
             String extraSql = null;
             try (InputStream input = TestSqlRewriter.class.getResourceAsStream(fileName)) {
                 extraSql = processFileContent(IOUtils.toString(input, TisUTF8.get()));

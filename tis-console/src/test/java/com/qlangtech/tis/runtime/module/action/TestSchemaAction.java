@@ -34,7 +34,7 @@ import java.io.InputStream;
  */
 public class TestSchemaAction extends BasicActionTestCase {
 
-  private static final String collection = "search4totalpay";
+  public static final String collection = "search4totalpay";
 
   public void testGetFieldsBySnapshotId() throws Exception {
     request.setParameter("emethod", "getFieldsBySnapshotId");
@@ -107,11 +107,7 @@ public class TestSchemaAction extends BasicActionTestCase {
 
   }
 
-  private void setCollection(String collection) {
-    DefaultFilter.AppAndRuntime app = new DefaultFilter.AppAndRuntime();
-    app.setAppName(collection);
-    DefaultFilter.setAppAndRuntime(app);
-  }
+
 
   private ActionProxy getActionProxy() {
     ActionProxy proxy = getActionProxy("/runtime/jarcontent/schema.ajax");

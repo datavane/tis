@@ -1,26 +1,138 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.solrj.extend;
 
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.PostFormStreamProcess;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import org.apache.commons.io.FileUtils;
+import org.apache.solr.client.solrj.FastStreamingDocsCallback;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.StreamingBinaryResponseParser;
+import org.apache.solr.client.solrj.io.Tuple;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.util.DataEntry;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public class TestCloudSSolrClient extends BasicTestCase {
+
+
+
+
+
+    public void testStreamIterator() throws Exception {
+        URL url = new URL("http://192.168.28.200:8080/solr/search4employee2/export?fl=emp_no,_version_&q=emp_no:29959&sort=emp_no%20asc&wt=json");
+        HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
+            @Override
+            public List<ConfigFileContext.Header> getHeaders() {
+                return PostFormStreamProcess.ContentType.Application_x_www_form_urlencoded.getHeaders();
+            }
+
+            @Override
+            public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                try {
+                    FileUtils.copyInputStreamToFile(stream, new File("search4employee2_export.bin"));
+
+//                    byte[] bytes = IOUtils.toByteArray(stream);
+//                    System.out.println("bytes.length:" + bytes.length);
+
+//                    LineIterator lineIterator = IOUtils.lineIterator(stream, TisUTF8.get());
+//                    while (lineIterator.hasNext()) {
+//                        System.out.println(lineIterator.nextLine());
+//                    }
+                    //System.out.println(IOUtils.toString(stream, TisUTF8.get()));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                return null;
+            }
+        });
+    }
+
+    public void testQueryAndStreamResponse() throws Exception {
+        List<String> zks = Lists.newArrayList(zkHost);
+        CloudSolrClient solrClient = (new CloudSolrClient.Builder(zks, Optional.empty())).build();
+
+        SolrQuery query = new SolrQuery();
+        // query.set("wt", "javabin");
+
+        query.addSort("emp_no", SolrQuery.ORDER.asc);
+        query.setRequestHandler("/export").setQuery("*:*");
+
+        query.setFields("emp_no");
+        solrClient.queryAndStreamResponse("search4employee2", query, new FastStreamingDocsCallback() {
+            @Override
+            public Object startDoc(Object docListObj) {
+                return new Pojo();
+            }
+
+            @Override
+            public void field(DataEntry field, Object docObj) {
+                Pojo pojo = (Pojo) docObj;
+                if ("emp_no".equals(field.name())) {
+                    pojo.empNo = field.val();
+                }
+            }
+
+            @Override
+            public void endDoc(Object docObj) {
+                Pojo pojo = (Pojo) docObj;
+                System.out.println(pojo);
+            }
+        });
+        Thread.sleep(999999);
+    }
+
+    static class Pojo {
+        Object empNo;
+    }
+
+    public void testStream() throws Exception {
+        //String collection, SolrQuery query, String routerId, final ResponseCallback<T> resultProcess, final Class<T> clazz
+        SolrQuery query = new SolrQuery();
+        query.setQuery("*:*");
+        query.set("wt", "javabin");
+        query.setFields("emp_no");
+        query.addSort("emp_no", SolrQuery.ORDER.asc);
+        this.client.queryAndStreamResponse("search4employee2", query, "emp_no", new AbstractTisCloudSolrClient.ResponseCallback<Tuple>() {
+            @Override
+            public void process(Tuple pojo) {
+                System.out.println(pojo.get("emp_no"));
+            }
+
+            @Override
+            public void lististInfo(long numFound, long start) {
+                System.out.println("numFound:" + numFound + ",start:" + start);
+            }
+        }, Tuple.class);
+    }
 
     public void testAddTotlal() throws Exception {
         long count = 1l;

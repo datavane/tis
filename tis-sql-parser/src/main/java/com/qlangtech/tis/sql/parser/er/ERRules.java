@@ -359,7 +359,7 @@ public class ERRules implements IPrimaryTabFinder {
     }
 
     @Override
-    public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
+    public Optional<TableMeta> getPrimaryTab(final IDumpTable entityName) {
         Optional<TableMeta> first = this.getPrimaryTabs().stream().filter(
                 (p) -> StringUtils.equals(p.getTabName(), entityName.getTableName())).map((r) -> (TableMeta) r).findFirst();
         return first;

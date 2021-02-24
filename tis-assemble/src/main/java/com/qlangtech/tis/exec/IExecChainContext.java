@@ -34,7 +34,7 @@ public interface IExecChainContext extends IJoinTaskContext {
 
     String getPartitionTimestamp();
 
-    ExecutePhaseRange getExecutePhaseRange();
+
 
     IIndexMetaData getIndexMetaData();
 

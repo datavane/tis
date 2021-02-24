@@ -28,6 +28,7 @@ import com.qlangtech.tis.coredefine.module.action.TISK8sDelegate;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.realtime.yarn.rpc.JobType;
@@ -122,7 +123,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     @Override
     public void onWebSocketConnect(Session sess) {
       super.onWebSocketConnect(sess);
-      this.taskid = Integer.parseInt(this.getParameter("taskid", Collections.singletonList("-1")));
+      this.taskid = Integer.parseInt(this.getParameter(IParamContext.KEY_TASK_ID, Collections.singletonList("-1")));
       this.collectionName = getParameter("collection", Collections.singletonList(MonotorTarget.DUMP_COLLECTION));
       List<RegisterMonotorTarget> typies = parseLogTypes(this.getParameter("logtype"));
       try {

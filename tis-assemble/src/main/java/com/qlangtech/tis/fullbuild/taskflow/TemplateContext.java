@@ -69,13 +69,13 @@ public class TemplateContext implements ITemplateContext {
     }
 
     @Override
-    public IJoinTaskContext joinTaskContext() {
-        return this.getParams();
+    public IExecChainContext getExecContext() {
+        return this.params;
     }
 
-    public IExecChainContext getParams() {
-        return params;
-    }
+   // public IExecChainContext getParams() {
+    //    return params;
+   // }
 
     public void putContextValue(String key, Object v) {
         this.contextValues.put(key, v);

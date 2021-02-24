@@ -1,27 +1,30 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.solrj.extend;
 
-import org.apache.solr.client.solrj.SolrQuery;
 import junit.framework.TestCase;
+import org.apache.solr.client.solrj.SolrQuery;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
 public abstract class BasicTestCase extends TestCase {
+    static {
+        AbstractTisCloudSolrClient.initHashcodeRouter();
+    }
 
     protected TisCloudSolrClient client = null;
 
@@ -31,7 +34,7 @@ public abstract class BasicTestCase extends TestCase {
 
     protected long end;
 
-    protected String zkHost = "zk1.qlangtech-daily.com:2181,zk2.qlangtech-daily.com:2181,zk3.qlangtech-daily.com:2181/tis/cloud";
+    protected String zkHost = "192.168.28.200:2181/tis/cloud";
 
     /**
      */
@@ -52,9 +55,9 @@ public abstract class BasicTestCase extends TestCase {
         // , int socketTimeout, int connTimeout, int maxConnectionsPerHost, int
         // maxConnections) {
         client = new TisCloudSolrClient(zkHost, 5000, /* socketTimeout */
-        5000, /* connTimeout */
-        20, /* maxConnectionsPerHost */
-        100);
+                5000, /* connTimeout */
+                20, /* maxConnectionsPerHost */
+                100);
         query = new SolrQuery();
         start = System.currentTimeMillis();
     }

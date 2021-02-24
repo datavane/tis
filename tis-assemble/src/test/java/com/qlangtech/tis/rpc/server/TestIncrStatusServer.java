@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.BaseTestCase;
 import com.qlangtech.tis.log.RealtimeLoggerCollectorAppender;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.realtime.transfer.TableSingleDataIndexStatus;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.realtime.yarn.rpc.*;
@@ -220,7 +221,7 @@ public class TestIncrStatusServer extends BaseTestCase {
         FullBuildStatCollectorServer.registerMonitorEventHook = eventHook;
         // 启动rpc服务端
         Runnable writeLog = () -> {
-            MDC.put("taskid", String.valueOf(taskid));
+            MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(taskid));
             MDC.put("app", appname);
             String logMsg = "test_log_msg";
             Logger log = LoggerFactory.getLogger(TestIncrStatusServer.class);

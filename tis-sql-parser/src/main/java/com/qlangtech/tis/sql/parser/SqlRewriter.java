@@ -16,6 +16,7 @@ package com.qlangtech.tis.sql.parser;
 
 import com.facebook.presto.sql.tree.*;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
@@ -28,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,6 +46,9 @@ import static com.qlangtech.tis.sql.parser.ExpressionFormatter.formatExpression;
  * @date 2019年8月27日
  */
 public class SqlRewriter extends Formatter {
+
+    public static final String ERROR_WithoutDefinePrimaryTableShareKey = "please check the Er rule of dataflow whether has set 'shardKey' or not";
+
 
     private final TabPartitions tabPartition;
 
@@ -80,6 +85,8 @@ public class SqlRewriter extends Formatter {
         this.erRules = erRules;
         this.tabPartition = tabPartition;
         this.isFinal = isFinal;
+        Objects.requireNonNull(joinContext, "param joinContext can not be null");
+        Objects.requireNonNull(joinContext.getExecutePhaseRange(), "executePhaseRange can not be null");
         this.joinContext = joinContext;
     }
 
@@ -88,6 +95,12 @@ public class SqlRewriter extends Formatter {
         if (isFinal) {
             Optional<TableMeta> ptab = this.erRules.getPrimaryTab(a.getTable());
             StringBuffer result = new StringBuffer(a.getAlias() + "." + IDumpTable.PARTITION_PT + ",");
+
+            // 如果当前是索引构建的场景下，需要校验是否已经设置分区键，这个判断非常重要2021/2/7，这个校验在最开始的点击触发按钮的时候也要校验
+            if (joinContext.getExecutePhaseRange().contains(FullbuildPhase.BUILD) && !TableMeta.hasValidPrimayTableSharedKey(ptab)) {
+                throw new IllegalStateException(ERROR_WithoutDefinePrimaryTableShareKey);
+            }
+
             if (ptab.isPresent()) {
                 TableMeta tabMeta = ptab.get();
                 String shardKey = tabMeta.getSharedKey();
@@ -96,7 +109,8 @@ public class SqlRewriter extends Formatter {
                 }
                 try {
                     Integer shardCount = joinContext.getIndexShardCount();
-                    result.append("abs( hash( cast( ").append(a.getAlias()).append(".").append(shardKey).append(" as string)) % ").append(shardCount).append(" ) AS ").append(IDumpTable.PARTITION_PMOD);
+                    result.append("abs( hash( cast( ").append(a.getAlias()).append(".")
+                            .append(shardKey).append(" as string)) % ").append(shardCount).append(" ) AS ").append(IDumpTable.PARTITION_PMOD);
                 } catch (Exception e) {
                     throw new RuntimeException(tabMeta.toString(), e);
                 }
@@ -227,7 +241,8 @@ public class SqlRewriter extends Formatter {
             }).findFirst();
             if (aliasOptional.isPresent()) {
                 at = aliasOptional.get();
-                this.builder.appendIgnoreProcess(" AND ").appendIgnoreProcess(at.getAlias() + "." + IDumpTable.PARTITION_PT + "='").appendIgnoreProcess(at.getTabPartition()).appendIgnoreProcess("'");
+                this.builder.appendIgnoreProcess(" AND ").appendIgnoreProcess(at.getAlias()
+                        + "." + IDumpTable.PARTITION_PT + "='").appendIgnoreProcess(at.getTabPartition()).appendIgnoreProcess("'");
                 at.setPtRewriter(true);
             }
         }
@@ -388,7 +403,7 @@ public class SqlRewriter extends Formatter {
             this.tabname = tabname;
         }
 
-        static RewriterDumpTable create(String dbname, String tabname) {
+       public static RewriterDumpTable create(String dbname, String tabname) {
             return new RewriterDumpTable(dbname, tabname);
         }
 
@@ -414,6 +429,14 @@ public class SqlRewriter extends Formatter {
         @Override
         public int hashCode() {
             return getFullName().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            return Objects.equals(getFullName(), ((RewriterDumpTable) o).getFullName());
         }
 
         @Override

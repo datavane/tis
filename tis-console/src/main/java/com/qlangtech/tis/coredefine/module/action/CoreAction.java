@@ -57,6 +57,9 @@ import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
+import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
+import com.qlangtech.tis.sql.parser.er.TableMeta;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
@@ -403,8 +406,22 @@ public class CoreAction extends BasicModule {
     if (StringUtils.isEmpty(wfName)) {
       throw new IllegalArgumentException("param wfName can not be null");
     }
-    return sendRequest2FullIndexSwapeNode(module, context, new AppendParams() {
 
+    Optional<ERRules> erRule = module.getErRules(wfName);
+    if (!erRule.isPresent()) {
+      module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
+      return new TriggerBuildResult(false);
+    } else {
+      ERRules erRules = erRule.get();
+      List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
+      Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
+      if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
+        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
+        return new TriggerBuildResult(false);
+      }
+    }
+
+    return sendRequest2FullIndexSwapeNode(module, context, new AppendParams() {
       @Override
       List<PostParam> getParam() {
         return Lists.newArrayList(
@@ -422,10 +439,10 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doGetWorkflowBuildHistory(final Context context) throws Exception {
-    Integer taskid = this.getInt("taskid", null, false);
+    Integer taskid = this.getInt(IParamContext.KEY_TASK_ID, null, false);
     WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
     if (buildHistory == null) {
-      throw new IllegalStateException("taskid:" + taskid + "relevant buildHistory can not be null");
+      throw new IllegalStateException(IParamContext.KEY_TASK_ID + ":" + taskid + "relevant buildHistory can not be null");
     }
     this.setBizResult(context, new ExtendWorkFlowBuildHistory(buildHistory));
   }
@@ -465,6 +482,7 @@ public class CoreAction extends BasicModule {
    * @throws MalformedURLException
    */
   private static TriggerBuildResult sendRequest2FullIndexSwapeNode(BasicModule module, final Context context, AppendParams appendParams) throws Exception {
+
     List<HttpUtils.PostParam> params = appendParams.getParam();
     params.add(new PostParam("appname", module.getCollectionName()));
     return triggerBuild(module, context, params);
@@ -496,8 +514,8 @@ public class CoreAction extends BasicModule {
             triggerResult = new TriggerBuildResult(true);
             if (!result.isNull(bizKey)) {
               JSONObject o = result.getJSONObject(bizKey);
-              if (!o.isNull("taskid")) {
-                triggerResult.taskid = Integer.parseInt(o.getString("taskid"));
+              if (!o.isNull(IParamContext.KEY_TASK_ID)) {
+                triggerResult.taskid = Integer.parseInt(o.getString(IParamContext.KEY_TASK_ID));
               }
               module.setBizResult(context, o);
             }
@@ -543,7 +561,7 @@ public class CoreAction extends BasicModule {
   // #################################################################################
   public void doGetWorkflow(Context context) throws Exception {
     Integer wfid = this.getInt("wfid");
-    Integer taskid = this.getInt("taskid");
+    Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
     WorkFlow workFlow = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
     WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
     Map<String, Object> result = Maps.newHashMap();
@@ -634,7 +652,7 @@ public class CoreAction extends BasicModule {
     return result;
   }
 
-  private static CollectionTopology getCollectionTopology(BasicModule module) throws Exception {
+  public static CollectionTopology getCollectionTopology(BasicModule module) throws Exception {
     final QueryResutStrategy queryResutStrategy
       = QueryIndexServlet.createQueryResutStrategy(module.getAppDomain(), module.getRequest(), module.getResponse(), module.getDaoContext());
     return queryResutStrategy.createCollectionTopology();

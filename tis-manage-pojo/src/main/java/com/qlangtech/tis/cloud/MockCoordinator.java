@@ -31,7 +31,7 @@ public class MockCoordinator implements ITISCoordinator {
 
     @Override
     public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("zkPath:" + zkPath);
     }
 
     @Override

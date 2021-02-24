@@ -19,6 +19,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.io.IOUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -36,7 +38,7 @@ public class TaskStatusServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        int taskid = Integer.parseInt(req.getParameter("taskid"));
+        int taskid = Integer.parseInt(req.getParameter(IParamContext.KEY_TASK_ID));
         // 是否要获取全部的日志信息，比如dump已經完成了，那麼只需要獲取dump之後的日志信息
         // boolean all = Boolean.parseBoolean(req.getParameter("all"));
         PhaseStatusCollection statusSet = TrackableExecuteInterceptor.taskPhaseReference.get(taskid);

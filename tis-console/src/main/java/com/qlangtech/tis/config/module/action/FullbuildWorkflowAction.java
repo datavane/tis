@@ -123,7 +123,7 @@ public class FullbuildWorkflowAction extends BasicModule {
     @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
     public void doTaskComplete(Context context) {
         // Integer phaseid = this.getInt("phaseid");
-        Integer taskid = this.getInt("taskid");
+        Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
         // 执行结果
         // final String phaseinfo = this.getString("phaseinfo");
         // WorkFlowBuildPhase phase = new WorkFlowBuildPhase();

@@ -261,7 +261,7 @@ public class TisServlet extends HttpServlet {
 
     private abstract class MDCParamContext implements IRebindableMDC {
 
-        protected static final String MDC_KEY_TASK_ID = "taskid";
+        protected static final String MDC_KEY_TASK_ID = IParamContext.KEY_TASK_ID;
 
         protected final HttpServletResponse res;
 
@@ -295,7 +295,7 @@ public class TisServlet extends HttpServlet {
                 throw new IllegalArgumentException("param taskid can not be empty");
             }
             this.taskid = taskid;
-            MDC.put(MDC_KEY_TASK_ID, String.valueOf(taskid));
+            MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(taskid));
         }
 
         /**

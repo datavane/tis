@@ -16,13 +16,6 @@
  */
 package org.apache.solr.core;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.qlangtech.tis.solrextend.cloud.TisConfigSetService;
@@ -34,6 +27,14 @@ import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.IndexSchemaFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Constructor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Service class used by the CoreContainer to load ConfigSets for use in SolrCore
@@ -47,18 +48,33 @@ public abstract class ConfigSetService {
         if (zkController == null) {
             return new Standalone(loader, nodeConfig.hasSchemaCache(), nodeConfig.getConfigSetBaseDirectory());
         } else { // baisui modify for custome
+
+//            try {
+//                Class<? extends ConfigSetService> clazz = loader.findClass("", ConfigSetService.class);
+//                Constructor<? extends ConfigSetService> constructor
+//                        = clazz.getConstructor(SolrResourceLoader.class, Boolean.TYPE, ZkController.class);
+//                return  constructor.newInstance(loader, nodeConfig.hasSchemaCache(), zkController);
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
+
             return new TisConfigSetService(loader);
             // return new CloudConfigSetService(loader, nodeConfig.hasSchemaCache(), zkController);
         }
+
+        // nodeConfig.getConfigSetServiceClass()
     }
 
     protected final SolrResourceLoader parentLoader;
 
-    /** Optional cache of schemas, key'ed by a bunch of concatenated things */
+    /**
+     * Optional cache of schemas, key'ed by a bunch of concatenated things
+     */
     private final Cache<String, IndexSchema> schemaCache;
 
     /**
      * Load the ConfigSet for a core
+     *
      * @param dcore the core's CoreDescriptor
      * @return a ConfigSet
      */
@@ -79,7 +95,7 @@ public abstract class ConfigSetService {
                             && flags != null
                             && flags.get("trusted") != null
                             && !flags.getBooleanArg("trusted")
-                    ) ? false: true;
+                    ) ? false : true;
 
             SolrConfig solrConfig = createSolrConfig(dcore, coreLoader, trusted);
             return new ConfigSet(configSetName(dcore), solrConfig, force -> createIndexSchema(dcore, solrConfig, force), properties, trusted);
@@ -93,7 +109,8 @@ public abstract class ConfigSetService {
 
     /**
      * Create a new ConfigSetService
-     * @param loader the CoreContainer's resource loader
+     *
+     * @param loader      the CoreContainer's resource loader
      * @param shareSchema should we share the IndexSchema among cores of same config?
      */
     public ConfigSetService(SolrResourceLoader loader, boolean shareSchema) {
@@ -103,8 +120,9 @@ public abstract class ConfigSetService {
 
     /**
      * Create a SolrConfig object for a core
-     * @param cd the core's CoreDescriptor
-     * @param loader the core's resource loader
+     *
+     * @param cd        the core's CoreDescriptor
+     * @param loader    the core's resource loader
      * @param isTrusted is the configset trusted?
      * @return a SolrConfig object
      */
@@ -114,7 +132,8 @@ public abstract class ConfigSetService {
 
     /**
      * Create an IndexSchema object for a core.  It might be a cached lookup.
-     * @param cd the core's CoreDescriptor
+     *
+     * @param cd         the core's CoreDescriptor
      * @param solrConfig the core's SolrConfig
      * @return an IndexSchema
      */
@@ -154,10 +173,11 @@ public abstract class ConfigSetService {
 
     /**
      * Return the ConfigSet properties or null if none.
-     * @see ConfigSetProperties
-     * @param cd the core's CoreDescriptor
+     *
+     * @param cd     the core's CoreDescriptor
      * @param loader the core's resource loader
      * @return the ConfigSet properties
+     * @see ConfigSetProperties
      */
     @SuppressWarnings({"rawtypes"})
     protected NamedList loadConfigSetProperties(CoreDescriptor cd, SolrResourceLoader loader) {
@@ -175,6 +195,7 @@ public abstract class ConfigSetService {
 
     /**
      * Create a SolrResourceLoader for a core
+     *
      * @param cd the core's CoreDescriptor
      * @return a SolrResourceLoader
      */
@@ -182,6 +203,7 @@ public abstract class ConfigSetService {
 
     /**
      * Return a name for the ConfigSet for a core to be used for printing/diagnostic purposes.
+     *
      * @param cd the core's CoreDescriptor
      * @return a name for the core's ConfigSet
      */
@@ -189,7 +211,7 @@ public abstract class ConfigSetService {
 
     /**
      * The Solr standalone version of ConfigSetService.
-     *
+     * <p>
      * Loads a ConfigSet defined by the core's configSet property,
      * looking for a directory named for the configSet property value underneath
      * a base directory.  If no configSet property is set, loads the ConfigSet

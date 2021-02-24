@@ -7,4 +7,9 @@
   <bean id="clusterStateReader" class="com.qlangtech.tis.manage.spring.ClusterStateReader">
     <property name="zooKeeperGetter" ref="zooKeeperGetter"/>
   </bean>
+
+  <bean id="erRulesGetter" class="com.qlangtech.tis.sql.parser.er.impl.DefaultERRulesGetter">
+  </bean>
+
+
 </beans>

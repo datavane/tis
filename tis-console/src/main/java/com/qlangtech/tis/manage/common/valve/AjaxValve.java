@@ -229,6 +229,10 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       return errorPageShow;
     }
 
+    public List<String> getErrorMsgs() {
+      return this.errorMsgList;
+    }
+
     public ActionExecResult invoke() {
       errorMsgList = getErrorMsgList(context);
       msgList = (List<String>) context.get(IMessageHandler.ACTION_MSG);
