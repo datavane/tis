@@ -47,6 +47,7 @@ import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.runtime.module.screen.IndexQuery;
 import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
@@ -86,8 +87,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-//import com.qlangtech.tis.coredefine.biz.CoreNode;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020-12-13 16:10
@@ -115,6 +114,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   public static final String KEY_CORE_URL = "coreUrl";
   public static final String KEY_IS_ACTIVE = "active";
   public static final String KEY_REPLICS = "replics";
+  public static final String KEY_COLS_META = "colMetas";
 
 
 //  private
@@ -177,6 +177,27 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }).getSchemaParseResult();
 
     biz.put(KEY_PK, parseResult.getUniqueKey());
+
+
+    QueryResutStrategy queryStrategy = QueryIndexServlet.createQueryResutStrategy(
+      this.getAppDomain(), new IndexQuery.QueryRequestWrapper(getRequest(), context), getResponse(), getDaoContext());
+    List<ServerJoinGroup> nodes = queryStrategy.queryProcess();
+    List<PSchemaField> sfields = IndexQuery.getSfields(this.getRequest(), queryStrategy, nodes);
+    JSONArray colsMeta = new JSONArray();
+    JSONObject colmeta = null;
+    for (PSchemaField field : sfields) {
+      colmeta = new JSONObject();
+      colmeta.put("name", field.getName());
+      colmeta.put("typeName", field.getType().getJavaType().getSimpleName());
+      colmeta.put("typeCode", field.getType().getJavaType().getTypeCode());
+      colmeta.put("docval", field.isDocValue());
+      colmeta.put("indexd", field.isIndexed());
+      colmeta.put("stored", field.isStored());
+      colmeta.put("dynamic", field.isDynamic());
+      colsMeta.add(colmeta);
+    }
+    biz.put(KEY_COLS_META, colsMeta);
+
     this.setBizResult(context, biz);
   }
 
@@ -296,9 +317,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
     this.setBizResult(context, new Object());
     Objects.requireNonNull(dsTable, "dsTable can not be null");
-//    DataSourceFactoryPluginStore dsPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(targetTable));
-//    // 保存表
-//    dsPluginStore.saveTable(targetTable, targetColMetas.targetColMetas);
 
     // 开始创建DF
     final String topologyName = indexName.param;

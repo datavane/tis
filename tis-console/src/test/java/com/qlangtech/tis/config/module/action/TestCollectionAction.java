@@ -75,6 +75,8 @@ import java.util.stream.Collectors;
  * @date 2020-12-16 10:39
  */
 public class TestCollectionAction extends BasicActionTestCase {
+  private static final String TEST_TABLE_EMPLOYEES_NAME = "employees";
+  private static final String COLLECTION_NAME = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
 
   static {
 
@@ -85,6 +87,8 @@ public class TestCollectionAction extends BasicActionTestCase {
       return TestCollectionAction.class.getResourceAsStream("s4employees_create_success.json");
     });
 
+    HttpUtils.addMockApply(0, "/solr/" + COLLECTION_NAME + "/admin/file/?file=schema.xml", "s4employee_schema.xml", TestCollectionAction.class);
+
     // stub trigger collection indexbuild
     HttpUtils.addMockApply(CoreAction.TRIGGER_FULL_BUILD_COLLECTION_PATH, () -> {
       return TestCollectionAction.class.getResourceAsStream("s4employees_trigger_index_build_success.json");
@@ -92,7 +96,6 @@ public class TestCollectionAction extends BasicActionTestCase {
 
   }
 
-  private static final String TEST_TABLE_EMPLOYEES_NAME = "employees";
 
   // private static final String TEST_TABLE_EMPLOYEES_NAME = "singleEmployee";
 
@@ -114,7 +117,6 @@ public class TestCollectionAction extends BasicActionTestCase {
     tabCols.put(TEST_TABLE_DEPARTMENT_NAME, getBuildDepartmentCols());
   }
 
-  private static final String COLLECTION_NAME = TISCollectionUtils.NAME_PREFIX + TEST_TABLE_EMPLOYEES_NAME;
 
 //  public void testSend2RemoteServer() throws Exception {
 //    this.clearUpDB();
@@ -180,6 +182,10 @@ public class TestCollectionAction extends BasicActionTestCase {
     JSONObject replic = replics.getJSONObject(0);
     assertEquals(replica_core_url, replic.getString(CollectionAction.KEY_CORE_URL));
     assertTrue(replic.getBoolean(CollectionAction.KEY_IS_ACTIVE));
+
+    JSONArray colsMeta = topology.getJSONArray(CollectionAction.KEY_COLS_META);
+    assertNotNull(colsMeta);
+    assertEquals(9, colsMeta.size());
   }
 
   public void testDeleteCollection() throws Exception {

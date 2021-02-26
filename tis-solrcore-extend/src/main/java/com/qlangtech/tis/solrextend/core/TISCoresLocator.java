@@ -22,6 +22,8 @@ import com.qlangtech.tis.solrextend.cloud.TISPluginClassLoader;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.CoreDescriptor;
 import org.apache.solr.core.CorePropertiesLocator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -33,6 +35,8 @@ import java.util.stream.Collectors;
  * @date 2021-02-05 07:14
  */
 public class TISCoresLocator extends CorePropertiesLocator {
+    private static final Logger logger = LoggerFactory.getLogger(TISCoresLocator.class);
+
     public TISCoresLocator(Path coreDiscoveryRoot) {
         super(coreDiscoveryRoot);
     }
@@ -49,6 +53,8 @@ public class TISCoresLocator extends CorePropertiesLocator {
             }
             ComponentMeta coreComponent = TIS.getCoreComponent(resources);
             coreComponent.synchronizePluginsFromRemoteRepository();
+            logger.info("synchronizePluginsFromRemoteRepository {},load resource size {}"
+                    , collections.stream().collect(Collectors.joining(",")), resources.size());
             return cores;
         } finally {
             TIS.permitInitialize = true;

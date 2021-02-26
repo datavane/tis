@@ -35,6 +35,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import java.net.URLDecoder;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -48,6 +49,9 @@ import junit.framework.TestCase;
 public class TestJDBC extends TestCase {
 
     public void testSQL() throws Exception {
+
+        System.out.println(  URLDecoder.decode("%7B!terms%20f%3Demp_no%7D23436%2C23446%2C23451%2C23487%2C23496%2C23517%2C23771"));
+
         DriverImpl driver = new DriverImpl();
         // &amp;aggregationMode=map_reduce
         Connection conn = driver.connect("jdbc:solr://10.1.6.65:2181,10.1.6.67:2181,10.1.6.80:2181/tis/cloud?collection=search4totalpay");

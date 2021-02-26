@@ -52,6 +52,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -518,24 +519,32 @@ public class SolrFieldsParser {
         Type t = new Type(name);
         t.setSolrType(fieldType);
         type.setSolrType(t);
-        if (isTypeMatch(fieldType, "int")) {
-            type.setJavaType(Integer.class);
-            return type;
-        } else if (isTypeMatch(fieldType, "float")) {
-            type.setJavaType(Float.class);
-            return type;
-        } else if (isTypeMatch(fieldType, "double")) {
-            type.setJavaType(Double.class);
-            return type;
-        } else if (isTypeMatch(fieldType, "long")) {
-            type.setJavaType(Long.class);
-            return type;
-        } else if (isTypeMatch(fieldType, "short")) {
-            type.setJavaType(Short.class);
-            return type;
-        }
-        type.setJavaType(String.class);
+        type.setJavaType(SolrJavaType.parse(fieldType));
         return type;
+//        if (isTypeMatch(fieldType, "int")) {
+//            type.setJavaType(Integer.class);
+//            return type;
+//        } else if (isTypeMatch(fieldType, "float")) {
+//            type.setJavaType(Float.class);
+//            return type;
+//        } else if (isTypeMatch(fieldType, "double")) {
+//            type.setJavaType(Double.class);
+//            return type;
+//        } else if (isTypeMatch(fieldType, "long")) {
+//            type.setJavaType(Long.class);
+//            return type;
+//        } else if (isTypeMatch(fieldType, "short")) {
+//            type.setJavaType(Short.class);
+//            return type;
+//        } else if (isTypeMatch(fieldType, "timestamp")) {
+//            type.setJavaType(Timestamp.class);
+//            return type;
+//        } else if (isTypeMatch(fieldType, "date")) {
+//            type.setJavaType(Date.class);
+//            return type;
+//        }
+
+
     }
 
     public static class Type {
@@ -579,13 +588,13 @@ public class SolrFieldsParser {
             return StringUtils.substringAfter(this.getSolrType(), SolrFieldsParser.KEY_PLUGIN + ":");
         }
 
-        private Class<?> javaType;
+        private SolrJavaType javaType;
 
         private Type solrType;
 
         private Method valueof;
 
-        public Class<?> getJavaType() {
+        public SolrJavaType getJavaType() {
             return this.javaType;
         }
 
@@ -593,16 +602,16 @@ public class SolrFieldsParser {
             return valueof.invoke(null, val);
         }
 
-        public void setJavaType(Class<?> javaType) {
-            try {
-                if (javaType == String.class) {
-                    valueof = javaType.getMethod("valueOf", Object.class);
-                } else {
-                    valueof = javaType.getMethod("valueOf", String.class);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        public void setJavaType(SolrJavaType javaType) {
+//            try {
+//                if (javaType == String.class) {
+//                    valueof = javaType.getMethod("valueOf", Object.class);
+//                } else {
+//                    valueof = javaType.getMethod("valueOf", String.class);
+//                }
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
             this.javaType = javaType;
         }
 
@@ -619,9 +628,7 @@ public class SolrFieldsParser {
         }
     }
 
-    private static boolean isTypeMatch(String fieldType, String matchLetter) {
-        return StringUtils.indexOfAny(fieldType, new String[]{matchLetter, StringUtils.capitalize(matchLetter)}) > -1;
-    }
+
 
     public static class SchemaFields extends ArrayList<PSchemaField> {
 

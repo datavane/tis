@@ -167,11 +167,11 @@ public class BasicActionTestCase extends StrutsSpringTestCase {
         EasyMock.expect(replica.getBaseUrl()).andReturn("baseurl").anyTimes();
       }
 
-      EasyMock.expect(docCollection.getSlicesMap()).andReturn(sliceMap);
+      EasyMock.expect(docCollection.getSlicesMap()).andReturn(sliceMap).anyTimes();
 
 
       EasyMock.expect(tisZkStateReader.fetchCollectionState(collectionName, null))
-        .andReturn(docCollection);
+        .andReturn(docCollection).anyTimes();
     }
     return docCollection;
   }
