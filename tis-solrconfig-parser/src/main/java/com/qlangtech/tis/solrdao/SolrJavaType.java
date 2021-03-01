@@ -24,7 +24,8 @@ import java.util.Date;
  * @date 2021-02-25 17:00
  */
 public enum SolrJavaType {
-    INT(Integer.class, 1), FLOAT(Float.class, 2), DOUBLE(Double.class, 3), LONG(Long.class, 4), TIMESTAMP(Timestamp.class, 4), DATE(Date.class, 5), STRING(String.class, 6);
+    INT(Integer.class, 1), FLOAT(Float.class, 2), DOUBLE(Double.class, 3), LONG(Long.class, 4) //
+    , TIMESTAMP(Timestamp.class, 5), DATE(Date.class, 6), DATETIME(Date.class, 7), STRING(String.class, 8);
 
     public static SolrJavaType parse(String fieldType) {
         if (isTypeMatch(fieldType, "int")) {
@@ -37,6 +38,8 @@ public enum SolrJavaType {
             return LONG;
         } else if (isTypeMatch(fieldType, "timestamp")) {
             return TIMESTAMP;
+        } else if (isTypeMatch(fieldType, "datetime")) {
+            return DATETIME;
         } else if (isTypeMatch(fieldType, "date")) {
             return DATE;
         }

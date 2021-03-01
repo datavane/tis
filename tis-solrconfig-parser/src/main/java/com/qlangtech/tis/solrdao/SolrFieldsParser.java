@@ -521,30 +521,6 @@ public class SolrFieldsParser {
         type.setSolrType(t);
         type.setJavaType(SolrJavaType.parse(fieldType));
         return type;
-//        if (isTypeMatch(fieldType, "int")) {
-//            type.setJavaType(Integer.class);
-//            return type;
-//        } else if (isTypeMatch(fieldType, "float")) {
-//            type.setJavaType(Float.class);
-//            return type;
-//        } else if (isTypeMatch(fieldType, "double")) {
-//            type.setJavaType(Double.class);
-//            return type;
-//        } else if (isTypeMatch(fieldType, "long")) {
-//            type.setJavaType(Long.class);
-//            return type;
-//        } else if (isTypeMatch(fieldType, "short")) {
-//            type.setJavaType(Short.class);
-//            return type;
-//        } else if (isTypeMatch(fieldType, "timestamp")) {
-//            type.setJavaType(Timestamp.class);
-//            return type;
-//        } else if (isTypeMatch(fieldType, "date")) {
-//            type.setJavaType(Date.class);
-//            return type;
-//        }
-
-
     }
 
     public static class Type {

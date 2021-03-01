@@ -47,6 +47,7 @@ import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
+import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.TISZkStateReader;
 import org.apache.solr.common.util.DOMUtil;
@@ -60,6 +61,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -186,7 +189,13 @@ public class TestCollectionAction extends BasicActionTestCase {
     JSONArray colsMeta = topology.getJSONArray(CollectionAction.KEY_COLS_META);
     assertNotNull(colsMeta);
     assertEquals(9, colsMeta.size());
+
+    JSONObject assertBiz = this.getJSON("get_index_topology_biz.json");
+    assertEquals(assertBiz.toJSONString(),topology.toJSONString());
+
   }
+
+
 
   public void testDeleteCollection() throws Exception {
 

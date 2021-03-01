@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.cloud.ITISCoordinator;
@@ -64,6 +65,17 @@ public class BasicActionTestCase extends StrutsSpringTestCase {
     EnvironmentBindService.cleanCacheService();
     this.runContext = Objects.requireNonNull(applicationContext.getBean("runContextGetter", RunContextGetter.class)
       , "runContextGetter can not be null").get();
+  }
+
+  protected JSONObject getJSON(String filename) {
+    try {
+      try (InputStream input = this.getClass().getResourceAsStream(filename)) {
+
+        return JSONObject.parseObject(IOUtils.toString(input, TisUTF8.get()));
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   protected void clearMocks() {
