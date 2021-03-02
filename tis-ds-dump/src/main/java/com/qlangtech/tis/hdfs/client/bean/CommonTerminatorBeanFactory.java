@@ -93,8 +93,7 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         }
         dumpContext.setDataSourceFactory(this.dataSourceFactory);
 
-        DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(dumpTable.getDbName()));
-        TISTable tisTable = dbPluginStore.loadTableMeta(dumpTable.getTableName());
+        TISTable tisTable = getTisTable(this.dumpTable);
         Objects.requireNonNull(tisTable, "tisTable can not be null");
         dumpContext.setTisTable(tisTable);
 
@@ -114,6 +113,11 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         // 让需要serviceconfig的模块全部设置上
         queryContext.fireServiceConfigChange();
         return dumpContext;
+    }
+
+    public static TISTable getTisTable(EntityName dumpTable) {
+        DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(dumpTable.getDbName()));
+        return dbPluginStore.loadTableMeta(dumpTable.getTableName());
     }
 
     @Override

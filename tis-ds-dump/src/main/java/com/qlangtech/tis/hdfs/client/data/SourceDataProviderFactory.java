@@ -16,7 +16,6 @@ package com.qlangtech.tis.hdfs.client.data;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.common.utils.Assert;
-import com.qlangtech.tis.plugin.ds.DBConfig;
 import com.qlangtech.tis.exception.SourceDataReadException;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
@@ -52,7 +51,7 @@ public class SourceDataProviderFactory {
      */
     public interface ISourceDataProviderFactoryInspect {
 
-        public void look(DBConfig dbLinkMeta, SourceDataProviderFactory factory);
+        public void look(SourceDataProviderFactory factory);
     }
 
     @SuppressWarnings("all")
@@ -159,73 +158,10 @@ public class SourceDataProviderFactory {
     }
 
     public void parseSubTablesDesc() throws Exception {
-//        if (this.dataSourceGetter == null) {
-//            throw new IllegalStateException("dataSourceGetter can not be null");
-//        }
 
         int i = 0;
-        // try {
 
-//            for (Entry<String, String> mapEntry : subTablesDesc.entrySet()) {
-//                // 关于数据源的描述信息
-//                String dataSourceDesc = mapEntry.getKey();
-//                Map<String, List<String>> dsProperty = parser.parseDescription(dataSourceDesc);
-//                final String sql = mapEntry.getValue();
-//                StringBuffer dbNames = new StringBuffer();
-//                for (String dbKey : dsProperty.keySet()) {
-//                    dbNames.append(dbKey).append(",");
-//                    validateDataSource(dbKey);
-//                    DataSource source = null; // dataSourceGetter.getDataSource(dbKey);
-//                    if (source == null) {
-//                        throw new IllegalArgumentException("dbKey:" + dbKey + " relevant source can not be null");
-//                    }
-//                    // .getBean(dbKey);
-//                    String dbip = getDbIp(source);
-//                    if (StringUtils.isBlank(dbip)) {
-//                        throw new IllegalStateException("dbip can not be null,dbkey:" + dbKey);
-//                    }
-//                    subtables = dsProperty.get(dbKey);
-//                    if (subtables != null) {
-//                        // 分表可能多库情况
-//                        for (String subtable : subtables) {
-//                            SingleTableSqlExcuteProvider sqlprovider = new SingleTableSqlExcuteProvider(dbReaderCounter);
-//                            sqlprovider.dbHost = dbip;
-//                            sqlprovider.setDumpContext(this.dumpContext);
-//                            // 库名
-//                            sqlprovider.dsName = dbKey;
-//                            sqlprovider.suffixTableName = subtable;
-//                            String fullSql = sql.replace(tableSuffixPlaceHolder, subtable);
-//                            logger.warn("[" + (++i) + "] create SingleTableSqlExcuteProvider,table suffix [" + tableSuffixPlaceHolder + "] 后的 sql ==> "
-//                                    + fullSql);
-//                            sqlprovider.setSql(fullSql);
-//                            sqlprovider.dataSource = source;
-//
-//
-//                            // sqlprovider.shardKey = shardKey;
-//                            sqlprovider.init();
-//                            result.add(sqlprovider);
-//                        }
-//                    } else {
-//                        // 无分表,可能多库情况
-//                        SingleTableSqlExcuteProvider sqlprovider = new SingleTableSqlExcuteProvider(dbReaderCounter);
-//                        sqlprovider.dbHost = dbip;
-//                        // 库名
-//                        sqlprovider.setDumpContext(this.dumpContext);
-//                        sqlprovider.dsName = dbKey;
-//                        ++i;
-//                        sqlprovider.setSql(sql);
-//                        sqlprovider.dataSource = source;
-//
-//
-//                        //  sqlprovider.shardKey = shardKey;
-//                        sqlprovider.init();
-//                        result.add(sqlprovider);
-//                    }
-//                }
-//                if (subtables == null) {
-//                    logger.warn(" create dump on dbs:" + dbNames + "\n use sql ==> " + sql);
-//                }
-//            }
+
         if (dumpContext == null) {
             throw new IllegalStateException("dumpContext can not be null");
         }

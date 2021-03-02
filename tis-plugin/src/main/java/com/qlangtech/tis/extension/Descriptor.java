@@ -247,7 +247,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             if (IdentityName.class.isAssignableFrom(this.clazz)) {
                 if (identityFields.size() != 1) {
                     throw new IllegalStateException("class:" + this.clazz + " is type of "
-                            + IdentityName.class + " must sign no more than one col:"
+                            + IdentityName.class + " ,size:" + identityFields.size() + " must sign no more than one col:"
                             + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
                 }
                 this.identityProp = identityFields.get(0);

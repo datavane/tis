@@ -42,6 +42,10 @@ public class TisDateField extends DatePointField {
     private static final DateTimeFormatter format
             = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("GMT+8"));
 
+    public static void main(String[] args) {
+        System.out.println( format.format(Instant.ofEpochMilli(-225849600000l)) );
+    }
+
     @Override
     public String toExternal(IndexableField f) {
         Number number = f.numericValue();

@@ -25,7 +25,6 @@ import java.util.Map;
  */
 public interface IDataSourceDumper {
     void closeResource();
-   // void openResource();
 
     int getRowSize();
 

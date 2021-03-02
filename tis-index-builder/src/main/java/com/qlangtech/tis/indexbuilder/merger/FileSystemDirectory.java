@@ -269,24 +269,25 @@ public class FileSystemDirectory extends Directory {
             this.isOpen = true;
         }
 
-        protected void readInternal(byte[] b, int offset, int len) throws IOException {
-            synchronized (this.descriptor) {
-                long position = getFilePointer();
-                if (position != this.descriptor.position) {
-                    this.descriptor.in.seek(position);
-                    this.descriptor.position = position;
-                }
-                int total = 0;
-                do {
-                    int i = this.descriptor.in.read(b, offset + total, len - total);
-                    if (i == -1) {
-                        throw new IOException("Read past EOF");
-                    }
-                    this.descriptor.position += i;
-                    total += i;
-                } while (total < len);
-            }
-        }
+//        @Override
+//        protected void readInternal(byte[] b, int offset, int len) throws IOException {
+//            synchronized (this.descriptor) {
+//                long position = getFilePointer();
+//                if (position != this.descriptor.position) {
+//                    this.descriptor.in.seek(position);
+//                    this.descriptor.position = position;
+//                }
+//                int total = 0;
+//                do {
+//                    int i = this.descriptor.in.read(b, offset + total, len - total);
+//                    if (i == -1) {
+//                        throw new IOException("Read past EOF");
+//                    }
+//                    this.descriptor.position += i;
+//                    total += i;
+//                } while (total < len);
+//            }
+//        }
 
         public void close() throws IOException {
             if (!this.isClone)

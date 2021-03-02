@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * git仓库保存的table信息
@@ -124,5 +125,20 @@ public class TISTable {
 
     public void setSelectSql(String selectSql) {
         this.selectSql = selectSql;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TISTable tisTable = (TISTable) o;
+        return Objects.equals(tableName, tisTable.tableName) &&
+                Objects.equals(tabId, tisTable.tabId) &&
+                Objects.equals(dbName, tisTable.dbName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tableName, tabId, dbName);
     }
 }

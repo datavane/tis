@@ -23,6 +23,7 @@ import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.source.SourceReader;
 import com.qlangtech.tis.indexbuilder.utils.Context;
 import com.qlangtech.tis.indexbuilder.utils.SimpleStringTokenizer;
+import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,9 +74,8 @@ public class HDFSReader implements SourceReader {
 
     public void init() throws Exception {
         TaskContext taskContext = ((TaskContext) context.get("taskcontext"));
-        // taskContext.getUserParam(IndexBuildParam.INDEXING_DELIMITER);
         String paramDelimiter = String.valueOf(DELIMITER_TAB);
-        if ("char001".equalsIgnoreCase(paramDelimiter)) {
+        if (ImportDataProcessInfo.DELIMITER_001.equalsIgnoreCase(paramDelimiter)) {
             this.delimiter = String.valueOf(DELIMITER_001);
         }
         openStream();
@@ -87,7 +87,6 @@ public class HDFSReader implements SourceReader {
             start -= 1L;
             this.fileIn.seek(start);
         }
-        // }
         if (skipFirstLine) {
             start += readData(this.in, null, '\n');
         }

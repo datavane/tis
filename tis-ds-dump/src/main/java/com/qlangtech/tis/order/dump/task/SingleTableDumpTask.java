@@ -28,7 +28,6 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -45,7 +44,7 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
 
     private static final String TABLE_DUMP_ZK_PREFIX = "/tis/table_dump/";
 
-    private SourceDataProviderFactory.ISourceDataProviderFactoryInspect sourceDataProviderFactoryInspect = (meta, f) -> {
+    private SourceDataProviderFactory.ISourceDataProviderFactoryInspect sourceDataProviderFactoryInspect = (f) -> {
     };
 
     private final AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
@@ -111,40 +110,14 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
         MultiThreadDataProvider dataProvider = new MultiThreadDataProvider(tableDumpFactory, this.dataSourceFactory
                 , MultiThreadDataProvider.DEFUALT_WAIT_QUEUE_SIZE, MultiThreadDataProvider.DEFUALT_WAIT_QUEUE_SIZE);
 
-        //this.dataSourceFactory
         SourceDataProviderFactory dataProviderFactory = new SourceDataProviderFactory();
-        //final DBConfig dbLinkMetaData = null;
-        //final Map<String, DataSource> dsMap = new HashMap<>();
         final StringBuffer dbNames = new StringBuffer();
-        AtomicInteger dbCount = new AtomicInteger();
-//        final DataSourceRegister.DBRegister dbRegister = new DataSourceRegister.DBRegister(dbLinkMetaData.getName(), dbLinkMetaData) {
-//
-//            @Override
-//            protected void createDefinition(String dbDefinitionId, String driverClassName, String jdbcUrl, String userName, String password) {
-//                BasicDataSource ds = new BasicDataSource();
-//                ds.setDriverClassName(driverClassName);
-//                ds.setUrl(jdbcUrl);
-//                ds.setUsername(userName);
-//                ds.setPassword(password);
-//                ds.setValidationQuery("select 1");
-//                synchronized (dbNames) {
-//                    dsMap.put(dbDefinitionId, ds);
-//                    dbCount.incrementAndGet();
-//                    dbNames.append(dbDefinitionId).append(";");
-//                }
-//            }
-//        };
-//        dbRegister.visitAll();
-//        if (dsMap.size() != dbCount.get()) {
-//            throw new IllegalStateException("dsMap.size():" + dsMap.size() + ",dbCount.get():" + dbCount.get() + " shall be equal");
-//        }
-        // dataProviderFactory.setDataSourceGetter(dsMap::get);
+
         dataProvider.setSourceData(dataProviderFactory);
         beanFactory.setFullDumpProvider(dataProvider);
-        //beanFactory.setGrouprouter(null);
         beanFactory.afterPropertiesSet(dbNames);
         // 单元测试过程中可以测试是否正常
-        sourceDataProviderFactoryInspect.look(null, dataProviderFactory);
+        sourceDataProviderFactoryInspect.look(dataProviderFactory);
         TISDumpClient dumpBean = beanFactory.getObject();
         return dumpBean;
     }

@@ -41,9 +41,6 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractTableDumpTask.class);
 
-    private static final ExecutorService threadPool = java.util.concurrent.Executors.newCachedThreadPool();
-
-
     protected final TableDumpFactory tableDumpFactory;
     protected final DataSourceFactory dataSourceFactory;
 
@@ -65,16 +62,6 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
         this.dataSourceFactory = dataSourceFactory;
     }
 
-    // protected abstract DBConfig getDataSourceConfig();
-
-//    protected final DBConfig parseDbLinkMetaData(TaskContext context) {
-//        final DBConfig dbLinkMetaData = getDataSourceConfig();
-//        logger.info("dbLinkMetaData:" + dbLinkMetaData.toString());
-//        return dbLinkMetaData;
-//    }
-
-    // protected abstract List<DBLinkMetaData> parseDbLinkMetaData(
-    // TaskContext context);
     protected abstract TISDumpClient getDumpBeans(TaskContext context) throws Exception;
 
     /**
@@ -116,25 +103,8 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
             });
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            // return new TaskReturn(ReturnCode.FAILURE, "all table dump faild");
             throw new RuntimeException(e);
-        } finally {
-            // try {
-            // if (hiveConnection != null) {
-            // hiveConnection.close();
-            // }
-            // } catch (Exception e) {
-            //
-            // }
         }
-        // TaskReturn taskResult;
-        // try {
-        // JSONObject dumpResultDesc = createDumpResultDesc(dumpResultMap);
-        // taskResult = new TaskReturn(ReturnCode.SUCCESS, dumpResultDesc.toString(1));
-        // } catch (Exception e) {
-        // throw new RuntimeException(e);
-        // }
-        // return taskResult;
     }
 
     /**

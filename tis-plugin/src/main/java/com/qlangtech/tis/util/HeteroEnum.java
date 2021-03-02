@@ -28,6 +28,9 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
+import com.qlangtech.tis.plugin.solr.config.QueryParserFactory;
+import com.qlangtech.tis.plugin.solr.config.SearchComponentFactory;
+import com.qlangtech.tis.plugin.solr.config.TISTransformerFactory;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import org.apache.commons.lang.StringUtils;
 
@@ -82,6 +85,21 @@ public enum HeteroEnum {
             FieldTypeFactory.class, //
             "field-type", //
             "字段类型", //
+            Selectable.Multi),
+    SOLR_QP(//
+            QueryParserFactory.class, //
+            "qp", //
+            "QueryParser", //
+            Selectable.Multi),
+    SOLR_SEARCH_COMPONENT(//
+            SearchComponentFactory.class, //
+            "searchComponent", //
+            "SearchComponent", //
+            Selectable.Multi),
+    SOLR_TRANSFORMER(//
+            TISTransformerFactory.class, //
+            "transformer", //
+            "Transformer", //
             Selectable.Multi);
 
     public final String caption;

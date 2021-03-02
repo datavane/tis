@@ -212,21 +212,6 @@ public class TisHdfsDirectory extends BaseDirectory {
         @Override
         protected void readInternal(byte[] b, int offset, int readLength) throws IOException {
             inputStream.readFully(getFilePointer(), b, offset, readLength);
-        // if (!shallNotCalculateReadBytesCount) {
-        // 
-        // synchronized (this) {
-        // if (!readFiles.contains(path.toString())) {
-        // readFiles.add(path.toString());
-        // }
-        // }
-        // 
-        // if ((this.fileReaded + readLength) > this.length) {
-        // allReadBytesCount.addAndGet(this.length - this.fileReaded);
-        // } else {
-        // allReadBytesCount.addAndGet(readLength);
-        // this.fileReaded += readLength;
-        // }
-        // }
         }
 
         @Override

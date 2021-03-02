@@ -19,7 +19,7 @@
       "typeName": "string",
       "dynamic": false,
       "indexd": true,
-      "typeCode": 6
+      "typeCode": 8
     },
     {
       "docval": true,
@@ -28,7 +28,7 @@
       "typeName": "date",
       "dynamic": false,
       "indexd": false,
-      "typeCode": 5
+      "typeCode": 6
     },
     {
       "docval": true,
@@ -37,7 +37,7 @@
       "typeName": "string",
       "dynamic": false,
       "indexd": false,
-      "typeCode": 6
+      "typeCode": 8
     },
     {
       "docval": true,
@@ -46,7 +46,7 @@
       "typeName": "string",
       "dynamic": false,
       "indexd": false,
-      "typeCode": 6
+      "typeCode": 8
     },
     {
       "docval": true,
@@ -55,7 +55,7 @@
       "typeName": "string",
       "dynamic": false,
       "indexd": false,
-      "typeCode": 6
+      "typeCode": 8
     },
     {
       "docval": true,
@@ -64,7 +64,7 @@
       "typeName": "timestamp",
       "dynamic": false,
       "indexd": false,
-      "typeCode": 4
+      "typeCode": 5
     },
     {
       "docval": true,
@@ -82,7 +82,7 @@
       "typeName": "string",
       "dynamic": false,
       "indexd": true,
-      "typeCode": 6
+      "typeCode": 8
     },
     {
       "docval": true,
@@ -91,7 +91,7 @@
       "typeName": "string",
       "dynamic": true,
       "indexd": true,
-      "typeCode": 6
+      "typeCode": 8
     }
   ]
 }
