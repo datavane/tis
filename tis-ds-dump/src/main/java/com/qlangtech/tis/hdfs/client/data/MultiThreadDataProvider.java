@@ -151,10 +151,8 @@ public class MultiThreadDataProvider  {
     }
 
     private IPath createPath(IPathAppender appender, String utf8StrTime) {
-        // this.dumpContext.getDistributeFileSystem();
-        ITISFileSystemFactory fsFactory = this.flatTableBuilder.getFileSystem();
+        ITISFileSystem fsFactory = this.flatTableBuilder.getFileSystem();
         StringBuffer sbPath = new StringBuffer(fsFactory.getRootDir());
-        // .append("user").append(Path.SEPARATOR).append(dumpContext.getCurrentUserName())
         sbPath.append("/");
         EntityName dumptable = this.dumpContext.getDumpTable();
         sbPath.append(dumptable.getDbName() + "/" + dumptable.getTableName()).append("/")
@@ -205,14 +203,11 @@ public class MultiThreadDataProvider  {
             TriggerParam triggerParam = new TriggerParam();
             triggerParam.setTime(utf8StrTime);
             context.put(Constants.TIME_POINT, triggerParam);
-            // String utf8StrTime = FormatTool.formatDate2Str8(endTime);
             List<String> importCount = new ArrayList<String>();
             for (int i = 0; i < ITableDumpConstant.RAND_GROUP_NUMBER; i++) {
                 IPath path = createPath(i, utf8StrTime);
                 getFileSystem().delete(path);
-                // getFileSystem().create(path, true);
                 TISFSDataOutputStream output = getFileSystem().create(path, true);
-                // String group = String.valueOf(i);
                 outMap.put(String.valueOf(i), output);
                 importCount.add(String.valueOf(i));
             }
@@ -247,8 +242,6 @@ public class MultiThreadDataProvider  {
                 Collection<String> errorList = (Collection) map.get(Constants.IMPORT_HDFS_ERROR);
                 if (errorList != null) {
                     for (String errorRow : errorList) {
-                        loginfo = ">>>>>>>>>>>>>>>>导入行数据为[" + errorRow + "]到HDFS集群中出错！！<<<<<<<<<<<<<<<<<";
-                        log.warn(loginfo);
                         sourceDataFactory.reportDumpStatus(true, /* faild */
                                 true);
                         throw new DataImportHDFSException(loginfo);
@@ -266,10 +259,8 @@ public class MultiThreadDataProvider  {
         } catch (DataImportHDFSException e) {
             throw e;
         } catch (InterruptedException e) {
-            e.printStackTrace();
             throw new DataImportHDFSException("【警告】出现InterruptedException，错误信息:" + e.getMessage(), e);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new DataImportHDFSException("【警告】出现未知错误，错误信息:" + e.getMessage(), e);
         } finally {
 
@@ -575,6 +566,6 @@ public class MultiThreadDataProvider  {
      * @return the fileSystem
      */
     private ITISFileSystem getFileSystem() {
-        return this.flatTableBuilder.getFileSystem().getFileSystem();
+        return this.flatTableBuilder.getFileSystem();
     }
 }

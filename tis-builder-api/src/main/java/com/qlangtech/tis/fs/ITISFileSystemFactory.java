@@ -22,7 +22,7 @@ package com.qlangtech.tis.fs;
  */
 public interface ITISFileSystemFactory {
 
-    public String getRootDir();
+   // public String getRootDir();
 
     public ITISFileSystem getFileSystem();
 }

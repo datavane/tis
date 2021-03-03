@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.trigger.jst;
 
+import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fs.ITISFileSystemFactory;
 import com.qlangtech.tis.fullbuild.indexbuild.HdfsSourcePathCreator;
 import com.qlangtech.tis.fullbuild.indexbuild.IIndexBuildParam;
@@ -81,7 +82,7 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
     // exec type dump,create ,update
     private String execType;
 
-    private final ITISFileSystemFactory fsFactory;
+    private final ITISFileSystem fsFactory;
 
     public String getRootDir() {
         return fsFactory.getRootDir();
@@ -91,10 +92,10 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
     public ImportDataProcessInfo(Integer taskId, ITISFileSystemFactory fsFactory) {
         super();
         this.taskId = taskId;
-        this.fsFactory = fsFactory;
+        this.fsFactory = fsFactory.getFileSystem();
     }
 
-    public static String createIndexDir(ITISFileSystemFactory fsFactory, String timePoint, String groupNum, String serviceName, boolean isSourceDir) {
+    public static String createIndexDir(ITISFileSystem fsFactory, String timePoint, String groupNum, String serviceName, boolean isSourceDir) {
         return fsFactory.getRootDir() + "/" + serviceName + "/all/" + groupNum + (!isSourceDir ? "/output" : StringUtils.EMPTY) + "/" + timePoint;
     }
 

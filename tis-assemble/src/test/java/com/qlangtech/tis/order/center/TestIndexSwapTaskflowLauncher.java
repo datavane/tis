@@ -151,7 +151,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
                 expectSolrMetaOutput(fsRoot, "solrconfig", ConfigFileReader.FILE_SOLR, fileSystem, domain, groupNum);
             }
         }
-        EasyMock.expect(indexBuilderFileSystemFactory.getRootDir()).andReturn(fsRoot).anyTimes();
+        EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem().getRootDir()).andReturn(fsRoot).anyTimes();
         if (!strategy.errorTest()) {
             EasyMock.expect(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).andReturn("xxxx");
         }

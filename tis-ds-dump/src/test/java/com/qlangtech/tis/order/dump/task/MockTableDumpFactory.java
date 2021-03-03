@@ -16,6 +16,7 @@ package com.qlangtech.tis.order.dump.task;
 
 import com.qlangtech.tis.build.task.TaskMapper;
 import com.qlangtech.tis.dump.INameWithPathGetter;
+import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fs.ITISFileSystemFactory;
 import com.qlangtech.tis.fs.ITableBuildTask;
 import com.qlangtech.tis.fs.ITaskContext;
@@ -39,8 +40,8 @@ public class MockTableDumpFactory extends TableDumpFactory {
     }
 
     @Override
-    public ITISFileSystemFactory getFileSystem() {
-        return this.fileSystemFactory;
+    public ITISFileSystem getFileSystem() {
+        return this.fileSystemFactory.getFileSystem();
     }
 
     @Override

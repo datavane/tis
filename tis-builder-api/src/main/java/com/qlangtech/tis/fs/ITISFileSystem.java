@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,6 +24,12 @@ import java.util.List;
  * @date 2018年11月23日
  */
 public interface ITISFileSystem {
+    /**
+     * 文件系统的根目录
+     *
+     * @return
+     */
+    public String getRootDir();
 
     /**
      * 取得文件系统的名称 hdfs ，OSS，或者其他
@@ -96,10 +102,9 @@ public interface ITISFileSystem {
          * Tests whether or not the specified abstract pathname should be included in a
          * pathname list.
          *
-         * @param path
-         *            The abstract pathname to be tested
+         * @param path The abstract pathname to be tested
          * @return <code>true</code> if and only if <code>pathname</code> should be
-         *         included
+         * included
          */
         boolean accept(IPath path);
     }

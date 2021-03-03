@@ -82,11 +82,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
 
         EasyMock.expect(dataBasePluginStore.getDataDumpers(tisTable)).andReturn(dataDumpers).anyTimes();
 
-        TableDumpFactory tableDumpPlugin = new MockTableDumpFactory(fsFactory); //EasyMock.createMock("tableDumpFactory", TableDumpFactory.class);// pluginStore.getPlugin();
-        // assertNotNull(tableDumpPlugin);
-
-        //EasyMock.expect(tableDumpPlugin.getFileSystem()).andReturn(fsFactory);
-        // tableDumpPlugin.getFileSystem();
+        TableDumpFactory tableDumpPlugin = new MockTableDumpFactory(fsFactory);
 
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         final String startTimeStamp = format.format(new Date());
@@ -99,7 +95,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
             protected void registerZKDumpNodeIn(TaskContext context) {
             }
         };
-        tableDumpTask.setSourceDataProviderFactoryInspect((datasourceFactory) -> {
+        //tableDumpTask.setSourceDataProviderFactoryInspect((datasourceFactory) -> {
 //            Objects.requireNonNull(dbmeta, "param dbmeta can not be null");
 //            assertEquals("dbmeta dbEnum size", 1, dbmeta.getDbEnum().size());
 //            List<String> dbs = dbmeta.getDbEnum().get("192.168.28.200");
@@ -107,7 +103,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
 //            assertEquals(4, dbs.size());
 //            List<SourceDataProvider<String, String>> result = datasourceFactory.result;
 //            assertEquals("parse sub db size", 4, result.size());
-        });
+       // });
         Map<String, String> params = Maps.newHashMap();
         TaskContext taskContext = TaskContext.create(params);
         params.put(ITableDumpConstant.DUMP_START_TIME, startTimeStamp);

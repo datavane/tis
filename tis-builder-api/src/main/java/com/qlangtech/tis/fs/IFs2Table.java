@@ -32,7 +32,7 @@ import java.util.Set;
  */
 public interface IFs2Table {
 
-    public ITISFileSystemFactory getFileSystem();
+    public ITISFileSystem getFileSystem();
 
     /**
      * 执行映射

@@ -44,8 +44,7 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
 
     private static final String TABLE_DUMP_ZK_PREFIX = "/tis/table_dump/";
 
-    private SourceDataProviderFactory.ISourceDataProviderFactoryInspect sourceDataProviderFactoryInspect = (f) -> {
-    };
+
 
     private final AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
 
@@ -58,15 +57,6 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
         this.statusRpc = statusRpc;
     }
 
-    public void setSourceDataProviderFactoryInspect(SourceDataProviderFactory.ISourceDataProviderFactoryInspect sourceDataProviderFactoryInspect) {
-        this.sourceDataProviderFactoryInspect = sourceDataProviderFactoryInspect;
-    }
-
-//    @Override
-//    protected DBConfig getDataSourceConfig() {
-//        return GitUtils.$().getDbLinkMetaData(this.dumpTable.getDbName(), DbScope.DETAILED);
-//    }
-
     @Override
     protected void registerExtraBeanDefinition(DefaultListableBeanFactory factory) {
     }
@@ -78,7 +68,6 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
     }
 
     private void init(TaskContext context) {
-        // DumpTable.create(context.get(DUMP_DBNAME), context.get(DUMP_TABLE_NAME));
         this.dumpTable = context.parseDumpTable();
         this.registerZKDumpNodeIn(context);
     }
@@ -116,8 +105,7 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
         dataProvider.setSourceData(dataProviderFactory);
         beanFactory.setFullDumpProvider(dataProvider);
         beanFactory.afterPropertiesSet(dbNames);
-        // 单元测试过程中可以测试是否正常
-        sourceDataProviderFactoryInspect.look(dataProviderFactory);
+
         TISDumpClient dumpBean = beanFactory.getObject();
         return dumpBean;
     }

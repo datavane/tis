@@ -461,20 +461,13 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
     protected void downloadIndexFile2IndexDir(long hdfsTimeStamp, String hdfsUser, SolrCore core, final File indexDir, SolrQueryResponse rsp, String taskId) {
         final long starttime = System.currentTimeMillis();
         TisCoreName tiscoreName = TISCollectionUtils.parse(core.getName());
-        // Matcher coreNameMatcher = coreNamePattern.matcher(core.getName());
-        // if (!coreNameMatcher.matches()) {
-        // throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
-        // "core name:" + core.getName() + " does not match pattern:" +
-        // coreNameMatcher);
-        // }
-        // // coreNameMatcher.group(1);
         String coreName = tiscoreName.getName();
         // 需要减1
         // Integer.parseInt(coreNameMatcher.group(2))
         final int group = tiscoreName.getSharedNo() - 1;
         // - 1;
         ITISFileSystem filesystem = getfileSystem();
-        IPath hdfsPath = filesystem.getPath(getFSFactory().getRootDir() + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
+        IPath hdfsPath = filesystem.getPath(getFSFactory().getFileSystem().getRootDir() + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
         log.info("load from hdfs ,path:" + hdfsPath);
         // InputStream segmentStream = null;
         IndexWriter indexWriter = null;
@@ -492,28 +485,19 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
             if (taskMap == null || (taskObj = taskMap.get(taskId)) == null) {
                 throw new IllegalStateException("taskId:" + taskId + " relevant TaskObject can not be null");
             }
-            // 设置目录下所有文件占用的size
-//            rsp.add(KEY_INDEX_BACK_FLOW_STATUS, new IndexBackflowStatus(summary.getLength(), allReadBytesCount));
-//            NamedList<Object> toLog = rsp.getToLog();
-//            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + "summary", summary.getLength());
-//            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + "allReadBytesCount", allReadBytesCount);
+
             IndexBackflowStatus.add2Resp(rsp, summary.getLength(), allReadBytesCount);
             taskObj.setRspObject(rsp);
 
             this.copy2LocalDir(indexWriter, filesystem, hdfsPath, indexDir);
             log.info("remote hdfs [" + hdfsPath + "] copy to local[" + indexDir + "] consome:" + (System.currentTimeMillis() - starttime));
             indexWriter.commit();
-            // 将一个初始segment_1 文件放到文件夹中去
-            // segmentStream = core.getResourceLoader().openResource(
-            // "com/tis/" + SEGMENT_FILE);
-            // FileUtils.copyInputStreamToFile(segmentStream, new File(indexDir,
-            // SEGMENT_FILE));
+
         } catch (SolrException e) {
             throw e;
         } catch (Exception e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, e.getMessage(), e);
         } finally {
-            // IOUtils.closeQuietly(segmentStream);
             try {
                 filesystem.close();
             } catch (Throwable e) {

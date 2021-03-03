@@ -46,17 +46,6 @@ import java.util.regex.Pattern;
 public class SourceDataProviderFactory {
 
 
-    /**
-     * 在单元测试过程中使用
-     */
-    public interface ISourceDataProviderFactoryInspect {
-
-        public void look(SourceDataProviderFactory factory);
-    }
-
-    @SuppressWarnings("all")
-    // public List<SourceDataProvider<String, String>> result = new ArrayList<>();
-
     private static final Pattern IP_PATTERN = Pattern.compile("//(.+?):");
 
     private static final Log logger = LogFactory.getLog(SourceDataProviderFactory.class);
@@ -81,34 +70,10 @@ public class SourceDataProviderFactory {
         return dbReaderCounter.get();
     }
 
-    // public TSearcherDumpContext getDumpContext() {
-//        return dumpContext;
-//    }
 
     public void setDumpContext(TSearcherDumpContext dumpContext) {
         this.dumpContext = dumpContext;
     }
-
-
-//    public void setSubTablesDesc(Map<String, String> subTablesDesc) {
-//        this.subTablesDesc = subTablesDesc;
-//        if (subTablesDesc.size() != 1) {
-//            throw new IllegalArgumentException("subTablesDesc.size():" + subTablesDesc.size() + " shall be 1");
-//        }
-//    }
-
-
-//    public void setPlusSqlFuncs(List<SqlFunction> plusSqlFuncs) {
-//        this.plusSqlFuncs = plusSqlFuncs;
-//    }
-
-    // protected static final String tableSuffixPlaceHolder = "$tablename$";
-
-
-    // private Map<String, String> /* dump sql */ subTablesDesc;
-
-
-    //  protected List<SqlFunction> plusSqlFuncs = null;
 
     private String allDumpStartTime;
 
@@ -134,8 +99,7 @@ public class SourceDataProviderFactory {
     }
 
     public void reportDumpStatus() {
-        this.reportDumpStatus(false, /* faild */
-                false);
+        this.reportDumpStatus(false, /* faild */false);
     }
 
     /**
@@ -178,10 +142,7 @@ public class SourceDataProviderFactory {
             InitialDBTableReaderTask initTask = InitialDBTableReaderTask.create(exp, countdown, dumper, dumpContext);
             MultiThreadDataProvider.dbReaderExecutor.execute(initTask);
         }
-//            for (SourceDataProvider<String, String> tabProvider : this.result) {
-//                InitialDBTableReaderTask initTask = InitialDBTableReaderTask.create(exp, countdown, tabProvider, dumpContext);
-//                MultiThreadDataProvider.dbReaderExecutor.execute(initTask);
-//            }
+
         if (!countdown.await(10, TimeUnit.MINUTES)) {
             throw new IllegalStateException("wait 10 minutes expire timeout");
         }
@@ -190,11 +151,6 @@ public class SourceDataProviderFactory {
             throw new SourceDataReadException(exp.get());
         }
         logger.info(this.dumpContext.getDumpTable() + " row count:" + this.dumpContext.getAllTableDumpRows().get());
-//        } catch (SourceDataReadException e) {
-//            throw e;
-//        } catch (Exception e) {
-//            throw new SourceDataReadException("par table source error", e);
-//        }
     }
 
     /**
@@ -221,9 +177,6 @@ public class SourceDataProviderFactory {
     }
 
     private static class InitialDBTableReaderTask extends AbstractDBTableReaderTask {
-
-        // private final AtomicInteger allRows;
-        // private final CountDownLatch countdown;
         private final AtomicReference<Throwable> exceptionCollector;
 
         public static InitialDBTableReaderTask create(AtomicReference<Throwable> exceptionCollector, CountDownLatch latch, IDataSourceDumper dataProvider, TSearcherDumpContext dumpContext) {
@@ -242,9 +195,6 @@ public class SourceDataProviderFactory {
         @Override
         public void run() {
             try {
-                // logger.info("open " + dataProvider.getDsName() + "." +
-                // this.dumpContext.getDumpTable().getTableName());
-                // dataProvider.openResource();
                 int rowSize = dumper.getRowSize();
                 this.dumpContext.getAllTableDumpRows().addAndGet(rowSize);
                 // this.allRows.addAndGet(rowSize);
@@ -255,7 +205,6 @@ public class SourceDataProviderFactory {
                 }
                 exceptionCollector.set(e);
             } finally {
-                // dataProvider.closeResource();
                 latch.countDown();
             }
         }

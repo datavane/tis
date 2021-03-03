@@ -59,7 +59,7 @@ public class TISDumpClient {
         super();
         Objects.requireNonNull(flatTableBuilder, "flatTableBuilder can not be null");
         this.flatTableBuilder = flatTableBuilder;
-        this.fileSystem = this.flatTableBuilder.getFileSystem().getFileSystem();
+        this.fileSystem = this.flatTableBuilder.getFileSystem();
     }
 
     @SuppressWarnings("all")
@@ -93,7 +93,7 @@ public class TISDumpClient {
     }
 
     @SuppressWarnings("all")
-    public void executeDumpTask(boolean isIncr, boolean force, TriggerParamProcess triggerParamProcess, String startTime, ITaskContext context) throws Exception {
+    public void executeDumpTask(boolean isIncre, boolean force, TriggerParamProcess triggerParamProcess, String startTime, ITaskContext context) throws Exception {
         // JobExecutionContext
         TSearcherDumpContext dumpContext = this.getDumpContext();
         final Map result = new HashMap();
@@ -113,7 +113,7 @@ public class TISDumpClient {
         flatTableBuilder.bindTables(Collections.singleton(dumpContext.getDumpTable()), MultiThreadDataProvider.getDumpLaunchTimestamp(result), context);
         // 最终生成成功
         dataProvider.createSuccessToken(startTime);
-        logger.warn((isIncr ? "【增量】" : "【全量】") + "任务执行结束<<<<<<");
+
 
     }
 
