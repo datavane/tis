@@ -24,14 +24,7 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
  */
 public interface IIndexBuildJobFactory extends IServerTask {
 
-    IndexBuildSourcePathCreator createIndexBuildSourcePathCreator(IJoinTaskContext execContext, ITabPartition ps);
 
-    /**
-     * 全量构建使用的文件系统
-     *
-     * @return
-     */
-    ITISFileSystem getFileSystem();
 
     /**
      * 创建build索引任务
@@ -43,5 +36,5 @@ public interface IIndexBuildJobFactory extends IServerTask {
      * @return
      * @throws Exception
      */
-    IRemoteJobTrigger createBuildJob(String timePoint, String indexName, String groupNum, IIndexBuildParam buildParam) throws Exception;
+    IRemoteJobTrigger createBuildJob(IJoinTaskContext execContext, String timePoint, String indexName, String groupNum, IIndexBuildParam buildParam) throws Exception;
 }

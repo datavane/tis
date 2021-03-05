@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -97,7 +98,7 @@ public abstract class IndexBuildInterceptor extends TrackableExecuteInterceptor 
         SnapshotDomain domain = HttpConfigFileReader.getResource(execContext.getIndexName(), 0
                 , RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
         try {
-            if (!triggerIndexBuildJob(execContext.getIndexName(), ps, groupSize, pathCreator, execContext, domain)) {
+            if (!triggerIndexBuildJob(execContext.getIndexName(), pathCreator, ps, groupSize, execContext, domain)) {
                 String msg = "index build faild,ps:" + ps.getPt() + ",groupsize:" + groupSize;
                 logger.info(msg);
                 return ExecuteResult.createFaild().setMessage(msg);
@@ -114,18 +115,15 @@ public abstract class IndexBuildInterceptor extends TrackableExecuteInterceptor 
     /**
      * 触发索引build
      *
-     * @param indexName
-     * @param timepoint
-     * @param groupSize
-     * @param indexBuildSourcePathCreator
      * @throws Exception
      */
-    private boolean triggerIndexBuildJob(String indexName, final ITabPartition timepoint, int groupSize
-            , IndexBuildSourcePathCreator indexBuildSourcePathCreator, IExecChainContext execContext, SnapshotDomain domain) throws Exception {
-
+    private boolean triggerIndexBuildJob(String indexName, IndexBuildSourcePathCreator pathCreator, final ITabPartition timepoint, int groupSize
+            , IExecChainContext execContext, SnapshotDomain domain) throws Exception {
+        Objects.requireNonNull(execContext, "execContext can not be null");
 
         final ImportDataProcessInfo processInfo
                 = new ImportDataProcessInfo(execContext.getTaskId(), execContext.getIndexBuildFileSystem(), execContext.getZkClient());
+        processInfo.setBuildSourcePathCreator(pathCreator);
         IIndexMetaData indexMetaData = execContext.getIndexMetaData();
         IIndexMetaData idexMeta = execContext.getIndexMetaData();
         String indexBuilder = idexMeta.getSchemaParseResult().getIndexBuilder();
@@ -134,7 +132,7 @@ public abstract class IndexBuildInterceptor extends TrackableExecuteInterceptor 
         }
         processInfo.setTimepoint(timepoint.getPt());
         processInfo.setIndexName(indexName);
-        processInfo.setIndexBuildSourcePathCreator(indexBuildSourcePathCreator);
+        //processInfo.setIndexBuildSourcePathCreator(indexBuildSourcePathCreator);
         processInfo.setLuceneVersion(indexMetaData.getLuceneVersion());
         setBuildTableTitleItems(indexName, processInfo, execContext);
         final ExecutorCompletionService<BuildResult> completionService = new ExecutorCompletionService<BuildResult>(executorService);
@@ -243,7 +241,7 @@ public abstract class IndexBuildInterceptor extends TrackableExecuteInterceptor 
                 execContext.rebindLoggingMDCParams();
                 BuildSharedPhaseStatus buildStatus = phaseStatus.getBuildSharedPhaseStatus(coreName);
                 try {
-                    IRemoteJobTrigger buildJob = indexBuilderFactory.createBuildJob(timePoint, serviceName, String.valueOf(grouIndex), processinfo);
+                    IRemoteJobTrigger buildJob = indexBuilderFactory.createBuildJob(execContext, timePoint, serviceName, String.valueOf(grouIndex), processinfo);
                     buildJob.submitJob();
                     BuildResult result = new BuildResult((groupNum), this.state);
                     RunningStatus runningStatus = buildJob.getRunningStatus();

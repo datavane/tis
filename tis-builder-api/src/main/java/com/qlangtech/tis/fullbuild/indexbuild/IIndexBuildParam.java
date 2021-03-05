@@ -28,7 +28,7 @@ public interface IIndexBuildParam {
 
     String getHdfsdelimiter();
 
-    IndexBuildSourcePathCreator getHdfsSourcePath();
+    IndexBuildSourcePathCreator getIndexBuildSourcePathCreator();
 
     ICoordinator getCoordinator();
 
@@ -41,9 +41,4 @@ public interface IIndexBuildParam {
     public String getCoreName(int groupNum);
 
     LuceneVersion getLuceneVersion();
-
-    /**
-     * 导入数据条数
-     */
-    Long getDumpCount();
 }

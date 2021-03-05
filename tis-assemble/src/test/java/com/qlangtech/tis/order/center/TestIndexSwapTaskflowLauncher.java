@@ -59,7 +59,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
-import org.easymock.EasyMockExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,7 +71,7 @@ import java.util.regex.Pattern;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年8月22日
  */
-public class TestIndexSwapTaskflowLauncher extends TestCase  {
+public class TestIndexSwapTaskflowLauncher extends TestCase {
 
     private static final int TASK_ID = 253;
 
@@ -149,14 +148,15 @@ public class TestIndexSwapTaskflowLauncher extends TestCase  {
                 builderTrigger.submitJob();
                 RunningStatus runStatus = RunningStatus.SUCCESS;
                 EasyMock.expect(builderTrigger.getRunningStatus()).andReturn(runStatus);
-                EasyMock.expect(indexBuilderTriggerFactory.createBuildJob(partitionTimestamp, SEARCH_APP_NAME, String.valueOf(groupNum), processInfo)).andReturn(builderTrigger);
+                EasyMock.expect(indexBuilderTriggerFactory.createBuildJob(
+                        chainContext, partitionTimestamp, SEARCH_APP_NAME, String.valueOf(groupNum), processInfo)).andReturn(builderTrigger);
                 expectSolrMetaOutput(fsRoot, "schema", ConfigFileReader.FILE_SCHEMA, fileSystem, domain, groupNum);
                 expectSolrMetaOutput(fsRoot, "solrconfig", ConfigFileReader.FILE_SOLR, fileSystem, domain, groupNum);
             }
         }
         EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem().getRootDir()).andReturn(fsRoot).anyTimes();
         if (!strategy.errorTest()) {
-           // EasyMock.expect(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).andReturn("xxxx");
+            // EasyMock.expect(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).andReturn("xxxx");
         }
         ExecutePhaseRange execRange = chainContext.getExecutePhaseRange();
         if (execRange.contains(FullbuildPhase.FullDump)) {

@@ -16,12 +16,13 @@ package com.qlangtech.tis.trigger.jst;
 
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.fs.ITISFileSystem;
-import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
 import com.qlangtech.tis.fullbuild.indexbuild.IIndexBuildParam;
+import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * 共享区处理完成信息之后需要向弹内发送直接结果，以执行后续流程
@@ -53,41 +54,21 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
     private String buildTableTitleItems;
 
     private String hdfsdelimiter;
-
-
-    // 如果使用的是hive数据源地址直接是由hive 之后之后的结果路径指定的
-    private IndexBuildSourcePathCreator indexBuildSourcePathCreator;
-
-    /**
-     * 导入数据条数
-     */
-    private Long dumpCount;
+    private IndexBuildSourcePathCreator buildSourcePathCreator;
 
     @Override
-    public Long getDumpCount() {
-        return dumpCount;
+    public IndexBuildSourcePathCreator getIndexBuildSourcePathCreator() {
+        Objects.requireNonNull(buildSourcePathCreator, "buildSourcePathCreator can not be null ");
+        return this.buildSourcePathCreator;
     }
 
-    public void setDumpCount(Long dumpCount) {
-        this.dumpCount = dumpCount;
+    public void setBuildSourcePathCreator(IndexBuildSourcePathCreator buildSourcePathCreator) {
+        this.buildSourcePathCreator = buildSourcePathCreator;
     }
-
-//    /**
-//     * 容器规格
-//     */
-//    private ContainerSpecification containerSpecification;
-
-    // exec type dump,create ,update
-    private String execType;
 
     private final ITISFileSystem fileSystem;
     private final ITISCoordinator coordinator;
 
-//    public String getRootDir() {
-//        return fileSystem.getRootDir();
-//    }
-
-    // private Long dumpCount;
     public ImportDataProcessInfo(Integer taskId, ITISFileSystem fsFactory, ITISCoordinator coordinator) {
         super();
         this.taskId = taskId;
@@ -134,14 +115,6 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
         this.hdfsdelimiter = hdfsdelimiter;
     }
 
-    @Override
-    public IndexBuildSourcePathCreator getHdfsSourcePath() {
-        return indexBuildSourcePathCreator;
-    }
-
-    public void setIndexBuildSourcePathCreator(IndexBuildSourcePathCreator hdfsSourcePath) {
-        this.indexBuildSourcePathCreator = hdfsSourcePath;
-    }
 
     @Override
     public String getBuildTableTitleItems() {
@@ -178,20 +151,6 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
         return taskId;
     }
 
-//    public ContainerSpecification getContainerSpecification() {
-//        return containerSpecification;
-//    }
-//
-//    public void setContainerSpecification(ContainerSpecification containerSpecification) {
-//        this.containerSpecification = containerSpecification;
-//    }
-//
-//    @Override
-//    public Object clone() throws CloneNotSupportedException {
-//        ImportDataProcessInfo result = (ImportDataProcessInfo) super.clone();
-//        result.containerSpecification = (ContainerSpecification) this.containerSpecification.clone();
-//        return result;
-//    }
 
     @Override
     public boolean equals(Object obj) {

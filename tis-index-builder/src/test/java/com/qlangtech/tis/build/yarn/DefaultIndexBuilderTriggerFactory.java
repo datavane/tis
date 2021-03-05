@@ -42,7 +42,7 @@ public class DefaultIndexBuilderTriggerFactory extends IndexBuilderTriggerFactor
     }
 
     @Override
-    public IRemoteJobTrigger createBuildJob(String timePoint, String indexName, String groupNum, IIndexBuildParam buildParam) throws Exception {
+    public IRemoteJobTrigger createBuildJob(IJoinTaskContext execContext, String timePoint, String indexName, String groupNum, IIndexBuildParam buildParam) throws Exception {
         throw new UnsupportedOperationException();
     }
 
@@ -63,8 +63,4 @@ public class DefaultIndexBuilderTriggerFactory extends IndexBuilderTriggerFactor
     public String identityValue() {
         return NAME;
     }
-//    @Override
-//    public String getName() {
-//        return NAME;
-//    }
 }
