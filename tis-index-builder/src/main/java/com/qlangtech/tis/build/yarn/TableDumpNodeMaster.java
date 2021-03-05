@@ -14,11 +14,13 @@
  */
 package com.qlangtech.tis.build.yarn;
 
+import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.build.NodeMaster;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.dump.task.SingleTableDumpTask;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +48,10 @@ public class TableDumpNodeMaster extends NodeMaster {
     }
 
     @Override
-    protected void startExecute(TaskContext context) {
+    protected void startExecute(TaskContext context, RpcServiceReference statusRpc) {
+
+        TisZkClient zkClient = context.getCoordinator().unwrap();
+
         Objects.requireNonNull(zkClient, "zkClient can not be null");
         Objects.requireNonNull(statusRpc, "statusRpc can not be null");
         SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(tableDumpFactory, dataSourceFactory, zkClient, statusRpc);

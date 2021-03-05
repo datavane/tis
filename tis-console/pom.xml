@@ -299,6 +299,10 @@
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.qlangtech.tis</groupId>
+      <artifactId>tis-base-test</artifactId>
+    </dependency>
 
 
   </dependencies>

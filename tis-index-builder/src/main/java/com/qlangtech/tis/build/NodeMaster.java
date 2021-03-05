@@ -23,7 +23,7 @@ import com.qlangtech.tis.build.yarn.TableDumpNodeMaster;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
+import com.qlangtech.tis.indexbuilder.IndexBuilderTask;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.IndexGetConfig;
 import com.qlangtech.tis.manage.common.*;
@@ -36,13 +36,14 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.solrextend.cloud.TISPluginClassLoader;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +52,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * build索引的master节点类
@@ -69,17 +69,16 @@ public abstract class NodeMaster {
 
     private final IServerTask serverTask;
 
-    protected static AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
 
-    protected static TisZkClient zkClient;
+    // protected static TisZkClient zkClient;
 
     public NodeMaster(IServerTask propsGetter) {
         this.serverTask = propsGetter;
     }
 
     public static void main(String[] args) throws Exception {
-        zkClient = new TisZkClient(Config.getZKHost(), 60000);
-        statusRpc = StatusRpcClient.getService(zkClient);
+        TisZkClient zkClient = new TisZkClient(Config.getZKHost(), 60000);
+        RpcServiceReference statusRpc = StatusRpcClient.getService(zkClient);
         CommandLine commandLine = parseCommandLine(args);
         String val = null;
         logger.info("param:##############################");
@@ -124,24 +123,24 @@ public abstract class NodeMaster {
                 PluginStore<TableDumpFactory> tableDumpFactoryStore = TIS.getPluginStore(TableDumpFactory.class);
                 TableDumpFactory factory = tableDumpFactoryStore.find(tabDumpFactory);
                 TableDumpNodeMaster master = new TableDumpNodeMaster(factory, dbPlugin.getPlugin());
-                master.run(commandLine);
+                master.run(commandLine, zkClient, statusRpc);
             } else if (IndexBuildParam.JOB_TYPE_INDEX_BUILD.equals(jobType)) {
                 final String builderTriggerFactory = commandLine.getOptionValue(IndexBuildParam.INDEXING_BUILDER_TRIGGER_FACTORY);
                 PluginStore<IndexBuilderTriggerFactory> builderTriggerFactoryStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
                 IndexBuilderTriggerFactory factory = builderTriggerFactoryStore.find(builderTriggerFactory);
-                HdfsIndexBuilder.setMdcAppName(commandLine.getOptionValue(IndexBuildParam.INDEXING_SERVICE_NAME));
+                IndexBuilderTask.setMdcAppName(commandLine.getOptionValue(IndexBuildParam.INDEXING_SERVICE_NAME));
                 NodeMaster master = new IndexBuildNodeMaster(factory);
-                master.run(commandLine);
+                master.run(commandLine, zkClient, statusRpc);
             } else {
                 // invalidJobType = true;
                 throw new IllegalStateException("jobType:" + jobType + " is illegal");
                 // logger.error("jobType:{} is illegal", jobType);
             }
             // 最终要向中心节点报告状态
-            finalReportTaskStatus(commandLine, false);
+            finalReportTaskStatus(commandLine, statusRpc, false);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
-            finalReportTaskStatus(commandLine, true);
+            finalReportTaskStatus(commandLine, statusRpc, true);
             throw new RuntimeException(e);
         } finally {
             try {
@@ -164,15 +163,16 @@ public abstract class NodeMaster {
         return TIS.getDataBasePluginStore(new PostedDSProp(dbName));
     }
 
-    private static void finalReportTaskStatus(CommandLine commandLine, boolean faild) {
+    private static void finalReportTaskStatus(CommandLine commandLine, RpcServiceReference statusRpc, boolean faild) {
         try {
             String jobType = commandLine.getOptionValue(IndexBuildParam.JOB_TYPE);
             TaskContext tskCtx = getTaskContext(commandLine);
+            StatusRpcClient.AssembleSvcCompsite rpc = statusRpc.get();
             if (IndexBuildParam.JOB_TYPE_DUMP.equals(jobType)) {
                 DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(String.valueOf(tskCtx.parseDumpTable()), tskCtx.getTaskId());
                 dumpStatus.setFaild(faild);
                 dumpStatus.setComplete(true);
-                statusRpc.get().reportDumpTableStatus(dumpStatus);
+                rpc.reportDumpTableStatus(dumpStatus);
             } else if (IndexBuildParam.JOB_TYPE_INDEX_BUILD.equals(jobType)) {
                 BuildSharedPhaseStatus buildStatus = new BuildSharedPhaseStatus();
                 buildStatus.setTaskid(tskCtx.getTaskId());
@@ -180,7 +180,7 @@ public abstract class NodeMaster {
                 buildStatus.setComplete(true);
                 IndexConf indexConf = IndexGetConfig.getIndexConf(tskCtx);
                 buildStatus.setSharedName(indexConf.getCoreName());
-                statusRpc.get().reportBuildIndexStatus(buildStatus);
+                rpc.reportBuildIndexStatus(buildStatus);
             }
         } catch (Throwable ee) {
             logger.error(ee.getMessage(), ee);
@@ -259,23 +259,7 @@ public abstract class NodeMaster {
         return options;
     }
 
-    // private HdfsIndexBuilder indexBuilder = null;
-    // protected TaskContext taskContext = null;
-    // /**
-    // * 取得任务执行百分比，只能近似正確
-    // */
-    // @Override
-    // public float getProgress() {
-    // if (indexBuilder == null || taskContext == null) {
-    // return 0;
-    // }
-    // final long allRowCount = taskContext.getAllRowCount();
-    // long indexMakeCounter = taskContext.getIndexMakerComplete();
-    // // logger.info("complete:" + indexMakeCounter + ",all:" + allRowCount);
-    // float mainProgress = (float) (((double) indexMakeCounter) / allRowCount);
-    // return (float) (((mainProgress > 1.0) ? 1.0 : mainProgress));
-    // // + ((indexBuilder.getMergeOver() ? 0.02f : 0.0f));
-    // }
+
     @SuppressWarnings("all")
     private static Option[] getClientOptions() {
         List<String> fields = IndexBuildParam.getAllFieldName();
@@ -286,15 +270,14 @@ public abstract class NodeMaster {
         return opts.toArray(new Option[fields.size()]);
     }
 
-    // private YarnConfiguration conf;
-    // private Configuration getConfiguration() {
-    // return this.conf;
-    // }
-    public final void run(CommandLine commandLine) throws Exception {
+    public final void run(CommandLine commandLine, TisZkClient zkClient, final RpcServiceReference statusRpc) throws Exception {
+
         try {
             TaskContext taskContext = getTaskContext(commandLine);
+            taskContext.setCoordinator(zkClient);
+
             serverTask.startTask((context) -> {
-                this.startExecute(context);
+                this.startExecute(context, statusRpc);
             }, taskContext);
         } finally {
             AppnameAwareFlumeLogstashV1Appender.closeAllFlume();
@@ -305,5 +288,5 @@ public abstract class NodeMaster {
         return TaskContext.create((key) -> commandLine.getOptionValue(key));
     }
 
-    protected abstract void startExecute(TaskContext context);
+    protected abstract void startExecute(TaskContext context, RpcServiceReference statusRpc);
 }

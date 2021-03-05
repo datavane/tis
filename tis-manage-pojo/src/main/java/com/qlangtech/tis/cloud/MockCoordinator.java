@@ -25,6 +25,11 @@ import java.util.List;
  */
 public class MockCoordinator implements ITISCoordinator {
     @Override
+    public <T> T unwrap() {
+        return null;
+    }
+
+    @Override
     public boolean shallConnect2RemoteIncrStatusServer() {
         return false;
     }

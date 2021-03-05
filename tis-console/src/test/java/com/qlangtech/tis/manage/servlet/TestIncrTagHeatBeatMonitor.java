@@ -17,18 +17,16 @@ package com.qlangtech.tis.manage.servlet;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.async.message.client.consumer.IMQConsumerStatusFactory;
 import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.config.module.action.TestCollectionAction;
+import com.qlangtech.tis.cloud.MockZKUtils;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.MockHttpURLConnection;
-import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
 import com.qlangtech.tis.realtime.transfer.IIncreaseCounter;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.ExecuteState;
 import junit.framework.TestCase;
 import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
 
 import java.io.IOException;
@@ -50,7 +48,7 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
   // public void test(){
   // System.out.println(  String.format("hell%d",1) );
   // }
-  public void testBuild() {
+  public void testBuild() throws Exception {
     String resName = "collection_TopicTags_status_%d.json";
     AtomicInteger resFetchCount = new AtomicInteger();
     HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker() {
@@ -83,9 +81,9 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
     HttpUtils.addMockApply(0, "incr-control", StringUtils.EMPTY, TestIncrTagHeatBeatMonitor.class);
 
     ZooKeeperGetter zookeeper = EasyMock.createMock("zooKeeperGetter", ZooKeeperGetter.class);
-    ITISCoordinator coordinator = EasyMock.createMock("coordinator", ITISCoordinator.class);
+    ITISCoordinator coordinator = MockZKUtils.createZkMock();// EasyMock.createMock("coordinator", ITISCoordinator.class);
     int times = 5;
-    TestCollectionAction.createAssembleLogCollectPathMock(coordinator,times);
+    // TestCollectionAction.createAssembleLogCollectPathMock(coordinator,times);
 
 //    final String childNodeName = "000001";
 

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,9 +20,9 @@ import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.IIndexMetaData;
-import com.qlangtech.tis.fullbuild.indexbuild.HdfsSourcePathCreator;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
+import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
@@ -41,6 +41,7 @@ import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +54,7 @@ import java.util.concurrent.*;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年12月15日 下午5:08:07
  */
-public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
+public abstract class IndexBuildInterceptor extends TrackableExecuteInterceptor {
 
     public static final String NAME = "indexBuild";
 
@@ -88,12 +89,13 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
         joinPhaseState.setAllComplete();
         final ITabPartition ps = ExecChainContextUtils.getDependencyTablesMINPartition(execContext);
         // ▼▼▼▼ 触发索引构建
-        final HdfsSourcePathCreator pathCreator = createIndexBuildSourceCreator(execContext, ps);
+        final IndexBuildSourcePathCreator pathCreator = createIndexBuildSourceCreator(execContext, ps);
         final int groupSize = execContext.getIndexShardCount();
         if (groupSize < 1) {
             return ExecuteResult.createFaild().setMessage(" build source ps:" + ps.getPt() + " is null");
         }
-        SnapshotDomain domain = HttpConfigFileReader.getResource(execContext.getIndexName(), 0, RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
+        SnapshotDomain domain = HttpConfigFileReader.getResource(execContext.getIndexName(), 0
+                , RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
         try {
             if (!triggerIndexBuildJob(execContext.getIndexName(), ps, groupSize, pathCreator, execContext, domain)) {
                 String msg = "index build faild,ps:" + ps.getPt() + ",groupsize:" + groupSize;
@@ -107,9 +109,7 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
         return ExecuteResult.SUCCESS;
     }
 
-    protected HdfsSourcePathCreator createIndexBuildSourceCreator(final IExecChainContext execContext, ITabPartition ps) {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IndexBuildSourcePathCreator createIndexBuildSourceCreator(final IExecChainContext execContext, ITabPartition ps);
 
     /**
      * 触发索引build
@@ -117,11 +117,15 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
      * @param indexName
      * @param timepoint
      * @param groupSize
-     * @param hdfsSourcePathCreator
+     * @param indexBuildSourcePathCreator
      * @throws Exception
      */
-    private boolean triggerIndexBuildJob(String indexName, final ITabPartition timepoint, int groupSize, HdfsSourcePathCreator hdfsSourcePathCreator, IExecChainContext execContext, SnapshotDomain domain) throws Exception {
-        final ImportDataProcessInfo processInfo = new ImportDataProcessInfo(execContext.getTaskId(), execContext.getIndexBuildFileSystem());
+    private boolean triggerIndexBuildJob(String indexName, final ITabPartition timepoint, int groupSize
+            , IndexBuildSourcePathCreator indexBuildSourcePathCreator, IExecChainContext execContext, SnapshotDomain domain) throws Exception {
+
+
+        final ImportDataProcessInfo processInfo
+                = new ImportDataProcessInfo(execContext.getTaskId(), execContext.getIndexBuildFileSystem(), execContext.getZkClient());
         IIndexMetaData indexMetaData = execContext.getIndexMetaData();
         IIndexMetaData idexMeta = execContext.getIndexMetaData();
         String indexBuilder = idexMeta.getSchemaParseResult().getIndexBuilder();
@@ -130,7 +134,7 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
         }
         processInfo.setTimepoint(timepoint.getPt());
         processInfo.setIndexName(indexName);
-        processInfo.setHdfsSourcePathCreator(hdfsSourcePathCreator);
+        processInfo.setIndexBuildSourcePathCreator(indexBuildSourcePathCreator);
         processInfo.setLuceneVersion(indexMetaData.getLuceneVersion());
         setBuildTableTitleItems(indexName, processInfo, execContext);
         final ExecutorCompletionService<BuildResult> completionService = new ExecutorCompletionService<BuildResult>(executorService);
@@ -165,7 +169,7 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
         BuildResult buildResult;
         buildResult = result.get();
         if (!buildResult.isSuccess()) {
-            logger.error("sourpath:" + buildResult.getHdfsSourcePath() + " build faild.");
+            //logger.error("sourpath:" + buildResult.getHdfsSourcePath(indexBackflowManager.getExecContext()) + " build faild.");
             // build失败
             return false;
         }
@@ -177,7 +181,8 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
         return true;
     }
 
-    private void createFeedbackJob(IExecChainContext execContext, int groupSize, ExecutorCompletionService<BuildResult> completionService, final IndexBackflowManager indexBackflowManager) {
+    private void createFeedbackJob(IExecChainContext execContext, int groupSize, ExecutorCompletionService<BuildResult> completionService
+            , final IndexBackflowManager indexBackflowManager) {
         final ExecutorService asynIndexBuildTask = Executors.newSingleThreadExecutor(new ThreadFactory() {
 
             @Override
@@ -219,7 +224,6 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
      * @param processinfo
      */
     protected void setBuildTableTitleItems(String indexName, ImportDataProcessInfo processinfo, IExecChainContext execContext) {
-        // processinfo.setBuildTableTitleItems(titleColumn.toString());
         throw new UnsupportedOperationException();
     }
 
@@ -231,8 +235,6 @@ public class IndexBuildInterceptor extends TrackableExecuteInterceptor {
     protected final AbstractIndexBuildJob createRemoteIndexBuildJob(final IExecChainContext execContext, ImportDataProcessInfo processinfo
             , int grouIndex, SnapshotDomain domain, BuildPhaseStatus phaseStatus) {
         // 暂时全部提交到32G机器上构建索引吧
-        // final BuildPhaseStatus phaseStatus = this.getPhaseStatus(execContext, FullbuildPhase.BUILD);
-        // 
         IndexBuilderTriggerFactory indexBuilderFactory = execContext.getIndexBuilderFactory();
         return new AbstractIndexBuildJob(execContext, processinfo, grouIndex, domain) {
 

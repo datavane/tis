@@ -54,22 +54,14 @@ public class StatusRpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(StatusRpcClient.class);
 
-    // private static final MockIncrStatusUmbilicalProtocol MOCK_PRC = new MockIncrStatusUmbilicalProtocol();
     private static final StatusRpcClient instance = new StatusRpcClient();
 
     private StatusRpcClient() {
     }
 
-    public static AtomicReference<AssembleSvcCompsite> getService(ITISCoordinator zookeeper, AdapterAssembleSvcCompsiteCallback... callbacks) throws Exception {
+    public static RpcServiceReference getService(ITISCoordinator zookeeper, AdapterAssembleSvcCompsiteCallback... callbacks) throws Exception {
         return instance.connect2RemoteIncrStatusServer(zookeeper, callbacks);
     }
-
-    // public static final AssembleSvcCompsite MOCK_PRC
-    // = new AssembleSvcCompsite(new MockIncrStatusUmbilicalProtocol(), new MockLogReporter()) {
-    // @Override
-    // public void close() {
-    // }
-    // };
 
     /**
      * 连接日志收集节点地址
@@ -160,18 +152,16 @@ public class StatusRpcClient {
      * @param
      * @throws Exception
      */
-    private AtomicReference<AssembleSvcCompsite> connect2RemoteIncrStatusServer(ITISCoordinator zookeeper, AdapterAssembleSvcCompsiteCallback... callbacks) throws Exception {
-        final AtomicReference<AssembleSvcCompsite> ref = new AtomicReference<>();
+    private RpcServiceReference connect2RemoteIncrStatusServer(ITISCoordinator zookeeper, AdapterAssembleSvcCompsiteCallback... callbacks) throws Exception {
+        final AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(AssembleSvcCompsite.MOCK_PRC);
         if (!zookeeper.shallConnect2RemoteIncrStatusServer()) {
-            return ref;
+            return new RpcServiceReference(ref);
         }
-
 
         StatusRpcClient statusRpcClient = new StatusRpcClient();
         statusRpcClient.connect2RemoteIncrStatusServer(zookeeper, true, /* reConnect */
                 new AssembleSvcCompsiteCallback() {
-
                     @Override
                     public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
                         ref.compareAndSet(oldrpc, newrpc);
@@ -183,7 +173,7 @@ public class StatusRpcClient {
 
                     @Override
                     public AssembleSvcCompsite getOld() {
-                        return ref.get();
+                        return ref.get().unwrap();
                     }
 
                     @Override
@@ -191,7 +181,7 @@ public class StatusRpcClient {
                         ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
                     }
                 });
-        return ref;
+        return new RpcServiceReference(ref);
     }
 
     public interface AssembleSvcCompsiteCallback {
@@ -207,13 +197,23 @@ public class StatusRpcClient {
     /**
      * 将Assemble节点上的几个服务节点作一个组合，合并用一个端口
      */
-    public abstract static class AssembleSvcCompsite {
+    public abstract static class AssembleSvcCompsite implements ITISRpcService {
 
         public static final AssembleSvcCompsite MOCK_PRC = new AssembleSvcCompsite(new MockIncrStatusUmbilicalProtocol(), new MockLogReporter()) {
             @Override
             public void close() {
             }
+
+            @Override
+            public AssembleSvcCompsite unwrap() {
+                return this;
+            }
         };
+
+        @Override
+        public AssembleSvcCompsite unwrap() {
+            return this;
+        }
 
         // 各个子节点汇报状态用
         public final IncrStatusUmbilicalProtocol statReceiveSvc;

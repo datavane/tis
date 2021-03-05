@@ -20,12 +20,12 @@ import org.apache.zookeeper.data.Stat;
 import java.util.List;
 
 /**
- * zk的抽象
+ * ZK的抽象
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface ITISCoordinator {
+public interface ITISCoordinator extends ICoordinator {
 
     /**
      * 是否应该连接Assemble日志收集服务，单元测试过程中需要返回false

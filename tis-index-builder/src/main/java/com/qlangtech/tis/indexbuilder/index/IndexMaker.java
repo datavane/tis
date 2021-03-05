@@ -16,7 +16,7 @@ package com.qlangtech.tis.indexbuilder.index;
 
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
-import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
+import com.qlangtech.tis.indexbuilder.IndexBuilderTask;
 import com.qlangtech.tis.indexbuilder.doc.SolrDocPack;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
 import com.qlangtech.tis.indexbuilder.map.SuccessFlag;
@@ -180,7 +180,7 @@ public class IndexMaker implements Runnable {
 
     public void run() {
         try {
-            HdfsIndexBuilder.setMdcAppName(this.indexConf.getCollectionName());
+            IndexBuilderTask.setMdcAppName(this.indexConf.getCollectionName());
             doRun();
         } catch (Throwable e) {
             logger.error("maker error" + e.toString(), e);

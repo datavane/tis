@@ -20,6 +20,9 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 /**
@@ -59,7 +62,7 @@ public class Config {
     private static final String KEY_DATA_DIR = "data.dir";
 
 
-    public static void setTestDataDir() {
+    public static File setTestDataDir() {
         String dataDir = null;
         if ((dataDir = System.getProperty(KEY_DATA_DIR)) != null) {
             throw new RuntimeException("dataDir:" + dataDir + " must be empty");
@@ -69,6 +72,7 @@ public class Config {
             FileUtils.deleteQuietly(tmp);
             FileUtils.forceMkdir(tmp);
             Config.setDataDir(tmp.getAbsolutePath());
+            return tmp;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -202,14 +206,37 @@ public class Config {
                     }
                 };
             } else {
-                ResourceBundle bundle = ResourceBundle.getBundle(StringUtils.defaultIfEmpty(bundlePath, System.getProperty("terminator_config", "com/qlangtech/tis/manage/config")));
-                return new P() {
-
-                    @Override
-                    protected String getProp(String key) {
-                        return bundle.getString(key);
+                try {
+                    ResourceBundle bundle = ResourceBundle.getBundle(bundlePath);
+                    return new P() {
+                        @Override
+                        protected String getProp(String key) {
+                            return bundle.getString(key);
+                        }
+                    };
+                } catch (Throwable e) {
+                    // 测试环境中取工程目录下的配置文件
+                    Properties props = new Properties();
+                    File f = new File("../tis-web-config/config.properties");
+                    if (!f.exists()) {
+                        throw e;
                     }
-                };
+                    try {
+                        try (InputStream input = FileUtils.openInputStream(f)) {
+                            Objects.requireNonNull(input, "file relevant stream is null:" + f.getAbsolutePath());
+                            props.load(input);
+                        }
+                        return new P() {
+                            @Override
+                            protected String getProp(String key) {
+                                return props.getProperty(key);
+                            }
+                        };
+                    } catch (IOException ex) {
+                        throw new RuntimeException(f.getAbsolutePath(), ex);
+                    }
+
+                }
             }
         }
 

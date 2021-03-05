@@ -1,0 +1,66 @@
+/**
+ * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ * <p>
+ * This program is free software: you can use, redistribute, and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3
+ * or later ("AGPL"), as published by the Free Software Foundation.
+ * <p>
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.
+ * <p>
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.qlangtech.tis.cloud;
+
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.solrj.util.ZkUtils;
+import com.qlangtech.tis.test.EasyMockUtil;
+import org.apache.commons.io.IOUtils;
+import org.apache.zookeeper.data.Stat;
+import org.easymock.EasyMock;
+import org.easymock.IExpectationSetters;
+import org.springframework.util.Assert;
+
+import java.io.InputStream;
+import java.util.List;
+
+/**
+ * @author 百岁（baisui@qlangtech.com）
+ * @date 2021-03-03 15:34
+ */
+public class MockZKUtils {
+
+    public static ITISCoordinator createZkMock() throws Exception {
+        TisZkClient zkCoordinator = EasyMockUtil.mock("zkCoordinator", TisZkClient.class);
+        EasyMock.expect(zkCoordinator.shallConnect2RemoteIncrStatusServer()).andReturn(false).anyTimes();
+        EasyMock.expect(zkCoordinator.unwrap()).andReturn(zkCoordinator).anyTimes();
+        createAssembleLogCollectPathMock(zkCoordinator);
+
+        try (InputStream input = MockZKUtils.class.getResourceAsStream("overseer_elect_leader.json")) {
+            Assert.notNull(input);
+            IExpectationSetters<byte[]> expect = EasyMock.expect(
+                    zkCoordinator.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true));
+            expect.andReturn(IOUtils.toByteArray(input)).anyTimes();
+        }
+
+        return zkCoordinator;
+    }
+
+    private static void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator) {
+        createAssembleLogCollectPathMock(zkCoordinator, 1);
+    }
+
+    private static void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator, int times) {
+        String childPath = "nodes0000000361";
+        String childPathContent = "192.168.28.200:38293";
+        List<String> incrStatecollectList = Lists.newArrayList(childPath);
+        EasyMock.expect(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true)).andReturn(incrStatecollectList).anyTimes();
+        EasyMock.expect(zkCoordinator.getData(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + "/" + childPath, null, new Stat(), true))
+                .andReturn(childPathContent.getBytes(TisUTF8.get())).anyTimes();
+    }
+
+}

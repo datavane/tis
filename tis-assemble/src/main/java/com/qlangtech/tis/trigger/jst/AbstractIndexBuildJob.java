@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -17,22 +17,19 @@ package com.qlangtech.tis.trigger.jst;
 import com.qlangtech.tis.cloud.dump.DumpJobId;
 import com.qlangtech.tis.cloud.dump.DumpJobStatus;
 import com.qlangtech.tis.exec.IExecChainContext;
-import com.qlangtech.tis.fs.IPath;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fs.ITISFileSystemFactory;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
-import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,14 +42,11 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 
     public static final String SCHEMA = "schema";
 
-    // protected final String userName;
-    // protected DistributeLog log;
     private static final Logger logger = LoggerFactory.getLogger(AbstractIndexBuildJob.class);
 
-    // protected static final ITISFileSystem fileSystem;
     protected final int groupNum;
 
-    private final ITISFileSystemFactory indexBuildFS;
+    private final ITISFileSystem indexBuildFS;
 
     private final SnapshotDomain appDomain;
 
@@ -65,20 +59,9 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
         }
         this.groupNum = (group);
         this.indexBuildFS = execContext.getIndexBuildFileSystem();
-        // execContext.getAppDomain();
         this.appDomain = domain;
     }
 
-    // public DistributeLog getLog() {
-    // return log;
-    // }
-    // 
-    // public void setLog(DistributeLog log) {
-    // this.log = log;
-    // }
-    // public String getGroupNum() {
-    // return String. groupNum;
-    // }
     protected final ImportDataProcessInfo state;
 
     public BuildResult call() throws Exception {
@@ -113,13 +96,10 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
         long now = System.currentTimeMillis();
         final String outPath = state.getIndexBuildOutputPath((this.groupNum));
         logger.info("build out path:" + outPath);
-        // SnapshotDomain domain = HttpConfigFileReader.getResource(state.getIndexName()
-        // , 0, runtime, ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
-        // if (domain == null) {
-        // throw new IllegalStateException("index:" + state.getIndexName() + ",runtime:" + runtime + " have not prepare for confg");
-        // }
-        writeResource2fs(coreName, appDomain, ConfigFileReader.FILE_SCHEMA, "config");
-        writeResource2fs(coreName, appDomain, ConfigFileReader.FILE_SOLR, "config");
+        ITISFileSystem fileSystem = indexBuildFS;
+
+        appDomain.writeResource2fs(fileSystem, coreName, ConfigFileReader.FILE_SCHEMA);
+        appDomain.writeResource2fs(fileSystem, coreName, ConfigFileReader.FILE_SOLR);
         // writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_CORE_PROPERTIES, "config");
         // // TODO 为了兼容老的索引先加上，到时候要删除掉的
         // writeResource2Hdfs(coreName, domain, ConfigFileReader.FILE_SCHEMA, SCHEMA);
@@ -140,7 +120,7 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
     public static class BuildResult {
 
         public static BuildResult createFaild() {
-            BuildResult buildResult = new BuildResult(Integer.MAX_VALUE, new ImportDataProcessInfo(0, null));
+            BuildResult buildResult = new BuildResult(Integer.MAX_VALUE, new ImportDataProcessInfo(0, null, null));
             return buildResult.setSuccess(false);
         }
 
@@ -219,33 +199,9 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
             this.processInfo = processInfo;
         }
 
-        public String getHdfsSourcePath() {
-            return this.processInfo.getHdfsSourcePath().build(String.valueOf(groupIndex));
-        }
+//        public String getHdfsSourcePath(IExecChainContext ctx) {
+//            return this.processInfo.getHdfsSourcePath().build(ctx,String.valueOf(groupIndex));
+//        }
     }
 
-    /**
-     * @param
-     * @param coreName
-     * @param domain
-     * @return
-     * @throws
-     */
-    private void writeResource2fs(String coreName, SnapshotDomain domain, PropteryGetter getter, String subdir) {
-        String path = this.state.getRootDir() + "/" + coreName + "/" + subdir + "/" + getter.getFileName();
-        ITISFileSystem fs = this.indexBuildFS.getFileSystem();
-        IPath dst = fs.getPath(path);
-        if (dst == null) {
-            throw new IllegalStateException("path can not be create:" + path);
-        }
-        OutputStream dstoutput = null;
-        try {
-            dstoutput = this.indexBuildFS.getFileSystem().create(dst, true);
-            IOUtils.write(getter.getContent(domain), dstoutput);
-        } catch (IOException e1) {
-            throw new RuntimeException("[ERROR] Submit Service Core  Schema.xml to HDFS Failure !!!!", e1);
-        } finally {
-            IOUtils.closeQuietly(dstoutput);
-        }
-    }
 }

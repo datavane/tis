@@ -14,8 +14,14 @@
  */
 package com.qlangtech.tis.manage.common;
 
+import com.qlangtech.tis.fs.IPath;
+import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -40,6 +46,30 @@ public class SnapshotDomain {
             throw new IllegalArgumentException("snapshot can not be null");
         }
         this.snapshot = snapshot;
+    }
+
+
+    /**
+     * @param
+     * @param coreName
+     * @return
+     * @throws
+     */
+    public void writeResource2fs(ITISFileSystem fs, String coreName, PropteryGetter getter) {
+        String path = getter.getFsPath(fs, coreName);// fs.getRootDir() + "/" + coreName + "/config/" + getter.getFileName();
+        IPath dst = fs.getPath(path);
+        if (dst == null) {
+            throw new IllegalStateException("path can not be create:" + path);
+        }
+        OutputStream dstoutput = null;
+        try {
+            dstoutput = fs.create(dst, true);
+            IOUtils.write(getter.getContent(this), dstoutput);
+        } catch (IOException e1) {
+            throw new RuntimeException("[ERROR] Submit Service Core  Schema.xml to HDFS Failure !!!!", e1);
+        } finally {
+            IOUtils.closeQuietly(dstoutput);
+        }
     }
 
     public Integer getAppId() {

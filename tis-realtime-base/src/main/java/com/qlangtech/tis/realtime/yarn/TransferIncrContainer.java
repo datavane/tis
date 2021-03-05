@@ -1,20 +1,19 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.realtime.yarn;
 
-import com.google.common.base.Joiner;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.realtime.transfer.*;
 import com.qlangtech.tis.realtime.utils.NetUtils;
@@ -23,16 +22,16 @@ import com.qlangtech.tis.realtime.yarn.rpc.LaunchReportInfo;
 import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
 import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.tis.hadoop.rpc.AdapterAssembleSvcCompsiteCallback;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -45,31 +44,16 @@ public class TransferIncrContainer extends BasicTransferTool {
 
     private static final Logger logger = LoggerFactory.getLogger(TransferIncrContainer.class);
 
-    // private static final String logFlumeAddress;
-    private static final Pattern ADDRESS_PATTERN = Pattern.compile("(.+?):(\\d+)$");
-
-    // private static final ScheduledExecutorService falconSendScheduler =
-    // Executors.newScheduledThreadPool(1);
-    // private TransferStatusMBean mbean;
-    private static final Joiner joinerWith = Joiner.on("_").skipNulls();
-
     private final String collection;
 
     private final String hostName;
 
-    // private static final Logger logger =
-    // LoggerFactory.getLogger(TransferIncrContainer.class);
     // 反馈执行状态RPC
-    private AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusReporter;
+    private RpcServiceReference statusReporter;
 
     // private String collectionNames;
     private IncrStatusReportWorker statusReportWorker;
 
-  //  private boolean launchStatusReport;
-
-//    public TransferIncrContainer(String collection, long timestamp, URLClassLoader classLoader) {
-//        this(collection, timestamp, classLoader);
-//    }
 
     /**
      * @param collection
@@ -83,9 +67,6 @@ public class TransferIncrContainer extends BasicTransferTool {
 
     public void start() throws Exception {
         this.info("exec collection:" + this.collection);
-        // this.collectionNames = joinerWith
-        // .join(Iterators.transform(execIndexs.iterator(), input -> StringUtils.replace(input, "search4", "s4")));
-        // final ITISCoordinator coordinator = BasicONSListener.cloudCoordinator;
         /**
          * *********************************************************************************
          * 启动spring
@@ -180,8 +161,7 @@ public class TransferIncrContainer extends BasicTransferTool {
         }
     }
 
-    // static String[] keys = new String[] { "order", "info", "tab2", "tab3",
-    // IIncreaseCounter.SOLR_CONSUME_COUNT };
+
     /**
      * 连接日志收集节点地址
      *
@@ -198,9 +178,6 @@ public class TransferIncrContainer extends BasicTransferTool {
                 return null;
             }
         });
-        // coordinator.addOnReconnect(() -> {
-        // nodeLaunchReport(this.statusReporter.get());
-        // });
         setDoReport(true);
     }
 

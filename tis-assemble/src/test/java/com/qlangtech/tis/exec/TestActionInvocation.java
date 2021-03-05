@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,10 +20,13 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.exec.impl.IndexBuildInterceptor;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
+import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
+import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import junit.framework.TestCase;
+
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Set;
@@ -42,8 +45,8 @@ public class TestActionInvocation extends TestCase {
     private static final AtomicInteger backflowCount = new AtomicInteger();
 
     // 工作流執行方式
-    private static final IExecuteInterceptor[] testworkflowBuild = new IExecuteInterceptor[] { // new WorkflowTableJoinInterceptor(),
-    new TestWorkflowDumpAndJoinInterceptor(execCount), new TestWorkflowIndexBuildInterceptor(buildCount), new TestIndexBackFlowInterceptor(backflowCount) };
+    private static final IExecuteInterceptor[] testworkflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
+            new TestWorkflowDumpAndJoinInterceptor(execCount), new TestWorkflowIndexBuildInterceptor(buildCount), new TestIndexBackFlowInterceptor(backflowCount)};
 
     public void testGetWorkflowDetail() throws Exception {
         int workflowId = 1;
@@ -120,6 +123,11 @@ public class TestActionInvocation extends TestCase {
         public TestWorkflowIndexBuildInterceptor(AtomicInteger execCount) {
             super();
             this.execCount = execCount;
+        }
+
+        @Override
+        protected IndexBuildSourcePathCreator createIndexBuildSourceCreator(IExecChainContext execContext, ITabPartition ps) {
+            throw new UnsupportedOperationException();
         }
 
         @Override

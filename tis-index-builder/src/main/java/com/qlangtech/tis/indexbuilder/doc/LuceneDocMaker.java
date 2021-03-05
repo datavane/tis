@@ -16,7 +16,7 @@ package com.qlangtech.tis.indexbuilder.doc;
 
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
-import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
+import com.qlangtech.tis.indexbuilder.IndexBuilderTask;
 import com.qlangtech.tis.indexbuilder.exception.FieldException;
 import com.qlangtech.tis.indexbuilder.exception.RowException;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
@@ -113,7 +113,7 @@ public class LuceneDocMaker implements Runnable {
     @Override
     public void run() {
         try {
-            HdfsIndexBuilder.setMdcAppName(this.indexConf.getCollectionName());
+            IndexBuilderTask.setMdcAppName(this.indexConf.getCollectionName());
             doRun();
             successFlag.setMsg(SuccessFlag.Flag.SUCCESS, this.getName() + " success");
         } catch (Throwable e) {

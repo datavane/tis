@@ -14,7 +14,7 @@
  */
 package com.qlangtech.tis.indexbuilder.utils;
 
-import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
+import com.qlangtech.tis.indexbuilder.IndexBuilderTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
@@ -31,7 +31,7 @@ import java.util.jar.JarFile;
  */
 public class ServiceClassLoader extends URLClassLoader {
 
-    public static final Logger logger = LoggerFactory.getLogger(HdfsIndexBuilder.class);
+    public static final Logger logger = LoggerFactory.getLogger(IndexBuilderTask.class);
 
     /**
      * @param array

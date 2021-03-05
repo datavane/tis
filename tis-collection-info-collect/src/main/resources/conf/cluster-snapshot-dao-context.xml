@@ -19,11 +19,5 @@
 			</bean>
 		</property>
 	</bean>
-	<!-- 
-	<bean id="comDfireTisDataplatformDaoFacade"
-		class="com.qlangtech.tis.dataplatform.dao.impl.ComDfireTisDataplatformDAOFacadeImpl">
-		<constructor-arg index="0" ref="clusterSnapshotDAO" />
-		<constructor-arg index="1" ref="clusterSnapshotPreDayDAO" />
-	</bean>
-	 -->
+
 </beans>

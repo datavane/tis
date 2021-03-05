@@ -466,8 +466,8 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         // Integer.parseInt(coreNameMatcher.group(2))
         final int group = tiscoreName.getSharedNo() - 1;
         // - 1;
-        ITISFileSystem filesystem = getfileSystem();
-        IPath hdfsPath = filesystem.getPath(getFSFactory().getFileSystem().getRootDir() + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
+        ITISFileSystem filesystem = this.getFileSystem();
+        IPath hdfsPath = filesystem.getPath(getFileSystem().getRootDir() + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
         log.info("load from hdfs ,path:" + hdfsPath);
         // InputStream segmentStream = null;
         IndexWriter indexWriter = null;
@@ -542,13 +542,8 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         }
     }
 
-    private ITISFileSystemFactory getFSFactory() {
+    private ITISFileSystem getFileSystem() {
         PluginStore<IndexBuilderTriggerFactory> pluginStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
-        return pluginStore.getPlugin().getFsFactory();
-    }
-
-    // private static FileSystem fileSystem;
-    private ITISFileSystem getfileSystem() {
-        return getFSFactory().getFileSystem();
+        return pluginStore.getPlugin().getFileSystem();
     }
 }

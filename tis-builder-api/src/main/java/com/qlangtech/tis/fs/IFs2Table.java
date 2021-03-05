@@ -57,6 +57,6 @@ public interface IFs2Table {
      */
     public void dropHistoryTable(EntityName dumpTable, ITaskContext taskContext);
 
-    public String getJoinTableStorePath(INameWithPathGetter pathGetter);
+    //public String getJoinTableStorePath(INameWithPathGetter pathGetter);
     // public void dropHistoryHiveTable(DumpTable dumpTable, Connection conn, PartitionFilter filter, int maxPartitionSave);
 }

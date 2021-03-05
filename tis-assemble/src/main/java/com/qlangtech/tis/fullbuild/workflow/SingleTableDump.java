@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,7 +22,9 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.WorkflowDumpAndJoinInterceptor;
-import com.qlangtech.tis.fullbuild.indexbuild.*;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
+import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
 import com.qlangtech.tis.fullbuild.taskflow.AdapterTask;
@@ -37,13 +39,13 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.zk.AbstractWatcher;
 import com.qlangtech.tis.utils.Utils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -192,7 +194,10 @@ public class SingleTableDump extends DataflowTask {
         ;
         Map<String, String> params = Maps.newHashMap();
         params.put(IParamContext.KEY_TASK_ID, String.valueOf(taskid));
-        IRemoteJobTrigger job = tableDumpFactory.createSingleTableDumpJob(dumpTable, pt, TaskContext.create((key) -> params.get(key)));
+        TaskContext taskContext = TaskContext.create((key) -> params.get(key));
+        taskContext.setCoordinator(this.zkClient);
+
+        IRemoteJobTrigger job = tableDumpFactory.createSingleTableDumpJob(dumpTable, taskContext);
         job.submitJob();
         RunningStatus runningStatus = job.getRunningStatus();
         while (!runningStatus.isComplete()) {
@@ -216,7 +221,7 @@ public class SingleTableDump extends DataflowTask {
      * 添加当前任务的pt
      */
     private void recordPt() {
-      //  Map<IDumpTable, ITabPartition> dateParams = ExecChainContextUtils.getDependencyTablesPartitions(execChainContext);
+        //  Map<IDumpTable, ITabPartition> dateParams = ExecChainContextUtils.getDependencyTablesPartitions(execChainContext);
         TabPartitions dateParams = ExecChainContextUtils.getDependencyTablesPartitions(execChainContext);
         dateParams.putPt(this.dumpTable, () -> pt);
     }
@@ -249,7 +254,7 @@ public class SingleTableDump extends DataflowTask {
                         }
                         localTaskCountDownLatch.countDown();
                     }
-                // }
+                    // }
                 }
             }, new Stat(), true);
             pt = new String(bytes);

@@ -54,10 +54,10 @@ public class GitUtils //implements com.qlangtech.tis.db.IDBConfigAccess
 
     private static final ConfigFileContext.Header DELETE_METHOD = new ConfigFileContext.Header("method", "DELETE");
 
-    // http://git.2dfire-inc.com.qlangtech.searcher/tis-fullbuild-workflow
+
     public static final int WORKFLOW_GIT_PROJECT_ID = 1372;
 
-    // http://git.2dfire-inc.com.qlangtech.searcher/tis-fullbuild-datasource-daily
+
     public static final int DATASOURCE_PROJECT_ID = 1375;
 
     public static final String TAB_CONFIG_ROOT_DIR = "table_cfg/";

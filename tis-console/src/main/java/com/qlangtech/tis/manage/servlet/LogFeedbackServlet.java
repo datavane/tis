@@ -44,6 +44,7 @@ import com.qlangtech.tis.trigger.jst.RegisterMonotorTarget;
 import com.qlangtech.tis.trigger.socket.ExecuteState;
 import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang.StringUtils;
@@ -59,7 +60,6 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -75,14 +75,14 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
   private static final long serialVersionUID = 1L;
 
-  private AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
+  private RpcServiceReference statusRpc;
 
   private IWorkflowDAOFacade wfDao;
   private ZooKeeperGetter zkGetter;
 
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-  private AtomicReference<StatusRpcClient.AssembleSvcCompsite> getStatusRpc() {
+  private RpcServiceReference getStatusRpc() {
     if (this.statusRpc != null) {
       return this.statusRpc;
     }
@@ -171,7 +171,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
     private StreamObserver<PMonotorTarget> getMonitorSet() {
       if (pMonotorObserver == null) {
-        pMonotorObserver = getStatusRpc().get().registerMonitorEvent(this);
+        StatusRpcClient.AssembleSvcCompsite feedback = getStatusRpc().get();
+        pMonotorObserver = feedback.registerMonitorEvent(this);
       }
       return pMonotorObserver;
     }
@@ -250,7 +251,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
       } else if (monitorTarget.testLogType(LogType.BuildPhraseMetrics)) {
         executorService.execute(() -> {
           try {
-            final Iterator<PPhaseStatusCollection> statIt = getStatusRpc().get().buildPhraseStatus(taskid);
+            StatusRpcClient.AssembleSvcCompsite feedback = getStatusRpc().get();
+            final Iterator<PPhaseStatusCollection> statIt = feedback.buildPhraseStatus(taskid);
             while (isConnected() && statIt.hasNext()) {
               process(statIt.next());
             }

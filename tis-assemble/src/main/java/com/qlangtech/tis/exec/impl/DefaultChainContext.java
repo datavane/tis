@@ -21,6 +21,7 @@ import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.IIndexMetaData;
+import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fs.ITISFileSystemFactory;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
@@ -52,7 +53,7 @@ public class DefaultChainContext implements IExecChainContext {
 
     private ZkStateReader zkStateReader;
 
-    private ITISFileSystemFactory indexBuildFileSystem;
+    private ITISFileSystem indexBuildFileSystem;
 
     private IFlatTableBuilder flatTableBuilderPlugin;
 
@@ -96,7 +97,7 @@ public class DefaultChainContext implements IExecChainContext {
 
     public void setIndexBuilderTriggerFactory(IndexBuilderTriggerFactory indexBuilderTriggerFactory) {
         this.indexBuilderTriggerFactory = indexBuilderTriggerFactory;
-        this.setIndexBuildFileSystem(indexBuilderTriggerFactory.getFsFactory());
+        this.setIndexBuildFileSystem(indexBuilderTriggerFactory.getFileSystem());
     }
 
     public void setMdcParamContext(IRebindableMDC mdcParamContext) {
@@ -154,7 +155,7 @@ public class DefaultChainContext implements IExecChainContext {
         return this.executePhaseRange;
     }
 
-    private void setIndexBuildFileSystem(ITISFileSystemFactory fileSystem) {
+    private void setIndexBuildFileSystem(ITISFileSystem fileSystem) {
         Objects.requireNonNull(fileSystem, "indexBuild fileSystem can not be null");
         this.indexBuildFileSystem = fileSystem;
     }
@@ -223,7 +224,7 @@ public class DefaultChainContext implements IExecChainContext {
     }
 
     @Override
-    public ITISFileSystemFactory getIndexBuildFileSystem() {
+    public ITISFileSystem getIndexBuildFileSystem() {
         return this.indexBuildFileSystem;
     }
 

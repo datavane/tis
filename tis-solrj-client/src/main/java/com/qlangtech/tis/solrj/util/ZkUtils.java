@@ -38,6 +38,7 @@ import java.util.List;
 public class ZkUtils {
 
     public static final String ZK_ASSEMBLE_LOG_COLLECT_PATH = "/tis/incr-transfer-group/incr-state-collect";
+    public static final String ZK_PATH_OVERSEER_ELECT_LEADER = "/overseer_elect/leader";
 
     private static final Logger logger = LoggerFactory.getLogger(ZkUtils.class);
 

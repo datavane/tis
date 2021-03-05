@@ -52,7 +52,7 @@ public class TestTableDumpNodeMaster extends TestCase {
         Map<String, String> params = new HashMap<>();
         params.put(IParamContext.KEY_TASK_ID, "123");
         TaskContext taskContext = TaskContext.create(params);
-        JobConfParams tabDumpParams = JobConfParams.createTabDumpParams(taskContext, dumpTable, f.format(new Date()), "yarn_tab_dump");
+        JobConfParams tabDumpParams = JobConfParams.createTabDumpParams(taskContext, dumpTable, Long.parseLong(f.format(new Date())), "yarn_tab_dump");
         NodeMaster.main(tabDumpParams.paramsArray());
     }
 }

@@ -45,7 +45,8 @@ public class SnapshotDomainGetter {
     } else {
       final ServerGroup group = runContext.getServerGroupDAO().load(appKey.appName, appKey.groupIndex, appKey.runtime.getId());
       if (group == null) {
-        throw new SnapshotNotFindException("appName:" + appKey.appName + " groupIndex:" + appKey.groupIndex + " runtime:" + appKey.runtime + " has not a corresponding server group in db");
+        throw new SnapshotNotFindException("appName:" + appKey.appName + " groupIndex:" + appKey.groupIndex + " runtime:"
+          + appKey.runtime + " has not a corresponding server group in db");
       }
       if (group.getPublishSnapshotId() == null) {
         throw new SnapshotNotFindException("groupid:" + group.getGid() + " has not set publish snapshot id");

@@ -16,11 +16,11 @@ package com.qlangtech.tis.config.module.action;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.cloud.MockZKUtils;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
@@ -41,19 +41,15 @@ import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
-import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
-import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.TISZkStateReader;
 import org.apache.solr.common.util.DOMUtil;
-import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
-import org.easymock.IExpectationSetters;
 import org.shai.xmodifier.util.StringUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
@@ -61,8 +57,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -191,16 +185,17 @@ public class TestCollectionAction extends BasicActionTestCase {
     assertEquals(9, colsMeta.size());
 
     JSONObject assertBiz = this.getJSON("get_index_topology_biz.json");
-    assertEquals(assertBiz.toJSONString(),topology.toJSONString());
+    assertEquals(assertBiz.toJSONString(), topology.toJSONString());
 
   }
 
 
-
   public void testDeleteCollection() throws Exception {
+    ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
+    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
 
-    createCoordinatorMock((r) -> {
-    });
+//    createCoordinatorMock((r) -> {
+//    });
 
     request.setParameter("emethod", "deleteIndex");
     request.setParameter("action", "collection_action");
@@ -240,10 +235,8 @@ public class TestCollectionAction extends BasicActionTestCase {
   }
 
   public void testDoFullbuild() throws Exception {
-    ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
-    // Watcher watcher = mock("watcher", Watcher.class);
-    // String incrStatecollect = "/tis/incr-transfer-group/incr-state-collect";
-    createAssembleLogCollectPathMock(zkCoordinator);
+    ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
+    // createAssembleLogCollectPathMock(zkCoordinator);
 
     MockZooKeeperGetter.mockCoordinator = zkCoordinator;
 
@@ -265,18 +258,6 @@ public class TestCollectionAction extends BasicActionTestCase {
     this.verifyAll();
   }
 
-  public static void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator) {
-    createAssembleLogCollectPathMock(zkCoordinator, 1);
-  }
-
-  public static void createAssembleLogCollectPathMock(ITISCoordinator zkCoordinator, int times) {
-    String childPath = "nodes0000000361";
-    String childPathContent = "192.168.28.200:38293";
-    List<String> incrStatecollectList = Lists.newArrayList(childPath);
-    EasyMock.expect(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true)).andReturn(incrStatecollectList).times(times);
-    EasyMock.expect(zkCoordinator.getData(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + "/" + childPath, null, new Stat(), true))
-      .andReturn(childPathContent.getBytes(TisUTF8.get())).times(times);
-  }
 
   public void testQuery() throws Exception {
 
@@ -381,12 +362,15 @@ public class TestCollectionAction extends BasicActionTestCase {
   public void testDoCreate() throws Exception {
 
     this.clearUpDB();
-    IExpectationSetters<byte[]> iExpectationSetters = createCoordinatorMock((coord) -> {
-//      EasyMock.expect(coord.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true))
-//        .andReturn();
-      createAssembleLogCollectPathMock(coord);
-    });
-    iExpectationSetters.times(2);
+
+    ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
+    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
+//    IExpectationSetters<byte[]> iExpectationSetters = createCoordinatorMock((coord) -> {
+////      EasyMock.expect(coord.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true))
+////        .andReturn();
+//      createAssembleLogCollectPathMock(coord);
+//    });
+//    iExpectationSetters.times(2);
     TISZkStateReader tisZkStateReader = buildTisZkStateReaderMock();
     SelectableServer.CoreNode coreNode = new SelectableServer.CoreNode();
     coreNode.setHostName("hostname");

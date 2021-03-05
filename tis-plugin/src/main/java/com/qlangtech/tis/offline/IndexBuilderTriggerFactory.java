@@ -17,8 +17,13 @@ package com.qlangtech.tis.offline;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.fs.ITISFileSystem;
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.IIndexBuildJobFactory;
+import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 /**
  * 索引build插件
@@ -28,12 +33,8 @@ import com.qlangtech.tis.plugin.IdentityName;
  */
 public abstract class IndexBuilderTriggerFactory implements Describable<IndexBuilderTriggerFactory>, IIndexBuildJobFactory, IdentityName {
 
-    /**
-     * 全量构建使用的文件系统
-     *
-     * @return
-     */
-    public abstract FileSystemFactory getFsFactory();
+
+
 
     @Override
     public Descriptor<IndexBuilderTriggerFactory> getDescriptor() {

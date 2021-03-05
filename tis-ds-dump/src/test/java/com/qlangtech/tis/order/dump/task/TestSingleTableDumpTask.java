@@ -14,7 +14,6 @@
  */
 package com.qlangtech.tis.order.dump.task;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.fs.ITaskContext;
@@ -27,11 +26,11 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.plugin.ds.DataDumpers;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
-import com.qlangtech.tis.plugin.ds.IDataSourceDumper;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.tis.hadoop.rpc.ITISRpcService;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
@@ -42,7 +41,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,16 +50,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestSingleTableDumpTask extends TestCase implements ITableDumpConstant {
+public class TestSingleTableDumpTask extends TestCase implements ITableDumpConstant, ITestDumpCommon {
 
     static {
         HttpUtils.addMockGlobalParametersConfig();
         CenterResource.setNotFetchFromCenterRepository();
     }
 
-    private static final String DB_EMPLOYEES = "employees";
-
-    private static final String TABLE_EMPLOYEES = "employees";
 
     public void testDumpEmployees() throws Exception {
         GitUtils.ExecuteGetTableConfigCount = 0;
@@ -72,38 +67,25 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
         FileSystemFactory fsFactory = FileSystemFactory.getFsFactory("local_fs");
         assertNotNull(fsFactory);
 
-        DataSourceFactory dataBasePluginStore = EasyMock.createMock("dataSourceFactory", DataSourceFactory.class);
+        DataSourceFactory dataSourceFactory = MockDataSourceFactory.getMockEmployeesDataSource();
 
-        int splitCount = 1;
-        List<IDataSourceDumper> dumpers = Lists.newArrayList();
-        dumpers.add(new TestEmployeeDataSourceDumper());
 
-        DataDumpers dataDumpers = new DataDumpers(splitCount, dumpers.iterator());
-
-        EasyMock.expect(dataBasePluginStore.getDataDumpers(tisTable)).andReturn(dataDumpers).anyTimes();
-
-        TableDumpFactory tableDumpPlugin = new MockTableDumpFactory(fsFactory);
+        TableDumpFactory tableDumpPlugin = EasyMock.createMock("tableDumpFactory", TableDumpFactory.class);
 
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         final String startTimeStamp = format.format(new Date());
         TisZkClient zkClient = EasyMock.createMock("tisZkClient", TisZkClient.class);
 
-        AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc = new AtomicReference<>();
-        statusRpc.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
-        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(tableDumpPlugin, dataBasePluginStore, zkClient, statusRpc) {
+        AtomicReference<ITISRpcService> ref = new AtomicReference<>();
+        ref.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
+        RpcServiceReference statusRpc = new RpcServiceReference(ref);
+//        statusRpc.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
+        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(tableDumpPlugin, dataSourceFactory, zkClient, statusRpc) {
 
             protected void registerZKDumpNodeIn(TaskContext context) {
             }
         };
-        //tableDumpTask.setSourceDataProviderFactoryInspect((datasourceFactory) -> {
-//            Objects.requireNonNull(dbmeta, "param dbmeta can not be null");
-//            assertEquals("dbmeta dbEnum size", 1, dbmeta.getDbEnum().size());
-//            List<String> dbs = dbmeta.getDbEnum().get("192.168.28.200");
-//            assertNotNull(dbs);
-//            assertEquals(4, dbs.size());
-//            List<SourceDataProvider<String, String>> result = datasourceFactory.result;
-//            assertEquals("parse sub db size", 4, result.size());
-       // });
+
         Map<String, String> params = Maps.newHashMap();
         TaskContext taskContext = TaskContext.create(params);
         params.put(ITableDumpConstant.DUMP_START_TIME, startTimeStamp);
@@ -113,8 +95,8 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
         params.put(IParamContext.KEY_TASK_ID, "1234567");
         // 有已经导入的数据存在是否有必要重新导入
         params.put(ITableDumpConstant.DUMP_FORCE, "true");
-        EasyMock.replay(zkClient, dataBasePluginStore);
-        // TaskReturn result =
+        EasyMock.replay(zkClient);
+        // 开始执行
         tableDumpTask.map(taskContext);
         assertEquals(1, GitUtils.ExecuteGetTableConfigCount);
         int allTableDumpRows = tableDumpTask.getAllTableDumpRows();
@@ -123,7 +105,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
             testConnectionWorkRegular(r, tableDumpTask.getDumpContext(), startTimeStamp);
         });
 
-        EasyMock.verify(zkClient, dataBasePluginStore);
+        EasyMock.verify(zkClient);
 
     }
 

@@ -56,6 +56,11 @@ public class SolrCloudClientFactory implements ITisCloudClientFactory {
                     200);
             this.coordinator = new ITISCoordinator() {
                 @Override
+                public ITISCoordinator unwrap() {
+                    return this;
+                }
+
+                @Override
                 public boolean shallConnect2RemoteIncrStatusServer() {
                     return true;
                 }

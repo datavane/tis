@@ -37,9 +37,9 @@
         <module>tis-hadoop-rpc</module>
         <module>tis-solrconfig-parser</module>
         <module>tis-solrj-client</module>
-
         <module>tis-common</module>
         <module>tis-builder-api</module>
+        <module>tis-base-test</module>
         <module>tis-web-start</module>
         <module>tis-assemble</module>
 
@@ -60,6 +60,7 @@
         <module>tis-scala-compiler-dependencies</module>
 
         <module>maven-tpi-plugin</module>
+
 
     </modules>
 
@@ -150,6 +151,16 @@
                 <version>${project.version}</version>
                 <scope>provided</scope>
             </dependency>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-base-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+
+
 
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>

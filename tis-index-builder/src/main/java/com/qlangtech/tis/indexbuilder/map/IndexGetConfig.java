@@ -92,14 +92,7 @@ public class IndexGetConfig implements TaskMapper {
                     return getLocalTmpSolrConfigFile(indexConf.getCollectionName());
                 }
             });
-        // } catch (IOException e) {
-        // 
-        // return new TaskReturn(TaskReturn.ReturnCode.FAILURE,
-        // "get schema error:" + ExceptionUtils.getStackTrace(e));
-        // }
-        // return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
         } catch (Throwable e) {
-            // return new TaskReturn(TaskReturn.ReturnCode.FAILURE, "get schema fail:" + ExceptionUtils.getStackTrace(e));
             throw new RuntimeException(e);
         }
     }

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -30,6 +30,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,7 +80,7 @@ public class IndexBackFlowInterceptor extends TrackableExecuteInterceptor {
                 // 直接开始回流
                 DocCollection collection = context.getZkStateReader().getClusterState().getCollection(context.getIndexName());
                 IndexBackflowManager indexBackFlowQueueTmp = new IndexBackflowManager(collection, context, this);
-                ImportDataProcessInfo state = new ImportDataProcessInfo(taskid, context.getIndexBuildFileSystem());
+                ImportDataProcessInfo state = new ImportDataProcessInfo(taskid, context.getIndexBuildFileSystem(), context.getZkClient());
                 state.setTimepoint(context.getPartitionTimestamp());
                 indexBackFlowQueueTmp.vistAllReplica((replic) -> {
                     BuildResult buildResult = new BuildResult(replic, state);

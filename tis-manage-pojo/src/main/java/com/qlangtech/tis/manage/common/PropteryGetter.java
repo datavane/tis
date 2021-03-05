@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.manage.common;
 
+import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
@@ -25,6 +26,18 @@ import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 public interface PropteryGetter {
 
     String KEY_PROP_CONFIG_SNAPSHOTID = "property.configsnapshotid";
+
+    /**
+     * 取得在FS中的文件路径
+     *
+     * @param fs
+     * @param coreName
+     * @return
+     */
+    default String getFsPath(ITISFileSystem fs, String coreName) {
+        String path = fs.getRootDir() + "/" + coreName + "/config/" + this.getFileName();
+        return path;
+    }
 
     public String getFileName();
 

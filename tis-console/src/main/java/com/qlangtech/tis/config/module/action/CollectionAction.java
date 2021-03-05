@@ -63,6 +63,7 @@ import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.*;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.io.FileUtils;
@@ -84,7 +85,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -242,14 +242,15 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
     LogReader logReader = new LogReader();
     if (showLog) {
-      AtomicReference<StatusRpcClient.AssembleSvcCompsite> service = StatusRpcClient.getService(getSolrZkClient());
+      RpcServiceReference service = StatusRpcClient.getService(getSolrZkClient());
       PMonotorTarget.Builder t = PMonotorTarget.newBuilder();
       t.setLogtype(LogCollectorClient.convert(LogType.FULL.typeKind));
       t.setCollection(buildHistory.getAppName());
       if (taskId > 0) {
         t.setTaskid(taskId);
       }
-      StreamObserver<PMonotorTarget> observer = service.get().registerMonitorEvent(logReader);
+      StatusRpcClient.AssembleSvcCompsite feedbackRpc = service.get();
+      StreamObserver<PMonotorTarget> observer = feedbackRpc.registerMonitorEvent(logReader);
       observer.onNext(t.build());
       Thread.sleep(3000);
       observer.onCompleted();

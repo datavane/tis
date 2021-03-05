@@ -203,21 +203,6 @@ public class ConfigFileReader {
         }
     }
 
-    // public static final PropteryGetter FILE_APPLICATION = new BasicPropteryGetter() {
-    // 
-    // public String getFileName() {
-    // return ConfigConstant.FILE_APPLICATION;
-    // }
-    // 
-    // public Snapshot setSolrCoreResourceId(long newUploadResourceId, Snapshot colon) {
-    // colon.setResApplicationId((long) newUploadResourceId);
-    // return colon;
-    // }
-    // 
-    // public UploadResource getUploadResource(SnapshotDomain snapshotDomain) {
-    // return snapshotDomain.getApplication();
-    // }
-    // };
     public static final BasicPropteryGetter FILE_SCHEMA = new SchemaFile();
 
     private static class SchemaFile extends BasicPropteryGetter {
@@ -341,12 +326,6 @@ public class ConfigFileReader {
             return content;
         }
 
-        // @Override
-        // public Snapshot createNewSnapshot(Integer newId, SnapshotDomain
-        // domain) {
-        // 
-        // return null;
-        // }
         @Override
         public final Snapshot createNewSnapshot(Integer newUploadResourceId, Snapshot snapshot) {
             // Snapshot snapshot = domain.getSnapshot();
@@ -384,9 +363,8 @@ public class ConfigFileReader {
         throw new IllegalStateException("res name:" + resName + " is illegal");
     }
 
-    public static final PropteryGetter[] getAry = new PropteryGetter[]{ // , FILE_DATA_SOURCE // FILE_JAR, FILE_CORE_PROPERTIES
-            FILE_SCHEMA, // , FILE_DATA_SOURCE // FILE_JAR, FILE_CORE_PROPERTIES
-            FILE_SOLR};
+    public static final PropteryGetter[] getAry = new PropteryGetter[]{
+            FILE_SCHEMA, FILE_SOLR};
 
     public static List<PropteryGetter> getConfigList() {
         return Arrays.asList(getAry);

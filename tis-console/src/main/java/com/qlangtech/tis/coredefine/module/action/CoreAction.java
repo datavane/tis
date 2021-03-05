@@ -102,7 +102,6 @@ public class CoreAction extends BasicModule {
   public static final String ADMIN_COLLECTION_PATH = "/solr/admin/collections";
   public static final String CREATE_COLLECTION_PATH = ADMIN_COLLECTION_PATH + "?action=CREATE&name=";
   public static final String TRIGGER_FULL_BUILD_COLLECTION_PATH = "/trigger";
-  public static final String ZK_PATH_OVERSEER_ELECT_LEADER = "/overseer_elect/leader";
 
   public static final String DEFAULT_SOLR_CONFIG = "tis_mock_config";
 
@@ -1043,7 +1042,7 @@ public class CoreAction extends BasicModule {
   }
 
   public static String getCloudOverseerNode(ITISCoordinator zkClient) {
-    Map v = JSON.parseObject(zkClient.getData(ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true), Map.class, Feature.AllowUnQuotedFieldNames);
+    Map v = JSON.parseObject(zkClient.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true), Map.class, Feature.AllowUnQuotedFieldNames);
     String id = (String) v.get("id");
     if (id == null) {
       throw new IllegalStateException("collection cluster overseer node has not launch");

@@ -1,25 +1,26 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.trigger.jst;
 
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.fs.ITISFileSystem;
-import com.qlangtech.tis.fs.ITISFileSystemFactory;
-import com.qlangtech.tis.fullbuild.indexbuild.HdfsSourcePathCreator;
+import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
 import com.qlangtech.tis.fullbuild.indexbuild.IIndexBuildParam;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.Serializable;
 
 /**
@@ -53,11 +54,9 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
 
     private String hdfsdelimiter;
 
-    // odps初始化session num 表示一次性分配多少个管道 ，后续一次性提交
-    private Integer sessionNum;
 
     // 如果使用的是hive数据源地址直接是由hive 之后之后的结果路径指定的
-    private HdfsSourcePathCreator hdfsSourcePathCreator;
+    private IndexBuildSourcePathCreator indexBuildSourcePathCreator;
 
     /**
      * 导入数据条数
@@ -73,26 +72,32 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
         this.dumpCount = dumpCount;
     }
 
-    // private Integer MaxDumpCount;
-    /**
-     * 容器规格
-     */
-    private ContainerSpecification containerSpecification;
+//    /**
+//     * 容器规格
+//     */
+//    private ContainerSpecification containerSpecification;
 
     // exec type dump,create ,update
     private String execType;
 
-    private final ITISFileSystem fsFactory;
+    private final ITISFileSystem fileSystem;
+    private final ITISCoordinator coordinator;
 
-    public String getRootDir() {
-        return fsFactory.getRootDir();
-    }
+//    public String getRootDir() {
+//        return fileSystem.getRootDir();
+//    }
 
     // private Long dumpCount;
-    public ImportDataProcessInfo(Integer taskId, ITISFileSystemFactory fsFactory) {
+    public ImportDataProcessInfo(Integer taskId, ITISFileSystem fsFactory, ITISCoordinator coordinator) {
         super();
         this.taskId = taskId;
-        this.fsFactory = fsFactory.getFileSystem();
+        this.fileSystem = fsFactory;
+        this.coordinator = coordinator;
+    }
+
+    @Override
+    public ITISCoordinator getCoordinator() {
+        return this.coordinator;
     }
 
     public static String createIndexDir(ITISFileSystem fsFactory, String timePoint, String groupNum, String serviceName, boolean isSourceDir) {
@@ -117,7 +122,7 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
     }
 
     public String getIndexBuildOutputPath(int groupIndex) {
-        return createIndexDir(fsFactory, this.timepoint, String.valueOf(groupIndex), this.getIndexName(), false);
+        return createIndexDir(fileSystem, this.timepoint, String.valueOf(groupIndex), this.getIndexName(), false);
     }
 
     @Override
@@ -130,12 +135,12 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
     }
 
     @Override
-    public HdfsSourcePathCreator getHdfsSourcePath() {
-        return hdfsSourcePathCreator;
+    public IndexBuildSourcePathCreator getHdfsSourcePath() {
+        return indexBuildSourcePathCreator;
     }
 
-    public void setHdfsSourcePathCreator(HdfsSourcePathCreator hdfsSourcePath) {
-        this.hdfsSourcePathCreator = hdfsSourcePath;
+    public void setIndexBuildSourcePathCreator(IndexBuildSourcePathCreator hdfsSourcePath) {
+        this.indexBuildSourcePathCreator = hdfsSourcePath;
     }
 
     @Override
@@ -173,20 +178,20 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
         return taskId;
     }
 
-    public ContainerSpecification getContainerSpecification() {
-        return containerSpecification;
-    }
-
-    public void setContainerSpecification(ContainerSpecification containerSpecification) {
-        this.containerSpecification = containerSpecification;
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        ImportDataProcessInfo result = (ImportDataProcessInfo) super.clone();
-        result.containerSpecification = (ContainerSpecification) this.containerSpecification.clone();
-        return result;
-    }
+//    public ContainerSpecification getContainerSpecification() {
+//        return containerSpecification;
+//    }
+//
+//    public void setContainerSpecification(ContainerSpecification containerSpecification) {
+//        this.containerSpecification = containerSpecification;
+//    }
+//
+//    @Override
+//    public Object clone() throws CloneNotSupportedException {
+//        ImportDataProcessInfo result = (ImportDataProcessInfo) super.clone();
+//        result.containerSpecification = (ContainerSpecification) this.containerSpecification.clone();
+//        return result;
+//    }
 
     @Override
     public boolean equals(Object obj) {
@@ -195,7 +200,7 @@ public class ImportDataProcessInfo implements Serializable, Cloneable, IIndexBui
         }
         ImportDataProcessInfo other = (ImportDataProcessInfo) obj;
         return other.getTaskId() == (other.getTaskId() + 0);
-    // return super.equals(obj);
+        // return super.equals(obj);
     }
 
     public static void main(String[] args) throws Exception {

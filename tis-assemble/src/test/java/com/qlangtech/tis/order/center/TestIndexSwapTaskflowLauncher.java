@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -42,6 +42,7 @@ import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
+import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -58,6 +59,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockExtension;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -69,7 +72,7 @@ import java.util.regex.Pattern;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年8月22日
  */
-public class TestIndexSwapTaskflowLauncher extends TestCase {
+public class TestIndexSwapTaskflowLauncher extends TestCase  {
 
     private static final int TASK_ID = 253;
 
@@ -137,9 +140,9 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         ITISFileSystem fileSystem = mock("tisFileSystem", ITISFileSystem.class);
         // EasyMock.expect(fileSystem.getName()).andReturn("easymock").anyTimes();
         EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem()).andReturn(fileSystem).anyTimes();
-        EasyMock.expect(indexBuilderTriggerFactory.getFsFactory()).andReturn(indexBuilderFileSystemFactory);
+        EasyMock.expect(indexBuilderTriggerFactory.getFileSystem()).andReturn(indexBuilderFileSystemFactory.getFileSystem());
         SnapshotDomain domain = HttpConfigFileReader.getResource(SEARCH_APP_NAME, 0, RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
-        ImportDataProcessInfo processInfo = new ImportDataProcessInfo(TASK_ID, indexBuilderFileSystemFactory);
+        ImportDataProcessInfo processInfo = new ImportDataProcessInfo(TASK_ID, indexBuilderFileSystemFactory.getFileSystem(), chainContext.getZkClient());
         if (!strategy.errorTest()) {
             for (int groupNum = 0; groupNum < shardCount; groupNum++) {
                 IRemoteJobTrigger builderTrigger = this.mock("indexbuild_" + groupNum, IRemoteJobTrigger.class);
@@ -153,7 +156,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         }
         EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem().getRootDir()).andReturn(fsRoot).anyTimes();
         if (!strategy.errorTest()) {
-            EasyMock.expect(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).andReturn("xxxx");
+           // EasyMock.expect(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).andReturn("xxxx");
         }
         ExecutePhaseRange execRange = chainContext.getExecutePhaseRange();
         if (execRange.contains(FullbuildPhase.FullDump)) {
@@ -268,8 +271,10 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 
     private void expectCreateSingleTableDumpJob(String tableName, String partitionTimestamp, TableDumpFactory tableDumpFactory, FullBuildStrategy strategy) {
         EntityName table = EntityName.parse(tableName);
-        TaskContext taskContext = TaskContext.create();
-        EasyMock.expect(tableDumpFactory.createSingleTableDumpJob(table, partitionTimestamp, taskContext)).andReturn(strategy.createRemoteJobTrigger(table));
+        Map<String, String> params = Maps.newHashMap();
+        params.put(ITableDumpConstant.DUMP_START_TIME, partitionTimestamp);
+        TaskContext taskContext = TaskContext.create(params);
+        EasyMock.expect(tableDumpFactory.createSingleTableDumpJob(table, taskContext)).andReturn(strategy.createRemoteJobTrigger(table));
     }
 
     /**
@@ -346,17 +351,17 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
      * @throws Exception
      */
     public void testGetSqlDataFlowTopologyFromConsole() throws Exception {
-    // SqlDataFlowTopology topology = RunEnvironment.getSysRuntime(ion.getWorkflowDetail(Integer.parseInt(WF_ID));
-    // valiateTopology(topology);
+        // SqlDataFlowTopology topology = RunEnvironment.getSysRuntime(ion.getWorkflowDetail(Integer.parseInt(WF_ID));
+        // valiateTopology(topology);
     }
 
     // 从本地取
     public void testGetSqlDataFlowTopology() throws Exception {
         SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay");
         valiateTopology(topology);
-    // @SuppressWarnings("all")
-    // public static SqlDataFlowTopology getSqlDataFlowTopology(String topologyName)
-    // throws Exception {
+        // @SuppressWarnings("all")
+        // public static SqlDataFlowTopology getSqlDataFlowTopology(String topologyName)
+        // throws Exception {
     }
 
     protected void valiateTopology(SqlDataFlowTopology topology) {

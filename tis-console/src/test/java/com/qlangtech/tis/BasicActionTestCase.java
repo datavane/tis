@@ -15,34 +15,32 @@
 package com.qlangtech.tis;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.EnvironmentBindService;
 import com.qlangtech.tis.manage.spring.MockClusterStateReader;
-import com.qlangtech.tis.manage.spring.MockZooKeeperGetter;
+import com.qlangtech.tis.test.TISEasyMock;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.cloud.*;
 import org.apache.struts2.StrutsSpringTestCase;
-import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-01-06 18:04
  */
-public class BasicActionTestCase extends StrutsSpringTestCase {
+public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasyMock {
 
-  private static List<Object> mocks = Lists.newArrayList();
+  //private static List<Object> mocks = Lists.newArrayList();
   protected RunContext runContext;
 
   static {
@@ -78,27 +76,6 @@ public class BasicActionTestCase extends StrutsSpringTestCase {
     }
   }
 
-  protected void clearMocks() {
-    this.mocks = Lists.newArrayList();
-  }
-
-  protected void verifyAll() {
-    this.mocks.forEach((r) -> {
-      EasyMock.verify(r);
-    });
-  }
-
-  public <T> T mock(String name, Class<?> toMock) {
-    Object mock = EasyMock.createMock(name, toMock);
-    this.mocks.add(mock);
-    return (T) mock;
-  }
-
-  public void replay() {
-    mocks.forEach((r) -> {
-      EasyMock.replay(r);
-    });
-  }
 
   protected AjaxValve.ActionExecResult showBizResult() {
     AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
@@ -188,24 +165,24 @@ public class BasicActionTestCase extends StrutsSpringTestCase {
     return docCollection;
   }
 
-  protected IExpectationSetters<byte[]> createCoordinatorMock(Consumer<ITISCoordinator> consumer) throws IOException {
-    return createCoordinatorMock(true, consumer);
-  }
-
-  protected IExpectationSetters<byte[]> createCoordinatorMock(boolean overseer_elect_leader, Consumer<ITISCoordinator> consumer) throws IOException {
-    ITISCoordinator zkCoordinator = mock("zkCoordinator", ITISCoordinator.class);
-    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
-    consumer.accept(zkCoordinator);
-    if (overseer_elect_leader) {
-      try (InputStream input = this.getClass().getResourceAsStream("/com/qlangtech/tis/overseer_elect_leader.json")) {
-        IExpectationSetters<byte[]> expect = EasyMock.expect(
-          zkCoordinator.getData(CoreAction.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true));
-        expect.andReturn(IOUtils.toByteArray(input));
-        return expect;
-      }
-    }
-    return null;
-  }
+//  protected IExpectationSetters<byte[]> createCoordinatorMock(Consumer<ITISCoordinator> consumer) throws IOException {
+//    return createCoordinatorMock(true, consumer);
+//  }
+//
+//  protected IExpectationSetters<byte[]> createCoordinatorMock(boolean overseer_elect_leader, Consumer<ITISCoordinator> consumer) throws IOException {
+//    ITISCoordinator zkCoordinator =  MockZKUtils.createZkMock();
+//    MockZooKeeperGetter.mockCoordinator = zkCoordinator;
+//    consumer.accept(zkCoordinator);
+//    if (overseer_elect_leader) {
+//      try (InputStream input = this.getClass().getResourceAsStream("/com/qlangtech/tis/overseer_elect_leader.json")) {
+//        IExpectationSetters<byte[]> expect = EasyMock.expect(
+//          zkCoordinator.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true));
+//        expect.andReturn(IOUtils.toByteArray(input));
+//        return expect;
+//      }
+//    }
+//    return null;
+//  }
 
   @Override
   protected String[] getContextLocations() {

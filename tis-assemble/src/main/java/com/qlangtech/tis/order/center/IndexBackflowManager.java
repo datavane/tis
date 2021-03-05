@@ -73,6 +73,10 @@ public class IndexBackflowManager {
     // 执行参数
     private final IExecChainContext execContext;
 
+    public IExecChainContext getExecContext() {
+        return this.execContext;
+    }
+
     private Map<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */
             nodeBackflowLock;
 
@@ -377,14 +381,6 @@ public class IndexBackflowManager {
 
         private IndexflowbackStatus indexflowback_status = new IndexflowbackStatus();
 
-//        public IndexflowbackStatus getIndexflowback_status() {
-//            return indexflowback_status;
-//        }
-
-//        public void setIndexflowback_status(IndexflowbackStatus indexflowback_status) {
-//            this.indexflowback_status = indexflowback_status;
-//        }
-
         public String getCopyStatus() {
             if (indexflowback_status.all < 1) {
                 return StringUtils.EMPTY;
@@ -464,15 +460,5 @@ public class IndexBackflowManager {
         public void setReaded(long readed) {
             this.readed = readed;
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        // IndexBackflowManager backflow = new IndexBackflowManager();
-        // BackflowResult result = backflow.getCallbackResult(null, new URL(
-        // "http://10.1.7.42:8983/solr/admin/cores?action=requeststatus&requestid=123&wt=json"));
-        //
-        // System.out.println(result.getMsg() + " " + result.getSTATUS() +
-        // result.isFaild() + " "
-        // + result.isSuccess());
     }
 }

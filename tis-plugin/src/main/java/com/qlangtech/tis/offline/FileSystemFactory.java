@@ -31,21 +31,10 @@ public abstract class FileSystemFactory implements Describable<FileSystemFactory
     public static FileSystemFactory getFsFactory(String fsName) {
         PluginStore<FileSystemFactory> pluginStore = TIS.getPluginStore(FileSystemFactory.class);
         return pluginStore.find(fsName);
-    // List<FileSystemFactory> fsFactories = TIS.get().loadGlobalComponent().getFsFactories();
-    // for (FileSystemFactory fsFactory : fsFactories) {
-    // if (StringUtils.equals(fsName, fsFactory.getName())) {
-    // return fsFactory;
-    // }
-    // }
-    // throw new IllegalStateException("fileSystem has not be initialized,fsName:" + fsName
-    // + " can not find relevant 'ITISFileSystem' in [" + fsFactories.stream().map((r) -> r.getName()).collect(Collectors.joining(",")) + "]");
     }
 
     @Override
     public Descriptor<FileSystemFactory> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }
-    // public static DescriptorExtensionList<FileSystemFactory, Descriptor<FileSystemFactory>> all() {
-    // return TIS.get().getDescriptorList(FileSystemFactory.class);
-    // }
 }

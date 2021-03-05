@@ -14,16 +14,30 @@
  */
 package com.qlangtech.tis.fs;
 
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2018年11月23日
  */
 public interface ITISFileSystem {
+    Pattern DATE_PATTERN = Pattern.compile("20\\d{12}");
+    /**
+     * 删除历史文件
+     */
+    default void deleteHistoryFile(EntityName dumpTable) throws Exception {
+        FSHistoryFileUtils.deleteHistoryFile(this, dumpTable);
+    }
+
+    default void deleteHistoryFile(EntityName dumpTable, String timestamp) throws Exception {
+        FSHistoryFileUtils.deleteHistoryFile(this, dumpTable, timestamp);
+    }
     /**
      * 文件系统的根目录
      *

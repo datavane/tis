@@ -59,15 +59,7 @@ public abstract class BasicTestCase extends TestCase {
 
     protected static final String KEY_DATA_TYLE = "data_type";
 
-    // protected static final TisCloudSolrClient client = new TisCloudSolrClient(
-    // "zk1.2dfire-daily.com:2181,zk2.2dfire-daily.com:2181,zk3.2dfire-daily.com:2181/tis/cloud");
-    // protected static final IComDfireTisMenuDAOFacade menuDAOFacade;
-    // protected static final IComDfireTisRealtimeDAOFacade orderDAOFacade;
-    // protected static final IComDfireTisRealtimeRefundDAOFacade refundDAOFacade;
-    // protected static final IItemSkuDAO itemSKUDAO;
-    // protected static final ApplicationContext context;
-    // protected static final IComDfireTisRealtimeTransferDalDAOFacade waitDAOFacade;
-    // protected static final IComDfireTisRealtimeWaitDAOFacade wait2DAOFacade;
+
     public static final String COLLECTION_search4totalpay = "search4totalpay";
 
     static {

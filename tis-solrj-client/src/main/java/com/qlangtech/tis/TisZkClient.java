@@ -34,6 +34,11 @@ public class TisZkClient implements ITISCoordinator {
     private final List<OnReconnect> reconnectList;
 
     @Override
+    public TisZkClient unwrap() {
+        return this;
+    }
+
+    @Override
     public boolean shallConnect2RemoteIncrStatusServer() {
         return true;
     }

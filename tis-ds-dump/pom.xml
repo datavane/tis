@@ -83,6 +83,11 @@
 -->
 
 		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-base-test</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 		</dependency>

@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.hdfs.client.data;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.exception.SourceDataReadException;
@@ -22,11 +23,12 @@ import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
 import com.qlangtech.tis.plugin.ds.DataDumpers;
 import com.qlangtech.tis.plugin.ds.IDataSourceDumper;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,28 +38,33 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * 多线程的数据源读取，每个表或者每个库使用一个线程写入到HDFS集群<br>
+ * 子表多情况，可以考虑根据库启线程
+ *
  * @author 百岁（baisui@qlangtech.com）
  * @version 1.0
- * @description 多线程的数据源读取，每个表或者每个库使用一个线程写入到HDFS集群<br>
- * 子表多情况，可以考虑根据库启线程
- * @date 2020/04/13
  * @since 2011-8-4 上午12:19:57
  */
 public class SourceDataProviderFactory {
 
-
     private static final Pattern IP_PATTERN = Pattern.compile("//(.+?):");
 
-    private static final Log logger = LogFactory.getLog(SourceDataProviderFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(SourceDataProviderFactory.class);
 
     protected TSearcherDumpContext dumpContext;
 
-    // 已經讀出的記錄數
-    private AtomicInteger dbReaderCounter;
+    private List<IReadAccumulator> readAccumulator = Lists.newArrayList();
+
+    public void addReadAccumulator(IReadAccumulator accumulator) {
+        this.readAccumulator.add(accumulator);
+    }
+
+
+    public SourceDataProviderFactory() {
+    }
 
     // 所有表总共要dump的记录数目， 當這個有第一次讀出之後以後就不需要每次預先掃描數據庫表的記錄數了，直接從上次數據庫導出數目預估就行了
     private final ScheduledExecutorService statusSendScheduler = Executors.newScheduledThreadPool(1, new ThreadFactory() {
-
         @Override
         public Thread newThread(Runnable r) {
             Thread t = new Thread(r, "table_dump_send_scheduler");
@@ -65,10 +72,6 @@ public class SourceDataProviderFactory {
             return t;
         }
     });
-
-    public long getDbReaderCounter() {
-        return dbReaderCounter.get();
-    }
 
 
     public void setDumpContext(TSearcherDumpContext dumpContext) {
@@ -92,7 +95,6 @@ public class SourceDataProviderFactory {
             reportDumpStatus();
         }, 1, 2, TimeUnit.SECONDS);
         // 记录当前已经读入的数据表
-        this.dbReaderCounter = new AtomicInteger();
 
         this.parseSubTablesDesc();
 
@@ -106,7 +108,7 @@ public class SourceDataProviderFactory {
      * 报告当前dump数据的状态
      */
     public void reportDumpStatus(boolean faild, boolean complete) {
-        int read = dbReaderCounter.get();
+        int read = this.getDbReaderCounter();
         int all = dumpContext.getAllTableDumpRows().get();
         if (all < 1 && !(faild || complete)) {
             return;
@@ -117,7 +119,12 @@ public class SourceDataProviderFactory {
         tableDumpStatus.setFaild(faild);
         tableDumpStatus.setReadRows(read);
         tableDumpStatus.setComplete(complete);
-        logger.info("read:" + read + ",percent:" + (read * 100 / (all + 1)) + "%");
+        if (all > 0) {
+            logger.info("read:{},all:{},percent:{}%", read, all, (read * 100 / (all)));
+        } else {
+            logger.info("read:{}", read);
+        }
+
         dumpContext.getStatusReportRPC().reportDumpTableStatus(tableDumpStatus);
     }
 
@@ -174,6 +181,14 @@ public class SourceDataProviderFactory {
      * @param
      */
     protected void validateDataSource(String dbKey) {
+    }
+
+    public int getDbReaderCounter() {
+        int read = 0;
+        for (IReadAccumulator acc : readAccumulator) {
+            read += acc.getReadCount();
+        }
+        return read;
     }
 
     private static class InitialDBTableReaderTask extends AbstractDBTableReaderTask {

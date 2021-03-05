@@ -43,6 +43,7 @@ import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -69,7 +70,6 @@ import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * HdfsIndexBuilder 索引入口map类
@@ -77,13 +77,17 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class HdfsIndexBuilder implements TaskMapper {
+public class IndexBuilderTask implements TaskMapper {
 
-    public static final Logger logger = LoggerFactory.getLogger(HdfsIndexBuilder.class);
+    public static final Logger logger = LoggerFactory.getLogger(IndexBuilderTask.class);
 
     public static final String KEY_COLLECTION = "app";
 
     long startTime;
+
+    private ILocalTmpCfgFileGetter schemaCfgFileGetter = (indexConf) -> {
+        return IndexGetConfig.getLocalTmpSchemaFile(indexConf.getCollectionName());
+    };
 
     private Integer allRowCount;
 
@@ -98,15 +102,19 @@ public class HdfsIndexBuilder implements TaskMapper {
         }
     });
 
+    public interface ILocalTmpCfgFileGetter {
+        File get(IndexConf indexConf);
+    }
+
     private final CompletionService<SuccessFlag> executorService = new ExecutorCompletionService<SuccessFlag>(execService);
 
-    private final AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
+    private final RpcServiceReference statusRpc;
 
     public static void setMdcAppName(String appname) {
         MDC.put(KEY_COLLECTION, appname);
     }
 
-    public HdfsIndexBuilder(IndexBuilderTriggerFactory propsGetter, AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc) {
+    public IndexBuilderTask(IndexBuilderTriggerFactory propsGetter, RpcServiceReference statusRpc) {
         startTime = System.currentTimeMillis();
         this.propsGetter = propsGetter;
         this.statusRpc = statusRpc;
@@ -126,8 +134,7 @@ public class HdfsIndexBuilder implements TaskMapper {
             // context.getUserParam(IndexBuildParam.INDEXING_ROW_COUNT);
             int rowCount = context.getAllRowCount();
             logger.warn("indexMaker.flushCountThreshold:" + indexConf.getFlushCountThreshold() + ",indexMaker.flushSizeThreshold:" + indexConf.getFlushSizeThreshold());
-            // final IndexSchema indexSchema = getIndexSchema(indexConf);
-            // String[] schemaFields = indexMetaConfig.getSchemaFields();
+
             // 开始构建索引。。。
             logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() + " indexing start......");
             int docMakerCount = indexConf.getDocMakerThreadCount();
@@ -142,29 +149,28 @@ public class HdfsIndexBuilder implements TaskMapper {
             logger.info("RamDirQueueSize:" + indexConf.getRamDirQueueSize());
             BlockingQueue<RAMDirectory> dirQueue = new ArrayBlockingQueue<RAMDirectory>(indexConf.getRamDirQueueSize());
             HDFSReaderFactory readerFactory = new HDFSReaderFactory();
-            readerFactory.setFs(propsGetter.getFsFactory().getFileSystem());
-            // readerFactory.setIndexSchema(indexMetaConfig.indexSchema);
+            readerFactory.setFs(propsGetter.getFileSystem());
+
             Context readerContext = new Context();
-            // readerContext.put("schemaFields", schemaFields);
             readerContext.put("indexconf", indexConf);
             readerContext.put("taskcontext", context);
-            // readerContext.put("fieldsequence", fieldSequence);
             setDumpFileTitles(context, readerContext);
             logger.info("----------readerContext:" + readerContext.toString());
             readerFactory.init(readerContext);
             final AtomicLong totalBuildSize = new AtomicLong();
             totalBuildSize.set(readerFactory.getTotalSize());
-            // List<SuccessFlag> resultFlagSet = new ArrayList<SuccessFlag>();
-            final IInputDocCreator inputDocCreator = AbstractInputDocCreator.createDocumentCreator(indexMetaConfig.schemaParse.getDocumentCreatorType(), indexMetaConfig.rawDataProcessor, indexMetaConfig.indexSchema, createNewDocVersion(indexConf));
+            final IInputDocCreator inputDocCreator = AbstractInputDocCreator.createDocumentCreator(
+                    indexMetaConfig.schemaParse.getDocumentCreatorType()
+                    , indexMetaConfig.rawDataProcessor, indexMetaConfig.indexSchema, createNewDocVersion(indexConf));
             // 多线程构建document
             for (int i = 0; i < docMakerCount; i++) {
-                LuceneDocMaker luceneDocMaker = new LuceneDocMaker("docMaker-" + i, indexConf, indexMetaConfig.indexSchema, inputDocCreator, messages, counters, docPoolQueues, readerFactory, aliveDocMakerCount);
+                LuceneDocMaker luceneDocMaker = new LuceneDocMaker("docMaker-" + i, indexConf
+                        , indexMetaConfig.indexSchema, inputDocCreator, messages, counters, docPoolQueues, readerFactory, aliveDocMakerCount);
                 initialDataprocess(luceneDocMaker);
                 luceneDocMaker.setName(indexConf.getCoreName() + "-docMaker-" + docMakerCount + "-" + i);
                 executorService.submit(luceneDocMaker, luceneDocMaker.getResultFlag());
             }
-            // merge线程
-            // this.mergeExecResult =
+
             mergeTask = waitIndexMergeTask("mergetask-1", indexConf, aliveIndexMakerCount, counters, messages, dirQueue, indexMetaConfig.indexSchema);
             List<IndexMaker> indexMakers = Lists.newArrayList();
             // 多线程构建索引
@@ -184,14 +190,16 @@ public class HdfsIndexBuilder implements TaskMapper {
                 if (preCount[0] >= 0 && (allcount = (current - preCount[0])) > 0) {
                     long submitConsume = (allConsume - preSubmitConsume[0]);
                     int speed = (allcount) / periodSec;
-                    logger.info("docMaker rate:{}r/s,queue:[used:{}/all:{}],adddoc RT:{}ms/r", speed, (docQueueSize - docPoolQueues.remainingCapacity()), docQueueSize, (submitConsume / allcount));
+                    logger.info("docMaker rate:{}r/s,queue:[used:{}/all:{}],adddoc RT:{}ms/r", speed
+                            , (docQueueSize - docPoolQueues.remainingCapacity()), docQueueSize, (submitConsume / allcount));
                     BuildSharedPhaseStatus buildStatus = new BuildSharedPhaseStatus();
                     buildStatus.setAllBuildSize(totalBuildSize.get());
                     buildStatus.setBuildReaded(speed);
                     buildStatus.setSharedName(indexConf.getCoreName());
                     buildStatus.setWaiting(false);
                     buildStatus.setTaskid(taskid);
-                    statusRpc.get().reportBuildIndexStatus(buildStatus);
+                    StatusRpcClient.AssembleSvcCompsite feedback = statusRpc.get();
+                    feedback.reportBuildIndexStatus(buildStatus);
                 }
                 preCount[0] = current;
                 preSubmitConsume[0] = allConsume;
@@ -252,15 +260,14 @@ public class HdfsIndexBuilder implements TaskMapper {
     private void getIndexSchema(IndexConf indexConf, IndexMetaConfig indexMetaConfig) throws Exception {
 
         Reader schemaInputStream = null;
-        File schemaFile = IndexGetConfig.getLocalTmpSchemaFile(indexConf.getCollectionName());
+
+        File schemaFile = this.schemaCfgFileGetter.get(indexConf);
         logger.warn(" local schema path ==>" + schemaFile.getAbsolutePath());
         try {
-            try (InputStream solrinputStream = HdfsIndexBuilder.class.getResourceAsStream("solr-config-template.xml")) {
+            try (InputStream solrinputStream = IndexBuilderTask.class.getResourceAsStream("solr-config-template.xml")) {
                 Objects.requireNonNull(solrinputStream, "solr-config-template.xml can not be null");
-                // .openInputStream(schemaFile);
                 String schemaContent = FileUtils.readFileToString(schemaFile, TisUTF8.get());
                 schemaInputStream = new StringReader(schemaContent);
-                // String name, InputSource is, Version luceneVersion, SolrResourceLoader resourceLoader, Properties substitutableProperties
                 indexMetaConfig.indexSchema = new IndexSchema(indexConf.getSchemaName()
                         , new InputSource(schemaInputStream), Version.LATEST, createSolrResourceLoader(indexConf, solrinputStream), new Properties());
             }
@@ -269,6 +276,7 @@ public class HdfsIndexBuilder implements TaskMapper {
         }
         indexMetaConfig.schemaParse = SolrFieldsParser.parse(() -> FileUtils.readFileToByteArray(schemaFile)).getSchemaParseResult();
     }
+
 
     private IndexMetaConfig parseIndexMetadata(TaskContext context, IndexConf indexConf) {
         IndexMetaConfig indexMetaConfig = new IndexMetaConfig();
@@ -326,7 +334,9 @@ public class HdfsIndexBuilder implements TaskMapper {
     @SuppressWarnings("all")
     private final // 
     IndexMaker createIndexMaker(// 
-                                IndexMetaConfig indexMetaConfig, String name, IndexConf indexConf, Counters counters, Messages messages, final IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount, final BlockingQueue<SolrDocPack> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) throws Exception {
+                                IndexMetaConfig indexMetaConfig, String name, IndexConf indexConf, Counters counters
+            , Messages messages, final IndexSchema indexSchema, AtomicInteger aliveIndexMakerCount, AtomicInteger aliveDocMakerCount
+            , final BlockingQueue<SolrDocPack> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) throws Exception {
         String indexMakerClassName = indexMetaConfig.schemaParse.getIndexMakerClassName();
         if (ParseResult.DEFAULT.equals(indexMakerClassName)) {
             logger.info("indexMakerClassName:{}", IndexMaker.class);
@@ -334,7 +344,8 @@ public class HdfsIndexBuilder implements TaskMapper {
         } else {
             Class<IndexMaker> clazz = (Class<IndexMaker>) Class.forName(indexMakerClassName);
             logger.info("indexMakerClassName:{}", clazz);
-            Constructor<IndexMaker> cnstrt = (Constructor<IndexMaker>) clazz.getConstructor(String.class, IndexConf.class, IndexSchema.class, Messages.class, Counters.class, BlockingQueue.class, BlockingQueue.class, AtomicInteger.class, AtomicInteger.class);
+            Constructor<IndexMaker> cnstrt = (Constructor<IndexMaker>) clazz.getConstructor(String.class, IndexConf.class
+                    , IndexSchema.class, Messages.class, Counters.class, BlockingQueue.class, BlockingQueue.class, AtomicInteger.class, AtomicInteger.class);
             return cnstrt.newInstance(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues, aliveDocMakerCount, aliveIndexMakerCount);
         }
     }
@@ -377,14 +388,14 @@ public class HdfsIndexBuilder implements TaskMapper {
         readerContext.put("titletext", StringUtils.split(buildtabletitleitems, ","));
     }
 
-    private IndexMerger waitIndexMergeTask(String name, final IndexConf indexConf, AtomicInteger aliveIndexMakerCount, Counters counters, Messages messages, BlockingQueue<RAMDirectory> dirQueue, IndexSchema schema) throws Exception {
+    private IndexMerger waitIndexMergeTask(String name, final IndexConf indexConf, AtomicInteger aliveIndexMakerCount
+            , Counters counters, Messages messages, BlockingQueue<RAMDirectory> dirQueue, IndexSchema schema) throws Exception {
         if (schema == null) {
             throw new IllegalArgumentException("schema can not be null");
         }
         final ClassLoader currentClassloader = Thread.currentThread().getContextClassLoader();
         // (IndexMerger)
-        this.propsGetter.getFsFactory();
-        IndexMergerImpl indexMerger = new IndexMergerImpl(name, schema, this.propsGetter.getFsFactory());
+        IndexMergerImpl indexMerger = new IndexMergerImpl(name, schema, this.propsGetter.getFileSystem());
         // clazz.newInstance();
         indexMerger.setAtomicInteger(aliveIndexMakerCount);
         indexMerger.setCounters(counters);
@@ -399,14 +410,14 @@ public class HdfsIndexBuilder implements TaskMapper {
         return indexMerger;
     }
 
+    public void setSchemaCfgFileGetter(ILocalTmpCfgFileGetter schemaCfgFileGetter) {
+        this.schemaCfgFileGetter = schemaCfgFileGetter;
+    }
+
     /**
      * @param luceneDocMaker
      */
     private void initialDataprocess(LuceneDocMaker luceneDocMaker) {
     }
 
-    public static void main(String[] args) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        System.out.println(sdf.format(new Date(System.currentTimeMillis())));
-    }
 }

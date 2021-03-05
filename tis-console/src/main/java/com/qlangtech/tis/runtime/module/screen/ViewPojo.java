@@ -36,14 +36,9 @@ public class ViewPojo {
   private static final long serialVersionUID = 1L;
 
   public static interface ResourcePrep {
-
     public void prepare(IBuilderContext builderContext);
   }
 
-  // @Override
-  // public boolean isEnableDomainView() {
-  // return false;
-  // }
   public static boolean downloadResource(Context context, final AppDomainInfo appDomainInfo, BasicModule module, final Writer writer) throws Exception {
     return downloadResource(context, appDomainInfo, module, writer, new ResourcePrep() {
       @Override

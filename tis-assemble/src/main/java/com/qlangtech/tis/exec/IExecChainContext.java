@@ -15,6 +15,7 @@
 package com.qlangtech.tis.exec;
 
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fs.ITISFileSystemFactory;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
@@ -50,7 +51,7 @@ public interface IExecChainContext extends IJoinTaskContext {
     SqlTaskNodeMeta.SqlDataFlowTopology getTopology();
 
 
-    ITISFileSystemFactory getIndexBuildFileSystem();
+    ITISFileSystem getIndexBuildFileSystem();
 
     TableDumpFactory getTableDumpFactory();
 

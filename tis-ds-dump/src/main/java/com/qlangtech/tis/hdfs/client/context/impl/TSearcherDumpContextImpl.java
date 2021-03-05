@@ -21,6 +21,7 @@ import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -79,14 +80,14 @@ public class TSearcherDumpContextImpl implements TSearcherDumpContext, Initializ
         this.tisTable = tisTable;
     }
 
-    private AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusReportRef;
+    private RpcServiceReference statusReportRef;
 
     @Override
     public StatusRpcClient.AssembleSvcCompsite getStatusReportRPC() {
         return this.statusReportRef.get();
     }
 
-    public void setStatusReportRef(AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusReportRef) {
+    public void setStatusReportRef(RpcServiceReference statusReportRef) {
         this.statusReportRef = statusReportRef;
     }
 

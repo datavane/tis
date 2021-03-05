@@ -25,10 +25,10 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.tis.hadoop.rpc.StatusRpcClient;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Objects;
 
 /**
  * 单表导入，重新生成dump任务
@@ -44,15 +44,15 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
 
     private static final String TABLE_DUMP_ZK_PREFIX = "/tis/table_dump/";
 
+    private final RpcServiceReference statusRpc;
 
-
-    private final AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc;
-
-    public SingleTableDumpTask(TableDumpFactory taskFactory, DataSourceFactory dataSourceFactory, TisZkClient zkClient, AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusRpc) {
+    public SingleTableDumpTask(TableDumpFactory taskFactory, DataSourceFactory dataSourceFactory
+            , TisZkClient zkClient, RpcServiceReference statusRpc) {
         super(taskFactory, dataSourceFactory);
         if (zkClient == null) {
             throw new IllegalArgumentException("param zkClient can not be null");
         }
+        Objects.requireNonNull(statusRpc, "statusRpc can not be null");
         this.zkClient = zkClient;
         this.statusRpc = statusRpc;
     }

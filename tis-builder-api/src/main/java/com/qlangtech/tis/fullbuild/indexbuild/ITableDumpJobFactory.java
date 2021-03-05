@@ -25,9 +25,8 @@ public interface ITableDumpJobFactory extends IServerTask {
     /**
      * 创建单表dump数据
      * @param table
-     * @param startTime
      * @param context
      * @return
      */
-    public IRemoteJobTrigger createSingleTableDumpJob(IDumpTable table, String startTime, TaskContext context);
+    public IRemoteJobTrigger createSingleTableDumpJob(IDumpTable table, TaskContext context);
 }

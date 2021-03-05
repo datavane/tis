@@ -24,8 +24,7 @@ object BasicRuleDrivenListener {
 /**
  * 基于规则驱动的消費MQ終端
  *
- * @author 百岁 baisui@2dfire.com
- * @date 2015年10月5日 下午4:43:23
+
  */
 abstract class BasicRuleDrivenListener extends BasicRMListener() {
 

@@ -17,7 +17,10 @@ package com.qlangtech.tis.hdfs.client.data;
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.exception.DataImportHDFSException;
-import com.qlangtech.tis.fs.*;
+import com.qlangtech.tis.fs.IPath;
+import com.qlangtech.tis.fs.ITISFileSystem;
+import com.qlangtech.tis.fs.ITaskContext;
+import com.qlangtech.tis.fs.TISFSDataOutputStream;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
 import com.qlangtech.tis.hdfs.client.context.impl.TSearcherDumpContextImpl;
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
@@ -51,7 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 如果有分组情况，最终写入HDFS都是以分组为单位的文件<br>
  * @date 2020/04/13
  */
-public class MultiThreadDataProvider  {
+public class MultiThreadDataProvider {
 
     // 表Dump的时候默认使用16组，会生成16个通道，随机向里面写入
     public static final int MAX_PROCESS_ERROR = 100;
@@ -59,6 +62,7 @@ public class MultiThreadDataProvider  {
     // 正在执行dump数据库的繁忙程度
     private static final ConcurrentHashMap<String, AtomicInteger> /* dbip */
             dbBusyStatistics = new ConcurrentHashMap<>();
+
 
     // 百岁 add20130513
     // 默认最大并发dump任务数量
@@ -104,7 +108,6 @@ public class MultiThreadDataProvider  {
         }
         return count;
     }
-
 
 
     private TSearcherDumpContextImpl dumpContext;
@@ -223,12 +226,10 @@ public class MultiThreadDataProvider  {
                 HashMap<String, Object> result = new HashMap<String, Object>();
                 resultCollect.add(result);
                 // 一张表为一个执行单元
-                dbReaderExecutor.execute(new DBTableReaderTask(latch, dumper
+                dbReaderExecutor.execute(addDBReader(new DBTableReaderTask(latch, dumper
                         , getFileSystem(), outMap, utf8StrTime, result
-                        , getDBServerBusyCount(dumper.getDbHost()), processErrorCount, dumpContext));
-
+                        , getDBServerBusyCount(dumper.getDbHost()), processErrorCount, dumpContext)));
             }
-
 
             if (!latch.await(7, TimeUnit.HOURS)) {
                 throw new IllegalStateException("dump table:" + this.dumpContext.getDumpTable() + " time expire");
@@ -237,7 +238,7 @@ public class MultiThreadDataProvider  {
             String loginfo = ("full") + "dump all task has over,readrows:" + sourceDataFactory.getDbReaderCounter();
             log.warn(loginfo);
             long count = 0;
-            // List allError = new ArrayList<String>();
+
             for (Map<String, Object> map : resultCollect) {
                 Collection<String> errorList = (Collection) map.get(Constants.IMPORT_HDFS_ERROR);
                 if (errorList != null) {
@@ -286,6 +287,11 @@ public class MultiThreadDataProvider  {
                 shardInitCount = null;
             }
         }
+    }
+
+    private Runnable addDBReader(DBTableReaderTask dbTableReaderTask) {
+        this.sourceDataFactory.addReadAccumulator(dbTableReaderTask);
+        return dbTableReaderTask;
     }
 
     public void createSuccessToken(String time) throws Exception {
@@ -401,7 +407,7 @@ public class MultiThreadDataProvider  {
     }
 
     // 负责将将数数据库持久层数据导入到hdfs中去
-    public class DBTableReaderTask extends AbstractDBTableReaderTask {
+    public class DBTableReaderTask extends AbstractDBTableReaderTask implements IReadAccumulator {
         private final String utf8StrTime;
 
         private final ITISFileSystem fileSystem;
@@ -411,6 +417,8 @@ public class MultiThreadDataProvider  {
         private Map<String, TISFSDataOutputStream> outMap;
 
         private final Random nextMapIndexRandom;
+
+        private int readCount;
 
         public DBTableReaderTask(CountDownLatch latch, IDataSourceDumper dumper
                 , ITISFileSystem fileSystem, Map<String, TISFSDataOutputStream> outMap
@@ -422,6 +430,11 @@ public class MultiThreadDataProvider  {
             this.outMap = outMap;
             this.outMapSize = this.outMap.size();
             this.nextMapIndexRandom = new Random();
+        }
+
+        @Override
+        public int getReadCount() {
+            return this.readCount;
         }
 
         @Override
@@ -480,7 +493,7 @@ public class MultiThreadDataProvider  {
 
         private void writeTitle() {
             try {
-                if (!hasWriteTitles.get()  && hasWriteTitles.compareAndSet(false, true)) {
+                if (!hasWriteTitles.get() && hasWriteTitles.compareAndSet(false, true)) {
                     List<ColumnMetaData> rowmetalist = this.dumper.getMetaData();
                     MultiThreadDataProvider.this.rowKeys = Collections.unmodifiableList(rowmetalist);
                     try (TISFSDataOutputStream output = fileSystem.create(createColumnMetaDataPath(utf8StrTime), true)) {
@@ -530,8 +543,8 @@ public class MultiThreadDataProvider  {
                     }
                     count++;
                 }
-                // try {
                 output.write(content.toString().getBytes(TisUTF8.get()));
+                readCount++;
                 content = null;
             } catch (Exception e) {
                 if (this.processErrorCount.incrementAndGet() > MAX_PROCESS_ERROR) {
@@ -545,7 +558,6 @@ public class MultiThreadDataProvider  {
             }
         }
     }
-
 
 
     @SuppressWarnings("all")

@@ -19,7 +19,8 @@ import com.qlangtech.tis.build.metrics.Messages;
 import com.qlangtech.tis.fs.IPath;
 import com.qlangtech.tis.fs.IPathInfo;
 import com.qlangtech.tis.fs.ITISFileSystem;
-import com.qlangtech.tis.indexbuilder.HdfsIndexBuilder;
+import com.qlangtech.tis.fs.ITISFileSystemFactory;
+import com.qlangtech.tis.indexbuilder.IndexBuilderTask;
 import com.qlangtech.tis.indexbuilder.index.IndexMaker;
 import com.qlangtech.tis.indexbuilder.index.IndexMerger;
 import com.qlangtech.tis.indexbuilder.map.IndexConf;
@@ -61,9 +62,9 @@ public class IndexMergerImpl implements IndexMerger {
 
     private final SuccessFlag successFlag;
 
-    private final FileSystemFactory fsFactory;
+    private final ITISFileSystem fsFactory;
 
-    public IndexMergerImpl(String name, IndexSchema schema, FileSystemFactory fsFactory) {
+    public IndexMergerImpl(String name, IndexSchema schema, ITISFileSystem fsFactory) {
         this.successFlag = new SuccessFlag(name);
         this.schema = schema;
         this.fsFactory = fsFactory;
@@ -100,13 +101,13 @@ public class IndexMergerImpl implements IndexMerger {
 
     // ArrayAllocator mergerAllocator;
     // private String taskAttemptId;
-    private ITISFileSystem fs;
+   // private ITISFileSystem fs;
 
     final AtomicInteger dirSeq = new AtomicInteger(0);
 
     public void init() throws Exception {
         successFlag.setMsg(Flag.SUCCESS, "start to index merge");
-        fs = fsFactory.getFileSystem();
+     //   fs = fsFactory;
         // 清理远程目标目录的旧索引
         cleanRemoteOutPath();
         this.startTime = System.currentTimeMillis();
@@ -127,7 +128,7 @@ public class IndexMergerImpl implements IndexMerger {
     @Override
     public SuccessFlag call() throws Exception {
         try {
-            HdfsIndexBuilder.setMdcAppName(indexConf.getCollectionName());
+            IndexBuilderTask.setMdcAppName(indexConf.getCollectionName());
             logger.warn(this.successFlag.getName() + " merge thread start!!!!!!!");
             // init();
             IndexWriter writer = IndexMaker.createRAMIndexWriter(this.indexConf, this.schema, true);
@@ -143,7 +144,7 @@ public class IndexMergerImpl implements IndexMerger {
                         if (aliveIndexMakerCount.get() > 0) {
                             continue;
                         }
-                        copy2Output(fs, indexConf, writer, dirSeq);
+                        copy2Output(this.fsFactory, indexConf, writer, dirSeq);
                         while (asynMergerThreadAliveCount.get() > 0) {
                             // 全部异步执行的输出节点 还没有全部执行完成
                             logger.info("waitting for thread merge for index merge:" + asynMergerThreadAliveCount.get());
@@ -205,7 +206,7 @@ public class IndexMergerImpl implements IndexMerger {
                 if (!writer.isOpen()) {
                     throw new IllegalStateException("index writer,  has been closed");
                 }
-                copy2Output(fs, indexConf, this.writer, dirSeq);
+                copy2Output(fsFactory, indexConf, this.writer, dirSeq);
             } catch (Throwable e) {
                 logger.warn("-----", e);
                 // successFlag.setFlag(Flag.FAILURE);
@@ -242,15 +243,15 @@ public class IndexMergerImpl implements IndexMerger {
 
     private void cleanRemoteOutPath() throws Exception {
         String destOutPath = indexConf.getOutputPath();
-        IPath destPath = fs.getPath(destOutPath);
-        if (fs.exists(destPath)) {
-            List<IPathInfo> fileStatus = fs.listChildren(destPath);
+        IPath destPath = fsFactory.getPath(destOutPath);
+        if (fsFactory.exists(destPath)) {
+            List<IPathInfo> fileStatus = fsFactory.listChildren(destPath);
             if (fileStatus != null) {
                 for (IPathInfo f : fileStatus) {
-                    fs.delete(f.getPath(), true);
+                    fsFactory.delete(f.getPath(), true);
                 }
             }
-            fs.mkdirs(destPath);
+            fsFactory.mkdirs(destPath);
         }
     }
 

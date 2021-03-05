@@ -28,6 +28,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
 
     private TisZkClient tisZkClient;
 
-    private AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusReportRef;
+    private RpcServiceReference statusReportRef;
 
     private final TableDumpFactory flatTableBuilder;
     private final DataSourceFactory dataSourceFactory;
@@ -97,7 +98,6 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         Objects.requireNonNull(tisTable, "tisTable can not be null");
         dumpContext.setTisTable(tisTable);
 
-        // dumpContext.setTisTable(GitUtils.$().getTableConfig(dumpTable.getDbName(), dumpTable.getTableName()));
         dumpContext.setStatusReportRef(statusReportRef);
         dumpContext.setQueryContext(queryContext);
         dumpContext.setDataprocessor(this.dataprocess);
@@ -185,11 +185,11 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         this.termiantorBean = termiantorBean;
     }
 
-    public AtomicReference<StatusRpcClient.AssembleSvcCompsite> getStatusReportRef() {
+    public RpcServiceReference getStatusReportRef() {
         return statusReportRef;
     }
 
-    public void setStatusReportRef(AtomicReference<StatusRpcClient.AssembleSvcCompsite> statusReportRef) {
+    public void setStatusReportRef(RpcServiceReference statusReportRef) {
         this.statusReportRef = statusReportRef;
     }
 }
