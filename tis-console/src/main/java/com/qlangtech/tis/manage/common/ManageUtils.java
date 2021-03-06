@@ -137,24 +137,24 @@ public class ManageUtils {
     public static String formatVolume(long volume) {
         return FileUtils.byteCountToDisplaySize(volume);
     // volume = volume / 1024;
-    // 
+    //
     // if (volume < 1) {
     // return "1K";
     // }
-    // 
+    //
     // if ((volume / 1024) < 1) {
     // return String.valueOf(volume) + "K";
     // }
-    // 
+    //
     // if (volume > (1024 * 1024)) {
     // return decimalFormat.format(new Float(volume) / (1024l * 1024l)) +
     // "G";
     // }
-    // 
+    //
     // return String.valueOf((volume / 1024)) + "M";
     }
 
-    public String getServerIp() throws UnknownHostException {
+    public static String getServerIp() throws UnknownHostException {
         return InetAddress.getLocalHost().toString();
     }
 
@@ -463,11 +463,11 @@ public class ManageUtils {
     // public String getApplyState(ApplicationApply apply) {
     // return ApplyAction.ApplyStatus.getState(apply.getStatus()).getDesc();
     // }
-    // 
+    //
     // public String getApplyTestingState() {
     // return ApplyAction.ApplyStatus.CREATED_TESTING.getDesc();
     // }
-    // 
+    //
     // public String getPublishApprovalState() {
     // return ApplyAction.ApplyStatus.PUBLISH_APPROVE_WAITING.getDesc();
     // }
@@ -478,7 +478,7 @@ public class ManageUtils {
      */
     // public static boolean isTest() {
     // return "true".equalsIgnoreCase(System.getProperty("test"));
-    // 
+    //
     // }
     // /**
     // * 成功发布
@@ -522,10 +522,10 @@ public class ManageUtils {
     // public static void main(String[] arg) {
     // // System.out.println(urlformat.format(new Object[] { "www.taobao.com",
     // // "aaaa" }));
-    // 
+    //
     // ManageUtils util = new ManageUtils();
     // // System.out.println();
-    // 
+    //
     // util.buildNewEcrmData();
     // }
     /**

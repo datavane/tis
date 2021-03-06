@@ -19,15 +19,13 @@
     <param-value>classpath:/tis.application.context.xml,classpath:/tis.application.mockable.context.xml</param-value>
   </context-param>
 
-
-
   <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
 
   <context-param>
     <param-name>contextClass</param-name>
-    <param-value>org.springframework.web.context.support.XmlWebApplicationContext</param-value>
+    <param-value>com.qlangtech.tis.manage.spring.TISWebApplicationContext</param-value>
   </context-param>
 
   <filter>

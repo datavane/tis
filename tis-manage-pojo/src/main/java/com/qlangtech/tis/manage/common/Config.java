@@ -154,8 +154,20 @@ public class Config {
         return getInstance().runtime;
     }
 
+    private static final ThreadLocal<String> threadContext = new ThreadLocal<>();
+
+    public static void setThreadContextTisHost(String tishost) {
+        threadContext.set(tishost);
+    }
+
     public static String getConfigRepositoryHost() {
-        return "http://" + getInstance().tisHost + ":8080" + CONTEXT_TIS;
+        String tisHost = null;
+        if ((tisHost = threadContext.get()) == null) {
+            tisHost = getInstance().tisHost;
+        } else {
+            threadContext.remove();
+        }
+        return "http://" + tisHost + ":8080" + CONTEXT_TIS;
     }
 
     public static String getTisHost() {
@@ -194,6 +206,14 @@ public class Config {
         throw new UnsupportedOperationException();
     }
 
+    public static InputStream openTestCfgStream() throws IOException {
+        File f = new File("../tis-web-config/config.properties");
+        if (!f.exists()) {
+            return null;
+        }
+        return FileUtils.openInputStream(f);
+    }
+
     private abstract static class P {
 
         public static P create() {
@@ -217,13 +237,9 @@ public class Config {
                 } catch (Throwable e) {
                     // 测试环境中取工程目录下的配置文件
                     Properties props = new Properties();
-                    File f = new File("../tis-web-config/config.properties");
-                    if (!f.exists()) {
-                        throw e;
-                    }
                     try {
-                        try (InputStream input = FileUtils.openInputStream(f)) {
-                            Objects.requireNonNull(input, "file relevant stream is null:" + f.getAbsolutePath());
+                        try (InputStream input = openTestCfgStream()) {
+                            Objects.requireNonNull(input, "file relevant stream is null");
                             props.load(input);
                         }
                         return new P() {
@@ -233,7 +249,7 @@ public class Config {
                             }
                         };
                     } catch (IOException ex) {
-                        throw new RuntimeException(f.getAbsolutePath(), ex);
+                        throw new RuntimeException(ex);
                     }
 
                 }

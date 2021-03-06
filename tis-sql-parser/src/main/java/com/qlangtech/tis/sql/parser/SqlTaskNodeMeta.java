@@ -24,12 +24,16 @@ import com.facebook.presto.sql.tree.Statement;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
@@ -519,13 +523,22 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         private TopologyProfile profile;
 
+        //join处理节点，后续hive，spark处理
         private List<SqlTaskNodeMeta> nodeMetas = Lists.newArrayList();
-
+        //数据源节点
         private List<DependencyNode> dumpNodes = Lists.newArrayList();
 
         public static SqlDataFlowTopology deserialize(String jsonContent) {
             return JSON.parseObject(jsonContent, SqlDataFlowTopology.class);
         }
+
+        /**
+         * 是否是单节点处理模式，整个工作流就一个表，所以后续hive，就不需要处理了
+         */
+        public boolean isSingleTableModel() {
+            return isSingleDumpTableDependency() && nodeMetas.size() < 1;
+        }
+
 
         /**
          * 是否是单表数据导入方式
@@ -640,6 +653,16 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         @JSONField(serialize = false)
         public List<ColName> getFinalTaskNodeCols() throws Exception {
+
+            if (this.isSingleTableModel()) {
+                DependencyNode dumpNode = this.getDumpNodes().get(0);
+                DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
+                TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
+                return tisTable.getReflectCols().stream().map((c) -> {
+                    return new ColName(c.getKey());
+                }).collect(Collectors.toList());
+            }
+
             SqlTaskNode task = this.getFinalTaskNode();
             return task.parse(false).getColsRefs().getColRefMap().keySet();
         }
@@ -714,6 +737,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             return taskNode.get();
         }
 
+
         /**
          * 取dataflow的最终的输出节点(没有下游节点的节点)
          *
@@ -726,7 +750,6 @@ public class SqlTaskNodeMeta implements ISqlTask {
             for (SqlTaskNodeMeta meta : getNodeMetas()) {
                 exportNameRefs.put(meta.getId(), new RefCountTaskNode(meta));
             }
-            // List<SqlTaskNode> taskNodes = parseTaskNodes();// SqlTaskNode.parseTaskNodes(topology);
             RefCountTaskNode refCount = null;
             for (SqlTaskNodeMeta meta : getNodeMetas()) {
                 for (DependencyNode entry : meta.getDependencies()) {

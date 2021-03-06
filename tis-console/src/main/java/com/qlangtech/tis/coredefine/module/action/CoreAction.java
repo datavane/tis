@@ -1024,7 +1024,8 @@ public class CoreAction extends BasicModule {
       + "&replicationFactor=" + repliationCount + "&numShards=" + groupNum
       + "&collection.configName=" + DEFAULT_SOLR_CONFIG + "&maxShardsPerNode=" + MAX_SHARDS_PER_NODE
       + "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(request.getCreateNodeSet(), getEncode())
-      + "&" + PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID + "=" + publishSnapshotId);
+      + "&" + PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID + "=" + publishSnapshotId
+      + "&" + PropteryGetter.KEY_PROP_TIS_REPOSITORY_HOST + "=" + URLEncoder.encode(ManageUtils.getServerIp(), getEncode()));
 
     log.info("create new cloud url:" + url);
     HttpUtils.processContent(url, new StreamProcess<Object>() {

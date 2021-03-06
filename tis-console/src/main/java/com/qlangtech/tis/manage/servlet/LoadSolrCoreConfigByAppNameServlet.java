@@ -125,12 +125,12 @@ public class LoadSolrCoreConfigByAppNameServlet extends BasicServlet {
   public static SnapshotDomain getSnapshotDomain(
     List<PropteryGetter> needRes, final AppKey appKey, RunContext runContext) throws ServletException {
     SnapshotDomain snapshot = null;
-    snapshot = (SnapshotDomain) resourceCache.get(appKey.hashCode());
+    snapshot = resourceCache.get(appKey.hashCode());
     try {
       if (!appKey.isFromCache() || snapshot == null) {
         log.info("key relevant snapshot is null,key:" + appKey.toString());
         synchronized (resourceCache) {
-          snapshot = (SnapshotDomain) resourceCache.get(appKey.hashCode());
+          snapshot = resourceCache.get(appKey.hashCode());
           if (!appKey.isFromCache() || snapshot == null) {
             SnapshotDomainGetter snapshotDomainGetter = new SnapshotDomainGetter(runContext);
             snapshot = snapshotDomainGetter.getSnapshot(appKey);

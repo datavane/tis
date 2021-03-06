@@ -16,13 +16,7 @@
  */
 package org.apache.solr.handler.admin;
 
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.nio.file.Path;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +36,7 @@ import org.apache.solr.core.SolrInfoBean;
 import org.apache.solr.core.snapshots.SolrSnapshotManager;
 import org.apache.solr.core.snapshots.SolrSnapshotMetaDataManager;
 import org.apache.solr.core.snapshots.SolrSnapshotMetaDataManager.SnapshotMetaData;
-import org.apache.solr.handler.admin.CoreAdminHandler.CoreAdminOp;
+import org.apache.solr.handler.admin.CoreAdminHandler.*;
 import org.apache.solr.metrics.SolrMetricManager;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.SolrIndexSearcher;
@@ -54,21 +48,17 @@ import org.apache.solr.util.TestInjection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.nio.file.Path;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+
 import static org.apache.solr.common.params.CommonParams.NAME;
-import static org.apache.solr.common.params.CoreAdminParams.COLLECTION;
+import static org.apache.solr.common.params.CoreAdminParams.*;
 import static org.apache.solr.common.params.CoreAdminParams.CoreAdminAction.*;
-import static org.apache.solr.common.params.CoreAdminParams.REPLICA;
-import static org.apache.solr.common.params.CoreAdminParams.REPLICA_TYPE;
-import static org.apache.solr.common.params.CoreAdminParams.SHARD;
-import static org.apache.solr.handler.admin.CoreAdminHandler.COMPLETED;
-import static org.apache.solr.handler.admin.CoreAdminHandler.CallInfo;
-import static org.apache.solr.handler.admin.CoreAdminHandler.FAILED;
-import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE;
-import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE_MESSAGE;
-import static org.apache.solr.handler.admin.CoreAdminHandler.RESPONSE_STATUS;
-import static org.apache.solr.handler.admin.CoreAdminHandler.RUNNING;
-import static org.apache.solr.handler.admin.CoreAdminHandler.buildCoreParams;
-import static org.apache.solr.handler.admin.CoreAdminHandler.normalizePath;
+import static org.apache.solr.handler.admin.CoreAdminHandler.*;
 
 
 /**
@@ -270,7 +260,7 @@ enum CoreAdminOperation implements CoreAdminOp {
 
         CoreContainer cc = it.handler.getCoreContainer();
 
-        try ( SolrCore core = cc.getCore(cname) ) {
+        try (SolrCore core = cc.getCore(cname)) {
             if (core == null) {
                 throw new SolrException(ErrorCode.BAD_REQUEST, "Unable to locate core " + cname);
             }
@@ -280,7 +270,7 @@ enum CoreAdminOperation implements CoreAdminOp {
             NamedList result = new NamedList();
             for (String name : mgr.listSnapshots()) {
                 Optional<SnapshotMetaData> metadata = mgr.getSnapshotMetaData(name);
-                if ( metadata.isPresent() ) {
+                if (metadata.isPresent()) {
                     NamedList<String> props = new NamedList<>();
                     props.add(SolrSnapshotManager.GENERATION_NUM, String.valueOf(metadata.get().getGenerationNumber()));
                     props.add(SolrSnapshotManager.INDEX_DIR_PATH, metadata.get().getIndexDirPath());
@@ -290,7 +280,7 @@ enum CoreAdminOperation implements CoreAdminOp {
             it.rsp.add(SolrSnapshotManager.SNAPSHOTS_INFO, result);
         }
     });
-
+    private static final Logger logger = LoggerFactory.getLogger(CoreAdminOperation.class);
     /**
      * ▼▼▼ baisui add 20200820
      */
@@ -307,6 +297,7 @@ enum CoreAdminOperation implements CoreAdminOp {
     }
 
     // @Override
+
     /**
      * 百岁baisui添加：在前期将配置文件安放到本地
      *
@@ -314,13 +305,16 @@ enum CoreAdminOperation implements CoreAdminOp {
      * @throws SolrException
      */
     private static void handleCreateAction(SolrQueryRequest req, CoreContainer coreContainer) throws SolrException {
-        // OverseerCollectionProcessor.COLL_PROP_PREFIX
-        // 修改本地configset/search4xxxx/config.properties 配置文件中的内容
         long snapshotid;
         try {
             snapshotid = Integer.parseInt(req.getParams().get(PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID));
         } catch (Exception e) {
             throw new SolrException(ErrorCode.SERVER_ERROR, "please set param:'" + PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID + "'", e);
+        }
+
+        String tisRepositoryHost = req.getParams().get(PropteryGetter.KEY_PROP_TIS_REPOSITORY_HOST);
+        if (StringUtils.isNotBlank(tisRepositoryHost)) {
+            Config.setThreadContextTisHost(tisRepositoryHost);
         }
         final String collection = req.getParams().get("collection");
         if (org.apache.commons.lang.StringUtils.isEmpty(collection)) {
@@ -348,12 +342,11 @@ enum CoreAdminOperation implements CoreAdminOp {
     }
 
 
-
-
     /**
      * Returns the core status for a particular core.
-     * @param cores - the enclosing core container
-     * @param cname - the core to return
+     *
+     * @param cores             - the enclosing core container
+     * @param cname             - the core to return
      * @param isIndexInfoNeeded - add what may be expensive index information. NOT returned if the core is not loaded
      * @return - a named list of key/value pairs from the core.
      * @throws IOException - LukeRequestHandler can throw an I/O exception

@@ -62,7 +62,7 @@ public class GitUtils //implements com.qlangtech.tis.db.IDBConfigAccess
 
     public static final String TAB_CONFIG_ROOT_DIR = "table_cfg/";
 
-    public static final String GIT_HOST = "http://git.2dfire.net";
+    public static final String GIT_HOST = "http://git.qlangtech.net";
 
     // private static final String WF_FILE_NAME = "join.xml";
     private static final String WF_FILE_NAME = "joinRule";
@@ -212,66 +212,9 @@ public class GitUtils //implements com.qlangtech.tis.db.IDBConfigAccess
         return "db/" + dbname;
     }
 
-    /**
-     * 将表对象信息序列化存储
-     *
-     * @param table
-     * @param commitLog
-     */
-//    @Override
-//    public void createTableDaily(TISTable table, String commitLog) {
-//        if (table == null || StringUtils.isEmpty(table.getDbName()) || StringUtils.isEmpty(table.getTableLogicName())) {
-//            throw new IllegalArgumentException("param table can not be null");
-//        }
-//        if (StringUtils.isEmpty(table.getSelectSql())) {
-//            throw new IllegalArgumentException("param selectSql can not be null");
-//        }
-//        if (StringUtils.isEmpty(commitLog)) {
-//            throw new IllegalArgumentException("param commitLog can not be null");
-//        }
-//        String path = TAB_CONFIG_ROOT_DIR + table.getDbName() + "/" + table.getTableLogicName();
-//        final String sql = table.getSelectSql();
-//        // 不需要序列化
-//        table.setSelectSql(null);
-//        boolean newMode = (table.getTabId() == null);
-//        this.createFile(path + "/profile", GitBranchInfo.$(GitBranch.DEVELOP), JSON.toJSONString(table, true), commitLog, DATASOURCE_PROJECT_ID, newMode);
-//        this.createFile(path + "/sql", GitBranchInfo.$(GitBranch.DEVELOP), sql, commitLog, DATASOURCE_PROJECT_ID, newMode);
-//    }
 
     public static int ExecuteGetTableConfigCount;
 
-    /**
-     * 取得表的配置
-     * 取得表的配置
-     *
-     * @return
-     */
-//    @Override
-//    public TISTable getTableConfig(String dbName, String tableName) {
-//        JSONObject tableProfile = getGitJson(DATASOURCE_PROJECT_ID, TAB_CONFIG_ROOT_DIR + dbName + "/" + tableName + "/profile");
-//        TISTable table = new TISTable();
-//        table.setTableLogicName(tableProfile.getString("tableLogicName"));
-//        table.setTableName(tableProfile.getString("tableName"));
-//        table.setPartitionNum(tableProfile.getInt("partitionNum"));
-//        table.setDbName(tableProfile.getString("dbName"));
-//        table.setPartitionInterval(tableProfile.getInt("partitionInterval"));
-//        final String keyReflectCols = "reflectCols";
-//        if (!tableProfile.isNull(keyReflectCols)) {
-//            JSONArray reflectCols = tableProfile.getJSONArray(keyReflectCols);
-//            JSONObject col = null;
-//            for (int i = 0; i < reflectCols.length(); i++) {
-//                col = reflectCols.getJSONObject(i);
-//                table.addColumnMeta(new ColumnMetaData(col.getInt("index"), col.getString("key"), col.getInt("type"), col.getBoolean("pk")));
-//            }
-//        }
-//        FileContent f = getFileContent(DATASOURCE_PROJECT_ID, TAB_CONFIG_ROOT_DIR + dbName + "/" + tableName + "/sql", GitBranch.DEVELOP);
-//        if (!f.exist()) {
-//            throw new IllegalStateException("target file not exist:" + f);
-//        }
-//        table.setSelectSql(f.getContent());
-//        ExecuteGetTableConfigCount++;
-//        return table;
-//    }
 
     /**
      * 线上配置

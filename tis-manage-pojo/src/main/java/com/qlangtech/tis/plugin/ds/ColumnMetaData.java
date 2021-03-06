@@ -15,6 +15,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.base.Joiner;
+import com.qlangtech.tis.sql.parser.ColName;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;

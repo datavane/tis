@@ -26,6 +26,7 @@ import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 public interface PropteryGetter {
 
     String KEY_PROP_CONFIG_SNAPSHOTID = "property.configsnapshotid";
+    String KEY_PROP_TIS_REPOSITORY_HOST = "property.tisRepositoryHost";
 
     /**
      * 取得在FS中的文件路径

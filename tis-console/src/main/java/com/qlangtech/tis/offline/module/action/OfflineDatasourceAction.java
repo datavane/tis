@@ -595,8 +595,10 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     if (finalNodes.size() < 1) {
-      this.addErrorMessage(context, "请定义数据处理节点");
-      return;
+      // 这种情况为单表导入，不需要spark和hive的支持
+      // this.addErrorMessage(context, "请定义数据处理节点");
+      // return;
+
     }
     Optional<ERRules> erRule = ERRules.getErRule(topologyPojo.getName());
     this.setBizResult(context, new ERRulesStatus(erRule));

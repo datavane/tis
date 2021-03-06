@@ -114,7 +114,8 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         return this.saveTable(tableName, colMetas);
     }
 
-    public TableReflect saveTable(String tableName, List<ColumnMetaData> colMetas) throws Exception {
+
+    private TableReflect saveTable(String tableName, List<ColumnMetaData> colMetas) throws Exception {
         if (CollectionUtils.isEmpty(colMetas)) {
             throw new IllegalStateException("tableName:" + tableName + " relevant colMetas can not be empty");
         }
@@ -132,6 +133,7 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         String dbRoot = StringUtils.substringBeforeLast(this.getSerializeFileName(), File.separator);
         return Descriptor.getConfigFile(dbRoot + File.separator + tableName);
     }
+
 
     public TISTable loadTableMeta(String tableName) {
         try {
