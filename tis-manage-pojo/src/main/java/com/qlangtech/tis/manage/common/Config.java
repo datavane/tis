@@ -242,6 +242,7 @@ public class Config {
                             Objects.requireNonNull(input, "file relevant stream is null");
                             props.load(input);
                         }
+                        Config.setTest(true);
                         return new P() {
                             @Override
                             protected String getProp(String key) {

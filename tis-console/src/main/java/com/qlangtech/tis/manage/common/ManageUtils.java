@@ -155,7 +155,7 @@ public class ManageUtils {
     }
 
     public static String getServerIp() throws UnknownHostException {
-        return InetAddress.getLocalHost().toString();
+        return InetAddress.getLocalHost().getHostAddress();
     }
 
     public static boolean isInPauseState(boolean hasfulldump, boolean fulljobStop, boolean hasincrdump, boolean incrjobStop) {

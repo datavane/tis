@@ -54,6 +54,7 @@ import com.qlangtech.tis.runtime.module.screen.BasicScreen;
 import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrj.extend.router.HashcodeRouter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
@@ -406,20 +407,24 @@ public class CoreAction extends BasicModule {
       throw new IllegalArgumentException("param wfName can not be null");
     }
 
+    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wfName);
+    Objects.requireNonNull(topology, "topology:" + wfName + " relevant topology can not be be null");
+
     Optional<ERRules> erRule = module.getErRules(wfName);
-    if (!erRule.isPresent()) {
-      module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
-      return new TriggerBuildResult(false);
-    } else {
-      ERRules erRules = erRule.get();
-      List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
-      Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
-      if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
-        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
+    if (!topology.isSingleTableModel()) {
+      if (!erRule.isPresent()) {
+        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
         return new TriggerBuildResult(false);
+      } else {
+        ERRules erRules = erRule.get();
+        List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
+        Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
+        if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
+          module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
+          return new TriggerBuildResult(false);
+        }
       }
     }
-
     return sendRequest2FullIndexSwapeNode(module, context, new AppendParams() {
       @Override
       List<PostParam> getParam() {
@@ -1017,15 +1022,19 @@ public class CoreAction extends BasicModule {
       return false;
     }
     final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
-    // : "plain";
-    final String routerName = "strhash";
+    String tisRepositoryHost = StringUtils.EMPTY;
+    if (Config.isTestMock()) {
+      tisRepositoryHost = "&" + PropteryGetter.KEY_PROP_TIS_REPOSITORY_HOST + "=" + URLEncoder.encode(ManageUtils.getServerIp(), getEncode());
+    }
+
+    final String routerName = HashcodeRouter.NAME;
     URL url = new URL("http://" + cloudOverseer + CREATE_COLLECTION_PATH
       + request.getIndexName() + "&router.name=" + routerName + "&router.field=" + routerField
       + "&replicationFactor=" + repliationCount + "&numShards=" + groupNum
       + "&collection.configName=" + DEFAULT_SOLR_CONFIG + "&maxShardsPerNode=" + MAX_SHARDS_PER_NODE
       + "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(request.getCreateNodeSet(), getEncode())
       + "&" + PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID + "=" + publishSnapshotId
-      + "&" + PropteryGetter.KEY_PROP_TIS_REPOSITORY_HOST + "=" + URLEncoder.encode(ManageUtils.getServerIp(), getEncode()));
+      + tisRepositoryHost);
 
     log.info("create new cloud url:" + url);
     HttpUtils.processContent(url, new StreamProcess<Object>() {

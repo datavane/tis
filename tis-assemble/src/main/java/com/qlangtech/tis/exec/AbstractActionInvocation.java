@@ -26,6 +26,7 @@ import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
 import com.qlangtech.tis.sql.parser.er.TableMeta;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +66,16 @@ public class AbstractActionInvocation implements ActionInvocation {
             Integer workflowId = chainContext.getWorkflowId();
             SqlDataFlowTopology workflowDetail = chainContext.getTopology();
             Objects.requireNonNull(workflowDetail, "workflowDetail can not be null");
-            SqlTaskNodeMeta finalN = workflowDetail.getFinalNode();
-            chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, EntityName.parse(finalN.getExportName()));
+            EntityName targetEntity = null;
+            if (workflowDetail.isSingleTableModel()) {
+                DependencyNode dumpNode = workflowDetail.getDumpNodes().get(0);
+                targetEntity = dumpNode.parseEntityName();
+            } else {
+                SqlTaskNodeMeta finalN = workflowDetail.getFinalNode();
+                targetEntity = EntityName.parse(finalN.getExportName());
+            }
+            chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
+
             Integer taskid = chainContext.getTaskId();
             TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange()));
             chainContext.setAttribute(IFullBuildContext.KEY_WORKFLOW_ID, workflowDetail);
@@ -74,7 +83,6 @@ public class AbstractActionInvocation implements ActionInvocation {
             IPrimaryTabFinder pTabFinder = null;
             if (!erRule.isPresent()) {
                 pTabFinder = new DftTabFinder();
-                //  throw new IllegalStateException("can not find erRule relevant topology:" + workflowDetail.getName() + ",workflowid:" + workflowId);
             } else {
                 pTabFinder = erRule.get();
             }
