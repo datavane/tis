@@ -532,17 +532,26 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
      */
     private void copy2LocalDir(IndexWriter indexWriter, ITISFileSystem filesystem, IPath hdfsPath, File indexDir) throws IOException {
         List<IPathInfo> status = filesystem.listChildren(hdfsPath);
-        // FileStatus[] status = filesystem.listStatus(hdfsPath);
         if (status == null) {
             throw new SolrException(ErrorCode.INVALID_STATE, "hdfsPath:" + hdfsPath + " is not exist in hdfs");
         }
         TisHdfsDirectory hdfsDir = null;
         IPath path = null;
+
         for (IPathInfo stat : status) {
-            path = stat.getPath();
-            hdfsDir = new TisHdfsDirectory(path, filesystem);
-            indexWriter.addIndexes(hdfsDir);
+            try {
+                path = stat.getPath();
+                hdfsDir = new TisHdfsDirectory(path, filesystem);
+                indexWriter.addIndexes(hdfsDir);
+            } catch (IOException e) {
+                if (path != null) {
+                    throw new RuntimeException("path:" + path, e);
+                } else {
+                    throw e;
+                }
+            }
         }
+
     }
 
     private ITISFileSystem getFileSystem() {
