@@ -53,6 +53,8 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
     private final DataSourceFactory dataSourceFactory;
 
     public CommonTerminatorBeanFactory(TableDumpFactory flatTableBuilder, DataSourceFactory dataSourceFactory) {
+        Objects.requireNonNull(dataSourceFactory, "param dataSourceFactory can not be null");
+        Objects.requireNonNull(flatTableBuilder, "param flatTableBuilder can not be null");
         this.flatTableBuilder = flatTableBuilder;
         this.dataSourceFactory = dataSourceFactory;
     }
