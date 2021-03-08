@@ -15,6 +15,7 @@
 package com.qlangtech.tis.plugin;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -40,6 +41,8 @@ public class TestPluginStore extends TestCase {
     private static final String VALUE_PROP_2 = "prop2-1";
 
     public void testTableDumpFactory() {
+
+        assertFalse(TIS.initialized);
         PluginStore<TestPlugin> pstore = new PluginStore<>(TestPlugin.class);
         TestPlugin p = new TestPlugin();
         p.prop1 = VALUE_PROP_1;

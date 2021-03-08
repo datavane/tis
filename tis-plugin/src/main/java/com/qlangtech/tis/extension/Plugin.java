@@ -60,7 +60,7 @@ public abstract class Plugin implements Saveable {
     }
 
     /**
-     * Called to orderly shut down Hudson.
+     * Called to orderly shut down
      *
      * <p>
      * This is a good opportunity to clean up resources that plugin started.

@@ -24,6 +24,7 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.XStream2;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -64,6 +65,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
     /**
      * 拷贝配置文件到本地
      */
+    @Override
     public void copyConfigFromRemote() {
         CenterResource.copyFromRemote2Local(
                 TIS.KEY_TIS_PLUGIN_CONFIG + "/" + Descriptor.getPluginFileName(getSerializeFileName()), true);
@@ -182,9 +184,16 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
             return;
         }
         try {
-            copyConfigFromRemote();
+            ComponentMeta componentMeta = new ComponentMeta(this);
+            componentMeta.downloaConfig();
             if (!file.exists()) {
                 return;
+            }
+            // 远程下载插件
+            List<XStream2.PluginMeta> pluginMetas = componentMeta.synchronizePluginsPackageFromRemote();
+            if (CollectionUtils.isNotEmpty(pluginMetas)) {
+                // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
+                // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
             }
             file.unmarshal(this);
             this.loaded = true;

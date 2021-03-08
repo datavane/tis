@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,6 +29,7 @@ import org.jvnet.hudson.reactor.TaskBuilder;
 import org.jvnet.hudson.reactor.TaskGraphBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -38,6 +39,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import static com.qlangtech.tis.extension.init.InitMilestone.*;
 
 /**
@@ -201,8 +203,9 @@ public class PluginManager {
                                         for (PluginWrapper p : cgd.getSorted()) {
                                             litr.next();
                                             litr.set(p);
-                                            if (p.isActive())
+                                            if (p.isActive()) {
                                                 activePlugins.add(p);
+                                            }
                                         }
                                     } catch (CyclicGraphDetector.CycleDetectedException e) {
                                         // disable all plugins since classloading from them can lead to StackOverflow
@@ -252,7 +255,7 @@ public class PluginManager {
                                         failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
                                         activePlugins.remove(pluginWrapper);
                                         plugins.remove(pluginWrapper);
-                                        LOGGER.error("Failed to install {0}: {1}", new Object[] { pluginWrapper.getShortName(), e.getMessage() });
+                                        LOGGER.error("Failed to install {0}: {1}", new Object[]{pluginWrapper.getShortName(), e.getMessage()});
                                         return;
                                     } catch (IOException e) {
                                         failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
@@ -495,7 +498,7 @@ public class PluginManager {
                         }
                         return c;
                     } catch (ClassNotFoundException e) {
-                    // not found. try next
+                        // not found. try next
                     }
                 }
             } else {
@@ -503,7 +506,7 @@ public class PluginManager {
                     try {
                         return p.classLoader.loadClass(name);
                     } catch (ClassNotFoundException e) {
-                    // not found. try next
+                        // not found. try next
                     }
                 }
             }

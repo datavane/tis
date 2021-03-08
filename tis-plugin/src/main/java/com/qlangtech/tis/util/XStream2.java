@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,8 +29,8 @@ import com.thoughtworks.xstream.core.JVM;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.xml.XppDriver;
-import com.thoughtworks.xstream.mapper.Mapper;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.net.URL;
 import java.util.List;
@@ -173,10 +173,10 @@ public class XStream2 extends XStream {
         /**
          * 将远端插件拷贝到本地
          */
-        public void copyFromRemote() {
+        public boolean copyFromRemote() {
             final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + TIS.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
             final File local = getPluginPackageFile();
-            CenterResource.copyFromRemote2Local(url, local, false);
+            return CenterResource.copyFromRemote2Local(url, local, false);
         }
     }
 }

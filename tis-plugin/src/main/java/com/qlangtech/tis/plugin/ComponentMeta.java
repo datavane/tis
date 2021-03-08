@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.plugin;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.util.RobustReflectionConverter;
@@ -91,17 +92,32 @@ public class ComponentMeta {
     public void synchronizePluginsFromRemoteRepository() {
         try {
             this.downloaConfig();
-            Set<XStream2.PluginMeta> pluginMetas = loadPluginMeta();
-            for (XStream2.PluginMeta m : pluginMetas) {
-                m.copyFromRemote();
-            }
-            logger.info("download plugin from remote repository:"
-                    + pluginMetas.stream().map((m) -> m.toString()).collect(Collectors.joining(",")));
+            this.synchronizePluginsPackageFromRemote();
         } finally {
             TIS.permitInitialize = true;
         }
         if (TIS.initialized) {
             throw new IllegalStateException("make sure TIS plugin have not be initialized");
         }
+    }
+
+
+    /**
+     * 同步插件包
+     *
+     * @return 本地被更新的插件包
+     */
+    public List<XStream2.PluginMeta> synchronizePluginsPackageFromRemote() {
+        List<XStream2.PluginMeta> updateTpiPkgs = Lists.newArrayList();
+        Set<XStream2.PluginMeta> pluginMetas = loadPluginMeta();
+        for (XStream2.PluginMeta m : pluginMetas) {
+            if (m.copyFromRemote()) {
+                // 本地包已经被更新
+                updateTpiPkgs.add(m);
+            }
+        }
+        logger.info("download plugin from remote repository:"
+                + updateTpiPkgs.stream().map((m) -> m.toString()).collect(Collectors.joining(",")));
+        return updateTpiPkgs;
     }
 }
