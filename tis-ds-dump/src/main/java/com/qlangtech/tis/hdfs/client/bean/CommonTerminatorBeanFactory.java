@@ -29,13 +29,11 @@ import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.RpcServiceReference;
-import com.tis.hadoop.rpc.StatusRpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -116,8 +114,12 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
     }
 
     public static TISTable getTisTable(EntityName dumpTable) {
-        DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(dumpTable.getDbName()));
-        return dbPluginStore.loadTableMeta(dumpTable.getTableName());
+        try {
+            DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(dumpTable.getDbName()));
+            return dbPluginStore.loadTableMeta(dumpTable.getTableName());
+        } catch (Exception e) {
+            throw new RuntimeException("dumpTable falid load table config:" + dumpTable.toString(), e);
+        }
     }
 
     @Override

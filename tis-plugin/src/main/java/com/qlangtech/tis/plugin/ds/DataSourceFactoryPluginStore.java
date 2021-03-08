@@ -130,6 +130,9 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     }
 
     private XmlFile getTableReflectSerializer(String tableName) {
+        if (StringUtils.isEmpty(tableName)) {
+            throw new IllegalArgumentException("param tableName can not be empty");
+        }
         String dbRoot = StringUtils.substringBeforeLast(this.getSerializeFileName(), File.separator);
         return Descriptor.getConfigFile(dbRoot + File.separator + tableName);
     }
