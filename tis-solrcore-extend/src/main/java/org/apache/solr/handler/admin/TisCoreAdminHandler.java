@@ -17,7 +17,10 @@ package org.apache.solr.handler.admin;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
-import com.qlangtech.tis.fs.*;
+import com.qlangtech.tis.fs.IContentSummary;
+import com.qlangtech.tis.fs.IPath;
+import com.qlangtech.tis.fs.IPathInfo;
+import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.manage.common.RepositoryException;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
@@ -64,7 +67,7 @@ import java.util.regex.Pattern;
  */
 public class TisCoreAdminHandler extends CoreAdminHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(TisCoreAdminHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(TisCoreAdminHandler.class);
 
     // public static final String HDFS_HOST = "hdfs_host";
     public static final String HDFS_TIMESTAMP = "hdfs_timestamp";
@@ -130,6 +133,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
                         this.handleSwapindexfileAction(req, rsp);
                         taskObject.setRspObject(rsp);
                     } catch (Exception e) {
+                        logger.error(e.getMessage(), e);
                         exceptionCaught = true;
                         taskObject.setRspObjectFromException(e);
                     } finally {
@@ -148,10 +152,10 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (SolrException e) {
-            log.error("", e);
+            logger.error("", e);
             throw e;
         } catch (Exception e) {
-            log.error("", e);
+            logger.error("", e);
             throw new SolrException(ErrorCode.SERVER_ERROR, e.getMessage(), e);
         }
     }
@@ -194,7 +198,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         int loalSnapshot = TisSolrResourceLoader.getConfigSnapshotId(collectionDir);
         if (loalSnapshot == newSnapshotId) {
             String errorMsg = "repository snapshot is same to local snapshotid:" + loalSnapshot + "shall not update config";
-            log.warn(errorMsg);
+            logger.warn(errorMsg);
             SimpleOrderedMap<String> errors = new SimpleOrderedMap<String>();
             errors.add("err1", errorMsg);
             rsp.add("failure", errors);
@@ -213,7 +217,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         } catch (Exception e) {
             // 回滚配置文件
             TisSolrResourceLoader.saveConfigFileSnapshotId(collectionDir, loalSnapshot);
-            log.warn(e.getMessage(), e);
+            logger.warn(e.getMessage(), e);
             SimpleOrderedMap<String> errors = new SimpleOrderedMap<String>();
             errors.add("err1", e.getMessage());
             rsp.add("failure", errors);
@@ -265,14 +269,13 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
             if (core == null) {
                 throw new IllegalStateException("core:" + cname + " can not be null");
             }
-            // final String hdfsHome = core.getSolrConfig().getVal("hdfsHome", true);
             final long hdfsTimeStamp = params.getLong(CoreAdminParams.PROPERTY_PREFIX + HDFS_TIMESTAMP);
             String hdfsUser = params.get(CoreAdminParams.PROPERTY_PREFIX + HDFS_USER);
             Long coreReloadSleepTime = params.getLong(CoreAdminParams.PROPERTY_PREFIX + CORE_RELOAD_SLEEP_TIME);
             // 将新的时间
             final File oldIndexDir = new File(core.getNewIndexDir());
             String oldIndexDirName = oldIndexDir.getName();
-            log.info("oldIndexDirName:" + oldIndexDirName + ",abstractPath:" + oldIndexDir.getAbsolutePath());
+            logger.info("oldIndexDirName:" + oldIndexDirName + ",abstractPath:" + oldIndexDir.getAbsolutePath());
             final File indexDirParent = oldIndexDir.getParentFile();
             File newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
             File childFile = null;
@@ -299,7 +302,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
             if (maxOrder > -1) {
                 newDir = new File(indexDirParent, "index" + hdfsTimeStamp + "_" + (maxOrder + 1));
             }
-            log.info("newDir:{}", newDir.getAbsolutePath());
+            logger.info("newDir:{}", newDir.getAbsolutePath());
             // int mxOrder = 1;
             // int order;
             // while (samePrefixDirs.hasNext()) {
@@ -371,17 +374,17 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
             // 更新index.properties中的index属性指向到新的文件夹目录
             refreshIndexPropFile(core, newDir.getName(), indexDirParent);
             if (newSnapshotId != null) {
-                log.info("after flowback update the config:" + cname + " to snapshot:" + newSnapshotId);
+                logger.info("after flowback update the config:" + cname + " to snapshot:" + newSnapshotId);
                 // 重新加载索引,只更新一下配置，不做reload，因为目标版本和localsnapshot如果是一致的就不加载了
                 updateConfig(req, rsp, core.getCoreDescriptor().getCollectionName(), cname, false, /* needReload */
                         newSnapshotId);
             }
-            log.info("download index consume:" + (System.currentTimeMillis() - downloadStart) + "ms");
+            logger.info("download index consume:" + (System.currentTimeMillis() - downloadStart) + "ms");
             if (coreReloadSleepTime != null && coreReloadSleepTime > 0) {
-                log.info("after download index ,wait for " + coreReloadSleepTime + "ms,then to reload core");
+                logger.info("after download index ,wait for " + coreReloadSleepTime + "ms,then to reload core");
                 Thread.sleep(coreReloadSleepTime);
             }
-            log.info("start to reload core");
+            logger.info("start to reload core");
             this.handReloadOperation(req, rsp);
             for (File delete : historyDirs) {
                 try {
@@ -468,7 +471,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         // - 1;
         ITISFileSystem filesystem = this.getFileSystem();
         IPath hdfsPath = filesystem.getPath(getFileSystem().getRootDir() + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
-        log.info("load from hdfs ,path:" + hdfsPath);
+        logger.info("load from hdfs ,path:" + hdfsPath);
         // InputStream segmentStream = null;
         IndexWriter indexWriter = null;
         try {
@@ -490,7 +493,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
             taskObj.setRspObject(rsp);
 
             this.copy2LocalDir(indexWriter, filesystem, hdfsPath, indexDir);
-            log.info("remote hdfs [" + hdfsPath + "] copy to local[" + indexDir + "] consome:" + (System.currentTimeMillis() - starttime));
+            logger.info("remote hdfs [" + hdfsPath + "] copy to local[" + indexDir + "] consome:" + (System.currentTimeMillis() - starttime));
             indexWriter.commit();
 
         } catch (SolrException e) {
