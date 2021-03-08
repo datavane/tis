@@ -54,7 +54,7 @@ public class TableDumpNodeMaster extends NodeMaster {
 
         Objects.requireNonNull(zkClient, "zkClient can not be null");
         Objects.requireNonNull(statusRpc, "statusRpc can not be null");
-        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(tableDumpFactory, dataSourceFactory, zkClient, statusRpc);
+        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(context.parseDumpTable(), tableDumpFactory, dataSourceFactory, zkClient, statusRpc);
         tableDumpTask.map(context);
     }
 }

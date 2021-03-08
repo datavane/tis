@@ -15,6 +15,7 @@
 package com.qlangtech.tis.order.dump.task;
 
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.hdfs.client.bean.CommonTerminatorBeanFactory;
 import com.qlangtech.tis.hdfs.client.bean.TISDumpClient;
@@ -38,7 +39,7 @@ import java.util.Objects;
  */
 public class SingleTableDumpTask extends AbstractTableDumpTask implements ITableDumpConstant {
 
-    private EntityName dumpTable;
+    private final EntityName dumpTable;
 
     private final TisZkClient zkClient;
 
@@ -46,7 +47,7 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
 
     private final RpcServiceReference statusRpc;
 
-    public SingleTableDumpTask(TableDumpFactory taskFactory, DataSourceFactory dataSourceFactory
+    public SingleTableDumpTask(EntityName dumpTable, TableDumpFactory taskFactory, DataSourceFactory dataSourceFactory
             , TisZkClient zkClient, RpcServiceReference statusRpc) {
         super(taskFactory, dataSourceFactory);
         if (zkClient == null) {
@@ -55,6 +56,7 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
         Objects.requireNonNull(statusRpc, "statusRpc can not be null");
         this.zkClient = zkClient;
         this.statusRpc = statusRpc;
+        this.dumpTable = dumpTable;
     }
 
     @Override
@@ -68,7 +70,7 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
     }
 
     private void init(TaskContext context) {
-        this.dumpTable = context.parseDumpTable();
+        //this.dumpTable = context.parseDumpTable();
         this.registerZKDumpNodeIn(context);
     }
 

@@ -58,7 +58,7 @@ public class TaskContext {
     }
 
     public EntityName parseDumpTable() {
-        return EntityName.parse(this.get(ITableDumpConstant.DUMP_DBNAME) + "." + this.get(ITableDumpConstant.DUMP_TABLE_NAME));
+        return EntityName.create(this.get(ITableDumpConstant.DUMP_DBNAME), this.get(ITableDumpConstant.DUMP_TABLE_NAME));
     }
 
     public long getStartTime() {

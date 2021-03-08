@@ -15,6 +15,7 @@
 package com.qlangtech.tis.hdfs.client.context.impl;
 
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
 import com.qlangtech.tis.hdfs.client.context.TSearcherQueryContext;
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
@@ -31,7 +32,6 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 数据DUMP上下文实现，（无状态）

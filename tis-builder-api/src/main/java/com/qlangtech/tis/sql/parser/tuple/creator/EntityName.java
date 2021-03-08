@@ -43,6 +43,16 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         return new SubTableQueryEntity();
     }
 
+    public static EntityName create(String dbname, String tabName) {
+        if (StringUtils.isEmpty(dbname)) {
+            throw new IllegalArgumentException("param dbName can not be null");
+        }
+        if (StringUtils.isEmpty(tabName)) {
+            throw new IllegalArgumentException("param tabName can not be null");
+        }
+        return parse(dbname + "." + tabName);
+    }
+
     /**
      * @param entityName
      * @return

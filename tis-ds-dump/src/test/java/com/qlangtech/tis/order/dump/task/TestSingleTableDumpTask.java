@@ -80,7 +80,7 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
         ref.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
         RpcServiceReference statusRpc = new RpcServiceReference(ref);
 //        statusRpc.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
-        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(tableDumpPlugin, dataSourceFactory, zkClient, statusRpc) {
+        SingleTableDumpTask tableDumpTask = new SingleTableDumpTask(entityName, tableDumpPlugin, dataSourceFactory, zkClient, statusRpc) {
 
             protected void registerZKDumpNodeIn(TaskContext context) {
             }
