@@ -32,6 +32,7 @@ import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import com.qlangtech.tis.pubhook.common.FileUtils;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
@@ -194,6 +195,8 @@ public class SingleTableDump extends DataflowTask {
         ;
         Map<String, String> params = Maps.newHashMap();
         params.put(IParamContext.KEY_TASK_ID, String.valueOf(taskid));
+        params.put(ITableDumpConstant.DUMP_START_TIME,this.pt);
+
         TaskContext taskContext = TaskContext.create((key) -> params.get(key));
         taskContext.setCoordinator(this.zkClient);
 
