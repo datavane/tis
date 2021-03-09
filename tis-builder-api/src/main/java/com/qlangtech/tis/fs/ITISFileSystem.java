@@ -28,6 +28,16 @@ import java.util.regex.Pattern;
  */
 public interface ITISFileSystem {
     Pattern DATE_PATTERN = Pattern.compile("20\\d{12}");
+
+    /**
+     * 创建索引回流时候用的Lucene Directory
+     *
+     * @param path
+     * @param <Directory>
+     * @return
+     */
+    public abstract <Directory> Directory createIndexBackFlowChildDirectory(IPath path);
+
     /**
      * 删除历史文件
      */

@@ -15,7 +15,6 @@
 package com.qlangtech.tis.fullbuild.indexbuild;
 
 import com.qlangtech.tis.build.task.IServerTask;
-import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 
 /**
@@ -23,6 +22,8 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
  * @date 2020/04/13
  */
 public interface IIndexBuildJobFactory extends IServerTask {
+
+
 
 
 

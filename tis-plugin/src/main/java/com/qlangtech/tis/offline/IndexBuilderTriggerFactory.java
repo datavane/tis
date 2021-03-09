@@ -17,12 +17,16 @@ package com.qlangtech.tis.offline;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.fs.IPath;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.indexbuild.IIndexBuildJobFactory;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.PluginStore;
+
+import java.util.Objects;
 
 /**
  * 索引build插件
@@ -31,6 +35,15 @@ import com.qlangtech.tis.plugin.IdentityName;
  * @date 2020/04/13
  */
 public abstract class IndexBuilderTriggerFactory implements Describable<IndexBuilderTriggerFactory>, IIndexBuildJobFactory, IdentityName {
+
+    public static IndexBuilderTriggerFactory get() {
+        PluginStore<IndexBuilderTriggerFactory> pluginStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
+        IndexBuilderTriggerFactory indexBuilderTriggerFactory = pluginStore.getPlugin();
+        Objects.requireNonNull(indexBuilderTriggerFactory, "indexBuilderTriggerFactory can not be null");
+        return indexBuilderTriggerFactory;
+    }
+
+
 
     public abstract IndexBuildSourcePathCreator createIndexBuildSourcePathCreator(IJoinTaskContext execContext, ITabPartition ps);
 

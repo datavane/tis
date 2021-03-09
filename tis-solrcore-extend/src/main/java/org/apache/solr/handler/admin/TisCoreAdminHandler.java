@@ -15,7 +15,6 @@
 package org.apache.solr.handler.admin;
 
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.fs.IContentSummary;
 import com.qlangtech.tis.fs.IPath;
@@ -26,7 +25,6 @@ import com.qlangtech.tis.manage.common.RepositoryException;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils.TisCoreName;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
 import com.qlangtech.tis.solrextend.utils.TisIndexFetcher;
 import org.apache.commons.io.FileUtils;
@@ -51,7 +49,6 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import store.hdfs.TisHdfsDirectory;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,7 +71,6 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 
     private static final String CORE_RELOAD_SLEEP_TIME = "core_reload_sleep_time";
 
-    public static final String HDFS_USER = "hdfs_user";
 
     public static final String KEY_INDEX_BACK_FLOW_STATUS = "index_back_flow_status";
 
@@ -236,21 +232,6 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
     }
 
 
-    public static void main(String[] args) {
-        Matcher m = INDEX_DATA_PATTERN.matcher("index20160318001000");
-        if (m.matches()) {
-            System.out.println(m.group(1));
-            System.out.println(m.group(2));
-            System.out.println(m.group(3));
-        }
-        m = INDEX_DATA_PATTERN.matcher("index20160318001000_1");
-        if (m.matches()) {
-            System.out.println(m.group(1));
-            System.out.println(m.group(2));
-            System.out.println(m.group(3));
-        }
-    }
-
     /**
      * 交换索引全量，每天定時全量全量之后需要将索引回流集群
      *
@@ -270,7 +251,6 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
                 throw new IllegalStateException("core:" + cname + " can not be null");
             }
             final long hdfsTimeStamp = params.getLong(CoreAdminParams.PROPERTY_PREFIX + HDFS_TIMESTAMP);
-            String hdfsUser = params.get(CoreAdminParams.PROPERTY_PREFIX + HDFS_USER);
             Long coreReloadSleepTime = params.getLong(CoreAdminParams.PROPERTY_PREFIX + CORE_RELOAD_SLEEP_TIME);
             // 将新的时间
             final File oldIndexDir = new File(core.getNewIndexDir());
@@ -303,74 +283,11 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
                 newDir = new File(indexDirParent, "index" + hdfsTimeStamp + "_" + (maxOrder + 1));
             }
             logger.info("newDir:{}", newDir.getAbsolutePath());
-            // int mxOrder = 1;
-            // int order;
-            // while (samePrefixDirs.hasNext()) {
-            // order =
-            // Integer.parseInt(StringUtils.substringAfterLast(samePrefixDirs.next().getName(),
-            // "_"));
-            // }
-            // if (newDir.exists()) {
-            // 
-            // Matcher m = INDEX_DATA_PATTERN.matcher(oldIndexDirName);
-            // 
-            // if (m.matches()) {
-            // int order = 1;
-            // if (StringUtils.isNotBlank(m.group(3))) {
-            // order = Integer.parseInt(m.group(3));
-            // order++;
-            // }
-            // newDir = new File(indexDirParent, "index" + m.group(1) + "_" +
-            // order);
-            // 
-            // } else {
-            // // throw new IllegalStateException("oldIndexDirName is not
-            // // illegal:" + oldIndexDirName);
-            // newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
-            // }
-            // log.info("newdir:" + newDir.getAbsolutePath());
-            // 
-            // }
-            // File newDir = null;
-            // if (oldIndexDir.exists()) {
-            // Matcher m = INDEX_DATA_PATTERN.matcher(oldIndexDirName);
-            // if (m.matches()) {
-            // int order = 1;
-            // if (StringUtils.isNotBlank(m.group(3))) {
-            // order = Integer.parseInt(m.group(3));
-            // order++;
-            // }
-            // newDir = new File(indexDirParent, m.group(1) + "_" + order);
-            // log.info("newdir:" + newDir.getAbsolutePath());
-            // } else {
-            // throw new IllegalStateException("oldIndexDirName is not illegal:"
-            // + oldIndexDirName);
-            // }
-            // } else {
-            // newDir = new File(indexDirParent, "index" + hdfsTimeStamp);
-            // }
-            // 
-            // if (newDir.exists()) {
-            // log.info("newdir:" + newDir.getAbsolutePath() + " is exist,will
-            // make a new dir");
-            // Matcher m = INDEX_DATA_PATTERN.matcher(newDir.getName());
-            // if (m.matches()) {
-            // int order = 1;
-            // if (StringUtils.isNotBlank(m.group(3))) {
-            // order = Integer.parseInt(m.group(3));
-            // order++;
-            // }
-            // newDir = new File(indexDirParent, m.group(1) + "_" + order);
-            // log.info("newdir:" + newDir.getAbsolutePath());
-            // } else {
-            // throw new IllegalStateException("newDir is not illegal:" +
-            // newDir.getAbsolutePath());
-            // }
-            // }
+
             long downloadStart = System.currentTimeMillis();
             final String taskId = req.getParams().get(CommonAdminParams.ASYNC);
             // 从hdfs上将build好的索引文件拉下来
-            downloadIndexFile2IndexDir(hdfsTimeStamp, hdfsUser, core, newDir, rsp, taskId);
+            downloadIndexFile2IndexDir(hdfsTimeStamp, core.getName(), newDir, rsp, taskId);
             // 更新index.properties中的index属性指向到新的文件夹目录
             refreshIndexPropFile(core, newDir.getName(), indexDirParent);
             if (newSnapshotId != null) {
@@ -461,16 +378,16 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
      * @param
      * @throws IOException
      */
-    protected void downloadIndexFile2IndexDir(long hdfsTimeStamp, String hdfsUser, SolrCore core, final File indexDir, SolrQueryResponse rsp, String taskId) {
+    protected void downloadIndexFile2IndexDir(long hdfsTimeStamp, String solrCoreName, final File indexDir, SolrQueryResponse rsp, String taskId) {
         final long starttime = System.currentTimeMillis();
-        TisCoreName tiscoreName = TISCollectionUtils.parse(core.getName());
+        TisCoreName tiscoreName = TISCollectionUtils.parse(solrCoreName);
         String coreName = tiscoreName.getName();
         // 需要减1
         // Integer.parseInt(coreNameMatcher.group(2))
         final int group = tiscoreName.getSharedNo() - 1;
         // - 1;
-        ITISFileSystem filesystem = this.getFileSystem();
-        IPath hdfsPath = filesystem.getPath(getFileSystem().getRootDir() + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
+        ITISFileSystem filesystem = IndexBuilderTriggerFactory.get().getFileSystem();
+        IPath hdfsPath = filesystem.getPath(filesystem.getRootDir() + "/" + coreName + "/all/" + group + "/output/" + hdfsTimeStamp + "/index");
         logger.info("load from hdfs ,path:" + hdfsPath);
         // InputStream segmentStream = null;
         IndexWriter indexWriter = null;
@@ -535,14 +452,14 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         if (status == null) {
             throw new SolrException(ErrorCode.INVALID_STATE, "hdfsPath:" + hdfsPath + " is not exist in hdfs");
         }
-        TisHdfsDirectory hdfsDir = null;
+        Directory childDir = null;
         IPath path = null;
 
         for (IPathInfo stat : status) {
             try {
                 path = stat.getPath();
-                hdfsDir = new TisHdfsDirectory(path, filesystem);
-                indexWriter.addIndexes(hdfsDir);
+                childDir = createChildIndexDirectory(filesystem, path);
+                indexWriter.addIndexes(childDir);
             } catch (IOException e) {
                 if (path != null) {
                     throw new RuntimeException("path:" + path, e);
@@ -554,8 +471,15 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 
     }
 
-    private ITISFileSystem getFileSystem() {
-        PluginStore<IndexBuilderTriggerFactory> pluginStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
-        return pluginStore.getPlugin().getFileSystem();
+    protected Directory createChildIndexDirectory(ITISFileSystem filesystem, IPath path) throws IOException {
+
+        return IndexBuilderTriggerFactory.get().getFileSystem().createIndexBackFlowChildDirectory(path);
+
+        // return new TISDirectory(path, filesystem);
     }
+
+//    private ITISFileSystem getFileSystem() {
+//        PluginStore<IndexBuilderTriggerFactory> pluginStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
+//        return pluginStore.getPlugin().getFileSystem();
+//    }
 }

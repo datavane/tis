@@ -30,7 +30,7 @@
 // * @author 百岁（baisui@qlangtech.com）
 // * @date 2019年1月17日
 // */
-//public class TisAbstractDirectory extends BaseDirectory {
+//public class TISDirectory extends BaseDirectory {
 //
 //    public static Logger LOG = LoggerFactory.getLogger(HdfsDirectory.class);
 //
@@ -38,16 +38,20 @@
 //
 //    private static final String LF_EXT = ".lf";
 //
-//    protected final IPath hdfsDirPath;
+//    protected final IPath fsDirPath;
 //
-//    // protected final Configuration configuration;
+//
 //    private final ITISFileSystem fileSystem;
 //
-//    // private final AtomicLong allReadBytesCount;
 //    private final Set<String> readFiles = new HashSet<>();
 //
-//    public TisAbstractDirectory(IPath hdfsDirPath, ITISFileSystem fileSystem) throws IOException {
+//    public TISDirectory(IPath hdfsDirPath, ITISFileSystem fileSystem) throws IOException {
 //        this(hdfsDirPath, NoLockFactory.INSTANCE, fileSystem);
+//    }
+//
+//    @Override
+//    public ChecksumIndexInput openChecksumInput(String name, IOContext context) throws IOException {
+//        return super.openChecksumInput(name, context);
 //    }
 //
 //    @Override
@@ -55,15 +59,15 @@
 //        throw new UnsupportedOperationException();
 //    }
 //
-//    private TisAbstractDirectory(IPath path, LockFactory lockFactory, ITISFileSystem fileSystem) throws IOException {
+//    private TISDirectory(IPath hdfsDirPath, LockFactory lockFactory, ITISFileSystem fileSystem) throws IOException {
 //        super(lockFactory);
-//        this.hdfsDirPath = path;
+//        this.fsDirPath = hdfsDirPath;
 //        this.fileSystem = fileSystem;
 //    }
 //
 //    @Override
 //    public void close() throws IOException {
-//        LOG.info("Closing hdfs directory {}", hdfsDirPath);
+//        LOG.info("Closing hdfs directory {}", fsDirPath);
 //        fileSystem.close();
 //        isOpen = false;
 //    }
@@ -74,11 +78,11 @@
 //    }
 //
 //    /**
-//     * Check whether this directory is open or closed. This check may return stale
-//     * results in the form of false negatives.
+//     * Check whether this directory is open or closed. This check may return
+//     * stale results in the form of false negatives.
 //     *
-//     * @return true if the directory is definitely closed, false if the directory is
-//     * open or is pending closure
+//     * @return true if the directory is definitely closed, false if the
+//     * directory is open or is pending closure
 //     */
 //    public boolean isClosed() {
 //        return !isOpen;
@@ -86,21 +90,7 @@
 //
 //    @Override
 //    public IndexOutput createOutput(String name, IOContext context) throws IOException {
-//        // public class HdfsFileWriter extends OutputStreamIndexOutput {
-//        //
-//        // public static final String HDFS_SYNC_BLOCK = "solr.hdfs.sync.block";
-//        // public static final int BUFFER_SIZE = 16384;
-//        //
-//        // public HdfsFileWriter(FileSystem fileSystem, Path path, String name) throws
-//        // IOException {
-//        // super("fileSystem=" + fileSystem + " path=" + path, name,
-//        // getOutputStream(fileSystem, path), BUFFER_SIZE);
-//        // }
-//        int BUFFER_SIZE = 16384;
-//        IPath path = fileSystem.getPath(hdfsDirPath, name);
-//        return new OutputStreamIndexOutput("fileSystem=" + fileSystem + " path=" + path, name, fileSystem.getOutputStream(path), BUFFER_SIZE);
-//    // return new HdfsFileWriter(getFileSystem(), fileSystem.getPath(hdfsDirPath,
-//    // name), name);
+//        return new TisFsFileWriter(getFileSystem(), getChildPath(name), name);
 //    }
 //
 //    private String[] getNormalNames(List<String> files) {
@@ -125,13 +115,12 @@
 //    }
 //
 //    private IndexInput openInput(String name, int bufferSize) throws IOException {
-//        return new HdfsIndexInput(name, getFileSystem(), this.fileSystem.getPath(hdfsDirPath, name), BUFFER_SIZE);
+//        return new TISFSIndexInput(name, getFileSystem(), getChildPath(name), bufferSize);
 //    }
 //
 //    @Override
 //    public void deleteFile(String name) throws IOException {
-//        // Path path = new Path(hdfsDirPath, name);
-//        IPath path = this.fileSystem.getPath(hdfsDirPath, name);
+//        IPath path = getChildPath(name);
 //        LOG.debug("Deleting {}", path);
 //        getFileSystem().delete(path, false);
 //    }
@@ -149,49 +138,56 @@
 //
 //    // @Override
 //    // public void renameFile(String source, String dest) throws IOException {
-//    //
+//    // // Path sourcePath = new Path(hdfsDirPath, source);
+//    // // Path destPath = new Path(hdfsDirPath, dest);
+//    // // fileContext.rename(sourcePath, destPath);
 //    // }
 //    @Override
 //    public long fileLength(String name) throws IOException {
-//        IPathInfo fileStatus = getFileSystem().getFileInfo(this.fileSystem.getPath(hdfsDirPath, name));
-//        return fileStatus.getLength();
-//    // return HdfsFileReader.getLength(getFileSystem(), new Path(hdfsDirPath,
-//    // name));
+//        IPath path = getChildPath(name);
+//        return getLength(getFileSystem(), path);
 //    }
 //
 //    public long fileModified(String name) throws IOException {
-//        // .getFileStatus(new
-//        IPathInfo fileStatus = getFileSystem().getFileInfo(this.fileSystem.getPath(hdfsDirPath, name));
-//        // name));
+//        IPath path = getChildPath(name);
+//        IPathInfo fileStatus = fileSystem.getFileInfo(path);
 //        return fileStatus.getModificationTime();
+//    }
+//
+//    private IPath getChildPath(String name) {
+//        return this.fileSystem.getPath(fsDirPath, name);
+//    }
+//
+//    public static long getLength(ITISFileSystem fileSystem, IPath path) throws IOException {
+//        IPathInfo fileStatus = fileSystem.getFileInfo(path);
+//        return fileStatus.getLength();
 //    }
 //
 //    @Override
 //    public String[] listAll() throws IOException {
-//        List<IPathInfo> childinfos = getFileSystem().listChildren(hdfsDirPath);
-//        // FileStatus[] listStatus = getFileSystem().listStatus(hdfsDirPath);
+//        List<IPathInfo> listStatus = getFileSystem().listChildren(fsDirPath);
+//        // FileStatus[] listStatus = getFileSystem().listStatus(fsDirPath);
 //        List<String> files = new ArrayList<>();
-//        if (childinfos == null) {
+//        if (listStatus == null) {
 //            return new String[] {};
 //        }
-//        for (IPathInfo status : childinfos) {
-//            // files.add(status.getPath().getName());
-//            files.add(status.getName());
+//        for (IPathInfo status : listStatus) {
+//            files.add(status.getPath().getName());
 //        }
 //        return getNormalNames(files);
 //    }
 //
-//    public IPath getHdfsDirPath() {
-//        return hdfsDirPath;
+//    public IPath getFsDirPath() {
+//        return fsDirPath;
 //    }
 //
 //    public ITISFileSystem getFileSystem() {
 //        return fileSystem;
 //    }
 //
-//    public static Logger logger = LoggerFactory.getLogger(HdfsIndexInput.class);
+//    public static Logger logger = LoggerFactory.getLogger(TISFSIndexInput.class);
 //
-//    private class HdfsIndexInput extends CustomBufferedIndexInput {
+//    private static class TISFSIndexInput extends CustomBufferedIndexInput {
 //
 //        private final IPath path;
 //
@@ -201,43 +197,21 @@
 //
 //        private boolean clone = false;
 //
-//        public HdfsIndexInput(String name, ITISFileSystem fileSystem, IPath path, int bufferSize) throws IOException {
+//        public TISFSIndexInput(String name, ITISFileSystem fileSystem, IPath path, int bufferSize) throws IOException {
 //            super(name);
 //            this.path = path;
-//            logger.debug("Opening normal index input on {}", path);
-//            IPathInfo fileStatus = fileSystem.getFileInfo(path);
-//            length = fileStatus.getLength();
+//            length = fileSystem.getFileInfo(path).getLength();
 //            inputStream = fileSystem.open(path, bufferSize);
-//        }
-//
-//        @Override
-//        public void readBytes(byte[] b, int offset, int len) throws IOException {
-//            super.readBytes(b, offset, len);
-//        // allReadBytesCount.addAndGet(len);
 //        }
 //
 //        @Override
 //        protected void readInternal(byte[] b, int offset, int readLength) throws IOException {
 //            inputStream.readFully(getFilePointer(), b, offset, readLength);
-//        // if (!shallNotCalculateReadBytesCount) {
-//        //
-//        // synchronized (this) {
-//        // if (!readFiles.contains(path.toString())) {
-//        // readFiles.add(path.toString());
-//        // }
-//        // }
-//        //
-//        // if ((this.fileReaded + readLength) > this.length) {
-//        // allReadBytesCount.addAndGet(this.length - this.fileReaded);
-//        // } else {
-//        // allReadBytesCount.addAndGet(readLength);
-//        // this.fileReaded += readLength;
-//        // }
-//        // }
 //        }
 //
 //        @Override
 //        protected void seekInternal(long pos) throws IOException {
+//            inputStream.seek(pos);
 //        }
 //
 //        @Override
@@ -255,7 +229,7 @@
 //
 //        @Override
 //        public IndexInput clone() {
-//            HdfsIndexInput clone = (HdfsIndexInput) super.clone();
+//            TISFSIndexInput clone = (TISFSIndexInput) super.clone();
 //            clone.clone = true;
 //            return clone;
 //        }
@@ -268,7 +242,7 @@
 //
 //    @Override
 //    public int hashCode() {
-//        return hdfsDirPath.hashCode();
+//        return fsDirPath.hashCode();
 //    }
 //    // @Override
 //    // public boolean equals(Object obj) {
@@ -281,6 +255,6 @@
 //    // if (!(obj instanceof HdfsDirectory)) {
 //    // return false;
 //    // }
-//    // return this.hdfsDirPath.equals(((HdfsDirectory) obj).getHdfsDirPath());
+//    // return this.fsDirPath.equals(((HdfsDirectory) obj).getHdfsDirPath());
 //    // }
 //}

@@ -249,20 +249,15 @@ public class MultiThreadDataProvider {
                     }
                 }
             }
-            List noticeList = new ArrayList<String>();
-            long importALLCount = 0L;
-            // context.put(Constants.SHARD_COUNT, noticeList);
-            loginfo = "线程[" + Thread.currentThread().getName() + "]" + ">>>>>>>数据库读出" + count + "行数据,导入HDFS集群[" + importALLCount + "]行<<<<<<<\n" + ">>>>>>> 成功导入数据到HDFS集群后，重置文件时间管理器的此次批次导入时间<<<";
-            log.warn(loginfo);
             // baisui add
             // 执行成功了
             sourceDataFactory.reportDumpStatus(false, true);
         } catch (DataImportHDFSException e) {
             throw e;
         } catch (InterruptedException e) {
-            throw new DataImportHDFSException("【警告】出现InterruptedException，错误信息:" + e.getMessage(), e);
+            throw new DataImportHDFSException(e.getMessage(), e);
         } catch (Exception e) {
-            throw new DataImportHDFSException("【警告】出现未知错误，错误信息:" + e.getMessage(), e);
+            throw new DataImportHDFSException(e.getMessage(), e);
         } finally {
 
             log.warn(currentTimeStamp + ":has release the lock");
@@ -276,11 +271,7 @@ public class MultiThreadDataProvider {
                     outputStream.flush();
                     outputStream.close();
                 } catch (IOException e) {
-                    log.warn(">>>【警告】关闭HDFS写入流出现错误<<<", e);
-                } finally {
-                    shard = null;
-                    outputStream = null;
-                    // outMap.put(shard, null);
+                    log.warn(e.getMessage(), e);
                 }
             }
             if (shardInitCount != null) {
