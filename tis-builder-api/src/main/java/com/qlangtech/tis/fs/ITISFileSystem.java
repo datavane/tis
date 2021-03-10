@@ -27,16 +27,17 @@ import java.util.regex.Pattern;
  * @date 2018年11月23日
  */
 public interface ITISFileSystem {
+    String NAME_LOCAL_FS = "localFileSys";
     Pattern DATE_PATTERN = Pattern.compile("20\\d{12}");
 
-    /**
-     * 创建索引回流时候用的Lucene Directory
-     *
-     * @param path
-     * @param <Directory>
-     * @return
-     */
-    public abstract <Directory> Directory createIndexBackFlowChildDirectory(IPath path);
+//    /**
+//     * 创建索引回流时候用的Lucene Directory
+//     *
+//     * @param path
+//     * @param <Directory>
+//     * @return
+//     */
+   // public abstract <Directory> Directory createIndexBackFlowChildDirectory(IPath path);
 
     /**
      * 删除历史文件
@@ -48,6 +49,7 @@ public interface ITISFileSystem {
     default void deleteHistoryFile(EntityName dumpTable, String timestamp) throws Exception {
         FSHistoryFileUtils.deleteHistoryFile(this, dumpTable, timestamp);
     }
+
     /**
      * 文件系统的根目录
      *
