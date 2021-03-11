@@ -109,9 +109,6 @@
     values (#opId:INTEGER#, #usrId:VARCHAR#, #usrName:VARCHAR#, #opType:VARCHAR#,
       #createTime:TIMESTAMP#, #tabName:VARCHAR#, #appName:VARCHAR#, #runtime:SMALLINT#,
       #memo:VARCHAR#, #opDesc:LONGVARCHAR#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.OperationLog" >
     <!--
@@ -185,9 +182,6 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.OperationLogCriteria" resultClass="java.lang.Integer" >
     <!--

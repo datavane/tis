@@ -5,8 +5,4 @@
 	<sqlMap resource="com/qlangtech/tis/dataplatform/dao/sqlmap/ds_table_SqlMap.xml" />
 	<sqlMap
 		resource="com/qlangtech/tis/dataplatform/dao/sqlmap/ds_datasource_SqlMap.xml" />
-
-	<sqlMap
-		resource="com/qlangtech/tis/dataplatform/dao/sqlmap/mvn_dependency_SqlMap.xml" />
-	<sqlMap resource="com/qlangtech/tis/dataplatform/dao/sqlmap/nobel_app_SqlMap.xml" />
 </sqlMapConfig>

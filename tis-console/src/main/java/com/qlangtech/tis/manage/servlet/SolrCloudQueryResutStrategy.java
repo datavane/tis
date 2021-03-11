@@ -15,7 +15,6 @@
 package com.qlangtech.tis.manage.servlet;
 
 import com.qlangtech.tis.coredefine.module.action.CollectionTopology;
-import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator;

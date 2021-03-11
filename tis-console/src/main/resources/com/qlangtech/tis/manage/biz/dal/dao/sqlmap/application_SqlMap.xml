@@ -106,9 +106,7 @@
     values (#appId:INTEGER#, #projectName:VARCHAR#, #recept:VARCHAR#, #manager:VARCHAR#,
       #createTime:TIMESTAMP#, #updateTime:TIMESTAMP#, #isAutoDeploy,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#,
       #dptId:INTEGER#, #dptName:VARCHAR#, #workFlowId:INTEGER#, #fullBuildCronTime:VARCHAR#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Application" >
     <!--
@@ -192,9 +190,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria" resultClass="java.lang.Integer" >
     <!--

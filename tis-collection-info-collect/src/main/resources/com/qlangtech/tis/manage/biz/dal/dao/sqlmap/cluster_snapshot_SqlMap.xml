@@ -129,9 +129,6 @@
 		#qps:INTEGER#,
 		#avgConsumeTimePerRequest:REAL#, #requestCount:BIGINT#,
 		#docNumber:BIGINT#)
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-		</selectKey>
 	</insert>
 
 	<insert id="batchInsert" parameterClass="java.util.List">
@@ -212,9 +209,7 @@
 			</isNotNull>
 			)
 		</dynamic>
-		<selectKey resultClass="LONG">
-			SELECT LAST_INSERT_ID();
-		</selectKey>
+
 	</insert>
 	<select id="ibatorgenerated_countByExample"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotCriteria"

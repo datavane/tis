@@ -135,9 +135,7 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 		#dataType:VARCHAR#,
 		#incrNumber:INTEGER#,
 		#appId:BIGINT#)
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-		</selectKey>
+
 	</insert>
 	<insert id="ibatorgenerated_insertSelective"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshot">
@@ -180,9 +178,7 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 			</isNotNull>
 			)
 		</dynamic>
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-		</selectKey>
+
 	</insert>
 	<select id="ibatorgenerated_countByExample"
 		parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotCriteria"

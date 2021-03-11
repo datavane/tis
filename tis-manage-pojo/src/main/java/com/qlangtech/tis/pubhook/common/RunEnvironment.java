@@ -56,7 +56,7 @@ public enum RunEnvironment {
 
     // private static RunEnvironment runtime;
     public static RunEnvironment getSysRuntime() {
-        return RunEnvironment.getEnum(Config.getRuntime());
+        return RunEnvironment.getEnum(Config.getInstance().getRuntime());
     // if (runtime == null) {
     // synchronized (RunEnvironment.class) {
     // if (runtime == null) {

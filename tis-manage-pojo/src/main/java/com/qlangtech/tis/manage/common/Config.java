@@ -50,6 +50,8 @@ public class Config {
     public static final String SUB_DIR_LIBS = "libs";
 
     public static final String SUB_DIR_CFG_REPO = "cfg_repo";
+    public static final String DB_TYPE_MYSQL = "mysql";
+    public static final String DB_TYPE_DERBY = "derby";
 
     private static String GENERATE_PARENT_PACKAGE = "com.qlangtech.tis.realtime.transfer";
 
@@ -124,7 +126,7 @@ public class Config {
     // 组装节点
     private final String assembleHost;
 
-    public final TisDbConfig dbCfg;
+    private final TisDbConfig dbCfg;
 
     private Config() {
         P p = P.create();
@@ -133,25 +135,22 @@ public class Config {
         this.tisHost = p.getString(KEY_TIS_HOST, true);
         this.runtime = p.getString(KEY_RUNTIME, true);
 
-//        tis.datasource.url=192.168.28.200
-//        tis.datasource.username=root
-//        tis.datasource.password=123456
-//        tis.datasource.dbname=tis_console
         this.dbCfg = new TisDbConfig();
         try {
-            this.dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
-            this.dbCfg.url = p.getString("tis.datasource.url");
-            this.dbCfg.userName = p.getString("tis.datasource.username");
-            this.dbCfg.password = p.getString("tis.datasource.password");
-            this.dbCfg.dbname = p.getString("tis.datasource.dbname");
+            dbCfg.dbtype = p.getString("tis.datasource.type", true);
+            dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
+            dbCfg.url = p.getString("tis.datasource.url");
+            dbCfg.userName = p.getString("tis.datasource.username");
+            dbCfg.password = p.getString("tis.datasource.password");
+            dbCfg.dbname = p.getString("tis.datasource.dbname", true);
         } catch (Exception e) {
             throw new IllegalStateException("please check the tis datasource cfg", e);
         }
     }
 
 
-    public static String getRuntime() {
-        return getInstance().runtime;
+    public String getRuntime() {
+        return this.runtime;
     }
 
     private static final ThreadLocal<String> threadContext = new ThreadLocal<>();
@@ -183,7 +182,11 @@ public class Config {
 //    }
 
     public static TisDbConfig getDbCfg() {
-        return getInstance().dbCfg;
+        return getInstance().getDbConfig();
+    }
+
+    public TisDbConfig getDbConfig() {
+        return this.dbCfg;
     }
 
     public static String getZKHost() {
@@ -206,12 +209,39 @@ public class Config {
         throw new UnsupportedOperationException();
     }
 
-    public static InputStream openTestCfgStream() throws IOException {
+    public static TestCfgStream openTestCfgStream() throws IOException {
         File f = new File("../tis-web-config/config.properties");
+        TestCfgStream cfgStream = new TestCfgStream(f);
         if (!f.exists()) {
-            return null;
+            return cfgStream;
         }
-        return FileUtils.openInputStream(f);
+        return cfgStream.setPropsStream(FileUtils.openInputStream(f));
+    }
+
+    public static class TestCfgStream {
+        private final File propsFile;
+        private InputStream propsStream;
+
+        public InputStream getPropsStream() {
+            return propsStream;
+        }
+
+        public File getPropsFile() {
+            return propsFile;
+        }
+
+        public void validate() {
+            Objects.requireNonNull(this.propsStream, "file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath());
+        }
+
+        public TestCfgStream(File propsFile) {
+            this.propsFile = propsFile;
+        }
+
+        public TestCfgStream setPropsStream(InputStream propsStream) {
+            this.propsStream = propsStream;
+            return this;
+        }
     }
 
     private abstract static class P {
@@ -238,8 +268,9 @@ public class Config {
                     // 测试环境中取工程目录下的配置文件
                     Properties props = new Properties();
                     try {
-                        try (InputStream input = openTestCfgStream()) {
-                            Objects.requireNonNull(input, "file relevant stream is null");
+                        TestCfgStream cfgStream = openTestCfgStream();
+                        cfgStream.validate();
+                        try (InputStream input = cfgStream.propsStream) {
                             props.load(input);
                         }
                         Config.setTest(true);
@@ -288,7 +319,7 @@ public class Config {
         return this.zkHost;
     }
 
-    private static Config getInstance() {
+    public static Config getInstance() {
         if (config == null) {
             synchronized (Config.class) {
                 if (config == null) {
@@ -299,7 +330,15 @@ public class Config {
         return config;
     }
 
+    public static void setConfig(Config cfg) {
+        config = cfg;
+    }
+
     public static class TisDbConfig {
+
+        public String dbtype;
+        public String dbname;
+
         //        tis.datasource.url=192.168.28.200
 //        tis.datasource.username=root
 //        tis.datasource.password=123456
@@ -308,7 +347,7 @@ public class Config {
         public String url;
         public String userName;
         public String password;
-        public String dbname;
+
     }
 
     public static class FuncGroup {

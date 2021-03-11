@@ -14,10 +14,9 @@
  */
 package com.qlangtech.tis.manage.servlet;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
+
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator;
 
 /**

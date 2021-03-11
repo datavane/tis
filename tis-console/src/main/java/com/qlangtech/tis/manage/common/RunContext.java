@@ -27,11 +27,8 @@ public interface RunContext extends ISolrZKClientGetter {
 
   public IApplicationDAO getApplicationDAO();
 
-  public IAppPackageDAO getAppPackageDAO();
-
   public IGroupInfoDAO getGroupInfoDAO();
 
-  // public IServerDAO getServerDAO();
   public IServerGroupDAO getServerGroupDAO();
 
   public ISnapshotDAO getSnapshotDAO();
@@ -40,27 +37,15 @@ public interface RunContext extends ISolrZKClientGetter {
 
   public IUploadResourceDAO getUploadResourceDAO();
 
-  // public AdminUserService getAuthService();
   public IBizFuncAuthorityDAO getBizFuncAuthorityDAO();
 
-  // 组织服务
-  // public OrgService getOrgService();
-  // 通过应用查找这个应用下所有组中的服务器（每个组只出一个服务器）
-  IServerJoinGroupDAO getServerJoinGroupDAO();
-
-  IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO();
 
   IUsrDptRelationDAO getUsrDptRelationDAO();
 
-  public IUsrDptExtraRelationDAO getUsrDptExtraRelationDAO();
-
   public IDepartmentDAO getDepartmentDAO();
-
-  public IGlobalAppResourceDAO getGlobalAppResourceDAO();
 
   public IAppTriggerJobRelationDAO getAppTriggerJobRelationDAO();
 
-  // add for implement authority system20130124
   public IFuncRoleRelationDAO getFuncRoleRelationDAO();
 
   public IRoleDAO getRoleDAO();
@@ -70,13 +55,6 @@ public interface RunContext extends ISolrZKClientGetter {
   // add for implement authority system20130124 end
   public IResourceParametersDAO getResourceParametersDAO();
 
-  // 聚石塔相关dao
-  // public IIsvDAO getIsvDAO();
-  public IRdsDbDAO getRdsDbDAO();
-
-  public IRdsTableDAO getRdsTableDAO();
-
-  public IApplicationExtendDAO getApplicationExtendDAO();
 
   public TISZkStateReader getZkStateReader();
 

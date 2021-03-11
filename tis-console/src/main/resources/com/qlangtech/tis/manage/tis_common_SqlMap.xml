@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="tiscommon">
+
+  <select id="get_last_insert_id_mysql" resultClass="java.lang.Integer">
+  SELECT LAST_INSERT_ID()
+  </select>
+
+  <select id="get_last_insert_id_derby" resultClass="java.lang.Integer">
+   values IDENTITY_VAL_LOCAL()
+  </select>
+</sqlMap>

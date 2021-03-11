@@ -21,6 +21,14 @@
 
   </profiles>
   <dependencies>
+
+    <dependency>
+      <!--running DB in embedded model https://db.apache.org/derby/docs/10.15/getstart/index.html-->
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+    </dependency>
+
+
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>mockwebserver</artifactId>

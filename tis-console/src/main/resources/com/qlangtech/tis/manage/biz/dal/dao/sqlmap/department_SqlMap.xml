@@ -124,9 +124,6 @@ where u.usr_id = #value#
 		values (#dptId:INTEGER#, #parentId:INTEGER#, #name:VARCHAR#,
 		#gmtCreate:TIMESTAMP#,
 		#gmtModified:TIMESTAMP#, #fullName:VARCHAR#, #leaf,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#)
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
 	</insert>
 	<insert id="ibatorgenerated_insertSelective"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Department">
@@ -185,9 +182,6 @@ where u.usr_id = #value#
       </isNotNull>
 			)
 		</dynamic>
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
 	</insert>
 	<select id="ibatorgenerated_countByExample"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria"

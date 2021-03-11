@@ -84,9 +84,7 @@
     insert into cluster_snapshot_pre_day (id, gmt_create, data_type, incr_number, app_id)
     values (#id:INTEGER#, #gmtCreate:DATE#, #dataType:VARCHAR#, #incrNumber:INTEGER#,
       #appId:BIGINT#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDay" >
     <!--
@@ -130,9 +128,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.dataplatform.pojo.ClusterSnapshotPreDayCriteria" resultClass="java.lang.Integer" >
     <!--

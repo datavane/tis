@@ -85,9 +85,7 @@
         op_time, info)
         values (#id:INTEGER#, #datasourceTableId:INTEGER#, #hiveTableName:VARCHAR#, #state:BIT#,
         #isValid:BIT#, #createTime:TIMESTAMP#, #opTime:TIMESTAMP#, #info:LONGVARCHAR#)
-        <selectKey resultClass="java.lang.Integer">
-            SELECT LAST_INSERT_ID();
-        </selectKey>
+
     </insert>
     <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.workflow.pojo.TableDump">
         insert into table_dump
@@ -146,9 +144,7 @@
             </isNotNull>
             )
         </dynamic>
-        <selectKey resultClass="java.lang.Integer">
-            SELECT LAST_INSERT_ID();
-        </selectKey>
+
     </insert>
     <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.workflow.pojo.TableDumpCriteria"
             resultClass="java.lang.Integer">

@@ -90,9 +90,7 @@
       gmt_modified, project_name, is_stop)
     values (#atId:BIGINT#, #appId:INTEGER#, #jobType:TINYINT#, #jobId:BIGINT#, #crontab:VARCHAR#,
       #gmtCreate:TIMESTAMP#, #gmtModified:TIMESTAMP#, #projectName:VARCHAR#, #isStop:CHAR#)
-    <selectKey resultClass="LONG" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppTriggerJobRelation" >
     <!--
@@ -160,9 +158,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="LONG" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppTriggerJobRelationCriteria" resultClass="java.lang.Integer" >
     <!--

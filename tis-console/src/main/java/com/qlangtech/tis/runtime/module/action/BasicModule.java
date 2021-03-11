@@ -581,7 +581,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   protected Integer getPage() {
     Integer page = this.getInt("page", 1);
-    // page = (page == null) ? 1 : page;
     return page;
   }
 
@@ -589,36 +588,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return new StringBuffer();
   }
 
-  // /**
-  // * 重定向到某个页面 如果是action forward的话需要使用驼峰式的路径，类似：tis_app_noble_bind
-  // *
-  // * @param to
-  // */
-  // protected void forward(String to) {
-  // getRundataInstance().forwardTo(to);
-  // }
-  // protected void forward(Class<? extends BasicScreen> to) {
-  // getRundataInstance().forwardTo(TisActionMapper.addUnderline(to.getSimpleName()).toString());
-  // }
-  // private static final MockTurbineRunDataInternal rundata = new
-  // MockTurbineRunDataInternal();
-  //
-  // protected final TurbineRunDataInternal getRundata() {
-  // // return (TurbineRunDataInternal) TurbineUtil
-  // // .getTurbineRunData(getRequest());
-  // return rundata;
-  // }
-  // @Override
-  public IGlobalAppResourceDAO getGlobalAppResourceDAO() {
-    return this.getDaoContext().getGlobalAppResourceDAO();
-  }
-
-  // @Autowired
-  // private FormService formService;
-  // @Override
-  public IServerJoinGroupDAO getServerJoinGroupDAO() {
-    return this.getDaoContext().getServerJoinGroupDAO();
-  }
 
   public static final String REQUEST_DOMAIN_KEY = BasicModule.class.getName() + "domain";
 
@@ -635,44 +604,15 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return true;
   }
 
-  // protected void disableDomainView(Context context) {
-  // context.put("shallNotAppDomain", true);
-  // }
   protected void disableNavigationBar(Context context) {
     context.put("shallNotNavigationBar", true);
   }
 
-  // @Autowired
-  // private FormService formService;
-  //
-  // // 取得到表单服务
-  // public FormService getFormService() {
-  // return formService;
-  // }
+
   public static String getEncode() {
     return TisUTF8.getName();
   }
 
-  // public Group getGroup(String name) {
-  // return this.actionTool.getGroup(name);
-  // }
-  // private static final Group mockGroup = new GroupMock();
-  //
-  // public Group getDefaultGroup() {
-  // return this.actionTool.getDefaultGroup();
-  // }
-  // @Autowired
-  // private URIBrokerService uriService;
-  //
-  // public URIBrokerService getUriService() {
-  // return uriService;
-  // }
-  // protected String getFieldValue(String field) {
-  // return this.actionTool.getFieldValue(field);
-  // }
-  // protected void setFieldValue(String field, Object value) {
-  // this.actionTool.setFieldValue(field, value);
-  // }
   /**
    * 表单的组
    */
@@ -706,7 +646,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   public IUser getUser() {
-    // UserUtils.getUser(this.getRequest(), this);
     return this.authtoken;
   }
 
@@ -714,9 +653,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return UserUtils.getUser(this.getRequest(), this).getId();
   }
 
-  // private HttpServletRequest request;
-  // @Autowired
-  // private HttpServletResponse response;
+
   protected void setErrorMsgInvisiable(Context context) {
     context.put("errorMsgInvisiable", true);
   }
@@ -727,15 +664,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
    * @return
    */
   public List<Option> getBizLineList() {
-    // BizDomainCriteria query = new BizDomainCriteria();
-    // query.createCriteria().andNotDelete();
-    // List<BizDomain> result =
-    // this.getBizDomainDAO().selectByExample(query);
+
     List<Option> answer = new ArrayList<Option>();
-    // this.getRequest(), false, this.getUser(), this
+
     for (Department domain : getAppsFetcher(this.getRequest(), this.isMaxMatch(), this.getUser(), this).getDepartmentBelongs(this)) {
-      // answer.add(new Option(domain.getFullName(), String.valueOf(domain
-      // .getDptId())));
+
       answer.add(new Option(domain.getFullName(), String.valueOf(domain.getDptId())));
     }
     Collections.sort(answer, new Comparator<Option>() {
@@ -778,24 +711,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   public void doGetAppList() {
   }
 
-  // public Integer getInt(Context context, String key) {
-  // return actionTool.getInt( key);
-  //
-  // }
-  // public String getString(Context context, String key) {
-  // // GroupInstanceHelper group = getGroupHelper(context);
-  // return this.getString(context, key);
-  // }
-  // /**
-  // * @param context
-  // * @return
-  // */
-  // protected GroupInstanceHelper getGroupHelper(Context context) {
-  // FormTool formTool = (FormTool) context.get("form");
-  // GroupInstanceHelper group = formTool.get(this.getGroupName())
-  // .getDefaultInstance();
-  // return group;
-  // }
+
   protected Integer getValue(Integer value1, Integer value2) {
     return (value1 != null) ? value1 : value2;
   }
@@ -896,12 +812,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return ServletActionContext.getResponse();
   }
 
-  public void setServerPoolDAO(IServerPoolDAO serverPoolDAO) {
-    this.serverPoolDAO = serverPoolDAO;
-  }
-
-  @Autowired
-  private IServerPoolDAO serverPoolDAO;
 
   private RunContextGetter daoContextGetter;
 
@@ -920,9 +830,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return getDaoContext().getResourceParametersDAO();
   }
 
-  protected IServerPoolDAO getServerPoolDAO() {
-    return serverPoolDAO;
-  }
 
   public IApplicationDAO getApplicationDAO() {
     return getDaoContext().getApplicationDAO();
@@ -942,31 +849,18 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     throw new IllegalStateException("can not find app:" + indexName + " in db");
   }
 
-  public IAppPackageDAO getAppPackageDAO() {
-    return getDaoContext().getAppPackageDAO();
-  }
-
-  // public IBizDomainDAO getBizDomainDAO() {
-  // return getDaoContext().getBizDomainDAO();
-  // }
   public IGroupInfoDAO getGroupInfoDAO() {
     return getDaoContext().getGroupInfoDAO();
   }
 
-  // private IServerDAO getServerDAO() {
-  // return getDaoContext().getServerDAO();
-  // }
-  // @Override
   public IDepartmentDAO getDepartmentDAO() {
     return getDaoContext().getDepartmentDAO();
   }
 
-  // @Override
   public IUsrDptRelationDAO getUsrDptRelationDAO() {
     return getDaoContext().getUsrDptRelationDAO();
   }
 
-  // @Override
   public final ISnapshotViewDAO getSnapshotViewDAO() {
     return getDaoContext().getSnapshotViewDAO();
   }
@@ -993,27 +887,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return getDaoContext().getUploadResourceDAO();
   }
 
-  public IRdsDbDAO getRdsDbDAO() {
-    return getDaoContext().getRdsDbDAO();
-  }
-
-  public IRdsTableDAO getRdsTableDAO() {
-    return getDaoContext().getRdsTableDAO();
-  }
-
-  public IApplicationExtendDAO getApplicationExtendDAO() {
-    return getDaoContext().getApplicationExtendDAO();
-  }
-
-  @Override
-  public IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO() {
-    return getDaoContext().getUsrApplyDptRecordDAO();
-  }
-
-  @Override
-  public IUsrDptExtraRelationDAO getUsrDptExtraRelationDAO() {
-    return getDaoContext().getUsrDptExtraRelationDAO();
-  }
 
   @Override
   public IFuncDAO getFuncDAO() {
@@ -1222,7 +1095,4 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       return rows;
     }
   }
-  // private void setResponse(HttpServletResponse response) {
-  // this.response = response;
-  // }
 }

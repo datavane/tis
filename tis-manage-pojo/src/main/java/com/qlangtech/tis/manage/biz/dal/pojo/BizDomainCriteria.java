@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.qlangtech.tis.ibatis.BasicCriteria;
-import com.qlangtech.tis.manage.biz.dal.pojo.AppPackageCriteria.Criteria;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

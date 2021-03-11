@@ -87,9 +87,7 @@
       gmt_create, gmt_update)
     values (#rpId:BIGINT#, #keyName:VARCHAR#, #dailyValue:VARCHAR#, #readyValue:VARCHAR#,
       #onlineValue:VARCHAR#, #gmtCreate:TIMESTAMP#, #gmtUpdate:TIMESTAMP#)
-    <selectKey resultClass="LONG" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ResourceParameters" >
     <!--
@@ -145,9 +143,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="LONG" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ResourceParametersCriteria" resultClass="java.lang.Integer" >
     <!--

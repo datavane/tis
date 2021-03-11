@@ -9,12 +9,6 @@
 		class="com.qlangtech.tis.dataplatform.dao.impl.DsDatasourceDAOImpl"
 		parent="comDfireTisDataplatformDAO" />
 
-	<bean id="mvnDependencyDAO"
-		class="com.qlangtech.tis.dataplatform.dao.impl.MvnDependencyDAOImpl"
-		parent="comDfireTisDataplatformDAO" />
-
-	<bean id="nobelAppDAO" class="com.qlangtech.tis.dataplatform.dao.impl.NobelAppDAOImpl"
-		parent="comDfireTisDataplatformDAO" />
 
 	<bean id="comDfireTisDataplatformDAO"
 		class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport"
@@ -29,11 +23,9 @@
 	</bean>
 
 	<bean id="comDfireTisDataplatformDaoFacade"
-		class="com.qlangtech.tis.dataplatform.dao.impl.ComDfireTisDataplatformDAOFacadeImpl">
+		class="com.qlangtech.tis.dataplatform.dao.impl.DataplatformDAOFacadeImpl">
 		<constructor-arg index="0" ref="dsTableDAO" />
 		<constructor-arg index="1" ref="dsDatasourceDAO" />
-		<constructor-arg index="2" ref="mvnDependencyDAO" />
-		<constructor-arg index="3" ref="nobelAppDAO" />
 	</bean>
 
 </beans>

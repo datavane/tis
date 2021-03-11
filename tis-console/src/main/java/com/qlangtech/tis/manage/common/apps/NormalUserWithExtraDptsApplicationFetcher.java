@@ -16,7 +16,6 @@ package com.qlangtech.tis.manage.common.apps;
 
 import java.util.List;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
-import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptExtraRelationCriteria;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.RunContext;
 

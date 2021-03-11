@@ -101,9 +101,7 @@
       sql_content)
     values (#tabId:BIGINT#, #dsId:BIGINT#, #dsName:VARCHAR#, #tabName:VARCHAR#, #tabAlias:VARCHAR#,
       #modifyTime:TIMESTAMP#, #createTime:TIMESTAMP#, #sqlContent:LONGVARCHAR#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.dataplatform.pojo.DsTable" >
     <!--
@@ -165,9 +163,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.dataplatform.pojo.DsTableCriteria" resultClass="java.lang.Integer" >
     <!--

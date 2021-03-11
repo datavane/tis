@@ -15,15 +15,10 @@
 package com.qlangtech.tis.manage.servlet;
 
 import java.io.IOException;
-import java.util.Date;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import com.qlangtech.tis.manage.biz.dal.pojo.AppPackage;
-import com.qlangtech.tis.manage.biz.dal.pojo.AppPackageCriteria;
-import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -38,12 +33,12 @@ public class UpdatePackageServlet extends BasicServlet {
         System.out.println(IOUtils.toString(req.getInputStream()));
     // Integer pid = Integer.parseInt(req.getParameter("pid"));
     // final String username = req.getParameter("username");
-    // 
+    //
     // if (StringUtils.isEmpty(username)) {
     // throw new IllegalArgumentException("username:" + username
     // + " can not be null");
     // }
-    // 
+    //
     // // 更新数据库
     // AppPackageCriteria criteria = new AppPackageCriteria();
     // criteria.createCriteria().andPidEqualTo(pid);

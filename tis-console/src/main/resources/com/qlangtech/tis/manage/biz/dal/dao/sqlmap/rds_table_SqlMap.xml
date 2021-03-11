@@ -85,9 +85,6 @@
     insert into rds_table (id, gmt_create, gmt_modified, a_id, r_id, table_name)
     values (#id:BIGINT#, #gmtCreate:TIMESTAMP#, #gmtModified:TIMESTAMP#, #aId:BIGINT#, #rId:BIGINT#,
       #tableName:VARCHAR#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.RdsTable" >
     <!--
@@ -137,9 +134,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.RdsTableCriteria" resultClass="java.lang.Integer" >
     <!--

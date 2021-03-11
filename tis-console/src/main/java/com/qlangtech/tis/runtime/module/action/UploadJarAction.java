@@ -18,8 +18,6 @@ import com.alibaba.citrus.turbine.Context;
 import com.opensymphony.xwork2.ModelDriven;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.UploadJarForm;
-import com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResource;
-import com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResourceCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
@@ -179,48 +177,48 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
   //
   // }
 
-  /**
-   * 绑定全局资源
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(PermissionConstant.CONFIG_EDIT)
-  public void doBindGlobalResource(Context context) throws Exception {
-    GlobalAppResource globalAppres = null;
-    final String[] uridAry = this.getRequest().getParameterValues("urId");
-    StringBuffer idstr = new StringBuffer();
-    for (String rid : uridAry) {
-      globalAppres = new GlobalAppResource();
-      globalAppres.setAppId(this.getAppDomain().getAppid());
-      globalAppres.setUrId(Long.parseLong(rid));
-      globalAppres.setGmtCreate(new Date());
-      globalAppres.setGmtModified(new Date());
-      this.getGlobalAppResourceDAO().insertSelective(globalAppres);
-      idstr.append("[").append(rid).append("]");
-    }
-    this.addActionMessage(context, "绑定资源" + idstr + "成功");
-  }
+//  /**
+//   * 绑定全局资源
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  @Func(PermissionConstant.CONFIG_EDIT)
+//  public void doBindGlobalResource(Context context) throws Exception {
+//    GlobalAppResource globalAppres = null;
+//    final String[] uridAry = this.getRequest().getParameterValues("urId");
+//    StringBuffer idstr = new StringBuffer();
+//    for (String rid : uridAry) {
+//      globalAppres = new GlobalAppResource();
+//      globalAppres.setAppId(this.getAppDomain().getAppid());
+//      globalAppres.setUrId(Long.parseLong(rid));
+//      globalAppres.setGmtCreate(new Date());
+//      globalAppres.setGmtModified(new Date());
+//      this.getGlobalAppResourceDAO().insertSelective(globalAppres);
+//      idstr.append("[").append(rid).append("]");
+//    }
+//    this.addActionMessage(context, "绑定资源" + idstr + "成功");
+//  }
 
-  /**
-   * 解除全局资源绑定
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(PermissionConstant.CONFIG_EDIT)
-  public void doUnbindGlobalResource(Context context) throws Exception {
-    final String[] uridAry = this.getRequest().getParameterValues("urId");
-    GlobalAppResourceCriteria criteria = null;
-    StringBuffer idstr = new StringBuffer();
-    for (String rid : uridAry) {
-      criteria = new GlobalAppResourceCriteria();
-      criteria.createCriteria().andUrIdEqualTo(Long.parseLong(rid)).andAppIdEqualTo(this.getAppDomain().getAppid());
-      this.getGlobalAppResourceDAO().deleteByExample(criteria);
-      idstr.append("[").append(rid).append("]");
-    }
-    this.addActionMessage(context, "解除绑定" + idstr + "成功！！！");
-  }
+//  /**
+//   * 解除全局资源绑定
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  @Func(PermissionConstant.CONFIG_EDIT)
+//  public void doUnbindGlobalResource(Context context) throws Exception {
+//    final String[] uridAry = this.getRequest().getParameterValues("urId");
+//    GlobalAppResourceCriteria criteria = null;
+//    StringBuffer idstr = new StringBuffer();
+//    for (String rid : uridAry) {
+//      criteria = new GlobalAppResourceCriteria();
+//      criteria.createCriteria().andUrIdEqualTo(Long.parseLong(rid)).andAppIdEqualTo(this.getAppDomain().getAppid());
+//      this.getGlobalAppResourceDAO().deleteByExample(criteria);
+//      idstr.append("[").append(rid).append("]");
+//    }
+//    this.addActionMessage(context, "解除绑定" + idstr + "成功！！！");
+//  }
 
   /**
    * 下载全局依赖资源

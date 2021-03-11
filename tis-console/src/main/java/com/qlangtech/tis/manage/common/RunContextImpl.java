@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,67 +27,44 @@ import org.apache.solr.common.cloud.TISZkStateReader;
  */
 public class RunContextImpl implements RunContext {
 
-    private final IAppPackageDAO appPackageDAO;
+  private final IApplicationDAO applicationDAO;
+  private final IGroupInfoDAO groupInfoDAO;
 
-    private final IApplicationDAO applicationDAO;
+  private final IServerDAO serverDAO;
 
-    // private final IBizDomainDAO bizDomainDAO;
-    private final IGroupInfoDAO groupInfoDAO;
+  private final IServerGroupDAO serverGroupDAO;
 
-    private final IServerDAO serverDAO;
+  private final ISnapshotDAO snapshotDAO;
 
-    private final IServerGroupDAO serverGroupDAO;
+  private final ISnapshotViewDAO snapshotViewDAO;
 
-    private final ISnapshotDAO snapshotDAO;
+  private final IUploadResourceDAO uploadResourceDAO;
 
-    private final ISnapshotViewDAO snapshotViewDAO;
 
-    private final IUploadResourceDAO uploadResourceDAO;
+  private final IAppTriggerJobRelationDAO appTriggerJobRelationDAO;
 
-    // private final AdminUserService authService;
-    // baisui add 20120413
-    private final IServerJoinGroupDAO serverJoinGroupDAO;
+  // private final RpcCoreManage rpcCoreManage;
+  private final IFuncDAO funcDAO;
 
-    // private final OrgService orgService;
-    private final IGlobalAppResourceDAO globalAppResourceDAO;
+  private final IFuncRoleRelationDAO funcRoleRelationDAO;
 
-    private final IAppTriggerJobRelationDAO appTriggerJobRelationDAO;
+  private final IRoleDAO roleDAO;
 
-    // private final RpcCoreManage rpcCoreManage;
-    private final IFuncDAO funcDAO;
+  private final IResourceParametersDAO resourceParametersDAO;
 
-    private final IFuncRoleRelationDAO funcRoleRelationDAO;
+  private final ZooKeeperGetter zooKeeperGetter;
 
-    private final IRoleDAO roleDAO;
+  private final ClusterStateReader clusterStateReader;
 
-    private final IResourceParametersDAO resourceParametersDAO;
+  private final IWorkflowDAOFacade comDfireTisWorkflowDAOFacade;
 
-    // 聚石塔相关DAO
-    // private final IIsvDAO isvDAO;
-    private final IRdsDbDAO rdsDbDAO;
+  private final IUsrDptRelationDAO usrDptRelationDAO;
 
-    private final IRdsTableDAO rdsTableDAO;
+  private final IDepartmentDAO departmentDAO;
 
-    private final IApplicationExtendDAO applicationExtendDAO;
+  private IBizFuncAuthorityDAO bizFuncAuthorityDAO;
 
-    private final ZooKeeperGetter zooKeeperGetter;
-
-    private final ClusterStateReader clusterStateReader;
-
-    private final IWorkflowDAOFacade comDfireTisWorkflowDAOFacade;
-
-    private final IUsrDptRelationDAO usrDptRelationDAO;
-
-    private final IUsrDptExtraRelationDAO usrDptExtraRelationDAO;
-
-    private final IDepartmentDAO departmentDAO;
-
-    private final IUsrApplyDptRecordDAO usrApplyDptRecordDAO;
-
-    private IBizFuncAuthorityDAO bizFuncAuthorityDAO;
-
-    public RunContextImpl(// IBizDomainDAO bizDomainDAO,
-    IAppPackageDAO appPackageDAO, // IBizDomainDAO bizDomainDAO,
+  public RunContextImpl(
     IApplicationDAO applicationDAO, // AdminUserService
     IGroupInfoDAO groupInfoDAO, // AdminUserService
     IServerDAO serverDAO, // AdminUserService
@@ -95,189 +72,121 @@ public class RunContextImpl implements RunContext {
     ISnapshotDAO snapshotDAO, // AdminUserService
     ISnapshotViewDAO snapshotViewDAO, // OrgService orgService,
     IUploadResourceDAO uploadResourceDAO, // RpcCoreManage rpcCoreManage,
-    IServerJoinGroupDAO serverJoinGroupDAO, // RpcCoreManage rpcCoreManage,
     IBizFuncAuthorityDAO bizFuncAuthorityDAO, // RpcCoreManage rpcCoreManage,
     IUsrDptRelationDAO usrDptRelationDAO, // RpcCoreManage rpcCoreManage,
     IDepartmentDAO departmentDAO, // RpcCoreManage rpcCoreManage,
-    IGlobalAppResourceDAO globalAppResourceDAO, // RpcCoreManage rpcCoreManage,
     IAppTriggerJobRelationDAO appTriggerJobRelationDAO, // IIsvDAO isvDAO,
     IFuncDAO funcDAO, // IIsvDAO isvDAO,
     IFuncRoleRelationDAO funcRoleRelationDAO, // IIsvDAO isvDAO,
     IRoleDAO roleDAO, // IIsvDAO isvDAO,
     IResourceParametersDAO resourceParametersDAO, // IIsvDAO isvDAO,
-    IUsrDptExtraRelationDAO usrDptExtraRelationDAO, IUsrApplyDptRecordDAO usrApplyDptRecordDAO, IRdsDbDAO rdsDbDAO, IRdsTableDAO rdsTableDAO, IApplicationExtendDAO applicationExtendDAO, ZooKeeperGetter zooKeeperGetter, ClusterStateReader clusterStateReader, IWorkflowDAOFacade comDfireTisWorkflowDAOFacade) {
-        super();
-        this.appPackageDAO = appPackageDAO;
-        this.applicationDAO = applicationDAO;
-        // this.bizDomainDAO = bizDomainDAO;
-        this.groupInfoDAO = groupInfoDAO;
-        this.serverDAO = serverDAO;
-        this.serverGroupDAO = serverGroupDAO;
-        this.snapshotDAO = snapshotDAO;
-        this.snapshotViewDAO = snapshotViewDAO;
-        this.uploadResourceDAO = uploadResourceDAO;
-        // this.authService = authService;
-        this.serverJoinGroupDAO = serverJoinGroupDAO;
-        // this.orgService = orgService;
-        this.bizFuncAuthorityDAO = bizFuncAuthorityDAO;
-        this.usrDptRelationDAO = usrDptRelationDAO;
-        this.departmentDAO = departmentDAO;
-        this.globalAppResourceDAO = globalAppResourceDAO;
-        this.appTriggerJobRelationDAO = appTriggerJobRelationDAO;
-        // this.rpcCoreManage = rpcCoreManage;
-        this.usrApplyDptRecordDAO = usrApplyDptRecordDAO;
-        // add for implementing authority system
-        this.funcDAO = funcDAO;
-        this.funcRoleRelationDAO = funcRoleRelationDAO;
-        this.roleDAO = roleDAO;
-        this.resourceParametersDAO = resourceParametersDAO;
-        this.usrDptExtraRelationDAO = usrDptExtraRelationDAO;
-        // 聚石塔相关DAO
-        // this.isvDAO = isvDAO;
-        this.rdsDbDAO = rdsDbDAO;
-        this.rdsTableDAO = rdsTableDAO;
-        this.applicationExtendDAO = applicationExtendDAO;
-        this.zooKeeperGetter = zooKeeperGetter;
-        this.clusterStateReader = clusterStateReader;
-        this.comDfireTisWorkflowDAOFacade = comDfireTisWorkflowDAOFacade;
-    }
+    ZooKeeperGetter zooKeeperGetter //
+    , ClusterStateReader clusterStateReader, IWorkflowDAOFacade workflowDAOFacade) {
+    super();
 
-    @Override
-    public TISZkStateReader getZkStateReader() {
-        return this.clusterStateReader.getInstance();
-    }
+    this.applicationDAO = applicationDAO;
+    // this.bizDomainDAO = bizDomainDAO;
+    this.groupInfoDAO = groupInfoDAO;
+    this.serverDAO = serverDAO;
+    this.serverGroupDAO = serverGroupDAO;
+    this.snapshotDAO = snapshotDAO;
+    this.snapshotViewDAO = snapshotViewDAO;
+    this.uploadResourceDAO = uploadResourceDAO;
+    this.bizFuncAuthorityDAO = bizFuncAuthorityDAO;
+    this.usrDptRelationDAO = usrDptRelationDAO;
+    this.departmentDAO = departmentDAO;
+    this.appTriggerJobRelationDAO = appTriggerJobRelationDAO;
+    this.funcDAO = funcDAO;
+    this.funcRoleRelationDAO = funcRoleRelationDAO;
+    this.roleDAO = roleDAO;
+    this.resourceParametersDAO = resourceParametersDAO;
+    this.zooKeeperGetter = zooKeeperGetter;
+    this.clusterStateReader = clusterStateReader;
+    this.comDfireTisWorkflowDAOFacade = workflowDAOFacade;
+  }
 
-    @Override
-    public ITISCoordinator getSolrZkClient() {
-        return zooKeeperGetter.getInstance();
-    }
+  @Override
+  public TISZkStateReader getZkStateReader() {
+    return this.clusterStateReader.getInstance();
+  }
 
-    @Override
-    public IUsrDptExtraRelationDAO getUsrDptExtraRelationDAO() {
-        return this.usrDptExtraRelationDAO;
-    }
+  @Override
+  public ITISCoordinator getSolrZkClient() {
+    return zooKeeperGetter.getInstance();
+  }
 
-    @Override
-    public IResourceParametersDAO getResourceParametersDAO() {
-        return this.resourceParametersDAO;
-    }
 
-    @Override
-    public IFuncDAO getFuncDAO() {
-        return this.funcDAO;
-    }
+  @Override
+  public IResourceParametersDAO getResourceParametersDAO() {
+    return this.resourceParametersDAO;
+  }
 
-    @Override
-    public IFuncRoleRelationDAO getFuncRoleRelationDAO() {
-        return this.funcRoleRelationDAO;
-    }
+  @Override
+  public IFuncDAO getFuncDAO() {
+    return this.funcDAO;
+  }
 
-    // public OrgService getOrgService() {
-    // return orgService;
-    // }
-    @Override
-    public IRoleDAO getRoleDAO() {
-        return this.roleDAO;
-    }
+  @Override
+  public IFuncRoleRelationDAO getFuncRoleRelationDAO() {
+    return this.funcRoleRelationDAO;
+  }
 
-    // @Override
-    // public RpcCoreManage getRpcCoreManage() {
-    // return this.rpcCoreManage;
-    // }
-    @Override
-    public IAppTriggerJobRelationDAO getAppTriggerJobRelationDAO() {
-        return appTriggerJobRelationDAO;
-    }
+  @Override
+  public IRoleDAO getRoleDAO() {
+    return this.roleDAO;
+  }
 
-    // @Override
-    // public AdminUserService getAuthService() {
-    // return this.authService;
-    // }
-    @Override
-    public IGlobalAppResourceDAO getGlobalAppResourceDAO() {
-        return this.globalAppResourceDAO;
-    }
+  @Override
+  public IAppTriggerJobRelationDAO getAppTriggerJobRelationDAO() {
+    return appTriggerJobRelationDAO;
+  }
 
-    public IUploadResourceDAO getUploadResourceDAO() {
-        return uploadResourceDAO;
-    }
 
-    public IServerJoinGroupDAO getServerJoinGroupDAO() {
-        return serverJoinGroupDAO;
-    }
+  public IUploadResourceDAO getUploadResourceDAO() {
+    return uploadResourceDAO;
+  }
 
-    // @Override
-    // public IBizDomainDAO getBizDomainDAO() {
-    // return bizDomainDAO;
-    // }
-    @Override
-    public IBizFuncAuthorityDAO getBizFuncAuthorityDAO() {
-        return bizFuncAuthorityDAO;
-    }
+  @Override
+  public IBizFuncAuthorityDAO getBizFuncAuthorityDAO() {
+    return bizFuncAuthorityDAO;
+  }
 
-    // @Override
-    // public IServerDAO getServerDAO() {
-    // return serverDAO;
-    // }
-    public ISnapshotViewDAO getSnapshotViewDAO() {
-        return snapshotViewDAO;
-    }
+  public ISnapshotViewDAO getSnapshotViewDAO() {
+    return snapshotViewDAO;
+  }
 
-    @Override
-    public IAppPackageDAO getAppPackageDAO() {
-        return appPackageDAO;
-    }
 
-    @Override
-    public IApplicationDAO getApplicationDAO() {
-        return applicationDAO;
-    }
+  @Override
+  public IApplicationDAO getApplicationDAO() {
+    return applicationDAO;
+  }
 
-    @Override
-    public IGroupInfoDAO getGroupInfoDAO() {
-        return groupInfoDAO;
-    }
+  @Override
+  public IGroupInfoDAO getGroupInfoDAO() {
+    return groupInfoDAO;
+  }
 
-    @Override
-    public IServerGroupDAO getServerGroupDAO() {
-        return serverGroupDAO;
-    }
+  @Override
+  public IServerGroupDAO getServerGroupDAO() {
+    return serverGroupDAO;
+  }
 
-    @Override
-    public ISnapshotDAO getSnapshotDAO() {
-        return snapshotDAO;
-    }
+  @Override
+  public ISnapshotDAO getSnapshotDAO() {
+    return snapshotDAO;
+  }
 
-    public IUsrDptRelationDAO getUsrDptRelationDAO() {
-        return this.usrDptRelationDAO;
-    }
+  public IUsrDptRelationDAO getUsrDptRelationDAO() {
+    return this.usrDptRelationDAO;
+  }
 
-    public IDepartmentDAO getDepartmentDAO() {
-        return this.departmentDAO;
-    }
+  public IDepartmentDAO getDepartmentDAO() {
+    return this.departmentDAO;
+  }
 
-    public IUsrApplyDptRecordDAO getUsrApplyDptRecordDAO() {
-        return this.usrApplyDptRecordDAO;
-    }
 
-    // 聚石塔相关表
-    // public IIsvDAO getIsvDAO() {
-    // return this.isvDAO;
-    // }
-    public IRdsDbDAO getRdsDbDAO() {
-        return this.rdsDbDAO;
-    }
-
-    public IRdsTableDAO getRdsTableDAO() {
-        return this.rdsTableDAO;
-    }
-
-    public IApplicationExtendDAO getApplicationExtendDAO() {
-        return this.applicationExtendDAO;
-    }
-
-    @Override
-    public IWorkflowDAOFacade getWorkflowDAOFacade() {
-        return this.comDfireTisWorkflowDAOFacade;
-    }
+  @Override
+  public IWorkflowDAOFacade getWorkflowDAOFacade() {
+    return this.comDfireTisWorkflowDAOFacade;
+  }
 }

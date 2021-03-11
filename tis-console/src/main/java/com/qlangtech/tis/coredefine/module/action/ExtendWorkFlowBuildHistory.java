@@ -46,11 +46,6 @@ public class ExtendWorkFlowBuildHistory {
     return delegate.getStartTime();
   }
 
-  public long getNow() {
-    // return (new Date()).getTime();
-    return 0;
-  }
-
   @JSONField(serialize = false)
   public WorkFlowBuildHistory getDelegate() {
     return this.delegate;
@@ -143,9 +138,6 @@ public class ExtendWorkFlowBuildHistory {
     return ExecResult.parse(this.delegate.getState()).getLiteral();
   }
 
-  // public Integer getTriggerType() {
-  // return delegate.getTriggerType();
-  // }
   public String getTriggerType() {
     return TriggerType.parse(delegate.getTriggerType()).getLiteral();
   }

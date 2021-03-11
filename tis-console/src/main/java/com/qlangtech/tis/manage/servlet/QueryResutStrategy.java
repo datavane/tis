@@ -15,7 +15,6 @@
 package com.qlangtech.tis.manage.servlet;
 
 import com.qlangtech.tis.coredefine.module.action.CollectionTopology;
-import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet.SolrQueryModuleCreator;
 import org.apache.commons.lang3.StringUtils;
@@ -52,18 +51,16 @@ public abstract class QueryResutStrategy {
     static final Collection<String> emptyStringCol = Collections.emptyList();
 
     public final List<ServerJoinGroup> queryProcess() {
-        List<ServerJoinGroup> result = new ArrayList<ServerJoinGroup>();
+        List<ServerJoinGroup> result = new ArrayList<>();
         List<ServerJoinGroup> serverList = query();
         for (ServerJoinGroup server : serverList) {
             List<ServerJoinGroup> groupServer = selectCandiate.get(server.getGroupIndex());
             if (groupServer == null) {
-                groupServer = new ArrayList<ServerJoinGroup>();
+                groupServer = new ArrayList<>();
                 selectCandiate.put(String.valueOf(server.getGroupIndex()), groupServer);
             }
             groupServer.add(server);
         }
-        // this.getRequest().setAttribute("querySelectServerCandiate",
-        // selectCandiate);
         this.getRequest().setQuerySelectServerCandiate(selectCandiate);
         // 如果用户没有点选任何服务器则可以默认选择一个服务器作为组内的服务器
         boolean hasSelectServer = false;
@@ -92,7 +89,6 @@ public abstract class QueryResutStrategy {
                 result.add(selected);
             }
         }
-        // this.getRequest().selectedCanidateServers(selectedCanidateServers);
         return result;
     }
 

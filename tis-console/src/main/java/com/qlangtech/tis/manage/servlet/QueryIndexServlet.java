@@ -18,7 +18,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.opensymphony.xwork2.ActionContext;
-import com.qlangtech.tis.manage.biz.dal.pojo.ServerJoinGroup;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
@@ -116,9 +115,6 @@ public class QueryIndexServlet extends BasicServlet {
         } catch (Throwable e2) {
         }
         QueryRequestContext requestContext = new QueryRequestContext(request);
-        // 是否需要打印scoreexplain信息
-        // requestContext.queryDebug =
-        // "true".equalsIgnoreCase(request.getParameter("debugQuery"));
         final String sort = request.getParameter("sort");
         final String[] fqs = request.getParameterValues("fq");
         if (domain instanceof com.qlangtech.tis.pubhook.common.Nullable) {
@@ -126,18 +122,7 @@ public class QueryIndexServlet extends BasicServlet {
         }
         final QueryResutStrategy queryResutStrategy = createQueryResutStrategy(domain, request, resp, this.getContext());
         final List<ServerJoinGroup> serverlist = queryResutStrategy.queryProcess();
-        // this.setSfields(request, domain, requestContext, queryResutStrategy,
-        // serverlist);
-        // try {
-        // this.forward(request, resp);
-        // } catch (Exception e) {
-        // log.error(e.getMessage(), e);
-        // throw new ServletException(e);
-        // }
-        // if (true || queryResutStrategy.isResultAware()) {
-        // final String querystr, final String sort, final String fq, final Integer
-        // shownumf,
-        // final List<String> showFields
+
         execuetQuery(null, domain, requestContext, this.getContext(), queryResutStrategy, serverlist, query, sort, fqs, shownum, sfields);
     // }
     }
@@ -165,7 +150,8 @@ public class QueryIndexServlet extends BasicServlet {
      * @param serverlist
      * @throws ServletException
      */
-    private void getSchemaFrom1Server(AppDomainInfo domain, QueryRequestContext requestContext, final QueryResutStrategy queryResutStrategy, final List<ServerJoinGroup> serverlist) throws ServletException {
+    private void getSchemaFrom1Server(AppDomainInfo domain, QueryRequestContext requestContext
+      , final QueryResutStrategy queryResutStrategy, final List<ServerJoinGroup> serverlist) throws ServletException {
         // boolean isSuccessGet = false;
         for (ServerJoinGroup server : serverlist) {
             try {

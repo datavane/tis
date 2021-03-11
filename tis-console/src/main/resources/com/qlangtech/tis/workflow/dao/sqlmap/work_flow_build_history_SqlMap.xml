@@ -79,9 +79,7 @@
       #triggerType:BIT#, #opUserId:INTEGER#, #opUserName:VARCHAR#, #appId:INTEGER#,
       #appName:VARCHAR#, #startPhase:TINYINT#, #historyId:INTEGER#, #workFlowId:INTEGER#,
       #createTime:TIMESTAMP#, #opTime:TIMESTAMP#, #endPhase:TINYINT#)
-    <selectKey resultClass="java.lang.Integer" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory" >
     insert into work_flow_build_history
@@ -182,9 +180,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="java.lang.Integer" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria" resultClass="java.lang.Integer" >
     select count(*) from work_flow_build_history

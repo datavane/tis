@@ -731,7 +731,13 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     result.close();
     statement.close();
     Assert.assertNotNull(oldAppId);
-    String insertSql = "insert into application(project_name,recept,manager,create_time,update_time" + ", is_auto_deploy, dpt_id,  dpt_name ) " + "select  concat('search4', 'N', SUBSTRING(project_name,8)) as project_name " + ",recept,manager,create_time,update_time " + ",'Y' as is_auto_deploy, 8 as dpt_id, '淘宝网-产品技术部-综合业务平台-互动业务平台-终搜' as dpt_name " + "from application where app_id = ?";
+
+    String insertSql = "insert into application(project_name,recept,manager,create_time,update_time" + ", is_auto_deploy, dpt_id,  dpt_name ) "
+      + "select  concat('search4', 'N', SUBSTRING(project_name,8)) as project_name "
+      + ",recept,manager,create_time,update_time "
+      + ",'Y' as is_auto_deploy, 8 as dpt_id, '淘宝网-产品技术部-综合业务平台-互动业务平台-终搜' as dpt_name "
+      + "from application where app_id = ?";
+
     statement = conn.prepareStatement(insertSql);
     statement.setInt(1, oldAppId);
     Assert.assertTrue(statement.execute());
@@ -745,7 +751,11 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     Assert.assertNotNull(newAppId);
     result.close();
     statement.close();
-    statement = conn.prepareStatement("insert into" + "snapshot(create_time,update_time,app_id,res_schema_id ,res_solr_id ,res_jar_id ,res_core_prop_id ,res_ds_id ,res_application_id ,pre_sn_id)" + " select create_time,update_time,? as app_id,res_schema_id ,res_solr_id ,res_jar_id ,res_core_prop_id ,res_ds_id ,res_application_id ,pre_sn_id" + "   from snapshot " + " where sn_id in (select publish_snapshot_id from server_group where publish_snapshot_id is not null and app_id = ?)");
+    statement = conn.prepareStatement("insert into"
+      + "snapshot(create_time,update_time,app_id,res_schema_id ,res_solr_id ,res_jar_id ,res_core_prop_id ,res_ds_id ,res_application_id ,pre_sn_id)"
+      + " select create_time,update_time,? as app_id,res_schema_id ,res_solr_id ,res_jar_id ,res_core_prop_id ,res_ds_id ,res_application_id ,pre_sn_id"
+      + "   from snapshot "
+      + " where sn_id in (select publish_snapshot_id from server_group where publish_snapshot_id is not null and app_id = ?)");
     statement.setInt(1, newAppId);
     statement.setInt(2, oldAppId);
     statement.execute();

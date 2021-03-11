@@ -87,9 +87,7 @@
       func_group_name)
     values (#funId:INTEGER#, #funKey:VARCHAR#, #funcName:VARCHAR#, #gmtCreate:TIMESTAMP#,
       #gmtModified:TIMESTAMP#, #funcGroupKey:INTEGER#, #funcGroupName:VARCHAR#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Func" >
     <!--
@@ -145,9 +143,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncCriteria" resultClass="java.lang.Integer" >
     <!--

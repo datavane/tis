@@ -87,9 +87,6 @@
       is_deleted)
     values (#appResId:BIGINT#, #appId:INTEGER#, #urId:BIGINT#, #gmtCreate:TIMESTAMP#,
       #gmtModified:TIMESTAMP#, #isDeleted:CHAR#)
-    <selectKey resultClass="LONG">
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResource">
     <!--
@@ -139,9 +136,6 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="LONG">
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.GlobalAppResourceCriteria" resultClass="java.lang.Integer">
     <!--

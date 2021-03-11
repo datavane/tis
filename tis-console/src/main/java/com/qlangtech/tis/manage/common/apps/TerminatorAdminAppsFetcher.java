@@ -72,10 +72,6 @@ public class TerminatorAdminAppsFetcher extends NormalUserApplicationFetcher {
   }
 
   @Override
-  protected void setApplicationApplyCriteria(com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApplyCriteria.Criteria criteria) {
-  }
-
-  @Override
   protected List<String> initAuthorityFuncList() {
     return new ArrayList<String>() {
 

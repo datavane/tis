@@ -14,9 +14,7 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import com.qlangtech.tis.manage.biz.dal.pojo.AppPackage;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -29,7 +27,6 @@ public class BasicDomain {
     // private ServerGroup group;
     private SnapshotDomain snapshot;
 
-    private AppPackage pack;
 
     public Application getApplication() {
         return application;
@@ -45,13 +42,5 @@ public class BasicDomain {
 
     public void setSnapshot(SnapshotDomain snapshot) {
         this.snapshot = snapshot;
-    }
-
-    public AppPackage getPack() {
-        return pack;
-    }
-
-    public void setPack(AppPackage pack) {
-        this.pack = pack;
     }
 }

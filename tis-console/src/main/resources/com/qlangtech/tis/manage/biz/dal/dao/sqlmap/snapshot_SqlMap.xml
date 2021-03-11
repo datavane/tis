@@ -147,9 +147,7 @@
       #resSolrId:BIGINT#, #resJarId:BIGINT#, #resCorePropId:BIGINT#, #resDsId:BIGINT#,
       #resApplicationId:BIGINT#, #createTime:TIMESTAMP#, #createUserId:BIGINT#,
       #createUserName:VARCHAR#, #updateTime:TIMESTAMP#, #preSnId:INTEGER#,#memo:VARCHAR#)
-     <selectKey resultClass="INTEGER" >
-        SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Snapshot">
     <!--
@@ -258,9 +256,7 @@
 
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-        SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria" resultClass="java.lang.Integer">
     <!--

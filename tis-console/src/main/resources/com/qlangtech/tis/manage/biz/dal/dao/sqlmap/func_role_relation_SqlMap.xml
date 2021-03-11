@@ -121,9 +121,6 @@
 		values (#id:INTEGER#, #rId:INTEGER#, #roleName:VARCHAR#, #funcId:INTEGER#,
 		#funcKey:VARCHAR#,
 		#gmtCreate:TIMESTAMP#, #gmtModified:TIMESTAMP#, #funcName:VARCHAR#)
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
 	</insert>
 	<insert id="ibatorgenerated_insertSelective"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelation">
@@ -187,9 +184,6 @@
       </isNotNull>
 			)
 		</dynamic>
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
 	</insert>
 	<select id="ibatorgenerated_countByExample"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.FuncRoleRelationCriteria"

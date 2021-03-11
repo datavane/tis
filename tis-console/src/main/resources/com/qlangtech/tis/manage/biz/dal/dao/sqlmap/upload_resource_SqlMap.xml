@@ -135,11 +135,6 @@
 		values (#urId:BIGINT#, #resourceType:VARCHAR#, #md5Code:CHAR#,
 		#createTime:TIMESTAMP#,
 		#updateTime:TIMESTAMP#, #memo:VARCHAR#, #content,handler=com.qlangtech.tis.manage.common.ibatis.ByteArrayHandlerCallback#)
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
-
-
 	</insert>
 	<insert id="ibatorgenerated_insertSelective"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResource">
@@ -197,17 +192,10 @@
       </isNotNull>
 			)
 		</dynamic>
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
 	</insert>
 	<select id="ibatorgenerated_countByExample"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.UploadResourceCriteria"
 		resultClass="java.lang.Integer">
-		<!--
-			WARNING - if you hava any question please contact to
-			baisui(baisui@qlangtech.com)
-		-->
 		select count(*) from upload_resource
 		<include refid="upload_resource.ibatorgenerated_Example_Where_Clause" />
 	</select>

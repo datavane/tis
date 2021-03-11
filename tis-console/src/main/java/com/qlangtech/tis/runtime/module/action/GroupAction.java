@@ -19,8 +19,6 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
-import com.qlangtech.tis.manage.biz.dal.pojo.ServerPool;
-import com.qlangtech.tis.manage.biz.dal.pojo.ServerPoolCriteria;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import junit.framework.Assert;
@@ -66,33 +64,33 @@ public abstract class GroupAction extends BasicModule {
     return false;
   }
 
-  /**
-   * @param context
-   * @throws Exception
-   */
-  public void doAddServerSuggest(Context context) throws Exception {
-    final String query = this.getString("query");
-    final RunEnvironment envir = RunEnvironment.getEnum(this.getString("envir"));
-    List<ServerPool> serverList = Collections.emptyList();
-    if (StringUtils.isNotBlank(query)) {
-      ServerPoolCriteria criteria = new ServerPoolCriteria();
-      ServerPoolCriteria.Criteria and = criteria.createCriteria().andIpAddressLike('%' + query + '%').andRuntEnvironmentEqualTo(envir.getId());
-      criteria.or(criteria.createCriteria().andServerNameLike('%' + query + '%').andRuntEnvironmentEqualTo(envir.getId()));
-      serverList = this.getServerPoolDAO().selectByExample(criteria);
-    }
-    writeSuggest2Response(query, serverList, new SuggestCallback<ServerPool>() {
-
-      @Override
-      public String getLiteral(ServerPool o) {
-        return o.getServerName() + "[" + o.getIpAddress() + "]";
-      }
-
-      @Override
-      public Object getValue(ServerPool o) {
-        return o.getSpId();
-      }
-    }, getResponse());
-  }
+//  /**
+//   * @param context
+//   * @throws Exception
+//   */
+//  public void doAddServerSuggest(Context context) throws Exception {
+//    final String query = this.getString("query");
+//    final RunEnvironment envir = RunEnvironment.getEnum(this.getString("envir"));
+//    List<ServerPool> serverList = Collections.emptyList();
+//    if (StringUtils.isNotBlank(query)) {
+//      ServerPoolCriteria criteria = new ServerPoolCriteria();
+//      ServerPoolCriteria.Criteria and = criteria.createCriteria().andIpAddressLike('%' + query + '%').andRuntEnvironmentEqualTo(envir.getId());
+//      criteria.or(criteria.createCriteria().andServerNameLike('%' + query + '%').andRuntEnvironmentEqualTo(envir.getId()));
+//      serverList = this.getServerPoolDAO().selectByExample(criteria);
+//    }
+//    writeSuggest2Response(query, serverList, new SuggestCallback<ServerPool>() {
+//
+//      @Override
+//      public String getLiteral(ServerPool o) {
+//        return o.getServerName() + "[" + o.getIpAddress() + "]";
+//      }
+//
+//      @Override
+//      public Object getValue(ServerPool o) {
+//        return o.getSpId();
+//      }
+//    }, getResponse());
+//  }
 
   public static <T> void writeSuggest2Response(final String query, List<T> serverList, SuggestCallback<T> callback, HttpServletResponse response) throws JSONException, IOException {
     JSONArray suggestions = new JSONArray();

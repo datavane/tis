@@ -82,9 +82,7 @@
     -->
     insert into role (r_id, role_name, gmt_create, gmt_modified)
     values (#rId:INTEGER#, #roleName:VARCHAR#, #gmtCreate:TIMESTAMP#, #gmtModified:TIMESTAMP#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Role" >
     <!--
@@ -122,9 +120,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.RoleCriteria" resultClass="java.lang.Integer" >
     <!--

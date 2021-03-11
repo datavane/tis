@@ -89,9 +89,7 @@
       db_name)
     values (#id:BIGINT#, #gmtCreate:TIMESTAMP#, #gmtModified:TIMESTAMP#, #host:VARCHAR#,
       #rdsName:VARCHAR#, #userName:VARCHAR#, #password:VARCHAR#, #iId:BIGINT#, #dbName:VARCHAR#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.RdsDb" >
     <!--
@@ -159,9 +157,6 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.RdsDbCriteria" resultClass="java.lang.Integer" >
     <!--

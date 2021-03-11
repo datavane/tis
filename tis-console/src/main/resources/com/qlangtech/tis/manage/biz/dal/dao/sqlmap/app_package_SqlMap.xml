@@ -96,9 +96,7 @@
       #lastTestTime:TIMESTAMP#, #lastTerUserId:INTEGER#, #lastTestUser:VARCHAR#,
       #successSnapshotId:INTEGER#, #createTime:TIMESTAMP#, #updateTime:TIMESTAMP#,
       #runtEnvironment:SMALLINT#)
-      <selectKey resultClass="INTEGER" >
-        SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackage">
     <!--
@@ -178,9 +176,6 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-        SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.AppPackageCriteria" resultClass="java.lang.Integer">
     <!--

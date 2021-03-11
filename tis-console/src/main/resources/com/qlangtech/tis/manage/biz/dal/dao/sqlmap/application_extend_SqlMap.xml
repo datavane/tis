@@ -93,9 +93,6 @@
     values (#id:BIGINT#, #gmtCreate:TIMESTAMP#, #gmtModified:TIMESTAMP#, #aId:BIGINT#,
       #isLock:CHAR#, #isRelease:CHAR#, #odpsTable:BIGINT#, #columnsMd5:VARCHAR#,
       #annotation:VARCHAR#, #userId:BIGINT#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationExtend" >
     <!--
@@ -169,9 +166,6 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationExtendCriteria" resultClass="java.lang.Integer" >
     <!--

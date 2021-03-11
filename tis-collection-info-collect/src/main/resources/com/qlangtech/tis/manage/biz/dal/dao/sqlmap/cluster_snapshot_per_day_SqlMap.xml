@@ -90,9 +90,6 @@
     values (#id:BIGINT#, #gmtCreate:TIMESTAMP#, #gmtModified:TIMESTAMP#, #serviceName:VARCHAR#,
       #qps:INTEGER#, #avgConsumeTimePerRequest:REAL#, #requestCount:BIGINT#, #docNumber:BIGINT#,
       #timeStamp:VARCHAR#)
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDay" >
     <!--
@@ -160,9 +157,6 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="INTEGER" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotPerDayCriteria" resultClass="java.lang.Integer" >
     <!--

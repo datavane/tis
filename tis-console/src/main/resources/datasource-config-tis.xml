@@ -2,6 +2,11 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
 <beans>
 
+  <bean id="clusterStatusDatasource"
+        class="com.qlangtech.tis.manage.spring.TISDataSourceFactory">
+  </bean>
+
+  <!--
 	<bean id="clusterStatusDatasource" class="org.apache.commons.dbcp.BasicDataSource"
 		destroy-method="close">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
@@ -11,7 +16,7 @@
 		<property name="password" value="${tis.datasource.password}" />
 		<property name="validationQuery" value="select 1" />
 	</bean>
-
+ -->
 	<alias name="clusterStatusDatasource" alias="endSearchDatasource" />
 	<alias name="clusterStatusDatasource" alias="terminatorTriggerBizDalDatasource" />
 	<alias name="clusterStatusDatasource" alias="tisDatasource" />

@@ -151,9 +151,7 @@
 		#publishDate:TIMESTAMP#,
 		#isPassedTest,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#,
 		#status:TINYINT#, #memo:VARCHAR#, #fullSourceType:TINYINT#,#incrType:TINYINT#,#createUsrId:VARCHAR#)
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
+
 	</insert>
 	<insert id="ibatorgenerated_insertSelective"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply">
@@ -284,9 +282,6 @@
       </isNotNull>
 			)
 		</dynamic>
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
 	</insert>
 	<select id="ibatorgenerated_countByExample"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApplyCriteria"

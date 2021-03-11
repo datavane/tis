@@ -15,10 +15,9 @@
 package com.qlangtech.tis.manage.common.apps;
 
 import java.util.List;
-import com.qlangtech.tis.manage.biz.dal.dao.IApplicationApplyDAO;
+
 import com.qlangtech.tis.manage.biz.dal.dao.IUsrDptRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TriggerCrontab;
@@ -67,5 +66,4 @@ public interface IAppsFetcher {
      */
     List<TriggerCrontab> getTriggerTabs(IUsrDptRelationDAO usrDptRelationDAO);
 
-    List<ApplicationApply> getAppApplyList(IApplicationApplyDAO applicationApplyDAO);
 }

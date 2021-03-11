@@ -4,16 +4,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
        default-autowire="byName">
 
-  <bean id="appPackageDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.AppPackageDAOImpl"
-        parent="basicEndSearchDao"/>
-
   <bean id="applicationDAO"
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationDAOImpl"
-        parent="basicEndSearchDao"/>
-
-  <bean id="applicationApplyDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationApplyDAOImpl"
         parent="basicEndSearchDao"/>
 
   <bean id="groupInfoDAO"
@@ -30,9 +22,6 @@
         parent="basicEndSearchDao"/>
 
 
-  <bean id="serverPoolDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.ServerPoolDAOImpl"
-        parent="basicEndSearchDao"/>
 
   <bean id="snapshotViewDAO"
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO"
@@ -48,9 +37,6 @@
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.UploadResourceDAOImpl"
         parent="basicEndSearchDao"/>
 
-  <bean id="serverJoinGroupDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.ServerJoinGroupDAOImpl"
-        parent="basicEndSearchDao"/>
 
 
   <bean id="bizFuncAuthorityDAO"
@@ -61,9 +47,6 @@
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.UsrDptRelationDAOImpl"
         parent="basicEndSearchDao"/>
 
-  <bean id="usrDptExtraRelationDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.UsrDptExtraRelationDAOImpl"
-        parent="basicEndSearchDao"/>
 
   <bean id="departmentDAO"
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.DepartmentDAOImpl"
@@ -74,15 +57,6 @@
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.OperationLogDAOImpl"
         parent="basicEndSearchDao"/>
 
-  <bean id="usrApplyDptRecordDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.UsrApplyDptRecordDAOImpl"
-        parent="basicEndSearchDao"/>
-
-
-  <!-- 全局扩展资源 -->
-  <bean id="globalAppResourceDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.GlobalAppResourceDAOImpl"
-        parent="basicEndSearchDao"/>
 
   <bean id="appTriggerJobRelationDAO"
         class="com.qlangtech.tis.manage.biz.dal.dao.impl.AppTriggerJobRelationDAOImpl"
@@ -108,57 +82,25 @@
   <!-- 添加权限管理2013/01/24 end -->
 
 
-  <bean id="rdsDbDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.RdsDbDAOImpl"
-        parent="basicEndSearchDao"/>
-
-  <bean id="rdsTableDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.RdsTableDAOImpl"
-        parent="basicEndSearchDao"/>
-
-  <bean id="applicationExtendDAO"
-        class="com.qlangtech.tis.manage.biz.dal.dao.impl.ApplicationExtendDAOImpl"
-        parent="basicEndSearchDao"/>
-
-
   <bean id="daoContext" class="com.qlangtech.tis.manage.common.RunContextImpl">
-    <constructor-arg index="0" ref="appPackageDAO"/>
-    <constructor-arg index="1" ref="applicationDAO"/>
-    <!-- <constructor-arg index="2" ref="bizDomainDAO" /> -->
-    <constructor-arg index="2" ref="groupInfoDAO"/>
-    <constructor-arg index="3" ref="serverDAO"/>
-    <constructor-arg index="4" ref="serverGroupDAO"/>
-    <constructor-arg index="5" ref="snapshotDAO"/>
-    <constructor-arg index="6" ref="snapshotViewDAO"/>
-    <constructor-arg index="7" ref="uploadResourceDAO"/>
-    <!-- <constructor-arg index="8" ref="authService" /> -->
-    <constructor-arg index="8" ref="serverJoinGroupDAO"/>
-    <!-- <constructor-arg index="10" ref="orgService" /> -->
-    <constructor-arg index="9" ref="bizFuncAuthorityDAO"/>
-    <constructor-arg index="10" ref="usrDptRelationDAO"/>
-    <constructor-arg index="11" ref="departmentDAO"/>
-    <constructor-arg index="12" ref="globalAppResourceDAO"/>
-    <constructor-arg index="13" ref="appTriggerJobRelationDAO"/>
-    <!--
-    <constructor-arg index="14" ref="rpcCoreManage"/>
-     -->
-    <!-- add for implement the authorition 20130124 -->
-    <constructor-arg index="14" ref="funcDAO"/>
-    <constructor-arg index="15" ref="funcRoleRelationDAO"/>
-    <constructor-arg index="16" ref="roleDAO"/>
-    <constructor-arg index="17" ref="resourceParametersDAO"/>
-    <constructor-arg index="18" ref="usrDptExtraRelationDAO"/>
-    <constructor-arg index="19" ref="usrApplyDptRecordDAO"/>
-
-
-    <constructor-arg index="20" ref="rdsDbDAO"/>
-    <constructor-arg index="21" ref="rdsTableDAO"/>
-    <constructor-arg index="22" ref="applicationExtendDAO"/>
-
-    <constructor-arg index="23" ref="zooKeeperGetter"/>
-    <constructor-arg index="24" ref="clusterStateReader"/>
-    <constructor-arg index="25" ref="wfDaoFacade"/>
-
+    <constructor-arg index="0" ref="applicationDAO"/>
+    <constructor-arg index="1" ref="groupInfoDAO"/>
+    <constructor-arg index="2" ref="serverDAO"/>
+    <constructor-arg index="3" ref="serverGroupDAO"/>
+    <constructor-arg index="4" ref="snapshotDAO"/>
+    <constructor-arg index="5" ref="snapshotViewDAO"/>
+    <constructor-arg index="6" ref="uploadResourceDAO"/>
+    <constructor-arg index="7" ref="bizFuncAuthorityDAO"/>
+    <constructor-arg index="8" ref="usrDptRelationDAO"/>
+    <constructor-arg index="9" ref="departmentDAO"/>
+    <constructor-arg index="10" ref="appTriggerJobRelationDAO"/>
+    <constructor-arg index="11" ref="funcDAO"/>
+    <constructor-arg index="12" ref="funcRoleRelationDAO"/>
+    <constructor-arg index="13" ref="roleDAO"/>
+    <constructor-arg index="14" ref="resourceParametersDAO"/>
+    <constructor-arg index="15" ref="zooKeeperGetter"/>
+    <constructor-arg index="16" ref="clusterStateReader"/>
+    <constructor-arg index="17" ref="wfDaoFacade"/>
   </bean>
 
   <bean id="runContextGetter" class="com.qlangtech.tis.manage.common.RunContextGetter">

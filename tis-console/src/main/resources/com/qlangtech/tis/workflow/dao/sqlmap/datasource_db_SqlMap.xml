@@ -69,9 +69,7 @@
     insert into datasource_db (id, name, create_time, op_time)
     values (#id:INTEGER#, #name:VARCHAR#, #createTime:TIMESTAMP#,
       #opTime:TIMESTAMP#)
-    <selectKey resultClass="java.lang.Integer" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDb" >
     insert into datasource_db
@@ -106,9 +104,7 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="java.lang.Integer" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria" resultClass="java.lang.Integer" >
     select count(*) from datasource_db

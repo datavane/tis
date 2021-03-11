@@ -150,7 +150,7 @@
 
 		insert into usr_dpt_relation (
 		usr_id,dpt_id,dpt_name,create_time,update_time,user_name,real_name,pass_word,r_id,extra_dpt_relation)
-		values('9999',-1,'none',now(),now(),'admin','Admin','e10adc3949ba59abbe56e057f20f883e',-1,'N')
+		values('9999',-1,'none',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'admin','Admin','e10adc3949ba59abbe56e057f20f883e',-1,'N')
 
 	</insert>
 

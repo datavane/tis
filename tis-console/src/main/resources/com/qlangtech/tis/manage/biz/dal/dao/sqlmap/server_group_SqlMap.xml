@@ -137,9 +137,6 @@
 		#publishSnapshotId:INTEGER#, #createTime:TIMESTAMP#, #updateTime:TIMESTAMP#,
 		#deleteFlag,handler=com.qlangtech.tis.manage.common.ibatis.DeleteColumnTypeHandlerCallback#)
 
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
 	</insert>
 	<insert id="ibatorgenerated_insertSelective"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup">
@@ -209,9 +206,7 @@
       </isNotNull>
 			)
 		</dynamic>
-		<selectKey resultClass="INTEGER">
-			SELECT LAST_INSERT_ID();
-    </selectKey>
+
 	</insert>
 	<select id="ibatorgenerated_countByExample"
 		parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria"

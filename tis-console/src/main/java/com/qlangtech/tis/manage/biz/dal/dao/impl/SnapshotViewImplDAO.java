@@ -205,16 +205,6 @@ public class SnapshotViewImplDAO extends BasicDAO<SnapshotDomain, SnapshotCriter
     System.out.println(new String(resource.getContent(), TisUTF8.get()));
   }
 
-  // @Override
-  // public SnapshotDomain getView(Integer snId) {
-  // SnapshotDomain domain = new SnapshotDomain();
-  // // Snapshot snapshot = new Snapshot();
-  // // snapshot.setSnId(snId);
-  // domain.getSnapshot().setSnId(snId);
-  //
-  // return this.load("snapshot_view.ibatorgenerated_selectById", domain);
-  // }
-  // @Autowired
   public void setUploadResourceDao(IUploadResourceDAO uploadResourceDao) {
     this.uploadResourceDao = uploadResourceDao;
   }

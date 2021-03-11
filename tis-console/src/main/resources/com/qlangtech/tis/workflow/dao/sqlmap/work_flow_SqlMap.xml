@@ -75,9 +75,6 @@
       op_time)
     values (#id:INTEGER#, #name:VARCHAR#, #opUserId:INTEGER#, #opUserName:VARCHAR#,
       #gitPath:VARCHAR#, #inChange:TINYINT#, #createTime:TIMESTAMP#, #opTime:TIMESTAMP#)
-    <selectKey resultClass="java.lang.Integer" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlow" >
     insert into work_flow
@@ -136,9 +133,6 @@
       </isNotNull>
       )
     </dynamic>
-    <selectKey resultClass="java.lang.Integer" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowCriteria" resultClass="java.lang.Integer" >
     select count(*) from work_flow

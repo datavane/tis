@@ -79,9 +79,7 @@
     values (#id:INTEGER#, #workFlowBuildHistoryId:INTEGER#, #phase:TINYINT#, #result:BIT#,
       #createTime:TIMESTAMP#, #opTime:TIMESTAMP#, #phaseInfo:LONGVARCHAR#)
 
-       <selectKey resultClass="java.lang.Integer" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildPhase" >
     insert into work_flow_build_phase
@@ -135,9 +133,7 @@
       )
     </dynamic>
 
-    <selectKey resultClass="java.lang.Integer" >
-      SELECT LAST_INSERT_ID();
-    </selectKey>
+
 
   </insert>
   <select id="ibatorgenerated_countByExample" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildPhaseCriteria" resultClass="java.lang.Integer" >

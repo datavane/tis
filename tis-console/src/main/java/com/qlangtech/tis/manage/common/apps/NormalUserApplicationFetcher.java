@@ -14,31 +14,22 @@
  */
 package com.qlangtech.tis.manage.common.apps;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import javax.servlet.ServletException;
-import org.apache.struts2.ServletActionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import junit.framework.Assert;
-import com.qlangtech.tis.manage.biz.dal.dao.IApplicationApplyDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IUsrDptRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApply;
-import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationApplyCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 import com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.IUser;
-import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TriggerCrontab;
-import com.qlangtech.tis.runtime.module.action.BasicModule;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -88,21 +79,8 @@ public class NormalUserApplicationFetcher extends AppsFetcher {
     protected void postCreateBelongDpt(List<Department> belongDpt) {
     }
 
-    @Override
-    public final List<ApplicationApply> getAppApplyList(IApplicationApplyDAO applicationApplyDAO) {
-        ApplicationApplyCriteria query = new ApplicationApplyCriteria();
-        query.setOrderByClause("app_id desc");
-        return applicationApplyDAO.selectByExample(query);
-    }
 
-    protected void setApplicationApplyCriteria(ApplicationApplyCriteria.Criteria criteria) {
-        List<Department> dpts = this.getDepartmentBelongs(context);
-        List<Integer> dptlist = new ArrayList<Integer>();
-        for (Department dpt : dpts) {
-            dptlist.add(dpt.getDptId());
-        }
-        criteria.andDptIdIn(dptlist);
-    }
+
 
     private void processBelongDepartment(Department department, RunContext context) {
         if (true) {
@@ -186,7 +164,7 @@ public class NormalUserApplicationFetcher extends AppsFetcher {
     // // 线上环境
     // List<String> authorityFuncList = new ArrayList<String>();
     // SimpleSSOUser ssoUser;
-    // 
+    //
     // ssoUser = SimpleUserUtil
     // .findUser(ServletActionContext.getRequest());
     // String userId = ssoUser.getId().toString();
@@ -198,7 +176,7 @@ public class NormalUserApplicationFetcher extends AppsFetcher {
     // appNames.add("terminatorconsole");// 在ACL后台配置的应用英文名
     // userPermissionCondition.setAppNames(appNames);
     // List<Permission> results;
-    // 
+    //
     // results = AclServiceProvider.getUserPermissionService()
     // .findPermissionByUser(userPermissionCondition);
     // for (Permission permission : results) {
