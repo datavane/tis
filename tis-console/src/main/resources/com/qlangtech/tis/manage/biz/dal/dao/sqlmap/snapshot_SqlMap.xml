@@ -63,7 +63,7 @@
       <isNotNull property="orderByClause">
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join snapshot aa on aa.sn_id=bb.sn_id
        ORDER BY bb.sn_id DESC
@@ -90,7 +90,7 @@
       <isNotNull property="orderByClause">
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join snapshot aa on aa.sn_id=bb.sn_id
   </select>
@@ -108,7 +108,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join snapshot aa on aa.sn_id=bb.sn_id
   </select>
@@ -321,13 +321,9 @@
     </isParameterPresent>
   </update>
   <update id="ibatorgenerated_updateByExample">
-    <!--
-      WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
-    -->
     update snapshot
     set sn_id = #record.snId:INTEGER#,
       app_id = #record.appId:INTEGER#,
-
       res_schema_id = #record.resSchemaId:BIGINT#,
       res_solr_id = #record.resSolrId:BIGINT#,
       res_jar_id = #record.resJarId:BIGINT#,

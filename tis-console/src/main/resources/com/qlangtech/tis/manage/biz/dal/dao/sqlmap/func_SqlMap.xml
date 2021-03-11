@@ -53,7 +53,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join func aa on aa.fun_id=bb.fun_id
   </select>

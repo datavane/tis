@@ -50,7 +50,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join role aa on aa.r_id=bb.r_id
   </select>

@@ -83,7 +83,7 @@
 			<isNotNull property="orderByClause">
 				order by $orderByClause$
       </isNotNull>
-			limit #skip#,#pageSize#
+			$paginationScript$
 		</isParameterPresent>
 		) bb inner join usr_dpt_relation aa on aa.usr_id=bb.usr_id
 	</select>

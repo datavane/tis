@@ -14,14 +14,14 @@
  */
 package com.qlangtech.tis.manage.biz.dal.pojo;
 
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class ClusterSnapshotCriteria extends BasicCriteria {
+public class ClusterSnapshotCriteria extends TISBaseCriteria {
 
     protected String orderByClause;
 
@@ -341,7 +341,7 @@ public class ClusterSnapshotCriteria extends BasicCriteria {
         // addCriterion("service_name =", value, "serviceName");
         // return this;
         // }
-        // 
+        //
         // public Criteria andServiceNameNotEqualTo(String value) {
         // addCriterion("service_name <>", value, "serviceName");
         // return this;

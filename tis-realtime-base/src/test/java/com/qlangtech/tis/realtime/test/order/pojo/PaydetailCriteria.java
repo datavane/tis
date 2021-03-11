@@ -16,14 +16,14 @@ package com.qlangtech.tis.realtime.test.order.pojo;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class PaydetailCriteria extends BasicCriteria {
+public class PaydetailCriteria extends TISBaseCriteria {
 
     protected String orderByClause;
 

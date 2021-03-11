@@ -16,7 +16,8 @@ package com.qlangtech.tis.manage.biz.dal.pojo;
 
 // import com.taobao.ibatis.extend.BasicCriteria;
 
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback;
 
 import java.util.*;
@@ -25,7 +26,7 @@ import java.util.*;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class DepartmentCriteria extends BasicCriteria {
+public class DepartmentCriteria extends TISBaseCriteria {
 
   protected String orderByClause;
 

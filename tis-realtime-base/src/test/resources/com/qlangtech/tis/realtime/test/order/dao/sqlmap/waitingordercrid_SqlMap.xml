@@ -47,7 +47,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join waitingordercrid aa on aa.waitingorder_id=bb.waitingorder_id
   </select>
@@ -61,7 +61,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join waitingordercrid aa on aa.waitingorder_id=bb.waitingorder_id
   </select>

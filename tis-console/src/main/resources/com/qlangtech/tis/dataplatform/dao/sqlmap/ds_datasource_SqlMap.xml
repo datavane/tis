@@ -56,7 +56,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join ds_datasource aa on aa.ds_id=bb.ds_id
   </select>

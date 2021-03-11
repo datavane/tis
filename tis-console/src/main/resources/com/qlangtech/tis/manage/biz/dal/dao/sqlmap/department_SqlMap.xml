@@ -64,7 +64,7 @@
 			<isNotNull property="orderByClause">
 				order by $orderByClause$
       </isNotNull>
-			limit #skip#,#pageSize#
+			$paginationScript$
 		</isParameterPresent>
 		) bb inner join department aa on aa.dpt_id=bb.dpt_id
 	</select>

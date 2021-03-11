@@ -14,7 +14,7 @@
  */
 package com.qlangtech.tis.dataplatform.pojo;
 
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class ClusterSnapshotCriteria extends BasicCriteria {
+public class ClusterSnapshotCriteria extends TISBaseCriteria {
 
     protected String orderByClause;
 

@@ -2,5 +2,6 @@
 <!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd" >
 <sqlMapConfig >
   <settings useStatementNamespaces="true" />
+  <sqlMap resource="com/qlangtech/tis/manage/tis_common_SqlMap.xml"/>
   <sqlMap resource="com/qlangtech/tis/biz/dal/dao/sqlmap/application_SqlMap.xml" />
 </sqlMapConfig>

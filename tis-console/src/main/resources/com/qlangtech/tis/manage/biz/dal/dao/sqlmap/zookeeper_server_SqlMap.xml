@@ -53,7 +53,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join zookeeper_server aa on aa.zid=bb.zid
   </select>

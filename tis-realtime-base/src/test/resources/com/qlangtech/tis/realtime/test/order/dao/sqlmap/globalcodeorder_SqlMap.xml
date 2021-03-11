@@ -41,7 +41,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join globalcodeorder aa on aa.global_code=bb.global_code
   </select>
@@ -55,7 +55,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join globalcodeorder aa on aa.global_code=bb.global_code
   </select>

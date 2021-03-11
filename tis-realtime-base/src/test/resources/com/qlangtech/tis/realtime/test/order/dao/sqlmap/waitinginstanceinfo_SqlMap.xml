@@ -104,7 +104,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join waitinginstanceinfo aa on aa.waitinginstance_id=bb.waitinginstance_id
   </select>
@@ -118,7 +118,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join waitinginstanceinfo aa on aa.waitinginstance_id=bb.waitinginstance_id
   </select>

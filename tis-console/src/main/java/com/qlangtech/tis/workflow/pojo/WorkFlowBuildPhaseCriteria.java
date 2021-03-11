@@ -14,14 +14,14 @@
  */
 package com.qlangtech.tis.workflow.pojo;
 
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class WorkFlowBuildPhaseCriteria extends BasicCriteria {
+public class WorkFlowBuildPhaseCriteria extends TISBaseCriteria {
 
     protected String orderByClause;
 

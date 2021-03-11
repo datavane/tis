@@ -122,7 +122,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join instancedetail aa on aa.instance_id=bb.instance_id
   </select>
@@ -136,7 +136,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join instancedetail aa on aa.instance_id=bb.instance_id
   </select>

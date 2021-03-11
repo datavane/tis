@@ -58,7 +58,7 @@
       <isNotNull property="orderByClause">
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join app_package aa on aa.pid=bb.pid
   </select>

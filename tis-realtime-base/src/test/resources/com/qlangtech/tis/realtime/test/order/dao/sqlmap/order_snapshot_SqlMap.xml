@@ -81,7 +81,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join order_snapshot aa on aa.snapshot_id=bb.snapshot_id
   </select>
@@ -95,7 +95,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join order_snapshot aa on aa.snapshot_id=bb.snapshot_id
   </select>

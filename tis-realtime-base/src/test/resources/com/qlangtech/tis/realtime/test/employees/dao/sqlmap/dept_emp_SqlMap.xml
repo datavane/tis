@@ -41,7 +41,7 @@
       <isNotNull property="orderByClause">
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join dept_emp aa on aa.dept_no=bb.dept_no and aa.emp_no=bb.emp_no
   </select>
@@ -54,7 +54,7 @@
       <isNotNull property="orderByClause">
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join dept_emp aa on aa.dept_no=bb.dept_no and aa.emp_no=bb.emp_no
   </select>

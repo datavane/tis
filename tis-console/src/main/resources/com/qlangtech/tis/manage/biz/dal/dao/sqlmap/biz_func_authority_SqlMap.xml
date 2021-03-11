@@ -85,7 +85,7 @@
 			 <isNotNull property="orderByClause">
 				order by $orderByClause$
              </isNotNull>
-			limit #skip#,#pageSize#
+			$paginationScript$
 		</isParameterPresent>
 		) bb inner join biz_func_authority aa on( aa.bf_id=bb.bf_id )
 		left join
@@ -111,7 +111,7 @@
 			<isNotNull property="orderByClause">
 				order by $orderByClause$
       </isNotNull>
-			limit #skip#,#pageSize#
+			$paginationScript$
 		</isParameterPresent>
 		) bb inner join biz_func_authority aa on aa.bf_id=bb.bf_id
 	</select>
@@ -148,7 +148,7 @@
 				order by $orderByClause$
       </isNotNull>
 			group by func_id ,app_id
-			limit #skip#,#pageSize#
+			$paginationScript$
 		</isParameterPresent>
 
 

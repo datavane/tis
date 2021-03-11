@@ -53,7 +53,7 @@
       <isNotNull property="orderByClause">
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join global_app_resource aa on( aa.app_res_id=bb.app_res_id ) inner join upload_resource rr on (aa.ur_id = rr.ur_id)
   </select>

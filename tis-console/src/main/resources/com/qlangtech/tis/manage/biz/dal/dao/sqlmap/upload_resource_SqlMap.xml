@@ -89,7 +89,7 @@
 			<isNotNull property="orderByClause">
 				order by $orderByClause$
       </isNotNull>
-			limit #skip#,#pageSize#
+			$paginationScript$
 		</isParameterPresent>
 		) bb inner join upload_resource aa on aa.ur_id=bb.ur_id
 	</select>

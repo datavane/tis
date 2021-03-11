@@ -43,7 +43,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
     ) bb inner join customer_order_relation aa on aa.customerregister_id=bb.customerregister_id and
       aa.waitingorder_id=bb.waitingorder_id
@@ -58,7 +58,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
     ) bb inner join customer_order_relation aa on aa.customerregister_id=bb.customerregister_id and
       aa.waitingorder_id=bb.waitingorder_id

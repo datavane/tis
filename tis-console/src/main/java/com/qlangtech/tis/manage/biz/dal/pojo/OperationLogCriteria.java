@@ -14,14 +14,14 @@
  */
 package com.qlangtech.tis.manage.biz.dal.pojo;
 
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class OperationLogCriteria extends BasicCriteria {
+public class OperationLogCriteria extends TISBaseCriteria {
 
     protected String orderByClause;
 

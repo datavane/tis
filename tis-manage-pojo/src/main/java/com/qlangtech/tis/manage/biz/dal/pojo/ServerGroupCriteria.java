@@ -19,14 +19,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.BizDomainCriteria.Criteria;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class ServerGroupCriteria extends BasicCriteria {
+public class ServerGroupCriteria extends TISBaseCriteria {
 
     protected String orderByClause;
 

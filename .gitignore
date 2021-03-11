@@ -15,3 +15,4 @@
 *.iws
 *.versionsBackup
 *.swp
+**/*.log

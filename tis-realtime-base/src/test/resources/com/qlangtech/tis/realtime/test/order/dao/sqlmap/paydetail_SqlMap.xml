@@ -50,7 +50,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join paydetail aa on aa.paydetail_id=bb.paydetail_id
   </select>
@@ -64,7 +64,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join paydetail aa on aa.paydetail_id=bb.paydetail_id
   </select>

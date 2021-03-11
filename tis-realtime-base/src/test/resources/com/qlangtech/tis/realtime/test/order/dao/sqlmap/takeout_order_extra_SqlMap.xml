@@ -71,7 +71,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join takeout_order_extra aa on aa.order_id=bb.order_id
   </select>
@@ -85,7 +85,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join takeout_order_extra aa on aa.order_id=bb.order_id
   </select>

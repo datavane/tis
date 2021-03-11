@@ -14,7 +14,7 @@
  */
 package com.qlangtech.tis.realtime.test.member.pojo;
 
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class CustomerCriteria extends BasicCriteria {
+public class CustomerCriteria extends TISBaseCriteria {
 
     protected String orderByClause;
 

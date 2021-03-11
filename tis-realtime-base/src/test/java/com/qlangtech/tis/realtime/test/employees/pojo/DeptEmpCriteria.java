@@ -2,7 +2,7 @@ package com.qlangtech.tis.realtime.test.employees.pojo;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DeptEmpCriteria extends BasicCriteria {
+public class DeptEmpCriteria extends TISBaseCriteria {
     protected String orderByClause;
 
     protected List<Criteria> oredCriteria;

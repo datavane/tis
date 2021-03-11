@@ -39,7 +39,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join queuestatus aa on aa.entity_id=bb.entity_id
   </select>
@@ -53,7 +53,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join queuestatus aa on aa.entity_id=bb.entity_id
   </select>

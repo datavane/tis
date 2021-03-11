@@ -59,7 +59,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join promotion aa on aa.promotion_id=bb.promotion_id
   </select>
@@ -73,7 +73,7 @@
       <isNotNull property="orderByClause" >
         order by $orderByClause$
       </isNotNull>
-      limit #skip#,#pageSize#
+      $paginationScript$
     </isParameterPresent>
        ) bb inner join promotion aa on aa.promotion_id=bb.promotion_id
   </select>

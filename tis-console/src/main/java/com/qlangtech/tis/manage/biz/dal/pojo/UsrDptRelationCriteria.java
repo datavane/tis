@@ -19,14 +19,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class UsrDptRelationCriteria extends BasicCriteria {
+public class UsrDptRelationCriteria extends TISBaseCriteria {
 
     protected String orderByClause;
 
