@@ -56,6 +56,7 @@ import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
+import com.qlangtech.tis.sql.parser.TopologyDir;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.TimeCharacteristic;
 import com.qlangtech.tis.sql.parser.meta.*;
@@ -418,7 +419,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     this.deleteCollectionInCloud(context, app.getProjectName());
 
     // 删除workflow数据库及本地存储文件
-    SqlTaskNodeMeta.TopologyDir topologyDir = SqlTaskNodeMeta.getTopologyDir(workFlow.getName());
+    TopologyDir topologyDir = SqlTaskNodeMeta.getTopologyDir(workFlow.getName());
     if (topologyDir.synchronizeSubRemoteRes().size() > 0) {
       IndexStreamCodeGenerator indexStreamCodeGenerator
         = CoreAction.getIndexStreamCodeGenerator(this, workFlow, false);

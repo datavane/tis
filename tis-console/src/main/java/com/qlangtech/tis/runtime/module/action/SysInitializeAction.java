@@ -93,6 +93,11 @@ public class SysInitializeAction   //extends BasicModule
     FileUtils.touch(sysInitializedToken);
   }
 
+  /**
+   * 执行系统初始化，数据库和zk节点初始化
+   * @param args
+   * @throws Exception
+   */
   public static void main(String[] args) throws Exception {
 
     if (args.length < 2) {
@@ -144,10 +149,6 @@ public class SysInitializeAction   //extends BasicModule
               }
             }
           }
-          //else {
-//            touchSysInitializedToken();
-//            throw new IllegalStateException("db '" + dbCfg.dbname + "' is exist");
-          //}
         }
       }
     } finally {

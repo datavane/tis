@@ -35,6 +35,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -67,14 +68,14 @@ public class HttpUtils {
         addMockApply(-1, testStr, classpathRes);
     }
 
-    public static void addMockApply(int orderIndex, String testStr, IClasspathRes classpathRes) {
+    public static void addMockApply(int orderIndex, MockMatchKey test, IClasspathRes classpathRes) {
         if (HttpUtils.mockConnMaker == null) {
             HttpUtils.mockConnMaker = new DefaultMockConnectionMaker();
         }
-        CacheMockRes cacheMockRes = mockConnMaker.resourceStore.get(testStr);
+        CacheMockRes cacheMockRes = mockConnMaker.resourceStore.get(test);
         if (cacheMockRes == null) {
             cacheMockRes = new CacheMockRes();
-            mockConnMaker.resourceStore.put(testStr, cacheMockRes);
+            mockConnMaker.resourceStore.put(test, cacheMockRes);
         }
         if (orderIndex < 0) {
             cacheMockRes.resources.add(classpathRes);
@@ -84,6 +85,10 @@ public class HttpUtils {
             }
             cacheMockRes.resources.set(orderIndex, classpathRes);
         }
+    }
+
+    public static void addMockApply(int orderIndex, String testStr, IClasspathRes classpathRes) {
+        addMockApply(orderIndex, new MockMatchKey(testStr, false, false), classpathRes);
     }
 
     public static DefaultMockConnectionMaker mockConnMaker;
@@ -236,15 +241,52 @@ public class HttpUtils {
         url.openStream();
     }
 
+    public static class MockMatchKey {
+        private final String matchTxt;
+        private final boolean startWith;
+        private final boolean endWith;
+
+        public MockMatchKey(String matchTxt, boolean startWith, boolean endWith) {
+            this.matchTxt = matchTxt;
+            this.startWith = startWith;
+            this.endWith = endWith;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            MockMatchKey that = (MockMatchKey) o;
+            return Objects.equals(matchTxt, that.matchTxt);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(matchTxt);
+        }
+    }
+
     public static class DefaultMockConnectionMaker implements MockConnectionMaker {
 
-        private final Map<String, CacheMockRes> /*** url test  */
+        private final Map<MockMatchKey, CacheMockRes> /*** url test  */
                 resourceStore = Maps.newHashMap();
 
         @Override
         public MockHttpURLConnection create(URL url, List<ConfigFileContext.Header> heads, HTTPMethod method, byte[] content) {
-            for (Map.Entry<String, CacheMockRes> entry : resourceStore.entrySet()) {
-                if (StringUtils.indexOf(url.toString(), entry.getKey()) > -1) {
+            MockMatchKey matchKey = null;
+            for (Map.Entry<MockMatchKey, CacheMockRes> entry : resourceStore.entrySet()) {
+                matchKey = entry.getKey();
+                if (matchKey.startWith) {
+                    if (StringUtils.startsWith(url.toString(), matchKey.matchTxt)) {
+                        return createConnection(heads, method, content, entry.getValue().get());
+                    }
+                    // return null;
+                } else if (matchKey.endWith) {
+                    if (StringUtils.endsWith(url.toString(), matchKey.matchTxt)) {
+                        return createConnection(heads, method, content, entry.getValue().get());
+                    }
+                    // return null;
+                } else if (StringUtils.indexOf(url.toString(), matchKey.matchTxt) > -1) {
                     return createConnection(heads, method, content, entry.getValue().get());
                 }
             }

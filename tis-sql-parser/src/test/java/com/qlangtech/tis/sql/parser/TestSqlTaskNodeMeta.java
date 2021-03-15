@@ -55,6 +55,11 @@ public class TestSqlTaskNodeMeta extends TestCase {
 
     private final File parent = new File("./src/main/resources/test");
 
+
+    public void test(){
+
+    }
+
     public void testValidateSql() {
 
         List<String> dependencyNodes = Lists.newArrayList();

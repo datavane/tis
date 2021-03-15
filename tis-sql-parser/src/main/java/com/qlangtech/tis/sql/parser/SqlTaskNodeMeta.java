@@ -28,7 +28,6 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
-import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
@@ -369,44 +368,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             throw new RuntimeException("wfDir:" + wfDir.getAbsolutePath(), e);
         }
         return new // 
-                TopologyDir(//
-                wfDir, SqlTaskNode.NAME_DATAFLOW_DIR + "/" + topologyName);
-    }
-
-    public static class TopologyDir {
-
-        private final File dir;
-
-        private final String relativePath;
-
-        public TopologyDir(File dir, String relativePath) {
-            this.dir = dir;
-            this.relativePath = relativePath;
-        }
-
-        public File synchronizeRemoteRes(String resName) {
-            // CenterResource.copyFromRemote2Local(url, localFile);
-            return CenterResource.copyFromRemote2Local(CenterResource.getPath(relativePath, resName), true);
-            // return localFile;
-        }
-
-        public List<File> synchronizeSubRemoteRes() {
-            // URL url = CenterResource.getPathURL(relativePath);
-            List<String> subFiles = CenterResource.getSubFiles(relativePath, false, true);
-            List<File> subs = Lists.newArrayList();
-            for (String f : subFiles) {
-                subs.add(synchronizeRemoteRes(f));
-            }
-            return subs;
-        }
-
-        public void delete() {
-            try {
-                FileUtils.forceDelete(this.dir);
-            } catch (IOException e) {
-                throw new RuntimeException("path:" + this.dir.getAbsolutePath(), e);
-            }
-        }
+                TopologyDir(wfDir, topologyName);
     }
 
     public static TopologyProfile getTopologyProfile(String topologyName) throws Exception {

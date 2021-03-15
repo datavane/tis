@@ -25,6 +25,7 @@ public interface ITestDumpCommon {
 
     String DB_EMPLOYEES = "employees";
     String TABLE_EMPLOYEES = "employees";
+    String TOPOLOGY_EMPLOYEES = "employees";
     String INDEX_COLLECTION = "search4" + TABLE_EMPLOYEES;
 
     default IDumpTable getEmployeeTab() {
