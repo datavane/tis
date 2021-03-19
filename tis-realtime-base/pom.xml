@@ -69,6 +69,10 @@
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>logback-flume-appender</artifactId>
+<<<<<<< HEAD
+=======
+            <groupId>com.qlangtech.tis</groupId>
+>>>>>>> fca804f1ed4c08925da8019907f2c6844d9ea1bf
         </dependency>
 
 

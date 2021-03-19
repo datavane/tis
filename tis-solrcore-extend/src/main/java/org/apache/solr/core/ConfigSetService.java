@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -78,7 +77,7 @@ public abstract class ConfigSetService {
      * @param dcore the core's CoreDescriptor
      * @return a ConfigSet
      */
-    @SuppressWarnings({"rawtypes"})
+    //@SuppressWarnings({"all"})
     public final ConfigSet loadConfigSet(CoreDescriptor dcore) {
 
         SolrResourceLoader coreLoader = createCoreResourceLoader(dcore);
