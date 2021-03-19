@@ -14,8 +14,10 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 
 /**
@@ -33,7 +35,7 @@ import java.util.*;
  */
 public class PropertyPlaceholderHelper {
 
-    private static final Log logger = LogFactory.getLog(PropertyPlaceholderHelper.class);
+    private static final Logger logger = LoggerFactory.getLogger(PropertyPlaceholderHelper.class);
 
     private static final Map<String, String> wellKnownSimplePrefixes = new HashMap<String, String>(4);
 

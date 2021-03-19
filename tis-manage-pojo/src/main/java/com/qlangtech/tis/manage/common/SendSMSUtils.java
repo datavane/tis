@@ -1,18 +1,28 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.manage.common;
+
+import com.alibaba.fastjson.JSON;
+import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,17 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import com.alibaba.fastjson.JSON;
-import com.qlangtech.tis.manage.common.ConfigFileContext.Header;
-import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
-import com.qlangtech.tis.manage.common.PostFormStreamProcess.ContentType;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -50,18 +49,14 @@ public class SendSMSUtils {
     // private static final String salt = "718c131f96d644e68976884b186f0ada";
     private static final String UTF8 = "utf8";
 
-    private static final Log logger = LogFactory.getLog(SendSMSUtils.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(SendSMSUtils.class);
 
     private static Map<Long, AtomicLong> /* moble */
-    lastSendSMSTimestampMap = new HashMap<>();
+            lastSendSMSTimestampMap = new HashMap<>();
 
     private static AtomicInteger errCount = new AtomicInteger(0);
 
-    // private static final Joiner joinerWithCommon =
-    // Joiner.on(",").skipNulls();
-    public static void main(String[] args) {
-        send("hello", BAISUI_PHONE);
-    }
 
     // wiki: http://k.2dfire.net/pages/viewpage.action?pageId=11468888
     public static void send(String content, Contact... contact) {
@@ -144,7 +139,7 @@ public class SendSMSUtils {
                 buffer.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
             }
             applyRequest(url, buffer.toString().getBytes(Charset.forName("utf8")));
-        // 发送手机消息
+            // 发送手机消息
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -173,22 +168,22 @@ public class SendSMSUtils {
                 }
             }
         });
-    // ConfigFileContext.processContent(url, new StreamProcess<Object>() {
-    // @Override
-    // public Object p(int status, InputStream stream, String md5) {
-    // try {
-    // JSONObject result = new JSONObject(new
-    // JSONTokener(IOUtils.toString(stream)));
-    // if (result.getInt("code") != 1) {
-    // throw new IllegalStateException("send sms msg faild:" +
-    // result.getInt("code"));
-    // }
-    // return null;
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // }
-    // });
+        // ConfigFileContext.processContent(url, new StreamProcess<Object>() {
+        // @Override
+        // public Object p(int status, InputStream stream, String md5) {
+        // try {
+        // JSONObject result = new JSONObject(new
+        // JSONTokener(IOUtils.toString(stream)));
+        // if (result.getInt("code") != 1) {
+        // throw new IllegalStateException("send sms msg faild:" +
+        // result.getInt("code"));
+        // }
+        // return null;
+        // } catch (Exception e) {
+        // throw new RuntimeException(e);
+        // }
+        // }
+        // });
     }
 
     public static class Contact {

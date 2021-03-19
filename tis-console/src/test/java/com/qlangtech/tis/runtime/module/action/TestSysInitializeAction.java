@@ -45,8 +45,8 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
    * 测试系统数据库初始化
    */
   public void testSystemDBInitializWithDerby() throws Exception {
-
-    FileUtils.deleteQuietly(SysInitializeAction.getSysInitializedTokenFile());
+    File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
+    FileUtils.deleteQuietly(initialSuccessToken);
 
     String[] args = new String[]{"/opt/misc/tis-ansible/tis_console_derby.sql", Config.DB_TYPE_DERBY};
     Config config = this.mock("config", Config.class);
@@ -62,7 +62,7 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     replay();
     SysInitializeAction.main(args);
 
-    File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
+    // File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
     assertTrue("initialSuccessToken fiel:" + initialSuccessToken.getAbsolutePath(), initialSuccessToken.exists());
 
     verifyAll();

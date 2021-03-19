@@ -19,7 +19,6 @@ import com.qlangtech.tis.hdfs.client.context.TSearcherQueryContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Collections;
 import java.util.Set;
@@ -28,7 +27,7 @@ import java.util.Set;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2013-3-13
  */
-public class TSearcherQueryContextImpl implements InitializingBean, TSearcherQueryContext {
+public class TSearcherQueryContextImpl implements TSearcherQueryContext {
 
     static final Log logger = LogFactory.getLog(TSearcherQueryContextImpl.class);
 
@@ -42,9 +41,6 @@ public class TSearcherQueryContextImpl implements InitializingBean, TSearcherQue
     // private IServiceConfig serviceConfig = null;
     private TisZkClient zkClient = null;
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-    }
 
     public TisZkClient getZkClient() {
         return this.zkClient;

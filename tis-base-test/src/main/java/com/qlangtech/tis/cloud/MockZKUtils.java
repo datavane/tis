@@ -16,6 +16,7 @@ package com.qlangtech.tis.cloud;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.test.EasyMockUtil;
@@ -23,7 +24,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
-import org.springframework.util.Assert;
 
 import java.io.InputStream;
 import java.util.List;
@@ -41,7 +41,7 @@ public class MockZKUtils {
         createAssembleLogCollectPathMock(zkCoordinator);
 
         try (InputStream input = MockZKUtils.class.getResourceAsStream("overseer_elect_leader.json")) {
-            Assert.notNull(input);
+            Assert.assertNotNull(input);
             IExpectationSetters<byte[]> expect = EasyMock.expect(
                     zkCoordinator.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true));
             expect.andReturn(IOUtils.toByteArray(input)).anyTimes();

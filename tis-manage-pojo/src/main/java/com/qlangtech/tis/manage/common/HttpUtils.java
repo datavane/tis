@@ -44,8 +44,6 @@ import java.util.stream.Collectors;
  */
 public class HttpUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
-
     public interface IMsgProcess {
         public void err(String content);
     }

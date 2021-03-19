@@ -25,35 +25,35 @@ import java.io.RandomAccessFile;
  */
 public class FileUtils {
 
-    public static String readLastLine(File file) {
-        RandomAccessFile randomAccess = null;
-        try {
-            randomAccess = new RandomAccessFile(file, "r");
-            boolean eol = false;
-            int c = -1;
-            long fileLength = randomAccess.length();
-            long size = 1;
-            ww: while (!eol) {
-                long offset = fileLength - (size++);
-                randomAccess.seek(offset);
-                switch(c = randomAccess.read()) {
-                    case -1:
-                    case '\n':
-                    case '\r':
-                        randomAccess.seek(offset + 1);
-                        break ww;
-                }
-            }
-            return randomAccess.readLine();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                randomAccess.close();
-            } catch (IOException e) {
-            }
-        }
-    }
+//    public static String readLastLine(File file) {
+//        RandomAccessFile randomAccess = null;
+//        try {
+//            randomAccess = new RandomAccessFile(file, "r");
+//            boolean eol = false;
+//            int c = -1;
+//            long fileLength = randomAccess.length();
+//            long size = 1;
+//            ww: while (!eol) {
+//                long offset = fileLength - (size++);
+//                randomAccess.seek(offset);
+//                switch(c = randomAccess.read()) {
+//                    case -1:
+//                    case '\n':
+//                    case '\r':
+//                        randomAccess.seek(offset + 1);
+//                        break ww;
+//                }
+//            }
+//            return randomAccess.readLine();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            try {
+//                randomAccess.close();
+//            } catch (IOException e) {
+//            }
+//        }
+//    }
 
     /**
      * 在文件最后追加一行记录
@@ -82,7 +82,7 @@ public class FileUtils {
     // }
     }
 
-    public static void main(String[] arg) {
-        append(new File("D:\\tmp\\test.txt"), "11");
-    }
+//    public static void main(String[] arg) {
+//        append(new File("D:\\tmp\\test.txt"), "11");
+//    }
 }

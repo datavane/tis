@@ -1,6 +1,0 @@
-INSERT OVERWRITE TABLE totalpay_instance PARTITION (pt,pmod)
-  SELECT t.totalpay_id,t.source_amount,count(i.instance_id) as icount,t.pt,t.pmod
-   FROM totalpayinfo t inner join instancedetail i 
-    ON(t.order_id = i.order_id AND t.entity_id = i.entity_id AND t.pt=i.pt)
-   WHERE t.pt='99'
-   GROUP BY t.totalpay_id,t.source_amount,t.pt,t.pmod

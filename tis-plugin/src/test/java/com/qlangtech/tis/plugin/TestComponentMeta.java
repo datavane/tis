@@ -37,10 +37,9 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-25 11:09
  */
-public class TestComponentMeta extends TestCase {
+public class TestComponentMeta extends TestCase  {
 
     static {
-        Config.setTestDataDir();
 //
         final String paramsConfig = "com.qlangtech.tis.config.ParamsConfig.xml";
         HttpUtils.addMockApply(paramsConfig, new LatestUpdateTimestampClasspathRes() {
@@ -71,6 +70,7 @@ public class TestComponentMeta extends TestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        Config.setTestDataDir();
         TIS.initialized = false;
     }
 

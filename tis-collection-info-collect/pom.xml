@@ -42,42 +42,48 @@
         </resources>
     </build>
 
-<!--
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <env>test</env>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>daily</id>
-            <properties>
-                <env>test</env>
-            </properties>
-        </profile>
-        <profile>
-            <id>pre</id>
-            <properties>
-                <env>maven</env>
-            </properties>
-        </profile>
-        <profile>
-            <id>publish</id>
-            <properties>
-                <env>maven</env>
-            </properties>
-        </profile>
-    </profiles>
--->
+    <!--
+        <profiles>
+            <profile>
+                <id>dev</id>
+                <properties>
+                    <env>test</env>
+                </properties>
+                <activation>
+                    <activeByDefault>true</activeByDefault>
+                </activation>
+            </profile>
+            <profile>
+                <id>daily</id>
+                <properties>
+                    <env>test</env>
+                </properties>
+            </profile>
+            <profile>
+                <id>pre</id>
+                <properties>
+                    <env>maven</env>
+                </properties>
+            </profile>
+            <profile>
+                <id>publish</id>
+                <properties>
+                    <env>maven</env>
+                </properties>
+            </profile>
+        </profiles>
+    -->
     <dependencies>
 
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-common-dao</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
 
@@ -168,7 +174,6 @@
             <artifactId>junit</artifactId>
             <scope>compile</scope>
         </dependency>
-
 
 
         <dependency>

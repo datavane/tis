@@ -15,7 +15,6 @@
 package com.qlangtech.tis.hdfs.client.context.impl;
 
 import com.qlangtech.tis.TisZkClient;
-import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.hdfs.client.context.TSearcherDumpContext;
 import com.qlangtech.tis.hdfs.client.context.TSearcherQueryContext;
 import com.qlangtech.tis.hdfs.client.process.BatchDataProcessor;
@@ -26,7 +25,6 @@ import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -39,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2013-3-12
  */
-public class TSearcherDumpContextImpl implements TSearcherDumpContext, InitializingBean {
+public class TSearcherDumpContextImpl implements TSearcherDumpContext {
 
     // private final static String FS_DEFAULT_NAME = "fs.default.name";
     protected static final Log logger = LogFactory.getLog(TSearcherDumpContextImpl.class);
@@ -116,9 +114,6 @@ public class TSearcherDumpContextImpl implements TSearcherDumpContext, Initializ
         return queryContext.getZkClient();
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-    }
 
     public EntityName getDumpTable() {
         return this.queryContext.getDumpTable();

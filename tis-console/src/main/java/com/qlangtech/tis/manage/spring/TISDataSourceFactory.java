@@ -32,7 +32,7 @@ import java.sql.Statement;
 public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, InitializingBean, DisposableBean {
 
 
-  public static SystemDBInit createDataSource(String dbType, Config.TisDbConfig dbCfg, boolean useDBName) {
+  public static SystemDBInit createDataSource(String dbType, Config.TisDbConfig dbCfg, boolean useDBName, boolean dbAutoCreate) {
     if (StringUtils.isEmpty(dbType)) {
       throw new IllegalArgumentException("param dbType can not be null");
     }
@@ -87,13 +87,13 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
         }
       };
     } else if (Config.DB_TYPE_DERBY.equals(dbType)) {
-
+      System.setProperty("derby.system.home", Config.getDataDir().getAbsolutePath());
 //  <bean id="clusterStatusDatasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 //    <property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
 //    <property name="url" value="jdbc:derby:tis_console;create=true"/>
 //  </bean>
       dataSource.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
-      dataSource.setUrl("jdbc:derby:" + dbCfg.dbname + ";create=true");
+      dataSource.setUrl("jdbc:derby:" + dbCfg.dbname + ";create=" + dbAutoCreate);
       return new SystemDBInit(dataSource) {
         @Override
         public boolean dbTisConsoleExist(Config.TisDbConfig dbCfg, Statement statement) throws SQLException {
@@ -127,7 +127,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
         @Override
         public void dropDB(Config.TisDbConfig dbCfg, Statement statement) throws SQLException {
           try {
-            statement.execute("drop table application " );
+            statement.execute("drop table application ");
           } catch (SQLException e) {
 
           }
@@ -217,7 +217,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
   @Override
   public void afterPropertiesSet() throws Exception {
     Config.TisDbConfig dbType = Config.getDbCfg();
-    this.dataSource = createDataSource(dbType.dbtype, dbType, true).dataSource;
+    this.dataSource = createDataSource(dbType.dbtype, dbType, true, false).dataSource;
   }
 
   @Override

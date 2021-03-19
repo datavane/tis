@@ -132,7 +132,6 @@
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
-            <version>3.2.2</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -153,37 +152,39 @@
                 </exclusion>
             </exclusions>
         </dependency>
--->
 
+
+
+
+-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-solr-core</artifactId>
         </dependency>
-
-
-        <dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-builder-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!--
-                <dependency>
-                    <groupId>org.eclipse.jetty.websocket</groupId>
-                    <artifactId>websocket-servlet</artifactId>
-                </dependency>
+      <dependency>
+          <groupId>com.qlangtech.tis</groupId>
+          <artifactId>tis-builder-api</artifactId>
+          <version>${project.version}</version>
+      </dependency>
 
-                <dependency>
-                    <groupId>org.eclipse.jetty.websocket</groupId>
-                    <artifactId>websocket-server</artifactId>
-                </dependency>
 
-                <dependency>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty-servlet</artifactId>
-                    <scope>provided</scope>
-                </dependency>
-        -->
+              <dependency>
+                  <groupId>org.eclipse.jetty.websocket</groupId>
+                  <artifactId>websocket-servlet</artifactId>
+              </dependency>
+
+              <dependency>
+                  <groupId>org.eclipse.jetty.websocket</groupId>
+                  <artifactId>websocket-server</artifactId>
+              </dependency>
+
+              <dependency>
+                  <groupId>org.eclipse.jetty</groupId>
+                  <artifactId>jetty-servlet</artifactId>
+                  <scope>provided</scope>
+              </dependency>
+      -->
 
         <dependency>
             <groupId>junit</groupId>

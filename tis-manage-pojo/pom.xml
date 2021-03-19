@@ -47,6 +47,7 @@
             <artifactId>xstream</artifactId>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
@@ -58,7 +59,7 @@
             <artifactId>spring-context</artifactId>
             <version>${spring-version}</version>
         </dependency>
-
+  -->
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
@@ -95,11 +96,23 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-builder-api</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-ibatis</artifactId>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
+
+        <!--
+                <dependency>
+                    <groupId>com.qlangtech.tis</groupId>
+                    <artifactId>tis-ibatis</artifactId>
+                </dependency>
+        -->
 
     </dependencies>
 </project>

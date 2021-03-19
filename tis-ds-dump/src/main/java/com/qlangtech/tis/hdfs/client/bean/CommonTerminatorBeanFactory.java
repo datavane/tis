@@ -31,7 +31,6 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.FactoryBean;
 
 import java.util.Objects;
 
@@ -39,7 +38,7 @@ import java.util.Objects;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2013-3-18
  */
-public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
+public class CommonTerminatorBeanFactory {
 
     private EntityName dumpTable;
 
@@ -87,7 +86,7 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         }
         queryContext.setZkClient(this.tisZkClient);
         queryContext.setDumpTable(this.dumpTable);
-        queryContext.afterPropertiesSet();
+        // queryContext.afterPropertiesSet();
         TSearcherDumpContextImpl dumpContext = new TSearcherDumpContextImpl();
         if (statusReportRef == null) {
             throw new IllegalStateException("statusReportRef can not be null");
@@ -104,7 +103,7 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         dumpContext.setTaskId(this.getTaskid());
 
         logger.info("exectaskid:" + dumpContext.getTaskId());
-        dumpContext.afterPropertiesSet();
+        // dumpContext.afterPropertiesSet();
         SourceDataProvider datasourceProvider = null;
         initMultiThreadHdfsDataProvider(dumpContext);
         termiantorBean.setDumpContext(dumpContext);
@@ -124,10 +123,6 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         }
     }
 
-    @Override
-    public Class<? extends TISDumpClient> getObjectType() {
-        return TISDumpClient.class;
-    }
 
     protected TISDumpClient createTerminatorBean() {
         return new TISDumpClient(this.flatTableBuilder);
@@ -149,7 +144,7 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         }
     }
 
-    @Override
+    //  @Override
     public TISDumpClient getObject() throws Exception {
         return this.termiantorBean;
     }
@@ -162,10 +157,6 @@ public class CommonTerminatorBeanFactory implements FactoryBean<TISDumpClient> {
         this.dataprocess = dataprocess;
     }
 
-    @Override
-    public boolean isSingleton() {
-        return true;
-    }
 
     public EntityName getDumpTable() {
         return this.dumpTable;

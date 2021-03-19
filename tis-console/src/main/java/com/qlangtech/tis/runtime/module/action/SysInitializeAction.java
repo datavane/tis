@@ -95,6 +95,7 @@ public class SysInitializeAction   //extends BasicModule
 
   /**
    * 执行系统初始化，数据库和zk节点初始化
+   *
    * @param args
    * @throws Exception
    */
@@ -112,7 +113,7 @@ public class SysInitializeAction   //extends BasicModule
     TISDataSourceFactory.SystemDBInit dsProcess = null;
 
     try {
-      dsProcess = TISDataSourceFactory.createDataSource(dbType, dbCfg, false);
+      dsProcess = TISDataSourceFactory.createDataSource(dbType, dbCfg, false, true);
       try (Connection conn = dsProcess.getDS().getConnection()) {
         try (Statement statement = conn.createStatement()) {
 

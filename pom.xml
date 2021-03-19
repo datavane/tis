@@ -53,6 +53,7 @@
 
         <module>tis-realtime-base</module>
         <module>tis-sql-parser</module>
+        <module>tis-common-dao</module>
         <module>tis-collection-info-collect</module>
         <module>tis-console</module>
         <module>solr-webapp</module>
@@ -60,6 +61,7 @@
         <module>tis-scala-compiler-dependencies</module>
 
         <module>maven-tpi-plugin</module>
+
 
 
     </modules>
@@ -83,6 +85,12 @@
 
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>3.2.2</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>

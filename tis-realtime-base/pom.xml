@@ -22,6 +22,12 @@
     <dependencies>
 
         <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-common-dao</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-client</artifactId>
             <version>${rocketmq.version}</version>
@@ -69,7 +75,6 @@
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
-            <version>3.2.2</version>
         </dependency>
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
@@ -135,13 +140,13 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-manage-pojo</artifactId>
         </dependency>
-<!--
-        <dependency>
-            <groupId>com.alibaba.cobar</groupId>
-            <artifactId>cobar-driver</artifactId>
-            <version>1.0.0</version>
-        </dependency>
--->
+        <!--
+                <dependency>
+                    <groupId>com.alibaba.cobar</groupId>
+                    <artifactId>cobar-driver</artifactId>
+                    <version>1.0.0</version>
+                </dependency>
+        -->
         <!--
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -180,7 +185,6 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-solrconfig-parser</artifactId>
         </dependency>
-
 
 
         <dependency>

@@ -15,7 +15,6 @@
 package com.qlangtech.tis.order.dump.task;
 
 import com.qlangtech.tis.TisZkClient;
-import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.hdfs.client.bean.CommonTerminatorBeanFactory;
 import com.qlangtech.tis.hdfs.client.bean.TISDumpClient;
@@ -27,7 +26,6 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.RpcServiceReference;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 import java.util.Objects;
 
@@ -59,9 +57,6 @@ public class SingleTableDumpTask extends AbstractTableDumpTask implements ITable
         this.dumpTable = dumpTable;
     }
 
-    @Override
-    protected void registerExtraBeanDefinition(DefaultListableBeanFactory factory) {
-    }
 
     @Override
     public void map(TaskContext context) {

@@ -1,27 +1,24 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.pubhook.common;
 
+import com.qlangtech.tis.manage.common.Config;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.ResourceBundle;
-import com.qlangtech.tis.manage.common.Config;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -33,12 +30,11 @@ public enum RunEnvironment {
     DAILY("daily", (short) 0, "日常环境", Config.getConfigRepositoryHost(), ""),
     // //////////////////////
     ONLINE(// 
-    "online", // 
-    (short) 2, // /
-    "线上环境", // /
-    null, "http://xxxxx.com");
+            "online", //
+            (short) 2, // /
+            "线上环境", // /
+            null, "http://xxxxx.com");
 
-    private static final Logger logger = LoggerFactory.getLogger(RunEnvironment.class);
 
     public static final String KEY_RUNTIME = "runtime";
 
@@ -57,33 +53,12 @@ public enum RunEnvironment {
     // private static RunEnvironment runtime;
     public static RunEnvironment getSysRuntime() {
         return RunEnvironment.getEnum(Config.getInstance().getRuntime());
-    // if (runtime == null) {
-    // synchronized (RunEnvironment.class) {
-    // if (runtime == null) {
-    // String run = null;
-    // try {
-    // ResourceBundle solrwebConfig = ResourceBundle.getBundle("tis-web-config/config");
-    // run = solrwebConfig.getString(RunEnvironment.KEY_RUNTIME);
-    // logger.info("runtime get from \"solr-web-config/config\":" + run);
-    // } catch (Throwable e) {
-    // }
-    // if (StringUtils.isBlank(run)) {
-    // run = System.getProperty(RunEnvironment.KEY_RUNTIME, "daily");
-    // }
-    // runtime = RunEnvironment.getEnum(run);
-    // }
-    // }
-    // }
-    // return runtime;
     }
 
     public static RunEnvironment getSysEnvironment() {
         return getSysRuntime();
     }
 
-    // public static RunEnvironment current() {
-    // return isOnlineMode() ? RunEnvironment.ONLINE : RunEnvironment.DAILY;
-    // }
     private final Short id;
 
     private final String keyName;

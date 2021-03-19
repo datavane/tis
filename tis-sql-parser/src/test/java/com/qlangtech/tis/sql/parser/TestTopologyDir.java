@@ -18,6 +18,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.order.dump.task.ITestDumpCommon;
+import com.qlangtech.tis.test.TISEasyMock;
+import com.qlangtech.tis.test.TISTestCase;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -36,21 +38,25 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-15 13:43
  */
-public class TestTopologyDir extends TestCase implements ITestDumpCommon {
+public class TestTopologyDir extends TestCase implements ITestDumpCommon, TISEasyMock {
     private static File testDataDir;
 
-    static {
-        testDataDir = Config.setTestDataDir();
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        Config.setTestDataDir();
     }
 
     public void testSynchronizeSubRemoteRes() throws Exception {
 
         final long lastUpdate = System.currentTimeMillis();
         String profileFileName = "profile.json";
-        List<String> remoteFileNames = Lists.newArrayList("dependency_tabs.yaml", "employees_content.json", "er_rules.yaml", profileFileName);
+        List<String> remoteFileNames
+                = Lists.newArrayList("dependency_tabs.yaml", "employees_content.json", "er_rules.yaml", profileFileName);
         stubRemoteSubFilesMeta(0, remoteFileNames);
         // 模拟服务端删除了一个文件
-        List<String> remoteFileNamesRemoveProfile = Lists.newArrayList("dependency_tabs.yaml", "employees_content.json", "er_rules.yaml");
+        List<String> remoteFileNamesRemoveProfile
+                = Lists.newArrayList("dependency_tabs.yaml", "employees_content.json", "er_rules.yaml");
         stubRemoteSubFilesMeta(1, remoteFileNamesRemoveProfile);
 
         for (String resName : remoteFileNames) {
@@ -64,7 +70,8 @@ public class TestTopologyDir extends TestCase implements ITestDumpCommon {
         File localSubFileDir = topologyDir.getLocalSubFileDir();
         File localSubFile = null;
         File localLastModifyFile = null;
-        assertTrue("localSubFileDir must exist,file:" + localSubFileDir.getAbsolutePath(), localSubFileDir.exists());
+        assertTrue("localSubFileDir must exist,file:"
+                + localSubFileDir.getAbsolutePath(), localSubFileDir.exists());
 
         validateSubDirFiles(lastUpdate, remoteFileNames, localSubFileDir);
 
@@ -74,22 +81,28 @@ public class TestTopologyDir extends TestCase implements ITestDumpCommon {
         validateSubDirFiles(lastUpdate, remoteFileNamesRemoveProfile, localSubFileDir);
         // 确认要少了一个profile文件
         File profile = new File(localSubFileDir, profileFileName);
-        File profileOfLastModify = new File(localSubFileDir, profileFileName + CenterResource.KEY_LAST_MODIFIED_EXTENDION);
-        assertFalse("profile shall be remove already:" + profile.getAbsolutePath(), profile.exists());
-        assertFalse("lastmodify of profile shall be remove already:" + profileOfLastModify.getAbsolutePath(), profileOfLastModify.exists());
+        File profileOfLastModify = new File(localSubFileDir
+                , profileFileName + CenterResource.KEY_LAST_MODIFIED_EXTENDION);
+        assertFalse("profile shall be remove already:"
+                + profile.getAbsolutePath(), profile.exists());
+        assertFalse("lastmodify of profile shall be remove already:"
+                + profileOfLastModify.getAbsolutePath(), profileOfLastModify.exists());
 
     }
 
-    private void validateSubDirFiles(long lastUpdate, List<String> remoteFileNames, File localSubFileDir) throws IOException {
+    private void validateSubDirFiles(long lastUpdate, List<String> remoteFileNames
+            , File localSubFileDir) throws IOException {
         File localSubFile;
         File localLastModifyFile;
         for (String localFileName : remoteFileNames) {
             localSubFile = new File(localSubFileDir, localFileName);
-            localLastModifyFile = new File(localSubFileDir, localFileName + CenterResource.KEY_LAST_MODIFIED_EXTENDION);
+            localLastModifyFile = new File(localSubFileDir
+                    , localFileName + CenterResource.KEY_LAST_MODIFIED_EXTENDION);
             assertTrue("shall exist:" + localSubFile.getAbsolutePath(), localSubFile.exists());
             assertTrue(localLastModifyFile.getAbsolutePath(), localLastModifyFile.exists());
 
-            try (InputStream input = TestTopologyDir.class.getResourceAsStream(TOPOLOGY_EMPLOYEES + "/" + localFileName)) {
+            try (InputStream input
+                         = TestTopologyDir.class.getResourceAsStream(TOPOLOGY_EMPLOYEES + "/" + localFileName)) {
                 assertNotNull(input);
                 assertEquals("localFileName:" + localFileName, IOUtils.toString(input, TisUTF8.get()), FileUtils.readFileToString(localSubFile, TisUTF8.get()));
             }

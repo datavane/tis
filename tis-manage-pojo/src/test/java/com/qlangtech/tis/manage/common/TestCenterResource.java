@@ -32,12 +32,15 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-02-05 09:09
  */
-public class TestCenterResource extends TestCase {
+public class TestCenterResource extends TestCase  {
 
     static final String cfgFile = "com.qlangtech.tis.plugin.incr.IncrStreamFactory.xml";
     static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
 
-    static {
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
         Config.setTestDataDir();
     }
 

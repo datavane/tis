@@ -27,11 +27,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -64,12 +62,12 @@ public abstract class AbstractTableDumpTask implements TaskMapper {
 
     protected abstract TISDumpClient getDumpBeans(TaskContext context) throws Exception;
 
-    /**
-     * 在容器中注册额外的bean,比如大量的datasource
-     *
-     * @param factory
-     */
-    protected abstract void registerExtraBeanDefinition(DefaultListableBeanFactory factory);
+//    /**
+//     * 在容器中注册额外的bean,比如大量的datasource
+//     *
+//     * @param factory
+//     */
+//    protected abstract void registerExtraBeanDefinition(DefaultListableBeanFactory factory);
 
     // @Override
     @SuppressWarnings("all")
