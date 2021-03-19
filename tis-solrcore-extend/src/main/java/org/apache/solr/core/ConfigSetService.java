@@ -77,7 +77,7 @@ public abstract class ConfigSetService {
      * @param dcore the core's CoreDescriptor
      * @return a ConfigSet
      */
-    //@SuppressWarnings({"all"})
+    @SuppressWarnings({"all"})
     public final ConfigSet loadConfigSet(CoreDescriptor dcore) {
 
         SolrResourceLoader coreLoader = createCoreResourceLoader(dcore);
