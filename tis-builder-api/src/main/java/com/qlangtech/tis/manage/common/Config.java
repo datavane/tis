@@ -138,11 +138,13 @@ public class Config {
         this.dbCfg = new TisDbConfig();
         try {
             dbCfg.dbtype = p.getString("tis.datasource.type", true);
-            dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
-            dbCfg.url = p.getString("tis.datasource.url");
-            dbCfg.userName = p.getString("tis.datasource.username");
-            dbCfg.password = p.getString("tis.datasource.password");
             dbCfg.dbname = p.getString("tis.datasource.dbname", true);
+            if (DB_TYPE_MYSQL.equals(dbCfg.dbtype)) {
+                dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
+                dbCfg.url = p.getString("tis.datasource.url");
+                dbCfg.userName = p.getString("tis.datasource.username");
+                dbCfg.password = p.getString("tis.datasource.password");
+            }
         } catch (Exception e) {
             throw new IllegalStateException("please check the tis datasource cfg", e);
         }
