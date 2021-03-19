@@ -69,7 +69,6 @@ public class TisApp {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });
-        tisApp
         tisApp.start(args);
     }
 
