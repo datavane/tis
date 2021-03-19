@@ -156,7 +156,7 @@ public class JettyTISRunner {
     }
 
     private void init() {
-        if (contextAddCount.get() < 1 || this.handlers.getHandlers().length < 1) {
+        if (validateContextHandler()) {
             throw new IllegalStateException("handlers can not small than 1");
         }
         server = new Server(new QueuedThreadPool(450));
@@ -174,6 +174,10 @@ public class JettyTISRunner {
         server.setConnectors(new Connector[] { connector });
         server.setStopAtShutdown(true);
         server.setHandler(handlers);
+    }
+
+    public boolean validateContextHandler() {
+        return contextAddCount.get() < 1 || this.handlers.getHandlers().length < 1;
     }
 
     public interface IWebAppContextSetter {

@@ -44,20 +44,20 @@ public class TisApp {
 
     public static final String KEY_WEB_ROOT_DIR = "web.root.dir";
 
-    public static void setWebRootDir(File webRootDir) {
-        org.eclipse.jetty.client.api.Request.BeginListener b = new org.eclipse.jetty.client.api.Request.BeginListener() {
-
-            @Override
-            public void onBegin(org.eclipse.jetty.client.api.Request request) {
-                System.out.println("hahah");
-            }
-        };
-        b.onBegin(null);
-        if (!webRootDir.exists()) {
-            throw new IllegalStateException("root dir not exist:" + webRootDir.getAbsolutePath());
-        }
-        System.setProperty(KEY_WEB_ROOT_DIR, webRootDir.getAbsolutePath());
-    }
+//    public static void setWebRootDir(File webRootDir) {
+//        org.eclipse.jetty.client.api.Request.BeginListener b = new org.eclipse.jetty.client.api.Request.BeginListener() {
+//
+//            @Override
+//            public void onBegin(org.eclipse.jetty.client.api.Request request) {
+//                System.out.println("hahah");
+//            }
+//        };
+//        b.onBegin(null);
+//        if (!webRootDir.exists()) {
+//            throw new IllegalStateException("root dir not exist:" + webRootDir.getAbsolutePath());
+//        }
+//        System.setProperty(KEY_WEB_ROOT_DIR, webRootDir.getAbsolutePath());
+//    }
 
     private static Logger logger = LoggerFactory.getLogger(TisApp.class);
 
@@ -69,6 +69,7 @@ public class TisApp {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });
+        tisApp
         tisApp.start(args);
     }
 
@@ -88,10 +89,7 @@ public class TisApp {
     static final String PATH_WEB_XML = "WEB-INF/web.xml";
 
     private void initContext() throws Exception {
-        File root = new File(System.getProperty(KEY_WEB_ROOT_DIR, "."));
-        if (!root.exists()) {
-            throw new IllegalStateException("web.root.dir not exist:" + root.getAbsolutePath());
-        }
+        File root = getWebRootDir();
         logger.info("webapps context dir:{}", root.getAbsolutePath());
         File contextDir = null;
         for (String context : root.list()) {
@@ -119,6 +117,18 @@ public class TisApp {
             }
             this.jetty.addContext("/", contextDir, false);
         }
+
+        if (this.jetty.validateContextHandler()) {
+            throw new IllegalStateException("handlers can not small than 1,web rootDir:" + root.getAbsolutePath());
+        }
+    }
+
+    private File getWebRootDir() {
+        File root = new File(System.getProperty(KEY_WEB_ROOT_DIR, "."));
+        if (!root.exists()) {
+            throw new IllegalStateException("web.root.dir not exist:" + root.getAbsolutePath());
+        }
+        return root;
     }
 
     public TisApp(String servletContext, int port) throws Exception {
