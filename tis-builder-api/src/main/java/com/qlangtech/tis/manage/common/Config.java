@@ -275,11 +275,11 @@ public class Config {
                                 return props.getProperty(key);
                             }
                         };
-                    } catch (IOException ex) {
+                    } catch (Throwable ex) {
                         StringBuffer errMsg = new StringBuffer();
                         errMsg.append("config file err:\n");
                         errMsg.append("has tried twice\n");
-                        errMsg.append("secone err:").append(ex.getMessage()).append("\n");
+                        errMsg.append("second err:").append(ex.getMessage()).append("\n");
                         throw new RuntimeException(errMsg.toString(), ee);
                     }
 
