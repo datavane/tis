@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.util;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,10 +23,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * Conceptually a function from K -> V that computes values lazily and remembers the results.
  * Often used to implement a data store per key.
- * @since 1.281
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
+ * @since 1.281
  */
 public abstract class Memoizer<K, V> {
 
@@ -66,5 +68,9 @@ public abstract class Memoizer<K, V> {
      */
     public Iterable<V> values() {
         return store.values();
+    }
+
+    public Set<Map.Entry<K, V>> getEntries() {
+        return store.entrySet();
     }
 }

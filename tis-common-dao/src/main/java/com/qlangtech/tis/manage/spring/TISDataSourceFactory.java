@@ -217,7 +217,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
                 }
             };
         } else if (Config.DB_TYPE_DERBY.equals(dbType)) {
-
+            Objects.requireNonNull(dsFactory, "dsFactory can not be null");
             if (getDSFromJNDI) {
                 dataSource = getJndiDatasource(dsFactory);
             } else {
