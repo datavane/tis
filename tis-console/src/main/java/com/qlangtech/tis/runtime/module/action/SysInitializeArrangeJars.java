@@ -58,7 +58,7 @@ public class SysInitializeArrangeJars {
         throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
       }
       for (String jarFileName : subModuleLibDir.list()) {
-        jars.compute(jarFileName).add(new File(subModuleLibDir, jarFileName));
+        jars.get(jarFileName).add(new File(subModuleLibDir, jarFileName));
       }
     }
     File webStartDir = new File(uberDir, "web-start/lib");
@@ -71,6 +71,7 @@ public class SysInitializeArrangeJars {
       System.out.println("process file:" + subModuleJar.getKey());
       if (existJarFiles.contains(subModuleJar.getKey())) {
         subModuleJar.getValue().forEach((f) -> {
+          System.out.println("delete:" + f.getAbsolutePath());
           forceDeleteOnExit(f);
         });
       } else {
@@ -81,6 +82,7 @@ public class SysInitializeArrangeJars {
             first = false;
           } else {
             forceDeleteOnExit(subJar);
+            System.out.println("delete:" + subJar.getAbsolutePath());
           }
         }
       }
