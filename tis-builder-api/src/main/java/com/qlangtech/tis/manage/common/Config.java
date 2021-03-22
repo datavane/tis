@@ -276,7 +276,7 @@ public class Config {
                             }
                         };
                     } catch (IOException ex) {
-                        throw new RuntimeException(ex);
+                        throw new RuntimeException(ex.getMessage(), e);
                     }
 
                 }
