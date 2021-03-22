@@ -16,8 +16,10 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.util.Memoizer;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +37,15 @@ import java.util.Set;
  * @date 2021-03-22 14:59
  */
 public class SysInitializeArrangeJars {
-  private static final List<String> subDirs = Lists.newArrayList("tis-assemble", "solr", "tjs", "tis-collect");
+  // private static final List<Option> subDirs = Lists.newArrayList("tis-assemble", "solr", "tjs", "tis-collect");
+
+  private static final List<Option> subDirs
+    = Lists.newArrayList( //
+    new Option("tis-assemble", "tis-assemble.jar") //
+    , new Option("solr", "solr.jar")
+    , new Option("tjs", "tis.jar")
+    , new Option("tis-collect", "tis-collect.jar"));
+
   static final Memoizer<String, List<File>> jars = new Memoizer<String, List<File>>() {
     @Override
     public List<File> compute(String key) {
@@ -52,12 +62,12 @@ public class SysInitializeArrangeJars {
       throw new IllegalStateException("uberDir is not exist:" + uberDir.getAbsolutePath());
     }
     File subModuleLibDir = null;
-    for (String sbDir : subDirs) {
-      subModuleLibDir = new File(uberDir, sbDir + "/lib");
+    for (Option sbDir : subDirs) {
+      subModuleLibDir = new File(uberDir, sbDir.getName() + "/lib");
       if (!subModuleLibDir.exists()) {
         throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
       }
-      for (String jarFileName : subModuleLibDir.list()) {
+      for (String jarFileName : subModuleLibDir.list((dir, name) -> !StringUtils.equals(name, sbDir.getValue()))) {
         jars.get(jarFileName).add(new File(subModuleLibDir, jarFileName));
       }
     }
