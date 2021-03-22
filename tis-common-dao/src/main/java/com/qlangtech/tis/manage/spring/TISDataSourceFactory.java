@@ -25,9 +25,11 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jndi.JndiAccessor;
 
+import javax.naming.NamingException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -97,30 +99,40 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
   }
 
   private BasicDataSource dataSource;
+
+
   private final JndiAccessor jndiAccessor = new JndiAccessor();
 
   @Override
   public void afterPropertiesSet() throws Exception {
     Config.TisDbConfig dbType = Config.getDbCfg();
-    if (this.getDSFromJNDI) {
+//    if (this.getDSFromJNDI) {
+//      getJndiDatasource();
+//      return;
+//    } else {
+    this.dataSource = createDataSource(dbType.dbtype, dbType, true, false).dataSource;
+    // register the tis datasource in into the JNDI of jetty
+
+    //   }
+
+  }
+
+  private static BasicDataSource getJndiDatasource(TISDataSourceFactory dsFactory) {
+    Objects.requireNonNull(dsFactory, "param dsFactory can not be null");
+    try {
       int i = 0;
       while (i < 3) {
-        BasicDataSource lookup = jndiAccessor.getJndiTemplate().lookup(DaoUtils.KEY_TIS_DATSOURCE_JNDI, BasicDataSource.class);
+        BasicDataSource lookup = dsFactory.jndiAccessor.getJndiTemplate().lookup(DaoUtils.KEY_TIS_DATSOURCE_JNDI, BasicDataSource.class);
         if (lookup == null) {
           Thread.sleep(4000);
         } else {
-          this.dataSource = lookup;
-          return;
+          return lookup;
         }
       }
-      throw new IllegalStateException(" can not find jndi datasource:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " instance");
-    } else {
-      this.dataSource = createDataSource(dbType.dbtype, dbType, true, false).dataSource;
-      // register the tis datasource in into the JNDI of jetty
-      jndiAccessor.getJndiTemplate().bind(DaoUtils.KEY_TIS_DATSOURCE_JNDI, this.dataSource);
-      logger.info("have register the jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " datasource into context");
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-
+    throw new IllegalStateException(" can not find jndi datasource:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " instance");
   }
 
   @Override
@@ -139,6 +151,19 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
   }
 
   public static SystemDBInit createDataSource(String dbType, Config.TisDbConfig dbCfg, boolean useDBName, boolean dbAutoCreate) {
+    return createDataSource(dbType, dbCfg, useDBName, dbAutoCreate, false, null);
+  }
+
+  /**
+   * @param dbType
+   * @param dbCfg
+   * @param useDBName
+   * @param dbAutoCreate
+   * @param getDSFromJNDI 当是derby数据源类型时，需要从jndi容器中取ds
+   * @return
+   */
+  public static SystemDBInit createDataSource(String dbType, Config.TisDbConfig dbCfg
+    , boolean useDBName, boolean dbAutoCreate, boolean getDSFromJNDI, TISDataSourceFactory dsFactory) {
     if (StringUtils.isEmpty(dbType)) {
       throw new IllegalArgumentException("param dbType can not be null");
     }
@@ -193,13 +218,25 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
         }
       };
     } else if (Config.DB_TYPE_DERBY.equals(dbType)) {
-      System.setProperty("derby.system.home", Config.getDataDir().getAbsolutePath());
+
+      if (getDSFromJNDI) {
+        dataSource = getJndiDatasource(dsFactory);
+      } else {
+        System.setProperty("derby.system.home", Config.getDataDir().getAbsolutePath());
 //  <bean id="clusterStatusDatasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 //    <property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
 //    <property name="url" value="jdbc:derby:tis_console;create=true"/>
 //  </bean>
-      dataSource.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
-      dataSource.setUrl("jdbc:derby:" + dbCfg.dbname + ";create=" + dbAutoCreate);
+        dataSource.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
+        dataSource.setUrl("jdbc:derby:" + dbCfg.dbname + ";create=" + dbAutoCreate);
+        try {
+          dsFactory.jndiAccessor.getJndiTemplate().bind(DaoUtils.KEY_TIS_DATSOURCE_JNDI, dataSource);
+          logger.info("have register the jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " datasource into context");
+        } catch (NamingException e) {
+          throw new RuntimeException("jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI, e);
+        }
+      }
+
       return new SystemDBInit(dataSource) {
         @Override
         public boolean dbTisConsoleExist(Config.TisDbConfig dbCfg, Statement statement) throws SQLException {
