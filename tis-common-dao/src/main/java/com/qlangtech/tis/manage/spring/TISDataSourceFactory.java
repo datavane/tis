@@ -229,11 +229,15 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
 //  </bean>
         dataSource.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
         dataSource.setUrl("jdbc:derby:" + dbCfg.dbname + ";create=" + dbAutoCreate);
-        try {
-          dsFactory.jndiAccessor.getJndiTemplate().bind(DaoUtils.KEY_TIS_DATSOURCE_JNDI, dataSource);
-          logger.info("have register the jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " datasource into context");
-        } catch (NamingException e) {
-          throw new RuntimeException("jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI, e);
+        if (!dbAutoCreate) {
+          // 在jetty容器中启动
+          try {
+            Objects.requireNonNull(dsFactory.jndiAccessor.getJndiTemplate(),"getJndiTemplate can not be null");
+            dsFactory.jndiAccessor.getJndiTemplate().bind(DaoUtils.KEY_TIS_DATSOURCE_JNDI, dataSource);
+            logger.info("have register the jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " datasource into context");
+          } catch (NamingException e) {
+            throw new RuntimeException("jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI, e);
+          }
         }
       }
 
