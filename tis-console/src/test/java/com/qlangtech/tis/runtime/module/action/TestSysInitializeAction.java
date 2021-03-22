@@ -15,13 +15,16 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.test.TISEasyMock;
 import junit.framework.TestCase;
+import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -60,8 +63,17 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     Config.setConfig(config);
 
     replay();
+    AtomicBoolean hasExecDSCreateInspector = new AtomicBoolean();
+    TISDataSourceFactory.dsCreateInspector = new TISDataSourceFactory.IDSCreatorInspect() {
+      @Override
+      public void checkDataSource(boolean getDSFromJNDI, BasicDataSource dataSource) {
+        assertFalse(getDSFromJNDI);
+        assertEquals("jdbc:derby:" + mockDBType.dbname + ";create=true", dataSource.getUrl());
+        hasExecDSCreateInspector.set(true);
+      }
+    };
     SysInitializeAction.main(args);
-
+    assertTrue("hasExecDSCreateInspector must be true", hasExecDSCreateInspector.get());
     // File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
     assertTrue("initialSuccessToken fiel:" + initialSuccessToken.getAbsolutePath(), initialSuccessToken.exists());
 

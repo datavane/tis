@@ -153,15 +153,15 @@ public class SysInitializeAction   //extends BasicModule
           }
         }
       }
+
+      Objects.requireNonNull(dsProcess, "dataSource can not be null");
+      systemDataInitialize(dsProcess.needInitZkPath());
     } finally {
       try {
         dsProcess.close();
       } catch (Throwable e) {
-
       }
     }
-    Objects.requireNonNull(dsProcess, "dataSource can not be null");
-    systemDataInitialize(dsProcess.needInitZkPath());
   }
 
 

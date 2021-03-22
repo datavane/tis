@@ -39,6 +39,8 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
     private static final Logger logger = LoggerFactory.getLogger(TISDataSourceFactory.class);
 
     public static final ThreadLocal<SystemDBInit> systemDBInitThreadLocal = new ThreadLocal<>();
+    public static IDSCreatorInspect dsCreateInspector = new IDSCreatorInspect() {
+    };
     // 优先从JDNI环境中取DS信息
     private boolean getDSFromJNDI;
 
@@ -233,7 +235,9 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
 //    <property name="url" value="jdbc:derby:tis_console;create=true"/>
 //  </bean>
                 dataSource.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
-                dataSource.setUrl("jdbc:derby:" + dbCfg.dbname + ";create=" + dbAutoCreate);
+                String connURL = "jdbc:derby:" + dbCfg.dbname + ";create=" + dbAutoCreate;
+                dataSource.setUrl(connURL);
+
                 if (!dbAutoCreate) {
                     // 在jetty容器中启动
                     try {
@@ -245,7 +249,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
                     }
                 }
             }
-
+            dsCreateInspector.checkDataSource(getDSFromJNDI, dataSource);
             return new SystemDBInit(dataSource) {
                 @Override
                 public boolean dbTisConsoleExist(Config.TisDbConfig dbCfg, Statement statement) throws SQLException {
@@ -307,5 +311,10 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
         }
 
         throw new IllegalStateException("dbType:" + dbType + " is illegal");
+    }
+
+    public interface IDSCreatorInspect {
+        default void checkDataSource(boolean getDSFromJNDI, BasicDataSource dataSource) {
+        }
     }
 }
