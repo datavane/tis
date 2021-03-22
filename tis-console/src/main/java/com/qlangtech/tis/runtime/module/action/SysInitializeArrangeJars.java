@@ -47,7 +47,7 @@ public class SysInitializeArrangeJars {
     if (args.length < 1) {
       throw new IllegalStateException("please set uberDir ");
     }
-    File uberDir = new File(args[1]);
+    File uberDir = new File(args[0]);
     if (!uberDir.exists()) {
       throw new IllegalStateException("uberDir is not exist:" + uberDir.getAbsolutePath());
     }
