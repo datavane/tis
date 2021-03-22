@@ -163,7 +163,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
    * @return
    */
   public static SystemDBInit createDataSource(String dbType, Config.TisDbConfig dbCfg
-    , boolean useDBName, boolean dbAutoCreate, boolean getDSFromJNDI, TISDataSourceFactory dsFactory) {
+    , boolean useDBName, final boolean dbAutoCreate, boolean getDSFromJNDI, TISDataSourceFactory dsFactory) {
     if (StringUtils.isEmpty(dbType)) {
       throw new IllegalArgumentException("param dbType can not be null");
     }
@@ -232,11 +232,11 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
         if (!dbAutoCreate) {
           // 在jetty容器中启动
           try {
-            Objects.requireNonNull(dsFactory.jndiAccessor.getJndiTemplate(),"getJndiTemplate can not be null");
+            Objects.requireNonNull(dsFactory.jndiAccessor.getJndiTemplate(), "getJndiTemplate can not be null");
             dsFactory.jndiAccessor.getJndiTemplate().bind(DaoUtils.KEY_TIS_DATSOURCE_JNDI, dataSource);
             logger.info("have register the jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " datasource into context");
           } catch (NamingException e) {
-            throw new RuntimeException("jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI, e);
+            throw new RuntimeException("dbAutoCreate:" + dbAutoCreate + "jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI, e);
           }
         }
       }
