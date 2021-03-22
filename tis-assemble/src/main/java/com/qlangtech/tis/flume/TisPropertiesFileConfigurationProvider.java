@@ -37,7 +37,7 @@ public class TisPropertiesFileConfigurationProvider extends AbstractConfiguratio
     protected FlumeConfiguration getFlumeConfiguration() {
         InputStream reader = null;
         try {
-            reader = this.getClass().getResourceAsStream("/flume.conf");
+            reader = this.getClass().getResourceAsStream("/flume.properties");
             Properties properties = new Properties();
             properties.load(reader);
             return new FlumeConfiguration(toMap(properties));

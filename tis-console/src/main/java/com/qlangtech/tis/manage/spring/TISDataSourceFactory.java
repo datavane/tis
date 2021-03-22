@@ -135,7 +135,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
 
         @Override
         public boolean needInitZkPath() {
-          return false;
+          return true;
         }
 
         @Override

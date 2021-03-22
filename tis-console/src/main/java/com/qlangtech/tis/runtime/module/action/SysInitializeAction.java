@@ -217,11 +217,11 @@ public class SysInitializeAction   //extends BasicModule
       throw new IllegalStateException("tis has initialized:" + getSysInitializedTokenFile().getAbsolutePath());
     }
 
-    if (needZkInit && !initializeZkPath()) {
+
+    if (needZkInit && !initializeZkPath(Config.getZKHost())) {
       // 初始化ZK失败
       return;
     }
-
 
     UsrDptRelationCriteria c = new UsrDptRelationCriteria();
     c.createCriteria().andUsrIdEqualTo(ADMIN_ID);
@@ -276,15 +276,16 @@ public class SysInitializeAction   //extends BasicModule
   }
 
   // 初始化ZK内容
-  protected boolean initializeZkPath() {
+  protected boolean initializeZkPath(String zkHost) {
 
-    Matcher matcher = PATTERN_ZK_ADDRESS.matcher(Config.getZKHost());
+    Matcher matcher = PATTERN_ZK_ADDRESS.matcher(zkHost);
     if (!matcher.matches()) {
-      throw new IllegalStateException("zk address " + Config.getZKHost() + " is not match " + PATTERN_ZK_ADDRESS);
+      throw new IllegalStateException("zk address " + zkHost + " is not match " + PATTERN_ZK_ADDRESS);
     }
 
     final String zkServer = matcher.group(1);
     String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
+
     if (StringUtils.endsWith(zkSubDir, "/")) {
       zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
     }
@@ -308,7 +309,7 @@ public class SysInitializeAction   //extends BasicModule
       }
     }
 
-    TisZkClient zkClient = new TisZkClient(Config.getZKHost(), 60000);
+    TisZkClient zkClient = new TisZkClient(zkHost, 60000);
     try (SolrZkClient solrZk = zkClient.getZK()) {
       try {
         createClusterZkNodes(solrZk);

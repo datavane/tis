@@ -68,4 +68,10 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     verifyAll();
   }
 
+
+//  public void testZKInitialize() {
+//    SysInitializeAction sysInitializeAction = new SysInitializeAction();
+//    assertTrue(sysInitializeAction.initializeZkPath("192.168.28.201:2181/tis/cloud"));
+//  }
+
 }
