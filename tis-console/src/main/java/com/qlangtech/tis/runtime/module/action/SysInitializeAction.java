@@ -114,6 +114,7 @@ public class SysInitializeAction   //extends BasicModule
 
     try {
       dsProcess = TISDataSourceFactory.createDataSource(dbType, dbCfg, false, true);
+      TISDataSourceFactory.systemDBInitThreadLocal.set(dsProcess);
       try (Connection conn = dsProcess.getDS().getConnection()) {
         try (Statement statement = conn.createStatement()) {
 
