@@ -110,15 +110,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
     @Override
     public void afterPropertiesSet() throws Exception {
         Config.TisDbConfig dbType = Config.getDbCfg();
-//    if (this.getDSFromJNDI) {
-//      getJndiDatasource();
-//      return;
-//    } else {
-        this.dataSource = createDataSource(dbType.dbtype, dbType, true, false).dataSource;
-        // register the tis datasource in into the JNDI of jetty
-
-        //   }
-
+        this.dataSource = createDataSource(dbType.dbtype, dbType, true, false, this.getDSFromJNDI, this).dataSource;
     }
 
     private static BasicDataSource getJndiDatasource(TISDataSourceFactory dsFactory) {
