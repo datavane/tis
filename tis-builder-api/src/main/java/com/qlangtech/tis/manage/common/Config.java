@@ -228,7 +228,9 @@ public class Config {
         public void validate(Throwable ee) {
             if (this.propsStream == null) {
                 URL cpRoot = Config.class.getResource("/");
-                throw new IllegalStateException("file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath() + ",current classpath root:" + cpRoot.toString(), ee);
+                URL cpThreadRoot = Thread.currentThread().getContextClassLoader().getResource("/");
+                throw new IllegalStateException("file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath()
+                        + ",current classpath root url:" + cpRoot.toString() + ",thread classpath:" + cpThreadRoot.toString(), ee);
             }
             //Objects.requireNonNull(this.propsStream, "file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath());
         }
