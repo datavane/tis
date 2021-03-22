@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
@@ -226,7 +227,8 @@ public class Config {
 
         public void validate(Throwable ee) {
             if (this.propsStream == null) {
-                throw new IllegalStateException("file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath(), ee);
+                URL cpRoot = Config.class.getResource("/");
+                throw new IllegalStateException("file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath() + ",current classpath root:" + cpRoot.toString(), ee);
             }
             //Objects.requireNonNull(this.propsStream, "file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath());
         }
@@ -277,12 +279,12 @@ public class Config {
                                 return props.getProperty(key);
                             }
                         };
-                    } catch (Throwable ex) {
+                    } catch (IOException ex) {
                         StringBuffer errMsg = new StringBuffer();
                         errMsg.append("config file err:\n");
                         errMsg.append("has tried twice\n");
                         errMsg.append("second err:").append(ex.getMessage()).append("\n");
-                        throw new RuntimeException(errMsg.toString(), ee);
+                        throw new RuntimeException(errMsg.toString());
                     }
 
                 }
