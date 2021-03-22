@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
@@ -225,8 +224,11 @@ public class Config {
             return propsFile;
         }
 
-        public void validate() {
-            Objects.requireNonNull(this.propsStream, "file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath());
+        public void validate(Throwable ee) {
+            if (this.propsStream == null) {
+                throw new IllegalStateException("file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath(), ee);
+            }
+            //Objects.requireNonNull(this.propsStream, "file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath());
         }
 
         public TestCfgStream(File propsFile) {
@@ -264,7 +266,7 @@ public class Config {
                     Properties props = new Properties();
                     try {
                         TestCfgStream cfgStream = openTestCfgStream();
-                        cfgStream.validate();
+                        cfgStream.validate(ee);
                         try (InputStream input = cfgStream.propsStream) {
                             props.load(input);
                         }

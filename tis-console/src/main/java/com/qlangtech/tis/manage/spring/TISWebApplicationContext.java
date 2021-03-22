@@ -62,7 +62,7 @@ public class TISWebApplicationContext extends XmlWebApplicationContext {
         return super.getInputStream();
       } catch (IOException e) {
         Config.TestCfgStream stream = Config.openTestCfgStream();
-        stream.validate();
+        stream.validate(e);
 //        if (stream.getPropsStream() == null) {
 //          throw new RuntimeException("cfg props can not be find,prop file:" + stream.getPropsFile(), e);
 //        }
