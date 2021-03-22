@@ -259,7 +259,7 @@ public class Config {
                             return bundle.getString(key);
                         }
                     };
-                } catch (Throwable e) {
+                } catch (Throwable ee) {
                     // 测试环境中取工程目录下的配置文件
                     Properties props = new Properties();
                     try {
@@ -276,7 +276,11 @@ public class Config {
                             }
                         };
                     } catch (IOException ex) {
-                        throw new RuntimeException(ex.getMessage(), e);
+                        StringBuffer errMsg = new StringBuffer();
+                        errMsg.append("config file err:\n");
+                        errMsg.append("has tried twice\n");
+                        errMsg.append("secone err:").append(ex.getMessage()).append("\n");
+                        throw new RuntimeException(errMsg.toString(), ee);
                     }
 
                 }
