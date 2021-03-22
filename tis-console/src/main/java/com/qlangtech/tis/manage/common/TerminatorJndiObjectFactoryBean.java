@@ -28,8 +28,6 @@ public class TerminatorJndiObjectFactoryBean extends JndiObjectFactoryBean {
 
     private TerminatorJndiObjectFactoryBean() {
         super();
-    // System.out
-    // .println("TerminatorJndiObjectFactoryBean start==============================");
     }
 
     public DataSource getDatasource() {

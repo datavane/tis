@@ -15,11 +15,15 @@
 package com.qlangtech.tis.manage.spring;
 
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.DaoUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.jndi.JndiAccessor;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,7 +34,109 @@ import java.sql.Statement;
  * @date 2021-03-10 14:30
  */
 public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, InitializingBean, DisposableBean {
+  private static final Logger logger = LoggerFactory.getLogger(TISDataSourceFactory.class);
+  // 优先从JDNI环境中取DS信息
+  private boolean getDSFromJNDI;
 
+  public void setGetDSFromJNDI(boolean getDSFromJNDI) {
+    this.getDSFromJNDI = getDSFromJNDI;
+  }
+
+  public static abstract class SystemDBInit {
+    private final BasicDataSource dataSource;
+
+    public SystemDBInit(BasicDataSource dataSource) {
+      this.dataSource = dataSource;
+    }
+
+    public BasicDataSource getDS() {
+      return this.dataSource;
+    }
+
+    /**
+     * 初始化过程中是否需要初始化 ZK节点中的值
+     *
+     * @return
+     */
+    public abstract boolean needInitZkPath();
+
+    public abstract boolean dbTisConsoleExist(Config.TisDbConfig dbCfg, Statement statement) throws SQLException;
+
+    public abstract void createSysDB(Config.TisDbConfig dbCfg, Statement statement) throws SQLException;
+
+    public void close() {
+      try {
+        dataSource.close();
+      } catch (SQLException e) {
+      }
+    }
+
+
+    public abstract void dropDB(Config.TisDbConfig dbCfg, Statement statement) throws SQLException;
+
+    /**
+     * 处理执行SQL，derby需要将原先sql中 ` 字符去掉
+     *
+     * @param result
+     * @return
+     */
+    public String processSql(StringBuffer result) {
+      return result.toString();
+    }
+
+    public abstract boolean shallSkip(String sql);
+  }
+
+  @Override
+  public void destroy() throws Exception {
+    try {
+      dataSource.close();
+    } catch (Throwable e) {
+
+    }
+  }
+
+  private BasicDataSource dataSource;
+  private final JndiAccessor jndiAccessor = new JndiAccessor();
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    Config.TisDbConfig dbType = Config.getDbCfg();
+    if (this.getDSFromJNDI) {
+      int i = 0;
+      while (i < 3) {
+        BasicDataSource lookup = jndiAccessor.getJndiTemplate().lookup(DaoUtils.KEY_TIS_DATSOURCE_JNDI, BasicDataSource.class);
+        if (lookup == null) {
+          Thread.sleep(4000);
+        } else {
+          this.dataSource = lookup;
+          return;
+        }
+      }
+      throw new IllegalStateException(" can not find jndi datasource:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " instance");
+    } else {
+      this.dataSource = createDataSource(dbType.dbtype, dbType, true, false).dataSource;
+      // register the tis datasource in into the JNDI of jetty
+      jndiAccessor.getJndiTemplate().bind(DaoUtils.KEY_TIS_DATSOURCE_JNDI, this.dataSource);
+      logger.info("have register the jndi:" + DaoUtils.KEY_TIS_DATSOURCE_JNDI + " datasource into context");
+    }
+
+  }
+
+  @Override
+  public BasicDataSource getObject() throws Exception {
+    return this.dataSource;
+  }
+
+  @Override
+  public Class<BasicDataSource> getObjectType() {
+    return BasicDataSource.class;
+  }
+
+  @Override
+  public boolean isSingleton() {
+    return true;
+  }
 
   public static SystemDBInit createDataSource(String dbType, Config.TisDbConfig dbCfg, boolean useDBName, boolean dbAutoCreate) {
     if (StringUtils.isEmpty(dbType)) {
@@ -155,83 +261,5 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
     }
 
     throw new IllegalStateException("dbType:" + dbType + " is illegal");
-  }
-
-
-  public static abstract class SystemDBInit {
-    private final BasicDataSource dataSource;
-
-    public SystemDBInit(BasicDataSource dataSource) {
-      this.dataSource = dataSource;
-    }
-
-    public BasicDataSource getDS() {
-      return this.dataSource;
-    }
-
-    /**
-     * 初始化过程中是否需要初始化 ZK节点中的值
-     *
-     * @return
-     */
-    public abstract boolean needInitZkPath();
-
-    public abstract boolean dbTisConsoleExist(Config.TisDbConfig dbCfg, Statement statement) throws SQLException;
-
-    public abstract void createSysDB(Config.TisDbConfig dbCfg, Statement statement) throws SQLException;
-
-    public void close() {
-      try {
-        dataSource.close();
-      } catch (SQLException e) {
-      }
-    }
-
-
-    public abstract void dropDB(Config.TisDbConfig dbCfg, Statement statement) throws SQLException;
-
-    /**
-     * 处理执行SQL，derby需要将原先sql中 ` 字符去掉
-     *
-     * @param result
-     * @return
-     */
-    public String processSql(StringBuffer result) {
-      return result.toString();
-    }
-
-    public abstract boolean shallSkip(String sql);
-  }
-
-  @Override
-  public void destroy() throws Exception {
-    try {
-      dataSource.close();
-    } catch (Throwable e) {
-
-    }
-  }
-
-  private BasicDataSource dataSource;
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    Config.TisDbConfig dbType = Config.getDbCfg();
-    this.dataSource = createDataSource(dbType.dbtype, dbType, true, false).dataSource;
-  }
-
-  @Override
-  public BasicDataSource getObject() throws Exception {
-    return this.dataSource;
-  }
-
-  @Override
-  public Class<BasicDataSource> getObjectType() {
-    return BasicDataSource.class;
-  }
-
-  @Override
-  public boolean isSingleton() {
-    return true;
   }
 }
