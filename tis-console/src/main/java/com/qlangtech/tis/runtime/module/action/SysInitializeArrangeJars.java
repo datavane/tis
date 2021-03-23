@@ -83,17 +83,17 @@ public class SysInitializeArrangeJars {
     }
 
     // 将web-start中已有jar在子工程中去掉
-    for (SubProj sbDir : subDirs) {
-      subModuleLibDir = new File(uberDir, sbDir.getName() + "/lib");
-      if (!subModuleLibDir.exists()) {
-        throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
-      }
-      for (String jarFileName : subModuleLibDir.list()) {
-        if (existJarFiles.contains(jarFileName)) {
-          FileUtils.deleteQuietly(new File(subModuleLibDir, jarFileName));
-        }
-      }
-    }
+//    for (SubProj sbDir : subDirs) {
+//      subModuleLibDir = new File(uberDir, sbDir.getName() + "/lib");
+//      if (!subModuleLibDir.exists()) {
+//        throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
+//      }
+//      for (String jarFileName : subModuleLibDir.list()) {
+//        if (existJarFiles.contains(jarFileName)) {
+//          FileUtils.deleteQuietly(new File(subModuleLibDir, jarFileName));
+//        }
+//      }
+//    }
 
     for (SubProj sbDir : subDirs) {
       subModuleLibDir = new File(uberDir, sbDir.getName() + "/lib");
