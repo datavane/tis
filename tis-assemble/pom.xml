@@ -33,13 +33,13 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-web-start</artifactId>
         </dependency>
- -->
+
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-web-start</artifactId>
             <scope>provided</scope>
         </dependency>
-
+ -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
