@@ -27,12 +27,13 @@
     <env-entry-type>java.lang.String</env-entry-type>
     <env-entry-value>solr</env-entry-value>
   </env-entry>
+  <!--
   <env-entry>
     <env-entry-name>solr/home</env-entry-name>
     <env-entry-type>java.lang.String</env-entry-type>
     <env-entry-value>/opt/data/solrhome</env-entry-value>
   </env-entry>
-
+  -->
   <listener>
     <listener-class>com.qlangtech.tis.servlet.listener.RemoveFieldCacheListener</listener-class>
   </listener>

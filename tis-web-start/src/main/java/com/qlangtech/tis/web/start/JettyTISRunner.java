@@ -30,6 +30,9 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -258,14 +261,35 @@ public class JettyTISRunner {
         start(true);
     }
 
+    private static final String KEY_DATA_DIR = "data.dir";
+
+    private static File getDataDir() {
+        File dir = new File(System.getProperty(KEY_DATA_DIR, "/opt/data/tis"));
+        if (!(dir.isDirectory() && dir.exists())) {
+            throw new IllegalStateException("dir:" + dir.getAbsolutePath() + " is invalid DATA DIR");
+        }
+        return dir;
+    }
+
     private void start(boolean waitForSolr) throws Exception {
         this.init();
         if (!server.isRunning()) {
             server.start();
+            this.setSolrHomeJndi();
             server.join();
         }
         // if (waitForSolr)
         // waitForSolr(context);
+    }
+
+    private void setSolrHomeJndi() throws NamingException {
+        Context c = new InitialContext();
+        File solrHome = (new File(getDataDir(), "solrhome"));
+        File solrXML = new File(solrHome, "solr.xml");
+        if (!solrXML.exists()) {
+            throw new IllegalStateException("solr.xml is not exist:" + solrXML.getAbsolutePath());
+        }
+        c.bind("java:comp/env/solr/home", solrHome.getAbsolutePath());
     }
 
     private void stop() throws Exception {
