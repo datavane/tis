@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,6 +29,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -135,7 +136,7 @@ public class JettyTISRunner {
             }
             // contextCloassLoader.addClassPath(Resource.newResource(confDir));
             jarfiles.add(confDir.toURI().toURL());
-            TISAppClassLoader contextCloassLoader = new TISAppClassLoader(Thread.currentThread().getContextClassLoader(), jarfiles.toArray(new URL[jarfiles.size()]));
+            TISAppClassLoader contextCloassLoader = new TISAppClassLoader(context, Thread.currentThread().getContextClassLoader(), jarfiles.toArray(new URL[jarfiles.size()]));
             webAppContext.setClassLoader(contextCloassLoader);
         } else {
             webAppContext.setClassLoader(this.getClass().getClassLoader());
@@ -171,7 +172,7 @@ public class JettyTISRunner {
         HttpConfiguration configuration = new HttpConfiguration();
         connector.addConnectionFactory(new HTTP2CServerConnectionFactory(configuration));
         connector.setPort(port);
-        server.setConnectors(new Connector[] { connector });
+        server.setConnectors(new Connector[]{connector});
         server.setStopAtShutdown(true);
         server.setHandler(handlers);
     }
@@ -216,21 +217,21 @@ public class JettyTISRunner {
     }
 
     public void addServlet(HttpServlet servlet, String pathSpec) {
-    // this.rootContext.addServlet(new ServletHolder(servlet), pathSpec);
+        // this.rootContext.addServlet(new ServletHolder(servlet), pathSpec);
     }
 
     public void addFilter(FilterHolder filter, String urlpattern) {
-    // this.rootContext.addFilter(filter, urlpattern,
-    // EnumSet.of(DispatcherType.REQUEST));
-    // FilterRegistrationBean registrationBean = new
-    // FilterRegistrationBean();
-    // registrationBean.setFilter(new TisSolrDispatchFilter());
-    // registrationBean.addUrlPatterns("/*");
-    // registrationBean.addInitParameter("excludePatterns",
-    // "/css/.+,/js/.+,/img/.+,/tpl/.+");
-    // registrationBean.setName("SolrRequestFilter");
-    // registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-    // return registrationBean;
+        // this.rootContext.addFilter(filter, urlpattern,
+        // EnumSet.of(DispatcherType.REQUEST));
+        // FilterRegistrationBean registrationBean = new
+        // FilterRegistrationBean();
+        // registrationBean.setFilter(new TisSolrDispatchFilter());
+        // registrationBean.addUrlPatterns("/*");
+        // registrationBean.addInitParameter("excludePatterns",
+        // "/css/.+,/js/.+,/img/.+,/tpl/.+");
+        // registrationBean.setName("SolrRequestFilter");
+        // registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        // return registrationBean;
     }
 
     // public static class InnerFilter implements Filter {
@@ -262,14 +263,14 @@ public class JettyTISRunner {
             server.start();
             server.join();
         }
-    // if (waitForSolr)
-    // waitForSolr(context);
+        // if (waitForSolr)
+        // waitForSolr(context);
     }
 
     private void stop() throws Exception {
         if (server.isRunning()) {
             server.stop();
-        // server.join();
+            // server.join();
         }
     }
 
