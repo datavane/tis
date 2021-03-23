@@ -27,15 +27,12 @@ import java.util.concurrent.TimeUnit;
  * @create: 2020-05-01 09:27
  */
 public class IncrStatusServer {
-
+    private static final Logger logger = LoggerFactory.getLogger(IncrStatusServer.class);
     private final int port;
-
     // private final Server server;
     private ServerBuilder<?> serverBuilder;
 
     private Server server;
-
-    private static final Logger logger = LoggerFactory.getLogger(IncrStatusServer.class);
 
     public IncrStatusServer(int port) throws IOException {
         this(ServerBuilder.forPort(port), port);
@@ -47,7 +44,7 @@ public class IncrStatusServer {
     public IncrStatusServer(ServerBuilder<?> serverBuilder, int port) {
         this.port = port;
         this.serverBuilder = serverBuilder;
-    // serverBuilder.addService(IncrStatusUmbilicalProtocolImpl.getInstance());
+
     }
 
     public void addService(BindableService bindSvc) {
