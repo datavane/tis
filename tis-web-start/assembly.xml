@@ -58,7 +58,7 @@
 				<!--
 				<exclude>*:logback-*</exclude>
 				-->
-				<exclude>*:tis-web-start*</exclude>
+				<exclude>${groupId}:${artifactId}</exclude>
 				<exclude>org.mortbay.jetty:jetty</exclude>
 				<exclude>org.mortbay.jetty:jetty-util</exclude>
 				<exclude>*:log4j</exclude>
