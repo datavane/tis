@@ -201,7 +201,7 @@
   </select>
 
   <update id="ibatorgenerated_updateLastProcessTime" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria">
-       update application set last_process_time = now()
+       update application set last_process_time = CURRENT_TIMESTAMP
        <include refid="application.ibatorgenerated_Example_Where_Clause" />
   </update>
 

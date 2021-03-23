@@ -159,7 +159,7 @@ SELECT rr.from_time as gmt_modified,rr.to_time as gmt_create,
   FROM
 (
   select  nums.a,@a as from_time ,@a:= date_add( @a,interval 60 minute ) as to_time
-    from nums,(select @a:=date_add( date(now()),interval -4 day ) f) a where @a < date_add( date(now()),interval 1 day )
+    from nums,(select @a:=date_add( date(CURRENT_TIMESTAMP),interval -4 day ) f) a where @a < date_add( date(CURRENT_TIMESTAMP),interval 1 day )
 )rr left outer join cluster_snapshot sn
                         on (sn.gmt_create <= rr.to_time  and sn.gmt_create > rr.from_time and sn.service_name=#appName#)
 GROUP BY rr.a
@@ -181,7 +181,7 @@ SELECT rr.from_time as gmt_modified,rr.to_time as gmt_create,
   FROM
 (
   select  nums.a,@a as from_time ,@a:= date_add( @a,interval 1 day ) as to_time
-    from nums,(select @a:=date_add( date(now()),interval -30 day ) f) a where @a < date_add( date(now()),interval 1 day )
+    from nums,(select @a:=date_add( date(CURRENT_TIMESTAMP),interval -30 day ) f) a where @a < date_add( date(CURRENT_TIMESTAMP),interval 1 day )
 )rr left outer join cluster_snapshot sn
                         on (sn.gmt_create <= rr.to_time  and sn.gmt_create > rr.from_time and sn.service_name=#appName#)
 GROUP BY rr.a

@@ -72,7 +72,7 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
        ) as per on (c.app_id=per.app_id 
                     AND c.data_type=per.data_type  )
  where ((per.app_id is not null  AND date(c.gmt_create) > (per.last_update)) 
-         OR (per.app_id is null)) AND (c.gmt_create)<date(now())
+         OR (per.app_id is null)) AND (c.gmt_create)<date(CURRENT_TIMESTAMP)
  GROUP BY c.app_id,c.data_type,date(c.gmt_create)
 	]]>
 	</insert>
@@ -85,7 +85,7 @@ SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create)
 		app_id)
 		VALUES
 		<iterate conjunction=",">
-			( now(), #[].dataType:VARCHAR#,
+			( CURRENT_TIMESTAMP, #[].dataType:VARCHAR#,
 			#[].incrNumber:INTEGER#,#[].appId:BIGINT#)
 		</iterate>
 	</insert>

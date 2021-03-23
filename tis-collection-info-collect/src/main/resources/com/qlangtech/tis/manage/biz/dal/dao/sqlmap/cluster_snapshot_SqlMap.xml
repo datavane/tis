@@ -139,8 +139,8 @@
 		doc_number)
 		values
 		<iterate conjunction=",">
-			( now(),
-			now(),
+			( CURRENT_TIMESTAMP,
+			CURRENT_TIMESTAMP,
 			#[].serviceName:VARCHAR#,
 			0,
 			0,
