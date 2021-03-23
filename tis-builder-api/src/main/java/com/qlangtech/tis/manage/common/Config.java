@@ -229,6 +229,7 @@ public class Config {
             if (this.propsStream == null) {
                 URL cpRoot = Config.class.getResource("/");
                 URL cpThreadRoot = Thread.currentThread().getContextClassLoader().getResource("/");
+
                 throw new IllegalStateException("file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath()
                         + ",current classpath root url:" + cpRoot.toString() + ",thread classpath:" + cpThreadRoot.toString(), ee);
             }
