@@ -136,7 +136,8 @@ public class JettyTISRunner {
             }
             // contextCloassLoader.addClassPath(Resource.newResource(confDir));
             jarfiles.add(confDir.toURI().toURL());
-            TISAppClassLoader contextCloassLoader = new TISAppClassLoader(context, Thread.currentThread().getContextClassLoader(), jarfiles.toArray(new URL[jarfiles.size()]));
+            TISAppClassLoader contextCloassLoader
+                    = new TISAppClassLoader(context, Thread.currentThread().getContextClassLoader(), jarfiles.toArray(new URL[jarfiles.size()]));
             webAppContext.setClassLoader(contextCloassLoader);
         } else {
             webAppContext.setClassLoader(this.getClass().getClassLoader());

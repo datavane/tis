@@ -40,13 +40,14 @@ public class SysInitializeArrangeJars {
   // private static final List<Option> subDirs = Lists.newArrayList("tis-assemble", "solr", "tjs", "tis-collect");
 
   private static final String tis_builder_api = "tis-builder-api(.*)\\.jar";
+  private static final String tis_manage_pojo = "tis-manage-pojo(.*)\\.jar";
 
   private static final List<SubProj> subDirs
     = Lists.newArrayList( //
-    new SubProj("tis-assemble", "tis-assemble\\.jar", tis_builder_api) //
-    , new SubProj("solr", "solr\\.jar", tis_builder_api)
-    , new SubProj("tjs", "tis\\.jar", tis_builder_api)
-    , new SubProj("tis-collect", "tis-collect\\.jar", tis_builder_api));
+    new SubProj("tis-assemble", "tis-assemble\\.jar", tis_builder_api, tis_manage_pojo) //
+    , new SubProj("solr", "solr\\.jar", tis_builder_api, tis_manage_pojo)
+    , new SubProj("tjs", "tis\\.jar", tis_builder_api, tis_manage_pojo)
+    , new SubProj("tis-collect", "tis-collect\\.jar", tis_builder_api, tis_manage_pojo));
 
   static final Memoizer<String, List<File>> jars = new Memoizer<String, List<File>>() {
     @Override
