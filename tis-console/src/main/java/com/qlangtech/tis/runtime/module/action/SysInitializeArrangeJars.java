@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 public class SysInitializeArrangeJars {
   // private static final List<Option> subDirs = Lists.newArrayList("tis-assemble", "solr", "tjs", "tis-collect");
 
-  private static final String tis_builder_api = "tis_builder_api(.*)\\.jar";
+  private static final String tis_builder_api = "tis-builder-api(.*)\\.jar";
 
   private static final List<SubProj> subDirs
     = Lists.newArrayList( //
