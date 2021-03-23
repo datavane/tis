@@ -102,7 +102,7 @@ public class SysInitializeArrangeJars {
       }
       for (String jarFileName : subModuleLibDir.list()) {
         if (sbDir.isMatch(jarFileName)) {
-          jars.compute(jarFileName).add(new File(subModuleLibDir, jarFileName));
+          jars.get(jarFileName).add(new File(subModuleLibDir, jarFileName));
         }
       }
     }
