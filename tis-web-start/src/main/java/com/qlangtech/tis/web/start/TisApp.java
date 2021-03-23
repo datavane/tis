@@ -64,6 +64,14 @@ public class TisApp {
     private final JettyTISRunner jetty;
 
     public static void main(String[] args) throws Exception {
+
+        if (TriggerStop.isStopCommand(args)) {
+            int stopPort = Integer.parseInt(System.getProperty("STOP.PORT"));
+            final String key = System.getProperty("STOP.KEY");
+            TriggerStop.stop("127.0.0.1", stopPort, key, 5);
+            return;
+        }
+
         // 启动应用使用本地8080端口
         TisApp tisApp = new TisApp(8080, (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
@@ -136,12 +144,6 @@ public class TisApp {
     }
 
     public void start(String[] args) throws Exception {
-        if (TriggerStop.isStopCommand(args)) {
-            int stopPort = Integer.parseInt(System.getProperty("STOP.PORT"));
-            final String key = System.getProperty("STOP.KEY");
-            TriggerStop.stop("127.0.0.1", stopPort, key, 5);
-            return;
-        }
         this.jetty.start();
     }
 }
