@@ -38,9 +38,9 @@ public class TISAppClassLoader extends URLClassLoader {
             URL[] urLs = this.getURLs();
             StringBuffer urlsToStr = new StringBuffer("submodule ");
             urlsToStr.append("'").append(context).append("',");
-            for (URL url : urLs) {
-                urlsToStr.append(String.valueOf(url)).append(",");
-            }
+//            for (URL url : urLs) {
+//                urlsToStr.append(String.valueOf(url)).append(",");
+//            }
             throw new RuntimeException(urlsToStr.toString(), e);
         }
     }
