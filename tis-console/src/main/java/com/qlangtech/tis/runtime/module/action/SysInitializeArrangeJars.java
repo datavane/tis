@@ -19,13 +19,13 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.util.Memoizer;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 //import org.apache.commons.lang3.concurrent.Memoizer;
 
@@ -39,12 +39,14 @@ import java.util.Set;
 public class SysInitializeArrangeJars {
   // private static final List<Option> subDirs = Lists.newArrayList("tis-assemble", "solr", "tjs", "tis-collect");
 
-  private static final List<Option> subDirs
+  private static final String tis_builder_api = "tis_builder_api(.*)\\.jar";
+
+  private static final List<SubProj> subDirs
     = Lists.newArrayList( //
-    new Option("tis-assemble", "tis-assemble.jar") //
-    , new Option("solr", "solr.jar")
-    , new Option("tjs", "tis.jar")
-    , new Option("tis-collect", "tis-collect.jar"));
+    new SubProj("tis-assemble", "tis-assemble\\.jar", tis_builder_api) //
+    , new SubProj("solr", "solr\\.jar", tis_builder_api)
+    , new SubProj("tjs", "tis\\.jar", tis_builder_api)
+    , new SubProj("tis-collect", "tis-collect\\.jar", tis_builder_api));
 
   static final Memoizer<String, List<File>> jars = new Memoizer<String, List<File>>() {
     @Override
@@ -62,12 +64,12 @@ public class SysInitializeArrangeJars {
       throw new IllegalStateException("uberDir is not exist:" + uberDir.getAbsolutePath());
     }
     File subModuleLibDir = null;
-    for (Option sbDir : subDirs) {
+    for (SubProj sbDir : subDirs) {
       subModuleLibDir = new File(uberDir, sbDir.getName() + "/lib");
       if (!subModuleLibDir.exists()) {
         throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
       }
-      for (String jarFileName : subModuleLibDir.list((dir, name) -> !StringUtils.equals(name, sbDir.getValue()))) {
+      for (String jarFileName : subModuleLibDir.list((dir, name) -> !sbDir.shallRetain(name))) {
         jars.get(jarFileName).add(new File(subModuleLibDir, jarFileName));
       }
     }
@@ -99,6 +101,7 @@ public class SysInitializeArrangeJars {
     }
   }
 
+
   private static void forceDeleteOnExit(File f) {
     try {
       FileUtils.forceDeleteOnExit(f);
@@ -107,5 +110,26 @@ public class SysInitializeArrangeJars {
     }
   }
 
+  private static class SubProj extends Option {
+    // 需要保留的jar包
+    private final List<Pattern> retainJars = Lists.newArrayList();
+
+    public SubProj(String name, String value, String... retainJar) {
+      super(name, value);
+      retainJars.add(Pattern.compile(value));
+      for (String jar : retainJar) {
+        retainJars.add(Pattern.compile(jar));
+      }
+    }
+
+    public boolean shallRetain(String jarFileName) {
+      for (Pattern p : retainJars) {
+        if (p.matcher(jarFileName).matches()) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
 
 }

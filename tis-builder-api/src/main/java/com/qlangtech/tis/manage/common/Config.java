@@ -231,7 +231,7 @@ public class Config {
                 URL cpThreadRoot = Thread.currentThread().getContextClassLoader().getResource("/");
 
                 throw new IllegalStateException("file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath()
-                        + ",current classpath root url:" + cpRoot.toString() + ",thread classpath:" + cpThreadRoot.toString(), ee);
+                        + ",current classpath root url:" + String.valueOf(cpRoot) + ",thread classpath:" + String.valueOf(cpThreadRoot), ee);
             }
             //Objects.requireNonNull(this.propsStream, "file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath());
         }
