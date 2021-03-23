@@ -32,6 +32,8 @@ public class Test extends TestCase {
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("(.+?):(\\d+)$");
 
     public void test() throws Exception {
+
+        System.out.println( Test.class.getResource("/com/qlangtech/tis/web/start/TisApp.class"));
         // tp.pt,abs(pmod( hash( cast( tp.entity_id as string) ) , 4)) AS pmod
         // 2
         System.out.println(Math.abs("99926498".hashCode() % 4));
