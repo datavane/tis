@@ -34,7 +34,7 @@ public class TISAppClassLoader extends URLClassLoader {
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         try {
             return super.loadClass(name, resolve);
-        } catch (ClassNotFoundException e) {
+        } catch (Throwable e) {
             URL[] urLs = this.getURLs();
             StringBuffer urlsToStr = new StringBuffer("submodule ");
             urlsToStr.append("'").append(context).append("',");
