@@ -108,13 +108,17 @@ public class SysInitializeArrangeJars {
     }
 
 
-
     for (Map.Entry<String, List<File>> subModuleJar : jars.getEntries()) {
       System.out.println("process file:" + subModuleJar.getKey());
       boolean first = true;
       for (File f : subModuleJar.getValue()) {
         if (first) {
-          FileUtils.moveFile(f, new File(webStartDir, subModuleJar.getKey()));
+          File dest = new File(webStartDir, subModuleJar.getKey());
+          if(dest.exists()){
+            FileUtils.deleteQuietly(f);
+          }else{
+            FileUtils.moveFile(f, dest);
+          }
           first = false;
         } else {
           FileUtils.deleteQuietly(f);
