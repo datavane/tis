@@ -76,7 +76,7 @@ public class SysInitializeArrangeJars {
     }
     File subModuleLibDir = null;
 
-    File webStartDir = new File(uberDir, "web-start/lib");
+    final File webStartDir = new File(uberDir, "web-start/lib");
     Set<String> existJarFiles = Sets.newHashSet(webStartDir.list());
     if (existJarFiles.size() < 1) {
       throw new IllegalStateException("webStartDir:" + webStartDir.getAbsolutePath() + " has any jar file");
@@ -108,10 +108,10 @@ public class SysInitializeArrangeJars {
     }
 
 
-    boolean first = true;
+
     for (Map.Entry<String, List<File>> subModuleJar : jars.getEntries()) {
       System.out.println("process file:" + subModuleJar.getKey());
-
+      boolean first = true;
       for (File f : subModuleJar.getValue()) {
         if (first) {
           FileUtils.moveFile(f, new File(webStartDir, subModuleJar.getKey()));
