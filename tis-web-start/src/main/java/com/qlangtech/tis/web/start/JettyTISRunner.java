@@ -30,9 +30,6 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -161,6 +158,7 @@ public class JettyTISRunner {
     }
 
     private void init() {
+        this.setSolrHome();
         if (validateContextHandler()) {
             throw new IllegalStateException("handlers can not small than 1");
         }
@@ -275,21 +273,21 @@ public class JettyTISRunner {
         this.init();
         if (!server.isRunning()) {
             server.start();
-            this.setSolrHomeJndi();
             server.join();
         }
         // if (waitForSolr)
         // waitForSolr(context);
     }
 
-    private void setSolrHomeJndi() throws NamingException {
-        Context c = new InitialContext();
+    private void setSolrHome()  {
+        //Context c = new InitialContext();
         File solrHome = (new File(getDataDir(), "solrhome"));
         File solrXML = new File(solrHome, "solr.xml");
         if (!solrXML.exists()) {
             throw new IllegalStateException("solr.xml is not exist:" + solrXML.getAbsolutePath());
         }
-        c.bind("java:comp/env/solr/home", solrHome.getAbsolutePath());
+        System.setProperty("solr.solr.home",solrHome.getAbsolutePath());
+        //c.bind("java:comp/env/solr/home", solrHome.getAbsolutePath());
     }
 
     private void stop() throws Exception {
