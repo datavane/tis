@@ -25,7 +25,7 @@ public interface IJoinTaskContext extends IParamContext {
 
     // relevant: FlatTableBuilder
     // public String getContextUserName();
-    public IFlatTableBuilder getFlatTableBuilder();
+    //public IFlatTableBuilder getFlatTableBuilder();
 
     public String getIndexName();
 

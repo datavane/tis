@@ -55,7 +55,7 @@ public class DefaultChainContext implements IExecChainContext {
 
     private ITISFileSystem indexBuildFileSystem;
 
-    private IFlatTableBuilder flatTableBuilderPlugin;
+   // private IFlatTableBuilder flatTableBuilderPlugin;
 
     // private String indexName;
     private final IParamContext httpExecContext;
@@ -133,17 +133,17 @@ public class DefaultChainContext implements IExecChainContext {
         this.indexMetaData = indexMetaData;
     }
 
-    @Override
-    public IFlatTableBuilder getFlatTableBuilder() {
-        if (flatTableBuilderPlugin == null) {
-            throw new IllegalStateException("prop flatTableBuilderPlugin can nto be null");
-        }
-        return flatTableBuilderPlugin;
-    }
-
-    public void setFlatTableBuilderPlugin(IFlatTableBuilder flatTableBuilderPlugin) {
-        this.flatTableBuilderPlugin = flatTableBuilderPlugin;
-    }
+   // @Override
+//    public IFlatTableBuilder getFlatTableBuilder() {
+//        if (flatTableBuilderPlugin == null) {
+//            throw new IllegalStateException("prop flatTableBuilderPlugin can nto be null");
+//        }
+//        return flatTableBuilderPlugin;
+//    }
+//
+//    public void setFlatTableBuilderPlugin(IFlatTableBuilder flatTableBuilderPlugin) {
+//        this.flatTableBuilderPlugin = flatTableBuilderPlugin;
+//    }
 
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {

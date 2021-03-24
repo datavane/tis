@@ -35,10 +35,10 @@ public class TestJoinTaskContext implements IJoinTaskContext {
         this.execPhaseRange = execPhaseRange;
     }
 
-    @Override
-    public IFlatTableBuilder getFlatTableBuilder() {
-        return null;
-    }
+//    @Override
+//    public IFlatTableBuilder getFlatTableBuilder() {
+//        return null;
+//    }
 
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {

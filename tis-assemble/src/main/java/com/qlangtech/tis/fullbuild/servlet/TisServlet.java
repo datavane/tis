@@ -163,9 +163,7 @@ public class TisServlet extends HttpServlet {
                                     IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
                                     Objects.requireNonNull(builderFactory, "builderFactory can not be null");
                                     // chainContext.setIndexBuildFileSystem(builderFactory.getFsFactory());
-                                    PluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
-                                    Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
-                                    chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
+
                                     PluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
                                     Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
                                     chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());

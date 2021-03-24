@@ -260,7 +260,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         chainContext.setZkClient(zkClient);
         chainContext.setZkStateReader(zkStateReader);
         Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
-        Objects.requireNonNull(chainContext.getFlatTableBuilder(), "FlatTableBuilder of chainContext can not be null");
+       // Objects.requireNonNull(chainContext.getFlatTableBuilder(), "FlatTableBuilder of chainContext can not be null");
         Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
         chainContext.setIndexMetaData(createIndexMetaData(chainContext));
         invoke = AbstractActionInvocation.createExecChain(chainContext);

@@ -17,6 +17,7 @@ package com.qlangtech.tis.exec.impl;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.ExecuteResult;
@@ -30,6 +31,8 @@ import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor.TaskAndMilestone;
 import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
 import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
+import com.qlangtech.tis.offline.FlatTableBuilder;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
@@ -84,8 +87,10 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         } else {
             TemplateContext tplContext = new TemplateContext(execChainContext);
             JoinPhaseStatus joinPhaseStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
-
-            final IFlatTableBuilder flatTableBuilder = execChainContext.getFlatTableBuilder();
+            PluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
+            Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
+            // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
+            final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();
             final SqlTaskNodeMeta fNode = topology.getFinalNode();
             flatTableBuilder.startTask((context) -> {
                 DataflowTask process = null;

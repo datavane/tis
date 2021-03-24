@@ -129,7 +129,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
     public void startFullBuild(DefaultChainContext chainContext, FullBuildStrategy strategy) throws Exception {
         final String partitionTimestamp = chainContext.getPartitionTimestamp();
         assertNotNull("has create partitionTimestamp", partitionTimestamp);
-        final MockFlatTableBuilder flatTableBuilder = new MockFlatTableBuilder();
+       // final MockFlatTableBuilder flatTableBuilder = new MockFlatTableBuilder();
         TableDumpFactory tableDumpFactory = mock("tableDumpFactory", TableDumpFactory.class);
         // FlatTableBuilder flatTableBuilder
         // = EasyMock.createMock("flatTableBuilder", FlatTableBuilder.class);
@@ -183,7 +183,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         }
         replay();
         chainContext.setTableDumpFactory(tableDumpFactory);
-        chainContext.setFlatTableBuilderPlugin(flatTableBuilder);
+      //  chainContext.setFlatTableBuilderPlugin(flatTableBuilder);
         // chainContext.setIndexBuildFileSystem(indexBuilderFileSystemFactory);
         chainContext.setIndexBuilderTriggerFactory(indexBuilderTriggerFactory);
         IndexSwapTaskflowLauncher taskflowLauncher = new IndexSwapTaskflowLauncher();
@@ -325,9 +325,9 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
             String pt = format.format(new Date());
             chainContext.setPs(pt);
         }
-        PluginStore<FlatTableBuilder> pStore = TIS.getPluginStore(FlatTableBuilder.class);
-        assertNotNull(pStore.getPlugin());
-        chainContext.setFlatTableBuilderPlugin(pStore.getPlugin());
+//        PluginStore<FlatTableBuilder> pStore = TIS.getPluginStore(FlatTableBuilder.class);
+//        assertNotNull(pStore.getPlugin());
+//        chainContext.setFlatTableBuilderPlugin(pStore.getPlugin());
         chainContext.setMdcParamContext(() -> {
         });
         return chainContext;
