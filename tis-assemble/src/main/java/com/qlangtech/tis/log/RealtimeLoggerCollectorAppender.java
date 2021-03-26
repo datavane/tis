@@ -17,7 +17,6 @@ package com.qlangtech.tis.log;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.FileAppender;
 import com.qlangtech.tis.web.start.TisApp;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.*;

@@ -24,6 +24,14 @@
     <dependencies>
 
         <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-web-start</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
         </dependency>
