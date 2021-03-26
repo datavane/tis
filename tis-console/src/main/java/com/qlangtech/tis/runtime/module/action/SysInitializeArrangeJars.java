@@ -26,8 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-//import org.apache.commons.lang3.concurrent.Memoizer;
-
 
 /**
  * 重新整理 项目中的jar包，可以使得整个Uber包可以做到最小
@@ -57,7 +55,8 @@ public class SysInitializeArrangeJars {
     new SubProj("tis-assemble", commons_) //
     , new SubProj("solr", commons_)
     , new SubProj("tjs", commons_)
-    , new SubProj("tis-collect", commons_));
+  //  , new SubProj("tis-collect", commons_)
+  );
 
   static final Memoizer<String, List<File>> jars = new Memoizer<String, List<File>>() {
     @Override
