@@ -102,7 +102,6 @@ public class HDFSReaderFactory implements SourceReaderFactory {
         this.titleText = StringUtils.split(buildtabletitleitems, ",");
         Counters counters = this.taskContext.getCounters();
         Messages messages = this.taskContext.getMessages();
-        // this.fs = TISHdfsUtils.getFileSystem().getFileSystem();
         context.put("filesystem", this.fs);
         IFileSplitor fileSplitor = this.fs.getSplitor(this.fs.getPath(this.indexConf.getSourcePath()));
         this.fileSplits = fileSplitor.getSplits(new IndexBuildConfig() {

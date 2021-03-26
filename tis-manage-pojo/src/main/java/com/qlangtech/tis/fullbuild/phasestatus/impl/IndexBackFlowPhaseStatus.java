@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,6 +21,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.IProcessDetailStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus.NodeBackflowStatus;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,8 +36,7 @@ import java.util.Map;
 public class IndexBackFlowPhaseStatus extends BasicPhaseStatus<NodeBackflowStatus> {
 
     @JSONField(serialize = false)
-    public final Map<String, NodeBackflowStatus> /* nodeName */
-    nodesStatus = new HashMap<>();
+    public final Map<String, NodeBackflowStatus> /* nodeName */ nodesStatus = new HashMap<>();
 
     public IndexBackFlowPhaseStatus(int taskid) {
         super(taskid);
@@ -49,7 +49,6 @@ public class IndexBackFlowPhaseStatus extends BasicPhaseStatus<NodeBackflowStatu
 
     @Override
     public boolean isShallOpen() {
-        // return find.isPresent();
         return shallOpenView(nodesStatus.values());
     }
 
@@ -68,7 +67,6 @@ public class IndexBackFlowPhaseStatus extends BasicPhaseStatus<NodeBackflowStatu
     @Override
     public IProcessDetailStatus<NodeBackflowStatus> getProcessStatus() {
         return new IProcessDetailStatus<NodeBackflowStatus>() {
-
             @Override
             public Collection<NodeBackflowStatus> getDetails() {
                 if (nodesStatus.isEmpty()) {

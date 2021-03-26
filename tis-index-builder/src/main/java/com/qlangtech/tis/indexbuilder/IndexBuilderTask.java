@@ -131,9 +131,9 @@ public class IndexBuilderTask implements TaskMapper {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         final int taskid = context.getTaskId();
         try {
-            // context.getUserParam(IndexBuildParam.INDEXING_ROW_COUNT);
             int rowCount = context.getAllRowCount();
-            logger.warn("indexMaker.flushCountThreshold:" + indexConf.getFlushCountThreshold() + ",indexMaker.flushSizeThreshold:" + indexConf.getFlushSizeThreshold());
+            logger.warn("indexMaker.flushCountThreshold:" + indexConf.getFlushCountThreshold()
+                    + ",indexMaker.flushSizeThreshold:" + indexConf.getFlushSizeThreshold());
 
             // 开始构建索引。。。
             logger.warn("[taskid:" + taskid + "]" + indexConf.getCoreName() + " indexing start......");
@@ -157,8 +157,8 @@ public class IndexBuilderTask implements TaskMapper {
             setDumpFileTitles(context, readerContext);
             logger.info("----------readerContext:" + readerContext.toString());
             readerFactory.init(readerContext);
-            final AtomicLong totalBuildSize = new AtomicLong();
-            totalBuildSize.set(readerFactory.getTotalSize());
+            final long  totalBuildSize = readerFactory.getTotalSize();
+           // totalBuildSize.set(readerFactory.getTotalSize());
             final IInputDocCreator inputDocCreator = AbstractInputDocCreator.createDocumentCreator(
                     indexMetaConfig.schemaParse.getDocumentCreatorType()
                     , indexMetaConfig.rawDataProcessor, indexMetaConfig.indexSchema, createNewDocVersion(indexConf));
@@ -184,25 +184,7 @@ public class IndexBuilderTask implements TaskMapper {
             final long[] preSubmitConsume = new long[1];
             final int periodSec = 5;
             scheduler.scheduleAtFixedRate(() -> {
-                int current = indexMakers.stream().mapToInt((r) -> r.docMakeCount).sum();
-                long allConsume = indexMakers.stream().mapToLong((r) -> r.allConsumeTimemillis).sum();
-                int allcount;
-                if (preCount[0] >= 0 && (allcount = (current - preCount[0])) > 0) {
-                    long submitConsume = (allConsume - preSubmitConsume[0]);
-                    int speed = (allcount) / periodSec;
-                    logger.info("docMaker rate:{}r/s,queue:[used:{}/all:{}],adddoc RT:{}ms/r", speed
-                            , (docQueueSize - docPoolQueues.remainingCapacity()), docQueueSize, (submitConsume / allcount));
-                    BuildSharedPhaseStatus buildStatus = new BuildSharedPhaseStatus();
-                    buildStatus.setAllBuildSize(totalBuildSize.get());
-                    buildStatus.setBuildReaded(speed);
-                    buildStatus.setSharedName(indexConf.getCoreName());
-                    buildStatus.setWaiting(false);
-                    buildStatus.setTaskid(taskid);
-                    StatusRpcClient.AssembleSvcCompsite feedback = statusRpc.get();
-                    feedback.reportBuildIndexStatus(buildStatus);
-                }
-                preCount[0] = current;
-                preSubmitConsume[0] = allConsume;
+                reportIndexBuildStatus(indexConf, taskid, docQueueSize, docPoolQueues, totalBuildSize, indexMakers, preCount, preSubmitConsume, periodSec);
             }, 1, periodSec, TimeUnit.SECONDS);
             // try {
             int mergeTaskCount = 1;
@@ -218,7 +200,7 @@ public class IndexBuilderTask implements TaskMapper {
                     throw new IndexBuildException(result.getMsg());
                 }
             }
-
+            this.reportIndexBuildStatus(indexConf, taskid, docQueueSize, docPoolQueues, totalBuildSize, indexMakers, preCount, preSubmitConsume, periodSec);
             logger.info("shard:{} indexbuild complete all doc count:{}", indexConf.getCoreName(), indexMakers.stream().mapToInt((r) -> r.docMakeCount).sum());
 
             // return new TaskReturn(TaskReturn.ReturnCode.SUCCESS, "success");
@@ -244,6 +226,29 @@ public class IndexBuilderTask implements TaskMapper {
                 logger.warn(e.getMessage(), e);
             }
         }
+    }
+
+    private void reportIndexBuildStatus(IndexConf indexConf, int taskid, int docQueueSize, BlockingQueue<SolrDocPack> docPoolQueues
+            , long totalBuildSize, List<IndexMaker> indexMakers, int[] preCount, long[] preSubmitConsume, int periodSec) {
+        int current = indexMakers.stream().mapToInt((r) -> r.docMakeCount).sum();
+        long allConsume = indexMakers.stream().mapToLong((r) -> r.allConsumeTimemillis).sum();
+        int allcount;
+        if (preCount[0] >= 0 && (allcount = (current - preCount[0])) > 0) {
+            long submitConsume = (allConsume - preSubmitConsume[0]);
+            int speed = (allcount) / periodSec;
+            logger.info("docMaker rate:{}r/s,queue:[used:{}/all:{}],adddoc RT:{}ms/r", speed
+                    , (docQueueSize - docPoolQueues.remainingCapacity()), docQueueSize, (submitConsume / allcount));
+            BuildSharedPhaseStatus buildStatus = new BuildSharedPhaseStatus();
+            buildStatus.setAllBuildSize(totalBuildSize);
+            buildStatus.setBuildReaded(current);
+            buildStatus.setSharedName(indexConf.getCoreName());
+            buildStatus.setWaiting(false);
+            buildStatus.setTaskid(taskid);
+            StatusRpcClient.AssembleSvcCompsite feedback = statusRpc.get();
+            feedback.reportBuildIndexStatus(buildStatus);
+        }
+        preCount[0] = current;
+        preSubmitConsume[0] = allConsume;
     }
 
     private static final String KEY_SOLR_CONFIG = "solrconfig";
@@ -339,7 +344,7 @@ public class IndexBuilderTask implements TaskMapper {
             , final BlockingQueue<SolrDocPack> docPoolQueues, BlockingQueue<RAMDirectory> dirQueue) throws Exception {
         String indexMakerClassName = indexMetaConfig.schemaParse.getIndexMakerClassName();
         if (ParseResult.DEFAULT.equals(indexMakerClassName)) {
-            logger.info("indexMakerClassName:{}", IndexMaker.class);
+           // logger.info("indexMakerClassName:{}", IndexMaker.class);
             return new IndexMaker(name, indexConf, indexSchema, messages, counters, dirQueue, docPoolQueues, aliveDocMakerCount, aliveIndexMakerCount);
         } else {
             Class<IndexMaker> clazz = (Class<IndexMaker>) Class.forName(indexMakerClassName);

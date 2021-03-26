@@ -128,26 +128,6 @@ public class DumpPhaseStatus extends BasicPhaseStatus<TableDumpStatus> {
             this.taskid = taskid;
         }
 
-        // @Override
-        // public void write(DataOutput out) throws IOException {
-        // WritableUtils.writeString(out, tableName);
-        // out.writeInt(this.taskid);
-        // out.writeInt(this.allRows);
-        // out.writeInt(this.readRows);
-        // out.writeBoolean(this.isFaild());
-        // out.writeBoolean(this.isComplete());
-        // out.writeBoolean(this.isWaiting());
-        // }
-        // @Override
-        // public void readFields(DataInput in) throws IOException {
-        // this.tableName = WritableUtils.readString(in);
-        // this.taskid = in.readInt();
-        // this.allRows = in.readInt();
-        // this.readRows = in.readInt();
-        // this.setFaild(in.readBoolean());
-        // this.setComplete(in.readBoolean());
-        // this.setWaiting(in.readBoolean());
-        // }
         public Integer getTaskid() {
             return this.taskid;
         }
@@ -163,7 +143,10 @@ public class DumpPhaseStatus extends BasicPhaseStatus<TableDumpStatus> {
         public int getAllRows() {
             return allRows;
         }
-
+        @Override
+        public String getAll() {
+            return String.valueOf(this.allRows);
+        }
         /**
          * 取得已经dump的数据进度百分比
          *
@@ -179,10 +162,7 @@ public class DumpPhaseStatus extends BasicPhaseStatus<TableDumpStatus> {
             return (int) (readRows * 100 / allRows);
         }
 
-        @Override
-        public String getAll() {
-            return String.valueOf(this.allRows);
-        }
+
 
         @Override
         public String getProcessed() {

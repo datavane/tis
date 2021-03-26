@@ -123,7 +123,7 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
                     boolean exceptionCaught = false;
                     try {
                         // 执行替换全量的流程
-                        this.handleSwapindexfileAction(req, rsp);
+                        this.handleSwapindexfileAction(taskObject, req, rsp);
                         taskObject.setRspObject(rsp);
                     } catch (Exception e) {
                         logger.error(e.getMessage(), e);
@@ -235,7 +235,8 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
      * @param req
      * @param rsp
      */
-    protected void handleSwapindexfileAction(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+    protected void handleSwapindexfileAction(TaskObject taskObject, SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        Objects.requireNonNull(taskObject, "param taskObject can not be null");
         SolrParams params = req.getParams();
         String cname = params.get(CoreAdminParams.CORE);
         // 要切换成的配置版本id,可以为空代表只是一次普通的全量更新
@@ -284,14 +285,13 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
             long downloadStart = System.currentTimeMillis();
             final String taskId = req.getParams().get(CommonAdminParams.ASYNC);
             // 从hdfs上将build好的索引文件拉下来
-            downloadIndexFile2IndexDir(hdfsTimeStamp, core.getName(), newDir, rsp, taskId);
+            downloadIndexFile2IndexDir(taskObject, hdfsTimeStamp, core.getName(), newDir, rsp, taskId);
             // 更新index.properties中的index属性指向到新的文件夹目录
             refreshIndexPropFile(core, newDir.getName(), indexDirParent);
             if (newSnapshotId != null) {
                 logger.info("after flowback update the config:" + cname + " to snapshot:" + newSnapshotId);
                 // 重新加载索引,只更新一下配置，不做reload，因为目标版本和localsnapshot如果是一致的就不加载了
-                updateConfig(req, rsp, core.getCoreDescriptor().getCollectionName(), cname, false, /* needReload */
-                        newSnapshotId);
+                updateConfig(req, rsp, core.getCoreDescriptor().getCollectionName(), cname, false, /* needReload */ newSnapshotId);
             }
             logger.info("download index consume:" + (System.currentTimeMillis() - downloadStart) + "ms");
             if (coreReloadSleepTime != null && coreReloadSleepTime > 0) {
@@ -328,17 +328,28 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         // 已经从hdfs传输到本地磁盘的文件bytes
         private final AtomicLong readBytesCount;
 
-        public static void add2Resp(SolrQueryResponse rsp, long allLength, AtomicLong allReadBytesCount) {
-            rsp.add(KEY_INDEX_BACK_FLOW_STATUS, new IndexBackflowStatus(allLength, allReadBytesCount));
+        public static IndexBackflowStatus add2Resp(SolrQueryResponse rsp, long allLength, AtomicLong allReadBytesCount) {
+            IndexBackflowStatus backflowStatus = new IndexBackflowStatus(allLength, allReadBytesCount);
+            // rsp.add(KEY_INDEX_BACK_FLOW_STATUS, backflowStatus);
             NamedList<Object> toLog = rsp.getToLog();
-            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + TISCollectionUtils.INDEX_BACKFLOW_ALL, allLength);
-            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + TISCollectionUtils.INDEX_BACKFLOW_READED, allReadBytesCount);
+            toLog.add(KEY_INDEX_BACK_FLOW_STATUS, backflowStatus);
+//            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + TISCollectionUtils.INDEX_BACKFLOW_ALL, allLength);
+//            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + TISCollectionUtils.INDEX_BACKFLOW_READED, allReadBytesCount);
+            return backflowStatus;
         }
 
         public IndexBackflowStatus(long allContentLength, AtomicLong readBytesCount) {
             super();
             this.allContentLength = allContentLength;
             this.readBytesCount = readBytesCount;
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    TISCollectionUtils.INDEX_BACKFLOW_ALL + ":" + allContentLength +
+                    "," + TISCollectionUtils.INDEX_BACKFLOW_READED + ":" + readBytesCount.get() +
+                    '}';
         }
 
         public long getHaveReaded() {
@@ -375,12 +386,10 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
      * @param
      * @throws IOException
      */
-    protected void downloadIndexFile2IndexDir(long hdfsTimeStamp, String solrCoreName, final File indexDir, SolrQueryResponse rsp, String taskId) {
+    protected void downloadIndexFile2IndexDir(TaskObject taskObj, long hdfsTimeStamp, String solrCoreName, final File indexDir, final SolrQueryResponse rsp, String taskId) {
         final long starttime = System.currentTimeMillis();
         TisCoreName tiscoreName = TISCollectionUtils.parse(solrCoreName);
         String coreName = tiscoreName.getName();
-        // 需要减1
-        // Integer.parseInt(coreNameMatcher.group(2))
         final int group = tiscoreName.getSharedNo() - 1;
         // - 1;
         ITISFileSystem filesystem = IndexBuilderTriggerFactory.get().getFileSystem();
@@ -391,25 +400,26 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
         try {
             FileUtils.forceMkdir(indexDir);
             AtomicLong allReadBytesCount = new AtomicLong();
-            // indexWriter =
-            // createIndexWriter(FSDirectory.open(indexDir.toPath(),
-            // NoLockFactory.INSTANCE));
-            indexWriter = createIndexWriter(new TISCopy2LocalDirectory(indexDir.toPath(), NoLockFactory.INSTANCE, allReadBytesCount));
+
+            indexWriter = createIndexWriter(new TISCopy2LocalDirectory(indexDir.toPath(), NoLockFactory.INSTANCE, allReadBytesCount, (size) -> {
+                taskObj.setRspObject(rsp);
+            }));
             // 直接一行代码将远端hdfs上的所有索引文件拷贝到本地来
             IContentSummary summary = filesystem.getContentSummary(hdfsPath);
-            Map<String, TaskObject> taskMap = this.getRequestStatusMap(RUNNING);
-            TaskObject taskObj = null;
-            if (taskMap == null || (taskObj = taskMap.get(taskId)) == null) {
-                throw new IllegalStateException("taskId:" + taskId + " relevant TaskObject can not be null");
-            }
+            // Map<String, TaskObject> taskMap = this.getRequestStatusMap(RUNNING);
+            //TaskObject taskObj = null;
+//            if (taskMap == null || (taskObj = taskMap.get(taskId)) == null) {
+//                throw new IllegalStateException("taskId:" + taskId + " relevant TaskObject can not be null");
+//            }
 
             IndexBackflowStatus.add2Resp(rsp, summary.getLength(), allReadBytesCount);
             taskObj.setRspObject(rsp);
 
             this.copy2LocalDir(indexWriter, filesystem, hdfsPath, indexDir);
-            logger.info("remote hdfs [" + hdfsPath + "] copy to local[" + indexDir + "] consome:" + (System.currentTimeMillis() - starttime));
+            logger.info("remote hdfs [" + hdfsPath + "] copy to local[" + indexDir + "] consome:"
+                    + (System.currentTimeMillis() - starttime) + " allSize:" + FileUtils.byteCountToDisplaySize(summary.getLength()));
             indexWriter.commit();
-
+            taskObj.setRspObject(rsp);
         } catch (SolrException e) {
             throw e;
         } catch (Exception e) {

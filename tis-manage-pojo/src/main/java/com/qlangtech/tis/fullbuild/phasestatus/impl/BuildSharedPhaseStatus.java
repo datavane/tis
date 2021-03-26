@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,33 +29,13 @@ public class BuildSharedPhaseStatus extends AbstractChildProcessStatus {
 
     private long allBuildSize;
 
+    // 已经处理的记录数
     private long buildReaded;
 
     private Integer taskid;
-
     // 分组名称
     private String sharedName;
 
-    // @Override
-    // public void write(DataOutput out) throws IOException {
-    // WritableUtils.writeString(out, this.sharedName);
-    // out.writeLong(this.allBuildSize);
-    // out.writeLong(this.buildReaded);
-    // out.writeInt(this.taskid);
-    // out.writeBoolean(this.isFaild());
-    // out.writeBoolean(this.isComplete());
-    // out.writeBoolean(this.isWaiting());
-    // }
-    // @Override
-    // public void readFields(DataInput in) throws IOException {
-    // this.sharedName = WritableUtils.readString(in);
-    // this.allBuildSize = in.readLong();
-    // this.buildReaded = in.readLong();
-    // this.taskid = in.readInt();
-    // this.setFaild(in.readBoolean());
-    // this.setComplete(in.readBoolean());
-    // this.setWaiting(in.readBoolean());
-    // }
     public String getSharedName() {
         return this.sharedName;
     }
@@ -79,11 +59,12 @@ public class BuildSharedPhaseStatus extends AbstractChildProcessStatus {
 
     @Override
     public String getProcessed() {
-        return FileUtils.byteCountToDisplaySize(this.buildReaded);
+        return buildReaded + "r";
     }
 
     @Override
     public int getPercent() {
+        // FIXME: buildReaded 是记录条数，allBuildSize是总文件size
         return (int) ((this.buildReaded * 1f / this.allBuildSize) * 100);
     }
 
