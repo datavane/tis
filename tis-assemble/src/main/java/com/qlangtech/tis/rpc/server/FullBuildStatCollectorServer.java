@@ -105,7 +105,7 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
 
             @Override
             public void process(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget, LoggingEvent e) {
-                PExecuteState s = createLogState(mtarget, e.getTimeStamp(), LogCollectorClient.convert(e.getLevel()), e.getMessage());
+                PExecuteState s = createLogState(mtarget, e.getTimeStamp(), LogCollectorClient.convert(e.getLevel()), e.getFormattedMessage());
                 responseObserver.onNext(s);
                 registerMonitorEventHook.send2Client(s, e);
             }
@@ -121,7 +121,6 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                 if (mtarget.taskid != null) {
                     serverLog.setTaskId(mtarget.taskid);
                 }
-                // System.out.println("time:" + e.getTimeStamp() + "==========================send to  client:" + e.getFormattedMessage());
                 return serverLog.build();
             }
 

@@ -16,6 +16,8 @@ package com.qlangtech.tis.log;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.FileAppender;
+import com.qlangtech.tis.web.start.TisApp;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.*;
@@ -27,11 +29,15 @@ import java.util.*;
  * @create: 2020-05-11 11:32
  */
 public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> {
-    private static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
-
-    private static final File getAssebleTaskDir() {
-        return new File(System.getProperty(KEY_ASSEMBLE_TASK_DIR));
-    }
+//    private static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
+//
+//    private static final File getAssebleTaskDir() {
+//        String assembleTaskDir = System.getProperty(KEY_ASSEMBLE_TASK_DIR);
+//        if (StringUtils.isEmpty(assembleTaskDir)) {
+//            throw new IllegalStateException("please set the system environment '" + KEY_ASSEMBLE_TASK_DIR + "'");
+//        }
+//        return new File(assembleTaskDir);
+//    }
 
     // extends CyclicBufferAppender<E>
     private static final Map<String, RealtimeLoggerCollectorAppender> bufferAppenderMap = new HashMap<>();
@@ -148,7 +154,7 @@ public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> 
                 if (appender != null) {
                     file = new File(appender.getFile());
                 } else {
-                    file = new File(getAssebleTaskDir(), targetAppenderName + ".log");
+                    file = new File(TisApp.getAssebleTaskDir(), targetAppenderName + ".log");
                 }
                 if (file.exists()) {
                     l.readLogTailer(mtarget, file);
@@ -168,9 +174,6 @@ public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> 
             this.mtarget = mtarget;
         }
 
-        // boolean notEmpty() {
-        // return this.listeners.size() > 0;
-        // }
         public int getListenerSize() {
             return this.listeners.size();
         }

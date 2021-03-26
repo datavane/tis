@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,6 +24,7 @@ import com.qlangtech.tis.trigger.socket.LogType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -82,6 +83,8 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
         final AtomicInteger receivedCount = new AtomicInteger();
         MonotorTarget mtarget = MonotorTarget.createRegister("", LogType.FULL);
         mtarget.setTaskid(taskid);
+        String logMsg = "start to log";
+        AtomicInteger logIndex = new AtomicInteger();
         FullBuildStatCollectorServer.addListener(mtarget, new RealtimeLoggerCollectorAppender.LoggerCollectorAppenderListener() {
 
             @Override
@@ -90,6 +93,8 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
 
             @Override
             public void process(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget, LoggingEvent e) {
+                System.out.println(e.getFormattedMessage());
+                assertEquals(logMsg + logIndex.getAndIncrement(), e.getFormattedMessage());
                 receivedCount.incrementAndGet();
             }
 
@@ -98,10 +103,11 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
                 return closed.get();
             }
         });
-        logger.info("start to log");
-        logger.info("start to log2");
+        int i = 0;
+        logger.info("start to log{}", i++);
+        logger.info("start to log{}", i++);
         closed.set(true);
-        logger.info("start to log3");
+        logger.info("start to log{}", i++);
         RealtimeLoggerCollectorAppender.LogTypeListeners logTypeListeners = RealtimeLoggerCollectorAppender.appenderListener.getLogTypeListeners(loggerName);
         assertNull(logTypeListeners);
         // for (LoggingEvent o : bufferAppender.cb.asList()) {
