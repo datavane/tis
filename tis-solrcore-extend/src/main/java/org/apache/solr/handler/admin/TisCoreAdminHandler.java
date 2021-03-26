@@ -17,6 +17,7 @@ package org.apache.solr.handler.admin;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.fs.*;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
 import com.qlangtech.tis.manage.common.PropteryGetter;
 import com.qlangtech.tis.manage.common.RepositoryException;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
@@ -68,8 +69,6 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 
     private static final String CORE_RELOAD_SLEEP_TIME = "core_reload_sleep_time";
 
-
-    public static final String KEY_INDEX_BACK_FLOW_STATUS = "index_back_flow_status";
 
     public static final Pattern INDEX_DATA_PATTERN = Pattern.compile("index(\\d{14})(_(\\d+))?");
 
@@ -330,11 +329,8 @@ public class TisCoreAdminHandler extends CoreAdminHandler {
 
         public static IndexBackflowStatus add2Resp(SolrQueryResponse rsp, long allLength, AtomicLong allReadBytesCount) {
             IndexBackflowStatus backflowStatus = new IndexBackflowStatus(allLength, allReadBytesCount);
-            // rsp.add(KEY_INDEX_BACK_FLOW_STATUS, backflowStatus);
             NamedList<Object> toLog = rsp.getToLog();
-            toLog.add(KEY_INDEX_BACK_FLOW_STATUS, backflowStatus);
-//            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + TISCollectionUtils.INDEX_BACKFLOW_ALL, allLength);
-//            toLog.add(KEY_INDEX_BACK_FLOW_STATUS + TISCollectionUtils.INDEX_BACKFLOW_READED, allReadBytesCount);
+            toLog.add(IndexBackFlowPhaseStatus.KEY_INDEX_BACK_FLOW_STATUS, backflowStatus);
             return backflowStatus;
         }
 

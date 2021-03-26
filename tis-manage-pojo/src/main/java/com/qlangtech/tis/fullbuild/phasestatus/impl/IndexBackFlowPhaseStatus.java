@@ -35,6 +35,7 @@ import java.util.Map;
  */
 public class IndexBackFlowPhaseStatus extends BasicPhaseStatus<NodeBackflowStatus> {
 
+    public static final String KEY_INDEX_BACK_FLOW_STATUS = "index_back_flow_status";
     @JSONField(serialize = false)
     public final Map<String, NodeBackflowStatus> /* nodeName */ nodesStatus = new HashMap<>();
 

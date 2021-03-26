@@ -15,6 +15,7 @@
 package com.qlangtech.tis.order.center;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -23,11 +24,12 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus.NodeBackflowStatus;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
@@ -377,14 +379,23 @@ public class IndexBackflowManager {
 
         private String STATUS;
 
-        private String trace;
+        private String Response;
 
-        private IndexflowbackStatus indexflowback_status = new IndexflowbackStatus();
+        private IndexflowbackStatus indexflowback_status;//= new IndexflowbackStatus();
 
         public String getCopyStatus() {
-            if (indexflowback_status.all < 1) {
-                return StringUtils.EMPTY;
+            if (indexflowback_status == null) {
+                String[] pairs = StringUtils.split(this.Response, " ");
+                for (String p : pairs) {
+                    if (StringUtils.indexOf(p, IndexBackFlowPhaseStatus.KEY_INDEX_BACK_FLOW_STATUS) > -1) {
+                        JSONObject s = JSON.parseObject(p.split("=")[1]);
+                        indexflowback_status = new IndexflowbackStatus();
+                        indexflowback_status.setAll(s.getLongValue(TISCollectionUtils.INDEX_BACKFLOW_ALL));
+                        indexflowback_status.setReaded(s.getLongValue(TISCollectionUtils.INDEX_BACKFLOW_READED));
+                    }
+                }
             }
+            Objects.requireNonNull(indexflowback_status, "indexflowback_status can not be null");
             return FileUtils.byteCountToDisplaySize(indexflowback_status.readed)
                     + "/" + FileUtils.byteCountToDisplaySize(indexflowback_status.all)
                     + "(" + (int) ((((double) indexflowback_status.readed) / indexflowback_status.all) * 100) + "%),";
@@ -405,12 +416,12 @@ public class IndexBackflowManager {
             this.responseBody = responseBody;
         }
 
-        public String getTrace() {
-            return trace;
+        public String getResponse() {
+            return this.Response;
         }
 
-        public void setTrace(String trace) {
-            this.trace = trace;
+        public void setResponse(String response) {
+            this.Response = response;
         }
 
         public boolean isSuccess() {

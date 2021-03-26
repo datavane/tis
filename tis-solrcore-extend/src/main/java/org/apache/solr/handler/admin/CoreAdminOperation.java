@@ -212,7 +212,7 @@ enum CoreAdminOperation implements CoreAdminOp {
             // 百岁add end
         } else if (it.handler.getRequestStatusMap(COMPLETED).containsKey(requestId)) {
             it.rsp.add(RESPONSE_STATUS, COMPLETED);
-            it.rsp.add(RESPONSE, it.handler.getRequestStatusMap(COMPLETED).get(requestId).getRspObject());
+           // it.rsp.add(RESPONSE, it.handler.getRequestStatusMap(COMPLETED).get(requestId).getRspObject());
             // 百岁add for执行过程中索引回流了多少了,状态要告诉客户端的调用者,20160818
             printIndexBackflowStatus(it, COMPLETED, requestId);
             // 百岁add end
@@ -285,8 +285,8 @@ enum CoreAdminOperation implements CoreAdminOp {
      * ▼▼▼ baisui add 20200820
      */
     protected static void printIndexBackflowStatus(CallInfo callInfo, String phrase, String requestId) {
-        CoreAdminHandler.TaskObject taskObj = callInfo.handler.getRequestStatusMap(phrase).get(requestId);
-        callInfo.rsp.add(RESPONSE, taskObj.getRspObject());
+//        CoreAdminHandler.TaskObject taskObj = callInfo.handler.getRequestStatusMap(phrase).get(requestId);
+//        callInfo.rsp.add(RESPONSE, taskObj.getRspObject());
 //        TisCoreAdminHandler.IndexBackflowStatus backflowStatus = null;
 //        if ((backflowStatus = taskObj.getBackflowStatus()) != null) {
 //            Map<String, Long> status = new HashMap<>();
