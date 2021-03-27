@@ -28,30 +28,18 @@ import java.util.*;
  * @create: 2020-05-11 11:32
  */
 public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> {
-//    private static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
-//
-//    private static final File getAssebleTaskDir() {
-//        String assembleTaskDir = System.getProperty(KEY_ASSEMBLE_TASK_DIR);
-//        if (StringUtils.isEmpty(assembleTaskDir)) {
-//            throw new IllegalStateException("please set the system environment '" + KEY_ASSEMBLE_TASK_DIR + "'");
-//        }
-//        return new File(assembleTaskDir);
-//    }
 
     // extends CyclicBufferAppender<E>
     private static final Map<String, RealtimeLoggerCollectorAppender> bufferAppenderMap = new HashMap<>();
 
     public static final LoggerCollectorAppenderListenerWrapper appenderListener = new LoggerCollectorAppenderListenerWrapper();
 
-    // /**
-    // * 取得全量构建loggerBuffer
-    // *
-    // * @param taskId
-    // * @return
-    // */
-    // public static RealtimeLoggerCollectorAppender getFullBuildLoggingBufferAppender(int taskId) {
-    // return getBufferAppender(LogType.FULL.getValue() + "-" + taskId);
-    // }
+    /**
+     * 取得全量构建loggerBuffer
+     *
+     * @param
+     * @return
+     */
     public static void addListener(String targetAppenderName, LoggingEventMeta mtarget, LoggerCollectorAppenderListener listener) {
         appenderListener.addLoggerEventListener(targetAppenderName, mtarget, listener);
     }
@@ -64,37 +52,13 @@ public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> 
         return appender;
     }
 
-    // CyclicBuffer<LoggingEvent> cb;
-    // int maxSize = 256;
-    // 
-    // public void start() {
-    // cb = new CyclicBuffer<LoggingEvent>(maxSize);
-    // super.start();
-    // this.getFile()
-    // }
-    // 
-    // public void stop() {
-    // cb = null;
-    // super.stop();
-    // }
     @Override
     protected void append(LoggingEvent eventObject) {
         super.append(eventObject);
         if (!isStarted()) {
             return;
         }
-        // cb.add(eventObject);
         appenderListener.process(this.name, eventObject);
-        // LoggerCollectorAppenderListener l = null;
-        // Iterator<LoggerCollectorAppenderListener> it = appenderListener.iterator();
-        // while (it.hasNext()) {
-        // l = it.next();
-        // if (l.isClosed()) {
-        // it.remove();
-        // } else {
-        // l.process(eventObject);
-        // }
-        // }
     }
 
     public interface LoggerCollectorAppenderListener {

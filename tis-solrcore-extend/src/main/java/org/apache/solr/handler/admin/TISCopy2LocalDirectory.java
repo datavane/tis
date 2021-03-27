@@ -71,11 +71,6 @@ public class TISCopy2LocalDirectory extends NIOFSDirectory {
                             readListener.hasReaded(allReadBytesCount.get());
                             currentTime = now;
                         }
-                        try {
-                            Thread.sleep(30);
-                        } catch (InterruptedException e) {
-
-                        }
                     }
                 }
             }, CHUNK_SIZE);

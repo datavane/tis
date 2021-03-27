@@ -79,16 +79,11 @@ public class IndexBackflowManager {
         return this.execContext;
     }
 
-    private Map<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */
-            nodeBackflowLock;
+    private Map<String, ConcurrentLinkedQueue<BuildResult>> /* nodename,example:10.1.5.19 */ nodeBackflowLock;
 
-    private final Map<String, List<Replica>> /* shardName,example:shard1 */
-            shardMap;
+    private final Map<String, List<Replica>> /* shardName,example:shard1 */ shardMap;
 
     private final int nodeSize;
-
-    // private static final Pattern NODE_PATTERN = Pattern
-    // .compile("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):\\d+_solr");
     private final CountDownLatch replicaCountDown;
 
     private boolean executeSuccess = true;
@@ -345,6 +340,7 @@ public class IndexBackflowManager {
                 // ▲▲▲
                 continue;
             } else {
+                callbackResult.getCopyStatus();
                 // 执行完成
                 final int allSize = (int) callbackResult.indexflowback_status.getAll();
                 nodeStatus.setAllSize(allSize);
@@ -395,6 +391,7 @@ public class IndexBackflowManager {
                         JSONObject s = JSON.parseObject(p.split("=")[1]);
                         indexflowback_status.setAll(s.getLongValue(TISCollectionUtils.INDEX_BACKFLOW_ALL));
                         indexflowback_status.setReaded(s.getLongValue(TISCollectionUtils.INDEX_BACKFLOW_READED));
+                        break;
                     }
                 }
             }

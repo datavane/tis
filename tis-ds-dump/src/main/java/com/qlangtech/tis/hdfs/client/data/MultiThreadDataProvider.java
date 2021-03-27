@@ -450,6 +450,7 @@ public class MultiThreadDataProvider {
                 while (rowsIt.hasNext()) {
                     readCount++;
                     Map<String, String> row = rowsIt.next();
+                    Thread.sleep(2);
                     submit(row, errorList, submitSize, filtercount);
                     if (++allcount % 10000 == 0) {
                         // 是否超过最大錯誤限度
@@ -465,9 +466,9 @@ public class MultiThreadDataProvider {
                 threadResult.put(Constants.IMPORT_HDFS_ROW_COUNT, allcount);
             } catch (Exception e) {
                 this.processErrorCount.addAndGet(MAX_PROCESS_ERROR);
-                log.error(">>>>>ERROR[" + dumpContext.getDumpTable() + "]execute HDFS dump", e);
+                log.error(">>>>>ERROR[" + dumpContext.getDumpTable() + "]execute dump", e);
                 errorList.add(e.getMessage());
-                throw new DataImportHDFSException("hdfs dump e", e);
+                throw new DataImportHDFSException(e.getMessage(), e);
             } finally {
                 try {
                     this.dbHostBusyCount.decrementAndGet();
