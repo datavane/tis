@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,8 +19,11 @@ import junit.framework.TestCase;
 import org.apache.commons.codec.digest.MurmurHash2;
 import org.apache.commons.codec.digest.MurmurHash3;
 import org.apache.solr.common.util.Hash;
+
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.regex.Pattern;
 
 /**
@@ -33,7 +36,11 @@ public class Test extends TestCase {
 
     public void test() throws Exception {
 
-        System.out.println( Test.class.getResource("/com/qlangtech/tis/web/start/TisApp.class"));
+        Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("/org/apache/solr/util/DOMUtil.class");
+        while (resources.hasMoreElements()) {
+            System.out.println(resources.nextElement());
+        }
+        System.out.println(Test.class.getResource("/com/qlangtech/tis/web/start/TisApp.class"));
         // tp.pt,abs(pmod( hash( cast( tp.entity_id as string) ) , 4)) AS pmod
         // 2
         System.out.println(Math.abs("99926498".hashCode() % 4));
@@ -56,28 +63,28 @@ public class Test extends TestCase {
         System.out.println(Test.class.getResource("/org/eclipse/jetty/server/handler/ContextHandler.class"));
         Class<?> clazz = Class.forName("org.eclipse.jetty.server.handler.ContextHandler");
         System.out.println(clazz);
-    // Matcher m = ADDRESS_PATTERN.matcher("127.0.0.1:8945");
-    // 
-    // if (m.matches()) {
-    // System.out.println(m.group(1));
-    // System.out.println(m.group(2));
-    // }
+        // Matcher m = ADDRESS_PATTERN.matcher("127.0.0.1:8945");
+        //
+        // if (m.matches()) {
+        // System.out.println(m.group(1));
+        // System.out.println(m.group(2));
+        // }
     }
 
     /**
      * @param args
      */
     public static void main(String[] args) throws Exception {
-    // LineIterator it = FileUtils.lineIterator(new
-    // File("D:\\tmp\\tab.txt"));
-    // 
-    // Set<String> tabs = new HashSet<String>();
-    // while (it.hasNext()) {
-    // tabs.add(it.nextLine());
-    // }
-    // 
-    // for (String tab : tabs) {
-    // System.out.println(tab);
-    // }
+        // LineIterator it = FileUtils.lineIterator(new
+        // File("D:\\tmp\\tab.txt"));
+        //
+        // Set<String> tabs = new HashSet<String>();
+        // while (it.hasNext()) {
+        // tabs.add(it.nextLine());
+        // }
+        //
+        // for (String tab : tabs) {
+        // System.out.println(tab);
+        // }
     }
 }
