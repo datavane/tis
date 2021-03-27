@@ -72,7 +72,7 @@ public class TISCopy2LocalDirectory extends NIOFSDirectory {
                             currentTime = now;
                         }
                         try {
-                            Thread.sleep(300);
+                            Thread.sleep(30);
                         } catch (InterruptedException e) {
 
                         }
