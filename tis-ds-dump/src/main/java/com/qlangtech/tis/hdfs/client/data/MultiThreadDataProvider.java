@@ -450,7 +450,6 @@ public class MultiThreadDataProvider {
                 while (rowsIt.hasNext()) {
                     readCount++;
                     Map<String, String> row = rowsIt.next();
-                    Thread.sleep(2);
                     submit(row, errorList, submitSize, filtercount);
                     if (++allcount % 10000 == 0) {
                         // 是否超过最大錯誤限度
@@ -480,7 +479,6 @@ public class MultiThreadDataProvider {
                 }
                 latch.countDown();
             }
-            // return threadResult;
         }
 
         private void writeTitle() {
