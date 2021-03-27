@@ -48,7 +48,7 @@ import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.TISZkStateReader;
-import org.apache.solr.common.util.DOMUtil;
+import com.qlangtech.tis.solr.common.DOMUtil;
 import org.easymock.EasyMock;
 import org.shai.xmodifier.util.StringUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

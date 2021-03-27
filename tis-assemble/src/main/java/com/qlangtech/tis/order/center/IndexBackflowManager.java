@@ -265,8 +265,8 @@ public class IndexBackflowManager {
         }
 
         log.info("start " + replica.getCoreUrl() + " index back");
-        URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&execaction="
-                + ICoreAdminAction.ACTION_SWAP_INDEX_FILE + "&core=" + replica.getStr(CORE_NAME_PROP)
+        URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&" + ICoreAdminAction.EXEC_ACTION + "="
+                + ICoreAdminAction.ACTION_SWAP_INDEX_FILE + "&" + CoreAdminParams.CORE + "=" + replica.getStr(CORE_NAME_PROP)
                 + "&property.hdfs_timestamp=" + timestamp + "&property.hdfs_user=admin&" + CommonAdminParams.ASYNC + "=" + requestId);
         log.info("apply swap index url:" + url);
         BackflowResult result = HttpUtils.processContent(url, new StreamProcess<BackflowResult>() {

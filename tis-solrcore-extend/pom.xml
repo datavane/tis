@@ -74,6 +74,11 @@
 
     </build>
     <dependencies>
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-base-test</artifactId>
+        </dependency>
         <!-- for spatial of polygon search -->
         <dependency>
             <groupId>com.vividsolutions</groupId>
