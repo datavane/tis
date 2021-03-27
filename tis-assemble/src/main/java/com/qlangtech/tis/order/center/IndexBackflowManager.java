@@ -385,6 +385,9 @@ public class IndexBackflowManager {
 
         public String getCopyStatus() {
             if (indexflowback_status == null) {
+                if (this.Response == null) {
+                    return StringUtils.EMPTY;
+                }
                 String[] pairs = StringUtils.split(this.Response, " ");
                 for (String p : pairs) {
                     if (StringUtils.indexOf(p, IndexBackFlowPhaseStatus.KEY_INDEX_BACK_FLOW_STATUS) > -1) {
