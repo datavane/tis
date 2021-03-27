@@ -385,6 +385,7 @@ public class IndexBackflowManager {
 
         public String getCopyStatus() {
             if (indexflowback_status == null) {
+                indexflowback_status = new IndexflowbackStatus();
                 if (this.Response == null) {
                     return StringUtils.EMPTY;
                 }
@@ -392,7 +393,6 @@ public class IndexBackflowManager {
                 for (String p : pairs) {
                     if (StringUtils.indexOf(p, IndexBackFlowPhaseStatus.KEY_INDEX_BACK_FLOW_STATUS) > -1) {
                         JSONObject s = JSON.parseObject(p.split("=")[1]);
-                        indexflowback_status = new IndexflowbackStatus();
                         indexflowback_status.setAll(s.getLongValue(TISCollectionUtils.INDEX_BACKFLOW_ALL));
                         indexflowback_status.setReaded(s.getLongValue(TISCollectionUtils.INDEX_BACKFLOW_READED));
                     }
