@@ -425,7 +425,7 @@ public class IndexBackflowManager {
         }
 
         public boolean isSuccess() {
-            return COMPLETED.equalsIgnoreCase(STATUS);
+            return COMPLETED.equalsIgnoreCase(STATUS) && this.Response != null;
         }
 
         public String getMsg() {
