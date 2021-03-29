@@ -66,11 +66,11 @@ public class TISCopy2LocalDirectory extends NIOFSDirectory {
                         out.write(b, offset, chunk);
                         length -= chunk;
                         offset += chunk;
-                        try {
-                            Thread.sleep(20);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+//                        try {
+//                            Thread.sleep(20);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
                         long now = System.currentTimeMillis();
                         if ((currentTime + 2000) < now) {
                             readListener.hasReaded(allReadBytesCount.get());
