@@ -105,8 +105,7 @@ public class TIS {
 
     public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
         DataSourceFactoryPluginStore pluginStore
-                = databasePluginStore.get(new DSKey(DB_GROUP_NAME
-                , dsProp.getDbType(), dsProp.getDbname(), DataSourceFactory.class));
+                = databasePluginStore.get(new DSKey(DB_GROUP_NAME, dsProp.getDbType(), dsProp.getDbname(), DataSourceFactory.class));
         return pluginStore;
     }
 

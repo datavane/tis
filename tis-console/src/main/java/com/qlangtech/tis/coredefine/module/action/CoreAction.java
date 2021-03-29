@@ -212,16 +212,24 @@ public class CoreAction extends BasicModule {
   private static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
     Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
-    WorkFlow wf = module.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(workFlowId);
-    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
-    return generateDAOAndIncrScript(module, context, workFlowId
-      , validateGlobalIncrStreamFactory, compilerAndPackage, wfTopology.isSingleDumpTableDependency());
+    WorkFlow wf = module.loadDF(workFlowId);
+    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
+
+    if (topology.isSingleTableModel()) {
+      Optional<ERRules> erRule = ERRules.getErRule(topology.getName());
+      if (!erRule.isPresent()) {
+        ERRules.createDefaultErRule(topology);
+      }
+    }
+
+    return generateDAOAndIncrScript(module, context, wf
+      , validateGlobalIncrStreamFactory, compilerAndPackage, topology.isSingleTableModel());
   }
 
   /**
    * @param module
    * @param context
-   * @param workflowId
+   * @param workflow
    * @param validateGlobalIncrStreamFactory
    * @param compilerAndPackage
    * @param excludeFacadeDAOSupport         由于单表同步不需要dao支持，可以选择false即可
@@ -229,13 +237,13 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public static IndexIncrStatus generateDAOAndIncrScript(
-    BasicModule module, Context context, Integer workflowId
+    BasicModule module, Context context, WorkFlow workflow
     , boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean excludeFacadeDAOSupport) throws Exception {
-    if (workflowId == null) {
+    if (workflow == null) {
       throw new IllegalArgumentException("param workflowId can not be null");
     }
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module, module.loadDF(workflowId), excludeFacadeDAOSupport);
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module, workflow, excludeFacadeDAOSupport);
     List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
     PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
@@ -350,7 +358,7 @@ public class CoreAction extends BasicModule {
   public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
     BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
-    // final WorkFlow workFlow = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(workflowid);
+
     return new IndexStreamCodeGenerator(module.getCollectionName(), workFlow.getName()
       , ManageUtils.formatNowYyyyMMddHHmmss(workFlow.getOpTime()), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称

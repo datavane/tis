@@ -16,12 +16,18 @@ package com.qlangtech.tis.sql.parser.er;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
+import com.qlangtech.tis.sql.parser.meta.PrimaryLinkKey;
 import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.io.FileUtils;
@@ -39,6 +45,7 @@ import org.yaml.snakeyaml.representer.Representer;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -105,6 +112,50 @@ public class ERRules implements IPrimaryTabFinder {
         yaml.addTypeDescription(new TypeDescription(TableRelation.class, Tag.MAP, TableRelation.class));
         yaml.addTypeDescription(new TypeDescription(ERRules.class, Tag.MAP, ERRules.class));
         yaml.addTypeDescription(new TypeDescription(DependencyNode.class, Tag.MAP, DependencyNode.class));
+    }
+
+    public static void createErRule(String topologyName, DependencyNode node, ColumnMetaData pkMeta) throws Exception {
+        /***********************************************************
+         * 设置TabExtraMeta
+         **********************************************************/
+        Objects.requireNonNull(pkMeta, "param pkMeta can not be null");
+        node.setExtraSql(null);
+        TabExtraMeta extraMeta = new TabExtraMeta();
+        extraMeta.setSharedKey(pkMeta.getKey());
+        extraMeta.setMonitorTrigger(true);
+        List<PrimaryLinkKey> primaryIndexColumnName = Lists.newArrayList();
+        PrimaryLinkKey pk = new PrimaryLinkKey();
+        pk.setName(pkMeta.getKey());
+        pk.setPk(true);
+        primaryIndexColumnName.add(pk);
+        extraMeta.setPrimaryIndexColumnNames(primaryIndexColumnName);
+        extraMeta.setPrimaryIndexTab(true);
+        node.setExtraMeta(extraMeta);
+        ERRules erRules = new ERRules();
+        erRules.addDumpNode(node);
+        erRules.setTimeCharacteristic(TimeCharacteristic.ProcessTime);
+        write(topologyName, erRules);
+        /***********************************************************
+         * <<<<<<<<
+         **********************************************************/}
+
+    /**
+     * 使用默认DumpNode创建ERRule并且持久化
+     *
+     * @param topology
+     * @throws Exception
+     */
+    public static void createDefaultErRule(SqlTaskNodeMeta.SqlDataFlowTopology topology) throws Exception {
+        // 还没有定义erRule
+        DependencyNode dumpNode = topology.getFirstDumpNode();
+        DataSourceFactoryPluginStore dsStore = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
+        TISTable tab = dsStore.loadTableMeta(dumpNode.getName());
+        //String topologyName, DependencyNode node, TargetColumnMeta targetColMetas
+        Optional<ColumnMetaData> firstPK = tab.getReflectCols().stream().filter((col) -> col.isPk()).findFirst();
+        if (!firstPK.isPresent()) {
+            throw new IllegalStateException("table:" + dumpNode.parseEntityName() + " can not find relevant PK cols");
+        }
+        createErRule(topology.getName(), dumpNode, firstPK.get());
     }
 
     private DependencyNode getDumpNode(EntityName tabName) {

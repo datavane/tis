@@ -20,8 +20,6 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.OutputStreamWriter;
@@ -50,7 +48,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
     private final Optional<ERRules> erRules;
 
 
-    private static final Logger logger = LoggerFactory.getLogger(StreamComponentCodeGenerator.class);
+    // private static final Logger logger = LoggerFactory.getLogger(StreamComponentCodeGenerator.class);
 
     public StreamComponentCodeGenerator(String collectionName, long timestamp,
                                         List<FacadeContext> daoFacadeList, SqlTaskNodeMeta.SqlDataFlowTopology topology) {
@@ -58,7 +56,8 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
     }
 
     public StreamComponentCodeGenerator(String collectionName, long timestamp,
-                                        List<FacadeContext> daoFacadeList, SqlTaskNodeMeta.SqlDataFlowTopology topology, boolean excludeFacadeDAOSupport) {
+                                        List<FacadeContext> daoFacadeList, SqlTaskNodeMeta.SqlDataFlowTopology topology
+            , boolean excludeFacadeDAOSupport) {
         super(collectionName, timestamp);
         this.erRules = ERRules.getErRule(topology.getName());
         this.topology = topology;
@@ -234,7 +233,8 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                 boolean hasSetTimestampVerColumn;
                 if (!(hasSetTimestampVerColumn = erR.hasSetTimestampVerColumn(entityName))) {
                     if (erR.getTimeCharacteristic() != TimeCharacteristic.ProcessTime) {
-                        throw new IllegalStateException("table:" + entityName.getTabName() + "either have not set timestampVer col name or global timeCharacteristic is not 'ProcessTime'");
+                        throw new IllegalStateException("table:" + entityName.getTabName()
+                                + "either have not set timestampVer col name or global timeCharacteristic is not 'ProcessTime'");
                     }
                     firstAdd = false;
                     aliasListBuffer.append("(\"processTime\").processTimeVer()").returnLine();

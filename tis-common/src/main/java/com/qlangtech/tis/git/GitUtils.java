@@ -230,26 +230,26 @@ public class GitUtils //implements com.qlangtech.tis.db.IDBConfigAccess
         this.createFile(getDBConfigPath(dbName, DbScope.DETAILED), GitBranchInfo.$(GitBranch.MASTER), db.createDBConfigDesc(), commitLog, DATASOURCE_PROJECT_ID, true);
     }
 
-    /**
-     * @param path
-     * @param branch
-     * @param dependencyTabs 逻辑表名稱
-     * @param rule
-     * @param commitLog
-     */
-    public void createWorkflowFile(String path, String branch, Set<String> dependencyTabs, JoinRule rule, String commitLog) {
-        Assert.assertNotNull(path);
-        Assert.assertNotNull(branch);
-        Assert.assertTrue(!dependencyTabs.isEmpty());
-        Assert.assertNotNull(rule);
-        Assert.assertNotNull(commitLog);
-        // 创建一个新的 和workflow同名的分支
-        this.createWorkflowBarnch(branch);
-        JSONObject profile = new JSONObject();
-        profile.put("tables", dependencyTabs);
-        this.createFile(path + "/profile", GitBranchInfo.$(branch), profile.toString(1), commitLog, WORKFLOW_GIT_PROJECT_ID, true);
-        this.createFile(path + "/" + WF_FILE_NAME, GitBranchInfo.$(branch), rule.getContent(), commitLog, WORKFLOW_GIT_PROJECT_ID, true);
-    }
+//    /**
+//     * @param path
+//     * @param branch
+//     * @param dependencyTabs 逻辑表名稱
+//     * @param rule
+//     * @param commitLog
+//     */
+//    public void createWorkflowFile(String path, String branch, Set<String> dependencyTabs, JoinRule rule, String commitLog) {
+//        Assert.assertNotNull(path);
+//        Assert.assertNotNull(branch);
+//        Assert.assertTrue(!dependencyTabs.isEmpty());
+//        Assert.assertNotNull(rule);
+//        Assert.assertNotNull(commitLog);
+//        // 创建一个新的 和workflow同名的分支
+//        this.createWorkflowBarnch(branch);
+//        JSONObject profile = new JSONObject();
+//        profile.put("tables", dependencyTabs);
+//        this.createFile(path + "/profile", GitBranchInfo.$(branch), profile.toString(1), commitLog, WORKFLOW_GIT_PROJECT_ID, true);
+//        this.createFile(path + "/" + WF_FILE_NAME, GitBranchInfo.$(branch), rule.getContent(), commitLog, WORKFLOW_GIT_PROJECT_ID, true);
+//    }
 
     /**
      * 从git中取得workflow对象模型

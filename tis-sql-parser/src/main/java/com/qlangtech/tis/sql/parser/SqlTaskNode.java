@@ -185,25 +185,18 @@ public class SqlTaskNode {
 
     private TableTupleCreator tupleCterator = null;
 
-//    public TableTupleCreator parse() {
-//        return parse(true);
-//    }
 
     public TableTupleCreator parse(boolean parseAllRefTab) {
         if (tupleCterator != null) {
             return this.tupleCterator;
         }
-        this.tupleCterator = new TableTupleCreator(this.exportName.getTabName(), NodeType.JOINER_SQL);
+        this.tupleCterator = new TableTupleCreator(this.exportName.getTabName(), nodetype);
         tupleCterator.setRealEntityName(this.exportName);
         try {
-            // this.rewriter = rewriter;
             Query query = parseQuery(this.getContent());
-            // return query;
-            // sqlParser.process(query, rewriter);
             StreamTransformVisitor v = new StreamTransformVisitor(this.dumpNodesContext);
             query.accept(v, new StackableAstVisitorContext<>(1));
             ColRef colsRefs = v.getColsRef();
-            // Optional<TisGroupBy> groupBy = v.getGroupBy();
             tupleCterator.setColsRefs(colsRefs);
             // TaskNode 識別
             if (parseAllRefTab) {

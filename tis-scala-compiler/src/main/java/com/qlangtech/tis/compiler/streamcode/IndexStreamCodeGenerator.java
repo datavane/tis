@@ -57,11 +57,13 @@ public class IndexStreamCodeGenerator {
     // 自动生成的incr脚本中需要dao支持吗？
     private final boolean excludeFacadeDAOSupport;
 
+
     public IndexStreamCodeGenerator(String collection, String workflowName, long incrScriptTimestamp
             , IDBTableNamesGetter dbTableNamesGetter, boolean excludeFacadeDAOSupport) throws Exception {
         if (StringUtils.isEmpty(collection)) {
             throw new IllegalArgumentException("argument collection can not be null");
         }
+
         // this.appDomain = CoreAction.this.getAppDomain();
         // this.appDomain.getAppName();
         this.collection = collection;

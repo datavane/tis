@@ -30,6 +30,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.ds.TISTable;
@@ -213,30 +214,30 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
     }
 
-    private static class EntryPair implements Map.Entry<IDumpTable, ITabPartition> {
-        private final IDumpTable key;
-        private final ITabPartition val;
-
-        public EntryPair(IDumpTable key, ITabPartition val) {
-            this.key = key;
-            this.val = val;
-        }
-
-        @Override
-        public IDumpTable getKey() {
-            return key;
-        }
-
-        @Override
-        public ITabPartition getValue() {
-            return val;
-        }
-
-        @Override
-        public ITabPartition setValue(ITabPartition value) {
-            return null;
-        }
-    }
+//    private static class EntryPair implements Map.Entry<IDumpTable, ITabPartition> {
+//        private final IDumpTable key;
+//        private final ITabPartition val;
+//
+//        public EntryPair(IDumpTable key, ITabPartition val) {
+//            this.key = key;
+//            this.val = val;
+//        }
+//
+//        @Override
+//        public IDumpTable getKey() {
+//            return key;
+//        }
+//
+//        @Override
+//        public ITabPartition getValue() {
+//            return val;
+//        }
+//
+//        @Override
+//        public ITabPartition setValue(ITabPartition value) {
+//            return null;
+//        }
+//    }
 
     @Override
     public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition
@@ -630,23 +631,43 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
 
         private SqlTaskNode getFinalTaskNode() throws Exception {
-            List<SqlTaskNode> taskNodes = this.parseTaskNodes();
-            SqlTaskNode task = null;
-            final String finalNodeName = this.getFinalNode().getExportName();
-            //
-            Optional<SqlTaskNode> f = //
-                    taskNodes.stream().filter((n) -> finalNodeName.equals(n.getExportName().getTabName())).findFirst();
-            if (!f.isPresent()) {
-                String setStr = taskNodes.stream().map((n) -> n.getExportName().getJavaEntityName()).collect(Collectors.joining(","));
-                throw new IllegalStateException("finalNodeName:" + finalNodeName + " can not find node in[" + setStr + "]");
+
+            if (isSingleTableModel()) {
+                final DefaultDumpNodeMapContext dumpNodsContext = new DefaultDumpNodeMapContext(this.createDumpNodesMap());
+                DependencyNode dumpNode = getFirstDumpNode();
+                SqlTaskNode taskNode = new SqlTaskNode(EntityName.create(dumpNode.getDbName(), dumpNode.getName()), NodeType.JOINER_SQL, dumpNodsContext);
+                DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
+                TISTable tab = dbPlugin.loadTableMeta(dumpNode.getName());
+                taskNode.setContent(ColumnMetaData.buildExtractSQL(dumpNode.getName(), true, tab.getReflectCols()).toString());
+                return taskNode;
+            } else {
+
+                List<SqlTaskNode> taskNodes = this.parseTaskNodes();
+                SqlTaskNode task = null;
+                final String finalNodeName = this.getFinalNode().getExportName();
+                //
+                Optional<SqlTaskNode> f = //
+                        taskNodes.stream().filter((n) -> finalNodeName.equals(n.getExportName().getTabName())).findFirst();
+                if (!f.isPresent()) {
+                    String setStr = taskNodes.stream().map((n) -> n.getExportName().getJavaEntityName()).collect(Collectors.joining(","));
+                    throw new IllegalStateException("finalNodeName:" + finalNodeName + " can not find node in[" + setStr + "]");
+                }
+                /**
+                 * *******************************
+                 * 开始解析
+                 * *******************************
+                 */
+                task = f.get();
+                return task;
             }
-            /**
-             * *******************************
-             * 开始解析
-             * *******************************
-             */
-            task = f.get();
-            return task;
+        }
+
+        public DependencyNode getFirstDumpNode() {
+            Optional<DependencyNode> singleDumpNode = this.getDumpNodes().stream().findFirst();
+            if (!singleDumpNode.isPresent()) {
+                throw new IllegalStateException(this.getName() + " has not set dump node");
+            }
+            return singleDumpNode.get();
         }
 
 
@@ -686,6 +707,18 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         @JSONField(serialize = false)
         public SqlTaskNodeMeta getFinalNode() throws Exception {
+            // if (this.isSingleTableModel()) {
+//                Optional<DependencyNode> singleDumpNode = this.getDumpNodes().stream().findFirst();
+//                if (!singleDumpNode.isPresent()) {
+//                    throw new IllegalStateException(this.getName() + " has not set dump node");
+//                }
+//                SqlTaskNodeMeta nodeMeta = new SqlTaskNodeMeta();
+//                DependencyNode dumpNode = singleDumpNode.get();
+//                nodeMeta.setType(NodeType.DUMP.getType());
+//                nodeMeta.setSql(dumpNode.getExtraSql());
+//                nodeMeta.setExportName(EntityName.create(dumpNode.getDbName(), dumpNode.getName()).toString());
+//                return nodeMeta;
+            //  } else {
             List<SqlTaskNodeMeta> finalNodes = getFinalNodes();
             if (finalNodes.size() != 1) {
                 throw new IllegalStateException(//
@@ -697,6 +730,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 throw new IllegalStateException("final node shall be exist");
             }
             return taskNode.get();
+            //}
         }
 
 

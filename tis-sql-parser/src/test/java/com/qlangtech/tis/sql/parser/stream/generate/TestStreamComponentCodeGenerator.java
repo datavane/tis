@@ -19,6 +19,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.sql.parser.BasicTestCase;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
+import com.qlangtech.tis.sql.parser.er.ERRules;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -26,12 +27,41 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public class TestStreamComponentCodeGenerator extends BasicTestCase {
+
+    /**
+     * 测试单表增量脚本生成
+     *
+     * @throws Exception
+     */
+    public void testSingleTableCodeGenerator() throws Exception {
+
+        //  CoreAction.create
+        String topologyName = "employees4local";
+        Optional<ERRules> erRule = ERRules.getErRule(topologyName);
+
+        // 测试针对单表的的topology增量脚本生成
+        long timestamp = 20191111115959l;
+        SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(topologyName);
+        assertNotNull(topology);
+        if (!erRule.isPresent()) {
+            ERRules.createDefaultErRule(topology);
+        }
+        String collectionName = "search4employee4local";
+        List<FacadeContext> facadeList = Lists.newArrayList();
+        StreamComponentCodeGenerator streamCodeGenerator
+                = new StreamComponentCodeGenerator("search4employee4local", timestamp, facadeList, topology, true);
+        streamCodeGenerator.build();
+
+        assertGenerateContentEqual(timestamp, collectionName, "S4employee4localListener.scala");
+    }
+
 
     public void testGeneratorCode() throws Exception {
         long timestamp = 20191111115959l;
@@ -71,7 +101,7 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
         // 校验生成的文件和assert文件内容相等
         try (InputStream assertFile = TestStreamComponentCodeGenerator.class.getResourceAsStream(generateScalaFileName)) {
             assertNotNull("generateScalaFileName can not be null:" + generateScalaFileName, assertFile);
-
+           // FileUtils.write(new File(generateScalaFileName), FileUtils.readFileToString(generateFile, TisUTF8.get()), TisUTF8.get(), false);
             assertTrue(generateFile.getAbsolutePath(), generateFile.exists());
             assertEquals(IOUtils.toString(assertFile, TisUTF8.get()), FileUtils.readFileToString(generateFile, TisUTF8.get()));
         }

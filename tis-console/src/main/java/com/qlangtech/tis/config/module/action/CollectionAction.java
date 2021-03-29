@@ -58,7 +58,6 @@ import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.TopologyDir;
 import com.qlangtech.tis.sql.parser.er.ERRules;
-import com.qlangtech.tis.sql.parser.er.TimeCharacteristic;
 import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.LogType;
@@ -141,8 +140,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   }
 
   /**
-   * 给
-   *
    * @param context
    * @throws Exception
    */
@@ -607,7 +604,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     return columnMeta;
   }
 
-  private static class TargetColumnMeta {
+  public static class TargetColumnMeta {
     private final String tableName;
 
     public TargetColumnMeta(String tableName) {
@@ -642,7 +639,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
           + targetColMap.values().stream().map((r) -> r.getName()).collect(Collectors.joining(",")));
         return pk;
       }
-      throw new IllegalStateException();
+      throw new IllegalStateException("can not find primary key");
     }
 
     public Map<String, ColMetaTuple> getTargetCols() {
@@ -775,33 +772,12 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       dsTable.getName(), true, targetColMetas.targetColMetas).toString());
 
     topology.addNodeMeta(joinNodeMeta);
+    // OfflineManager.ProcessedTable dsTable
+    // DependencyNode node = createDumpNode(dsTable);
+    // TargetColumnMeta targetColMetas
+    // ColumnMetaData pkMeta = ;
+    ERRules.createErRule(topologyName, createDumpNode(dsTable), targetColMetas.getPKMeta());
 
-
-    /***********************************************************
-     * 设置TabExtraMeta
-     **********************************************************/
-    ERRules erRules = new ERRules();
-    DependencyNode node = createDumpNode(dsTable);
-    node.setExtraSql(null);
-    ColumnMetaData pkMeta = targetColMetas.getPKMeta();
-    TabExtraMeta extraMeta = new TabExtraMeta();
-    extraMeta.setSharedKey(pkMeta.getKey());
-    extraMeta.setMonitorTrigger(true);
-    List<PrimaryLinkKey> primaryIndexColumnName = Lists.newArrayList();
-    PrimaryLinkKey pk = new PrimaryLinkKey();
-    pk.setName(pkMeta.getKey());
-    pk.setPk(true);
-    primaryIndexColumnName.add(pk);
-    extraMeta.setPrimaryIndexColumnNames(primaryIndexColumnName);
-    extraMeta.setPrimaryIndexTab(true);
-    node.setExtraMeta(extraMeta);
-    erRules.addDumpNode(node);
-    // erRules.setRelationList();
-    erRules.setTimeCharacteristic(TimeCharacteristic.ProcessTime);
-    ERRules.write(topologyName, erRules);
-    /***********************************************************
-     * <<<<<<<<
-     **********************************************************/
     // topology
 
     return topology;
@@ -877,8 +853,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
      *开始生成脚本并且编译打包
      *=======================================*/
     SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(df.getName());
+
     IndexIncrStatus incrStatus = CoreAction.generateDAOAndIncrScript(
-      this, context, df.getId(), true, true, wfTopology.isSingleDumpTableDependency());
+      this, context, this.loadDF(df.getId()), true, true, wfTopology.isSingleDumpTableDependency());
 
     if (context.hasErrors()) {
       return false;
