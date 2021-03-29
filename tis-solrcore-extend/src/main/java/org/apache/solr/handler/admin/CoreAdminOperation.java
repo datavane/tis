@@ -207,12 +207,13 @@ enum CoreAdminOperation implements CoreAdminOp {
 
         if (it.handler.getRequestStatusMap(RUNNING).containsKey(requestId)) {
             it.rsp.add(RESPONSE_STATUS, RUNNING);
+            it.rsp.add(RESPONSE, it.handler.getRequestStatusMap(RUNNING).get(requestId).getRspObject());
             // 百岁add for执行过程中索引回流了多少了,状态要告诉客户端的调用者,20160818
             printIndexBackflowStatus(it, RUNNING, requestId);
             // 百岁add end
         } else if (it.handler.getRequestStatusMap(COMPLETED).containsKey(requestId)) {
             it.rsp.add(RESPONSE_STATUS, COMPLETED);
-           // it.rsp.add(RESPONSE, it.handler.getRequestStatusMap(COMPLETED).get(requestId).getRspObject());
+            it.rsp.add(RESPONSE, it.handler.getRequestStatusMap(COMPLETED).get(requestId).getRspObject());
             // 百岁add for执行过程中索引回流了多少了,状态要告诉客户端的调用者,20160818
             printIndexBackflowStatus(it, COMPLETED, requestId);
             // 百岁add end
