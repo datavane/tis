@@ -67,7 +67,7 @@ public class TISCopy2LocalDirectory extends NIOFSDirectory {
                         length -= chunk;
                         offset += chunk;
                         try {
-                            Thread.sleep(1);
+                            Thread.sleep(20);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
