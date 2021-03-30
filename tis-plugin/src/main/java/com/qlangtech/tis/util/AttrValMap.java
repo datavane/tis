@@ -77,10 +77,11 @@ public class AttrValMap {
      * 校验表单输入内容
      *
      * @param context
+     * @param bizValidate 是否进行业务逻辑校验
      * @return true：校验没有错误 false：校验有错误
      */
-    public Descriptor.PluginValidateResult validate(Context context) {
-        return this.descriptor.validate(msgHandler, context, attrValMap);
+    public Descriptor.PluginValidateResult validate(Context context, boolean bizValidate) {
+        return this.descriptor.validate(msgHandler, context, bizValidate, attrValMap);
     }
 
     /**

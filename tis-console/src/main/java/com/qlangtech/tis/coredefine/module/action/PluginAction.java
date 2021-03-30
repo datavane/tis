@@ -101,6 +101,8 @@ public class PluginAction extends BasicModule {
     HeteroEnum hEnum = null;
     Descriptor.PluginValidateResult validateResult = null;
     List<Descriptor.PluginValidateResult> items = null;
+    // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
+    final boolean bizValidate = this.getBoolean("verify");
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
       items = Lists.newArrayList();
       pluginMeta = plugins.get(pluginIndex);
@@ -115,12 +117,14 @@ public class PluginAction extends BasicModule {
       pluginItems.items = describableAttrValMapList;
       categoryPlugins.add(pluginItems);
       AttrValMap attrValMap = null;
+
+
       for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
         attrValMap = describableAttrValMapList.get(itemIndex);
 //        context.put(KEY_VALIDATE_ITEM_INDEX, new Integer(itemIndex));
 //        context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
         Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-        if (!(validateResult = attrValMap.validate(context)).isValid()) {
+        if (!(validateResult = attrValMap.validate(context, bizValidate)).isValid()) {
           faild = true;
         } else {
           validateResult.setDescriptor(attrValMap.descriptor);
@@ -146,7 +150,7 @@ public class PluginAction extends BasicModule {
       }
 
     }
-    if (this.hasErrors(context) || this.getBoolean("verify")) {
+    if (this.hasErrors(context) || bizValidate) {
       return;
     }
     if (faild) {

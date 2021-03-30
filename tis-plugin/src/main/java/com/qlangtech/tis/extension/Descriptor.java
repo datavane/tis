@@ -332,11 +332,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      *
      * @param msgHandler
      * @param context
+     * @param bizValidate 是否进行业务逻辑校验，例如数据库是否能正常连接成功
      * @param formData
      * @return
      */
     public final PluginValidateResult validate(IControlMsgHandler msgHandler
             , Context context //
+            , boolean bizValidate
             , Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> formData) {
         String impl = null;
         Descriptor descriptor;
@@ -377,7 +379,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 AttrValMap attrValMap = AttrValMap.parseDescribableMap(msgHandler, descVal);
                 pushFieldStack(context, attr, 0);
                 try {
-                    if (!attrValMap.validate(context).isValid()) {
+                    if (!attrValMap.validate(context, bizValidate).isValid()) {
                         valid = false;
                         continue;
                     }
@@ -416,7 +418,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
         }// end for
 
-        if (valid && !this.validate(msgHandler, context, postFormVals)) {
+        if (valid && bizValidate && !this.validate(msgHandler, context, postFormVals)) {
             valid = false;
         }
         validateResult.valid = valid;

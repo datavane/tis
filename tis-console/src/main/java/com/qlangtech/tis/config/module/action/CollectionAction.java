@@ -58,7 +58,9 @@ import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.TopologyDir;
 import com.qlangtech.tis.sql.parser.er.ERRules;
-import com.qlangtech.tis.sql.parser.meta.*;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
+import com.qlangtech.tis.sql.parser.meta.NodeType;
+import com.qlangtech.tis.sql.parser.meta.Position;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.util.*;
@@ -579,7 +581,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     TargetColumnMeta columnMeta = new TargetColumnMeta(targetTable);
     Map<String, ColumnMetaData> colMetas = null;
     for (AttrValMap vals : dataSourceItems.items) {
-      if (!vals.validate(context).isValid()) {
+      if (!vals.validate(context, false).isValid()) {
         return columnMeta.invalid();
       }
       DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable().instance;
@@ -840,7 +842,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
 
     for (AttrValMap vals : incrPluginItems.items) {
-      if (!vals.validate(context).isValid()) {
+      if (!vals.validate(context, false).isValid()) {
         // return columnMeta.invalid();
         return false;
       }
