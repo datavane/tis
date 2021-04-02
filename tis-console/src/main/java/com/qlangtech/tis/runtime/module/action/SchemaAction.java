@@ -20,7 +20,6 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
-import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.Savefilecontent;
 import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
@@ -28,18 +27,17 @@ import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction;
 import com.qlangtech.tis.runtime.module.misc.*;
-import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JavaBeanMsgHandler;
 import com.qlangtech.tis.solrdao.*;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.SolrType;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
+import com.qlangtech.tis.sql.parser.ColName;
+import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import com.yushu.tis.xmodifier.XModifier;
@@ -51,6 +49,8 @@ import org.jdom2.Document;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -72,16 +72,11 @@ import java.util.stream.Collectors;
  */
 public class SchemaAction extends BasicModule {
 
-  protected static final String FIELD_PROJECT_NAME = "projectName";
-  protected static final String FIELD_WORKFLOW = "workflow";
-  protected static final String FIELD_DS_TYPE = "dsType";
-  protected static final String FIELD_Recept = "recept";
-  protected static final String FIELD_DptId = "dptId";
   private static final long serialVersionUID = 1L;
 
   protected static final String INDEX_PREFIX = "search4";
 
-  //private static Logger log = LoggerFactory.getLogger(SchemaAction.class);
+  private static Logger log = LoggerFactory.getLogger(SchemaAction.class);
 
   /**
    * 创建新索引流程取得通过workflow反射Schema 生成索引
@@ -90,17 +85,9 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   public void doGetTplFields(Context context) throws Exception {
-    // final String wfName = StringUtils.substringAfter(this.getString("wfname"), ":");
-    AddAppAction.ExtendApp app = this.parseJsonPost(AddAppAction.ExtendApp.class);
-    CreateSnapshotResult validateResult = this.createNewApp(context, app, -1, /* publishSnapshotId */
-      null, /* schemaContent */
-      true);
-    if (!validateResult.isSuccess()) {
-      return;
-    }
-
-    IAppSource appSource = app.createAppSource(this);
-    SchemaResult tplSchema = mergeWfColsWithTplCollection(this, context, appSource, ISchemaPluginContext.NULL);
+    final String wfName = StringUtils.substringAfter(this.getString("wfname"), ":");
+    WorkFlow workflow = getWorkflow(wfName);
+    SchemaResult tplSchema = mergeWfColsWithTplCollection(this, context, workflow, ISchemaPluginContext.NULL);
     Objects.requireNonNull(tplSchema, "tplSchema can not be null");
 //    if (tplSchema == null) return;
     // writer.close();
@@ -117,12 +104,12 @@ public class SchemaAction extends BasicModule {
    *
    * @param module
    * @param context
-   * @param appSource
+   * @param workflow
    * @return
    * @throws Exception
    */
   public static SchemaResult mergeWfColsWithTplCollection(BasicModule module, Context context
-    , IAppSource appSource, final ISchemaPluginContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
+    , WorkFlow workflow, final ISchemaPluginContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
     // 通过version取默认模板
     Application tplApp = getTemplateApp(module);
     SchemaResult tplSchema = getTemplateSchema(module, context, tplApp);
@@ -131,10 +118,11 @@ public class SchemaAction extends BasicModule {
     }
     ParseResult parseResult = tplSchema.getParseResult();
     SolrType strType = parseResult.getTisType(ReflectSchemaFieldType.STRING.literia);
-    List<ColumnMetaData> cols = appSource.reflectCols();
-    for (ColumnMetaData colName : cols) {
+    SqlTaskNodeMeta.SqlDataFlowTopology dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workflow.getName());
+    List<ColName> cols = dfTopology.getFinalTaskNodeCols();
+    for (ColName colName : cols) {
       PSchemaField f = new PSchemaField();
-      f.setName(colName.getKey());
+      f.setName(colName.getAliasName());
       f.setType(strType);
       f.setStored(true);
       f.setIndexed(false);
@@ -617,6 +605,20 @@ public class SchemaAction extends BasicModule {
     });
 
     return new String(modifiedContent, TisUTF8.get());
+//    ByteArrayInputStream inputStream = new ByteArrayInputStream(originContent);
+//    org.jdom2.Document document2 = XModifier.saxBuilder.build(inputStream);
+//    //final XModifier modifier = new XModifier(document2);
+//
+//    // final Set<String> intersectionKeys = new HashSet<String>();
+//
+//    // 将生成的元素加入文档：根元素
+//    // 添加docType属性
+//    DocType docType = new DocType("schema", "solrres://tisrepository/dtd/solrschema.dtd");
+//    document2.setDocType(docType);
+//    XMLOutputter xmlout = new XMLOutputter(xmlPrettyformat);
+//    ByteArrayOutputStream writer = new ByteArrayOutputStream();
+//    xmlout.output(document2, writer);
+//    return writer.toString(getEncode());
   }
 
   /**
@@ -878,6 +880,26 @@ public class SchemaAction extends BasicModule {
     return true;
   }
 
+  /**
+   * @param context
+   * @return
+   * @throws Exception
+   */
+  // private String getUploadeSchema(Context context) throws Exception {
+  // NewAppInfo appinfo;
+  // // 先更新缓存
+  // if (StringUtils.isNotEmpty(this.getString("content"))) {
+  // doModifedContext2CacheXml(context);
+  // } else {
+  // this.doModifedContext2CacheCommon(context);
+  // }
+  //
+  // appinfo = this.getAppinfoFromTair();
+  // if (StringUtils.isEmpty(appinfo.getSchemaXml())) {
+  // throw new IllegalStateException("xml can not be null");
+  // }
+  // return appinfo.getSchemaXml();
+  // }
   private static Integer createNewResource(Context context, ISchemaPluginContext schemaPlugin, final byte[] uploadContent, final String md5, PropteryGetter fileGetter
     , IMessageHandler messageHandler, RunContext runContext) throws SchemaFileInvalidException {
     UploadResource resource = new UploadResource();
@@ -920,75 +942,6 @@ public class SchemaAction extends BasicModule {
     }
     createResult.setSuccess(true);
     return createResult;
-  }
-
-  protected CreateSnapshotResult createNewApp(Context context, AddAppAction.ExtendApp app, int publishSnapshotId, byte[] schemaContent, boolean justValidate) throws Exception {
-    IControlMsgHandler handler = new DelegateControl4JavaBeanMsgHandler(this, app);
-    Map<String, Validator.FieldValidators> validateRule = //
-      Validator.fieldsValidator(//
-        SchemaAction.FIELD_PROJECT_NAME, new Validator.FieldValidators(Validator.require) {
-        }, //
-        new Validator.IFieldValidator() {
-          @Override
-          public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-            if (!AddAppAction.isAppNameValid(msgHandler, context, app)) {
-              return false;
-            }
-            ApplicationCriteria criteria = new ApplicationCriteria();
-            criteria.createCriteria().andProjectNameEqualTo(app.getProjectName());
-            if (getApplicationDAO().countByExample(criteria) > 0) {
-              msgHandler.addFieldError(context, SchemaAction.FIELD_PROJECT_NAME, "已经有同名(‘" + app.getProjectName() + "’)索引存在");
-              return false;
-            }
-            return true;
-          }
-        }, //
-        SchemaAction.FIELD_DS_TYPE, new Validator.FieldValidators(Validator.require) {
-        }, //
-        new Validator.IFieldValidator() {
-          @Override
-          public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-
-            if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(app.getDsType())) {
-              String[] tabCascadervalues = app.getTabCascadervalues();
-              if (tabCascadervalues == null) {
-                msgHandler.addFieldError(context, fieldKey, "请选择数据数据表");
-                return false;
-              }
-            } else if (AddAppAction.SOURCE_TYPE_DF.equals(app.getDsType())) {
-              String workflowName = app.getWorkflow();
-              if (StringUtils.isEmpty(workflowName)) {
-                msgHandler.addFieldError(context, fieldKey, "请选择数据流名称");
-                return false;
-              }
-            } else {
-              msgHandler.addFieldError(context, fieldKey, "dsType:" + app.getDsType() + " is not illegal");
-              return false;
-              // throw new IllegalStateException("dsType:" + app.getDsType() + " is not illegal");
-            }
-
-            return true;
-          }
-        },
-        SchemaAction.FIELD_Recept, new Validator.FieldValidators(Validator.require) {
-        }, //
-        SchemaAction.FIELD_DptId, new Validator.FieldValidators(Validator.require) {
-        });
-    CreateSnapshotResult result = new CreateSnapshotResult();
-    result.setSuccess(true);
-    if (!Validator.validate(handler, context, validateRule)) {
-      return result.setSuccess(false);
-    }
-
-    app.setDptName(AddAppAction.getDepartment(this, app.getDptId()).getFullName());
-    app.setCreateTime(new Date());
-    app.setIsAutoDeploy(true);
-    if (!justValidate) {
-      result = AddAppAction.createApplication(app, publishSnapshotId, /* publishSnapshotId */
-        schemaContent, context, this);
-      addActionMessage(context, "已经成功创建索引[" + app.getProjectName() + "]");
-    }
-    return result;
   }
 
   private static // BasicModule module

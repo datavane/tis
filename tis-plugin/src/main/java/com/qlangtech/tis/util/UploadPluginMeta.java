@@ -35,9 +35,6 @@ public class UploadPluginMeta {
 
     private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\w]+");
 
-    public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR
-            = Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");
-
     private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))+)?");
 
     public static final String KEY_REQUIRE = "require";
@@ -47,20 +44,6 @@ public class UploadPluginMeta {
     // 除去 required 之外的其他参数
     private Map<String, String> extraParams = new HashMap<>();
 
-    public static void main(String[] args) throws Exception {
-
-        Matcher matcher = PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.matcher("dsname_dsname_yuqing_zj2_bak");
-
-        System.out.println(matcher.matches());
-        System.out.println(matcher.group(1));
-        System.out.println(matcher.group(2));
-
-//        Matcher matcher = PATTERN_PLUGIN_ATTRIBUTE.matcher("_3sfgG");
-////        if(matcher.matches()){
-////
-////        }
-//        System.out.println(matcher.matches());
-    }
 
     public static List<UploadPluginMeta> parse(String[] plugins) {
         if (plugins == null || plugins.length < 1) {
@@ -77,11 +60,12 @@ public class UploadPluginMeta {
     }
 
     /**
+     *
      * @param plugin
      * @return
      */
     public static UploadPluginMeta parse(String plugin) {
-        Matcher matcher, attrKVMatcher;
+        Matcher matcher;
         UploadPluginMeta pmeta;
         Matcher attrMatcher;
         String attr;
@@ -97,15 +81,11 @@ public class UploadPluginMeta {
                             pmeta.required = true;
                             break;
                         default:
-                            attrKVMatcher = PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.matcher(attr);
-                            if (!attrKVMatcher.matches()) {
-                                throw new IllegalStateException("attr:" + attr + " is not match:" + PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.pattern());
+                            String[] pair = StringUtils.split(attr, ATTR_KEY_VALUE_SPLIT);
+                            if (pair.length != 2) {
+                                throw new IllegalStateException("attr:" + attr + " is illegal");
                             }
-//                            String[] pair = StringUtils.split(attr, ATTR_KEY_VALUE_SPLIT);
-//                            if (pair.length != 2) {
-//                                throw new IllegalStateException("attr:" + attr + " is illegal");
-//                            }
-                            pmeta.extraParams.put(attrKVMatcher.group(1), attrKVMatcher.group(2));
+                            pmeta.extraParams.put(pair[0], pair[1]);
                     }
                 }
             }
@@ -120,6 +100,14 @@ public class UploadPluginMeta {
         return HeteroEnum.of(this.getName());
     }
 
+
+    public static void main(String[] args) {
+        String[] plugins = new String[]{"test_plugin:require"};
+        List<UploadPluginMeta> pluginMetas = parse(plugins);
+        for (UploadPluginMeta m : pluginMetas) {
+            System.out.println(m);
+        }
+    }
 
     public String getName() {
         return name;

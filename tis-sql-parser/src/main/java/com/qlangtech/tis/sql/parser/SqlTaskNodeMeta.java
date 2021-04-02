@@ -66,7 +66,6 @@ import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -616,24 +615,19 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
 
         @JSONField(serialize = false)
-        public List<ColumnMetaData> getFinalTaskNodeCols() throws Exception {
+        public List<ColName> getFinalTaskNodeCols() throws Exception {
 
             if (this.isSingleTableModel()) {
                 DependencyNode dumpNode = this.getDumpNodes().get(0);
                 DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
                 TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
-                return tisTable.getReflectCols();
-//                        .stream().map((c) -> {
-//                    return new ColName(c.getKey());
-//                }).collect(Collectors.toList());
+                return tisTable.getReflectCols().stream().map((c) -> {
+                    return new ColName(c.getKey());
+                }).collect(Collectors.toList());
             }
 
             SqlTaskNode task = this.getFinalTaskNode();
-            List<ColName> colNames = task.parse(false).getColsRefs().getColRefMap().keySet();
-            AtomicInteger index = new AtomicInteger();
-            return colNames.stream().map((c) -> {
-                return new ColumnMetaData(index.getAndIncrement(), c.getAliasName(), Types.VARCHAR, false);
-            }).collect(Collectors.toList());
+            return task.parse(false).getColsRefs().getColRefMap().keySet();
         }
 
         private SqlTaskNode getFinalTaskNode() throws Exception {

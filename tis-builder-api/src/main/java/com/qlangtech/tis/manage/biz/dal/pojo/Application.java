@@ -54,9 +54,9 @@ public class Application implements Serializable {
      */
     private String dptName;
 
-//    private Integer workFlowId;
-//
-//    private String dataflowName;
+    private Integer workFlowId;
+
+    private String dataflowName;
 
     private String fullBuildCronTime;
 
@@ -64,13 +64,13 @@ public class Application implements Serializable {
         return appId;
     }
 
-//    public String getDataflowName() {
-//        return dataflowName;
-//    }
-//
-//    public void setDataflowName(String dataflowName) {
-//        this.dataflowName = dataflowName;
-//    }
+    public String getDataflowName() {
+        return dataflowName;
+    }
+
+    public void setDataflowName(String dataflowName) {
+        this.dataflowName = dataflowName;
+    }
 
     public void setAppId(Integer appId) {
         this.appId = appId;
@@ -161,12 +161,12 @@ public class Application implements Serializable {
     }
 
     public Integer getWorkFlowId() {
-        return 0;
+        return workFlowId;
     }
-//
-//    public void setWorkFlowId(Integer workFlowId) {
-//        this.workFlowId = workFlowId;
-//    }
+
+    public void setWorkFlowId(Integer workFlowId) {
+        this.workFlowId = workFlowId;
+    }
 
     public String getFullBuildCronTime() {
         return fullBuildCronTime;

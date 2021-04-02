@@ -79,7 +79,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   // public static final int PAGE_SIZE = 30;
   private final Context context = new MockContext();
   protected IClusterSnapshotDAO clusterSnapshotDAO;
-  protected IWorkflowDAOFacade wfDAOFacade;
   private IERRulesGetter erRulesGetter;
 
   @Override
@@ -88,14 +87,14 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return erRulesGetter.getErRules(dfName);
   }
 
-//  protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
-//    Integer wfid = module.getAppDomain().getApp().getWorkFlowId();
-//    WorkFlow dataflow = module.loadDF(wfid);// module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
-//    if (dataflow == null) {
-//      throw new IllegalStateException("wfid relevant dataflow can not be null");
-//    }
-//    return dataflow;
-//  }
+  protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
+    Integer wfid = module.getAppDomain().getApp().getWorkFlowId();
+    WorkFlow dataflow = module.loadDF(wfid);// module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
+    if (dataflow == null) {
+      throw new IllegalStateException("wfid relevant dataflow can not be null");
+    }
+    return dataflow;
+  }
 
   @Override
   public String execute() throws Exception {
@@ -334,11 +333,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   @Autowired
   public void setClusterSnapshotDAO(IClusterSnapshotDAO clusterSnapshotDAO) {
     this.clusterSnapshotDAO = clusterSnapshotDAO;
-  }
-
-  @Autowired
-  public void setWfDaoFacade(IWorkflowDAOFacade facade) {
-    this.wfDAOFacade = facade;
   }
 
   public static interface Rundata {

@@ -108,6 +108,8 @@ public class OfflineDatasourceAction extends BasicModule {
 
   private static final diff_match_patch DIFF_MATCH_PATCH = new diff_match_patch();
 
+  private IWorkflowDAOFacade offlineDAOFacade;
+
   private static boolean isWordCharacter(String word) {
     return WORD_CHARACTER_PATTERN.matcher(word).matches();
   }
@@ -125,7 +127,7 @@ public class OfflineDatasourceAction extends BasicModule {
     wf.setOpUserId(123);
     wf.setOpUserName("baisui");
     wf.setOpTime(new Date());
-    this.wfDAOFacade.getWorkFlowDAO().insertSelective(wf);
+    this.offlineDAOFacade.getWorkFlowDAO().insertSelective(wf);
   }
 
   /**
@@ -150,7 +152,7 @@ public class OfflineDatasourceAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
   public void doSelectDbChange(Context context) throws Exception {
     Integer dbid = this.getInt("dbid");
-    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.wfDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
     PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
 
     List<String> tabs = dbPlugin.getPlugin().getTablesInDB();
@@ -259,7 +261,7 @@ public class OfflineDatasourceAction extends BasicModule {
     if (updateMode) {
       tab.setTabId(form.getInteger("tabId"));
     }
-    tab.setDbName(wfDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId).getName());
+    tab.setDbName(offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId).getName());
     return tab;
   }
 
@@ -554,7 +556,7 @@ public class OfflineDatasourceAction extends BasicModule {
         dnode.setId(o.getString("id"));
         tableid = nodeMeta.getInt("tabid");
         Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap = Maps.newHashMap();
-        tab = getDatabase(this.wfDAOFacade, dbMap, tableid);
+        tab = getDatabase(this.offlineDAOFacade, dbMap, tableid);
         dnode.setDbName(tab.db.getName());
         dnode.setName(tab.tab.getName());
         dnode.setTabid(String.valueOf(tableid));
@@ -1180,7 +1182,7 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     Integer dbId = form.getIntValue("dbId");
-    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.wfDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
     if (!updateMode && offlineManager.checkTableLogicNameRepeat(tableLogicName, db)) {
       this.addErrorMessage(context, "已经有了相同逻辑名的表");
       return;
@@ -1382,6 +1384,84 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context, this.offlineManager.getWorkflowConfig(id, true));
   }
 
+  // /**
+  // * 获取一个工作流的配置
+  // *
+  // * @param context
+  // */
+  // public void doGetWorkflowConfigBranch(Context context) {
+  // Integer id = this.getInt("id");
+  // if (id == null) {
+  // this.addErrorMessage(context, "请输入工作流id");
+  // return;
+  // }
+  // this.setBizResult(context, this.offlineManager.getWorkflowConfig(id, false));
+  // }
+  // /**
+  // * 获取某个
+  // *
+  // * @param context
+  // */
+  // public void doGetWorkflowConfigSha1(Context context) {
+  // String name = this.getString("name");
+  // if (StringUtils.isBlank(name)) {
+  // this.addErrorMessage(context, "工作流名字不能为空");
+  // return;
+  // }
+  // String gitSha1 = this.getString("gitSha1");
+  // if (StringUtils.isBlank(gitSha1)) {
+  // this.addErrorMessage(context, "请输入正确的commit id");
+  // return;
+  // }
+  // this.setBizResult(context, this.offlineManager.getWorkflowConfig(name,
+  // gitSha1));
+  // }
+  // public void doUseWorkflowChange(Context context) {
+  // Integer id = this.getInt("id");
+  // if (id == null) {
+  // this.addErrorMessage(context, "请传入变更id");
+  // return;
+  // }
+  // this.offlineManager.useWorkflowChange(id, this, context);
+  // }
+  // public void doCompareWorkflowChanges(Context context) {
+  // String path = this.getString("path");
+  // String fromVersion = this.getString("fromVersion");
+  // String toVersion = this.getString("toVersion");
+  // String fromString =
+  // GitUtils.$().getWorkflowSha(GitUtils.WORKFLOW_GIT_PROJECT_ID, fromVersion,
+  // path).getTask();
+  // String toString =
+  // GitUtils.$().getWorkflowSha(GitUtils.WORKFLOW_GIT_PROJECT_ID, toVersion,
+  // path).getTask();
+  // this.setBizResult(context, getTwoStringDiffHtml(fromString, toString));
+  // }
+  // private static String getTwoStringDiffHtml(String s1, String s2) {
+  // StringBuilder sb = new StringBuilder();
+  // LinkedList<diff_match_patch.Diff> differ = DIFF_MATCH_PATCH.diff_main(s1, s2,
+  // true);
+  //
+  // for (diff_match_patch.Diff d : differ) {
+  //
+  // if (d.operation == diff_match_patch.Operation.EQUAL) {
+  // sb.append(StringEscapeUtils.escapeXml(d.text));
+  // } else if (d.operation == diff_match_patch.Operation.DELETE) {
+  // sb.append("<span
+  // style='text-decoration:line-through;background-color:pink;'>")
+  // .append(StringEscapeUtils.escapeXml(d.text)).append("</span>");
+  // } else if (d.operation == diff_match_patch.Operation.INSERT) {
+  // sb.append("<span
+  // style=\"background-color:#00FF00;\">").append(StringEscapeUtils.escapeXml(d.text))
+  // .append("</span>");
+  // }
+  //
+  // }
+  // return sb.toString();
+  // }
+  @Autowired
+  public void setWfDaoFacade(IWorkflowDAOFacade facade) {
+    this.offlineDAOFacade = facade;
+  }
 
   public static class DatasourceDb {
 

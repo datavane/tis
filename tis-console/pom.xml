@@ -28,14 +28,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.qlangtech.tis</groupId>
-      <artifactId>tis-dag</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-
-
-    <dependency>
       <!--running DB in embedded model https://db.apache.org/derby/docs/10.15/getstart/index.html-->
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
@@ -117,6 +109,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+      <version>3.7</version>
     </dependency>
 
     <dependency>

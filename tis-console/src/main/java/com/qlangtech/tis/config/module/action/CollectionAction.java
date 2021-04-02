@@ -331,10 +331,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topology, parent);
     boolean hasCreateCollection = false;
-    Optional<Application> createdApp = Optional.empty();
     try {
       // 在在引擎节点上创建实例节点
-      createdApp = this.createCollection(context, df, indexName.param, targetColMetas);
+      this.createCollection(context, df, indexName.param, targetColMetas);
       hasCreateCollection = true;
       if (incrCfg != null) {
         logger.info("start incr channel create");
@@ -355,13 +354,9 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     Objects.requireNonNull(tranStatus, "transtatus can not be null");
     transactionManager.commit(tranStatus);
 
-    if (!createdApp.isPresent()) {
-      throw new IllegalStateException("createdApp can not be null");
-    }
-
     // 现在需要开始触发全量索引了
     CoreAction.TriggerBuildResult triggerBuildResult
-      = CoreAction.triggerFullIndexSwape(this, context, createdApp.get(), SHARED_COUNT);
+      = CoreAction.triggerFullIndexSwape(this, context, df.getId(), df.getName(), SHARED_COUNT);
     this.setBizResult(context, triggerBuildResult);
   }
 
@@ -388,7 +383,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     WorkFlow wf = this.loadDF(app.getWorkFlowId());
 
     this.setBizResult(context
-      , CoreAction.triggerFullIndexSwape(this, context, app, 1));
+      , CoreAction.triggerFullIndexSwape(this, context, app.getWorkFlowId(), wf.getName(), 1));
   }
 
   private JSONObject getIndexWithPost() {
@@ -675,7 +670,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
    * @param targetColMetas
    * @throws Exception
    */
-  private Optional<Application> createCollection(Context context, WorkFlow df, String indexName, TargetColumnMeta targetColMetas) throws Exception {
+  private void createCollection(Context context, WorkFlow df, String indexName, TargetColumnMeta targetColMetas) throws Exception {
     Objects.requireNonNull(df, "param df can not be null");
     CreateIndexConfirmModel confirmModel = new CreateIndexConfirmModel();
     SelectableServer.ServerNodeTopology coreNode = new SelectableServer.ServerNodeTopology();
@@ -703,7 +698,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     confirmModel.setAppform(extendApp);
 
     SchemaResult schemaResult = SchemaAction.mergeWfColsWithTplCollection(this
-      , context, null, ISchemaPluginContext.NULL, (cols, schemaParseResult) -> {
+      , context, df, ISchemaPluginContext.NULL, (cols, schemaParseResult) -> {
         ColumnMetaData pkMeta = targetColMetas.getPKMeta();
         PSchemaField field = null;
         ColMetaTuple rft = null;
@@ -751,7 +746,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       });
 
     // 创建索引实例
-    return this.createCollection(context, confirmModel, schemaResult
+    this.createCollection(context, confirmModel, schemaResult
       , (ctx, app, publishSnapshotId, schemaContent) -> {
         return this.createNewApp(ctx, app, publishSnapshotId, schemaContent);
       });
@@ -779,6 +774,10 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       dsTable.getName(), true, targetColMetas.targetColMetas).toString());
 
     topology.addNodeMeta(joinNodeMeta);
+    // OfflineManager.ProcessedTable dsTable
+    // DependencyNode node = createDumpNode(dsTable);
+    // TargetColumnMeta targetColMetas
+    // ColumnMetaData pkMeta = ;
     ERRules.createErRule(topologyName, createDumpNode(dsTable), targetColMetas.getPKMeta());
 
     // topology

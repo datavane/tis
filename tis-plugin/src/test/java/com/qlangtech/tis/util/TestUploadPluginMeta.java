@@ -25,7 +25,6 @@ import java.util.List;
 public class TestUploadPluginMeta extends TestCase {
 
     public void testPluginMetaParse() {
-        //  String pluginName = "dsname_yuqing_zj2_bak";
         String pluginName = "test_plugin";
         String[] plugins = new String[]{pluginName + ":require"};
         List<UploadPluginMeta> pluginMetas = UploadPluginMeta.parse(plugins);
@@ -49,9 +48,8 @@ public class TestUploadPluginMeta extends TestCase {
             fail("shall be faild,but not");
         } catch (Exception e) {
         }
-        String dsnameKey = "dsname";
-        final String dbName = "yuqing_zj2_bak";
-        plugins = new String[]{pluginName + ":" + dsnameKey + "_" + dbName + ",require"};
+
+        plugins = new String[]{pluginName + ":datasource_order,require"};
 
         pluginMetas = UploadPluginMeta.parse(plugins);
 
@@ -60,6 +58,6 @@ public class TestUploadPluginMeta extends TestCase {
         assertNotNull(meta);
         assertEquals(pluginName, meta.getName());
         assertTrue(meta.isRequired());
-        assertEquals(dbName, meta.getExtraParam(dsnameKey));
+        assertEquals("order", meta.getExtraParam("datasource"));
     }
 }
