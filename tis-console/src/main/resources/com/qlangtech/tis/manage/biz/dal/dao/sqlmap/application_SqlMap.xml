@@ -16,8 +16,9 @@
     <!--<result column="sandbox" property="sandbox" jdbcType="CHAR" typeHandler="com.baisui.tis.ibatis.util.BooleanYorNConvertCallback" />-->
     <!--<result column="has_create_online" property="hasCreateOnline" jdbcType="CHAR" typeHandler="com.baisui.tis.ibatis.util.BooleanYorNConvertCallback" />-->
     <!--<result column="online_app_name" property="onlineAppName" jdbcType="VARCHAR" />-->
-
+ <!--
     <result column="work_flow_id" property="workFlowId" jdbcType="INTEGER" />
+ -->
     <result column="full_build_cron_time" property="fullBuildCronTime" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="ibatorgenerated_Example_Where_Clause" >
@@ -54,7 +55,7 @@
       WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select aa.app_id, project_name, recept, manager, create_time, update_time,
-      is_auto_deploy, dpt_id, dpt_name, work_flow_id, full_build_cron_time
+      is_auto_deploy, dpt_id, dpt_name,  full_build_cron_time
      from ( select app_id from application
     <isParameterPresent >
       <include refid="application.ibatorgenerated_Example_Where_Clause" />
@@ -70,7 +71,7 @@
       WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     select app_id, project_name, recept, manager, create_time, update_time,
-      is_auto_deploy, dpt_id, dpt_name,   work_flow_id, full_build_cron_time
+      is_auto_deploy, dpt_id, dpt_name,    full_build_cron_time
     from application
     where app_id = #appId:INTEGER#
   </select>
@@ -78,7 +79,7 @@
   <select id="ibatorgenerated_selectByName" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Application" >
 
     select app_id, project_name, recept, manager, create_time, update_time,
-      is_auto_deploy, dpt_id, dpt_name,  work_flow_id, full_build_cron_time
+      is_auto_deploy, dpt_id, dpt_name,   full_build_cron_time
     from application
     where project_name = #projectName:VARCHAR#
   </select>
@@ -102,10 +103,10 @@
       WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
     insert into application (app_id, project_name, recept, manager, create_time, update_time,
-       is_auto_deploy, dpt_id, dpt_name, work_flow_id, full_build_cron_time)
+       is_auto_deploy, dpt_id, dpt_name,  full_build_cron_time)
     values (#appId:INTEGER#, #projectName:VARCHAR#, #recept:VARCHAR#, #manager:VARCHAR#,
       #createTime:TIMESTAMP#, #updateTime:TIMESTAMP#, #isAutoDeploy,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#,
-      #dptId:INTEGER#, #dptName:VARCHAR#, #workFlowId:INTEGER#, #fullBuildCronTime:VARCHAR#)
+      #dptId:INTEGER#, #dptName:VARCHAR#, #fullBuildCronTime:VARCHAR#)
 
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Application" >
@@ -143,10 +144,6 @@
         dpt_name
       </isNotNull>
 
-
-      <isNotNull prepend="," property="workFlowId" >
-        work_flow_id
-      </isNotNull>
       <isNotNull prepend="," property="fullBuildCronTime" >
         full_build_cron_time
       </isNotNull>
@@ -181,9 +178,6 @@
       </isNotNull>
       <isNotNull prepend="," property="dptName" >
         #dptName:VARCHAR#
-      </isNotNull>
-      <isNotNull prepend="," property="workFlowId" >
-        #workFlowId:INTEGER#
       </isNotNull>
       <isNotNull prepend="," property="fullBuildCronTime" >
         #fullBuildCronTime:VARCHAR#
@@ -240,9 +234,6 @@
         dpt_name = #record.dptName:VARCHAR#
       </isNotNull>
 
-      <isNotNull prepend="," property="record.workFlowId" >
-        work_flow_id = #record.workFlowId:INTEGER#
-      </isNotNull>
       <isNotNull prepend="," property="record.fullBuildCronTime" >
         full_build_cron_time = #record.fullBuildCronTime:VARCHAR#
       </isNotNull>

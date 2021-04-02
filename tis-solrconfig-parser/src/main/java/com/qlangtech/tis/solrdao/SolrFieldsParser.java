@@ -21,6 +21,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 import com.qlangtech.tis.solr.common.DOMUtil;
 import com.qlangtech.tis.solrdao.extend.IndexBuildHook;
@@ -646,7 +647,7 @@ public class SolrFieldsParser {
          * @param cols   topology 宽表中解析出来的宽表字段
          * @param result
          */
-        public void process(List<ColName> cols, ParseResult result);
+        public void process(List<ColumnMetaData> cols, ParseResult result);
     }
 
     public static class ParseResult implements ISchema {

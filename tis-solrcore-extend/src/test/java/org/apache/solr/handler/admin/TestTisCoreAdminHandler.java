@@ -20,6 +20,7 @@ import org.apache.solr.common.params.CommonAdminParams;
 import org.apache.solr.common.params.CoreAdminParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.core.CoreContainer;
+import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
 import org.easymock.EasyMock;
@@ -45,6 +46,9 @@ public class TestTisCoreAdminHandler extends TISTestCase {
         String coreName = "search4totalpay_shard1_replica_n1";
         final String taskid = "task_1";
         CoreContainer coreContainer = this.mock("coreContainer", CoreContainer.class);
+        SolrCore solrCore = EasyMock.createStrictMock("solrCore", SolrCore.class);
+
+        EasyMock.expect(coreContainer.getCore(coreName)).andReturn(solrCore);
         EasyMock.expect(coreContainer.getAllCoreNames()).andReturn(Collections.singleton(coreName)).anyTimes();
         AtomicBoolean execHandleSwapindexfileActionComplete = new AtomicBoolean();
         CountDownLatch countDown = new CountDownLatch(1);

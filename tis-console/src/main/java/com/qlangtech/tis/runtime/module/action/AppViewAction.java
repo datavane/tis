@@ -93,10 +93,10 @@ public class AppViewAction extends BasicModule {
 
     apps = this.getApplicationDAO().selectByExample(query, pager.getCurPage(), pager.getRowsPerPage());
     apps.forEach((app) -> {
-      WorkFlow df = null;
-      if (app.getWorkFlowId() != null && (df = getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId())) != null) {
-        app.setDataflowName(df.getName());
-      }
+//      WorkFlow df = null;
+//      if (app.getWorkFlowId() != null && (df = getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId())) != null) {
+//        app.setDataflowName(df.getName());
+//      }
     });
     this.setBizResult(context, new PaginationResult(pager, apps));
   }

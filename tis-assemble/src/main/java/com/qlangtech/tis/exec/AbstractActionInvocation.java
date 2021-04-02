@@ -18,21 +18,17 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.impl.*;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
-import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
-import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
-import com.qlangtech.tis.sql.parser.er.TableMeta;
-import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -63,29 +59,28 @@ public class AbstractActionInvocation implements ActionInvocation {
         IExecuteInterceptor[] ints = null;
         if (chainContext.getWorkflowId() != null) {
             ints = workflowBuild;
-            Integer workflowId = chainContext.getWorkflowId();
-            SqlDataFlowTopology workflowDetail = chainContext.getTopology();
-            Objects.requireNonNull(workflowDetail, "workflowDetail can not be null");
-            EntityName targetEntity = null;
-            if (workflowDetail.isSingleTableModel()) {
-                DependencyNode dumpNode = workflowDetail.getDumpNodes().get(0);
-                targetEntity = dumpNode.parseEntityName();
-            } else {
-                SqlTaskNodeMeta finalN = workflowDetail.getFinalNode();
-                targetEntity = EntityName.parse(finalN.getExportName());
-            }
+            IAppSource appSource = DataFlowAppSource.load(chainContext.getIndexName());
+            EntityName targetEntity = appSource.getTargetEntity();
+
+//            Integer workflowId = chainContext.getWorkflowId();
+//            SqlDataFlowTopology workflowDetail = chainContext.getTopology();
+//            Objects.requireNonNull(workflowDetail, "workflowDetail can not be null");
+//            EntityName targetEntity = null;
+//            if (workflowDetail.isSingleTableModel()) {
+//                DependencyNode dumpNode = workflowDetail.getDumpNodes().get(0);
+//                targetEntity = dumpNode.parseEntityName();
+//            } else {
+//                SqlTaskNodeMeta finalN = workflowDetail.getFinalNode();
+//                targetEntity = EntityName.parse(finalN.getExportName());
+//            }
             chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
 
             Integer taskid = chainContext.getTaskId();
             TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange()));
-            chainContext.setAttribute(IFullBuildContext.KEY_WORKFLOW_ID, workflowDetail);
-            Optional<ERRules> erRule = ERRules.getErRule(workflowDetail.getName());
-            IPrimaryTabFinder pTabFinder = null;
-            if (!erRule.isPresent()) {
-                pTabFinder = new DftTabFinder();
-            } else {
-                pTabFinder = erRule.get();
-            }
+            //chainContext.setAttribute(IFullBuildContext.KEY_WORKFLOW_ID, workflowDetail);
+
+            IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
+
             chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
         } else {
             if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
@@ -219,16 +214,5 @@ public class AbstractActionInvocation implements ActionInvocation {
         this.chainContext = action;
     }
 
-    private static class DftTabFinder implements IPrimaryTabFinder {
-        @Override
-        public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
-            return Optional.empty();
-        }
 
-        @Override
-        public final Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
-            //throw new UnsupportedOperationException();
-            return Collections.emptyMap();
-        }
-    }
 }

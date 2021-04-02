@@ -18,6 +18,7 @@ import com.google.common.base.Joiner;
 import com.qlangtech.tis.sql.parser.ColName;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.sql.Types;
 import java.util.List;
 
 /**
@@ -59,8 +60,6 @@ public class ColumnMetaData {
     private final int index;
     private ReservedFieldType schemaFieldType;
 
-    // private final String dbType;
-    // private final String hiveType;
     // 是否是主键
     private final boolean pk;
 

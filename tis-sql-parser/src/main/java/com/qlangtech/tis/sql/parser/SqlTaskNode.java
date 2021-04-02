@@ -47,55 +47,14 @@ import java.util.stream.Collectors;
  */
 public class SqlTaskNode {
 
-    // public static final File parent = new File(
-    // "D:\\j2ee_solution\\eclipse-standard-kepler-SR2-win32-x86_64\\workspace\\tis-saturn\\tis-sql-parser\\src\\main\\resources\\totalpaytest");
     public static final String NAME_DATAFLOW_DIR = "df";
 
     public static final File parent = new File(Config.getMetaCfgDir(), NAME_DATAFLOW_DIR);
-
-    // private Map<String, SqlTaskNode> all;
     private Optional<TisGroupBy> groupBy = Optional.empty();
 
     private final IDumpNodeMapContext dumpNodesContext;
 
-    // 依赖的数据库表，可能有相同的表明，但是来自两个数据库的情况
-    // private static final Map<String /* tableName */, List<TableTupleCreator>> dumpNodes;
-    // static {
-    // try {
-    // 
-    // List<TableTupleCreator> tables = null;
-    // Map<String /* tableName */, List<TableTupleCreator>> builder = Maps.newHashMap();
-    // 
-    // File f = new File(
-    // "D:\\j2ee_solution\\eclipse-java-oxygen-mars-develop\\workspace\\tis-mars\\tis-sql-parser\\src\\main\\resources\\dump_tabs\\dump_tabs.txt");
-    // LineIterator lineIt = FileUtils.lineIterator(f, "utf8");
-    // String line = null;
-    // TableTupleCreator tupleCreator = null;
-    // 
-    // EntityName entityName = null;
-    // while (lineIt.hasNext()) {
-    // line = lineIt.nextLine();
-    // 
-    // entityName = EntityName.parse(line);
-    // 
-    // tupleCreator = new TableTupleCreator(line, NodeType.DUMP);
-    // 
-    // tables = builder.get(entityName.getTabName());
-    // if (tables == null) {
-    // tables = Lists.newArrayList();
-    // builder.put(entityName.getTabName(), tables);
-    // }
-    // 
-    // tupleCreator.setRealEntityName(entityName);
-    // tables.add(tupleCreator);
-    // 
-    // }
-    // dumpNodes = Collections.unmodifiableMap(builder);// builder.build();
-    // } catch (IOException e) {
-    // throw new RuntimeException(e);
-    // }
-    // 
-    // }
+
     public static List<ColumnMetaData> reflectTableCols(String sql) {
         if (StringUtils.isEmpty(sql)) {
             throw new IllegalArgumentException("param sql can not be null");
@@ -119,10 +78,6 @@ public class SqlTaskNode {
 
     public static final SqlParser parser = new SqlParser();
 
-    // private static final TestGroupBySqlParser sqlParser = new
-    // TestGroupBySqlParser();
-    // private Rewriter rewriter;
-    // private ColRef colsRefs = null;
     private String content;
 
     // 依赖的数据
@@ -157,11 +112,6 @@ public class SqlTaskNode {
         }
         EntityName ename = EntityName.parse(node);
         this.dumpNodesContext.accurateMatch(ename.getTabName());
-        // List<TableTupleCreator> tabs = dumpNodes.get(ename.getTabName());
-        // if (tabs != null && tabs.size() > 1) {
-        // throw new IllegalStateException("table:" + ename.getTabName()
-        // + " has more than 1 match dumptable,shall special full tablename[dbanme.tablename]");
-        // }
         this.required.put(ename, null);
     }
 

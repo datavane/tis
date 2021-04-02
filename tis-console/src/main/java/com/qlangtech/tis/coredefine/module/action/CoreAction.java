@@ -23,7 +23,6 @@ import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
 import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
 import com.qlangtech.tis.coredefine.biz.FCoreRequest;
@@ -33,11 +32,13 @@ import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.InstanceDirDesc
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.servlet.QueryCloudSolrClient;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
 import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
@@ -59,8 +60,6 @@ import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.ERRules;
-import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
-import com.qlangtech.tis.sql.parser.er.TableMeta;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
@@ -387,59 +386,68 @@ public class CoreAction extends BasicModule {
     triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
   }
 
-  public static void triggerFullIndexSwape(BasicModule module, Context context, Application app, int sharedCount) throws Exception {
-    Assert.assertNotNull(app);
-    WorkFlow df = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId());
-    Assert.assertNotNull(df);
-    triggerFullIndexSwape(module, context, app.getWorkFlowId(), df.getName(), sharedCount);
-  }
+//  public static void triggerFullIndexSwape(BasicModule module, Context context, Application app, int sharedCount) throws Exception {
+////    Assert.assertNotNull(app);
+////    WorkFlow df = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId());
+////    Assert.assertNotNull(df);
+//    triggerFullIndexSwape(module, context, app.getWorkFlowId(), df.getName(), sharedCount);
+//  }
 
   /**
    * 触发全量索引构建
    *
    * @param module
    * @param context
-   * @param wfId
-   * @param wfName
+   * @param app
    * @param sharedCount
    * @return
    * @throws Exception
    */
-  public static TriggerBuildResult triggerFullIndexSwape(BasicModule module, Context context, Integer wfId, String wfName, int sharedCount) throws Exception {
+  public static TriggerBuildResult triggerFullIndexSwape(BasicModule module, Context context, Application app, int sharedCount) throws Exception {
 
-    Objects.requireNonNull(wfId, "wfId can not be null");
-    if (sharedCount < 1) {
-      throw new IllegalArgumentException("param sharedCount can not be null");
-    }
-    if (StringUtils.isEmpty(wfName)) {
-      throw new IllegalArgumentException("param wfName can not be null");
+    Objects.requireNonNull(app, "app can not be null");
+
+//    Objects.requireNonNull(wfId, "wfId can not be null");
+//    if (sharedCount < 1) {
+//      throw new IllegalArgumentException("param sharedCount can not be null");
+//    }
+//    if (StringUtils.isEmpty(wfName)) {
+//      throw new IllegalArgumentException("param wfName can not be null");
+//    }
+
+    IAppSource appSource = DataFlowAppSource.load(app.getProjectName());
+
+    if (!appSource.triggerFullIndexSwapeValidate(module, context)) {
+      return new TriggerBuildResult(false);
     }
 
-    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wfName);
-    Objects.requireNonNull(topology, "topology:" + wfName + " relevant topology can not be be null");
-
-    Optional<ERRules> erRule = module.getErRules(wfName);
-    if (!topology.isSingleTableModel()) {
-      if (!erRule.isPresent()) {
-        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
-        return new TriggerBuildResult(false);
-      } else {
-        ERRules erRules = erRule.get();
-        List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
-        Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
-        if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
-          module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
-          return new TriggerBuildResult(false);
-        }
-      }
-    }
+//    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wfName);
+//    Objects.requireNonNull(topology, "topology:" + wfName + " relevant topology can not be be null");
+//
+//    Optional<ERRules> erRule = module.getErRules(wfName);
+//    if (!topology.isSingleTableModel()) {
+//      if (!erRule.isPresent()) {
+//        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
+//        return new TriggerBuildResult(false);
+//      } else {
+//        ERRules erRules = erRule.get();
+//        List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
+//        Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
+//        if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
+//          module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
+//          return new TriggerBuildResult(false);
+//        }
+//      }
+//    }
     return sendRequest2FullIndexSwapeNode(module, context, new AppendParams() {
       @Override
       List<PostParam> getParam() {
         return Lists.newArrayList(
-          new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, wfName)
-          , new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfId))
-          , new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(sharedCount)));
+//          new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, wfName)
+//          , new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfId))
+          // new PostParam(IFullBuildContext.KEY_APP_NAME, app.getProjectName())
+          //,
+          new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(sharedCount)));
       }
     });
   }

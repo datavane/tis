@@ -55,7 +55,7 @@ public class FullbuildWorkflowAction extends BasicModule {
      */
     @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
     public void doCreateNewTask(Context context) {
-        Integer worflowid = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID);
+       // Integer worflowid = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID);
         final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
         Application app = null;
         // appname 可以为空
@@ -69,7 +69,7 @@ public class FullbuildWorkflowAction extends BasicModule {
         WorkFlowBuildHistory task = new WorkFlowBuildHistory();
         task.setCreateTime(new Date());
         task.setStartTime(new Date());
-        task.setWorkFlowId(worflowid);
+       // task.setWorkFlowId(worflowid);
         task.setTriggerType(triggerType.getValue());
         task.setState((byte) ExecResult.DOING.getValue());
         // Integer buildHistoryId = null;
