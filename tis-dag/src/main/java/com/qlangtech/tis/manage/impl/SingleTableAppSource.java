@@ -16,17 +16,28 @@ package com.qlangtech.tis.manage.impl;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
+import com.qlangtech.tis.exec.ExecuteResult;
+import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.exec.ITaskPhaseInfo;
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
+import com.qlangtech.tis.sql.parser.DBNode;
+import com.qlangtech.tis.sql.parser.er.*;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -56,8 +67,14 @@ public class SingleTableAppSource implements IAppSource {
     }
 
     @Override
-    public IPrimaryTabFinder getPrimaryTabFinder() {
+    public ExecuteResult getProcessDataResults(IExecChainContext execChainContext, ISingleTableDumpFactory singleTableDumpFactory
+            , IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception {
         return null;
+    }
+
+    @Override
+    public IPrimaryTabFinder getPrimaryTabFinder() {
+        return new DataFlowAppSource.DftTabFinder();
     }
 
     @Override
@@ -68,5 +85,83 @@ public class SingleTableAppSource implements IAppSource {
     @Override
     public boolean triggerFullIndexSwapeValidate(IMessageHandler msgHandler, Context ctx) {
         return true;
+    }
+
+
+    @Override
+    public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public IERRules getERRule() {
+        return new SingleTableErRule();
+    }
+
+    private static class SingleTableErRule implements IERRules {
+        @Override
+        public List<PrimaryTableMeta> getPrimaryTabs() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public boolean isTriggerIgnore(EntityName entityName) {
+            return false;
+        }
+
+        @Override
+        public List<TableRelation> getAllParent(EntityName entityName) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<TableRelation> getChildTabReference(EntityName entityName) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
+            return Optional.empty();
+        }
+
+        @Override
+        public boolean hasSetTimestampVerColumn(EntityName entityName) {
+            return false;
+        }
+
+        @Override
+        public TimeCharacteristic getTimeCharacteristic() {
+            return TimeCharacteristic.ProcessTime;
+        }
+
+        @Override
+        public boolean isTimestampVerColumn(EntityName entityName, String name) {
+            return false;
+        }
+
+        @Override
+        public String getTimestampVerColumn(EntityName entityName) {
+            return null;
+        }
+
+        @Override
+        public List<TabFieldProcessor> getTabFieldProcessors() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Optional<TableRelation> getFirstParent(String tabName) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<PrimaryTableMeta> isPrimaryTable(String tabName) {
+            return Optional.empty();
+        }
     }
 }

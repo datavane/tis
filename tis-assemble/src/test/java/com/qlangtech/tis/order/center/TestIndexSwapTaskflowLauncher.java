@@ -314,7 +314,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         Map<EntityName, ITabPartition> dateParams = Maps.newHashMap();
         chainContext.setAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS, dateParams);
         chainContext.setAttribute(IExecChainContext.KEY_TASK_ID, TASK_ID);
-        chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
+       // chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
         final PluginStore<IndexBuilderTriggerFactory> buildTriggerFactory = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
         assertNotNull(buildTriggerFactory.getPlugin());
         // chainContext.setIndexBuildFileSystem(buildTriggerFactory.getPlugin().getFsFactory());

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,13 +19,13 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.sql.parser.ColName;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
-import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;
-import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreatorVisitor;
+import com.qlangtech.tis.sql.parser.tuple.creator.*;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -55,8 +55,8 @@ public class TaskNodeTraversesCreatorVisitor implements IDataTupleCreatorVisitor
         {
             // function
             this.pushPropGetter(// function
-            new ColName(r.getKey().getName(), peek.getOutputColName().getAliasName()), // function
-            peek.getTupleCreator().getEntityName(), r.getValue());
+                    new ColName(r.getKey().getName(), peek.getOutputColName().getAliasName()), // function
+                    peek.getTupleCreator().getEntityName(), r.getValue());
             try {
                 r.getValue().accept(TaskNodeTraversesCreatorVisitor.this);
             } finally {
@@ -87,7 +87,7 @@ public class TaskNodeTraversesCreatorVisitor implements IDataTupleCreatorVisitor
         } else if (tableTuple.getNodetype() == NodeType.JOINER_SQL) {
             PropGetter peek = getPeek();
             for (Map.Entry<ColName, IDataTupleCreator> /* colName */
-            centry : tableTuple.getColsRefs().getColRefMap().entrySet()) {
+                    centry : tableTuple.getColsRefs().getColRefMap().entrySet()) {
                 if (peek == null || StringUtils.equals(peek.getOutputColName().getName(), centry.getKey().getAliasName())) {
                     this.pushPropGetter(centry.getKey(), tableTuple.getEntityName(), centry.getValue());
                     if (centry.getValue() == null) {
@@ -129,7 +129,23 @@ public class TaskNodeTraversesCreatorVisitor implements IDataTupleCreatorVisitor
         this.propStack.push(new PropGetter(output, entityName, tupleCreator));
     }
 
-    public Map<TableTupleCreator, List<ValChain>> getTabTriggerLinker() {
-        return this.tabTriggerLinker;
+    public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
+        //  final Map<TableTupleCreator, List<ValChain>> tabTuple = this.tabTriggerLinker;
+        Map<IEntityNameGetter, List<IValChain>> convert = Maps.newHashMap();
+        for (Map.Entry<TableTupleCreator, List<ValChain>> entry : this.tabTriggerLinker.entrySet()) {
+            convert.put(entry.getKey(), entry.getValue().stream().collect(Collectors.toList()));
+        }
+        return convert;
+
+//        tabTuple.entrySet().stream().map((e) -> (Map.Entry<TableTupleCreator, List<ValChain>>) e)
+//                .collect(Collectors.toMap((e) -> {
+//                    return (IEntityNameGetter) e.getKey();
+//                }, (e) -> (IValChain) e.getValue()));
+//
+//        Map<IEntityNameGetter, List<IValChain>> convert = tabTuple.entrySet().stream()
+//                .collect(Collectors.toMap((e) -> (IEntityNameGetter) e.getKey(), (e) -> (IValChain) e.getValue()));
+//
+//        return convert;
+        // return this.tabTriggerLinker;
     }
 }

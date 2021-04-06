@@ -133,7 +133,8 @@ public class AbstractActionInvocation implements ActionInvocation {
         public Integer get(FullbuildPhase key) {
             Integer index = this.orders.get(key);
             if (index == null) {
-                throw new IllegalStateException("key:" + key + " can not find relevant map keys[" + orders.keySet().stream().map((r) -> r.getName()).collect(Collectors.joining(",")) + "]");
+                throw new IllegalStateException("key:" + key + " can not find relevant map keys["
+                        + orders.keySet().stream().map((r) -> r.getName()).collect(Collectors.joining(",")) + "]");
             }
             return index;
         }

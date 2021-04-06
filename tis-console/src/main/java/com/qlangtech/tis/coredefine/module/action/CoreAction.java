@@ -210,6 +210,8 @@ public class CoreAction extends BasicModule {
 
   private static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
+
+    IAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
     Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
     WorkFlow wf = module.loadDF(workFlowId);
     SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
@@ -349,7 +351,6 @@ public class CoreAction extends BasicModule {
   private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
     BasicModule module, Integer workflowid) throws Exception {
     final WorkFlow workFlow = module.loadDF(workflowid);
-
     SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workFlow.getName());
     return getIndexStreamCodeGenerator(module, workFlow, wfTopology.isSingleDumpTableDependency());
   }
@@ -357,8 +358,9 @@ public class CoreAction extends BasicModule {
   public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
     BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
+    IAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
 
-    return new IndexStreamCodeGenerator(module.getCollectionName(), workFlow.getName()
+    return new IndexStreamCodeGenerator(module.getCollectionName(), appSource
       , ManageUtils.formatNowYyyyMMddHHmmss(workFlow.getOpTime()), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
       DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();

@@ -6,12 +6,15 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.TisGroupBy;
 import com.qlangtech.tis.sql.parser.er.*;
 import com.qlangtech.tis.sql.parser.meta.PrimaryLinkKey;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.impl.*;
+import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
+import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
+import com.qlangtech.tis.sql.parser.tuple.creator.impl.PropGetter;
 import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -40,27 +43,25 @@ import java.util.stream.Collectors;
  */
 public class StreamComponentCodeGenerator extends StreamCodeContext {
 
-    private final SqlTaskNodeMeta.SqlDataFlowTopology topology;
+    private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
     private final boolean excludeFacadeDAOSupport;
 
 
     private final List<FacadeContext> daoFacadeList;
-    private final Optional<ERRules> erRules;
-
-
+    // private final Optional<ERRules> erRules;
     // private static final Logger logger = LoggerFactory.getLogger(StreamComponentCodeGenerator.class);
 
     public StreamComponentCodeGenerator(String collectionName, long timestamp,
-                                        List<FacadeContext> daoFacadeList, SqlTaskNodeMeta.SqlDataFlowTopology topology) {
-        this(collectionName, timestamp, daoFacadeList, topology, false);
+                                        List<FacadeContext> daoFacadeList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy) {
+        this(collectionName, timestamp, daoFacadeList, streamIncrGenerateStrategy, false);
     }
 
     public StreamComponentCodeGenerator(String collectionName, long timestamp,
-                                        List<FacadeContext> daoFacadeList, SqlTaskNodeMeta.SqlDataFlowTopology topology
+                                        List<FacadeContext> daoFacadeList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy
             , boolean excludeFacadeDAOSupport) {
         super(collectionName, timestamp);
-        this.erRules = ERRules.getErRule(topology.getName());
-        this.topology = topology;
+        // this.erRules = ERRules.getErRule(topology.getName());
+        this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
         this.daoFacadeList = daoFacadeList;
         this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
     }
@@ -159,22 +160,26 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
         final PrintStream traversesAllNodeOut = new PrintStream(new File("./traversesAllNode.txt"));
 
         try {
-            TableTupleCreator finalTableNode = this.parseFinalSqlTaskNode();
-            if (!erRules.isPresent()) {
-                throw new IllegalStateException("topology:" + this.topology.getName() + " relevant erRule can not be null");
-            }
-            ERRules erR = erRules.get();
-            TaskNodeTraversesCreatorVisitor visitor = new TaskNodeTraversesCreatorVisitor(erR);
-            finalTableNode.accept(visitor);
+            Map<IEntityNameGetter, List<IValChain>> tabTriggers = this.streamIncrGenerateStrategy.getTabTriggerLinker();
+            IERRules erR = streamIncrGenerateStrategy.getERRule();
+            // TableTupleCreator finalTableNode = this.parseFinalSqlTaskNode();
+//            if (!erRules.isPresent()) {
+//                throw new IllegalStateException(" relevant erRule can not be null");
+//            }
+//            ERRules erR = erRules.get();
 
-            Map<TableTupleCreator, List<ValChain>> tabTriggers = visitor.getTabTriggerLinker();
+
+//            TaskNodeTraversesCreatorVisitor visitor = new TaskNodeTraversesCreatorVisitor(erR);
+//            finalTableNode.accept(visitor);
+
+            // Map<IEntityNameGetter, List<IValChain>> tabTriggers = visitor.getTabTriggerLinker();
             PropGetter last = null;
             PropGetter first = null;
             Optional<TableRelation> firstParent = null;
             FunctionVisitor.FuncFormat aliasListBuffer = new FunctionVisitor.FuncFormat();
 
 
-            for (Map.Entry<TableTupleCreator, List<ValChain>> e : tabTriggers.entrySet()) {
+            for (Map.Entry<IEntityNameGetter, List<IValChain>> e : tabTriggers.entrySet()) {
                 final EntityName entityName = e.getKey().getEntityName();
                 final Set<String> relevantCols = e.getValue().stream()
                         .map((rr) -> rr.last().getOutputColName().getName()).collect(Collectors.toSet());
@@ -240,7 +245,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                     aliasListBuffer.append("(\"processTime\").processTimeVer()").returnLine();
                 }
 
-                for (ValChain tupleLink : e.getValue()) {
+                for (IValChain tupleLink : e.getValue()) {
                     first = tupleLink.first();
                     last = tupleLink.last();
                     traversesAllNodeOut.println("last:" + (last == null ? "null" : last.getIdentityName()));
@@ -323,20 +328,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
                                                     if (r.isGroupByFunction()) {
                                                         TisGroupBy groups = group.get();
-                                                        mapDataMethodCreator = addMapDataMethodCreator(entityName,
-                                                                groups, relevantCols);
-
-                                                        // 第一次
-                                                        // rr.startLine("Map<GroupKey
-                                                        // /*")
-                                                        // .append(groups.getGroupsLiteria())
-                                                        // .append(" */,
-                                                        // GroupValues> ")
-                                                        // .append(groups.getGroupAggrgationName()).append("
-                                                        // = ")
-                                                        // .append(mapDataMethodCreator.getMapDataMethodName())
-                                                        // .append("(").append(FunctionVisitor.ROW_KEY)
-                                                        // .append(")").returnLine().returnLine();
+                                                        mapDataMethodCreator = addMapDataMethodCreator(entityName, groups, relevantCols);
 
                                                         rr.startLine("val ").append(groups.getGroupAggrgationName())
                                                                 .append(":Map[GroupKey /*")
@@ -364,16 +356,6 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                                                     if (r.isGroupByFunction()) {
                                                         TisGroupBy groups = group.get();
 
-                                                        // rr.startLine("final
-                                                        // Map<GroupKey /* ")
-                                                        // .append(groups.getGroupsLiteria())
-                                                        // .append(" */,
-                                                        // GroupValues> ")
-                                                        // .append(groups.getGroupAggrgationName())
-                                                        // .append(" =
-                                                        // reduceData(")
-                                                        // .append(preGroupAggrgationName.get()).append(",
-                                                        // 0);\n");
                                                         rr.append("val ").append(groups.getGroupAggrgationName())
                                                                 .append(": Map[GroupKey /* ")
                                                                 .append(groups.getGroupsLiteria())
@@ -541,7 +523,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
 
             MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, aliasListBuffer,
-                    tabTriggers, this.daoFacadeList, erRules.get(), this.excludeFacadeDAOSupport);
+                    tabTriggers, this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
             mergeGenerate(mergeData);
         } finally {
             // traversesAllNodeOut.close();
@@ -557,7 +539,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
 
         MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, new FunctionVisitor.FuncFormat(),
-                Collections.emptyMap(), this.daoFacadeList, this.erRules.get(), this.excludeFacadeDAOSupport);
+                Collections.emptyMap(), this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
 
 
         File parentDir =
@@ -589,14 +571,15 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
         private final EntityName entityName;
         private final TisGroupBy groups;
         private final Set<String> relefantCols;
-        private final ERRules erRules;
+        private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
 
-        public MapDataMethodCreator(EntityName entityName, TisGroupBy groups, ERRules erRules, Set<String> relefantCols) {
+        public MapDataMethodCreator(EntityName entityName, TisGroupBy groups, IStreamIncrGenerateStrategy streamIncrGenerateStrategy, Set<String> relefantCols) {
             super();
             this.entityName = entityName;
             this.groups = groups;
-            this.erRules = erRules;
+//            this.erRules = erRules;
             this.relefantCols = relefantCols;
+            this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
         }
 
 //        public final String capitalizeEntityName() {
@@ -617,7 +600,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
          * @return
          */
         public String getGenerateMapDataMethodBody() {
-
+            IERRules erRule = streamIncrGenerateStrategy.getERRule();
             FunctionVisitor.FuncFormat funcFormat = new FunctionVisitor.FuncFormat();
 
             funcFormat.appendLine("val " + this.entityName.entities()
@@ -647,7 +630,8 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                             throw new IllegalStateException("groups.getGroups().size() can not small than 1");
                         }
                         TableRelation parentRel = null;
-                        Optional<PrimaryTableMeta> ptab = this.erRules.isPrimaryTable(this.entityName.getTabName());
+
+                        Optional<PrimaryTableMeta> ptab = erRule.isPrimaryTable(this.entityName.getTabName());
                         if (ptab.isPresent()) {
                             // 如果聚合表本身就是主表的话，那它只需要查询自己就行了
                             PrimaryTableMeta p = ptab.get();
@@ -658,7 +642,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                             // List<JoinerKey> joinerKeys = Lists.newArrayList();
                             parentRel.setJoinerKeys(p.getPrimaryKeyNames().stream().map((rr) -> new JoinerKey(rr.getName(), rr.getName())).collect(Collectors.toList()));
                         } else {
-                            Optional<TableRelation> firstParentRel = this.erRules.getFirstParent(this.entityName.getTabName());
+                            Optional<TableRelation> firstParentRel = erRule.getFirstParent(this.entityName.getTabName());
                             if (!firstParentRel.isPresent()) {
                                 throw new IllegalStateException("first parent table can not be null ,child table:" + this.entityName);
                             }
@@ -769,7 +753,8 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
         MapDataMethodCreator creator = mapDataMethodCreatorMap.get(entityName);
         if (creator == null) {
-            creator = new MapDataMethodCreator(entityName, groups, this.erRules.get(), relevantCols);
+
+            creator = new MapDataMethodCreator(entityName, groups, this.streamIncrGenerateStrategy, relevantCols);
             mapDataMethodCreatorMap.put(entityName, creator);
         }
 
@@ -923,9 +908,9 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
     }
 
 
-    public TableTupleCreator parseFinalSqlTaskNode() throws Exception {
-        return topology.parseFinalSqlTaskNode();
-    }
+//    public TableTupleCreator parseFinalSqlTaskNode() throws Exception {
+//        return topology.parseFinalSqlTaskNode();
+//    }
 
 
     // public void testRootNode() throws Exception {

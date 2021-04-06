@@ -57,7 +57,7 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
      */
     taskPhaseReference = new HashMap<>();
 
-    protected static final ExecutorService executorService = Executors.newCachedThreadPool();
+
 
     /**
      * 标记当前任务的ID

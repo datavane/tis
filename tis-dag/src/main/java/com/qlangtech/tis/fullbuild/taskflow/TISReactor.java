@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,13 +16,8 @@ package com.qlangtech.tis.fullbuild.taskflow;
 
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.IExecChainContext;
-import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
-import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
-import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import org.jvnet.hudson.reactor.*;
-import java.io.PrintWriter;
+
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -47,100 +42,22 @@ public class TISReactor {
     }
 
     public String execute(ExecutorService executor, Reactor s, ReactorListener... addedListeners) throws Exception {
+        execContext.rebindLoggingMDCParams();
         StringWriter sw = new StringWriter();
         // System.out.println("----");
-        final PrintWriter w = new PrintWriter(sw, true);
-        ReactorListener listener = new ReactorListener() {
-            // TODO: Does it really needs handlers to be synchronized?
-            @Override
-            public synchronized void onTaskStarted(Task t) {
-                w.println("Started " + t.getDisplayName());
-            }
+        ReactorListener listener = null;
 
-            @Override
-            public synchronized void onTaskCompleted(Task t) {
-                w.println("Ended " + t.getDisplayName());
-                processTaskResult((TaskImpl) t, new ITaskResultProcessor() {
-                    @Override
-                    public void process(DumpPhaseStatus dumpPhase, TaskImpl task) {
-                    }
-
-                    @Override
-                    public void process(JoinPhaseStatus joinPhase, TaskImpl task) {
-                    }
-                });
-            }
-
-            @Override
-            public synchronized void onTaskFailed(Task t, Throwable err, boolean fatal) {
-                w.println("Failed " + t.getDisplayName() + " with " + err);
-                processTaskResult((TaskImpl) t, new ITaskResultProcessor() {
-
-                    @Override
-                    public void process(DumpPhaseStatus dumpPhase, TaskImpl task) {
-                        IncrStatusUmbilicalProtocolImpl statReceiver = IncrStatusUmbilicalProtocolImpl.getInstance();
-                        statReceiver.reportDumpTableStatusError(execContext.getTaskId(), task.getIdentityName());
-                    }
-
-                    @Override
-                    public void process(JoinPhaseStatus joinPhase, TaskImpl task) {
-                        JoinPhaseStatus.JoinTaskStatus stat = joinPhase.getTaskStatus(task.getIdentityName());
-                        // statReceiver.reportBuildIndexStatErr(execContext.getTaskId(),task.getIdentityName());
-                        stat.setWaiting(false);
-                        stat.setFaild(true);
-                        stat.setComplete(true);
-                    }
-                });
-            }
-
-            @Override
-            public synchronized void onAttained(Milestone milestone) {
-                w.println("Attained " + milestone);
-            }
-        };
         if (addedListeners.length > 0) {
             List<ReactorListener> listeners = Arrays.stream(addedListeners).collect(Collectors.toList());
-            listeners.add(0, listener);
+            //listeners.add(0, listener);
             listener = new ReactorListener.Aggregator(listeners);
+        } else {
+            throw new IllegalStateException("param addedListeners length can not small than 1");
         }
         s.execute(executor, listener);
         return sw.toString();
     }
 
-    private void processTaskResult(TaskImpl t, ITaskResultProcessor resultProcessor) {
-        TaskImpl task = t;
-        PhaseStatusCollection pstats = TrackableExecuteInterceptor.taskPhaseReference.get(execContext.getTaskId());
-        if (pstats != null) {
-            switch(task.getPhase()) {
-                case FullDump:
-                    // pstats.getDumpPhase()
-                    // IncrStatusUmbilicalProtocolImpl statReceiver = IncrStatusUmbilicalProtocolImpl.getInstance();
-                    // statReceiver.reportDumpTableStatusError(execContext.getTaskId(), task.getIdentityName());
-                    pstats.getDumpPhase().isComplete();
-                    resultProcessor.process(pstats.getDumpPhase(), task);
-                    return;
-                case JOIN:
-                    // JoinPhaseStatus.JoinTaskStatus stat
-                    // = pstats.getJoinPhase().getTaskStatus(task.getIdentityName());
-                    // //statReceiver.reportBuildIndexStatErr(execContext.getTaskId(),task.getIdentityName());
-                    // stat.setWaiting(false);
-                    // stat.setFaild(true);
-                    // stat.setComplete(true);
-                    pstats.getJoinPhase().isComplete();
-                    resultProcessor.process(pstats.getJoinPhase(), task);
-                    return;
-                default:
-                    throw new IllegalStateException("taskphase:" + task.getPhase() + " is illegal");
-            }
-        }
-    }
-
-    interface ITaskResultProcessor {
-
-        void process(DumpPhaseStatus dumpPhase, TaskImpl task);
-
-        void process(JoinPhaseStatus joinPhase, TaskImpl task);
-    }
 
     public Reactor buildSession(String spec) throws Exception {
         Collection<TaskImpl> tasks = new ArrayList<>();
@@ -163,7 +80,7 @@ public class TISReactor {
         }
     }
 
-    class TaskImpl implements Task {
+    public static class TaskImpl implements Task {
 
         final Collection<Milestone> requires;
 
@@ -220,12 +137,12 @@ public class TISReactor {
         }
 
         public String getDisplayName() {
-            return this.id;
+            //  return this.id;
+            return work.getIdentityName();
         }
 
         @Override
         public void run(Reactor reactor) throws Exception {
-            execContext.rebindLoggingMDCParams();
             work.run();
         }
 

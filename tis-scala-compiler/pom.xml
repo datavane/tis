@@ -21,6 +21,15 @@
 
 
     <dependencies>
+
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-dag</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-common</artifactId>

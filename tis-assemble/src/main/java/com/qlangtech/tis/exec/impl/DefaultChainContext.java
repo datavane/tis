@@ -71,7 +71,7 @@ public class DefaultChainContext implements IExecChainContext {
 
     private IndexBuilderTriggerFactory indexBuilderTriggerFactory;
 
-    private SqlTaskNodeMeta.SqlDataFlowTopology topology;
+   // private SqlTaskNodeMeta.SqlDataFlowTopology topology;
 
     @Override
     public int getTaskId() {
@@ -80,14 +80,14 @@ public class DefaultChainContext implements IExecChainContext {
         return taskid;
     }
 
-    @Override
-    public SqlTaskNodeMeta.SqlDataFlowTopology getTopology() {
-        return this.topology;
-    }
-
-    public void setTopology(SqlTaskNodeMeta.SqlDataFlowTopology topology) {
-        this.topology = topology;
-    }
+//    @Override
+//    public SqlTaskNodeMeta.SqlDataFlowTopology getTopology() {
+//        return this.topology;
+//    }
+//
+//    public void setTopology(SqlTaskNodeMeta.SqlDataFlowTopology topology) {
+//        this.topology = topology;
+//    }
 
     @Override
     public IndexBuilderTriggerFactory getIndexBuilderFactory() {

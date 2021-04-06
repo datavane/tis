@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,9 +16,6 @@ package com.qlangtech.tis.fullbuild.taskflow;
 
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.IExecChainContext;
-import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
-import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
-import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 
 import java.text.SimpleDateFormat;
@@ -30,6 +27,7 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2014年7月21日下午3:39:06
  */
+
 public class TemplateContext implements ITemplateContext {
 
     private static final ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
@@ -73,9 +71,9 @@ public class TemplateContext implements ITemplateContext {
         return this.params;
     }
 
-   // public IExecChainContext getParams() {
+    // public IExecChainContext getParams() {
     //    return params;
-   // }
+    // }
 
     public void putContextValue(String key, Object v) {
         this.contextValues.put(key, v);

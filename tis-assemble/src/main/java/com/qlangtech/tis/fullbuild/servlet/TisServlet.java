@@ -168,7 +168,7 @@ public class TisServlet extends HttpServlet {
                                     Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
                                     chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
                                     chainContext.setIndexBuilderTriggerFactory(builderFactory);
-                                    chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
+                                 //   chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
                                     countDown.countDown();
                                     // 开始执行内部任务
                                     TrackableExecuteInterceptor.createTaskComplete(newTaskId, startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD);

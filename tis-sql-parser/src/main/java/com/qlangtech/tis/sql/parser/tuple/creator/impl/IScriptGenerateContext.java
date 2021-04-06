@@ -16,6 +16,7 @@ package com.qlangtech.tis.sql.parser.tuple.creator.impl;
 
 import com.qlangtech.tis.sql.parser.ColName;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -45,6 +46,7 @@ public interface IScriptGenerateContext {
     public ColName getOutputColName();
 
     public FunctionDataTupleCreator getFunctionDataTuple();
+    public IDataTupleCreator getTupleCreator();
 
     public boolean isNotDeriveFrom(EntityName entityName);
 }

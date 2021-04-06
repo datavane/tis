@@ -15,14 +15,27 @@
 package com.qlangtech.tis.manage;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.exec.ExecuteResult;
+import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 索引实例Srouce， 支持单表、dataflow
@@ -30,7 +43,7 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:16
  */
-public interface IAppSource extends Describable<IAppSource> {
+public interface IAppSource extends Describable<IAppSource>, IStreamIncrGenerateStrategy {
 
     List<ColumnMetaData> reflectCols();
 
@@ -48,8 +61,35 @@ public interface IAppSource extends Describable<IAppSource> {
 
     IPrimaryTabFinder getPrimaryTabFinder();
 
+    Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker();
+
+    /**
+     * 执行数据处理
+     *
+     * @param execChainContext
+     * @param singleTableDumpFactory
+     * @param dataProcessFeedback
+     * @param taskPhaseInfo
+     * @return
+     * @throws Exception
+     */
+    public ExecuteResult getProcessDataResults(IExecChainContext execChainContext
+            , DataFlowAppSource.ISingleTableDumpFactory singleTableDumpFactory
+            , IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception;
+
     default Descriptor<IAppSource> getDescriptor() {
         throw new UnsupportedOperationException();
     }
 
+    interface IDataProcessFeedback {
+        public PhaseStatusCollection getPhaseStatusSet(IExecChainContext execContext);
+
+        public void reportDumpTableStatusError(IExecChainContext execContext, org.jvnet.hudson.reactor.Task task);
+    }
+
+    interface ISingleTableDumpFactory {
+        DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
+                , TisZkClient zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus);
+    }
 }
+

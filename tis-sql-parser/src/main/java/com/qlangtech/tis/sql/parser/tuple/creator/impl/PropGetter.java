@@ -171,10 +171,12 @@ public class PropGetter implements IScriptGenerateContext {
     // public SqlTaskNode getTaskNode() {
     // return this.taskNode;
     // }
+
     public IDataTupleCreator getTupleCreator() {
         return this.tupleCreator;
     }
 
+    @Override
     public ColName getOutputColName() {
         return this.output;
     }

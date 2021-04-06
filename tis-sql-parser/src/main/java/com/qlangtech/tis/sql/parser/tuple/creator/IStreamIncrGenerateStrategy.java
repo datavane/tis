@@ -1,41 +1,41 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.sql.parser.tuple.creator;
 
-import com.qlangtech.tis.sql.parser.tuple.creator.impl.IScriptGenerateContext;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
+import com.qlangtech.tis.sql.parser.DBNode;
+import com.qlangtech.tis.sql.parser.er.IERRules;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
+ * @date 2021-04-06 09:49
  */
-public interface IDataTupleCreator extends IEntityNameGetter{
-
-    public void accept(IDataTupleCreatorVisitor visitor);
-
-   // public EntityName getEntityName();
-
-    public int refTableSourceCount();
+public interface IStreamIncrGenerateStrategy {
+    Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker();
 
     /**
-     * 生成Groovy的執行腳本
+     * map<dbname,list<tables>>
      *
      * @return
      */
-    public void generateGroovyScript(FunctionVisitor.FuncFormat rr, IScriptGenerateContext context, boolean processAggregationResult);
-    // 退出當前棧之後執行回調處理
-    // public void process(Object val);
-    // public Object getVal(String name, IDataContext dataContext);
+    Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter);
+
+    IERRules getERRule();
+
+
 }

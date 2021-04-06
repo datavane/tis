@@ -20,8 +20,10 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.sql.parser.BasicTestCase;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.easymock.EasyMock;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +46,12 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
 
         //  CoreAction.create
         String topologyName = "employees4local";
+        String collectionName = "search4employee4local";
+
         Optional<ERRules> erRule = ERRules.getErRule(topologyName);
+
+        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = EasyMock.createMock("streamIncrGenerateStrategy", IStreamIncrGenerateStrategy.class);
+
 
         // 测试针对单表的的topology增量脚本生成
         long timestamp = 20191111115959l;
@@ -53,13 +60,15 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
         if (!erRule.isPresent()) {
             ERRules.createDefaultErRule(topology);
         }
-        String collectionName = "search4employee4local";
+
         List<FacadeContext> facadeList = Lists.newArrayList();
         StreamComponentCodeGenerator streamCodeGenerator
-                = new StreamComponentCodeGenerator("search4employee4local", timestamp, facadeList, topology, true);
+                = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, streamIncrGenerateStrategy, true);
+        EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 
         assertGenerateContentEqual(timestamp, collectionName, "S4employee4localListener.scala");
+        EasyMock.verify(streamIncrGenerateStrategy);
     }
 
 
@@ -67,20 +76,25 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
         long timestamp = 20191111115959l;
         String collectionName = "search4totalpay";
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay");
+        assertNotNull(topology);
+        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = EasyMock.createMock("streamIncrGenerateStrategy", IStreamIncrGenerateStrategy.class);
         FacadeContext fc = new FacadeContext();
         fc.setFacadeInstanceName("order2DAOFacade");
         fc.setFullFacadeClassName("com.qlangtech.tis.realtime.order.dao.IOrder2DAOFacade");
         fc.setFacadeInterfaceName("IOrder2DAOFacade");
         List<FacadeContext> facadeList = Lists.newArrayList();
         facadeList.add(fc);
-        StreamComponentCodeGenerator streamCodeGenerator = new StreamComponentCodeGenerator("search4totalpay", timestamp, facadeList, topology);
+        StreamComponentCodeGenerator streamCodeGenerator = new StreamComponentCodeGenerator("search4totalpay", timestamp, facadeList, streamIncrGenerateStrategy);
+        EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 
         assertGenerateContentEqual(timestamp, collectionName, "S4totalpayListener.scala");
+        EasyMock.verify(streamIncrGenerateStrategy);
     }
 
     public void testGeneratorSearch4totalpay5Code() throws Exception {
         long timestamp = 20200928183209l;
+        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = EasyMock.createMock("streamIncrGenerateStrategy", IStreamIncrGenerateStrategy.class);
         String collectionName = "search4totalpay5";
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay2");
         FacadeContext fc = new FacadeContext();
@@ -89,9 +103,11 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
         fc.setFacadeInterfaceName("IOrder2DAOFacade");
         List<FacadeContext> facadeList = Lists.newArrayList();
         facadeList.add(fc);
-        StreamComponentCodeGenerator streamCodeGenerator = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, topology);
+        StreamComponentCodeGenerator streamCodeGenerator = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, streamIncrGenerateStrategy);
+        EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
         assertGenerateContentEqual(timestamp, collectionName, "S4totalpay5Listener.scala");
+        EasyMock.verify(streamIncrGenerateStrategy);
 
     }
 
@@ -101,7 +117,7 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
         // 校验生成的文件和assert文件内容相等
         try (InputStream assertFile = TestStreamComponentCodeGenerator.class.getResourceAsStream(generateScalaFileName)) {
             assertNotNull("generateScalaFileName can not be null:" + generateScalaFileName, assertFile);
-           // FileUtils.write(new File(generateScalaFileName), FileUtils.readFileToString(generateFile, TisUTF8.get()), TisUTF8.get(), false);
+            // FileUtils.write(new File(generateScalaFileName), FileUtils.readFileToString(generateFile, TisUTF8.get()), TisUTF8.get(), false);
             assertTrue(generateFile.getAbsolutePath(), generateFile.exists());
             assertEquals(IOUtils.toString(assertFile, TisUTF8.get()), FileUtils.readFileToString(generateFile, TisUTF8.get()));
         }

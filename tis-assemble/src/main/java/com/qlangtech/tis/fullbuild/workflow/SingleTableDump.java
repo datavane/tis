@@ -65,7 +65,6 @@ public class SingleTableDump extends DataflowTask {
 
     private final int dataSourceTableId;
 
-    // private long currentTime;
     private String pt;
 
     private boolean forceReDump;

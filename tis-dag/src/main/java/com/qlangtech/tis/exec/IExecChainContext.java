@@ -45,7 +45,7 @@ public interface IExecChainContext extends IJoinTaskContext {
 
     String getWorkflowName();
 
-    SqlTaskNodeMeta.SqlDataFlowTopology getTopology();
+   // SqlTaskNodeMeta.SqlDataFlowTopology getTopology();
 
     ITISFileSystem getIndexBuildFileSystem();
 
