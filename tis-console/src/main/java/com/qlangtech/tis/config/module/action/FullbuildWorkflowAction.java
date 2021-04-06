@@ -83,11 +83,6 @@ public class FullbuildWorkflowAction extends BasicModule {
         }
         if (fromPhase.getValue() > FullbuildPhase.FullDump.getValue()) {
             // 如果是从非第一步开始执行的话，需要客户端提供依赖的history记录id
-            // buildHistoryId = this.getInt("buildHistoryId");
-            // if (buildHistoryId == null) {
-            // throw new IllegalArgumentException("fromPhase:" + fromPhase + " must provide
-            // a buildHistoryId param");
-            // }
             task.setHistoryId(this.getInt(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID));
         }
         // 说明只有workflow的流程和索引没有关系，所以不可能执行到索引build阶段去

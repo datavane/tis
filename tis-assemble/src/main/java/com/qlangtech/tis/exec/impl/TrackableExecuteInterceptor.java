@@ -149,7 +149,8 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
      * @return
      */
     public static Integer createNewTask(NewTaskParam newTaskParam) {
-        String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[] { "fullbuild_workflow_action", "do_create_new_task" });
+        String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_POST_FORMAT
+                .format(new Object[] { "fullbuild_workflow_action", "do_create_new_task" });
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
         return result.getBizresult().getTaskid();
     }

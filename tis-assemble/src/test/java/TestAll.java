@@ -13,6 +13,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import com.qlangtech.tis.exec.TestActionInvocation;
+import com.qlangtech.tis.fullbuild.servlet.TestTisServlet;
 import com.qlangtech.tis.fullbuild.taskflow.TestReactor;
 import com.qlangtech.tis.log.TestRealtimeLoggerCollectorAppender;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher;
@@ -29,6 +30,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestTisServlet.class);
         suite.addTestSuite(TestActionInvocation.class);
         suite.addTestSuite(TestReactor.class);
         suite.addTestSuite(TestIndexSwapTaskflowLauncher.class);
