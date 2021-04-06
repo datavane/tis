@@ -55,7 +55,7 @@ public class FullbuildWorkflowAction extends BasicModule {
      */
     @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
     public void doCreateNewTask(Context context) {
-       // Integer worflowid = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID);
+
         final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
         Application app = null;
         // appname 可以为空
@@ -102,19 +102,6 @@ public class FullbuildWorkflowAction extends BasicModule {
         this.setBizResult(context, new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app));
     }
 
-    // public void doPhaseStart(Context context) {
-    // Integer taskid = this.getInt("taskid");
-    // if (taskid == null) {
-    // throw new IllegalArgumentException("taskid can not be null");
-    // }
-    // FullbuildPhase taskPhase = FullbuildPhase.parse(this.getInt("taskphase"));
-    // WorkFlowBuildPhase phase = new WorkFlowBuildPhase();
-    // phase.setCreateTime(new Date());
-    // phase.setOpTime(new Date());
-    // phase.setPhase(taskPhase.getValue());
-    // phase.setWorkFlowBuildHistoryId(taskid);
-    // this.setBizResult(context, getPhaseDAO().insertSelective(phase));
-    // }
     /**
      * 执行阶段结束
      *
@@ -125,19 +112,8 @@ public class FullbuildWorkflowAction extends BasicModule {
         // Integer phaseid = this.getInt("phaseid");
         Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
         // 执行结果
-        // final String phaseinfo = this.getString("phaseinfo");
-        // WorkFlowBuildPhase phase = new WorkFlowBuildPhase();
-        // phase.setOpTime(new Date());
-        // if (StringUtils.isNotBlank(phaseinfo)) {
-        // phase.setPhaseInfo(phaseinfo);
-        // }
         ExecResult execResult = ExecResult.parse(this.getInt("execresult"));
-        // phase.setResult(execResult.getValue());
-        // WorkFlowBuildPhaseCriteria query = new WorkFlowBuildPhaseCriteria();
-        // query.createCriteria().andIdEqualTo(phaseid);
-        // getPhaseDAO().updateByExampleSelective(phase, query);
-        // WorkFlowBuildPhase phaseInfo = this.getPhaseDAO().loadFromWriteDB(phaseid);
-        // workflow history 表更新
+
         WorkFlowBuildHistory history = this.getHistoryDAO().loadFromWriteDB(taskid);
         if (history == null) {
             throw new IllegalStateException("taskid:" + taskid + " relevant WorkFlowBuildHistory obj can not be null");

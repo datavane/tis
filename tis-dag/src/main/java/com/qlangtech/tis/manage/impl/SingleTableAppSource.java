@@ -29,6 +29,7 @@ import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.er.*;
+import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
@@ -103,10 +104,15 @@ public class SingleTableAppSource implements IAppSource {
         return new SingleTableErRule();
     }
 
-    private static class SingleTableErRule implements IERRules {
+    private class SingleTableErRule implements IERRules {
         @Override
         public List<PrimaryTableMeta> getPrimaryTabs() {
-            return Collections.emptyList();
+            TabExtraMeta tabExtraMeta = new TabExtraMeta();
+            tabExtraMeta.setPrimaryIndexTab(true);
+
+            PrimaryTableMeta tableMeta = new PrimaryTableMeta(tabName,tabExtraMeta);
+
+            return Collections.singletonList(tableMeta);
         }
 
         @Override

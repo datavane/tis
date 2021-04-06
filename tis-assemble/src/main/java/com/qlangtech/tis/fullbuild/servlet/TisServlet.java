@@ -27,14 +27,12 @@ import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor.NewTaskParam;
 import com.qlangtech.tis.exec.impl.WorkflowDumpAndJoinInterceptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
-import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -168,7 +166,7 @@ public class TisServlet extends HttpServlet {
                                     Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
                                     chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
                                     chainContext.setIndexBuilderTriggerFactory(builderFactory);
-                                 //   chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
+                                    //   chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
                                     countDown.countDown();
                                     // 开始执行内部任务
                                     TrackableExecuteInterceptor.createTaskComplete(newTaskId, startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD);
@@ -393,7 +391,7 @@ public class TisServlet extends HttpServlet {
      * @param chainContext
      * @return taskid
      */
-    private Integer createNewTask(IExecChainContext chainContext) {
+    Integer createNewTask(IExecChainContext chainContext) {
         Integer workflowId = chainContext.getWorkflowId();
         NewTaskParam newTaskParam = new NewTaskParam();
         ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();

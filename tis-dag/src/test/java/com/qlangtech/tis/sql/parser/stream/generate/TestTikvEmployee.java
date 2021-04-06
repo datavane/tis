@@ -15,7 +15,6 @@
 package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.sql.parser.BasicTestCase;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import org.easymock.EasyMock;

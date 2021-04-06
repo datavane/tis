@@ -60,6 +60,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                                         List<FacadeContext> daoFacadeList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy
             , boolean excludeFacadeDAOSupport) {
         super(collectionName, timestamp);
+        Objects.requireNonNull(streamIncrGenerateStrategy, "streamIncrGenerateStrategy can not be null");
         // this.erRules = ERRules.getErRule(topology.getName());
         this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
         this.daoFacadeList = daoFacadeList;

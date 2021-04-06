@@ -599,23 +599,33 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doGetFullBuildHistory(Context context) throws Exception {
-    Integer wfid = this.getInt("wfid");
+    Integer wfid = this.getInt("wfid", -1);
     boolean getwf = this.getBoolean("getwf");
-    WorkFlowBuildHistoryCriteria query = new WorkFlowBuildHistoryCriteria();
-    // query.createCriteria().andAppIdEqualTo(this.getAppDomain().getAppid());
-    query.createCriteria().andWorkFlowIdEqualTo(wfid);
-    query.setOrderByClause("id desc");
     WorkFlow workFlow = new WorkFlow();
-    if (getwf) {
-      workFlow = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
-      if (workFlow == null) {
-        throw new IllegalStateException("can not find workflow in db ,wfid:" + wfid);
+    WorkFlowBuildHistoryCriteria query = new WorkFlowBuildHistoryCriteria();
+    WorkFlowBuildHistoryCriteria.Criteria criteria = query.createCriteria();
+    if (isCollectionAware()) {
+      criteria.andAppIdEqualTo(this.getAppDomain().getAppid());
+    } else {
+      if (wfid < 0) {
+        throw new IllegalArgumentException("param wfid can not small than 0");
+      }
+      criteria.andWorkFlowIdEqualTo(wfid);
+      workFlow = new WorkFlow();
+      if (getwf) {
+        workFlow = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
+        if (workFlow == null) {
+          throw new IllegalStateException("can not find workflow in db ,wfid:" + wfid);
+        }
       }
     }
+    query.setOrderByClause("id desc");
+
     IWorkFlowBuildHistoryDAO historyDAO = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
     Pager pager = this.createPager();
     pager.setTotalCount(historyDAO.countByExample(query));
-    this.setBizResult(context, new PaginationResult(pager, adapterBuildHistory(historyDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())), workFlow.getName()));
+    this.setBizResult(context
+      , new PaginationResult(pager, adapterBuildHistory(historyDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())), workFlow.getName()));
   }
 
   private List<ExtendWorkFlowBuildHistory> adapterBuildHistory(List<WorkFlowBuildHistory> histories) {

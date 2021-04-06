@@ -133,9 +133,7 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
         erRules.addDumpNode(node);
         erRules.setTimeCharacteristic(TimeCharacteristic.ProcessTime);
         write(topologyName, erRules);
-        /***********************************************************
-         * <<<<<<<<
-         **********************************************************/}
+       }
 
     /**
      * 使用默认DumpNode创建ERRule并且持久化

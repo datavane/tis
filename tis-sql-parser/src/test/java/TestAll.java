@@ -17,12 +17,11 @@ import com.qlangtech.tis.sql.parser.*;
 import com.qlangtech.tis.sql.parser.er.TestERRules;
 import com.qlangtech.tis.sql.parser.shop.TestShopTopologyParse;
 import com.qlangtech.tis.sql.parser.stream.generate.TestFlatTableRelation;
-import com.qlangtech.tis.sql.parser.stream.generate.TestS4EmployeeStreamComponentCodeGenerator;
-import com.qlangtech.tis.sql.parser.stream.generate.TestStreamComponentCodeGenerator;
 import com.qlangtech.tis.sql.parser.supplyGoods.TestSupplyGoodsParse;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -40,9 +39,8 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestSqlRewriter.class);
         suite.addTestSuite(TestSqlTaskNodeMeta.class);
         suite.addTestSuite(TestSqlTaskNode.class);
-        suite.addTestSuite(TestStreamComponentCodeGenerator.class);
-
-        suite.addTestSuite(TestS4EmployeeStreamComponentCodeGenerator.class);
+//        suite.addTestSuite(TestStreamComponentCodeGenerator.class);
+//        suite.addTestSuite(TestS4EmployeeStreamComponentCodeGenerator.class);
 
         // suite.addTestSuite(TestMqConfigMeta.class);
         suite.addTestSuite(TestDBNode.class);

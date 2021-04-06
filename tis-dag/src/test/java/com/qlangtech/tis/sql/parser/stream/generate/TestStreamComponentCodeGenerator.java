@@ -15,9 +15,11 @@
 package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.sql.parser.BasicTestCase;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
@@ -50,8 +52,8 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
 
         Optional<ERRules> erRule = ERRules.getErRule(topologyName);
 
-        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = EasyMock.createMock("streamIncrGenerateStrategy", IStreamIncrGenerateStrategy.class);
-
+        IAppSource appSource = DataFlowAppSource.load(collectionName);
+        assertTrue(appSource instanceof SingleTableAppSource);
 
         // 测试针对单表的的topology增量脚本生成
         long timestamp = 20191111115959l;
@@ -63,12 +65,12 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
 
         List<FacadeContext> facadeList = Lists.newArrayList();
         StreamComponentCodeGenerator streamCodeGenerator
-                = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, streamIncrGenerateStrategy, true);
-        EasyMock.replay(streamIncrGenerateStrategy);
+                = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, appSource, true);
+        //EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 
         assertGenerateContentEqual(timestamp, collectionName, "S4employee4localListener.scala");
-        EasyMock.verify(streamIncrGenerateStrategy);
+        // EasyMock.verify(streamIncrGenerateStrategy);
     }
 
 
