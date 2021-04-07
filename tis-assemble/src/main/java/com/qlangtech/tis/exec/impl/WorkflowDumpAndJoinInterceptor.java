@@ -64,8 +64,8 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                     @Override
                     public DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
                             , TisZkClient zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
-                        return new SingleTableDump(dump, false, /* isHasValidTableDump */
-                                "tableDump.getPt()", zkClient, execChainContext, dumpPhaseStatus);
+                        return new SingleTableDump(dump, hasValidTableDump, /* isHasValidTableDump */
+                                pt, zkClient, execChainContext, dumpPhaseStatus);
 
                     }
                 },

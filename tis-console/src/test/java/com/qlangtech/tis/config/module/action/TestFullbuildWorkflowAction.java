@@ -19,6 +19,7 @@ import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
+import com.qlangtech.tis.order.center.IParamContext;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

@@ -17,6 +17,8 @@ package com.qlangtech.tis.fullbuild.servlet;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.order.center.IParamContext;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 
@@ -29,18 +31,24 @@ public class TestTisServlet extends TestCase {
      * 测试执行单表流程触发创建
      */
     public void testCreateNewTask() {
+
+        HttpUtils.addMockApply(0, "do_create_new_task"
+                , "create_new_task_single_table_index_build_response.json", TestTisServlet.class);
+
         String collectionName = "search4employee4local";
+        Integer taskid = 800;
         String historyId = "666";
         TisServlet tisServlet = new TisServlet();
         IExecChainContext execChainContext = EasyMock.createMock("execChainContext", IExecChainContext.class);
 
         EasyMock.expect(execChainContext.getWorkflowId()).andReturn(null).anyTimes();
-
+        execChainContext.setAttribute(IParamContext.KEY_TASK_ID, taskid);
         EasyMock.expect(execChainContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange());
         EasyMock.expect(execChainContext.getIndexName()).andReturn(collectionName);
         EasyMock.expect(execChainContext.getString(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID)).andReturn(historyId);
         EasyMock.replay(execChainContext);
-        tisServlet.createNewTask(execChainContext);
+        Integer newTask = tisServlet.createNewTask(execChainContext);
+        assertEquals(taskid, newTask);
 
         EasyMock.verify(execChainContext);
     }

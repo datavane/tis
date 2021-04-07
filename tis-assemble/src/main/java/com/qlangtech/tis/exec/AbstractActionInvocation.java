@@ -23,6 +23,7 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,9 @@ public class AbstractActionInvocation implements ActionInvocation {
      */
     public static ActionInvocation createExecChain(IExecChainContext chainContext) throws Exception {
         IExecuteInterceptor[] ints = null;
-        if (chainContext.getWorkflowId() != null) {
+        //if (chainContext.getWorkflowId() != null) {
+        if (StringUtils.isNotBlank(chainContext.getIndexName())) {
+
             ints = workflowBuild;
             IAppSource appSource = DataFlowAppSource.load(chainContext.getIndexName());
             EntityName targetEntity = appSource.getTargetEntity();

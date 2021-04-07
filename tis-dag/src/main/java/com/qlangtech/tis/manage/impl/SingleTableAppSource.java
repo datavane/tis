@@ -16,11 +16,14 @@ package com.qlangtech.tis.manage.impl;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
@@ -29,6 +32,7 @@ import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.er.*;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
@@ -70,7 +74,25 @@ public class SingleTableAppSource implements IAppSource {
     @Override
     public ExecuteResult getProcessDataResults(IExecChainContext execChainContext, ISingleTableDumpFactory singleTableDumpFactory
             , IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception {
-        return null;
+        // 复杂数据导出
+
+        DumpPhaseStatus dumpPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
+        DataflowTask tabDump = null;
+
+        DependencyNode dump = new DependencyNode();
+        dump.setId(db.getName() + "." + tabName);
+        dump.setName(tabName);
+        dump.setDbName(db.getName());
+        dump.setTabid(String.valueOf(tabId));
+        dump.setDbid(String.valueOf(db.getId()));
+
+        //for (DependencyNode dump : topology.getDumpNodes()) {
+        tabDump = singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
+                "tableDump.getPt()", execChainContext.getZkClient(), execChainContext, dumpPhaseStatus);
+
+        tabDump.run();
+
+        return ExecuteResult.SUCCESS;
     }
 
     @Override
@@ -110,7 +132,7 @@ public class SingleTableAppSource implements IAppSource {
             TabExtraMeta tabExtraMeta = new TabExtraMeta();
             tabExtraMeta.setPrimaryIndexTab(true);
 
-            PrimaryTableMeta tableMeta = new PrimaryTableMeta(tabName,tabExtraMeta);
+            PrimaryTableMeta tableMeta = new PrimaryTableMeta(tabName, tabExtraMeta);
 
             return Collections.singletonList(tableMeta);
         }

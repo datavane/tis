@@ -79,7 +79,9 @@ public class DataFlowAppSource implements IAppSource {
 
     public static IAppSource load(String collection) {
         KeyedPluginStore<IAppSource> pluginStore = new KeyedPluginStore(new AppKey(collection));
-        return pluginStore.getPlugin();
+        IAppSource appSource = pluginStore.getPlugin();
+        Objects.requireNonNull(appSource, "collection:" + collection + " relevant appSource can not be null");
+        return appSource;
     }
 
     public static class AppKey extends KeyedPluginStore.Key<IAppSource> {
