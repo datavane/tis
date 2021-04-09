@@ -17,9 +17,9 @@ package com.qlangtech.tis.extension.util;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.qlangtech.tis.TIS;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
-import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.util.concurrent.ExecutionException;
 
@@ -29,7 +29,13 @@ import java.util.concurrent.ExecutionException;
  */
 public class GroovyShellEvaluate {
 
-    final static GroovyShell shell = new GroovyShell(new CompilerConfiguration());
+    final static GroovyShell shell = new GroovyShell(new ClassLoader() {
+        @Override
+        protected Class<?> findClass(String name) throws ClassNotFoundException {
+            // return super.findClass(name);
+            return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+        }
+    });
     private static final LoadingCache<String, Script> scriptCache
             = CacheBuilder.newBuilder().build(new CacheLoader<String, Script>() {
         @Override

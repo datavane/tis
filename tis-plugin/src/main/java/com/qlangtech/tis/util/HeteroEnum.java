@@ -17,6 +17,8 @@ package com.qlangtech.tis.util;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.offline.FileSystemFactory;
@@ -100,7 +102,18 @@ public enum HeteroEnum {
             TISTransformerFactory.class, //
             "transformer", //
             "Transformer", //
-            Selectable.Multi);
+            Selectable.Multi),
+    DATAX_READER(//
+            DataxReader.class, //
+            "dataxReader", //
+            "DataX Reader", //
+            Selectable.Multi),
+    DATAX_WRITER(//
+            DataxWriter.class, //
+            "dataxWriter", //
+            "DataX Writer", //
+            Selectable.Multi)
+    ;
 
     public final String caption;
 

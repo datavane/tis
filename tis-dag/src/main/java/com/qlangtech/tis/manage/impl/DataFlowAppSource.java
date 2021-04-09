@@ -71,16 +71,28 @@ public class DataFlowAppSource implements IAppSource {
     private final String dataflowName;
     protected static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public static void save(String collection, IAppSource appSource) {
-        KeyedPluginStore<IAppSource> pluginStore = new KeyedPluginStore(new AppKey(collection));
+    /**
+     * save
+     *
+     * @param appname
+     * @param appSource
+     */
+    public static void save(String appname, IAppSource appSource) {
+        KeyedPluginStore<IAppSource> pluginStore = new KeyedPluginStore(new AppKey(appname));
         Optional<Context> context = Optional.empty();
         pluginStore.setPlugins(null, context, Collections.singletonList(new Descriptor.ParseDescribable(appSource)));
     }
 
-    public static IAppSource load(String collection) {
-        KeyedPluginStore<IAppSource> pluginStore = new KeyedPluginStore(new AppKey(collection));
+    /**
+     * load
+     *
+     * @param appName
+     * @return
+     */
+    public static IAppSource load(String appName) {
+        KeyedPluginStore<IAppSource> pluginStore = new KeyedPluginStore(new AppKey(appName));
         IAppSource appSource = pluginStore.getPlugin();
-        Objects.requireNonNull(appSource, "collection:" + collection + " relevant appSource can not be null");
+        Objects.requireNonNull(appSource, "collection:" + appName + " relevant appSource can not be null");
         return appSource;
     }
 

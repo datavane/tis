@@ -32,6 +32,7 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
@@ -58,6 +59,7 @@ import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandle
 public abstract class Descriptor<T extends Describable> implements Saveable, ISelectOptionsGetter {
 
     public static final String KEY_ENUM_PROP = "enum";
+
     public static final String KEY_primaryVal = "_primaryVal";
 
     public static final String KEY_OPTIONS = "options";
@@ -280,8 +282,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 formField = f.getAnnotation(FormField.class);
                 if (formField != null) {
                     ptype = new PropertyType(f, formField);
-                    if (extraProps.isPresent()) {
-                        fieldExtraProps = extraProps.get().getProp(f.getName());
+                    if (extraProps.isPresent()
+                            && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
+                        String dftVal = fieldExtraProps.getDftVal();
+
+                        if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
+                            fieldExtraProps.getProps().put(PluginExtraProps.KEY_DFTVAL_PROP, (String) GroovyShellEvaluate.eval(dftVal));
+                        }
+
                         if (formField.type() == FormFieldType.ENUM) {
                             Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
                             if (anEnum == null) {
@@ -313,8 +321,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
                             }
                         }
-
-
                         ptype.setExtraProp(fieldExtraProps);
                     }
                     r.put(f.getName(), ptype);

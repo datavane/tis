@@ -12,40 +12,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.util;
+package com.qlangtech.tis.coredefine.module.action;
 
-import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.util.DescriptorsJSON;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
+ * @date 2021-04-08 15:19
  */
-public interface IPluginContext {
+public class PluginDescMeta<T extends Describable<T>> {
 
-    /**
-     * 是否在索引
-     *
-     * @return
-     */
-    boolean isCollectionAware();
+  protected final DescriptorsJSON pluginDesc;
 
-    /**
-     * 是否和数据源相关
-     *
-     * @return
-     */
-    boolean isDataSourceAware();
+  public PluginDescMeta(DescriptorExtensionList<T, Descriptor<T>> descList) {
+    this.pluginDesc = new DescriptorsJSON(descList);
+  }
 
-    /**
-     * TIS default implements: PluginAction.addDb()
-     * 向数据库中新添加一条db的记录
-     *
-     * @param dbName
-     * @param context
-     */
-    void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB);
-
-    String getCollectionName();
+  public com.alibaba.fastjson.JSONObject getPluginDesc() {
+    return pluginDesc.getDescriptorsJSON();
+  }
 }

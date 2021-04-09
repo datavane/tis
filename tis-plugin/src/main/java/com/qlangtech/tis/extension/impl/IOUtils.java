@@ -1,33 +1,54 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.extension.impl;
 
+import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.io.LineIterator;
+
 import java.io.*;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
  * Adds more to commons-io.
- * @since 1.337
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
+ * @since 1.337
  */
 public class IOUtils {
+
+    /**
+     * 从classpath中加载内容
+     *
+     * @param clazz
+     * @param resName
+     * @return
+     */
+    public static String loadResourceFromClasspath(Class<?> clazz, String resName) {
+        try {
+            try (InputStream input = clazz.getResourceAsStream(resName)) {
+                Objects.requireNonNull(input, "resource:" + resName + " can not find relevant content");
+                return org.apache.commons.io.IOUtils.toString(input, TisUTF8.get());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     // /**
     // * Drains the input stream and closes it.
@@ -57,8 +78,7 @@ public class IOUtils {
     /**
      * Ensures that the given directory exists (if not, it's created, including all the parent directories.)
      *
-     * @return
-     *      This method returns the 'dir' parameter so that the method call flows better.
+     * @return This method returns the 'dir' parameter so that the method call flows better.
      */
     public static File mkdirs(File dir) throws IOException {
         if (dir.mkdirs() || dir.exists())
@@ -67,7 +87,7 @@ public class IOUtils {
         try {
             Thread.sleep(10);
         } catch (InterruptedException e) {
-        // ignore
+            // ignore
         }
         if (dir.mkdirs() || dir.exists())
             return dir;
@@ -102,6 +122,7 @@ public class IOUtils {
      * it is returned, otherwise a file representing a path relative to base is returned.
      * <p>
      * It would be nice if File#File(File, String) were doing this.
+     *
      * @param base File that represents the parent, may be null if path is absolute
      * @param path Path of the file, may not be null
      * @return new File(name) if name represents an absolute path, new File(base, name) otherwise
@@ -126,11 +147,11 @@ public class IOUtils {
     // if(Functions.isWindows())   return -1;
     // return PosixAPI.jnr().stat(f.getPath()).mode();
     // }
+
     /**
      * Read the first line of the given stream, close it, and return that line.
      *
-     * @param encoding
-     *      If null, use the platform default encoding.
+     * @param encoding If null, use the platform default encoding.
      * @since 1.422
      */
     public static String readFirstLine(InputStream is, String encoding) throws IOException {

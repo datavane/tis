@@ -29,12 +29,14 @@ import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.config.entities.ActionConfig;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -146,7 +148,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   @Override
-  public void addDb(String dbName, Context context, boolean shallUpdateDB) {
+  public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
     throw new UnsupportedOperationException(this.getClass().getName());
   }
 

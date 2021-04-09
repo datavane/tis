@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
@@ -184,11 +185,11 @@ public class PluginAction extends BasicModule {
    * description: 添加一个 数据源库 date: 2:30 PM 4/28/2017
    */
   @Override
-  public final void addDb(String dbName, Context context, boolean shallUpdateDB) {
-    createDatabase(this, dbName, context, shallUpdateDB, this.offlineManager);
+  public final void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
+    createDatabase(this, dbDesc, dbName, context, shallUpdateDB, this.offlineManager);
   }
 
-  public static void createDatabase(BasicModule module, String dbName, Context context
+  public static void createDatabase(BasicModule module, Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context
     , boolean shallUpdateDB, OfflineManager offlineManager) {
     DatasourceDb datasourceDb = null;
     if (shallUpdateDB) {
@@ -197,6 +198,8 @@ public class PluginAction extends BasicModule {
       datasourceDb.setSyncOnline(new Byte("0"));
       datasourceDb.setCreateTime(new Date());
       datasourceDb.setOpTime(new Date());
+      datasourceDb.setExtendClass((dbDesc.instance.getClass().getName()));
+
       DatasourceDbCriteria criteria = new DatasourceDbCriteria();
       criteria.createCriteria().andNameEqualTo(dbName);
       int exist = module.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);

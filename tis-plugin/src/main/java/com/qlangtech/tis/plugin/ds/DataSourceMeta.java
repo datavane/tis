@@ -12,40 +12,33 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.util;
+package com.qlangtech.tis.plugin.ds;
 
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import java.util.List;
 
 /**
+ * 数据源meta信息获取
+ *
  * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
+ * @date 2021-04-07 15:51
  */
-public interface IPluginContext {
-
+public interface DataSourceMeta {
     /**
-     * 是否在索引
+     * Get all the tables in dataBase
      *
      * @return
      */
-    boolean isCollectionAware();
+    default List<String> getTablesInDB() throws Exception {
+        throw new UnsupportedOperationException();
+    }
 
     /**
-     * 是否和数据源相关
+     * Get table column metaData list
      *
+     * @param table
      * @return
      */
-    boolean isDataSourceAware();
-
-    /**
-     * TIS default implements: PluginAction.addDb()
-     * 向数据库中新添加一条db的记录
-     *
-     * @param dbName
-     * @param context
-     */
-    void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB);
-
-    String getCollectionName();
+    default List<ColumnMetaData> getTableMetadata(String table) {
+        throw new UnsupportedOperationException();
+    }
 }

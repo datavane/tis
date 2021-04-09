@@ -17,6 +17,7 @@ package com.qlangtech.tis.extension.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.manage.common.TisUTF8;
 
 import java.io.IOException;
@@ -31,8 +32,16 @@ import java.util.Optional;
  * @date 2020/04/13
  */
 public class PluginExtraProps extends HashMap<String, JSONObject> {
+    public static final String KEY_DFTVAL_PROP = "dftVal";
 
-    public static Optional<PluginExtraProps> load(Class<?> pluginClazz) throws IOException {
+    /**
+     * field form extran descriptor
+     *
+     * @param pluginClazz
+     * @return
+     * @throws IOException
+     */
+    public static  Optional<PluginExtraProps> load(Class<?> pluginClazz) throws IOException {
         try (InputStream i = pluginClazz.getResourceAsStream(pluginClazz.getSimpleName() + ".json")) {
             if (i == null) {
                 return Optional.empty();
@@ -75,6 +84,12 @@ public class PluginExtraProps extends HashMap<String, JSONObject> {
         @JSONField(serialize = false)
         public String getPlaceholder() {
             return (String) props.get("placeholder");
+        }
+
+        @JSONField(serialize = false)
+        public String getDftVal() {
+            Object o = props.get(KEY_DFTVAL_PROP);
+            return o == null ? null : String.valueOf(o);
         }
 
         public JSONObject getProps() {

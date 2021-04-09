@@ -90,6 +90,9 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     @Override
     public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context
             , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
+        if (dlist.size() != 1) {
+            throw new IllegalArgumentException("size of dlist must equal to 1");
+        }
         if (!context.isPresent()) {
             throw new IllegalArgumentException("Context shall exist");
         }
@@ -98,8 +101,9 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         if (!super.setPlugins(pluginContext, context, dlist, update)) {
             return false;
         }
-        pluginContext.addDb(dbName, ctx, (shallUpdateDB && !update));
-        return ctx.hasErrors();
+        Descriptor.ParseDescribable<DataSourceFactory> dbDesc = dlist.get(0);
+        pluginContext.addDb(dbDesc, dbName, ctx, (shallUpdateDB && !update));
+        return !ctx.hasErrors();
     }
 
 

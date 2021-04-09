@@ -23,6 +23,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
@@ -34,6 +35,7 @@ import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
@@ -56,9 +58,9 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
-import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
@@ -67,6 +69,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.ServletActionContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -997,6 +1000,26 @@ public class OfflineDatasourceAction extends BasicModule {
     return new WorkflowPojo(name, new JoinRule(taskScript));
   }
 
+
+  /**
+   * datax中显示已由数据源使用
+   *
+   * @param extendClass
+   * @return
+   */
+  public static List<Option> getExistDbs(String extendClass) {
+    if (StringUtils.isEmpty(extendClass)) {
+      throw new IllegalArgumentException("param extendClass can not be null");
+    }
+    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), IWorkflowDAOFacade.class);
+    Objects.requireNonNull(wfFacade, "wfFacade can not be null");
+    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
+    dbCriteria.createCriteria().andExtendClassEqualTo(extendClass);
+    List<com.qlangtech.tis.workflow.pojo.DatasourceDb> dbs = wfFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
+    return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
+  }
+
+
   /**
    * Do get datasource info. 获得所有数据源库和表
    *
@@ -1004,27 +1027,21 @@ public class OfflineDatasourceAction extends BasicModule {
    * @throws Exception the exception
    */
   public void doGetDatasourceInfo(Context context) throws Exception {
-    // this.setBizResult(context, offlineManager.getDatasourceInfo());
     this.setBizResult(context
       , new ConfigDsMeta(offlineManager.getDatasourceInfo(), TIS.get().getDescriptorList(DataSourceFactory.class)));
   }
 
 
-  public static class ConfigDsMeta {
+  public static class ConfigDsMeta extends PluginDescMeta {
     private final Collection<OfflineDatasourceAction.DatasourceDb> dbs;
-    private final DescriptorsJSON pluginDesc;
 
     public ConfigDsMeta(Collection<DatasourceDb> dbs, DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> descList) {
+      super(descList);
       this.dbs = dbs;
-      this.pluginDesc = new DescriptorsJSON(descList);
     }
 
     public Collection<DatasourceDb> getDbs() {
       return dbs;
-    }
-
-    public com.alibaba.fastjson.JSONObject getPluginDesc() {
-      return pluginDesc.getDescriptorsJSON();
     }
   }
 

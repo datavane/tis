@@ -29,28 +29,14 @@ import java.util.Map;
  * @author: baisui 百岁
  * @create: 2020-11-24 10:40
  **/
-public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName {
+public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName, DataSourceMeta {
 
     public static final String DS_TYPE_MYSQL = "MySQL";
 
-    public static List<DataSourceFactory> all() {
-        return TIS.get().getExtensionList(DataSourceFactory.class);
-    }
+//    public static List<DataSourceFactory> all() {
+//        return TIS.get().getExtensionList(DataSourceFactory.class);
+//    }
 
-    /**
-     * Get all the tables in dataBase
-     *
-     * @return
-     */
-    public abstract List<String> getTablesInDB() throws Exception;
-
-    /**
-     * Get table column metaData list
-     *
-     * @param table
-     * @return
-     */
-    public abstract List<ColumnMetaData> getTableMetadata(String table);
 
     /**
      * DataSource like TiSpark has store format as RDD shall skip the phrase of data dump

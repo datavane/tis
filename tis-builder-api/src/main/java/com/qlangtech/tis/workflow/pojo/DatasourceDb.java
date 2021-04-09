@@ -27,6 +27,8 @@ public class DatasourceDb implements Serializable {
 
     private String name;
 
+    private String extendClass;
+
     private Byte syncOnline;
 
     private Date createTime;
@@ -73,5 +75,13 @@ public class DatasourceDb implements Serializable {
 
     public void setOpTime(Date opTime) {
         this.opTime = opTime;
+    }
+
+    public String getExtendClass() {
+        return this.extendClass;
+    }
+
+    public void setExtendClass(String extendClass) {
+        this.extendClass = extendClass;
     }
 }

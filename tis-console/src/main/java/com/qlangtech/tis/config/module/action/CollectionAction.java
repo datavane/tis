@@ -1014,7 +1014,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
 
     @Override
-    public void addDb(String dbName, Context context, boolean shallUpdateDB) {
+    public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
       // CollectionAction.this.
       DatasourceDbCriteria criteria = new DatasourceDbCriteria();
       criteria.createCriteria().andNameEqualTo(dbName);
@@ -1028,7 +1028,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
         }
       }
       if (shallUpdateDB) {
-        PluginAction.createDatabase(CollectionAction.this, dbName, context, true, offlineManager);
+        PluginAction.createDatabase(CollectionAction.this, dbDesc, dbName, context, true, offlineManager);
       }
 
     }

@@ -63,7 +63,7 @@ public class PluginManager {
     // private static final Logger logger = LoggerFactory.getLogger(TIS.class.getName());
     public final PluginManager.PluginInstanceStore pluginInstanceStore = new PluginManager.PluginInstanceStore();
 
-    public final ClassLoader uberClassLoader = new UberClassLoader();
+    public final UberClassLoader uberClassLoader = new UberClassLoader();
 
     public File getWorkDir() {
         return workDir;
@@ -458,7 +458,7 @@ public class PluginManager {
         }
 
         @Override
-        protected Class<?> findClass(String name) throws ClassNotFoundException {
+        public Class<?> findClass(String name) throws ClassNotFoundException {
             WeakReference<Class> wc = generatedClasses.get(name);
             if (wc != null) {
                 Class c = wc.get();

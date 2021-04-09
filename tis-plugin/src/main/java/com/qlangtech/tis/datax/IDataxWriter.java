@@ -12,40 +12,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.util;
-
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+package com.qlangtech.tis.datax;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
+ * @date 2021-04-07 14:36
  */
-public interface IPluginContext {
+public interface IDataxWriter {
+    String getWriterName();
+
+    public String getTemplate();
 
     /**
-     * 是否在索引
+     * 取得子任务
      *
      * @return
      */
-    boolean isCollectionAware();
-
-    /**
-     * 是否和数据源相关
-     *
-     * @return
-     */
-    boolean isDataSourceAware();
-
-    /**
-     * TIS default implements: PluginAction.addDb()
-     * 向数据库中新添加一条db的记录
-     *
-     * @param dbName
-     * @param context
-     */
-    void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB);
-
-    String getCollectionName();
+    public IDataxContext getSubTask();
 }

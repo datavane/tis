@@ -15,7 +15,6 @@
 package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +42,7 @@ public class UploadPluginMeta {
     public static final String KEY_REQUIRE = "require";
     private final String name;
 
+    // plugin form must contain field where prop required is true
     private boolean required;
     // 除去 required 之外的其他参数
     private Map<String, String> extraParams = new HashMap<>();

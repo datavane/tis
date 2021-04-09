@@ -38,7 +38,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public DescriptorsJSON(List<Descriptor<T>> descriptors) {
         this.descriptors = descriptors;
-        descriptors.stream().findFirst();
+       // descriptors.stream().findFirst();
     }
 
     public JSONObject getDescriptorsJSON() {
