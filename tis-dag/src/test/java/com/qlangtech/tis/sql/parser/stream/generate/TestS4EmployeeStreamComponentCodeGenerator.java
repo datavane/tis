@@ -3,6 +3,7 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class TestS4EmployeeStreamComponentCodeGenerator extends BasicTestCase {
         List<FacadeContext> facadeList = Lists.newArrayList();
         facadeList.add(fc);
         StreamComponentCodeGenerator streamCodeGenerator
-                = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, appSource);
+                = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, (IStreamIncrGenerateStrategy) appSource);
         // EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 

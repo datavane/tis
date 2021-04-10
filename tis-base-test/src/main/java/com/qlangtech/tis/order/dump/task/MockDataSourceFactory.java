@@ -56,7 +56,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     }
 
     @Override
-    public List<String> getTablesInDB() throws Exception {
+    public List<String> getTablesInDB() {
         throw new UnsupportedOperationException();
     }
 

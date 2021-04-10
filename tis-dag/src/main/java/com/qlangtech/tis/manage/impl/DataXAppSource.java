@@ -15,22 +15,16 @@
 package com.qlangtech.tis.manage.impl;
 
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.er.IERRules;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
-import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -38,8 +32,9 @@ import java.util.Map;
  */
 public class DataXAppSource implements IAppSource {
 
+    public static final String DATAX_NAME = "dataxName";
 
-
+    //=================================================================
     @Override
     public List<ColumnMetaData> reflectCols() {
         return null;
@@ -60,23 +55,10 @@ public class DataXAppSource implements IAppSource {
         return null;
     }
 
-    @Override
-    public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
-        return null;
-    }
 
     @Override
     public ExecuteResult getProcessDataResults(IExecChainContext execChainContext, ISingleTableDumpFactory singleTableDumpFactory, IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception {
         return null;
     }
 
-    @Override
-    public Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter) {
-        return null;
-    }
-
-    @Override
-    public IERRules getERRule() {
-        return null;
-    }
 }

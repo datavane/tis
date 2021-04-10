@@ -65,7 +65,7 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
 
         List<FacadeContext> facadeList = Lists.newArrayList();
         StreamComponentCodeGenerator streamCodeGenerator
-                = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, appSource, true);
+                = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, (IStreamIncrGenerateStrategy) appSource, true);
         //EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 

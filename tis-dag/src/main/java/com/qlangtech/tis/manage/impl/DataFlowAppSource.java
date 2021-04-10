@@ -24,6 +24,7 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
@@ -45,6 +46,7 @@ import com.qlangtech.tis.sql.parser.er.*;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TaskNodeTraversesCreatorVisitor;
@@ -63,11 +65,10 @@ import java.util.concurrent.Executors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:20
  */
-public class DataFlowAppSource implements IAppSource {
+public class DataFlowAppSource implements IAppSource , IStreamIncrGenerateStrategy {
     //private static final Logger logger = LoggerFactory.getLogger(DataFlowAppSource.class);
     private static final Logger logger = LoggerFactory.getLogger("fullbuild");
-    public static final String NAME_APP_DIR = "ap";
-    public static final File parent = new File(Config.getMetaCfgDir(), NAME_APP_DIR);
+    public static final File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_APP_DIR);
     private final String dataflowName;
     protected static final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -89,16 +90,16 @@ public class DataFlowAppSource implements IAppSource {
      * @param appName
      * @return
      */
-    public static IAppSource load(String appName) {
-        KeyedPluginStore<IAppSource> pluginStore = new KeyedPluginStore(new AppKey(appName));
+    public static <T extends IAppSource> T load(String appName) {
+        KeyedPluginStore<T> pluginStore = new KeyedPluginStore(new AppKey(appName));
         IAppSource appSource = pluginStore.getPlugin();
         Objects.requireNonNull(appSource, "collection:" + appName + " relevant appSource can not be null");
-        return appSource;
+        return (T) appSource;
     }
 
     public static class AppKey extends KeyedPluginStore.Key<IAppSource> {
         public AppKey(String collection) {
-            super(NAME_APP_DIR, collection, IAppSource.class);
+            super(IFullBuildContext.NAME_APP_DIR, collection, IAppSource.class);
         }
     }
 

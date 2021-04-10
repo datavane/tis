@@ -21,8 +21,14 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.manage.impl.DataXAppSource;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.DescriptorsJSON;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * manage datax pipe process logic
@@ -42,10 +48,26 @@ public class DataxAction extends BasicModule {
 
   /**
    * submit reader type and writer type form for validate
+   *
    * @param context
    */
-  public void doValidateReaderWriter(Context context){
+  public void doValidateReaderWriter(Context context) {
 
+  }
+
+  /**
+   * get cols meta
+   *
+   * @param context
+   */
+  public void doGetReaderTableSelectableCols(Context context) {
+    String dataxName = this.getString(DataXAppSource.DATAX_NAME);
+    String tableName = this.getString("tableName");
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+    DataxReader reader = readerStore.getPlugin();
+    Objects.requireNonNull(reader, "reader can not be null");
+    List<ColumnMetaData> tableMeta = reader.getTableMetadata(tableName);
+    this.setBizResult(context, tableMeta);
   }
 
 

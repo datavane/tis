@@ -18,10 +18,10 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * datax Reader
@@ -31,13 +31,37 @@ import java.util.stream.Collectors;
  */
 public abstract class DataxReader implements Describable<DataxReader>, IDataxReader {
 
-    public static List<String> allReaderName() {
-        return all().stream().map((p) -> p.getDescriptor().getDisplayName()).collect(Collectors.toList());
+    /**
+     * save
+     *
+     * @param appname
+     */
+    public static KeyedPluginStore<DataxReader> getPluginStore(String appname) {
+        KeyedPluginStore<DataxReader> pluginStore = new KeyedPluginStore(new AppKey(appname));
+//        Optional<Context> context = Optional.empty();
+//        pluginStore.setPlugins(null, context, Collections.singletonList(new Descriptor.ParseDescribable(appSource)));
+        return pluginStore;
     }
 
-    public static List<DataxReader> all() {
-        return TIS.get().getExtensionList(DataxReader.class);
+    /**
+     * load
+     *
+     * @param appName
+     * @return
+     */
+    public static DataxReader load(String appName) {
+        DataxReader appSource = getPluginStore(appName).getPlugin();
+        Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
+        return appSource;
     }
+
+
+    public static class AppKey extends KeyedPluginStore.Key<DataxReader> {
+        public AppKey(String dataxName) {
+            super(IFullBuildContext.NAME_APP_DIR, dataxName, DataxReader.class);
+        }
+    }
+
 
     @Override
     public Descriptor<DataxReader> getDescriptor() {

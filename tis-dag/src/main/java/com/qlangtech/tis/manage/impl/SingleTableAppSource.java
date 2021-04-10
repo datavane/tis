@@ -36,6 +36,7 @@ import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 
@@ -48,7 +49,7 @@ import java.util.Optional;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:20
  */
-public class SingleTableAppSource implements IAppSource {
+public class SingleTableAppSource implements IAppSource, IStreamIncrGenerateStrategy {
     private final DatasourceDb db;
     private final Integer tabId;
     private final String tabName;

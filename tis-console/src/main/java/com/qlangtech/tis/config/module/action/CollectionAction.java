@@ -43,6 +43,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
+import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
@@ -1012,6 +1013,25 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       return pluginType == HeteroEnum.DATASOURCE;
     }
 
+    @Override
+    public void errorsPageShow(Context context) {
+
+    }
+
+    @Override
+    public void addActionMessage(Context context, String msg) {
+
+    }
+
+    @Override
+    public void setBizResult(Context context, Object result) {
+      CollectionAction.this.setBizResult(context, result);
+    }
+
+    @Override
+    public void addErrorMessage(Context context, String msg) {
+
+    }
 
     @Override
     public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {

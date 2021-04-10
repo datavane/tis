@@ -62,6 +62,7 @@ import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -360,7 +361,8 @@ public class CoreAction extends BasicModule {
 
     IAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
 
-    return new IndexStreamCodeGenerator(module.getCollectionName(), appSource
+
+    return new IndexStreamCodeGenerator(module.getCollectionName(), (IStreamIncrGenerateStrategy) appSource
       , ManageUtils.formatNowYyyyMMddHHmmss(workFlow.getOpTime()), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
       DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();

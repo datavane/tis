@@ -30,12 +30,8 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
-import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 索引实例Srouce， 支持单表、dataflow
@@ -43,7 +39,7 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:16
  */
-public interface IAppSource extends Describable<IAppSource>, IStreamIncrGenerateStrategy {
+public interface IAppSource extends Describable<IAppSource> {
 
     List<ColumnMetaData> reflectCols();
 
@@ -60,8 +56,6 @@ public interface IAppSource extends Describable<IAppSource>, IStreamIncrGenerate
     EntityName getTargetEntity();
 
     IPrimaryTabFinder getPrimaryTabFinder();
-
-    Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker();
 
     /**
      * 执行数据处理

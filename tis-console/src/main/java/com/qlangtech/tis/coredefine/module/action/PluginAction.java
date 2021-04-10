@@ -162,6 +162,7 @@ public class PluginAction extends BasicModule {
     for (PluginItems pi : categoryPlugins) {
       pi.save(context);
     }
+
     addActionMessage(context, "配置保存成功");
   }
 

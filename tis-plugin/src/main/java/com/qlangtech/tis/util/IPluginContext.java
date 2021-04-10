@@ -17,12 +17,13 @@ package com.qlangtech.tis.util;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IPluginContext {
+public interface IPluginContext extends IMessageHandler {
 
     /**
      * 是否在索引
@@ -37,6 +38,7 @@ public interface IPluginContext {
      * @return
      */
     boolean isDataSourceAware();
+
 
     /**
      * TIS default implements: PluginAction.addDb()

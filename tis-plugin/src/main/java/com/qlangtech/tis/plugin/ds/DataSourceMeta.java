@@ -28,7 +28,7 @@ public interface DataSourceMeta {
      *
      * @return
      */
-    default List<String> getTablesInDB() throws Exception {
+    default List<String> getTablesInDB() {
         throw new UnsupportedOperationException();
     }
 
