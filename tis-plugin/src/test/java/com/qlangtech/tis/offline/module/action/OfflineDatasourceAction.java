@@ -12,41 +12,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.plugin.annotation;
+package com.qlangtech.tis.offline.module.action;
+
+import com.qlangtech.tis.manage.common.Option;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2019年1月11日
+ * @date 2021-04-12 09:33
  */
-public enum FormFieldType {
-    /**
-     * 多选字段
-     */
-    MULTI_SELECTABLE(8),
-    INPUTTEXT(1),
-    /**
-     * 有多个选项可以选择
-     */
-    SELECTABLE(6),
-    /**
-     * 密码
-     */
-    PASSWORD(7),
-    TEXTAREA(2),
-    DATE(3),
-    /**
-     * 输入一个数字
-     */
-    INT_NUMBER(4),
-    ENUM(5);
+public class OfflineDatasourceAction {
 
-    private final int identity;
-
-    FormFieldType(int val) {
-        this.identity = val;
-    }
-
-    public int getIdentity() {
-        return this.identity;
+    public static List<Option> getExistDbs(String describleName) {
+        String name = "com.qlangtech.tis.plugin.ds.mysql.MySQLDataSourceFactory";
+        return Collections.singletonList(new Option("testDbName", "testDbName"));
     }
 }

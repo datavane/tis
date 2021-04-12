@@ -21,6 +21,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.impl.RootFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
@@ -29,6 +32,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -37,7 +41,6 @@ import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.XStream2;
-import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
 
@@ -73,7 +76,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public final transient Class<? extends T> clazz;
     public transient boolean overWriteValidateMethod;
 
-    private transient volatile Map<String, PropertyType> propertyTypes, globalPropertyTypes;
+    private transient volatile Map<String, IPropertyType> propertyTypes, globalPropertyTypes;
     /**
      * Identity prop of one plugin the plugin must implement the IdentityName interface
      */
@@ -193,7 +196,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     /**
      * Obtains the property type of the given field of {@link #clazz}
      */
-    public PropertyType getPropertyType(String field) {
+    public IPropertyType getPropertyType(String field) {
         return getPropertyTypes().get(field);
     }
 
@@ -240,12 +243,45 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return new XmlFile(new File(TIS.pluginCfgRoot, getPluginFileName(pluginId)));
     }
 
-    public Map<String, /*** fieldname*/PropertyType> getPropertyTypes() {
+    private PluginFormProperties getSubPluginFormPropertyTypes(String subFieldName) {
+        IPropertyType propertyType = getPropertyTypes().get(subFieldName);
+        Objects.requireNonNull(propertyType, this.getT().getName() + "'s prop subField:" + subFieldName + " relevant prop can not be null");
+        if (!(propertyType instanceof SuFormProperties)) {
+            throw new IllegalStateException("subFieldName:" + subFieldName + " prop must be "
+                    + SuFormProperties.class.getSimpleName() + "but now is :" + propertyType.getClass().getName());
+        }
+        return (SuFormProperties) propertyType;//filterFieldProp(((SuFormProperties) propertyType).fieldsType);
+    }
+
+    public PluginFormProperties getPluginFormPropertyTypes() {
+        return getPluginFormPropertyTypes(Optional.empty());
+    }
+
+    public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+        IPropertyType.SubFormFilter filter = null;
+        if (subFormFilter.isPresent()) {
+            filter = subFormFilter.get();
+            if (filter.match(this)) {
+                return getSubPluginFormPropertyTypes(filter.subFieldName);
+            }
+        }
+
+        return new RootFormProperties(filterFieldProp(getPropertyTypes()));
+    }
+
+    private Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String, /*** fieldname*/IPropertyType> props) {
+        return props.entrySet().stream().filter((e) -> e.getValue() instanceof PropertyType)
+                .collect(Collectors.toMap((e) -> e.getKey(), (e) -> (PropertyType) e.getValue()));
+    }
+
+    private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes() {
         if (propertyTypes == null) {
             propertyTypes = buildPropertyTypes(clazz);
 
             List<PropertyType> identityFields
-                    = propertyTypes.values().stream().filter((p) -> p.isIdentity()).collect(Collectors.toList());
+                    = propertyTypes.values().stream().filter((p) -> {
+                return (p instanceof PropertyType) && ((PropertyType) p).isIdentity();
+            }).map((p) -> (PropertyType) p).collect(Collectors.toList());
             if (IdentityName.class.isAssignableFrom(this.clazz)) {
                 if (identityFields.size() != 1) {
                     throw new IllegalStateException("class:" + this.clazz + " is type of "
@@ -266,12 +302,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return propertyTypes;
     }
 
-    private Map<String, /*** fieldname */
-            PropertyType> buildPropertyTypes(Class<?> clazz) {
-        Map<String, PropertyType> r = new HashMap<String, PropertyType>();
+    /**
+     * 可能plugin form 表单需要几个步骤才能 填充完一个plugin form 表单就需要单独取出部分表单属性去渲染前端页面
+     *
+     * @param clazz
+     * @return
+     */
+    private Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Class<?> clazz) {
+        Map<String, IPropertyType> r = new HashMap<String, IPropertyType>();
         FormField formField = null;
+        SubForm subFormFields = null;
         PropertyType ptype = null;
         PluginExtraProps.Prop fieldExtraProps = null;
+        Class<?> subFromDescClass = null;
         try {
             Optional<PluginExtraProps> extraProps = PluginExtraProps.load(clazz);
 
@@ -279,6 +322,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 if (!Modifier.isPublic(f.getModifiers())) {
                     continue;
                 }
+
+                if ((subFormFields = f.getAnnotation(SubForm.class)) != null) {
+                    subFromDescClass = subFormFields.desClazz();
+                    if (subFromDescClass == null) {
+                        throw new IllegalStateException("field " + f.getName()
+                                + "'s SubForm annotation descClass can not be null");
+                    }
+                    r.put(f.getName(), new SuFormProperties(f, filterFieldProp(buildPropertyTypes(subFromDescClass))));
+                }
+
                 formField = f.getAnnotation(FormField.class);
                 if (formField != null) {
                     ptype = new PropertyType(f, formField);
@@ -290,7 +343,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             fieldExtraProps.getProps().put(PluginExtraProps.KEY_DFTVAL_PROP, (String) GroovyShellEvaluate.eval(dftVal));
                         }
 
-                        if (formField.type() == FormFieldType.ENUM) {
+                        if ((formField.type() == FormFieldType.ENUM) || formField.type() == FormFieldType.MULTI_SELECTABLE) {
                             Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
                             if (anEnum == null) {
                                 throw new IllegalStateException("fieldName:" + f.getName() + "relevant enum descriptor in json config can not be null");
@@ -354,15 +407,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         String attrVal;
         boolean valid = true;
 
-        Map<String, PropertyType> /** * fieldname */
-                propertyTypes = this.getPropertyTypes();
+        PluginFormProperties /** * fieldname */
+                propertyTypes = this.getPluginFormPropertyTypes();
         PostFormVals postFormVals = new PostFormVals(formData);
         //  context.put(KEY_VALIDATE_ITEM_INDEX, new Integer(itemIndex));
         //        context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
         PluginValidateResult validateResult = new PluginValidateResult(postFormVals
                 , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
                 , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
-        for (Map.Entry<String, PropertyType> entry : propertyTypes.entrySet()) {
+        for (Map.Entry<String, PropertyType> entry : propertyTypes.getKVTuples()) {
             attr = entry.getKey();
             attrDesc = entry.getValue();
             valJ = formData.get(attr);
@@ -528,8 +581,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         PropertyType attrDesc;
         JSONObject valJ;
         String attrVal;
-        Map<String, PropertyType> propertyTypes = this.getPropertyTypes();
-        for (Map.Entry<String, PropertyType> entry : propertyTypes.entrySet()) {
+        // Map<String, PropertyType>
+        PluginFormProperties propertyTypes = this.getPluginFormPropertyTypes();
+        for (Map.Entry<String, PropertyType> entry : propertyTypes.getKVTuples()) {
             attr = entry.getKey();
             attrDesc = entry.getValue();
             valJ = keyValMap.get(attr);
@@ -622,184 +676,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return attrValMap;
     }
 
-    private static final ConvertUtilsBean convertUtils = new ConvertUtilsBean();
-
-    public static final class PropertyType {
-
-        public final Class clazz;
-
-        public final Type type;
-
-        private volatile Class itemType;
-
-        public final String displayName;
-
-        private final FormField formField;
-
-        private final Field f;
-
-        private Boolean inputRequired;
-
-        private PluginExtraProps.Prop extraProp;
-
-        PropertyType(Field f, Class clazz, Type type, String displayName, FormField formField) {
-            this.f = f;
-            this.clazz = clazz;
-            this.type = type;
-            this.displayName = displayName;
-            if (formField == null) {
-                throw new IllegalStateException("param formField can not be null");
-            }
-            this.formField = formField;
-        }
-
-        /**
-         * 是否是主键
-         *
-         * @return
-         */
-        public boolean isIdentity() {
-            return this.formField.identity();
-        }
-
-        public JSONObject getExtraProps() {
-            if (this.extraProp == null) {
-                return null;
-            }
-            return this.extraProp.getProps();
-        }
-
-        public void setExtraProp(PluginExtraProps.Prop extraProp) {
-            this.extraProp = extraProp;
-        }
-
-        public String dftVal() {
-            return formField.dftVal();
-        }
-
-        public int ordinal() {
-            return formField.ordinal();
-        }
-
-        public int typeIdentity() {
-            return formField.type().getIdentity();
-        }
-
-        // public FormField getFormField() {
-        // return this.formField;
-        // }
-        public Validator[] getValidator() {
-            return formField.validate();
-        }
-
-        public boolean isInputRequired() {
-            if (inputRequired == null) {
-                inputRequired = false;
-                Validator[] validators = this.formField.validate();
-                for (Validator v : validators) {
-                    if (v == Validator.require) {
-                        return inputRequired = true;
-                    }
-                }
-            }
-            return inputRequired;
-        }
-
-        PropertyType(Field f, FormField formField) {
-            this(f, f.getType(), f.getGenericType(), f.getName(), formField);
-        }
-
-        // PropertyType(Method getter) {
-        // this(getter.getReturnType(), getter.getGenericReturnType(), getter.toString());
-        // }
-        public Enum[] getEnumConstants() {
-            return (Enum[]) clazz.getEnumConstants();
-        }
-
-        /**
-         * If the property is a collection/array type, what is an item type?
-         */
-        public Class getItemType() {
-            if (itemType == null)
-                itemType = computeItemType();
-            return itemType;
-        }
-
-        // 取得实例的值
-        public Object getVal(Object instance) {
-            try {
-                return this.f.get(instance);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public void setVal(Object instance, Object val) {
-            Object prop = null;
-            try {
-                prop = convertUtils.convert(val, this.clazz);
-                this.f.set(instance, prop);
-            } catch (Throwable e) {
-                throw new RuntimeException("\ntarget instance:" + instance.getClass() + "\nfield:" + this.f + (prop == null ? StringUtils.EMPTY : "\nprop class:" + prop.getClass()), e);
-            }
-        }
-
-        private Class computeItemType() {
-            if (clazz.isArray()) {
-                return clazz.getComponentType();
-            }
-            if (Collection.class.isAssignableFrom(clazz)) {
-                Type col = Types.getBaseClass(type, Collection.class);
-                if (col instanceof ParameterizedType) {
-                    return Types.erasure(Types.getTypeArgument(col, 0));
-                } else {
-                    return Object.class;
-                }
-            }
-            return null;
-        }
-
-        /**
-         * Returns {@link Descriptor} whose 'clazz' is the same as {@link #getItemType() the item type}.
-         */
-        public Descriptor getItemTypeDescriptor() {
-            return TIS.get().getDescriptor(getItemType());
-        }
-
-        public boolean isDescribable() {
-            // }
-            return Describable.class.isAssignableFrom(clazz);
-        }
-
-        public Descriptor getItemTypeDescriptorOrDie() {
-            Class it = getItemType();
-            if (it == null) {
-                throw new AssertionError(clazz + " is not an array/collection type in " + displayName + ". See https://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
-            }
-            Descriptor d = TIS.get().getDescriptor(it);
-            if (d == null)
-                throw new AssertionError(it + " is missing its descriptor in " + displayName + ". See https://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
-            return d;
-        }
-
-        /**
-         * Returns all the descriptors that produce types assignable to the property type.
-         */
-        public List<? extends Descriptor> getApplicableDescriptors() {
-            return TIS.get().getDescriptorList(clazz);
-        }
-
-        /**
-         * Returns all the descriptors that produce types assignable to the item type for a collection property.
-         */
-        public List<? extends Descriptor> getApplicableItemDescriptors() {
-            Class itemType = getItemType();
-            if (itemType == null) {
-                return null;
-            }
-            return TIS.get().getDescriptorList(itemType);
-        }
-    }
 
     public final boolean isSubTypeOf(Class type) {
         return type.isAssignableFrom(clazz);

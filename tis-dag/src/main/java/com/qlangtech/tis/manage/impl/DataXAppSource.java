@@ -32,8 +32,6 @@ import java.util.List;
  */
 public class DataXAppSource implements IAppSource {
 
-    public static final String DATAX_NAME = "dataxName";
-
     //=================================================================
     @Override
     public List<ColumnMetaData> reflectCols() {

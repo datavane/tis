@@ -70,13 +70,7 @@ public class PluginAction extends BasicModule {
     org.json.JSONArray hlist = new org.json.JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta p : plugins) {
-      HeteroEnum hEnum = p.getHeteroEnum();
-      HeteroList<?> hList = new HeteroList<>();
-      hList.setCaption(hEnum.caption);
-      hList.setExtensionPoint(hEnum.extensionPoint);
-      hList.setItems(hEnum.getPlugins(this, p));
-      hList.setDescriptors(hEnum.descriptors());
-      hList.setSelectable(hEnum.selectable);
+      HeteroList<?> hList = p.getHeteroList(this);
       hlist.put(hList.toJSON());
     }
     pluginDetail.put("plugins", hlist);

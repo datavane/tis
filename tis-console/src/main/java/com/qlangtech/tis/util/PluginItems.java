@@ -21,7 +21,7 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.manage.impl.DataXAppSource;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
@@ -93,9 +93,9 @@ public class PluginItems {
         }
       };
     } else if (heteroEnum == HeteroEnum.DATAX_WRITER || heteroEnum == HeteroEnum.DATAX_READER) {
-      final String dataxName = pluginMeta.getExtraParam(DataXAppSource.DATAX_NAME);
+      final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
       if (StringUtils.isEmpty(dataxName)) {
-        throw new IllegalArgumentException("plugin extra param " + DataXAppSource.DATAX_NAME + " can not be null");
+        throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
       }
       if ((heteroEnum == HeteroEnum.DATAX_READER)) {
         for (Descriptor.ParseDescribable<?> dataXReader : dlist) {

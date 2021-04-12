@@ -21,8 +21,6 @@ import com.qlangtech.tis.TIS;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 
-import java.util.concurrent.ExecutionException;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-02-06 13:27
@@ -52,7 +50,7 @@ public class GroovyShellEvaluate {
         try {
             Script script = scriptCache.get(javaScript);
             return (T) script.run();
-        } catch (ExecutionException e) {
+        } catch (Throwable e) {
             throw new RuntimeException(javaScript, e);
         }
     }

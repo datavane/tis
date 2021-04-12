@@ -26,7 +26,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 public @interface FormField {
-    //String name() default "";
     /**
      * 替换IdentityName接口的功能，说明一个插件中有一个field的值能代表该插件的唯一ID，不过一个插件中只能有一个field标记为identity=true
      */
@@ -36,9 +35,6 @@ public @interface FormField {
 
     // 表单中的顺序
     int ordinal() default 0;
-
-    // 表单字段是否必须
-    // boolean require() default false;
 
     Validator[] validate() default {};
 

@@ -19,12 +19,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -38,19 +41,24 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public DescriptorsJSON(List<Descriptor<T>> descriptors) {
         this.descriptors = descriptors;
-       // descriptors.stream().findFirst();
+        // descriptors.stream().findFirst();
     }
 
     public JSONObject getDescriptorsJSON() {
+        return getDescriptorsJSON(Optional.empty());
+    }
+
+    public JSONObject getDescriptorsJSON(Optional<IPropertyType.SubFormFilter> subFormFilter) {
         JSONObject des;
         JSONArray attrs;
         String key;
-        Descriptor.PropertyType val;
+        PropertyType val;
         JSONObject extraProps = null;
         // FormField fieldAnnot;
         JSONObject attrVal;
         JSONObject descriptors = new JSONObject();
         Map<String, Object> extractProps;
+        IPropertyType.SubFormFilter subFilter = null;
         for (Descriptor<T> d : this.descriptors) {
 
             des = new JSONObject();
@@ -67,9 +75,11 @@ public class DescriptorsJSON<T extends Describable<T>> {
             }
 
             attrs = new JSONArray();
-            ArrayList<Map.Entry<String, Descriptor.PropertyType>> entries = Lists.newArrayList(d.getPropertyTypes().entrySet());
+            ArrayList<Map.Entry<String, PropertyType>> entries
+                    = Lists.newArrayList(d.getPluginFormPropertyTypes(subFormFilter).getKVTuples());
+
             entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
-            for (Map.Entry<String, Descriptor.PropertyType> pp : entries) {
+            for (Map.Entry<String, PropertyType> pp : entries) {
                 key = pp.getKey();
                 val = pp.getValue();
                 // fieldAnnot = val.getFormField();

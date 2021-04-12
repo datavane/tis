@@ -14,39 +14,19 @@
  */
 package com.qlangtech.tis.plugin.annotation;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
+ * plugin form can have an sub form ,where build form needs multi step
  * @author 百岁（baisui@qlangtech.com）
- * @date 2019年1月11日
+ * @date 2021-04-10 19:25
  */
-public enum FormFieldType {
-    /**
-     * 多选字段
-     */
-    MULTI_SELECTABLE(8),
-    INPUTTEXT(1),
-    /**
-     * 有多个选项可以选择
-     */
-    SELECTABLE(6),
-    /**
-     * 密码
-     */
-    PASSWORD(7),
-    TEXTAREA(2),
-    DATE(3),
-    /**
-     * 输入一个数字
-     */
-    INT_NUMBER(4),
-    ENUM(5);
-
-    private final int identity;
-
-    FormFieldType(int val) {
-        this.identity = val;
-    }
-
-    public int getIdentity() {
-        return this.identity;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD})
+public @interface SubForm {
+   // get describe form bean class
+   Class<?> desClazz();
 }

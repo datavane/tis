@@ -15,10 +15,13 @@
 package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.IPropertyType;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -134,6 +137,16 @@ public class UploadPluginMeta {
     }
 
 
+    public Optional<IPropertyType.SubFormFilter> getSubFormFilter() {
+
+        String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
+        String subFormField = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD);
+        if (StringUtils.isNotEmpty(targetDesc)) {
+            return Optional.of(new IPropertyType.SubFormFilter(targetDesc, subFormField));
+        }
+        return Optional.empty();
+    }
+
     public String getExtraParam(String key) {
         return this.extraParams.get(key);
     }
@@ -145,5 +158,16 @@ public class UploadPluginMeta {
     @Override
     public String toString() {
         return "UploadPluginMeta{" + "name='" + name + '\'' + ", required=" + required + '}';
+    }
+
+    public HeteroList<?> getHeteroList(IPluginContext pluginContext) {
+        HeteroEnum hEnum = getHeteroEnum();
+        HeteroList<?> hList = new HeteroList<>(this);
+        hList.setCaption(hEnum.caption);
+        hList.setExtensionPoint(hEnum.extensionPoint);
+        hList.setItems(hEnum.getPlugins(pluginContext, this));
+        hList.setDescriptors(hEnum.descriptors());
+        hList.setSelectable(hEnum.selectable);
+        return hList;
     }
 }

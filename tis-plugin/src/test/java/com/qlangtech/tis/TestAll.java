@@ -21,6 +21,7 @@ import com.qlangtech.tis.plugin.TestComponentMeta;
 import com.qlangtech.tis.plugin.TestPluginStore;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
+import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.TestUploadPluginMeta;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -34,6 +35,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestHeteroList.class);
         suite.addTestSuite(TestUploadPluginMeta.class);
         suite.addTestSuite(TestValidator.class);
         suite.addTestSuite(TestTIS.class);

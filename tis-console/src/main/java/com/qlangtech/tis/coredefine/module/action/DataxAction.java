@@ -21,7 +21,7 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
-import com.qlangtech.tis.manage.impl.DataXAppSource;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
@@ -61,7 +61,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doGetReaderTableSelectableCols(Context context) {
-    String dataxName = this.getString(DataXAppSource.DATAX_NAME);
+    String dataxName = this.getString(DataxUtils.DATAX_NAME);
     String tableName = this.getString("tableName");
     KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
     DataxReader reader = readerStore.getPlugin();

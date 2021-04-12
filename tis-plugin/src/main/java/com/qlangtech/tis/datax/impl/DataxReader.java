@@ -38,8 +38,6 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
      */
     public static KeyedPluginStore<DataxReader> getPluginStore(String appname) {
         KeyedPluginStore<DataxReader> pluginStore = new KeyedPluginStore(new AppKey(appname));
-//        Optional<Context> context = Optional.empty();
-//        pluginStore.setPlugins(null, context, Collections.singletonList(new Descriptor.ParseDescribable(appSource)));
         return pluginStore;
     }
 

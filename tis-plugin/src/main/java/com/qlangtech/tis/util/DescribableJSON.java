@@ -14,13 +14,19 @@
  */
 package com.qlangtech.tis.util;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 //import org.json.JSONObject;
@@ -45,38 +51,48 @@ public class DescribableJSON<T extends Describable<T>> {
     }
 
     public JSONObject getItemJson() throws Exception {
-        JSONObject vals;
+        return this.getItemJson(Optional.empty());
+    }
+
+    public JSONObject getItemJson(Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
+
         JSONObject item = new JSONObject();
         item.put("impl", descriptor.getId());
         item.put(DescriptorsJSON.KEY_DISPLAY_NAME, descriptor.getDisplayName());
-        vals = new JSONObject();
-        // Set<String> keys = descPropsMap.get(descriptor.getT());
-        try {
-            Object o = null;
-            for (Map.Entry<String, Descriptor.PropertyType> entry : descriptor.getPropertyTypes().entrySet()) {
-                // o = instance.getClass().getField(entry.getKey()).get(instance);
-                // instance.getClass().getField(entry.getKey()).get(instance);
-                o = entry.getValue().getVal(instance);
-                if (o == null) {
-                    continue;
-                }
-                if (entry.getValue().isDescribable()) {
-                    DescribableJSON djson = new DescribableJSON((Describable) o);
-                    vals.put(entry.getKey(), djson.getItemJson());
-                } else {
-                    vals.put(entry.getKey(), o);
-                }
-            }
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException("fetchKeys:" + descriptor.getPropertyTypes().keySet().stream().collect(Collectors.joining(","))
-                    + "，hasKeys:" + Arrays.stream(this.instance.getClass().getFields()).map((r) -> r.getName()).collect(Collectors.joining(",")), e);
-        }
+
+        PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(subFormFilter);
+
+        JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance);
         item.put("vals", vals);
         if (instance instanceof IdentityName) {
             item.put("identityName", ((IdentityName) instance).identityValue());
         }
 
-
         return item;
     }
+
+//    private static JSONObject getInstancePropsJsonObject(Object instance, Set<Map.Entry<String, PropertyType>> pluginFormPropertyTypes) throws Exception {
+//        JSONObject vals = new JSONObject();
+//        try {
+//            Object o = null;
+//            for (Map.Entry<String, PropertyType> entry : pluginFormPropertyTypes) {
+//                // o = instance.getClass().getField(entry.getKey()).get(instance);
+//                // instance.getClass().getField(entry.getKey()).get(instance);
+//                o = entry.getValue().getVal(instance);
+//                if (o == null) {
+//                    continue;
+//                }
+//                if (entry.getValue().isDescribable()) {
+//                    DescribableJSON djson = new DescribableJSON((Describable) o);
+//                    vals.put(entry.getKey(), djson.getItemJson());
+//                } else {
+//                    vals.put(entry.getKey(), o);
+//                }
+//            }
+//        } catch (NoSuchFieldException e) {
+//            throw new RuntimeException("fetchKeys:" + pluginFormPropertyTypes.stream().map((entry) -> entry.getKey()).collect(Collectors.joining(","))
+//                    + "，hasKeys:" + Arrays.stream(instance.getClass().getFields()).map((r) -> r.getName()).collect(Collectors.joining(",")), e);
+//        }
+//        return vals;
+//    }
 }

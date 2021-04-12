@@ -21,10 +21,7 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.offline.FileSystemFactory;
-import com.qlangtech.tis.offline.FlatTableBuilder;
-import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-import com.qlangtech.tis.offline.TableDumpFactory;
+import com.qlangtech.tis.offline.*;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -112,8 +109,7 @@ public enum HeteroEnum {
             DataxWriter.class, //
             "dataxWriter", //
             "DataX Writer", //
-            Selectable.Multi)
-    ;
+            Selectable.Multi);
 
     public final String caption;
 
@@ -160,6 +156,14 @@ public enum HeteroEnum {
         return (T) store.getPlugin();
     }
 
+    /**
+     * ref: PluginItems.save()
+     *
+     * @param pluginContext
+     * @param pluginMeta
+     * @param <T>
+     * @return
+     */
     public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         PluginStore store = null;
         if (pluginContext.isCollectionAware()) {
@@ -171,6 +175,12 @@ public enum HeteroEnum {
                 return Collections.emptyList();
             }
             store = TIS.getDataBasePluginStore(dsProp);
+        } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
+            final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+            if (StringUtils.isEmpty(dataxName)) {
+                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+            }
+            store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(dataxName) : DataxWriter.getPluginStore(dataxName);
         } else {
             store = TIS.getPluginStore(this.extensionPoint);
         }
