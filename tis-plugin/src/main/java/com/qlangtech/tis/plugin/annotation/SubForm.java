@@ -21,12 +21,20 @@ import java.lang.annotation.Target;
 
 /**
  * plugin form can have an sub form ,where build form needs multi step
+ *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-10 19:25
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 public @interface SubForm {
-   // get describe form bean class
-   Class<?> desClazz();
+    // get describe form bean class
+    Class<?> desClazz();
+
+    /**
+     * id list fetch method name which owned to describable plugin instance
+     *
+     * @return
+     */
+    String idListGetScript();
 }

@@ -27,9 +27,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -63,21 +65,24 @@ public abstract class DataxProcessor implements Describable<DataxProcessor>, Ide
     public void start() throws Exception {
         IDataxReader reader = this.getReader();
         Iterator<IDataxContext> subTasks = reader.getSubTasks();
-        IDataxWriter writer = this.getWriter();
-        VelocityContext mergeData = null;
-        final String tpl = this.getTemplate();
+
         while (subTasks.hasNext()) {
-            mergeData = createContext(subTasks.next(), writer.getSubTask());
-
-            StringWriter writerContent = new StringWriter();
-            String template = StringUtils.replace(tpl, "<!--reader-->", reader.getTemplate());
-            template = StringUtils.replace(template, "<!--writer-->", writer.getTemplate());
-
-            velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", template);
-
-            writerContent.toString();
+            generateDataxConfig(subTasks.next(), Optional.empty());
         }
 
+    }
+
+    protected String generateDataxConfig(IDataxContext readerContext, Optional<TableMap> tableMap) throws IOException {
+
+        IDataxWriter writer = this.getWriter();
+        final String tpl = this.getTemplateContent();
+        VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap));
+
+
+        StringWriter writerContent = new StringWriter();
+        velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
+
+        return writerContent.toString();
     }
 
 
@@ -107,6 +112,13 @@ public abstract class DataxProcessor implements Describable<DataxProcessor>, Ide
         setting.put("speed", speed);
         setting.put("errorLimit", errorLimit);
         return setting;
+    }
+
+    public String getTemplateContent() {
+        final String tpl = getTemplate();
+        String template = StringUtils.replace(tpl, "<!--reader-->", this.getReader().getTemplate());
+        template = StringUtils.replace(template, "<!--writer-->", this.getWriter().getTemplate());
+        return template;
     }
 
     /**

@@ -98,9 +98,7 @@ public class PropertyType implements IPropertyType {
         return formField.type().getIdentity();
     }
 
-    // public FormField getFormField() {
-    // return this.formField;
-    // }
+
     public Validator[] getValidator() {
         return formField.validate();
     }

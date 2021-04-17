@@ -16,6 +16,8 @@ package com.qlangtech.tis.extension;
 
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.impl.RootFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,4 +30,17 @@ public abstract class PluginFormProperties {
     public abstract Set<Map.Entry<String, PropertyType>> getKVTuples();
 
     public abstract JSON getInstancePropsJson(Object instance);
+
+    public abstract <T> T accept(IVisitor visitor);
+
+    public interface IVisitor {
+        default <T> T visit(RootFormProperties props) {
+            return null;
+        }
+
+        default <T> T visit(SuFormProperties props) {
+            return null;
+        }
+    }
+
 }

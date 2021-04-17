@@ -20,7 +20,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
@@ -28,11 +32,10 @@ import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ReflectionUtils;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -55,6 +58,64 @@ public class PluginAction extends BasicModule {
   public void doGetExtensionPointShow(Context context) throws Exception {
     TIS tis = TIS.get();
     this.setBizResult(context, tis.loadGlobalComponent().isShowExtensionDetail());
+  }
+
+  /**
+   * plugin form 的子表单的某条详细记录被点击
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doSubformDetailedClick(Context context) throws Exception {
+    List<UploadPluginMeta> pluginsMeta = getPluginMeta();
+    //String targetMethod = this.getString("targetMethod");
+    // String[] params = StringUtils.split(this.getString("params"), ",");
+    List<Describable> plugins = null;
+    Map<String, String> execContext = Maps.newHashMap();
+    execContext.put("id", this.getString("id"));
+
+    HeteroEnum heteroEnum = null;
+    for (UploadPluginMeta meta : pluginsMeta) {
+      heteroEnum = meta.getHeteroEnum();
+      plugins = heteroEnum.getPlugins(this, meta);
+      for (Describable p : plugins) {
+
+        PluginFormProperties pluginFormPropertyTypes = p.getDescriptor().getPluginFormPropertyTypes(meta.getSubFormFilter());
+        pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor() {
+          @Override
+          protected void visitSubForm(JSONObject behaviorMeta, SuFormProperties props) {
+            JSONObject fieldDataGetterMeta = null;
+            JSONArray params = null;
+            JSONObject onClickFillData = behaviorMeta.getJSONObject("onClickFillData");
+            Objects.requireNonNull(onClickFillData, "onClickFillData can not be null");
+            Map<String, Object> fillFieldsData = Maps.newHashMap();
+            for (String fillField : onClickFillData.keySet()) {
+              fieldDataGetterMeta = onClickFillData.getJSONObject(fillField);
+              Objects.requireNonNull(fieldDataGetterMeta, "fillField:" + fillField + " relevant behavier meta can not be null");
+              String targetMethod = fieldDataGetterMeta.getString("method");
+              params = fieldDataGetterMeta.getJSONArray("params");
+              Objects.requireNonNull(params, "params can not be null");
+              Class<?>[] paramClass = new Class<?>[params.size()];
+              String[] paramsVals = new String[params.size()];
+              for (int index = 0; index < params.size(); index++) {
+                paramClass[index] = String.class;
+                paramsVals[index] = Objects.requireNonNull(execContext.get(params.getString(index))
+                  , "param:" + params.getString(index) + " can not be null in context");
+              }
+              Method method = ReflectionUtils.findMethod(p.getClass(), targetMethod, paramClass);
+              Objects.requireNonNull(method, "target method '" + targetMethod + "' of " + p.getClass() + " can not be null");
+              fillFieldsData.put(fillField, ReflectionUtils.invokeMethod(method, p, paramsVals));
+            }
+            // params 必须全为spring类型的
+            setBizResult(context, fillFieldsData);
+          }
+        });
+
+
+        return;
+      }
+    }
+    throw new IllegalStateException("have not set plugin meta");
   }
 
   public void doGetPluginConfigInfo(Context context) throws Exception {
@@ -96,16 +157,18 @@ public class PluginAction extends BasicModule {
     HeteroEnum hEnum = null;
     Descriptor.PluginValidateResult validateResult = null;
     List<Descriptor.PluginValidateResult> items = null;
+    Optional<IPropertyType.SubFormFilter> subFormFilter = null;
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
     final boolean bizValidate = this.getBoolean("verify");
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
       items = Lists.newArrayList();
       pluginMeta = plugins.get(pluginIndex);
+      subFormFilter = pluginMeta.getSubFormFilter();
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
       hEnum = pluginMeta.getHeteroEnum();
       //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
       pluginItems = new PluginItems(this, pluginMeta);
-      List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(this, itemsArray);
+      List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(this, itemsArray, subFormFilter);
       if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
         this.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
       }
@@ -116,8 +179,6 @@ public class PluginAction extends BasicModule {
 
       for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
         attrValMap = describableAttrValMapList.get(itemIndex);
-//        context.put(KEY_VALIDATE_ITEM_INDEX, new Integer(itemIndex));
-//        context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
         Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
         if (!(validateResult = attrValMap.validate(context, bizValidate)).isValid()) {
           faild = true;

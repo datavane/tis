@@ -43,7 +43,6 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
-import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
@@ -297,7 +296,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       throw new IllegalStateException("datasource item can not small than 1,now:" + dataSourceItems.items.size());
     }
 
-    TargetColumnMeta targetColMetas = getTargetColumnMeta(context, post, targetTable, dataSourceItems);
+    TargetColumnMeta targetColMetas = getTargetColumnMeta(this, context, post, targetTable, dataSourceItems);
     if (!targetColMetas.valid) {
       return;
     }
@@ -583,14 +582,14 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
 
   private TargetColumnMeta getTargetColumnMeta(
-    Context context, JSONObject post, String targetTable, PluginItems dataSourceItems) {
+    IPluginContext pluginContext, Context context, JSONObject post, String targetTable, PluginItems dataSourceItems) {
     TargetColumnMeta columnMeta = new TargetColumnMeta(targetTable);
     Map<String, ColumnMetaData> colMetas = null;
     for (AttrValMap vals : dataSourceItems.items) {
       if (!vals.validate(context, false).isValid()) {
         return columnMeta.invalid();
       }
-      DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable().instance;
+      DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext).instance;
       List<ColumnMetaData> tableMetadata = dsFactory.getTableMetadata(targetTable);
       colMetas = tableMetadata.stream().collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
       break;
@@ -925,7 +924,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     item.put(AttrValMap.PLUGIN_EXTENSION_IMPL, dsDescriptpr.getId());
     item.put(AttrValMap.PLUGIN_EXTENSION_VALS, vals);
     itemsArray.add(item);
-    items.items = AttrValMap.describableAttrValMapList(this, itemsArray);
+    items.items = AttrValMap.describableAttrValMapList(this, itemsArray, pluginMeta.getSubFormFilter());
     return items;
   }
 

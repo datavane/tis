@@ -67,5 +67,8 @@ public class RootFormProperties extends PluginFormProperties {
         return vals;
     }
 
-
+    @Override
+    public <T> T accept(IVisitor visitor) {
+        return visitor.visit(this);
+    }
 }

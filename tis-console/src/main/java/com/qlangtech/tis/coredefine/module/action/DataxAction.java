@@ -21,12 +21,12 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.DescriptorsJSON;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,20 +55,35 @@ public class DataxAction extends BasicModule {
 
   }
 
-  /**
-   * get cols meta
-   *
-   * @param context
-   */
-  public void doGetReaderTableSelectableCols(Context context) {
-    String dataxName = this.getString(DataxUtils.DATAX_NAME);
-    String tableName = this.getString("tableName");
+  public static List<String> getTablesInDB(String dataxName) {
     KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
     DataxReader reader = readerStore.getPlugin();
     Objects.requireNonNull(reader, "reader can not be null");
-    List<ColumnMetaData> tableMeta = reader.getTableMetadata(tableName);
-    this.setBizResult(context, tableMeta);
+    return reader.getTablesInDB();
   }
+
+  public static List<ColumnMetaData> getReaderTableSelectableCols(String dataxName, String table) {
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+    DataxReader reader = readerStore.getPlugin();
+    Objects.requireNonNull(reader, "reader can not be null");
+    List<ColumnMetaData> tableMeta = reader.getTableMetadata(table);
+    return tableMeta;
+  }
+
+//  /**
+//   * get cols meta
+//   *
+//   * @param context
+//   */
+//  public void doGetReaderTableSelectableCols(Context context) {
+//    String dataxName = this.getString(DataxUtils.DATAX_NAME);
+//    String tableName = this.getString("tableName");
+//    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+//    DataxReader reader = readerStore.getPlugin();
+//    Objects.requireNonNull(reader, "reader can not be null");
+//    List<ColumnMetaData> tableMeta = reader.getTableMetadata(tableName);
+//    this.setBizResult(context, tableMeta);
+//  }
 
 
   public static class DataxPluginDescMeta extends PluginDescMeta<DataxReader> {

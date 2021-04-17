@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 解析提交的plugin元数据信息，如果plugin为"xxxplugin:require" 则是在告诉服务端，该plugin必须要有输入内容，该plugin不可缺省
@@ -142,7 +143,7 @@ public class UploadPluginMeta {
         String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
         String subFormField = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD);
         if (StringUtils.isNotEmpty(targetDesc)) {
-            return Optional.of(new IPropertyType.SubFormFilter(targetDesc, subFormField));
+            return Optional.of(new IPropertyType.SubFormFilter(this, targetDesc, subFormField));
         }
         return Optional.empty();
     }
@@ -157,7 +158,8 @@ public class UploadPluginMeta {
 
     @Override
     public String toString() {
-        return "UploadPluginMeta{" + "name='" + name + '\'' + ", required=" + required + '}';
+        return "UploadPluginMeta{" + "name='" + name + '\'' + ", required=" + required +
+                "," + this.extraParams.entrySet().stream().map((e) -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",")) + '}';
     }
 
     public HeteroList<?> getHeteroList(IPluginContext pluginContext) {

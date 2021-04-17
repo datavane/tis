@@ -5,12 +5,11 @@
 	<parent>
 		<groupId>com.qlangtech.tis</groupId>
 		<artifactId>tis-solr-parent</artifactId>
-		<version>2.2.0</version>
+		<version>${revision}</version>
 	</parent>
 
 	<groupId>com.qlangtech.tis</groupId>
 	<artifactId>tis-ds-dump</artifactId>
-	<version>2.2.0</version>
 	<packaging>jar</packaging>
 
 	<name>tis-ds-dump</name>

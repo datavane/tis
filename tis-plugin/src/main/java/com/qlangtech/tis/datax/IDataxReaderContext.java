@@ -14,28 +14,9 @@
  */
 package com.qlangtech.tis.datax;
 
-import java.util.Optional;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-07 14:36
+ * @date 2021-04-15 16:55
  */
-public interface IDataxWriter {
-    public String getTemplate();
-
-    /**
-     * 取得子任务
-     *
-     * @return
-     */
-    default IDataxContext getSubTask() {
-        return getSubTask(Optional.empty());
-    }
-
-    /**
-     * 取得子任务
-     *
-     * @return
-     */
-    IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap);
+public interface IDataxReaderContext extends IDataxContext {
 }

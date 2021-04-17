@@ -32,6 +32,11 @@ import java.util.regex.Pattern;
  */
 public class IOUtils {
 
+
+    public static String loadResourceFromClasspath(Class<?> clazz, String resName) {
+        return loadResourceFromClasspath(clazz, resName, true);
+    }
+
     /**
      * 从classpath中加载内容
      *
@@ -39,10 +44,15 @@ public class IOUtils {
      * @param resName
      * @return
      */
-    public static String loadResourceFromClasspath(Class<?> clazz, String resName) {
+    public static String loadResourceFromClasspath(Class<?> clazz, String resName, boolean throwErr) {
         try {
             try (InputStream input = clazz.getResourceAsStream(resName)) {
-                Objects.requireNonNull(input, "resource:" + resName + " can not find relevant content");
+                if (throwErr) {
+                    Objects.requireNonNull(input, "resource:" + resName + " can not find relevant content");
+                }
+                if (input == null) {
+                    return null;
+                }
                 return org.apache.commons.io.IOUtils.toString(input, TisUTF8.get());
             }
         } catch (IOException e) {

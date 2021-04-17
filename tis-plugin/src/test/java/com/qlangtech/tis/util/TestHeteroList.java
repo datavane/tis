@@ -33,12 +33,14 @@ public class TestHeteroList extends TestCase {
         CenterResource.setNotFetchFromCenterRepository();
     }
 
-    public void testToJson() throws Exception {
+    public static final String DATAX_INSTANCE_NAME = "baisuitestTestcase";
+
+    public void testSubFormFieldToJson() throws Exception {
 
 
         HeteroEnum dataxReader = HeteroEnum.DATAX_READER;
         String pluginMeta = dataxReader.identity + ":require," + IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME
-                + "_MySQL," + IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + DataxUtils.DATAX_NAME + "_baisuitest";
+                + "_MySQL," + IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + DataxUtils.DATAX_NAME + "_" + DATAX_INSTANCE_NAME;
 
         UploadPluginMeta meta = UploadPluginMeta.parse(pluginMeta);
         IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);

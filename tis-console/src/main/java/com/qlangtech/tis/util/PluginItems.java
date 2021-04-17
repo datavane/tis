@@ -24,7 +24,6 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
-import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,9 +64,9 @@ public class PluginItems {
     List<Describable> describableList = Lists.newArrayList();
     for (int i = 0; i < this.items.size(); i++) {
       attrValMap = this.items.get(i);
-      describable = attrValMap.createDescribable();
+      describable = attrValMap.createDescribable(pluginContext);
       dlist.add(describable);
-      describableList.add(describable.instance);
+      describableList.add((Describable) describable.instance);
     }
     IPluginStoreSave<?> store = null;
     if (this.pluginContext.isCollectionAware()) {
@@ -97,12 +96,12 @@ public class PluginItems {
       if (StringUtils.isEmpty(dataxName)) {
         throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
       }
-      if ((heteroEnum == HeteroEnum.DATAX_READER)) {
-        for (Descriptor.ParseDescribable<?> dataXReader : dlist) {
-          DataSourceMeta sourceMeta = (DataSourceMeta) dataXReader.instance;
-          pluginContext.setBizResult(context, sourceMeta.getTablesInDB());
-        }
-      }
+//      if ((heteroEnum == HeteroEnum.DATAX_READER)) {
+//        for (Descriptor.ParseDescribable<?> dataXReader : dlist) {
+//          DataSourceMeta sourceMeta = (DataSourceMeta) dataXReader.instance;
+//          pluginContext.setBizResult(context, sourceMeta.getTablesInDB());
+//        }
+//      }
       store = (heteroEnum == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(dataxName) : DataxWriter.getPluginStore(dataxName);
 
     } else {

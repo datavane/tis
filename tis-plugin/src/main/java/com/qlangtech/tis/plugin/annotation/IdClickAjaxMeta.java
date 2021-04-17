@@ -12,30 +12,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.datax;
-
-import java.util.Optional;
+package com.qlangtech.tis.plugin.annotation;
 
 /**
+ * 用户点击子表单触发需要的元数据
+ *
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-07 14:36
+ * @date 2021-04-13 12:30
  */
-public interface IDataxWriter {
-    public String getTemplate();
-
-    /**
-     * 取得子任务
-     *
-     * @return
-     */
-    default IDataxContext getSubTask() {
-        return getSubTask(Optional.empty());
-    }
-
-    /**
-     * 取得子任务
-     *
-     * @return
-     */
-    IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap);
+public class IdClickAjaxMeta {
 }

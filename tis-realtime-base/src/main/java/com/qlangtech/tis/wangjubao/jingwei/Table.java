@@ -83,25 +83,8 @@ public class Table {
         if (!this.schemaParseResult.isValid()) {
             throw new IllegalStateException("schema parse faild ,summary:" + this.schemaParseResult.getErrorSummary());
         }
-    // if (log.isInfoEnabled()) {
-    // 
-    // StringBuffer schemaFields = new StringBuffer("schema fields:");
-    // for (PSchemaField field : this.schemaParseResult.dFields) {
-    // schemaFields
-    // .append(field.getName())
-    // .append(",[")
-    // .append(this.schemaParseResult.dFields.getField(field
-    // .getName()) == null).append("]");
-    // 
-    // }
-    // log.info(schemaFields.toString());
-    // 
-    // }
     }
 
-    // public long getGroupSize() {
-    // return groupSize;
-    // }
     public void setIgnorFiles(String ignorField) {
         ignorFields.addAll(Arrays.asList(StringUtils.split(ignorField, ",")));
     }
@@ -152,18 +135,4 @@ public class Table {
 
         public void process(TabField field);
     }
-    // public TabField getColumn(String colName) {
-    // return fields.get(colName);
-    // }
-    // public String getPrimaryKey() {
-    // return primaryKey;
-    // }
-    // 
-    // public void setPrimaryKey(String primaryKey) {
-    // this.primaryKey = primaryKey;
-    // }
-    // public static void main(String[] arg) throws Exception {
-    // System.out.println(IOUtils.toString("".getClass().getResourceAsStream(
-    // "/log4j.xml")));
-    // }
 }

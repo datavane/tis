@@ -25,6 +25,20 @@ import java.util.Iterator;
 public interface IDataxReader extends DataSourceMeta {
 
     /**
+     * 是否支持导入多个子表，当reader如果只支持单个表，那writer如果是MysqlWriter就可以指定表名称和列名
+     *
+     * @return
+     */
+    public boolean hasMulitTable();
+
+    /**
+     * 像Mysql会有明确的表名，而OSS没有明确的表名
+     *
+     * @return
+     */
+    public boolean hasExplicitTable();
+
+    /**
      * 取得子任务
      *
      * @return

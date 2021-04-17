@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.datax;
 
+import java.util.List;
+
 /**
  * Datax 执行器可以在各种容器上执行 https://github.com/alibaba/DataX
  *
@@ -25,4 +27,46 @@ public interface IDataxProcessor {
     IDataxReader getReader();
 
     IDataxWriter getWriter();
+
+
+    /**
+     * 类似MySQL(A库)导入MySQL(B库) A库中的一张a表可能对应的B库的表为aa表名称会不一致，
+     */
+    public class TableMap {
+        private String from;
+        private List<String> sourceCols;
+        private String to;
+
+        public List<String> getSourceCols() {
+            return sourceCols;
+        }
+
+        public void setSourceCols(List<String> sourceCols) {
+            this.sourceCols = sourceCols;
+        }
+
+        public String getFrom() {
+            return this.from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
+        }
+
+        public String getTo() {
+            return this.to;
+        }
+
+        public void setTo(String to) {
+            this.to = to;
+        }
+
+        @Override
+        public String toString() {
+            return "TableMap{" +
+                    "from='" + from + '\'' +
+                    ", to='" + to + '\'' +
+                    '}';
+        }
+    }
 }

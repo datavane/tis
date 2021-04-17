@@ -14,15 +14,22 @@
  */
 package com.qlangtech.tis.plugin.annotation;
 
+import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+
+import java.util.List;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月11日
  */
 public enum FormFieldType {
     /**
-     * 多选字段
+     * 多选字段,目标属性样例：'List<String> cols'
      */
     MULTI_SELECTABLE(8),
+
     INPUTTEXT(1),
     /**
      * 有多个选项可以选择
@@ -48,5 +55,26 @@ public enum FormFieldType {
 
     public int getIdentity() {
         return this.identity;
+    }
+
+    /**
+     * 可对多选控件进行校验
+     */
+    public interface IMultiSelectValidator {
+        public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldName, List<SelectedItem> items);
+    }
+
+    public static class SelectedItem extends Option {
+        // 是否选中了
+        private boolean checked;
+
+        public SelectedItem(String name, String value, boolean checked) {
+            super(name, value);
+            this.checked = checked;
+        }
+
+        public boolean isChecked() {
+            return checked;
+        }
     }
 }

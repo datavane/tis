@@ -14,7 +14,11 @@
  */
 package com.qlangtech.tis.extension;
 
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -23,18 +27,41 @@ import org.apache.commons.lang.StringUtils;
 public interface IPropertyType {
 
 
+    /**
+     * plugin form 某一个field为集合类型，且字段内为一个javabean类型，需要填写多个字段
+     */
     public class SubFormFilter {
         // 目标插件名称
         public static String PLUGIN_META_TARGET_DESCRIPTOR_NAME = "targetDescriptorName";
         public static String PLUGIN_META_SUB_FORM_FIELD = "subFormFieldName";
         private final String targetDescriptorName;
         public final String subFieldName;
+        public final UploadPluginMeta uploadPluginMeta;
 
         public boolean match(Descriptor<?> desc) {
             return StringUtils.equals(desc.getDisplayName(), this.targetDescriptorName);
         }
 
-        public SubFormFilter(String targetDescriptorName, String subFieldName) {
+        public final String param(String key) {
+            return uploadPluginMeta.getExtraParam(key);
+        }
+
+        /**
+         * 取得子表单的宿主plugin
+         *
+         * @param pluginContext
+         * @param <T>
+         * @return
+         */
+        public <T> T getOwnerPlugin(IPluginContext pluginContext) {
+            Optional<Object> first = this.uploadPluginMeta.getHeteroEnum().getPlugins(pluginContext, this.uploadPluginMeta).stream().findFirst();
+            if (!first.isPresent()) {
+                throw new IllegalStateException("can not find owner plugin:" + uploadPluginMeta.toString());
+            }
+            return (T) first.get();
+        }
+
+        public SubFormFilter(UploadPluginMeta uploadPluginMeta, String targetDescriptorName, String subFieldName) {
             if (StringUtils.isEmpty(targetDescriptorName)) {
                 throw new IllegalArgumentException("param fieldName can not be empty");
             }
@@ -43,6 +70,7 @@ public interface IPropertyType {
             }
             this.targetDescriptorName = targetDescriptorName;
             this.subFieldName = subFieldName;
+            this.uploadPluginMeta = uploadPluginMeta;
         }
     }
 }

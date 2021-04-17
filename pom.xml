@@ -12,11 +12,12 @@
 
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis-solr-parent</artifactId>
-    <version>2.2.0</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <name>tis-solr-parent</name>
     <url>http://maven.apache.org</url>
     <properties>
+        <revision>2.2.0</revision>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss</maven.build.timestamp.format>
         <java.version>1.8</java.version>
