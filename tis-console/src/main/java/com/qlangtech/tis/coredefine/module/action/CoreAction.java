@@ -659,7 +659,10 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doGetIndexExist(Context context) throws Exception {
-    this.setBizResult(context, this.isIndexExist());
+    Map<String, Object> biz = Maps.newHashMap();
+    biz.put("indexExist", this.isIndexExist());
+    biz.put("app",this.getAppDomain().getApp());
+    this.setBizResult(context, biz);
   }
 
   /**

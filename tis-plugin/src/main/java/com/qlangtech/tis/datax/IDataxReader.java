@@ -17,6 +17,7 @@ package com.qlangtech.tis.datax;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -31,6 +32,8 @@ public interface IDataxReader extends DataSourceMeta {
      */
     public boolean hasMulitTable();
 
+    public <T extends ISelectedTab> List<T> getSelectedTabs();
+
     /**
      * 像Mysql会有明确的表名，而OSS没有明确的表名
      *
@@ -43,7 +46,7 @@ public interface IDataxReader extends DataSourceMeta {
      *
      * @return
      */
-    public Iterator<IDataxContext> getSubTasks();
+    public Iterator<IDataxReaderContext> getSubTasks();
 
     /**
      * 取得配置模版

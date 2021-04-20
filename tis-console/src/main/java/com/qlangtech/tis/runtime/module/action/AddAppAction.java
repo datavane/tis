@@ -95,13 +95,18 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   @Func(PermissionConstant.APP_ADD)
   public void doGetCreateAppMasterData(Context context) throws Exception {
     Map<String, Object> masterData = Maps.newHashMap();
+    boolean justbizLine = this.getBoolean("justbizLine");
+
     masterData.put("bizlinelist", this.getBizLineList());
-    final List<Option> verList = new ArrayList<>();
-    for (LuceneVersion v : LuceneVersion.values()) {
-      verList.add(new Option(v.getKey(), v.getKey()));
+
+    if (!justbizLine) {
+      final List<Option> verList = new ArrayList<>();
+      for (LuceneVersion v : LuceneVersion.values()) {
+        verList.add(new Option(v.getKey(), v.getKey()));
+      }
+      masterData.put("tplenum", verList);
+      masterData.put("usableWorkflow", this.offlineManager.getUsableWorkflow());
     }
-    masterData.put("tplenum", verList);
-    masterData.put("usableWorkflow", this.offlineManager.getUsableWorkflow());
     this.setBizResult(context, masterData);
   }
 
@@ -189,7 +194,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       request.addNodeIps(gourpCount - 1, ip);
     }
     request.setValid(true);
-    CreateSnapshotResult createResult = appCreator.createNewApp(context, extApp, publishSnapshotId, content);
+    CreateAppResult createResult = appCreator.createNewApp(context, extApp, publishSnapshotId, content);
     if (!createResult.isSuccess()) {
       return Optional.of(app);
     }
@@ -205,17 +210,22 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
 //      new AppKey(extApp.getProjectName(), /* appName ========== */
 //      (short) 0, /* groupIndex */
 //      RunEnvironment.getSysRuntime(), false);
-    appKey.setTargetSnapshotId((long) createResult.getNewId());
+
+    if (!(createResult instanceof CreateSnapshotResult)) {
+      throw new IllegalStateException("instance of createResult must be CreateSnapshotResult");
+    }
+    CreateSnapshotResult snapshotResult = (CreateSnapshotResult) createResult;
+    appKey.setTargetSnapshotId((long) snapshotResult.getNewId());
     appKey.setFromCache(false);
     appKeyProcess.process(appKey);
     LoadSolrCoreConfigByAppNameServlet.getSnapshotDomain(ConfigFileReader.getConfigList(), appKey, this);
-    CoreAction.createCollection(this, context, gourpCount, repliation, request, createResult.getNewId());
+    CoreAction.createCollection(this, context, gourpCount, repliation, request, snapshotResult.getNewId());
     return Optional.of(app);
   }
 
   public interface ICreateNewApp {
 
-    public CreateSnapshotResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception;
+    public CreateAppResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception;
   }
 
   /**
@@ -239,7 +249,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     }
   }
 
-  private static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
+  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
     , ISchemaPluginContext schemaPlugin, byte[] uploadContent, BasicModule module, String memo, Long userId, String userName) {
     CreateSnapshotResult createResult = new CreateSnapshotResult();
     final String md5 = ConfigFileReader.md5file(uploadContent);
@@ -266,7 +276,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
    * @param context
    * @param app
    */
-  protected CreateSnapshotResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception {
+  protected CreateAppResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception {
     return this.createNewApp(context, app, publishSnapshotId, schemaContent, false);
   }
 
@@ -351,42 +361,47 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
 
   /**
    * @param app
-   * @param tplPublishSnapshotId 模板ID
-   * @param schemaContent
    * @param context
    * @param module
    * @param
    * @return
    * @throws Exception
    */
-  public static CreateSnapshotResult createApplication(Application app, Integer tplPublishSnapshotId, byte[] schemaContent, Context context, BasicModule module) throws Exception {
+  public static CreateAppResult createApplication(Application app //, Integer tplPublishSnapshotId, byte[] schemaContent
+    , Context context, BasicModule module, IAfterApplicationCreate afterAppCreate) throws Exception {
     final Integer newAppid = module.getApplicationDAO().insertSelective(app);
-    IUser loginUser = module.getUser();
-    CreateSnapshotResult snapshotResult = new CreateSnapshotResult();
+    // IUser loginUser = module.getUser();
+    CreateAppResult snapshotResult = new CreateSnapshotResult();
     snapshotResult.setNewAppId(newAppid);
     snapshotResult.setSuccess(true);
-    if (schemaContent != null) {
-      SnapshotDomain domain = module.getSnapshotViewDAO().getView(tplPublishSnapshotId);
-      domain.getSnapshot().setAppId(newAppid);
-      snapshotResult = createNewSnapshot(// Long.parseLong(loginUser.getId())
-        context, // Long.parseLong(loginUser.getId())
-        domain, // Long.parseLong(loginUser.getId())
-        ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
-        ISchemaPluginContext.NULL,
-        schemaContent, // Long.parseLong(loginUser.getId())
-        module, // Long.parseLong(loginUser.getId())
-        StringUtils.EMPTY, -1l, loginUser.getName());
-      snapshotResult.setNewAppId(newAppid);
-      if (!snapshotResult.isSuccess()) {
-        return snapshotResult;
-      }
+
+    SchemaAction.CreateAppResult createAppResult = null;
+    if (!(createAppResult = afterAppCreate.process(newAppid)).isSuccess()) {
+      return createAppResult;
     }
+
+//    if (schemaContent != null) {
+//      SnapshotDomain domain = module.getSnapshotViewDAO().getView(tplPublishSnapshotId);
+//      domain.getSnapshot().setAppId(newAppid);
+//      snapshotResult = createNewSnapshot(// Long.parseLong(loginUser.getId())
+//        context, // Long.parseLong(loginUser.getId())
+//        domain, // Long.parseLong(loginUser.getId())
+//        ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
+//        ISchemaPluginContext.NULL,
+//        schemaContent, // Long.parseLong(loginUser.getId())
+//        module, // Long.parseLong(loginUser.getId())
+//        StringUtils.EMPTY, -1l, loginUser.getName());
+//      snapshotResult.setNewAppId(newAppid);
+//      if (!snapshotResult.isSuccess()) {
+//        return snapshotResult;
+//      }
+//    }
     int offset = (int) (Math.random() * 10);
     // TriggerAction.createJob(newAppid, context, "0 0 " + offset + " * * ?", JobConstant.JOB_TYPE_FULL_DUMP, module, triggerContext);
     // TriggerAction.createJob(newAppid, context, "0 0/10 * * * ?", JobConstant.JOB_INCREASE_DUMP, module, triggerContext);
     // 创建默认组和服务器
-    GroupAction.createGroup(RunEnvironment.DAILY, FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), module.getServerGroupDAO());
-    GroupAction.createGroup(RunEnvironment.ONLINE, FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), module.getServerGroupDAO());
+//    GroupAction.createGroup(RunEnvironment.DAILY, FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), module.getServerGroupDAO());
+//    GroupAction.createGroup(RunEnvironment.ONLINE, FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), module.getServerGroupDAO());
     return snapshotResult;
   }
 

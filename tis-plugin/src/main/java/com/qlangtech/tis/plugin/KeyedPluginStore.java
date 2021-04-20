@@ -17,7 +17,6 @@ package com.qlangtech.tis.plugin;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
-import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -39,7 +38,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         super(key.pluginClass, key.getSotreFile());
         // this.serializeFileName = key.getSerializeFileName();
         this.key = key;
-       // this.pluginContext = key.pluginContext;
+        // this.pluginContext = key.pluginContext;
         // this.keyVal = key.keyVal;
     }
 
@@ -52,26 +51,17 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         public final String keyVal;
         protected final String groupName;
-        //private final IPluginContext pluginContext;
 
         protected final Class<T> pluginClass;
 
         public Key(String groupName, String keyVal, Class<T> pluginClass) {
             if (StringUtils.isEmpty(keyVal)) {
-                throw new IllegalArgumentException("param key.collection can not be null");
+                throw new IllegalArgumentException("param 'key' can not be null");
             }
             this.keyVal = keyVal;
             this.pluginClass = pluginClass;
             this.groupName = groupName;
-           // this.pluginContext = pluginContext;
         }
-
-//        public IPluginContext getPluginContext() {
-//            if (this.pluginContext == null) {
-//                throw new IllegalStateException("pluginContext can not be null");
-//            }
-//            return this.pluginContext;
-//        }
 
         protected String getSerializeFileName() {
             return this.getSubDirPath() + File.separator + pluginClass.getName();

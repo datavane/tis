@@ -19,4 +19,5 @@ package com.qlangtech.tis.datax;
  * @date 2021-04-15 16:55
  */
 public interface IDataxReaderContext extends IDataxContext {
+    public String getName();
 }

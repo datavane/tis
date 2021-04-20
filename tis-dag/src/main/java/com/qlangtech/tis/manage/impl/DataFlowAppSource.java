@@ -65,7 +65,7 @@ import java.util.concurrent.Executors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:20
  */
-public class DataFlowAppSource implements IAppSource , IStreamIncrGenerateStrategy {
+public class DataFlowAppSource implements IAppSource, IStreamIncrGenerateStrategy {
     //private static final Logger logger = LoggerFactory.getLogger(DataFlowAppSource.class);
     private static final Logger logger = LoggerFactory.getLogger("fullbuild");
     public static final File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_APP_DIR);
@@ -84,6 +84,12 @@ public class DataFlowAppSource implements IAppSource , IStreamIncrGenerateStrate
         pluginStore.setPlugins(null, context, Collections.singletonList(new Descriptor.ParseDescribable(appSource)));
     }
 
+    public static <T extends IAppSource> Optional<T> loadNullable(String appName) {
+        KeyedPluginStore<T> pluginStore = new KeyedPluginStore(new AppKey(appName));
+        IAppSource appSource = pluginStore.getPlugin();
+        return (Optional<T>) Optional.ofNullable(appSource);
+    }
+
     /**
      * load
      *
@@ -91,10 +97,11 @@ public class DataFlowAppSource implements IAppSource , IStreamIncrGenerateStrate
      * @return
      */
     public static <T extends IAppSource> T load(String appName) {
-        KeyedPluginStore<T> pluginStore = new KeyedPluginStore(new AppKey(appName));
-        IAppSource appSource = pluginStore.getPlugin();
-        Objects.requireNonNull(appSource, "collection:" + appName + " relevant appSource can not be null");
-        return (T) appSource;
+        Optional<IAppSource> iAppSource = loadNullable(appName);
+        if (!iAppSource.isPresent()) {
+            throw new IllegalStateException("appName:" + appName + " relevant appSource can not be null");
+        }
+        return (T) iAppSource.get();
     }
 
     public static class AppKey extends KeyedPluginStore.Key<IAppSource> {

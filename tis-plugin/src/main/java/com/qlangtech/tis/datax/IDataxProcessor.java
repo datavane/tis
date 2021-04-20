@@ -15,6 +15,7 @@
 package com.qlangtech.tis.datax;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Datax 执行器可以在各种容器上执行 https://github.com/alibaba/DataX
@@ -28,25 +29,30 @@ public interface IDataxProcessor {
 
     IDataxWriter getWriter();
 
+    /**
+     * 表映射
+     *
+     * @return
+     */
+    public Map<String, TableAlias> getTabAlias();
 
     /**
-     * 类似MySQL(A库)导入MySQL(B库) A库中的一张a表可能对应的B库的表为aa表名称会不一致，
+     * 表别名
      */
-    public class TableMap {
+    public class TableAlias {
         private String from;
-        private List<String> sourceCols;
         private String to;
 
-        public List<String> getSourceCols() {
-            return sourceCols;
+        public TableAlias() {
         }
 
-        public void setSourceCols(List<String> sourceCols) {
-            this.sourceCols = sourceCols;
+        public TableAlias(String from) {
+            this.from = from;
+            this.to = from;
         }
 
         public String getFrom() {
-            return this.from;
+            return from;
         }
 
         public void setFrom(String from) {
@@ -54,7 +60,7 @@ public interface IDataxProcessor {
         }
 
         public String getTo() {
-            return this.to;
+            return to;
         }
 
         public void setTo(String to) {
@@ -68,5 +74,22 @@ public interface IDataxProcessor {
                     ", to='" + to + '\'' +
                     '}';
         }
+    }
+
+    /**
+     * 类似MySQL(A库)导入MySQL(B库) A库中的一张a表可能对应的B库的表为aa表名称会不一致，
+     */
+    public class TableMap extends TableAlias {
+
+        private List<String> sourceCols;
+
+        public List<String> getSourceCols() {
+            return sourceCols;
+        }
+
+        public void setSourceCols(List<String> sourceCols) {
+            this.sourceCols = sourceCols;
+        }
+
     }
 }

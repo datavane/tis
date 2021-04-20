@@ -148,7 +148,10 @@ public enum Validator {
         return result;
     }
 
-    private static void addValidateRule(Map<String, FieldValidators> result, Object[] p) {
+    public static void addValidateRule(Map<String, FieldValidators> result, Object[] p) {
+        if (p == null || p.length < 1) {
+            return;
+        }
         String fieldName = null;
         List<Object> rules = null;
         for (int i = 0; i < p.length; i++) {

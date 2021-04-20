@@ -92,7 +92,7 @@ public class SchemaAction extends BasicModule {
   public void doGetTplFields(Context context) throws Exception {
     // final String wfName = StringUtils.substringAfter(this.getString("wfname"), ":");
     AddAppAction.ExtendApp app = this.parseJsonPost(AddAppAction.ExtendApp.class);
-    CreateSnapshotResult validateResult = this.createNewApp(context, app, -1, /* publishSnapshotId */
+    CreateAppResult validateResult = this.createNewApp(context, app, -1, /* publishSnapshotId */
       null, /* schemaContent */
       true);
     if (!validateResult.isSuccess()) {
@@ -922,73 +922,68 @@ public class SchemaAction extends BasicModule {
     return createResult;
   }
 
-  protected CreateSnapshotResult createNewApp(Context context, AddAppAction.ExtendApp app, int publishSnapshotId, byte[] schemaContent, boolean justValidate) throws Exception {
-    IControlMsgHandler handler = new DelegateControl4JavaBeanMsgHandler(this, app);
-    Map<String, Validator.FieldValidators> validateRule = //
-      Validator.fieldsValidator(//
-        SchemaAction.FIELD_PROJECT_NAME, new Validator.FieldValidators(Validator.require) {
-        }, //
-        new Validator.IFieldValidator() {
-          @Override
-          public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-            if (!AddAppAction.isAppNameValid(msgHandler, context, app)) {
-              return false;
-            }
-            ApplicationCriteria criteria = new ApplicationCriteria();
-            criteria.createCriteria().andProjectNameEqualTo(app.getProjectName());
-            if (getApplicationDAO().countByExample(criteria) > 0) {
-              msgHandler.addFieldError(context, SchemaAction.FIELD_PROJECT_NAME, "已经有同名(‘" + app.getProjectName() + "’)索引存在");
-              return false;
-            }
-            return true;
-          }
-        }, //
-        SchemaAction.FIELD_DS_TYPE, new Validator.FieldValidators(Validator.require) {
-        }, //
-        new Validator.IFieldValidator() {
-          @Override
-          public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-
-            if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(app.getDsType())) {
-              String[] tabCascadervalues = app.getTabCascadervalues();
-              if (tabCascadervalues == null) {
-                msgHandler.addFieldError(context, fieldKey, "请选择数据数据表");
-                return false;
-              }
-            } else if (AddAppAction.SOURCE_TYPE_DF.equals(app.getDsType())) {
-              String workflowName = app.getWorkflow();
-              if (StringUtils.isEmpty(workflowName)) {
-                msgHandler.addFieldError(context, fieldKey, "请选择数据流名称");
-                return false;
-              }
-            } else {
-              msgHandler.addFieldError(context, fieldKey, "dsType:" + app.getDsType() + " is not illegal");
-              return false;
-              // throw new IllegalStateException("dsType:" + app.getDsType() + " is not illegal");
-            }
-
-            return true;
-          }
-        },
-        SchemaAction.FIELD_Recept, new Validator.FieldValidators(Validator.require) {
-        }, //
-        SchemaAction.FIELD_DptId, new Validator.FieldValidators(Validator.require) {
-        });
-    CreateSnapshotResult result = new CreateSnapshotResult();
-    result.setSuccess(true);
-    if (!Validator.validate(handler, context, validateRule)) {
-      return result.setSuccess(false);
+  protected CreateAppResult createNewApp(Context context, AddAppAction.ExtendApp app
+    , int publishSnapshotId, byte[] schemaContent, boolean justValidate) throws Exception {
+    IAfterApplicationCreate afterAppCreate = null;
+    if (justValidate) {
+      afterAppCreate = (newAppid) -> {
+        throw new UnsupportedOperationException();
+      };
+    } else {
+      afterAppCreate = (newAppid) -> {
+        IUser loginUser = getUser();
+        //if (schemaContent != null) {
+        Objects.requireNonNull(schemaContent, "schemaContent can not be null");
+        SnapshotDomain domain = getSnapshotViewDAO().getView(publishSnapshotId);
+        domain.getSnapshot().setAppId(newAppid);
+        CreateSnapshotResult snapshotResult = AddAppAction.createNewSnapshot(
+          context, // Long.parseLong(loginUser.getId())
+          domain, // Long.parseLong(loginUser.getId())
+          ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
+          ISchemaPluginContext.NULL,
+          schemaContent, // Long.parseLong(loginUser.getId())
+          SchemaAction.this, // Long.parseLong(loginUser.getId())
+          StringUtils.EMPTY, -1l, loginUser.getName());
+        snapshotResult.setNewAppId(newAppid);
+        // if (!snapshotResult.isSuccess()) {
+        if (snapshotResult.isSuccess()) {
+          GroupAction.createGroup(RunEnvironment.DAILY, AddAppAction.FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), getServerGroupDAO());
+          GroupAction.createGroup(RunEnvironment.ONLINE, AddAppAction.FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), getServerGroupDAO());
+        }
+        return snapshotResult;
+        //}
+        //}
+      };
     }
 
-    app.setDptName(AddAppAction.getDepartment(this, app.getDptId()).getFullName());
-    app.setCreateTime(new Date());
-    app.setIsAutoDeploy(true);
-    if (!justValidate) {
-      result = AddAppAction.createApplication(app, publishSnapshotId, /* publishSnapshotId */
-        schemaContent, context, this);
-      addActionMessage(context, "已经成功创建索引[" + app.getProjectName() + "]");
-    }
-    return result;
+    return createNewApp(context, app, justValidate, afterAppCreate
+      , SchemaAction.FIELD_DS_TYPE, new Validator.FieldValidators(Validator.require) {
+      }, //
+      new Validator.IFieldValidator() {
+        @Override
+        public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+
+          if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(app.getDsType())) {
+            String[] tabCascadervalues = app.getTabCascadervalues();
+            if (tabCascadervalues == null) {
+              msgHandler.addFieldError(context, fieldKey, "请选择数据数据表");
+              return false;
+            }
+          } else if (AddAppAction.SOURCE_TYPE_DF.equals(app.getDsType())) {
+            String workflowName = app.getWorkflow();
+            if (StringUtils.isEmpty(workflowName)) {
+              msgHandler.addFieldError(context, fieldKey, "请选择数据流名称");
+              return false;
+            }
+          } else {
+            msgHandler.addFieldError(context, fieldKey, "dsType:" + app.getDsType() + " is not illegal");
+            return false;
+            // throw new IllegalStateException("dsType:" + app.getDsType() + " is not illegal");
+          }
+
+          return true;
+        }
+      });
   }
 
   private static // BasicModule module
@@ -1019,17 +1014,10 @@ public class SchemaAction extends BasicModule {
     return newId;
   }
 
-  public static class CreateSnapshotResult {
-
-    private Integer newSnapshotId;
-
+  public static class CreateAppResult {
     private Integer newAppId;
 
     private boolean success = false;
-
-    public Integer getNewId() {
-      return newSnapshotId;
-    }
 
     public Integer getNewAppId() {
       return newAppId;
@@ -1039,18 +1027,28 @@ public class SchemaAction extends BasicModule {
       this.newAppId = newAppId;
     }
 
-    public void setNewSnapshotId(Integer newId) {
-      this.newSnapshotId = newId;
-    }
-
     public boolean isSuccess() {
       return success;
     }
 
-    public CreateSnapshotResult setSuccess(boolean success) {
+    public <T extends CreateAppResult> T setSuccess(boolean success) {
       this.success = success;
-      return this;
+      return (T) this;
     }
+  }
+
+  public static class CreateSnapshotResult extends CreateAppResult {
+
+    private Integer newSnapshotId;
+
+    public Integer getNewId() {
+      return newSnapshotId;
+    }
+
+    public void setNewSnapshotId(Integer newId) {
+      this.newSnapshotId = newId;
+    }
+
   }
 
 

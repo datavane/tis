@@ -15,20 +15,30 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.ISelectedTab;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.impl.LocalDataxProcessor;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import org.apache.commons.io.FileUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.io.File;
+import java.util.*;
 
 /**
  * manage datax pipe process logic
@@ -44,6 +54,117 @@ public class DataxAction extends BasicModule {
     DescriptorExtensionList<DataxWriter, Descriptor<DataxWriter>> writerTypes = TIS.get().getDescriptorList(DataxWriter.class);
 
     this.setBizResult(context, new DataxPluginDescMeta(readerTypes, writerTypes));
+  }
+
+  /**
+   * @param context
+   * @throws Exception
+   */
+  public void doValidateDataxProfile(Context context) throws Exception {
+    Application app = this.parseJsonPost(Application.class);
+    SchemaAction.CreateAppResult validateResult = this.createNewApp(context, app
+      , true, (newAppId) -> {
+        throw new UnsupportedOperationException();
+      });
+  }
+
+  /**
+   * 重新生成datax配置文件
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGenerateDataxCfgs(Context context) throws Exception {
+    String dataxName = this.getString("dataxName");
+    DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+
+    File targetFile = readerStore.getTargetFile();
+    File dataxCfgDir = new File(targetFile.getParentFile(), "dataxCfg");
+    FileUtils.forceMkdir(dataxCfgDir);
+    // 先清空文件
+    FileUtils.cleanDirectory(dataxCfgDir);
+    dataxProcessor.startGenerateCfg(dataxCfgDir);
+  }
+
+  /**
+   * 创建datax实例
+   *
+   * @param context
+   */
+  public void doCreateDatax(Context context) throws Exception {
+    String dataxName = this.getString("dataxName");
+
+    Application app = this.parseJsonPost(Application.class);
+
+    SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app
+      , false, (newAppId) -> {
+        SchemaAction.CreateAppResult appResult = new SchemaAction.CreateAppResult();
+        appResult.setSuccess(true);
+        appResult.setNewAppId(newAppId);
+        return appResult;
+      });
+
+  }
+
+  /**
+   * 保存表映射
+   *
+   * @param context
+   */
+  public void doSaveTableMapper(Context context) {
+    String dataxName = this.getString("dataxName");
+    // 表别名列表
+    JSONArray tabAliasList = this.parseJsonArrayPost();
+    Optional<DataxProcessor> appSource = DataFlowAppSource.loadNullable(dataxName);
+    DataxProcessor dataxProcessor = null;
+    JSONObject alias = null;
+    IDataxProcessor.TableAlias tabAlias = null;
+    List<IDataxProcessor.TableAlias> tableMaps = Lists.newArrayList();
+    for (int i = 0; i < tabAliasList.size(); i++) {
+      alias = tabAliasList.getJSONObject(i);
+      tabAlias = new IDataxProcessor.TableAlias();
+      tabAlias.setFrom(alias.getString("from"));
+      tabAlias.setTo(alias.getString("to"));
+      tableMaps.add(tabAlias);
+    }
+
+    dataxProcessor = appSource.isPresent() ? appSource.get() : new LocalDataxProcessor();
+    dataxProcessor.setTableMaps(tableMaps);
+    DataFlowAppSource.save(dataxName, dataxProcessor);
+  }
+
+  /**
+   * 取得表映射
+   *
+   * @param context
+   */
+  public void doGetTableMapper(Context context) {
+    String dataxName = this.getString("dataxName");
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+    DataxReader dataxReader = readerStore.getPlugin();
+    Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
+
+    IDataxProcessor.TableAlias tableAlias;
+    Optional<DataxProcessor> dataXAppSource = DataFlowAppSource.loadNullable(dataxName);
+    Map<String, IDataxProcessor.TableAlias> tabMaps = Collections.emptyMap();
+    if (dataXAppSource.isPresent()) {
+      DataxProcessor dataxSource = dataXAppSource.get();
+      tabMaps = dataxSource.getTabAlias();
+    }
+
+    if (dataxReader.hasMulitTable()) {
+      List<IDataxProcessor.TableAlias> tmapList = Lists.newArrayList();
+      for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
+        tableAlias = tabMaps.get(selectedTab.getName());
+        if (tableAlias == null) {
+          tmapList.add(new IDataxProcessor.TableAlias(selectedTab.getName()));
+        } else {
+          tmapList.add(tableAlias);
+        }
+      }
+      this.setBizResult(context, tmapList);
+    }
   }
 
   /**

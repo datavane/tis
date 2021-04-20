@@ -3,6 +3,7 @@
 <sqlMap namespace="application" >
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.manage.biz.dal.pojo.Application" >
     <result column="app_id" property="appId" jdbcType="INTEGER" />
+    <result column="app_type" property="appType" jdbcType="INTEGER" />
     <result column="project_name" property="projectName" jdbcType="VARCHAR" />
     <result column="recept" property="recept" jdbcType="VARCHAR" />
     <result column="manager" property="manager" jdbcType="VARCHAR" />
@@ -54,7 +55,7 @@
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
-    select aa.app_id, project_name, recept, manager, create_time, update_time,
+    select aa.app_id, app_type ,project_name, recept, manager, create_time, update_time,
       is_auto_deploy, dpt_id, dpt_name,  full_build_cron_time
      from ( select app_id from application
     <isParameterPresent >
@@ -70,7 +71,7 @@
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
-    select app_id, project_name, recept, manager, create_time, update_time,
+    select app_id, app_type, project_name, recept, manager, create_time, update_time,
       is_auto_deploy, dpt_id, dpt_name,    full_build_cron_time
     from application
     where app_id = #appId:INTEGER#
@@ -78,7 +79,7 @@
 
   <select id="ibatorgenerated_selectByName" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Application" >
 
-    select app_id, project_name, recept, manager, create_time, update_time,
+    select app_id, app_type, project_name, recept, manager, create_time, update_time,
       is_auto_deploy, dpt_id, dpt_name,   full_build_cron_time
     from application
     where project_name = #projectName:VARCHAR#
@@ -102,9 +103,9 @@
     <!--
       WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com)
     -->
-    insert into application (app_id, project_name, recept, manager, create_time, update_time,
+    insert into application (app_id,app_type, project_name, recept, manager, create_time, update_time,
        is_auto_deploy, dpt_id, dpt_name,  full_build_cron_time)
-    values (#appId:INTEGER#, #projectName:VARCHAR#, #recept:VARCHAR#, #manager:VARCHAR#,
+    values (#appId:INTEGER#,#appType:INTEGER#, #projectName:VARCHAR#, #recept:VARCHAR#, #manager:VARCHAR#,
       #createTime:TIMESTAMP#, #updateTime:TIMESTAMP#, #isAutoDeploy,handler=com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback#,
       #dptId:INTEGER#, #dptName:VARCHAR#, #fullBuildCronTime:VARCHAR#)
 
@@ -117,6 +118,9 @@
     <dynamic prepend="(" >
       <isNotNull prepend="," property="appId" >
         app_id
+      </isNotNull>
+      <isNotNull prepend="," property="appType" >
+        app_type
       </isNotNull>
       <isNotNull prepend="," property="projectName" >
         project_name
@@ -153,6 +157,9 @@
     <dynamic prepend="(" >
       <isNotNull prepend="," property="appId" >
         #appId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="appType" >
+        #appType:INTEGER#
       </isNotNull>
       <isNotNull prepend="," property="projectName" >
         #projectName:VARCHAR#

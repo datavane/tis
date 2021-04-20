@@ -166,6 +166,11 @@ public class ApplicationCriteria extends TISBaseCriteria {
             return this;
         }
 
+        public Criteria andAppTypeEqualTo(Integer value) {
+            addCriterion("app_type =", value, "appType");
+            return this;
+        }
+
         public Criteria andAppIdNotEqualTo(Integer value) {
             addCriterion("app_id <>", value, "appId");
             return this;

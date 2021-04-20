@@ -36,10 +36,13 @@ import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JavaBeanMsgHandler;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
@@ -194,12 +197,16 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
    * @throws InterruptedException
    */
   protected boolean isIndexExist() throws KeeperException, InterruptedException {
-    String collection = this.getAppDomain().getAppName();
+    AppDomainInfo app = this.getAppDomain();
+    String collection = app.getAppName();
     if (StringUtils.isEmpty(collection)) {
       throw new IllegalStateException("param 'collection' can not be null");
     }
     this.getApplicationDAO().updateLastProcessTime(collection);
-    return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
+    if (app.getAppType() == AppType.SolrIndex) {
+      return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
+    }
+    return true;
   }
 
   //public static final String key_FORWARD = "forward";
@@ -341,6 +348,60 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   @Autowired
   public void setWfDaoFacade(IWorkflowDAOFacade facade) {
     this.wfDAOFacade = facade;
+  }
+
+  /**
+   * 创建 新的应用
+   *
+   * @param context
+   * @param app
+   * @param justValidate
+   * @param afterAppCreate
+   * @param validateParam
+   * @return
+   * @throws Exception
+   */
+  protected SchemaAction.CreateAppResult createNewApp(Context context, Application app
+    , boolean justValidate, IAfterApplicationCreate afterAppCreate, Object... validateParam) throws Exception {
+    IControlMsgHandler handler = new DelegateControl4JavaBeanMsgHandler(this, app);
+    Map<String, Validator.FieldValidators> validateRule = //
+      Validator.fieldsValidator(//
+        SchemaAction.FIELD_PROJECT_NAME, new Validator.FieldValidators(Validator.require) {
+        }, //
+        new Validator.IFieldValidator() {
+          @Override
+          public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+            if (!AddAppAction.isAppNameValid(msgHandler, context, app)) {
+              return false;
+            }
+            ApplicationCriteria criteria = new ApplicationCriteria();
+            criteria.createCriteria().andProjectNameEqualTo(app.getProjectName());
+            if (getApplicationDAO().countByExample(criteria) > 0) {
+              msgHandler.addFieldError(context, SchemaAction.FIELD_PROJECT_NAME, "已经有同名(‘" + app.getProjectName() + "’)索引存在");
+              return false;
+            }
+            return true;
+          }
+        }, //
+        SchemaAction.FIELD_Recept, new Validator.FieldValidators(Validator.require) {
+        }, //
+        SchemaAction.FIELD_DptId, new Validator.FieldValidators(Validator.require) {
+        });
+    Validator.addValidateRule(validateRule, validateParam);
+    SchemaAction.CreateAppResult result = new SchemaAction.CreateAppResult();
+    result.setSuccess(true);
+    if (!Validator.validate(handler, context, validateRule)) {
+      return result.setSuccess(false);
+    }
+
+    app.setDptName(AddAppAction.getDepartment(this, app.getDptId()).getFullName());
+    app.setCreateTime(new Date());
+    app.setIsAutoDeploy(true);
+    if (!justValidate) {
+      result = AddAppAction.createApplication(app, context, this, afterAppCreate);
+      addActionMessage(context, "已经成功创建索引[" + app.getProjectName() + "]");
+    }
+    return result;
   }
 
   public static interface Rundata {
