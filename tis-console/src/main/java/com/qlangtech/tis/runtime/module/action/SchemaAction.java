@@ -21,6 +21,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.Savefilecontent;
 import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
@@ -99,7 +100,7 @@ public class SchemaAction extends BasicModule {
       return;
     }
 
-    IAppSource appSource = app.createAppSource(this);
+    ISolrAppSource appSource = app.createAppSource(this);
     SchemaResult tplSchema = mergeWfColsWithTplCollection(this, context, appSource, ISchemaPluginContext.NULL);
     Objects.requireNonNull(tplSchema, "tplSchema can not be null");
 //    if (tplSchema == null) return;
@@ -122,7 +123,7 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   public static SchemaResult mergeWfColsWithTplCollection(BasicModule module, Context context
-    , IAppSource appSource, final ISchemaPluginContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
+    , ISolrAppSource appSource, final ISchemaPluginContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
     // 通过version取默认模板
     Application tplApp = getTemplateApp(module);
     SchemaResult tplSchema = getTemplateSchema(module, context, tplApp);

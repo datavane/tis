@@ -16,6 +16,7 @@ package com.qlangtech.tis.coredefine.module.action;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
@@ -90,7 +91,7 @@ public class TISK8sDelegate {
   }
 
   public static void main(String[] args) throws Exception {
-    IncrSpec incrSpec = new IncrSpec();
+    ReplicasSpec incrSpec = new ReplicasSpec();
     incrSpec.setReplicaCount(1);
     incrSpec.setCpuLimit(Specification.parse("2"));
     incrSpec.setCpuRequest(Specification.parse("500m"));
@@ -100,7 +101,7 @@ public class TISK8sDelegate {
     incrK8s.isRCDeployment(true);
   }
 
-  public void deploy(IncrSpec incrSpec, final long timestamp) throws Exception {
+  public void deploy(ReplicasSpec incrSpec, final long timestamp) throws Exception {
     this.incrSync.deploy(this.indexName, incrSpec, timestamp);
   }
 

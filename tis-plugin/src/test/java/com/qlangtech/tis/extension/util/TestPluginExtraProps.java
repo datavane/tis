@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.extension.util;
 
+import com.alibaba.fastjson.JSONObject;
 import junit.framework.TestCase;
 
 import java.util.Optional;
@@ -27,12 +28,30 @@ public class TestPluginExtraProps extends TestCase {
         assertNotNull(ep);
         assertTrue(ep.isPresent());
         PluginExtraProps extraProps = ep.get();
-        PluginExtraProps.Prop prop = extraProps.getProp("dbName");
+        PluginExtraProps.Props prop = extraProps.getProp("dbName");
         assertNotNull(prop);
         assertNotNull("数据库名", prop.getLable());
 
         prop = extraProps.getProp("userName");
         assertNotNull(prop);
         assertNotNull("用户名", prop.getLable());
+
+
+        PluginExtraProps.Props encode = extraProps.getProp("encode");
+        JSONObject props = encode.getProps();
+        JSONObject creator = props.getJSONObject("creator");
+        assertNotNull(creator);
+        assertEquals("部门管理", creator.getString("label"));
+        assertEquals("/base/departmentlist", creator.getString("routerLink"));
+    }
+
+    public void testCreatorWithError() throws Exception {
+
+        try {
+            Optional<PluginExtraProps> ep = PluginExtraProps.load(WithCreatorError.class);
+            fail("must have faild");
+        } catch (Exception e) {
+            assertEquals("propKey:dbName,package:com.qlangtech.tis.extension.util,propKey:WithCreatorError.json", e.getMessage());
+        }
     }
 }

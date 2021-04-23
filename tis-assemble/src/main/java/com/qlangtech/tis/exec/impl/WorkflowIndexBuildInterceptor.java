@@ -18,6 +18,7 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
@@ -54,7 +55,7 @@ public class WorkflowIndexBuildInterceptor extends IndexBuildInterceptor {
     @Override
     protected void setBuildTableTitleItems(String indexName, ImportDataProcessInfo processinfo, IExecChainContext execContext) {
         try {
-            IAppSource appSource = DataFlowAppSource.load(indexName);
+            ISolrAppSource appSource = DataFlowAppSource.load(indexName);
             List<ColumnMetaData> finalNode = appSource.reflectCols();
 //            SqlTaskNodeMeta.SqlDataFlowTopology topology = execContext.getTopology();
 //            List<ColumnMetaData> finalNode = topology.getFinalTaskNodeCols();

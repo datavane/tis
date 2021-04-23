@@ -24,7 +24,8 @@ import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
-import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
+import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -39,25 +40,40 @@ import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
+import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:20
  */
-public class SingleTableAppSource implements IAppSource, IStreamIncrGenerateStrategy {
+public class SingleTableAppSource implements ISolrAppSource, IStreamIncrGenerateStrategy {
     private final DatasourceDb db;
+    //    private final DatasourceTable table;
     private final Integer tabId;
     private final String tabName;
 
-    public SingleTableAppSource(DatasourceDb db, Integer tabId, String tabName) {
+    public SingleTableAppSource(DatasourceDb db, DatasourceTable table) {
+        Objects.requireNonNull(db, "db can not be null");
+        Objects.requireNonNull(table, "table can not be null");
         this.db = db;
-        this.tabId = tabId;
-        this.tabName = tabName;
+        this.tabId = table.getId();
+        this.tabName = table.getName();
+    }
+
+    public Integer getTabId() {
+        return tabId;
+    }
+
+    @Override
+    public <T> T accept(ISolrAppSourceVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public boolean isExcludeFacadeDAOSupport() {
+        return true;
     }
 
     @Override

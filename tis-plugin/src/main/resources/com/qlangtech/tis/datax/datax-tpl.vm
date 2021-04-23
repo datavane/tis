@@ -2,11 +2,11 @@
     "job": {
         "setting": {
             "speed": {
-                 "channel": 3
+                 "channel": ${cfg.channel}
             },
             "errorLimit": {
-                "record": 0,
-                "percentage": 0.02
+                "record": ${cfg.errorLimitCount},
+                "percentage": ${cfg.errorLimitPercentage}
             }
         },
         "content": [

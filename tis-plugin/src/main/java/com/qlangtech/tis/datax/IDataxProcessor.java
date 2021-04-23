@@ -29,6 +29,8 @@ public interface IDataxProcessor {
 
     IDataxWriter getWriter();
 
+    IDataxGlobalCfg getDataXGlobalCfg();
+
     /**
      * 表映射
      *

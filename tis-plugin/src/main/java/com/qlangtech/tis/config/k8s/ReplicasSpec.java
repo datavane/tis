@@ -1,32 +1,31 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ * <p>
+ *   This program is free software: you can use, redistribute, and/or modify
+ *   it under the terms of the GNU Affero General Public License, version 3
+ *   or later ("AGPL"), as published by the Free Software Foundation.
+ * <p>
+ *  This program is distributed in the hope that it will be useful, but WITHOUT
+ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ *   FITNESS FOR A PARTICULAR PURPOSE.
+ * <p>
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.coredefine.module.action;
+package com.qlangtech.tis.config.k8s;
 
+import com.qlangtech.tis.coredefine.module.action.Specification;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * 发布增量实例时的pod规格
+ * 发布实例(ReplicationController,RepliaSet,Deployment)时的pod规格
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class IncrSpec {
+public class ReplicasSpec {
 
-    // private String gitAddress;
-    // 分支
-    // private String gitRef;
     private int replicaCount = 1;
 
     private Specification cpuRequest;
@@ -45,27 +44,14 @@ public class IncrSpec {
         this.replicaCount = replicaCount;
     }
 
-    public boolean isSpecificationsDiff(IncrSpec s) {
+    public boolean isSpecificationsDiff(ReplicasSpec s) {
         return isNotEqula(this.getCpuLimit(), s.getCpuLimit()) || isNotEqula(this.getCpuRequest(), s.getCpuRequest()) || isNotEqula(this.getMemoryLimit(), s.getMemoryLimit()) || isNotEqula(this.getMemoryRequest(), s.getMemoryRequest());
     }
 
-    // public boolean isGitSourceDiff(IncrSpec s) {
-    // return !StringUtils.equals(this.getGitRef(), s.getGitRef());
-    // //|| !StringUtils.equals(this.getGitAddress(), s.getGitAddress());
-    // }
     private boolean isNotEqula(Specification s1, Specification s2) {
         return s1.getVal() != s2.getVal() || !StringUtils.equals(s1.getUnit(), s2.getUnit());
     }
 
-    // public void setGitAddress(String gitAddress) {
-    // this.gitAddress = gitAddress;
-    // }
-    // public String getGitRef() {
-    // return gitRef;
-    // }
-    // public void setGitRef(String gitRef) {
-    // this.gitRef = gitRef;
-    // }
     public Specification getCpuRequest() {
         return cpuRequest;
     }

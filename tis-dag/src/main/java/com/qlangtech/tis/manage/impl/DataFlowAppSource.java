@@ -34,6 +34,8 @@ import com.qlangtech.tis.fullbuild.taskflow.IFlatTableBuilder;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
 import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
+import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -50,6 +52,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TaskNodeTraversesCreatorVisitor;
+import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.hudson.reactor.ReactorListener;
 import org.jvnet.hudson.reactor.Task;
@@ -65,12 +68,37 @@ import java.util.concurrent.Executors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:20
  */
-public class DataFlowAppSource implements IAppSource, IStreamIncrGenerateStrategy {
+public class DataFlowAppSource implements ISolrAppSource, IStreamIncrGenerateStrategy {
     //private static final Logger logger = LoggerFactory.getLogger(DataFlowAppSource.class);
     private static final Logger logger = LoggerFactory.getLogger("fullbuild");
     public static final File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_APP_DIR);
     private final String dataflowName;
+    private final WorkFlow dataflow;
     protected static final ExecutorService executorService = Executors.newCachedThreadPool();
+
+    public DataFlowAppSource(WorkFlow dataflow) {
+        this.dataflowName = dataflow.getName();
+        this.dataflow = dataflow;
+    }
+
+    public Integer getDfId() {
+        return this.dataflow.getId();
+    }
+
+    @Override
+    public <T> T accept(ISolrAppSourceVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public boolean isExcludeFacadeDAOSupport() {
+        try {
+            SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataflowName);
+            return wfTopology.isSingleDumpTableDependency();
+        } catch (Exception e) {
+            throw new RuntimeException("dataflow:" + this.dataflowName, e);
+        }
+    }
 
     /**
      * save
@@ -79,15 +107,19 @@ public class DataFlowAppSource implements IAppSource, IStreamIncrGenerateStrateg
      * @param appSource
      */
     public static void save(String appname, IAppSource appSource) {
-        KeyedPluginStore<IAppSource> pluginStore = new KeyedPluginStore(new AppKey(appname));
+        KeyedPluginStore<IAppSource> pluginStore = getPluginStore(appname);
         Optional<Context> context = Optional.empty();
         pluginStore.setPlugins(null, context, Collections.singletonList(new Descriptor.ParseDescribable(appSource)));
     }
 
     public static <T extends IAppSource> Optional<T> loadNullable(String appName) {
-        KeyedPluginStore<T> pluginStore = new KeyedPluginStore(new AppKey(appName));
+        KeyedPluginStore<T> pluginStore = getPluginStore(appName);
         IAppSource appSource = pluginStore.getPlugin();
         return (Optional<T>) Optional.ofNullable(appSource);
+    }
+
+    public static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(String appName) {
+        return (KeyedPluginStore<T>) new KeyedPluginStore(new AppKey(appName));
     }
 
     /**
@@ -135,7 +167,17 @@ public class DataFlowAppSource implements IAppSource, IStreamIncrGenerateStrateg
         }
     }
 
-    private ERRules getErRules() {
+    private ERRules getErRules() throws Exception {
+
+        SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.dataflowName);
+
+        if (topology.isSingleTableModel()) {
+            Optional<ERRules> erRule = ERRules.getErRule(this.dataflowName);
+            if (!erRule.isPresent()) {
+                ERRules.createDefaultErRule(topology);
+            }
+        }
+
         Optional<ERRules> erRules = ERRules.getErRule(this.dataflowName);
         if (!erRules.isPresent()) {
             throw new IllegalStateException("topology:" + dataflowName + " relevant erRule can not be null");
@@ -313,7 +355,11 @@ public class DataFlowAppSource implements IAppSource, IStreamIncrGenerateStrateg
 
     @Override
     public IERRules getERRule() {
-        return this.getErRules();
+        try {
+            return this.getErRules();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -403,9 +449,6 @@ public class DataFlowAppSource implements IAppSource, IStreamIncrGenerateStrateg
         }
     }
 
-    public DataFlowAppSource(String dataflowName) {
-        this.dataflowName = dataflowName;
-    }
 
     @Override
     public List<ColumnMetaData> reflectCols() {

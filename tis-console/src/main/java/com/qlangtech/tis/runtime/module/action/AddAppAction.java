@@ -24,7 +24,7 @@ import com.qlangtech.tis.coredefine.biz.FCoreRequest;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
-import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria.Criteria;
@@ -45,6 +45,7 @@ import com.qlangtech.tis.runtime.pojo.ResSynManager;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
+import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.DocCollection;
@@ -651,7 +652,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       this.workflow = val;
     }
 
-    public IAppSource createAppSource(BasicModule module) {
+    public ISolrAppSource createAppSource(BasicModule module) {
       if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(this.getDsType())) {
         String[] tabCascadervalues = this.getTabCascadervalues();
         if (tabCascadervalues == null) {
@@ -662,15 +663,17 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
         String[] pair = StringUtils.split(tabCascadervalues[1], "%");
         Integer tabId = Integer.parseInt(pair[0]);
         String tabName = StringUtils.trimToEmpty(pair[1]);
-
+        DatasourceTable table = module.wfDAOFacade.getDatasourceTableDAO().loadFromWriteDB(tabId);
         DatasourceDb db = module.wfDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbId);
-        return new SingleTableAppSource(db, tabId, tabName);
+        return new SingleTableAppSource(db, table);
       } else if (AddAppAction.SOURCE_TYPE_DF.equals(this.getDsType())) {
         String workflowName = this.getWorkflow();
         if (StringUtils.isEmpty(workflowName)) {
           throw new IllegalStateException("workflowName can not be null");
         }
-        return new DataFlowAppSource(StringUtils.split(workflowName, ":")[1]);
+        String wfName = StringUtils.split(workflowName, ":")[1];
+        Integer wfId = Integer.parseInt(StringUtils.split(workflowName, ":")[0]);
+        return new DataFlowAppSource(module.loadDF(wfId));
       }
       throw new IllegalStateException("dsType:" + this.getDsType() + " is not illegal");
     }

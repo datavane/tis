@@ -19,34 +19,50 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISelectedTab;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.datax.impl.LocalDataxProcessor;
+import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.RunContext;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import org.apache.commons.io.FileUtils;
+import org.apache.struts2.ServletActionContext;
+import org.apache.struts2.convention.annotation.InterceptorRef;
+import org.apache.struts2.convention.annotation.InterceptorRefs;
 
 import java.io.File;
 import java.util.*;
 
 /**
- * manage datax pipe process logic
+ * manage DataX pipe process logic
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-08 15:04
  */
+@InterceptorRefs({@InterceptorRef("tisStack")})
 public class DataxAction extends BasicModule {
+
+  /**
+   * @param context
+   */
+  public void doDataxProcessorDesc(Context context) {
+
+    DefaultDataxProcessor defaultDataxProcessor = new DefaultDataxProcessor();
+    this.setBizResult(context, new PluginDescMeta(Collections.singletonList(defaultDataxProcessor.getDescriptor())));
+  }
 
   public void doGetSupportedReaderWriterTypes(Context context) {
 
@@ -54,6 +70,22 @@ public class DataxAction extends BasicModule {
     DescriptorExtensionList<DataxWriter, Descriptor<DataxWriter>> writerTypes = TIS.get().getDescriptorList(DataxWriter.class);
 
     this.setBizResult(context, new DataxPluginDescMeta(readerTypes, writerTypes));
+  }
+
+  /**
+   * @param context
+   */
+  public void doGetGenCfgFile(Context context) throws Exception {
+    String dataxName = this.getString("dataxName");
+    String fileName = this.getString("fileName");
+    File dataxCfgDir = getDataxCfgDir(dataxName);
+    File cfgFile = new File(dataxCfgDir, fileName);
+    if (!cfgFile.exists()) {
+      throw new IllegalStateException("target file:" + cfgFile.getAbsolutePath());
+    }
+    Map<String, Object> fileMeta = Maps.newHashMap();
+    fileMeta.put("content", FileUtils.readFileToString(cfgFile, TisUTF8.get()));
+    this.setBizResult(context, fileMeta);
   }
 
   /**
@@ -69,6 +101,19 @@ public class DataxAction extends BasicModule {
   }
 
   /**
+   * DataX中显示已有部门
+   *
+   * @param
+   * @return
+   */
+  public static List<Option> getDepartments() {
+    RunContext runContext = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), RunContext.class);
+    Objects.requireNonNull(runContext, "runContext can not be null");
+    return BasicModule.getDptList(runContext, new IDepartmentGetter() {
+    });
+  }
+
+  /**
    * 重新生成datax配置文件
    *
    * @param context
@@ -77,25 +122,30 @@ public class DataxAction extends BasicModule {
   public void doGenerateDataxCfgs(Context context) throws Exception {
     String dataxName = this.getString("dataxName");
     DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
-    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
-
-    File targetFile = readerStore.getTargetFile();
-    File dataxCfgDir = new File(targetFile.getParentFile(), "dataxCfg");
+    DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(dataxProcessor);
+    File dataxCfgDir = getDataxCfgDir(dataxName);
     FileUtils.forceMkdir(dataxCfgDir);
     // 先清空文件
     FileUtils.cleanDirectory(dataxCfgDir);
-    dataxProcessor.startGenerateCfg(dataxCfgDir);
+    this.setBizResult(context, cfgGenerator.startGenerateCfg(dataxCfgDir));
+  }
+
+  private File getDataxCfgDir(String dataxName) {
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+
+    File targetFile = readerStore.getTargetFile();
+    return new File(targetFile.getParentFile(), "dataxCfg");
   }
 
   /**
-   * 创建datax实例
+   * 创建DataX实例
    *
    * @param context
    */
   public void doCreateDatax(Context context) throws Exception {
     String dataxName = this.getString("dataxName");
-
-    Application app = this.parseJsonPost(Application.class);
+    DefaultDataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
+    Application app = dataxProcessor.buildApp(); //this.parseJsonPost(Application.class);
 
     SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app
       , false, (newAppId) -> {
@@ -129,7 +179,7 @@ public class DataxAction extends BasicModule {
       tableMaps.add(tabAlias);
     }
 
-    dataxProcessor = appSource.isPresent() ? appSource.get() : new LocalDataxProcessor();
+    dataxProcessor = appSource.isPresent() ? appSource.get() : new DefaultDataxProcessor();
     dataxProcessor.setTableMaps(tableMaps);
     DataFlowAppSource.save(dataxName, dataxProcessor);
   }

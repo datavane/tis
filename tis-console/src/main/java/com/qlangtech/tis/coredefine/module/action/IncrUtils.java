@@ -18,6 +18,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.utils.Utils;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import org.apache.commons.io.FileUtils;
@@ -55,7 +56,7 @@ public class IncrUtils {
      * @return
      */
     public static IncrSpecResult parseIncrSpec(Context context, final JSONObject form, IMessageHandler msg) {
-        IncrSpec spec = new IncrSpec();
+        ReplicasSpec spec = new ReplicasSpec();
         IncrSpecResult result = new IncrSpecResult(spec, context, msg);
         result.success = false;
         int replicCount = form.getIntValue("pods");
@@ -132,7 +133,7 @@ public class IncrUtils {
 
     public static class IncrSpecResult {
 
-        private final IncrSpec spec;
+        private final ReplicasSpec spec;
 
         private boolean success;
 
@@ -140,7 +141,7 @@ public class IncrUtils {
 
         private final IMessageHandler msgHandler;
 
-        public IncrSpec getSpec() {
+        public ReplicasSpec getSpec() {
             return this.spec;
         }
 
@@ -175,7 +176,7 @@ public class IncrUtils {
             return true;
         }
 
-        IncrSpecResult(IncrSpec spec, Context context, IMessageHandler msgHandler) {
+        IncrSpecResult(ReplicasSpec spec, Context context, IMessageHandler msgHandler) {
             this.spec = spec;
             this.context = context;
             this.msgHandler = msgHandler;
@@ -191,35 +192,35 @@ public class IncrUtils {
         Specification s = Specification.parse("300");
         System.out.println(s.getUnit() + "," + s.getVal());
         // System.out.println(isNumber("123000"));
-        // 
+        //
         // System.out.println(isNumber("0123000"));
         // BuildStatus status = readLastBuildRecordStatus("search4totalpay");
         // System.out.println(status.getBuildName());
         // rollbackIncrDeploy("search4totalpay");
-        IncrSpec spec = new IncrSpec();
+        ReplicasSpec spec = new ReplicasSpec();
         // spec.setGitAddress("git@git.2dfire-inc.com.qlangtech.searcher/tis-mars.git");
         // spec.setGitRef("develop");
-        // 
+        //
         // Specification s = new Specification();
         // s.setVal(100);
         // s.setUnit("c");
         // spec.setCpuLimit(s);
-        // 
+        //
         // s = new Specification();
         // s.setVal(200);
         // s.setUnit("cores");
         // spec.setCpuRequest(s);
-        // 
+        //
         // s = new Specification();
         // s.setVal(2);
         // s.setUnit("G");
         // spec.setMemoryLimit(s);
-        // 
+        //
         // s = new Specification();
         // s.setVal(200);
         // s.setUnit("M");
         // spec.setMemoryRequest(s);
-        // 
+        //
         // saveIncrSpec("search4totalpay", spec);
         spec = readIncrSpec("search4totalpay");
     // System.out.println(spec.getGitAddress());
@@ -230,7 +231,7 @@ public class IncrUtils {
      *
      * @param spec
      */
-    public static void saveIncrSpec(String indexName, IncrSpec spec) throws IOException {
+    public static void saveIncrSpec(String indexName, ReplicasSpec spec) throws IOException {
         File f = getIncrSpecFile(indexName);
         FileUtils.write(f, JSON.toJSONString(spec, true), Charset.forName("utf8"), false);
     }
@@ -242,13 +243,13 @@ public class IncrUtils {
      * @return
      * @throws IOException
      */
-    public static IncrSpec readIncrSpec(String indexName) {
+    public static ReplicasSpec readIncrSpec(String indexName) {
         File f = getIncrSpecFile(indexName);
         if (!f.exists()) {
             return null;
         }
         try {
-            return JSON.parseObject(FileUtils.readFileToString(f, Charset.forName("utf8")), IncrSpec.class);
+            return JSON.parseObject(FileUtils.readFileToString(f, Charset.forName("utf8")), ReplicasSpec.class);
         } catch (Exception e) {
             return null;
         }

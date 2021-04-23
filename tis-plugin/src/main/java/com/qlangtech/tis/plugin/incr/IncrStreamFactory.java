@@ -18,13 +18,12 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.IIncrSync;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.IdentityName;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IdentityName {
+public abstract class IncrStreamFactory implements Describable<IncrStreamFactory> {
 
     public abstract IIncrSync getIncrSync();
 

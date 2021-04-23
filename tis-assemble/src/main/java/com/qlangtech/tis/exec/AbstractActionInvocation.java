@@ -20,6 +20,7 @@ import com.qlangtech.tis.exec.impl.*;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
@@ -62,20 +63,10 @@ public class AbstractActionInvocation implements ActionInvocation {
         if (StringUtils.isNotBlank(chainContext.getIndexName())) {
 
             ints = workflowBuild;
-            IAppSource appSource = DataFlowAppSource.load(chainContext.getIndexName());
+            ISolrAppSource appSource = DataFlowAppSource.load(chainContext.getIndexName());
             EntityName targetEntity = appSource.getTargetEntity();
 
-//            Integer workflowId = chainContext.getWorkflowId();
-//            SqlDataFlowTopology workflowDetail = chainContext.getTopology();
-//            Objects.requireNonNull(workflowDetail, "workflowDetail can not be null");
-//            EntityName targetEntity = null;
-//            if (workflowDetail.isSingleTableModel()) {
-//                DependencyNode dumpNode = workflowDetail.getDumpNodes().get(0);
-//                targetEntity = dumpNode.parseEntityName();
-//            } else {
-//                SqlTaskNodeMeta finalN = workflowDetail.getFinalNode();
-//                targetEntity = EntityName.parse(finalN.getExportName());
-//            }
+
             chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
 
             Integer taskid = chainContext.getTaskId();

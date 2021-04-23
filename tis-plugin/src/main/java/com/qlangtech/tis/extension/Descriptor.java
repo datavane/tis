@@ -315,7 +315,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         FormField formField = null;
         SubForm subFormFields = null;
         PropertyType ptype = null;
-        PluginExtraProps.Prop fieldExtraProps = null;
+        PluginExtraProps.Props fieldExtraProps = null;
         Class<?> subFromDescClass = null;
         try {
             Optional<PluginExtraProps> extraProps = PluginExtraProps.load(clazz);

@@ -12,28 +12,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.coredefine.module.action;
+package com.qlangtech.tis.manage;
 
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.DescriptorExtensionList;
-import com.qlangtech.tis.util.DescriptorsJSON;
-
-import java.util.List;
 
 /**
+ * 索引实例Srouce， 支持单表、dataflow
+ *
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-08 15:19
+ * @date 2021-03-31 11:16
  */
-public class PluginDescMeta<T extends Describable<T>> {
+public interface IAppSource extends Describable<IAppSource> {
 
-  protected final DescriptorsJSON pluginDesc;
-
-  public PluginDescMeta(List<Descriptor<T>> descList) {
-    this.pluginDesc = new DescriptorsJSON(descList);
-  }
-
-  public com.alibaba.fastjson.JSONObject getPluginDesc() {
-    return pluginDesc.getDescriptorsJSON();
-  }
+    default Descriptor<IAppSource> getDescriptor() {
+        return TIS.get().getDescriptor(this.getClass());
+    }
 }
+

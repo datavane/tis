@@ -25,6 +25,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
@@ -53,14 +54,14 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
     protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
        // TisZkClient zkClient = execChainContext.getZkClient();
 
-        IAppSource appRule = DataFlowAppSource.load(execChainContext.getIndexName());
+        ISolrAppSource appRule = DataFlowAppSource.load(execChainContext.getIndexName());
 
         //  execChainContext.getZkClient()
 //        IExecChainContext execChainContext, TisZkClient zkClient
 //                , DataFlowAppSource.ISingleTableDumpFactory singleTableDumpFactory, IAppSource.IDataProcessFeedback
 //        dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo
 
-        final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new IAppSource.ISingleTableDumpFactory() {
+        final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new ISolrAppSource.ISingleTableDumpFactory() {
                     @Override
                     public DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
                             , TisZkClient zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
@@ -69,7 +70,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
 
                     }
                 },
-                new IAppSource.IDataProcessFeedback() {
+                new ISolrAppSource.IDataProcessFeedback() {
                     @Override
                     public PhaseStatusCollection getPhaseStatusSet(IExecChainContext execContext) {
                         return TrackableExecuteInterceptor.taskPhaseReference.get(execContext.getTaskId());

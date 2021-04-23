@@ -32,13 +32,15 @@ import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.InstanceDirDesc
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
+import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.manage.servlet.QueryCloudSolrClient;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
 import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
@@ -58,11 +60,8 @@ import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrj.extend.router.HashcodeRouter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
-import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -155,8 +154,7 @@ public class CoreAction extends BasicModule {
       return incrStatus;
     }
     incrStatus.setK8sPluginInitialized(true);
-    IndexStreamCodeGenerator indexStreamCodeGenerator
-      = getIndexStreamCodeGenerator(module, module.getAppDomain().getApp().getWorkFlowId());
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
     StreamCodeContext streamCodeContext
       = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
@@ -209,29 +207,29 @@ public class CoreAction extends BasicModule {
     return generateDAOAndIncrScript(module, context, false, false);
   }
 
-  private static IndexIncrStatus generateDAOAndIncrScript(
+  public static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
 
-    IAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
-    Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
-    WorkFlow wf = module.loadDF(workFlowId);
-    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
+    ISolrAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
+    //Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
+    //WorkFlow wf = module.loadDF(workFlowId);
+    //SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
 
-    if (topology.isSingleTableModel()) {
-      Optional<ERRules> erRule = ERRules.getErRule(topology.getName());
-      if (!erRule.isPresent()) {
-        ERRules.createDefaultErRule(topology);
-      }
-    }
+//    if (topology.isSingleTableModel()) {
+//      Optional<ERRules> erRule = ERRules.getErRule(topology.getName());
+//      if (!erRule.isPresent()) {
+//        ERRules.createDefaultErRule(topology);
+//      }
+//    }
 
-    return generateDAOAndIncrScript(module, context, wf
-      , validateGlobalIncrStreamFactory, compilerAndPackage, topology.isSingleTableModel());
+
+    return generateDAOAndIncrScript(module, context, validateGlobalIncrStreamFactory, compilerAndPackage, appSource.isExcludeFacadeDAOSupport());
   }
 
   /**
    * @param module
    * @param context
-   * @param workflow
+   * @param
    * @param validateGlobalIncrStreamFactory
    * @param compilerAndPackage
    * @param excludeFacadeDAOSupport         由于单表同步不需要dao支持，可以选择false即可
@@ -239,13 +237,11 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public static IndexIncrStatus generateDAOAndIncrScript(
-    BasicModule module, Context context, WorkFlow workflow
+    BasicModule module, Context context
     , boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean excludeFacadeDAOSupport) throws Exception {
-    if (workflow == null) {
-      throw new IllegalArgumentException("param workflowId can not be null");
-    }
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module, workflow, excludeFacadeDAOSupport);
+
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
     List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
     PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
@@ -293,17 +289,19 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT)
   public void doCompileAndPackage(Context context) throws Exception {
 
-    final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
+    // final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, wf.getId());
+    ISolrAppSource appSource = DataFlowAppSource.load(this.getCollectionName());
+
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(this, indexStreamCodeGenerator);
 
-    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
+    // SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
 
-    boolean excludeFacadeDAOSupport = wfTopology.isSingleDumpTableDependency();
+    //   boolean excludeFacadeDAOSupport = wfTopology.isSingleDumpTableDependency();
 
-    if (excludeFacadeDAOSupport) {
+    if (appSource.isExcludeFacadeDAOSupport()) {
       daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap());
     } else {
       Map<Integer, Long> dependencyDbs = getDependencyDbsMap(this, indexStreamCodeGenerator);
@@ -325,7 +323,7 @@ public class CoreAction extends BasicModule {
       return;
     }
     // 编译并且打包
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
 
     // 将打包好的构建，发布到k8s集群中去
     // https://github.com/kubernetes-client/java
@@ -349,27 +347,39 @@ public class CoreAction extends BasicModule {
       .collect(Collectors.toMap(DatasourceDb::getId, (r) -> ManageUtils.formatNowYyyyMMddHHmmss(r.getOpTime())));
   }
 
-  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
-    BasicModule module, Integer workflowid) throws Exception {
-    final WorkFlow workFlow = module.loadDF(workflowid);
-    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workFlow.getName());
-    return getIndexStreamCodeGenerator(module, workFlow, wfTopology.isSingleDumpTableDependency());
-  }
+  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module) throws Exception {
+    //final WorkFlow workFlow = module.loadDF(workflowid);
+    //SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workFlow.getName());
+//    return getIndexStreamCodeGenerator(module);//, workFlow, wfTopology.isSingleDumpTableDependency());
+//  }
+//
+//  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
+//    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
-  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
-    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
+    ISolrAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
 
-    IAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
+    Date scriptLastOpTime = appSource.accept(new ISolrAppSourceVisitor<Date>() {
+      @Override
+      public Date visit(SingleTableAppSource single) {
+        DatasourceTable table = module.getWorkflowDAOFacade().getDatasourceTableDAO().loadFromWriteDB(single.getTabId());
+        return table.getOpTime();
+      }
 
-
-    return new IndexStreamCodeGenerator(module.getCollectionName(), (IStreamIncrGenerateStrategy) appSource
-      , ManageUtils.formatNowYyyyMMddHHmmss(workFlow.getOpTime()), (dbId, rewriteableTables) -> {
+      @Override
+      public Date visit(DataFlowAppSource dataflow) {
+        Integer dfId = dataflow.getDfId();
+        WorkFlow workFlow = module.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(dfId);
+        return workFlow.getOpTime();
+      }
+    });
+    return new IndexStreamCodeGenerator(module.getCollectionName(), appSource
+      , ManageUtils.formatNowYyyyMMddHHmmss(scriptLastOpTime), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
       DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
       tableCriteria.createCriteria().andDbIdEqualTo(dbId);
       List<DatasourceTable> tableList = module.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(tableCriteria);
       return tableList.stream().map((t) -> t.getName()).collect(Collectors.toList());
-    }, excludeFacadeDAOSupport);
+    }, appSource.isExcludeFacadeDAOSupport());
   }
 
 
@@ -386,7 +396,7 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
-    Application app = this.getApplicationDAO().selectByPrimaryKey(this.getAppDomain().getAppid());
+    Application app = this.getAppDomain().getApp();// this.getApplicationDAO().selectByPrimaryKey(.getAppid());
     triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
   }
 
@@ -419,7 +429,7 @@ public class CoreAction extends BasicModule {
 //      throw new IllegalArgumentException("param wfName can not be null");
 //    }
 
-    IAppSource appSource = DataFlowAppSource.load(app.getProjectName());
+    ISolrAppSource appSource = DataFlowAppSource.load(app.getProjectName());
 
     if (!appSource.triggerFullIndexSwapeValidate(module, context)) {
       return new TriggerBuildResult(false);
@@ -661,7 +671,7 @@ public class CoreAction extends BasicModule {
   public void doGetIndexExist(Context context) throws Exception {
     Map<String, Object> biz = Maps.newHashMap();
     biz.put("indexExist", this.isIndexExist());
-    biz.put("app",this.getAppDomain().getApp());
+    biz.put("app", this.getAppDomain().getApp());
     this.setBizResult(context, biz);
   }
 
@@ -844,7 +854,7 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doIncrDelete(Context context) throws Exception {
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     indexStreamCodeGenerator.deleteScript();
 
     TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());

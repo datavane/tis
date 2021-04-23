@@ -12,19 +12,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.datax;
 
-import java.util.List;
+package com.qlangtech.tis.manage;
+
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 
 /**
- * 选中需要导入的表
- *
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-18 10:16
- */
-public interface ISelectedTab {
-    public String getName();
-    public String getWhere();
-    public boolean isAllCols();
-    public List<String> getCols() ;
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-04-23 14:55
+ **/
+public interface ISolrAppSourceVisitor<T> {
+    T visit(SingleTableAppSource single);
+
+    T visit(DataFlowAppSource dataflow);
 }

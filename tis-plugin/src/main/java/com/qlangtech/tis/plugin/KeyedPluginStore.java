@@ -28,18 +28,11 @@ import java.util.Objects;
  */
 public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
-    //private transient final String serializeFileName;
-    //protected transient final String keyVal;
     protected transient final Key key;
-
-    //protected transient final IPluginContext pluginContext;
 
     public KeyedPluginStore(Key key) {
         super(key.pluginClass, key.getSotreFile());
-        // this.serializeFileName = key.getSerializeFileName();
         this.key = key;
-        // this.pluginContext = key.pluginContext;
-        // this.keyVal = key.keyVal;
     }
 
     @Override

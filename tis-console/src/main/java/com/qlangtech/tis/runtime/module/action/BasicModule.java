@@ -36,6 +36,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
+import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -137,7 +138,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   public WorkFlow loadDF(Integer wfId) {
-    return this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(wfId);
+    WorkFlow workFlow = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(wfId);
+    return Objects.requireNonNull(workFlow, "wfId:" + wfId + " relevant wf can not be null");
   }
 
   /**
@@ -167,6 +169,17 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       throw new IllegalStateException("param collection can not be null");
     }
     return collection;
+  }
+
+  @Override
+  public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+    switch (logicType) {
+      case APP_NAME_DUPLICATE:
+        AppNameDuplicateValidator nameDuplicateValidator = new AppNameDuplicateValidator(this.getApplicationDAO());
+        return nameDuplicateValidator.validate(this, context, fieldName, value);
+      default:
+        throw new IllegalStateException("illegal logicType:" + logicType);
+    }
   }
 
   @SuppressWarnings("all")
@@ -350,6 +363,32 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     this.wfDAOFacade = facade;
   }
 
+  public static class AppNameDuplicateValidator implements Validator.IFieldValidator {
+    //private final Application app;
+    private final IApplicationDAO appDAO;
+
+    public AppNameDuplicateValidator(IApplicationDAO appDAO) {
+      // this.app = app;
+      this.appDAO = appDAO;
+    }
+
+    @Override
+    public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+      Application app = new Application();
+      app.setProjectName(fieldData);
+      if (!AddAppAction.isAppNameValid(msgHandler, context, app)) {
+        return false;
+      }
+      ApplicationCriteria criteria = new ApplicationCriteria();
+      criteria.createCriteria().andProjectNameEqualTo(app.getProjectName());
+      if (appDAO.countByExample(criteria) > 0) {
+        msgHandler.addFieldError(context, fieldKey, "已经有同名实例(‘" + app.getProjectName() + "’)存在");
+        return false;
+      }
+      return true;
+    }
+  }
+
   /**
    * 创建 新的应用
    *
@@ -367,22 +406,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     Map<String, Validator.FieldValidators> validateRule = //
       Validator.fieldsValidator(//
         SchemaAction.FIELD_PROJECT_NAME, new Validator.FieldValidators(Validator.require) {
-        }, //
-        new Validator.IFieldValidator() {
-          @Override
-          public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-            if (!AddAppAction.isAppNameValid(msgHandler, context, app)) {
-              return false;
-            }
-            ApplicationCriteria criteria = new ApplicationCriteria();
-            criteria.createCriteria().andProjectNameEqualTo(app.getProjectName());
-            if (getApplicationDAO().countByExample(criteria) > 0) {
-              msgHandler.addFieldError(context, SchemaAction.FIELD_PROJECT_NAME, "已经有同名(‘" + app.getProjectName() + "’)索引存在");
-              return false;
-            }
-            return true;
-          }
-        }, //
+        }, new AppNameDuplicateValidator(this.getApplicationDAO())//
+        , //
         SchemaAction.FIELD_Recept, new Validator.FieldValidators(Validator.require) {
         }, //
         SchemaAction.FIELD_DptId, new Validator.FieldValidators(Validator.require) {
@@ -399,7 +424,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     app.setIsAutoDeploy(true);
     if (!justValidate) {
       result = AddAppAction.createApplication(app, context, this, afterAppCreate);
-      addActionMessage(context, "已经成功创建索引[" + app.getProjectName() + "]");
+      addActionMessage(context, "已经成功创建实例[" + app.getProjectName() + "]");
     }
     return result;
   }
@@ -461,14 +486,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   // private static final String DEFAULT_MEHTO = "execute";
   public static String parseMehtodName() {
-    // if ("get".equalsIgnoreCase(this.getRequest().getMethod())) {
-    // return DEFAULT_MEHTO;
-    // }
     HttpServletRequest request = ServletActionContext.getRequest();
-    // String namespace = getActionProxy().getNamespace();
-    // if (StringUtils.indexOf(namespace, "#action") < 0) {
-    // return ActionConfig.DEFAULT_METHOD;
-    // }
+
     // 判断参数的emethod参数
     final String execMethod = request.getParameter("emethod");
     if (StringUtils.isNotBlank(execMethod)) {
@@ -497,18 +516,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   private static String normalizeExecuteMethod(String param) {
     char[] pc = Arrays.copyOfRange(param.toCharArray(), 13, param.length());
     return trimUnderline(pc).toString();
-    // boolean underline = false;
-    //
-    // StringBuffer result = new StringBuffer();
-    // for (int i = 0; i < pc.length; i++) {
-    // if ('_' != pc[i]) {
-    // result.append(underline ? Character.toUpperCase(pc[i]) : pc[i]);
-    // underline = false;
-    // } else {
-    // underline = true;
-    // }
-    // }
-    // return result.toString();
   }
 
   public static StringBuffer trimUnderline(char[] pc) {
@@ -525,15 +532,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return result;
   }
 
-  // public static void main(String[] args) {
-  //
-  // final long current = System.currentTimeMillis();
-  //
-  // for (int i = 0; i < 100000; i++) {
-  // normalizeExecuteMethod("event_submit_do_buildjob_by_server");
-  // }
-  // System.out.println(System.currentTimeMillis() - current);
-  // }
   protected Snapshot createSnapshot() {
     return createSnapshot(this);
   }
@@ -549,19 +547,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return getAppsFetcher(this.getRequest(), false, this.getUser(), this);
   }
 
-  // public IPermissionService getPermissionService() {
-  // return new IPermissionService() {
-  //
-  // @Override
-  // public boolean hasAuthority(TUser user, String funcKey) {
-  //
-  // return true;
-  // }
-  // };
-  // }
+
   public static final Snapshot createSnapshot(final BasicModule basicModule) {
     return createSnapshot(basicModule, new SnapshotSetter() {
-
       @Override
       public void set(Snapshot snapshot) {
         snapshot.setAppId(basicModule.getAppDomain().getAppid());
@@ -595,16 +583,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     getResponse().flushBuffer();
   }
 
-  // /**
-  // * 将对象以json的格式写到客户端
-  // *
-  // * @param o
-  // * @throws IOException
-  // */
-  // protected void writeJson2Response(Object o) throws IOException {
-  // getResponse().setContentType("json;charset=UTF-8");
-  // JsonUtil.copy2writer(o, getResponse().getWriter());
-  // }
   @Override
   public TISZkStateReader getZkStateReader() {
     return this.getDaoContext().getZkStateReader();
@@ -727,16 +705,21 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     context.put("errorMsgInvisiable", true);
   }
 
+  public List<Option> getBizLineList() {
+    IAppsFetcher appsFetcher = getAppsFetcher(this.getRequest(), this.isMaxMatch(), this.getUser(), this);
+    return getDptList(this, appsFetcher);
+  }
+
   /**
    * 取得业务线集合
    *
    * @return
    */
-  public List<Option> getBizLineList() {
+  public static List<Option> getDptList(RunContext runContext, IDepartmentGetter departmentGetter) {
 
     List<Option> answer = new ArrayList<Option>();
 
-    for (Department domain : getAppsFetcher(this.getRequest(), this.isMaxMatch(), this.getUser(), this).getDepartmentBelongs(this)) {
+    for (Department domain : departmentGetter.getDepartmentBelongs(runContext)) {
 
       answer.add(new Option(domain.getFullName(), String.valueOf(domain.getDptId())));
     }
@@ -767,7 +750,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
    * @return
    */
   protected List<Option> getAppList(final Integer dptid) {
-    // AppsFetcher fetcher = this.getAppsFetcher();
     List<Option> answer = new ArrayList<Option>();
     ApplicationCriteria query = new ApplicationCriteria();
     query.createCriteria().andDptIdEqualTo(dptid);

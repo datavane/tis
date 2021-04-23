@@ -21,8 +21,10 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +73,17 @@ public class PluginItems {
     IPluginStoreSave<?> store = null;
     if (this.pluginContext.isCollectionAware()) {
       store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.extensionPoint);
+    } else if (heteroEnum == HeteroEnum.APP_SOURCE) {
+
+      for (Descriptor.ParseDescribable<?> d : dlist) {
+        if (d.instance instanceof IdentityName) {
+          store = DataFlowAppSource.getPluginStore(((IdentityName) d.instance).identityValue());
+          break;
+        }
+      }
+
+      Objects.requireNonNull(store, "plugin type:" + heteroEnum.name() + " can not find relevant Store");
+
     } else if (this.pluginContext.isDataSourceAware()) {
 
       store = new IPluginStoreSave<DataSourceFactory>() {

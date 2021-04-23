@@ -19,5 +19,12 @@ package com.qlangtech.tis.datax;
  * @date 2021-04-15 16:55
  */
 public interface IDataxReaderContext extends IDataxContext {
-    public String getName();
+    public String getTaskName();
+
+    /**
+     * 如果是mysql导入，则为源数据库表的表名
+     *
+     * @return
+     */
+    String getSourceEntityName();
 }

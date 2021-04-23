@@ -21,6 +21,7 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.*;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -109,6 +110,11 @@ public enum HeteroEnum {
             DataxWriter.class, //
             "dataxWriter", //
             "DataX Writer", //
+            Selectable.Multi),
+    APP_SOURCE(//
+            IAppSource.class, //
+            "appSource", //
+            "App Source", //
             Selectable.Multi);
 
     public final String caption;

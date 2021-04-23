@@ -36,4 +36,8 @@ public enum AppType {
 
         throw new IllegalStateException("invalid type:" + type);
     }
+
+    public int getType() {
+        return type;
+    }
 }

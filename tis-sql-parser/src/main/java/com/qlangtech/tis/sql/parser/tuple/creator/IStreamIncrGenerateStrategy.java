@@ -26,6 +26,10 @@ import java.util.Map;
  * @date 2021-04-06 09:49
  */
 public interface IStreamIncrGenerateStrategy {
+
+
+    boolean isExcludeFacadeDAOSupport();
+
     Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker();
 
     /**

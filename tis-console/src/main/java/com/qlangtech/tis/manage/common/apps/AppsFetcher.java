@@ -119,9 +119,6 @@ public abstract class AppsFetcher implements IAppsFetcher {
     @Override
     public abstract int update(Application app, CriteriaSetter setter);
 
-    @Override
-    public abstract List<Department> getDepartmentBelongs(RunContext runcontext);
-
 
     @Override
     public abstract List<TriggerCrontab> getTriggerTabs(IUsrDptRelationDAO usrDptRelationDAO);

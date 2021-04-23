@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,6 +18,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
@@ -34,6 +35,11 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
     public static final String KEY_VALIDATE_ITEM_INDEX = "validate_item_index";
 
     public static final String KEY_VALIDATE_PLUGIN_INDEX = "validate_plugin_index";
+
+    @Override
+    public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+        throw new UnsupportedOperationException();
+    }
 
     public static void pushFieldStack(Context context, String fieldName, int itemIndex) {
         Stack<FieldIndex> fieldStack = (Stack<FieldIndex>) context.get(KEY_VALIDATE_FIELDS_STACK);
@@ -52,8 +58,8 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         Stack<FieldIndex> fieldStack = (Stack<FieldIndex>) context.get(KEY_VALIDATE_FIELDS_STACK);
         if (fieldStack == null) {
             return;
-        // fieldStack = new Stack<>();
-        // context.put(KEY_VALIDATE_FIELDS_STACK, fieldStack);
+            // fieldStack = new Stack<>();
+            // context.put(KEY_VALIDATE_FIELDS_STACK, fieldStack);
         }
         fieldStack.pop();
     }
@@ -73,7 +79,7 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         List<List<List<FieldError>>> /**
          * item
          */
-        pluginErrorList = (List<List<List<FieldError>>>) context.get(ACTION_ERROR_FIELDS);
+                pluginErrorList = (List<List<List<FieldError>>>) context.get(ACTION_ERROR_FIELDS);
         if (pluginErrorList == null) {
             pluginErrorList = Lists.newArrayList();
             context.put(ACTION_ERROR_FIELDS, pluginErrorList);
@@ -81,7 +87,7 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         List<List<FieldError>> /**
          * item
          */
-        itemsErrorList = getFieldErrors(pluginIndex, pluginErrorList, () -> Lists.newArrayList());
+                itemsErrorList = getFieldErrors(pluginIndex, pluginErrorList, () -> Lists.newArrayList());
         List<FieldError> fieldsErrorList = getFieldErrors(itemIndex, itemsErrorList, () -> Lists.newArrayList());
         if (fieldStack == null || fieldStack.size() < 1) {
             return fieldsErrorList;
@@ -134,7 +140,7 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         public List<List<FieldError>> /**
          * item
          */
-        itemsErrorList;
+                itemsErrorList;
 
         public FieldError(String fieldName, String msg) {
             this.fieldName = fieldName;

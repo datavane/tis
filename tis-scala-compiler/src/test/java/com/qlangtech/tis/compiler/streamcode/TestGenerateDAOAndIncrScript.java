@@ -70,13 +70,18 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
         IAppSource appSource = DataFlowAppSource.load(collection);
         assertNotNull(appSource);
 
-        return new IndexStreamCodeGenerator(collection, (IStreamIncrGenerateStrategy)appSource, dataflowTimestamp, (dbid, tables) -> {
+        return new IndexStreamCodeGenerator(collection, (IStreamIncrGenerateStrategy) appSource, dataflowTimestamp, (dbid, tables) -> {
             assertTrue(tables.size() > 0);
             return tables;
         }, false);
     }
 
     private static class DefaultMessageHandler implements IControlMsgHandler {
+
+        @Override
+        public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
         public String getString(String key) {

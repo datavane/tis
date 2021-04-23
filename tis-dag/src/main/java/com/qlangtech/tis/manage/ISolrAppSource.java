@@ -15,11 +15,11 @@
 package com.qlangtech.tis.manage;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
-import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
@@ -30,6 +30,7 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:16
  */
-public interface IAppSource extends Describable<IAppSource> {
+public interface ISolrAppSource extends IAppSource, IStreamIncrGenerateStrategy {
 
     List<ColumnMetaData> reflectCols();
 
@@ -47,6 +48,8 @@ public interface IAppSource extends Describable<IAppSource> {
      * 触发全量索引构建之前进行校验
      */
     boolean triggerFullIndexSwapeValidate(IMessageHandler msgHandler, Context ctx);
+
+    <T> T accept(ISolrAppSourceVisitor<T> visitor);
 
     /**
      * 全量构建流程中取得最终构建实体
@@ -72,7 +75,7 @@ public interface IAppSource extends Describable<IAppSource> {
             , IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception;
 
     default Descriptor<IAppSource> getDescriptor() {
-        throw new UnsupportedOperationException();
+        return TIS.get().getDescriptor(this.getClass());
     }
 
     interface IDataProcessFeedback {

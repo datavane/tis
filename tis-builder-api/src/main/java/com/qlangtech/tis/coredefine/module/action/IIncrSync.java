@@ -33,7 +33,7 @@ public interface IIncrSync {
      * @param timestamp
      * @throws Exception
      */
-    void deploy(String collection, IncrSpec incrSpec, long timestamp) throws Exception;
+    void deploy(String collection, ReplicasSpec incrSpec, long timestamp) throws Exception;
 
     /**
      * 删除 增量实例
