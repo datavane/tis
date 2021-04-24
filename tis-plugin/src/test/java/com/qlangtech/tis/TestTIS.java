@@ -17,6 +17,7 @@ package com.qlangtech.tis;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.XStream2;
 import junit.framework.TestCase;
 import java.io.File;
@@ -32,20 +33,11 @@ public class TestTIS extends TestCase {
     private static final String collection = "search4totalpay";
 
     static {
+        CenterResource.setNotFetchFromCenterRepository();
+        HttpUtils.addMockGlobalParametersConfig();
         Config.setDataDir("./");
     }
 
-    public void testLoadIncrComponent() {
-    // TIS tis = TIS.get();
-    // assertNotNull(tis);
-    // IncrComponent incrComponent = null;
-    // try {
-    // incrComponent = TIS.get().loadIncrComponent(collection);
-    // assertNotNull(incrComponent);
-    // } finally {
-    // }
-    // TIS.get().saveComponent(collection, incrComponent);
-    }
 
     public void testReadPluginInfo() throws Exception {
         final String collectionRelativePath = TIS.KEY_TIS_PLUGIN_CONFIG + "/" + collection;
@@ -55,15 +47,7 @@ public class TestTIS extends TestCase {
             subs.add(CenterResource.copyFromRemote2Local(CenterResource.getPath(collectionRelativePath, f), true));
         }
         Set<XStream2.PluginMeta> pluginMetas = TIS.loadIncrComponentUsedPlugin(collection, subs, true);
-        // RobustReflectionConverter.usedPluginInfo.remove();
-        // 
-        // XmlFile xmlFile = new XmlFile(new XStream2PluginInfoReader()
-        // , new File(Config.getDataDir()
-        // , TIS.KEY_TIS_PLUGIN_CONFIG + "/" + collection + "/" + TIS.KEY_TIS_INCR_COMPONENT_CONFIG_FILE));
-        // 
-        // xmlFile.read();
-        // 
-        // Set<String> plugins = RobustReflectionConverter.usedPluginInfo.get();
+
         assertEquals(2, pluginMetas.size());
         for (XStream2.PluginMeta pluginName : pluginMetas) {
             System.out.println("used plugin:" + pluginName);

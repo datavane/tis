@@ -20,7 +20,7 @@ import java.util.Optional;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:36
  */
-public interface IDataxWriter {
+public interface IDataxWriter extends IDataXPluginMeta {
     public String getTemplate();
 
     /**

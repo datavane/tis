@@ -15,6 +15,11 @@
 
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-base-test</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-plugin</artifactId>
         </dependency>
 
@@ -31,11 +36,6 @@
         <dependency>
             <groupId>com.alibaba.datax</groupId>
             <artifactId>plugin-unstructured-storage-util</artifactId>
-            <version>${alibaba.datax.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.datax</groupId>
-            <artifactId>plugin-rdbms-util</artifactId>
             <version>${alibaba.datax.version}</version>
         </dependency>
 

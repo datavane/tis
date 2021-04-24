@@ -75,7 +75,7 @@ public final class XmlFile {
         try {
             return xs.fromXML(in);
         } catch (XStreamException e) {
-            throw new IOException("Unable to read " + file, e);
+            throw new IOException("Unable to read " + file.getAbsolutePath(), e);
         } catch (Error e) {
             // mostly reflection errors
             throw new IOException("Unable to read " + file, e);

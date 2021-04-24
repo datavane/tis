@@ -192,7 +192,7 @@ public class TIS {
                     is, // load jobs
                     pluginManager.initTasks(is), // forced ordering among key milestones
                     loadTasks(), InitMilestone.ordering());
-            logger.info("tis plugin have been initialized,consume: {}ms.", System.currentTimeMillis() - start);
+            logger.info("tis plugin have been initialized,consume:{}ms.", System.currentTimeMillis() - start);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {

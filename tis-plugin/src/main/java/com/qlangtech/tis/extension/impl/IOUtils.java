@@ -45,6 +45,28 @@ public class IOUtils {
      * @return
      */
     public static String loadResourceFromClasspath(Class<?> clazz, String resName, boolean throwErr) {
+
+        return loadResourceFromClasspath(clazz, resName, throwErr, (input) ->
+                org.apache.commons.io.IOUtils.toString(input, TisUTF8.get())
+        );
+
+//        try {
+//            try (InputStream input = clazz.getResourceAsStream(resName)) {
+//                if (throwErr) {
+//                    Objects.requireNonNull(input, "resource:" + resName + " can not find relevant content");
+//                }
+//                if (input == null) {
+//                    return null;
+//                }
+//                return org.apache.commons.io.IOUtils.toString(input, TisUTF8.get());
+//            }
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+    }
+
+
+    public static <T> T loadResourceFromClasspath(Class<?> clazz, String resName, boolean throwErr, WrapperResult<T> wrapper) {
         try {
             try (InputStream input = clazz.getResourceAsStream(resName)) {
                 if (throwErr) {
@@ -53,11 +75,19 @@ public class IOUtils {
                 if (input == null) {
                     return null;
                 }
-                return org.apache.commons.io.IOUtils.toString(input, TisUTF8.get());
+
+                return wrapper.process(input);
+
+                // return org.apache.commons.io.IOUtils.toString(input, TisUTF8.get());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public interface WrapperResult<T> {
+        T process(InputStream input) throws IOException;
     }
 
     // /**

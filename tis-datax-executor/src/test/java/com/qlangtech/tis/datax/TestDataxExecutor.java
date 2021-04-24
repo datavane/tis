@@ -14,18 +14,22 @@
  */
 package com.qlangtech.tis.datax;
 
-import junit.framework.TestCase;
+import com.qlangtech.tis.test.TISTestCase;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-20 14:12
  */
-public class TestDataxExecutor extends TestCase {
+public class TestDataxExecutor extends TISTestCase {
+
     public void testDataxJobLaunch() throws Exception {
-        DataxExecutor dataxExecutor = new DataxExecutor();
-        File jobPath = new File("");
-        dataxExecutor.startWork("baisuitest", jobPath.toString());
+        String dataXName = "baisuitest";
+        DataxExecutor executor = new DataxExecutor();
+        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitest/dataxCfg/order_promotion_0.json");
+
+        executor.startWork(dataXName, path.toString());
     }
 }

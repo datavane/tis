@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<com.qlangtech.tis.plugin.CollectionPluginStore>
+<com.qlangtech.tis.plugin.KeyedPluginStore>
   <plugins>
     <com.qlangtech.async.message.client.consumer.RocketMQListenerFactory plugin="tis-asyncmsg-rocketmq-plugin@saturn-1.0.0-SNAPSHOT">
       <consumeName>test</consumeName>
@@ -10,4 +10,4 @@
     </com.qlangtech.async.message.client.consumer.RocketMQListenerFactory>
   </plugins>
   <serializeFileName>search4totalpay/com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory</serializeFileName>
-</com.qlangtech.tis.plugin.CollectionPluginStore>
+</com.qlangtech.tis.plugin.KeyedPluginStore>
