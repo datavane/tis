@@ -24,6 +24,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISelectedTab;
 import com.qlangtech.tis.datax.impl.*;
+import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -34,10 +35,12 @@ import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.io.FileUtils;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.convention.annotation.InterceptorRef;
@@ -64,6 +67,68 @@ public class DataxAction extends BasicModule {
     this.setBizResult(context, new PluginDescMeta(Collections.singletonList(defaultDataxProcessor.getDescriptor())));
   }
 
+  /**
+   * 启动DataX执行器
+   *
+   * @param context
+   */
+  public void doLaunchDataxWorker(Context context) {
+    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
+
+    if (dataxJobWorker.inService()) {
+      throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
+    }
+
+    dataxJobWorker.launchService();
+  }
+
+  /**
+   * 保存K8S dataX worker
+   *
+   * @param context
+   */
+  public void doSaveDataxWorker(Context context) {
+    JSONObject postContent = this.parseJsonPost();
+    JSONObject k8sSpec = postContent.getJSONObject("k8sSpec");
+    //JSONObject dataxWorker = postContent.getJSONObject("dataxWorker");
+
+    // UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.DATAX_WORKER.identity);
+
+//    JSONArray itemsArray = new JSONArray();
+//    itemsArray.add(dataxWorker);
+//    PluginAction.PluginItemsParser pluginItemsParser
+//      = PluginAction.parsePluginItems(this, pluginMeta
+//      , context, 0, dataxWorker.getJSONArray("items"), false);
+
+//    if (pluginItemsParser.faild) {
+//
+//      return;
+//    }
+
+    IncrUtils.IncrSpecResult incrSpecResult = IncrUtils.parseIncrSpec(context, k8sSpec, this);
+    if (!incrSpecResult.isSuccess()) {
+      return;
+    }
+    PluginStore<DataXJobWorker> jobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+    Descriptor.ParseDescribable<DataXJobWorker> describablesWithMeta = PluginStore.getDescribablesWithMeta(jobWorkerStore);
+    DataXJobWorker dataxJobWorker = describablesWithMeta.instance;
+    Objects.requireNonNull(dataxJobWorker, "dataxJobWorker can not be null");
+    dataxJobWorker.setReplicasSpec(incrSpecResult.getSpec());
+    if (incrSpecResult.hpa != null) {
+      dataxJobWorker.setHpa(incrSpecResult.hpa);
+    }
+    //IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update
+    List<Descriptor.ParseDescribable<DataXJobWorker>> dlist = Collections.singletonList(describablesWithMeta);
+    jobWorkerStore.setPlugins(this, Optional.empty(), dlist, true);
+  }
+
+  public void doDataxWorkerDesc(Context context) {
+
+    List<Descriptor<DataXJobWorker>> descriptors = HeteroEnum.DATAX_WORKER.descriptors();
+    this.setBizResult(context, new PluginDescMeta(descriptors));
+  }
+
   public void doGetSupportedReaderWriterTypes(Context context) {
 
     DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes = TIS.get().getDescriptorList(DataxReader.class);
@@ -73,12 +138,15 @@ public class DataxAction extends BasicModule {
   }
 
   /**
+   * 取得生成的配置文件的内容
+   *
    * @param context
    */
   public void doGetGenCfgFile(Context context) throws Exception {
     String dataxName = this.getString("dataxName");
     String fileName = this.getString("fileName");
-    File dataxCfgDir = getDataxCfgDir(dataxName);
+    DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
+    File dataxCfgDir = dataxProcessor.getDataxCfgDir();
     File cfgFile = new File(dataxCfgDir, fileName);
     if (!cfgFile.exists()) {
       throw new IllegalStateException("target file:" + cfgFile.getAbsolutePath());
@@ -123,19 +191,13 @@ public class DataxAction extends BasicModule {
     String dataxName = this.getString("dataxName");
     DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(dataxProcessor);
-    File dataxCfgDir = getDataxCfgDir(dataxName);
+    File dataxCfgDir = dataxProcessor.getDataxCfgDir();
     FileUtils.forceMkdir(dataxCfgDir);
     // 先清空文件
     FileUtils.cleanDirectory(dataxCfgDir);
     this.setBizResult(context, cfgGenerator.startGenerateCfg(dataxCfgDir));
   }
 
-  private File getDataxCfgDir(String dataxName) {
-    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
-
-    File targetFile = readerStore.getTargetFile();
-    return new File(targetFile.getParentFile(), "dataxCfg");
-  }
 
   /**
    * 创建DataX实例

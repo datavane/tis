@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.coredefine.module.action;
 
+import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 

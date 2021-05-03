@@ -16,10 +16,10 @@ package com.qlangtech.tis.exec;
 
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.fs.ITISFileSystem;
+import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import org.apache.solr.common.cloud.ZkStateReader;
 
 /**
@@ -27,6 +27,8 @@ import org.apache.solr.common.cloud.ZkStateReader;
  * @date 2015年12月15日 上午11:48:16
  */
 public interface IExecChainContext extends IJoinTaskContext {
+
+    <T extends IBasicAppSource> T getAppSource();
 
     TisZkClient getZkClient();
 
@@ -44,8 +46,6 @@ public interface IExecChainContext extends IJoinTaskContext {
     Integer getWorkflowId();
 
     String getWorkflowName();
-
-   // SqlTaskNodeMeta.SqlDataFlowTopology getTopology();
 
     ITISFileSystem getIndexBuildFileSystem();
 

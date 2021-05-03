@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -31,12 +31,11 @@ import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 执行进度可跟踪的执行器
@@ -49,16 +48,13 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
     private static final Logger log = LoggerFactory.getLogger(TrackableExecuteInterceptor.class);
 
     public static final MessageFormat WORKFLOW_CONFIG_URL_FORMAT
-            = new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1}=true&handler={2}" + "{3}");
+            = new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1}=true&handler={2}{3}");
 
     public static final MessageFormat WORKFLOW_CONFIG_URL_POST_FORMAT
             = new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1}=true");
 
-    public static final Map<Integer, PhaseStatusCollection> /**
-     * taskid
-     */
-    taskPhaseReference = new HashMap<>();
-
+    public static final Map<Integer, PhaseStatusCollection> /*** taskid*/
+            taskPhaseReference = new HashMap<>();
 
 
     /**
@@ -70,7 +66,7 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
     @SuppressWarnings("all")
     public <T extends BasicPhaseStatus<?>> T getPhaseStatus(IExecChainContext execContext, FullbuildPhase phase) {
         PhaseStatusCollection phaseStatusCollection = taskPhaseReference.get(execContext.getTaskId());
-        switch(phase) {
+        switch (phase) {
             case FullDump:
                 return (T) phaseStatusCollection.getDumpPhase();
             case JOIN:
@@ -123,25 +119,15 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
         if (execResult == null) {
             throw new IllegalArgumentException("param execResult can not be null");
         }
-        String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_FORMAT.format(new Object[] { "fullbuild_workflow_action", "do_task_complete", StringUtils.EMPTY, /* advance_query_result */
-        StringUtils.EMPTY });
+        String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_FORMAT.format(new Object[]{"fullbuild_workflow_action", "do_task_complete", StringUtils.EMPTY, /* advance_query_result */
+                StringUtils.EMPTY});
         // 
         List<PostParam> params = Lists.newArrayList(// 
-        new PostParam("execresult", String.valueOf(execResult.getValue())), // 
-        new PostParam(IParamContext.KEY_TASK_ID, String.valueOf(taskid)));
+                new PostParam("execresult", String.valueOf(execResult.getValue())), //
+                new PostParam(IParamContext.KEY_TASK_ID, String.valueOf(taskid)));
         HttpUtils.soapRemote(url, params, CreateNewTaskResult.class);
     }
 
-    // public static Integer createNewPhase(int taskid, FullbuildPhase phase) {
-    // String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_POST_FORMAT
-    // .format(new Object[]{"fullbuild_workflow_action", "do_phase_start", "", /* advance_query_result */
-    // "" /* extra params */
-    // });
-    // List<PostParam> params = Lists.newArrayList();
-    // params.add(new PostParam("taskid", String.valueOf(taskid)));
-    // params.add(new PostParam("taskphase", String.valueOf(phase.getValue())));
-    // return HttpUtils.soapRemote(url, params, Integer.class).getBizresult();
-    // }
     /**
      * 开始执行一個新的任務
      *
@@ -150,7 +136,7 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
      */
     public static Integer createNewTask(NewTaskParam newTaskParam) {
         String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_POST_FORMAT
-                .format(new Object[] { "fullbuild_workflow_action", "do_create_new_task" });
+                .format(new Object[]{"fullbuild_workflow_action", "do_create_new_task"});
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
         return result.getBizresult().getTaskid();
     }

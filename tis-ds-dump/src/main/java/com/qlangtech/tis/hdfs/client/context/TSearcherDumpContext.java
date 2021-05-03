@@ -32,7 +32,6 @@ public interface TSearcherDumpContext extends TSearcherQueryContext {
 
     TISTable getTisTable();
 
-    // private final AtomicInteger allRows = new AtomicInteger();
     public AtomicInteger getAllTableDumpRows();
 
     /**

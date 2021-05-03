@@ -18,6 +18,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.io.LineIterator;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +33,9 @@ import java.util.regex.Pattern;
  */
 public class IOUtils {
 
+    public static String loadResourceFromClasspath(String resName) {
+        return loadResourceFromClasspath(MethodHandles.lookup().lookupClass(), resName, true);
+    }
 
     public static String loadResourceFromClasspath(Class<?> clazz, String resName) {
         return loadResourceFromClasspath(clazz, resName, true);

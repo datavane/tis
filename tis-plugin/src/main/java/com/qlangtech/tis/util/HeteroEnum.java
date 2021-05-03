@@ -19,6 +19,7 @@ import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.IAppSource;
@@ -28,14 +29,17 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
+import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.solr.config.QueryParserFactory;
 import com.qlangtech.tis.plugin.solr.config.SearchComponentFactory;
 import com.qlangtech.tis.plugin.solr.config.TISTransformerFactory;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 表明一种插件的类型
@@ -72,6 +76,18 @@ public enum HeteroEnum {
             "params-cfg", // },//
             "基础配置", Selectable.Multi),
     // ////////////////////////////////////////////////////////
+    K8S_IMAGES(//
+            K8sImage.class, //
+            "k8s-images", // },//
+            "K8S-Images", Selectable.Multi)
+    // ////////////////////////////////////////////////////////
+    ,
+    DATAX_WORKER(//
+            DataXJobWorker.class, //
+            "datax-worker", // },//
+            "DataX Worker", Selectable.Single),
+    // ////////////////////////////////////////////////////////
+
     INCR_K8S_CONFIG(//
             IncrStreamFactory.class, //
             "incr-config", // },
@@ -204,6 +220,7 @@ public enum HeteroEnum {
                 return he;
             }
         }
-        throw new IllegalStateException("identity:" + identity + " is illegal");
+        throw new IllegalStateException("identity:" + identity + " is illegal,exist:"
+                + Arrays.stream(HeteroEnum.values()).map((h) -> "'" + h.identity + "'").collect(Collectors.joining(",")));
     }
 }

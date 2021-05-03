@@ -34,8 +34,9 @@ public abstract class K8sImage implements Describable<K8sImage>, IdentityName {
     public abstract String getImagePath();
 
     /**
-     * io.kubernetes.client.openapi.ApiClient
-     * @param <T>
+     *ParamsConfig.createConfigInstance(): io.kubernetes.client.openapi.ApiClient
+     *
+     * @param
      * @return
      */
     public <T> T createApiClient() {

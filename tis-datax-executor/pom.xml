@@ -38,6 +38,10 @@
             <artifactId>plugin-unstructured-storage-util</artifactId>
             <version>${alibaba.datax.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-hadoop-rpc</artifactId>
+        </dependency>
 
     </dependencies>
 

@@ -54,7 +54,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
     protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
        // TisZkClient zkClient = execChainContext.getZkClient();
 
-        ISolrAppSource appRule = DataFlowAppSource.load(execChainContext.getIndexName());
+        ISolrAppSource appRule = execChainContext.getAppSource();//  DataFlowAppSource.load(execChainContext.getIndexName());
 
         //  execChainContext.getZkClient()
 //        IExecChainContext execChainContext, TisZkClient zkClient
@@ -80,6 +80,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                     public void reportDumpTableStatusError(IExecChainContext execContext, Task task) {
                         IncrStatusUmbilicalProtocolImpl statReceiver = IncrStatusUmbilicalProtocolImpl.getInstance();
                         statReceiver.reportDumpTableStatusError(execChainContext.getTaskId(), task.getDisplayName());
+                       // statReceiver.reportDumpTableStatus();
                     }
                 }, this
         );

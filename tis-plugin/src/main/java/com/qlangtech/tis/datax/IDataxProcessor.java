@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.datax;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,15 @@ public interface IDataxProcessor {
     IDataxWriter getWriter();
 
     IDataxGlobalCfg getDataXGlobalCfg();
+
+    public File getDataxCfgDir();
+
+    /**
+     * dataX配置文件列表
+     *
+     * @return
+     */
+    public List<String> getDataxCfgFileNames();
 
     /**
      * 表映射

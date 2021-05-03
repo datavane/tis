@@ -16,14 +16,17 @@ package com.qlangtech.tis.exec;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.exec.datax.DataXExecuteInterceptor;
 import com.qlangtech.tis.exec.impl.*;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +54,8 @@ public class AbstractActionInvocation implements ActionInvocation {
     public static final IExecuteInterceptor[] workflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
             new WorkflowDumpAndJoinInterceptor(), new WorkflowIndexBuildInterceptor(), new IndexBackFlowInterceptor()};
 
+    public static final IExecuteInterceptor[] dataXBuild = new IExecuteInterceptor[]{new DataXExecuteInterceptor()};
+
     /**
      * 创建执行链
      *
@@ -59,23 +64,33 @@ public class AbstractActionInvocation implements ActionInvocation {
      */
     public static ActionInvocation createExecChain(IExecChainContext chainContext) throws Exception {
         IExecuteInterceptor[] ints = null;
-        //if (chainContext.getWorkflowId() != null) {
-        if (StringUtils.isNotBlank(chainContext.getIndexName())) {
 
-            ints = workflowBuild;
-            ISolrAppSource appSource = DataFlowAppSource.load(chainContext.getIndexName());
-            EntityName targetEntity = appSource.getTargetEntity();
+        if (StringUtils.isEmpty(chainContext.getIndexName()) && chainContext.getWorkflowId() != null) {
+            //console中直接用workflow触发
+            throw new NotImplementedException("console中直接用workflow触发");
 
+        } else if (StringUtils.isNotBlank(chainContext.getIndexName())) {
 
-            chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
+            IBasicAppSource appSource = chainContext.getAppSource();// DataFlowAppSource.load(chainContext.getIndexName());
+            ints = appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
+                @Override
+                public IExecuteInterceptor[] visit(ISolrAppSource appSource) {
+                    EntityName targetEntity = appSource.getTargetEntity();
+                    chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
+                    IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
+                    chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
+                    return workflowBuild;
+                }
+
+                @Override
+                public IExecuteInterceptor[] visit(DataxProcessor app) {
+                    return dataXBuild;
+                }
+            });
 
             Integer taskid = chainContext.getTaskId();
             TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange()));
-            //chainContext.setAttribute(IFullBuildContext.KEY_WORKFLOW_ID, workflowDetail);
 
-            IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
-
-            chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
         } else {
             if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
                 ints = directBuild;

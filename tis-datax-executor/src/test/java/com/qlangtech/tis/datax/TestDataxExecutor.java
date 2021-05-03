@@ -15,9 +15,13 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.test.TISTestCase;
+import com.tis.hadoop.rpc.ITISRpcService;
+import com.tis.hadoop.rpc.RpcServiceReference;
+import com.tis.hadoop.rpc.StatusRpcClient;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -27,9 +31,20 @@ public class TestDataxExecutor extends TISTestCase {
 
     public void testDataxJobLaunch() throws Exception {
         String dataXName = "baisuitest";
-        DataxExecutor executor = new DataxExecutor();
-        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitest/dataxCfg/order_promotion_0.json");
 
-        executor.startWork(dataXName, path.toString());
+        //TisZkClient zkClient = new TisZkClient(Config.getZKHost(), 60000);
+
+        AtomicReference<ITISRpcService> ref = new AtomicReference<>();
+        ref.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
+        RpcServiceReference statusRpc = new RpcServiceReference(ref);
+
+        //RpcServiceReference statusRpc = StatusRpcClient.getService(zkClient);
+
+        DataxExecutor executor = new DataxExecutor(statusRpc);
+        final String jobName = "customer_order_relation_1.json";
+        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitest/dataxCfg/" + jobName);
+// tring dataxName, Integer jobId, String jobName, String jobPath
+        Integer jobId = 1;
+        executor.startWork(dataXName, jobId, jobName, path.toString());
     }
 }

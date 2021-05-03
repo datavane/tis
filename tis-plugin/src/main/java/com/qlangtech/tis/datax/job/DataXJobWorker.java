@@ -16,9 +16,14 @@
 package com.qlangtech.tis.datax.job;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.k8s.K8sImage;
+
+import java.util.List;
 
 /**
  * DataX 任务执行容器
@@ -28,12 +33,42 @@ import com.qlangtech.tis.extension.Descriptor;
  **/
 public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
+
+    /**
+     * dataXWorker service 是否是启动状态
+     *
+     * @return
+     */
+    public static boolean isDataXWorkerServiceOnDuty() {
+        PluginStore<DataXJobWorker> jobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+        List<DataXJobWorker> services = jobWorkerStore.getPlugins();
+        return services.size() > 0 && jobWorkerStore.getPlugin().inService();
+    }
+
+    /**
+     * 通过Curator来实现分布式任务overseer-worker模式
+     *
+     * @return
+     */
+    protected abstract String getZookeeperAddress();
+
+    protected abstract K8sImage getK8SImage();
+
     private ReplicasSpec replicasSpec;
+
     // 是否支持弹性伸缩容量
     private HorizontalpodAutoscaler hpa;
 
+    public HorizontalpodAutoscaler getHpa() {
+        return hpa;
+    }
+
+    public void setHpa(HorizontalpodAutoscaler hpa) {
+        this.hpa = hpa;
+    }
+
     protected boolean supportHPA() {
-        return this.hpa != null;
+        return hpa != null;
     }
 
     public ReplicasSpec getReplicasSpec() {
@@ -52,6 +87,11 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     public abstract boolean inService();
 
     /**
+     * 将控制器删除掉
+     */
+    public abstract void remove();
+
+    /**
      * 启动服务
      */
     public abstract void launchService();
@@ -61,33 +101,5 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         return TIS.get().getDescriptor(this.getClass());
     }
 
-    public static class HorizontalpodAutoscaler {
-        private int minPod;
-        private int maxPod;
-        private int cpuAverageUtilization;
 
-        public int getMinPod() {
-            return minPod;
-        }
-
-        public void setMinPod(int minPod) {
-            this.minPod = minPod;
-        }
-
-        public int getMaxPod() {
-            return maxPod;
-        }
-
-        public void setMaxPod(int maxPod) {
-            this.maxPod = maxPod;
-        }
-
-        public int getCpuAverageUtilization() {
-            return cpuAverageUtilization;
-        }
-
-        public void setCpuAverageUtilization(int cpuAverageUtilization) {
-            this.cpuAverageUtilization = cpuAverageUtilization;
-        }
-    }
 }

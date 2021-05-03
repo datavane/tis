@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -40,6 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -51,14 +52,14 @@ import java.util.concurrent.*;
  * @date 2016年4月7日
  */
 public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmbilicalProtocol
-IncrStatusGrpc.IncrStatusImplBase {
+        IncrStatusGrpc.IncrStatusImplBase {
 
     private final HashMap<String, ConcurrentHashMap<String, TableMultiDataIndexStatus>> // 
-    updateCounterStatus = new HashMap<>();
+            updateCounterStatus = new HashMap<>();
 
     // 存储各个索引執行以来的topic及tags
     private final ConcurrentHashMap<String, com.qlangtech.tis.grpc.TopicInfo> /* indexName */
-    indexTopicInfo = new ConcurrentHashMap<>();
+            indexTopicInfo = new ConcurrentHashMap<>();
 
     private final BlockingQueue<com.qlangtech.tis.grpc.MasterJob> jobQueue = new ArrayBlockingQueue<>(100);
 
@@ -144,7 +145,7 @@ IncrStatusGrpc.IncrStatusImplBase {
         try {
             synchronized (indexTopicInfo) {
                 for (Map.Entry<String, com.qlangtech.tis.grpc.TopicInfo> /* collection */
-                entry : launchReportInfo.getCollectionFocusTopicInfoMap().entrySet()) {
+                        entry : launchReportInfo.getCollectionFocusTopicInfoMap().entrySet()) {
                     this.indexTopicInfo.put(entry.getKey(), entry.getValue());
                     log.info("collection:" + entry.getKey() + " topicfocuse:" + jsonPrint.print(entry.getValue()));
                 }
@@ -159,10 +160,14 @@ IncrStatusGrpc.IncrStatusImplBase {
 
     public void reportDumpTableStatusError(Integer taskid, String fullTableName) {
         execHook.reportDumpTableStatusError(taskid, fullTableName);
+        reportDumpTableStatus(taskid, true, fullTableName);
+    }
+
+    public void reportDumpTableStatus(Integer taskid, boolean faild, String fullTableName) {
         com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.Builder builder = com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.newBuilder();
         builder.setTaskid(taskid);
         builder.setTableName(fullTableName);
-        builder.setFaild(true);
+        builder.setFaild(faild);
         builder.setComplete(true);
         builder.setWaiting(false);
         this.reportDumpTableStatus(builder.build(), new StatusRpcClient.NoopStreamObserver<>());
@@ -336,7 +341,7 @@ IncrStatusGrpc.IncrStatusImplBase {
             return false;
         }
         ConcurrentHashMap<String, TableMultiDataIndexStatus> /* uuid发送过来的节点id */
-        indexStatus = updateCounterStatus.get(collection);
+                indexStatus = updateCounterStatus.get(collection);
         return (indexStatus.size() > 0);
     }
 
@@ -405,7 +410,7 @@ IncrStatusGrpc.IncrStatusImplBase {
 
     public com.qlangtech.tis.grpc.TopicInfo getFocusTopicInfo(String collection) {
         return indexTopicInfo.getOrDefault(collection, NULL_TOPIC_INFO);
-    // return indexTopicInfo.get(collection);
+        // return indexTopicInfo.get(collection);
     }
 
     public Map<String, TableMultiDataIndexStatus> getIndexUpdateCounterStatus(String collection) {
@@ -466,7 +471,7 @@ IncrStatusGrpc.IncrStatusImplBase {
                     long currentTimeInSec = ConsumeDataKeeper.getCurrentTimeInSec();
                     for (String indexName : updateCounterStatus.keySet()) {
                         ConcurrentHashMap<String, TableMultiDataIndexStatus> /* uuid发送过来的节点id */
-                        indexStatus = updateCounterStatus.get(indexName);
+                                indexStatus = updateCounterStatus.get(indexName);
                         indexStatus.entrySet().removeIf(entry -> {
                             synchronized (indexTopicInfo) {
                                 boolean expire = entry.getValue().isExpire(currentTimeInSec);
@@ -495,7 +500,7 @@ IncrStatusGrpc.IncrStatusImplBase {
      * @return
      */
     public Map<String, /* tag */
-    Long> getUpdateAbsoluteCountMap(String collection) {
+            Long> getUpdateAbsoluteCountMap(String collection) {
         return getTableUpdateCountMap(updateCounterStatus.get(collection));
     }
 
@@ -507,7 +512,7 @@ IncrStatusGrpc.IncrStatusImplBase {
     }
 
     private Map<String, YarnStateStatistics> getYarnStateMap(ConcurrentHashMap<String, /* uuid */
-    TableMultiDataIndexStatus> indexStatus, long currentTimeInSec) {
+            TableMultiDataIndexStatus> indexStatus, long currentTimeInSec) {
         Map<String, YarnStateStatistics> yarnStateMap = new HashMap<>();
         String uuid = null;
         TableMultiDataIndexStatus status = null;
@@ -574,10 +579,10 @@ IncrStatusGrpc.IncrStatusImplBase {
         for (YarnStateStatistics yarnStateStatistics : yarnStateMap.values()) {
             yarnState.setTbTPS(yarnState.getTbTPS() + yarnStateStatistics.getTbTPS());
             yarnState.setSorlTPS(yarnState.getSorlTPS() + yarnStateStatistics.getSorlTPS());
-        // yarnState.setQueueRC(yarnState.getQueueRC() +
-        // yarnStateStatistics.getQueueRC());
-        // yarnState.setTis30sAvgRT(yarnState.getTis30sAvgRT() +
-        // yarnStateStatistics.getTis30sAvgRT());
+            // yarnState.setQueueRC(yarnState.getQueueRC() +
+            // yarnStateStatistics.getQueueRC());
+            // yarnState.setTis30sAvgRT(yarnState.getTis30sAvgRT() +
+            // yarnStateStatistics.getTis30sAvgRT());
         }
         // yarnState.setTis30sAvgRT(yarnState.getTis30sAvgRT() / yarnStateMap.size());
         return yarnState;
@@ -663,20 +668,20 @@ IncrStatusGrpc.IncrStatusImplBase {
      * @return
      */
     public Map<String, /* FromAddress */
-    Long> getLastUpdateTimeSec(String index) {
+            Long> getLastUpdateTimeSec(String index) {
         ConcurrentHashMap<String, TableMultiDataIndexStatus> /* uuid发送过来的节点id */
-        status = updateCounterStatus.get(index);
+                status = updateCounterStatus.get(index);
         Map<String, Long> /* node last update timesec */
-        result = Maps.newHashMap();
+                result = Maps.newHashMap();
         for (Map.Entry<String, TableMultiDataIndexStatus> /* uuid发送过来的节点id */
-        entry : status.entrySet()) {
+                entry : status.entrySet()) {
             result.put(entry.getValue().getFromAddress(), entry.getValue().getLastUpdateSec());
         }
         return result;
     }
 
     private String getTableUpdateCount(ConcurrentHashMap<String, /* uuid */
-    TableMultiDataIndexStatus> indexStatus) {
+            TableMultiDataIndexStatus> indexStatus) {
         if (indexStatus == null || indexStatus.size() <= 0) {
             return "[]";
         }
@@ -690,7 +695,7 @@ IncrStatusGrpc.IncrStatusImplBase {
     }
 
     private Map<String, /* tag */
-    Long> getTableUpdateCountMap(ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus) {
+            Long> getTableUpdateCountMap(ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus) {
         if (indexStatus == null) {
             return Collections.emptyMap();
         }

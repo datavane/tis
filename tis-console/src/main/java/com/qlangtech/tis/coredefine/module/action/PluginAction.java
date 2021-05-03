@@ -150,60 +150,66 @@ public class PluginAction extends BasicModule {
     List<UploadPluginMeta> plugins = getPluginMeta();
     JSONArray pluginArray = parseJsonArrayPost();
     UploadPluginMeta pluginMeta = null;
-    JSONObject itemObj = null;
+    // JSONObject itemObj = null;
     boolean faild = false;
     List<PluginItems> categoryPlugins = Lists.newArrayList();
-    PluginItems pluginItems = null;
-    HeteroEnum hEnum = null;
-    Descriptor.PluginValidateResult validateResult = null;
-    List<Descriptor.PluginValidateResult> items = null;
-    Optional<IPropertyType.SubFormFilter> subFormFilter = null;
+//    PluginItems pluginItems = null;
+//    HeteroEnum hEnum = null;
+//    Descriptor.PluginValidateResult validateResult = null;
+//    List<Descriptor.PluginValidateResult> items = null;
+//    Optional<IPropertyType.SubFormFilter> subFormFilter = null;
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
     final boolean bizValidate = this.getBoolean("verify");
+    PluginItemsParser pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
-      items = Lists.newArrayList();
+      // items = Lists.newArrayList();
       pluginMeta = plugins.get(pluginIndex);
-      subFormFilter = pluginMeta.getSubFormFilter();
+      // subFormFilter = pluginMeta.getSubFormFilter();
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
-      hEnum = pluginMeta.getHeteroEnum();
-      //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
-      pluginItems = new PluginItems(this, pluginMeta);
-      List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(this, itemsArray, subFormFilter);
-      if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
-        this.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
+      // hEnum = pluginMeta.getHeteroEnum();
+      pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, bizValidate);
+      if (pluginItemsParser.faild) {
+        faild = true;
       }
-      pluginItems.items = describableAttrValMapList;
-      categoryPlugins.add(pluginItems);
-      AttrValMap attrValMap = null;
-
-
-      for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
-        attrValMap = describableAttrValMapList.get(itemIndex);
-        Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-        if (!(validateResult = attrValMap.validate(context, bizValidate)).isValid()) {
-          faild = true;
-        } else {
-          validateResult.setDescriptor(attrValMap.descriptor);
-          items.add(validateResult);
-        }
-      }
-
-      /**===============================================
-       * 校验Item字段的identity字段不能重复，不然就报错
-       ===============================================*/
-      Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
-      Descriptor.PluginValidateResult previous = null;
-      if (!faild && hEnum.isIdentityUnique()
-        && hEnum.selectable == Selectable.Multi
-        && items.size() > 1) {
-        for (Descriptor.PluginValidateResult i : items) {
-          if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
-            previous.addIdentityFieldValueDuplicateError(this, context);
-            i.addIdentityFieldValueDuplicateError(this, context);
-            return;
-          }
-        }
-      }
+      categoryPlugins.add(pluginItemsParser.pluginItems);
+//      //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
+//      pluginItems = new PluginItems(this, pluginMeta);
+//      List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(this, itemsArray, subFormFilter);
+//      if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
+//        this.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
+//      }
+//      pluginItems.items = describableAttrValMapList;
+//      categoryPlugins.add(pluginItems);
+//      AttrValMap attrValMap = null;
+//
+//
+//      for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
+//        attrValMap = describableAttrValMapList.get(itemIndex);
+//        Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
+//        if (!(validateResult = attrValMap.validate(context, bizValidate)).isValid()) {
+//          faild = true;
+//        } else {
+//          validateResult.setDescriptor(attrValMap.descriptor);
+//          items.add(validateResult);
+//        }
+//      }
+//
+//      /**===============================================
+//       * 校验Item字段的identity字段不能重复，不然就报错
+//       ===============================================*/
+//      Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
+//      Descriptor.PluginValidateResult previous = null;
+//      if (!faild && hEnum.isIdentityUnique()
+//        && hEnum.selectable == Selectable.Multi
+//        && items.size() > 1) {
+//        for (Descriptor.PluginValidateResult i : items) {
+//          if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
+//            previous.addIdentityFieldValueDuplicateError(this, context);
+//            i.addIdentityFieldValueDuplicateError(this, context);
+//            return;
+//          }
+//        }
+//      }
 
     }
     if (this.hasErrors(context) || bizValidate) {
@@ -219,6 +225,60 @@ public class PluginAction extends BasicModule {
     }
 
     addActionMessage(context, "配置保存成功");
+  }
+
+
+  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, boolean bizValidate) {
+    PluginItemsParser parseResult = new PluginItemsParser();
+    List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
+    Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+    Descriptor.PluginValidateResult validateResult = null;
+    HeteroEnum hEnum = pluginMeta.getHeteroEnum();
+    //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
+    PluginItems pluginItems = new PluginItems(module, pluginMeta);
+    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(module, itemsArray, subFormFilter);
+    if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
+      module.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
+    }
+    pluginItems.items = describableAttrValMapList;
+    parseResult.pluginItems = pluginItems;
+    //categoryPlugins.add(pluginItems);
+    AttrValMap attrValMap = null;
+
+
+    for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
+      attrValMap = describableAttrValMapList.get(itemIndex);
+      Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
+      if (!(validateResult = attrValMap.validate(context, bizValidate)).isValid()) {
+        parseResult.faild = true;
+      } else {
+        validateResult.setDescriptor(attrValMap.descriptor);
+        items.add(validateResult);
+      }
+    }
+
+    /**===============================================
+     * 校验Item字段的identity字段不能重复，不然就报错
+     ===============================================*/
+    Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
+    Descriptor.PluginValidateResult previous = null;
+    if (!parseResult.faild && hEnum.isIdentityUnique()
+      && hEnum.selectable == Selectable.Multi
+      && items.size() > 1) {
+      for (Descriptor.PluginValidateResult i : items) {
+        if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
+          previous.addIdentityFieldValueDuplicateError(module, context);
+          i.addIdentityFieldValueDuplicateError(module, context);
+          return parseResult;
+        }
+      }
+    }
+    return parseResult;
+  }
+
+  public static class PluginItemsParser {
+    public boolean faild = false;
+    public PluginItems pluginItems;
   }
 
   private List<UploadPluginMeta> getPluginMeta() {

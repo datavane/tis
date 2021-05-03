@@ -135,9 +135,6 @@ public class TIS {
      * @param <T>
      * @return
      */
-//    public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
-//        return getPluginStore(null, collection, key);
-//    }
     public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
         PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key("collection", collection, key));
         if (pluginStore == null) {
@@ -176,6 +173,15 @@ public class TIS {
     public static final File pluginDirRoot = new File(Config.getLibDir(), KEY_TIS_PLUGIN_ROOT);
 
     private static TIS tis;
+
+    public static void cleanTIS() {
+        tis.globalPluginStore.clear();
+        tis.extensionLists.clear();
+        tis.descriptorLists.clear();
+        tis.collectionPluginStore.clear();
+        tis = null;
+        initialized = false;
+    }
 
     // 插件运行系统是否已经初始化
     public static boolean initialized = false;
@@ -372,25 +378,6 @@ public class TIS {
         }
     }
 
-    // /**
-    // * 加载增量组件
-    // *
-    // * @param collection
-    // * @return
-    // */
-    // public IncrComponent loadIncrComponent(String collection) {
-    // try {
-    // File incrConfig = getIncrConfigFile(collection);
-    // if (!incrConfig.exists()) {
-    // // 不存在的话
-    // return new IncrComponent(collection);
-    // }
-    // return (IncrComponent) (new XmlFile(incrConfig).read());
-    // } catch (IOException e) {
-    // throw new RuntimeException(e);
-    // }
-    // }
-
     /**
      * 取得增量模块需要用到的plugin名称
      *
@@ -467,18 +454,7 @@ public class TIS {
         return new ComponentMeta(resources);
     }
 
-    // public File getIncrConfigFile(String collection) {
-    // return new File(this.pluginCfgRoot, collection + File.separator + KEY_TIS_INCR_COMPONENT_CONFIG_FILE);
-    // }
     private File getGlobalConfigFile() {
         return new File(pluginCfgRoot, "global" + File.separator + KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE);
     }
-    // public void saveComponent(String collection, IncrComponent incrComponent) {
-    // try {
-    // File incrConfig = getIncrConfigFile(collection);
-    // (new XmlFile(incrConfig)).write(incrComponent, Collections.emptySet());
-    // } catch (IOException e) {
-    // throw new RuntimeException("collection:" + collection, e);
-    // }
-    // }
 }

@@ -12,25 +12,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.qlangtech.tis.manage;
 
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 
 /**
- * 索引实例Srouce， 支持单表、dataflow
- *
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-03-31 11:16
- */
-public interface IAppSource extends Describable<IAppSource> {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-04-27 15:26
+ **/
+public interface IBasicAppSource extends IAppSource {
+    <T> T accept(IAppSourceVisitor<T> visitor);
 
-    default Descriptor<IAppSource> getDescriptor() {
-        return TIS.get().getDescriptor(this.getClass());
+    interface IAppSourceVisitor<T> {
+        default public T visit(ISolrAppSource app) {
+            return null;
+        }
+
+        default public T visit(DataxProcessor app) {
+            return null;
+        }
     }
-
-
-
 }
-

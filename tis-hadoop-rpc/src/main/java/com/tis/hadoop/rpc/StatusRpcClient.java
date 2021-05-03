@@ -285,7 +285,7 @@ public class StatusRpcClient {
         }
     }
 
-    private static class MockLogReporter implements ILogReporter {
+    public static class MockLogReporter implements ILogReporter {
 
         @Override
         public StreamObserver<PMonotorTarget> registerMonitorEvent(ILogListener logListener) {

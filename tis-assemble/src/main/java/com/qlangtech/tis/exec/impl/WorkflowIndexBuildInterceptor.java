@@ -55,7 +55,7 @@ public class WorkflowIndexBuildInterceptor extends IndexBuildInterceptor {
     @Override
     protected void setBuildTableTitleItems(String indexName, ImportDataProcessInfo processinfo, IExecChainContext execContext) {
         try {
-            ISolrAppSource appSource = DataFlowAppSource.load(indexName);
+            ISolrAppSource appSource = execContext.getAppSource(); //DataFlowAppSource.load(indexName);
             List<ColumnMetaData> finalNode = appSource.reflectCols();
 //            SqlTaskNodeMeta.SqlDataFlowTopology topology = execContext.getTopology();
 //            List<ColumnMetaData> finalNode = topology.getFinalTaskNodeCols();

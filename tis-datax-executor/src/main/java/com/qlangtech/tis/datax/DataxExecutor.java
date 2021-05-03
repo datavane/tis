@@ -30,9 +30,12 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.tis.hadoop.rpc.RpcServiceReference;
+import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -55,15 +58,20 @@ import java.util.Set;
  * @date 2021-04-20 12:38
  */
 public final class DataxExecutor {
-
-    private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
-    private static final MessageFormat FormatKeyPluginReader = new MessageFormat("plugin.reader.{0}");
-    private static final MessageFormat FormatKeyPluginWriter = new MessageFormat("plugin.writer.{0}");
-
-    private IDataXPluginMeta.DataXMeta readerMeta;
-    private IDataXPluginMeta.DataXMeta writerMeta;
-
     private static final Field jarLoaderCenterField;
+
+    public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName) {
+        TIS.permitInitialize = false;
+        try {
+            List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
+            keyedPluginStores.add(DataxReader.getPluginStore(dataxName));
+            keyedPluginStores.add(DataxWriter.getPluginStore(dataxName));
+            ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
+            dataxComponentMeta.synchronizePluginsFromRemoteRepository();
+        } finally {
+            TIS.permitInitialize = true;
+        }
+    }
 
     static {
         try {
@@ -74,6 +82,21 @@ public final class DataxExecutor {
         }
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
+    private static final MessageFormat FormatKeyPluginReader = new MessageFormat("plugin.reader.{0}");
+    private static final MessageFormat FormatKeyPluginWriter = new MessageFormat("plugin.writer.{0}");
+
+    private IDataXPluginMeta.DataXMeta readerMeta;
+    private IDataXPluginMeta.DataXMeta writerMeta;
+
+
+    private final RpcServiceReference statusRpc;
+
+    public DataxExecutor(RpcServiceReference statusRpc) {
+        this.statusRpc = statusRpc;
+    }
+
+
     /**
      * 开始执行数据同步任务
      *
@@ -82,21 +105,22 @@ public final class DataxExecutor {
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(String dataxName, String jobPath) throws IOException, Exception {
+    public void startWork(String dataxName, Integer jobId, String jobName, String jobPath) throws IOException, Exception {
         // TaskConfig config = TaskConfig.getInstance();
-        String[] args = new String[]{"-mode", "standalone", "-jobid", "-1", "-job", jobPath};
-        KeyedPluginStore<DataxReader> readerStore = null;
-        KeyedPluginStore<DataxWriter> writerStore = null;
-        TIS.permitInitialize = false;
-        try {
-            List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
-            keyedPluginStores.add(readerStore = DataxReader.getPluginStore(dataxName));
-            keyedPluginStores.add(writerStore = DataxWriter.getPluginStore(dataxName));
-            ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
-            dataxComponentMeta.synchronizePluginsFromRemoteRepository();
-        } finally {
-            TIS.permitInitialize = true;
-        }
+        String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath};
+
+        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+        KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(dataxName);
+//        TIS.permitInitialize = false;
+//        try {
+//            List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
+//            keyedPluginStores.add(readerStore = DataxReader.getPluginStore(dataxName));
+//            keyedPluginStores.add(writerStore = DataxWriter.getPluginStore(dataxName));
+//            ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
+//            dataxComponentMeta.synchronizePluginsFromRemoteRepository();
+//        } finally {
+//            TIS.permitInitialize = true;
+//        }
 
         try {
             DataxReader reader = readerStore.getPlugin();
@@ -120,14 +144,24 @@ public final class DataxExecutor {
             Objects.requireNonNull(jarLoaderCenter, "jarLoaderCenter can not be null");
             try {
                 entry(args);
+                this.reportDataXJobStatus(false, jobId, jobName);
             } catch (Throwable e) {
+                this.reportDataXJobStatus(true, jobId, jobName);
                 throw new Exception(e);
             } finally {
                 cleanPerfTrace();
             }
         } finally {
-
+            //  TIS.cleanTIS();
         }
+    }
+
+    private void reportDataXJobStatus(boolean faild, Integer taskId, String jobName) {
+        StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
+        DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
+        dumpStatus.setFaild(faild);
+        dumpStatus.setComplete(true);
+        svc.reportDumpTableStatus(dumpStatus);
     }
 
 

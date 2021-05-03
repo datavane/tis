@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.coredefine.module.action;
 
+import com.qlangtech.tis.config.k8s.ReplicasSpec;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

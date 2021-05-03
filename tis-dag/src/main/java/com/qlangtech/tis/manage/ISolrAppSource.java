@@ -40,7 +40,7 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:16
  */
-public interface ISolrAppSource extends IAppSource, IStreamIncrGenerateStrategy {
+public interface ISolrAppSource extends IBasicAppSource, IStreamIncrGenerateStrategy {
 
     List<ColumnMetaData> reflectCols();
 
@@ -50,6 +50,11 @@ public interface ISolrAppSource extends IAppSource, IStreamIncrGenerateStrategy 
     boolean triggerFullIndexSwapeValidate(IMessageHandler msgHandler, Context ctx);
 
     <T> T accept(ISolrAppSourceVisitor<T> visitor);
+
+    @Override
+    default <T> T accept(IAppSourceVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
     /**
      * 全量构建流程中取得最终构建实体

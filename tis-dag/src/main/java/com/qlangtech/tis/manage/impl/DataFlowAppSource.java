@@ -90,6 +90,7 @@ public class DataFlowAppSource implements ISolrAppSource, IStreamIncrGenerateStr
         return visitor.visit(this);
     }
 
+
     @Override
     public boolean isExcludeFacadeDAOSupport() {
         try {
