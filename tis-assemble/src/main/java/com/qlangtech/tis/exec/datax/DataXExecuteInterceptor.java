@@ -69,7 +69,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             triggers.add(jobTrigger);
         }
 
-        logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType(), appSource.getDataxCfgFileNames().stream().collect(Collectors.joining(",")));
+        logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
+                , appSource.getDataxCfgFileNames().stream().collect(Collectors.joining(",")));
         for (IRemoteJobTrigger t : triggers) {
             t.submitJob();
         }

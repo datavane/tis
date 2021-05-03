@@ -27,6 +27,7 @@ import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor.NewTaskParam;
 import com.qlangtech.tis.exec.impl.WorkflowDumpAndJoinInterceptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -248,7 +249,9 @@ public class TisServlet extends HttpServlet {
         final String indexName = execContext.getString(IFullBuildContext.KEY_APP_NAME);
         if (StringUtils.isNotEmpty(indexName)) {
             MDC.put("app", indexName);
-            return new FullPhraseMDCParamContext(indexName, res);
+            return StringUtils.startsWith(indexName, TISCollectionUtils.NAME_PREFIX) ?
+                    new FullPhraseMDCParamContext(indexName, res)
+                    : new DataXMDCParamContext(indexName, res);
         }
         Long wfid = execContext.getLong(IFullBuildContext.KEY_WORKFLOW_ID);
         MDC.put(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfid));
@@ -377,10 +380,21 @@ public class TisServlet extends HttpServlet {
         boolean validateParam() throws ServletException {
             if (shallValidateCollectionExist() && !indexSwapTaskflowLauncher.containIndex(indexName)) {
                 String msg = "indexName:" + indexName + " is not acceptable";
-                getLog().warn(msg + ",exist collection:{}", indexSwapTaskflowLauncher.getIndexNames());
+                getLog().error(msg + ",exist collection:{}", indexSwapTaskflowLauncher.getIndexNames());
                 writeResult(false, msg, res);
                 return false;
             }
+            return true;
+        }
+    }
+
+    private class DataXMDCParamContext extends FullPhraseMDCParamContext {
+        public DataXMDCParamContext(String dataxName, HttpServletResponse res) {
+            super(dataxName, res);
+        }
+
+        @Override
+        boolean validateParam() throws ServletException {
             return true;
         }
     }

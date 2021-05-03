@@ -27,13 +27,16 @@ import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
+import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
@@ -57,6 +60,16 @@ import java.util.*;
  */
 @InterceptorRefs({@InterceptorRef("tisStack")})
 public class DataxAction extends BasicModule {
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doTriggerFullbuildTask(Context context) throws Exception {
+
+    List<HttpUtils.PostParam> params = Lists.newArrayList();
+    params.add(new HttpUtils.PostParam(CoreAction.KEY_APPNAME, this.getCollectionName()));
+    CoreAction.triggerBuild(this, context, params);
+
+
+  }
 
   /**
    * @param context

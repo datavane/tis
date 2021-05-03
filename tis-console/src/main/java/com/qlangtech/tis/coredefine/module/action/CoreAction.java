@@ -396,16 +396,10 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
-    Application app = this.getAppDomain().getApp();// this.getApplicationDAO().selectByPrimaryKey(.getAppid());
+    Application app = this.getAppDomain().getApp();
     triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
   }
 
-//  public static void triggerFullIndexSwape(BasicModule module, Context context, Application app, int sharedCount) throws Exception {
-////    Assert.assertNotNull(app);
-////    WorkFlow df = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId());
-////    Assert.assertNotNull(df);
-//    triggerFullIndexSwape(module, context, app.getWorkFlowId(), df.getName(), sharedCount);
-//  }
 
   /**
    * 触发全量索引构建
@@ -508,6 +502,7 @@ public class CoreAction extends BasicModule {
   }
 
   private static final String bizKey = "biz";
+  public static final String KEY_APPNAME = "appname";
 
   /**
    * @param context
@@ -518,7 +513,7 @@ public class CoreAction extends BasicModule {
   private static TriggerBuildResult sendRequest2FullIndexSwapeNode(BasicModule module, final Context context, AppendParams appendParams) throws Exception {
 
     List<HttpUtils.PostParam> params = appendParams.getParam();
-    params.add(new PostParam("appname", module.getCollectionName()));
+    params.add(new PostParam(KEY_APPNAME, module.getCollectionName()));
     return triggerBuild(module, context, params);
   }
 
@@ -1194,51 +1189,10 @@ public class CoreAction extends BasicModule {
   }
 
   public static interface ReplicaCallback {
-
     public boolean process(boolean isLeader, Replica replica) throws Exception;
   }
 
-  //
-  // /**
-  // * 设置这次操作的json描述
-  // *
-  // * @param request
-  // * @throws Exception
-  // */
-  // // private void setOperationLogDesc(FCoreRequest request) throws
-  // Exception {
-  // // JSONObject json = new JSONObject();
-  // // json.put("name", request.getRequest().getServiceName());
-  // // json.put("terminatorUrl", request.getRequest().getTerminatorUrl());
-  // // json.put("monopolized", request.getRequest().isMonopolized());
-  // //
-  // // JSONObject servers = new JSONObject();
-  // //
-  // // for (Map.Entry<Integer, Collection<String>> entry : request
-  // // .getServersView().entrySet()) {
-  // // JSONArray group = new JSONArray();
-  // //
-  // // for (String ip : entry.getValue()) {
-  // // group.put(ip);
-  // // }
-  // // servers.put("group" + entry.getKey(), group);
-  // // }
-  // // json.put("servers", servers);
-  // // request.getRequest().setOpDesc(json.toString());
-  // // request.getRequest().setLoggerContent(StringUtils.EMPTY);
-  // //
-  // // }
-  //
-  // private Map<String, CoreNode> getCoreNodeMap() {
-  // return getCoreNodeMap(/* getCoreNodeMap */false);
-  //
-  // }
-  //
-  // /**
-  // * 取得当前应用
-  // *
-  // * @return
-  // */
+
   private Map<String, CoreNode> getCoreNodeMap(boolean isAppNameAware) {
     CoreNode[] nodelist = SelectableServer.getCoreNodeInfo(this.getRequest(), this, false, isAppNameAware);
     Map<String, CoreNode> result = new HashMap<String, CoreNode>();
