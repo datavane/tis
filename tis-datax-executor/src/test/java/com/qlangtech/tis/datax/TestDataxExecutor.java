@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.alibaba.datax.core.util.container.JarLoader;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
@@ -40,7 +42,14 @@ public class TestDataxExecutor extends TISTestCase {
 
         //RpcServiceReference statusRpc = StatusRpcClient.getService(zkClient);
 
-        DataxExecutor executor = new DataxExecutor(statusRpc);
+        final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
+            @Override
+            protected Class<?> findClass(String name) throws ClassNotFoundException {
+                return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+            }
+        };
+
+        DataxExecutor executor = new DataxExecutor(statusRpc, uberClassLoader);
         final String jobName = "customer_order_relation_1.json";
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitest/dataxCfg/" + jobName);
 // tring dataxName, Integer jobId, String jobName, String jobPath

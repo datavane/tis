@@ -33,7 +33,6 @@ import com.qlangtech.tis.realtime.yarn.rpc.impl.AdapterStatusUmbilicalProtocol;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
-import com.tis.hadoop.rpc.StatusRpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +64,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         List<IRemoteJobTrigger> triggers = Lists.newArrayList();
 
         for (String fileName : appSource.getDataxCfgFileNames()) {
-            jobTrigger = createDataXJob(execChainContext, statusRpc, appSource,  fileName);
+            jobTrigger = createDataXJob(execChainContext, statusRpc, appSource, fileName);
             triggers.add(jobTrigger);
         }
 
@@ -133,16 +132,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             }
         };
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
-        ref.set(new StatusRpcClient.AssembleSvcCompsite(statReceiveSvc, new StatusRpcClient.MockLogReporter()) {
-            @Override
-            public void close() {
-            }
-
-            @Override
-            public StatusRpcClient.AssembleSvcCompsite unwrap() {
-                return this;
-            }
-        });
+        ref.set(new DataXAssembleSvcCompsite(statReceiveSvc));
         return new RpcServiceReference(ref);
     }
 

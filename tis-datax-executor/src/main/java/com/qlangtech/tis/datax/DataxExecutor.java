@@ -91,9 +91,11 @@ public final class DataxExecutor {
 
 
     private final RpcServiceReference statusRpc;
+    private final JarLoader uberClassLoader;
 
-    public DataxExecutor(RpcServiceReference statusRpc) {
+    public DataxExecutor(RpcServiceReference statusRpc, JarLoader uberClassLoader) {
         this.statusRpc = statusRpc;
+        this.uberClassLoader = uberClassLoader;
     }
 
 
@@ -132,12 +134,12 @@ public final class DataxExecutor {
 
             Map<String, JarLoader> jarLoaderCenter = (Map<String, JarLoader>) jarLoaderCenterField.get(null);
             jarLoaderCenter.clear();
-            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
-                @Override
-                protected Class<?> findClass(String name) throws ClassNotFoundException {
-                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-                }
-            };
+//            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
+//                @Override
+//                protected Class<?> findClass(String name) throws ClassNotFoundException {
+//                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+//                }
+//            };
             jarLoaderCenter.put(this.getPluginReaderKey(), uberClassLoader);
             jarLoaderCenter.put(this.getPluginWriterKey(), uberClassLoader);
 

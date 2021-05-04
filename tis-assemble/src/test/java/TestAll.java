@@ -18,6 +18,8 @@ import com.qlangtech.tis.fullbuild.servlet.TestTisServlet;
 import com.qlangtech.tis.fullbuild.taskflow.TestReactor;
 import com.qlangtech.tis.log.TestRealtimeLoggerCollectorAppender;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher;
+import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
+import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithSingleTableIndexBuild;
 import com.qlangtech.tis.rpc.server.TestIncrStatusServer;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -35,6 +37,8 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestActionInvocation.class);
         suite.addTestSuite(TestReactor.class);
         suite.addTestSuite(TestIndexSwapTaskflowLauncher.class);
+        suite.addTestSuite(TestIndexSwapTaskflowLauncherWithSingleTableIndexBuild.class);
+        suite.addTestSuite(TestIndexSwapTaskflowLauncherWithDataXTrigger.class);
         suite.addTestSuite(TestIncrStatusServer.class);
         suite.addTestSuite(TestRealtimeLoggerCollectorAppender.class);
         suite.addTestSuite(TestDataXExecuteInterceptor.class);

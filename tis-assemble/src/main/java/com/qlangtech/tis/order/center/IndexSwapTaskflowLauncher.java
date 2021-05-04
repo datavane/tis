@@ -256,9 +256,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         logger.info("start component:" + range.getStart() + ",end component:" + range.getEnd());
         chainContext.setZkClient(zkClient);
         chainContext.setZkStateReader(zkStateReader);
-        Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
-        Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
-        chainContext.setIndexMetaData(createIndexMetaData(chainContext));
+//        Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
+//        Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
+//        chainContext.setIndexMetaData(createIndexMetaData(chainContext));
         invoke = AbstractActionInvocation.createExecChain(chainContext);
         ExecuteResult execResult = invoke.invoke();
         if (!execResult.isSuccess()) {
@@ -268,15 +268,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         return execResult;
     }
 
-    private IIndexMetaData createIndexMetaData(DefaultChainContext chainContext) throws Exception {
-        if (!chainContext.hasIndexName()) {
-            return new DummyIndexMetaData();
-        }
-        SnapshotDomain domain = HttpConfigFileReader.getResource(chainContext.getIndexName(), RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA);
-        return SolrFieldsParser.parse(() -> {
-            return ConfigFileReader.FILE_SCHEMA.getContent(domain);
-        });
-    }
+
 
 
     // ///daemon/////////////////===========================================

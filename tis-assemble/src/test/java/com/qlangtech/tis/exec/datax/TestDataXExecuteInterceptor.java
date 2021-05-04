@@ -21,6 +21,7 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.RpcServiceReference;
@@ -90,6 +91,10 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
 
 
     private static class TestDataxProcessor extends DataxProcessor {
+        @Override
+        public Application buildApp() {
+            return null;
+        }
 
         @Override
         public String identityValue() {

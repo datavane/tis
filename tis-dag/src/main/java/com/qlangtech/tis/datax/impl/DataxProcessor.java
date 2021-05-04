@@ -15,10 +15,15 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 
@@ -26,6 +31,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +41,20 @@ import java.util.stream.Collectors;
  * @date 2021-04-07 16:46
  */
 public abstract class DataxProcessor implements IBasicAppSource, IdentityName, IDataxProcessor {
+
+    protected static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
+
+    public static Descriptor<IAppSource> getPluginDescMeta() {
+        DescriptorExtensionList<IAppSource, Descriptor<IAppSource>> descs = TIS.get().getDescriptorList(IAppSource.class);
+        Optional<Descriptor<IAppSource>> dataxProcessDescs
+                = descs.stream().filter((des) -> DEFAULT_DATAX_PROCESSOR_NAME.equals(des.getDisplayName())).findFirst();
+        if (!dataxProcessDescs.isPresent()) {
+            throw new IllegalStateException("dataX process descriptor:" + DEFAULT_DATAX_PROCESSOR_NAME + " relevant descriptor can not be null");
+        }
+        return dataxProcessDescs.get();
+    }
+
+    public abstract Application buildApp();
 
     private List<TableAlias> tableMaps;
 

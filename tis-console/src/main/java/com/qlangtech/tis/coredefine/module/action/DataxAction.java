@@ -23,10 +23,14 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISelectedTab;
-import com.qlangtech.tis.datax.impl.*;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -75,9 +79,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doDataxProcessorDesc(Context context) {
-
-    DefaultDataxProcessor defaultDataxProcessor = new DefaultDataxProcessor();
-    this.setBizResult(context, new PluginDescMeta(Collections.singletonList(defaultDataxProcessor.getDescriptor())));
+    this.setBizResult(context, new PluginDescMeta(Collections.singletonList(DataxProcessor.getPluginDescMeta())));
   }
 
   /**
@@ -219,7 +221,7 @@ public class DataxAction extends BasicModule {
    */
   public void doCreateDatax(Context context) throws Exception {
     String dataxName = this.getString("dataxName");
-    DefaultDataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
+    DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
     Application app = dataxProcessor.buildApp(); //this.parseJsonPost(Application.class);
 
     SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app
@@ -254,7 +256,9 @@ public class DataxAction extends BasicModule {
       tableMaps.add(tabAlias);
     }
 
-    dataxProcessor = appSource.isPresent() ? appSource.get() : new DefaultDataxProcessor();
+    Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
+    Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable = pluginDescMeta.newInstance(this, Collections.emptyMap(), Optional.empty());
+    dataxProcessor = appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
     dataxProcessor.setTableMaps(tableMaps);
     DataFlowAppSource.save(dataxName, dataxProcessor);
   }

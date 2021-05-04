@@ -64,7 +64,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             return groupName + File.separator + keyVal;
         }
 
-        private XmlFile getSotreFile() {
+        public XmlFile getSotreFile() {
             return Descriptor.getConfigFile(getSerializeFileName());
         }
 
