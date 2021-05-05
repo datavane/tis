@@ -21,6 +21,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISelectedTab;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
@@ -41,6 +42,7 @@ import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
@@ -70,6 +72,9 @@ public class DataxAction extends BasicModule {
 
     List<HttpUtils.PostParam> params = Lists.newArrayList();
     params.add(new HttpUtils.PostParam(CoreAction.KEY_APPNAME, this.getCollectionName()));
+    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
+    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.FullDump.getName()));
+
     CoreAction.triggerBuild(this, context, params);
 
 

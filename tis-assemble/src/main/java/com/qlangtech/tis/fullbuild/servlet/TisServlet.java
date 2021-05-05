@@ -409,7 +409,7 @@ public class TisServlet extends HttpServlet {
         Integer workflowId = chainContext.getWorkflowId();
         NewTaskParam newTaskParam = new NewTaskParam();
         ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
-        if (executeRanage.getEnd().bigThan(FullbuildPhase.JOIN)) {
+        if (chainContext.hasIndexName() || executeRanage.getEnd().bigThan(FullbuildPhase.JOIN)) {
             String indexname = chainContext.getIndexName();
             newTaskParam.setAppname(indexname);
         }
@@ -419,7 +419,7 @@ public class TisServlet extends HttpServlet {
         }
         newTaskParam.setWorkflowid(workflowId);
         newTaskParam.setExecuteRanage(executeRanage);
-        // newTaskParam.setToPhase(FullbuildPhase.IndexBackFlow);
+
         newTaskParam.setTriggerType(TriggerType.MANUAL);
         Integer taskid = WorkflowDumpAndJoinInterceptor.createNewTask(newTaskParam);
         log.info("create new taskid:" + taskid);
