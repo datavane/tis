@@ -15,6 +15,8 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import org.apache.commons.lang.StringUtils;
+
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,6 +57,10 @@ public class Specification {
         this.val = val;
     }
 
+    /**
+     * 归一化内存规格，单位：兆
+     * @return
+     */
     public int normalizeMemory() {
         int result = 0;
         if ("M".equals(this.getUnit())) {
@@ -84,6 +90,17 @@ public class Specification {
         }
         return result;
     }
+
+    public boolean memoryBigThan(Specification spec){
+        Objects.requireNonNull(spec,"param spec can not be null");
+        return this.normalizeMemory() > spec.normalizeMemory();
+    }
+
+    public boolean cpuBigThan(Specification spec){
+        Objects.requireNonNull(spec,"param spec can not be null");
+        return this.normalizeCPU() > spec.normalizeCPU();
+    }
+
 
     public String getUnit() {
         return unit;

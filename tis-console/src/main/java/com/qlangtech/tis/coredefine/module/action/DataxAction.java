@@ -34,11 +34,9 @@ import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.manage.common.RunContext;
-import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
+import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
@@ -101,6 +99,48 @@ public class DataxAction extends BasicModule {
     }
 
     dataxJobWorker.launchService();
+    this.doGetDataxWorkerMeta(context);
+    AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
+    DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
+    if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
+      throw new IllegalStateException("DataX Controller launch faild please contract administer");
+    }
+    this.addActionMessage(context, "已经成功启动DataX执行器");
+  }
+
+  /**
+   * 删除dataX实例
+   *
+   * @param context
+   */
+  public void doRemoveDataxWorker(Context context) {
+    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
+    if (!dataxJobWorker.inService()) {
+      throw new IllegalStateException("dataxJobWorker is not in serivce ,can not remove");
+    }
+    dataxJobWorker.remove();
+    this.addActionMessage(context, "DataX Worker 已经被删除");
+  }
+
+  /**
+   * 取得K8S dataX worker
+   *
+   * @param context
+   */
+  public void doGetDataxWorkerMeta(Context context) {
+    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
+    DataXJobWorkerStatus jobWorkerStatus = new DataXJobWorkerStatus();
+    if (dataxJobWorker == null) {
+      jobWorkerStatus.setK8sReplicationControllerCreated(false);
+      this.setBizResult(context, jobWorkerStatus);
+      return;
+    }
+
+    jobWorkerStatus.setK8sReplicationControllerCreated(dataxJobWorker.inService());
+    jobWorkerStatus.setRcDeployment(dataxJobWorker.getRCDeployment());
+    this.setBizResult(context, jobWorkerStatus);
   }
 
   /**

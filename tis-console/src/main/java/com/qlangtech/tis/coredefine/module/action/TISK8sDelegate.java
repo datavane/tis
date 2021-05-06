@@ -71,7 +71,7 @@ public class TISK8sDelegate {
 
   private IIncrSync incrSync;
 
-  private IncrDeployment incrDeployment;
+  private RcDeployment incrDeployment;
 
   private long latestIncrDeploymentFetchtime;
 
@@ -114,7 +114,7 @@ public class TISK8sDelegate {
     return getRcConfig(canGetCache) != null;
   }
 
-  public IncrDeployment getRcConfig(boolean canGetCache) {
+  public RcDeployment getRcConfig(boolean canGetCache) {
     long current = System.currentTimeMillis();
     // 40秒缓存
     if (!canGetCache || this.incrDeployment == null || (current > (latestIncrDeploymentFetchtime + 40000))) {

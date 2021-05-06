@@ -150,7 +150,6 @@ public class CoreAction extends BasicModule {
     PluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
     if (store.getPlugin() == null) {
       incrStatus.setK8sPluginInitialized(false);
-      //this.setBizResult(context, incrStatus);
       return incrStatus;
     }
     incrStatus.setK8sPluginInitialized(true);
@@ -159,10 +158,10 @@ public class CoreAction extends BasicModule {
       = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
     TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
-    IncrDeployment rcConfig = k8s.getRcConfig(getRcConfigInCache);
+    RcDeployment rcConfig = k8s.getRcConfig(getRcConfigInCache);
     incrStatus.setK8sReplicationControllerCreated(rcConfig != null);
     if (rcConfig != null) {
-      incrStatus.setIncrDeployment(rcConfig);
+      incrStatus.setRcDeployment(rcConfig);
       JobType.RemoteCallResult<IndexJobRunningStatus> callResult
         = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
         getAssembleNodeAddress(module.getSolrZkClient()),

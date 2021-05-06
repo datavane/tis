@@ -44,6 +44,7 @@ public class TestTisServlet extends TestCase {
         EasyMock.expect(execChainContext.getWorkflowId()).andReturn(null).anyTimes();
         execChainContext.setAttribute(IParamContext.KEY_TASK_ID, taskid);
         EasyMock.expect(execChainContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange());
+        EasyMock.expect(execChainContext.hasIndexName()).andReturn(true);
         EasyMock.expect(execChainContext.getIndexName()).andReturn(collectionName);
         EasyMock.expect(execChainContext.getString(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID)).andReturn(historyId);
         EasyMock.replay(execChainContext);

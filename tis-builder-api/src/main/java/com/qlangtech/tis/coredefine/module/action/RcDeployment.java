@@ -27,7 +27,7 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-09-02 12:32
  */
-public class IncrDeployment extends ReplicasSpec {
+public class RcDeployment extends ReplicasSpec {
 
     // 创建时间
     private long creationTimestamp;

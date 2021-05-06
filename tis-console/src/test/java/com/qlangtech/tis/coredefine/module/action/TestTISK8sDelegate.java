@@ -34,9 +34,9 @@ public class TestTISK8sDelegate extends TestCase {
         TISK8sDelegate k8SDelegate = TISK8sDelegate.getK8SDelegate(totalpay);
         System.out.println("get k8SDelegate instance");
         AtomicInteger msgReceiveCount = new AtomicInteger();
-        IncrDeployment rc = k8SDelegate.getRcConfig(true);
+        RcDeployment rc = k8SDelegate.getRcConfig(true);
         assertTrue("pod size must big than 1", rc.getPods().size() > 0);
-        IncrDeployment.PodStatus podStatus = rc.getPods().get(0);
+        RcDeployment.PodStatus podStatus = rc.getPods().get(0);
         k8SDelegate.listPodsAndWatchLog(podStatus.getName(), new ILogListener() {
 
             @Override

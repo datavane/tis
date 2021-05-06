@@ -18,12 +18,16 @@ package com.qlangtech.tis.datax.job;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
+import com.qlangtech.tis.coredefine.module.action.RcDeployment;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
+import com.qlangtech.tis.trigger.jst.ILogListener;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * DataX 任务执行容器
@@ -33,6 +37,35 @@ import java.util.List;
  **/
 public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
+
+    public static DataXJobWorker getDataxJobWorker() {
+        PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+        DataXJobWorker jobWorker = dataxJobWorkerStore.getPlugin();
+        Objects.requireNonNull(jobWorker, "jobWorker can not be null");
+        return jobWorker;
+    }
+
+    /**
+     * 重启增量节点
+     *
+     * @param
+     */
+    public abstract void relaunch();
+
+    /**
+     * 获取已经启动的RC运行参数
+     *
+     * @param
+     * @return
+     */
+    public abstract RcDeployment getRCDeployment();
+
+    /**
+     * 开始增量监听
+     *
+     * @param listener
+     */
+    public abstract WatchPodLog listPodAndWatchLog(String podName, ILogListener listener);
 
     /**
      * dataXWorker service 是否是启动状态
@@ -51,6 +84,8 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
      * @return
      */
     protected abstract String getZookeeperAddress();
+
+    public abstract String getZkQueuePath();
 
     protected abstract K8sImage getK8SImage();
 
@@ -95,6 +130,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
      * 启动服务
      */
     public abstract void launchService();
+
 
     @Override
     public Descriptor<DataXJobWorker> getDescriptor() {

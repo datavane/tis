@@ -12,15 +12,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.offline;
+
+package com.qlangtech.tis.datax;
+
+import com.alibaba.fastjson.JSON;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import org.apache.curator.framework.recipes.queue.QueueSerializer;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-12 12:21
- */
-public class DataxUtils {
-    public static final String DATAX_NAME = "dataxName";
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-05-06 15:33
+ **/
+public class MessageSerializer implements QueueSerializer<CuratorTaskMessage> {
 
-//    public static final String DATAX_QUEUE_ZK_PATH = "zkQueuePath";
-//    public static final String DATAX_ZK_ADDRESS = "zkAddress";
+    @Override
+    public byte[] serialize(CuratorTaskMessage item) {
+        return JSON.toJSONString(item, false).getBytes(TisUTF8.get());
+    }
+
+    @Override
+    public CuratorTaskMessage deserialize(byte[] bytes) {
+        return JSON.parseObject(new String(bytes), CuratorTaskMessage.class);
+    }
 }

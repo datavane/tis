@@ -57,7 +57,7 @@ public interface IIncrSync {
      * @param collection
      * @return
      */
-    IncrDeployment getRCDeployment(String collection);
+    RcDeployment getRCDeployment(String collection);
 
     /**
      * 开始增量监听

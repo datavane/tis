@@ -20,19 +20,17 @@ import com.qlangtech.tis.realtime.yarn.rpc.IndexJobRunningStatus;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class IndexIncrStatus {
+public class IndexIncrStatus extends K8SControllerStatus {
+    public IndexIncrStatus() {
+    }
 
     private long  incrScriptTimestamp;
     // k8s的插件是否配置完成
     private boolean k8sPluginInitialized = false;
 
-    // k8s的RC是否已经创建
-    private boolean k8sReplicationControllerCreated;
-
     // 增量执行任务是否正在执行
     private IndexJobRunningStatus incrProcessStatus;
 
-    private IncrDeployment incrDeployment;
 
     public IndexJobRunningStatus getIncrProcess() {
         return this.incrProcessStatus;
@@ -42,27 +40,13 @@ public class IndexIncrStatus {
         this.incrProcessStatus = incrProcessStatus;
     }
 
-    public IncrDeployment getIncrDeployment() {
-        return incrDeployment;
-    }
 
-    public void setIncrDeployment(IncrDeployment incrDeployment) {
-        this.incrDeployment = incrDeployment;
-    }
 
     // 增量脚本是否已经生成？
     private boolean incrScriptCreated;
 
     private String incrScriptMainFileContent;
 
-    // private MqConfigMeta mqConfig;
-    public boolean isK8sReplicationControllerCreated() {
-        return k8sReplicationControllerCreated;
-    }
-
-    public void setK8sReplicationControllerCreated(boolean k8sReplicationControllerCreated) {
-        this.k8sReplicationControllerCreated = k8sReplicationControllerCreated;
-    }
 
     public boolean isK8sPluginInitialized() {
         return k8sPluginInitialized;

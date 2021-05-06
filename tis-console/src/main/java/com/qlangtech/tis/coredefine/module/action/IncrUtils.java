@@ -62,69 +62,122 @@ public class IncrUtils {
     ReplicasSpec spec = new ReplicasSpec();
     IncrSpecResult result = new IncrSpecResult(spec, context, msg);
     result.success = false;
-    int replicCount = form.getIntValue("pods");
+    String fieldPods = "pods";
+    int replicCount = form.getIntValue(fieldPods);
     if (replicCount < 1) {
-      msg.addErrorMessage(context, "请设置Pods，不能小于1");
+      // msg.addErrorMessage(context, "请设置Pods，不能小于1");
+      msg.addFieldError(context, fieldPods, "请设置Pods，不能小于1");
+      return result;
+    }
+    if (replicCount > 20) {
+      msg.addFieldError(context, fieldPods, "不能大于20");
       return result;
     }
     spec.setReplicaCount(replicCount);
     Specification s = null;
-    String cpurequest = StringUtils.defaultIfBlank(form.getString("cuprequest"), "300");
-    String cpurequestUnit = form.getString("cuprequestunit");
+    String fieldCuprequest = "cuprequest";
+    String cpurequest = StringUtils.defaultIfBlank(form.getString(fieldCuprequest), "300");
+    String cpuRequestUnit = form.getString("cuprequestunit");
     if (!IncrUtils.isNumber(cpurequest)) {
-      msg.addErrorMessage(context, "cpurequest must be " + IncrUtils.PATTERN_NUMBER);
+      //msg.addErrorMessage(context, "cpurequest must be " + IncrUtils.PATTERN_NUMBER);
+      msg.addFieldError(context, fieldCuprequest, "必须是非负整数");
       return result;
     }
-    if (StringUtils.isEmpty(cpurequestUnit)) {
-      msg.addErrorMessage(context, "请填写CPU请求单位");
+    if (StringUtils.isEmpty(cpuRequestUnit)) {
+      msg.addFieldError(context, fieldCuprequest, "请填写CPU请求单位");
       return result;
     }
-    cpurequestUnit = "cores".equals(cpurequestUnit) ? StringUtils.EMPTY : cpurequestUnit;
+    cpuRequestUnit = "cores".equals(cpuRequestUnit) ? StringUtils.EMPTY : cpuRequestUnit;
     s = new Specification();
     s.setVal(Integer.parseInt(cpurequest));
-    s.setUnit(cpurequestUnit);
+    s.setUnit(cpuRequestUnit);
+    int maxCpuCoresRequest = 4;
+    if (s.normalizeCPU() > (maxCpuCoresRequest * 1024)) {
+      msg.addFieldError(context, fieldCuprequest, "请检查CPU请求资源，不能大于" + maxCpuCoresRequest + "cores");
+      return result;
+    }
     spec.setCpuRequest(s);
-    // cpurequest = cpurequest + cpurequestUnit;
-    String cupLimit = StringUtils.defaultIfBlank(form.getString("cuplimit"), "1");
+
+
+    String filedCpuLimit = "cuplimit";
+    String cupLimit = StringUtils.defaultIfBlank(form.getString(filedCpuLimit), "1");
     String cupLimitUnit = form.getString("cuplimitunit");
     if (!IncrUtils.isNumber(cupLimit)) {
-      msg.addErrorMessage(context, "CPU limit must be " + IncrUtils.PATTERN_NUMBER);
+      // msg.addErrorMessage(context, "CPU limit must be " + IncrUtils.PATTERN_NUMBER);
+      msg.addFieldError(context, filedCpuLimit, "必须是非负整数");
       return result;
     }
     if (StringUtils.isEmpty(cupLimitUnit)) {
-      msg.addErrorMessage(context, "请填写CPU最大请求单位");
+      msg.addFieldError(context, filedCpuLimit, "请填写CPU最大请求单位");
       return result;
     }
     cupLimitUnit = "cores".equals(cupLimitUnit) ? StringUtils.EMPTY : cupLimitUnit;
     s = new Specification();
     s.setVal(Integer.parseInt(cupLimit));
     s.setUnit(cupLimitUnit);
+
+    int maxCpuCoresLimit = 8;
+    if (s.normalizeCPU() > maxCpuCoresLimit * 1024) {
+      msg.addFieldError(context, filedCpuLimit, "请检查CPU最大申请资源，不能大于" + maxCpuCoresLimit + "cores");
+      return result;
+    }
     spec.setCpuLimit(s);
+    if (spec.getCpuRequest().cpuBigThan(spec.getCpuLimit())) {
+      msg.addFieldError(context, fieldCuprequest, "请检查CPU`申请资源`，不能大于`最大申请资源`");
+      msg.addFieldError(context, filedCpuLimit, "请检查CPU`最大申请资源`，不能小于`申请资源`");
+    }
+
+
     // cupLimit = cupLimit + cupLimitUnit;
-    String memoryRequest = StringUtils.defaultIfBlank(form.getString("memoryrequest"), "300");
+    String fieldMemoryRequest = "memoryrequest";
+    String memoryRequest = StringUtils.defaultIfBlank(form.getString(fieldMemoryRequest), "300");
     String memoryRequestUnit = form.getString("memoryrequestunit");
     if (!IncrUtils.isNumber(memoryRequest)) {
-      msg.addErrorMessage(context, "内存格式" + IncrUtils.PATTERN_NUMBER);
+      // msg.addErrorMessage(context, "内存格式" + IncrUtils.PATTERN_NUMBER);
+      msg.addFieldError(context, fieldMemoryRequest, "必须是非负整数");
       return result;
     }
     if (StringUtils.isEmpty(memoryRequestUnit)) {
-      msg.addErrorMessage(context, "请填写内存请求单位");
+      // msg.addErrorMessage(context, "请填写内存请求单位");
+      msg.addFieldError(context, fieldMemoryRequest, "请填写内存请求单位");
       return result;
     }
     s = new Specification();
     s.setVal(Integer.parseInt(memoryRequest));
     s.setUnit(memoryRequestUnit);
+    int maxMemoryRequest = 4;
+    if (s.normalizeMemory() > (maxMemoryRequest * 1024)) {
+      msg.addFieldError(context, fieldMemoryRequest, "请检查内存申请资源，不能大于" + maxMemoryRequest + "G");
+      return result;
+    }
     spec.setMemoryRequest(s);
-    // memoryRequest = memoryRequest + memoryRequestUnit;
-    String memoryLimit = StringUtils.defaultIfBlank(form.getString("memorylimit"), "2");
+
+    String fieldMemorylimit = "memorylimit";
+    String memoryLimit = StringUtils.defaultIfBlank(form.getString(fieldMemorylimit), "2");
     String memoryLimitUnit = form.getString("memorylimitunit");
     if (!IncrUtils.isNumber(memoryLimit)) {
-      msg.addErrorMessage(context, "内存上限" + IncrUtils.PATTERN_NUMBER);
+      //msg.addErrorMessage(context, "内存上限" + IncrUtils.PATTERN_NUMBER);
+      msg.addFieldError(context, fieldMemorylimit, "必须为非负整数");
       return result;
     }
     if (StringUtils.isEmpty(memoryLimitUnit)) {
-      msg.addErrorMessage(context, "请填写内存上限单位");
+      msg.addFieldError(context, fieldMemorylimit, "请填写内存上限单位");
       return result;
+    }
+    int maxMemorylimit = 8;
+    s = new Specification();
+    s.setVal(Integer.parseInt(memoryLimit));
+    s.setUnit(memoryLimitUnit);
+    if (s.normalizeMemory() > (maxMemorylimit * 1024)) {
+      msg.addFieldError(context, fieldMemorylimit, "请检查内存最大申请资源，不能大于" + maxMemorylimit + "G");
+      return result;
+    }
+    spec.setMemoryLimit(s);
+
+    if (spec.getMemoryRequest().memoryBigThan(spec.getMemoryLimit())) {
+      msg.addFieldError(context, fieldMemoryRequest, "请检查内存`申请资源`，不能大于`最大申请资源`");
+      msg.addFieldError(context, fieldMemorylimit, "请检查内存`最大申请资源`，不能小于`申请资源`");
+      // return result;
     }
 
     boolean supportHpa = form.getBoolean("supportHpa");
@@ -144,6 +197,7 @@ public class IncrUtils {
       }
       if (maxHpaPod <= minHpaPod) {
         msg.addFieldError(context, "maxHpaPod", "必须大于最小弹性Pod数");
+        msg.addFieldError(context, "minHpaPod", "必须小于最大弹性Pod数");
         hasErr = true;
       }
       if (hasErr) {
@@ -154,14 +208,9 @@ public class IncrUtils {
       hpa.setMinPod(minHpaPod);
       hpa.setCpuAverageUtilization(cpuAverageUtilization);
       result.hpa = hpa;
-      //spec.setHpa(hpa);
     }
 
-    s = new Specification();
-    s.setVal(Integer.parseInt(memoryLimit));
-    s.setUnit(memoryLimitUnit);
-    spec.setMemoryLimit(s);
-    result.success = true;
+    result.success = !context.hasErrors();
     return result;
   }
 
