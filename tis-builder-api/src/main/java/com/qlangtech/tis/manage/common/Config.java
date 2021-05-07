@@ -22,8 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -128,6 +130,17 @@ public class Config {
 
     private final TisDbConfig dbCfg;
 
+    private static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
+    private static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
+
+    private static final Set<String> localDftValsKeys;
+
+    static {
+        localDftValsKeys = new HashSet<>();
+        localDftValsKeys.add(KEY_TIS_DATASOURCE_TYPE);
+        localDftValsKeys.add(KEY_TIS_DATASOURCE_DBNAME);
+    }
+
     private Config() {
         P p = P.create();
         this.zkHost = p.getString(KEY_ZK_HOST, true);
@@ -137,8 +150,8 @@ public class Config {
 
         this.dbCfg = new TisDbConfig();
         try {
-            dbCfg.dbtype = p.getString("tis.datasource.type", true);
-            dbCfg.dbname = p.getString("tis.datasource.dbname", true);
+            dbCfg.dbtype = p.getString(KEY_TIS_DATASOURCE_TYPE, true);
+            dbCfg.dbname = p.getString(KEY_TIS_DATASOURCE_DBNAME, true);
             if (DB_TYPE_MYSQL.equals(dbCfg.dbtype)) {
                 dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
                 dbCfg.url = p.getString("tis.datasource.url");
@@ -178,10 +191,6 @@ public class Config {
     public static String getAssembleHost() {
         return getInstance().assembleHost;
     }
-
-//    public static String getAssembleHttpHost() {
-    //   return "http://" + getInstance().assembleHost + ":8080" + CONTEXT_ASSEMBLE;
-//    }
 
     public static TisDbConfig getDbCfg() {
         return getInstance().getDbConfig();
@@ -256,9 +265,11 @@ public class Config {
         public static P create() {
             if (Boolean.getBoolean(KEY_JAVA_RUNTIME_PROP_ENV_PROPS)) {
                 return new P() {
-
                     @Override
                     protected String getProp(String key) {
+                        if (localDftValsKeys.contains(key)) {
+                            return "defaultVal";
+                        }
                         return System.getenv(key);
                     }
                 };

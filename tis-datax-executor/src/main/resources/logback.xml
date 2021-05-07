@@ -14,7 +14,7 @@
 
 
     <appender name="datax"
-              class="com.qlangtech.tis.realtime.utils.TisFlumeLogstashV1Appender">
+              class="com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
@@ -38,7 +38,7 @@
     <root>
         <level value="INFO"/>
         <appender-ref ref="STDOUT"/>
-        <appender-ref ref="datax"/>
+<!--        <appender-ref ref="datax"/>-->
     </root>
 
 </configuration>

@@ -1,80 +1,50 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.build.log;
+package com.qlangtech.tis.datax.log;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.gilt.logback.flume.FlumeLogstashV1Appender;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import java.util.HashSet;
+
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * 发送日志的时候会将当前上下文MDC“app”参数发送
- *
  * @author 百岁（baisui@qlangtech.com）
- * @date 2016年8月20日
+ * @date 2016年4月15日
  */
-public class AppnameAwareFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
+public class TisFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
 
-    private static final Set<AppnameAwareFlumeLogstashV1Appender> flumeAppenderSet = new HashSet<>();
+//    public static final String ENVIRONMENT_INCR_EXEC_GROUP = "incr_exec_group";
 
-    private boolean closed = false;
-
-    public static void closeAllFlume() {
-        int closeCount = 0;
-        for (FlumeLogstashV1Appender appender : flumeAppenderSet) {
-            try {
-                appender.stop();
-                closeCount++;
-            } catch (Throwable e) {
-            }
-        }
-        System.out.println("closeFlumeClientCount:" + closeCount);
-    }
-
-    public AppnameAwareFlumeLogstashV1Appender() {
+    public TisFlumeLogstashV1Appender() {
         super();
         super.setFlumeAgents(Config.getAssembleHost() + ":" + Config.LogFlumeAddressPORT);
-        // super.setFlumeAgents("10.1.21.48:41414");
-        flumeAppenderSet.add(this);
     }
 
-    @Override
-    public void stop() {
-        this.closed = true;
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        super.stop();
+    public void setFlumeAgents(String flumeAgents) {
     }
 
     @Override
     protected void append(ILoggingEvent eventObject) {
-        if (closed) {
+        if (Config.isTestMock()) {
             return;
         }
         super.append(eventObject);
-    }
-
-    public void setFlumeAgents(String flumeAgents) {
-    // super.setFlumeAgents(flumeAgents);
     }
 
     @Override
@@ -85,4 +55,11 @@ public class AppnameAwareFlumeLogstashV1Appender extends FlumeLogstashV1Appender
         result.put(TISCollectionUtils.KEY_COLLECTION, collection);
         return result;
     }
+
+//    @Override
+//    protected HashMap<String, String> createHeaders() {
+//        HashMap<String, String> headers = new HashMap<>();
+//        //headers.put(ENVIRONMENT_INCR_EXEC_GROUP, "tis-datax");
+//        return headers;
+//    }
 }
