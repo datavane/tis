@@ -57,17 +57,12 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         this.curatorClient = curatorClient;
     }
 
-    static {
-        CenterResource.setNotFetchFromCenterRepository();
-        HttpUtils.addMockGlobalParametersConfig();
-    }
 
     public static void main(String[] args) throws Exception {
 
         if (args.length < 2) {
             throw new IllegalArgumentException("args length can not small than 2");
         }
-
 
 //        List<String> children = zkClient.getChildren("/", null, true);
 //        Objects.requireNonNull(children);
