@@ -53,10 +53,10 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-hadoop-rpc</artifactId>
             <exclusions>
-                <exclusion>
-                    <groupId>org.apache.solr</groupId>
-                    <artifactId>solr-solrj</artifactId>
-                </exclusion>
+<!--                <exclusion>-->
+<!--                    <groupId>org.apache.solr</groupId>-->
+<!--                    <artifactId>solr-solrj</artifactId>-->
+<!--                </exclusion>-->
             </exclusions>
         </dependency>
 
