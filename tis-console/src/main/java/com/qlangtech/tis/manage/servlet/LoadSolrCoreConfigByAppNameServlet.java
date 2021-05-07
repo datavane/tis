@@ -22,8 +22,8 @@ import com.qlangtech.tis.openapi.impl.AppKey;
 import com.qlangtech.tis.openapi.impl.SnapshotDomainGetter;
 import com.qlangtech.tis.pubhook.common.ConfigConstant;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +46,7 @@ public class LoadSolrCoreConfigByAppNameServlet extends BasicServlet {
 
   private static final long serialVersionUID = 1L;
 
-  private static final Log log = LogFactory.getLog(LoadSolrCoreConfigByAppNameServlet.class);
+  private static final Logger log = LoggerFactory.getLogger(LoadSolrCoreConfigByAppNameServlet.class);
 
   private static final Pattern resourcePattern = Pattern.compile(DownloadServlet.replace(ConfigConstant.FILE_SCHEMA + "|" + ConfigConstant.FILE_SOLR));
 

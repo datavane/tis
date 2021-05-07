@@ -25,8 +25,8 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.BasicModule.Rundata;
 import com.qlangtech.tis.runtime.module.action.LoginAction;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.struts2.ServletActionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.lang.reflect.Method;
@@ -43,7 +43,7 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
 
     //private DelegateAdminUserService authService;
 
-    private static final Log log = LogFactory.getLog(AuthorityCheckAdvice.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthorityCheckAdvice.class);
 
     // private HttpServletRequest request;
     private RunContextGetter daoContextGetter;

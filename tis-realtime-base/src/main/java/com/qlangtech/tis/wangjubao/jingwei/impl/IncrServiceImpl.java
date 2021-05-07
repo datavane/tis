@@ -23,7 +23,7 @@ public class IncrServiceImpl {
     // 
     // private TableCluster tableCluster;
     // 
-    // private Log log = LogFactory.getLog(IncrServiceImpl.class);
+    // private Log log = LoggerFactory.getLogger(IncrServiceImpl.class);
     // 
     // private static final Map<String, Count> updateSummpay = new HashMap<String, Count>();
     // 

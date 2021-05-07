@@ -21,8 +21,8 @@ import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TriggerCrontab;
 import junit.framework.Assert;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
@@ -39,7 +39,7 @@ public abstract class AppsFetcher implements IAppsFetcher {
 
     private final List<String> authorityFuncList;
 
-    private static final Log log = LogFactory.getLog(AppsFetcher.class);
+    private static final Logger log = LoggerFactory.getLogger(AppsFetcher.class);
 
     public static IAppsFetcher create(IUser user, RunContext context, boolean maxMach) {
         if (true || maxMach) {

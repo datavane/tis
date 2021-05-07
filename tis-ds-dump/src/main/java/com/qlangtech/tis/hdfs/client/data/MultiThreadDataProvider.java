@@ -36,8 +36,8 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.TriggerParam;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -77,7 +77,7 @@ public class MultiThreadDataProvider {
         dbReaderExecutor = createDbReaderExecutor();
     }
 
-    protected static final Log log = LogFactory.getLog(MultiThreadDataProvider.class);
+    protected static final Logger log = LoggerFactory.getLogger(MultiThreadDataProvider.class);
 
     private AtomicInteger writerFinishedCount = new AtomicInteger(0);
 

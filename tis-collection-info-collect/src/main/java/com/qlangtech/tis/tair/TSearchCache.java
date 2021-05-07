@@ -42,8 +42,8 @@ public class TSearchCache implements ITSearchCache {
     public <T> T getObj(Serializable key) {
         return null;
     }
-    // private static final Log LOGGER_LOG =
-    // LogFactory.getLog(TSearchCache.class);
+    // private static final Logger LOGGER_LOG =
+    // LoggerFactory.getLogger(TSearchCache.class);
     // 
     // private static final int NAMESPACE = 728;
     // private MultiClusterTairManager mdbTairManager;

@@ -19,24 +19,24 @@ package com.qlangtech.tis.manage;
  * @date 2014-4-9
  */
 public class TerminatorEndpointConfig {
-    // private static final Log log = LogFactory
+    // private static final Logger log = LogFactory
     // .getLog(TerminatorEndpointConfig.class);
-    // 
+    //
     // @Override
     // public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-    // 
+    //
     // return null;
     // }
-    // 
+    //
     // @Override
     // public Set<ServerEndpointConfig> getEndpointConfigs(
     // Set<Class<? extends Endpoint>> scanned) {
     // log.info("execute getEndpointConfigs");
     // Set<ServerEndpointConfig> result = new HashSet<ServerEndpointConfig>();
-    // 
+    //
     // result.add(ServerEndpointConfig.Builder.create(
     // LogFeedbackServlet.class, "/download/logfeedback").build());
-    // 
+    //
     // return result;
     // }
 }

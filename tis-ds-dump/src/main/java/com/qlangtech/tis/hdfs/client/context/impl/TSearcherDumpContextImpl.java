@@ -23,8 +23,8 @@ import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TSearcherDumpContextImpl implements TSearcherDumpContext {
 
     // private final static String FS_DEFAULT_NAME = "fs.default.name";
-    protected static final Log logger = LogFactory.getLog(TSearcherDumpContextImpl.class);
+    protected static final Logger logger = LoggerFactory.getLogger(TSearcherDumpContextImpl.class);
 
     // protected String fsName;
     private TSearcherQueryContext queryContext;

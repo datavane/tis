@@ -14,8 +14,8 @@
  */
 package com.qlangtech.tis.spring;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -35,7 +35,7 @@ public class LauncherResourceUtils {
 
     private static final Pattern CONFIG_RES_PATTERN = Pattern.compile("/(search4.+?)/(app-context-partition_(\\d))?");
 
-    private static final Log logger = LogFactory.getLog(LauncherResourceUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(LauncherResourceUtils.class);
 
     // 目前版本n最大为8，因为RM那边默认设置成8分区管道。
     private static final int PARTITION_MAX_NUM = 8;

@@ -22,7 +22,7 @@ import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import org.jvnet.hudson.reactor.Executable;
 import org.jvnet.hudson.reactor.Reactor;
 import org.jvnet.hudson.reactor.TaskBuilder;
@@ -337,7 +337,7 @@ public class PluginManager {
         activePlugins.clear();
         // Work around a bug in commons-logging.
         // See http://www.szegedi.org/articles/memleak.html
-        LogFactory.release(uberClassLoader);
+        //LogFactory.release(uberClassLoader);
     }
 
     protected Collection<String> loadBundledPlugins() throws Exception {

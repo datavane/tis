@@ -15,8 +15,8 @@
 package com.qlangtech.tis.solrextend.fieldtype.s4shop;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.SortedSetDocValuesField;
 import org.apache.lucene.index.IndexableField;
@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class CommaSplitDVField extends StrField {
 
-    private static final Log logger = LogFactory.getLog(CommaSplitDVField.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommaSplitDVField.class);
 
     private IndexSchema schema;
 

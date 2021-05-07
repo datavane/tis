@@ -20,7 +20,7 @@ import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.util.XStream2;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -393,7 +393,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         }
         // Work around a bug in commons-logging.
         // See http://www.szegedi.org/articles/memleak.html
-        LogFactory.release(classLoader);
+       // LogFactory.release(classLoader);
     }
 
     public void releaseClassLoader() {

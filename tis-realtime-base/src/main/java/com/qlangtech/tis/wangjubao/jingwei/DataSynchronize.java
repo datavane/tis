@@ -23,7 +23,7 @@ public class DataSynchronize {
     // LinkedBlockingQueue<String>(
     // 100000);
     // 
-    // private Log log = LogFactory.getLog(DataSynchronize.class);
+    // private Log log = LoggerFactory.getLogger(DataSynchronize.class);
     // 
     // public static Map<Long, Long> timeConsume = new HashMap<Long, Long>();
     // public static Map<Long, Long> consume = new HashMap<Long, Long>();

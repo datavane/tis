@@ -30,8 +30,8 @@ import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -76,7 +76,7 @@ public class QueryIndexServlet extends BasicServlet {
 
     private static final ExecutorService threadPool = java.util.concurrent.Executors.newCachedThreadPool();
 
-    private static final Log log = LogFactory.getLog(QueryIndexServlet.class);
+    private static final Logger log = LoggerFactory.getLogger(QueryIndexServlet.class);
 
     // private ZkStateReader zkStateReader;
     // private SolrZkClient solrZkClient;

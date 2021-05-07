@@ -46,7 +46,7 @@ public class HDFSReader implements SourceReader {
 
     protected Context context;
 
-    // private final Log log = LogFactory.getLog(HDFSReader.class);
+    // private final Log log = LoggerFactory.getLogger(HDFSReader.class);
     protected long start;
 
     protected long pos;

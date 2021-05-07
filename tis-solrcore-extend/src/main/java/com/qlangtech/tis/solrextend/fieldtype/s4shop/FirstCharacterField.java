@@ -15,8 +15,8 @@
 package com.qlangtech.tis.solrextend.fieldtype.s4shop;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.index.IndexableField;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.schema.TrieIntField;
@@ -41,7 +41,7 @@ public class FirstCharacterField extends TrieIntField {
 
     public static final int NumOfValue = 5;
 
-    private static final Log logger = LogFactory.getLog(FirstCharacterField.class);
+    private static final Logger logger = LoggerFactory.getLogger(FirstCharacterField.class);
 
     static {
         outputFormat = new HanyuPinyinOutputFormat();

@@ -17,8 +17,8 @@ package com.qlangtech.tis.hdfs.client.context.impl;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.hdfs.client.context.TSearcherQueryContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class TSearcherQueryContextImpl implements TSearcherQueryContext {
 
-    static final Log logger = LogFactory.getLog(TSearcherQueryContextImpl.class);
+    static final Logger logger = LoggerFactory.getLogger(TSearcherQueryContextImpl.class);
 
     public static final int DEFAULT_ZK_TIMEOUT = 300000;
 

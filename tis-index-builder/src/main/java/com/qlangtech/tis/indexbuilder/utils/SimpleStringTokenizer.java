@@ -15,8 +15,8 @@
 package com.qlangtech.tis.indexbuilder.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.StringTokenizer;
  */
 public class SimpleStringTokenizer {
 //
-//    private static final Log log = LogFactory.getLog(SimpleStringTokenizer.class);
+//    private static final Logger log = LoggerFactory.getLogger(SimpleStringTokenizer.class);
 //
 //    StringTokenizer st = null;
 //
