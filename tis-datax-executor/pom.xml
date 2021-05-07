@@ -53,9 +53,21 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-hadoop-rpc</artifactId>
             <exclusions>
+                <!--                <exclusion>-->
+                <!--                    <groupId>org.apache.solr</groupId>-->
+                <!--                    <artifactId>solr-solrj</artifactId>-->
+                <!--                </exclusion>-->
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-dag</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
 <!--                <exclusion>-->
-<!--                    <groupId>org.apache.solr</groupId>-->
-<!--                    <artifactId>solr-solrj</artifactId>-->
+<!--                    <groupId>com.qlangtech.tis</groupId>-->
+<!--                    <artifactId>tis-sql-parser</artifactId>-->
 <!--                </exclusion>-->
             </exclusions>
         </dependency>

@@ -31,6 +31,8 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -64,6 +66,7 @@ public final class DataxExecutor {
         TIS.permitInitialize = false;
         try {
             List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
+            keyedPluginStores.add(DataFlowAppSource.getPluginStore(dataxName));
             keyedPluginStores.add(DataxReader.getPluginStore(dataxName));
             keyedPluginStores.add(DataxWriter.getPluginStore(dataxName));
             ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);

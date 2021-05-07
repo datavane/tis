@@ -22,7 +22,6 @@ import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.slf4j.LoggerFactory;
 import org.jvnet.hudson.reactor.Executable;
 import org.jvnet.hudson.reactor.Reactor;
 import org.jvnet.hudson.reactor.TaskBuilder;
@@ -255,7 +254,7 @@ public class PluginManager {
                                         failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
                                         activePlugins.remove(pluginWrapper);
                                         plugins.remove(pluginWrapper);
-                                        LOGGER.error("Failed to install {0}: {1}", new Object[]{pluginWrapper.getShortName(), e.getMessage()});
+                                        LOGGER.error("Failed to install {}: {}", pluginWrapper.getShortName(), e.getMessage());
                                         return;
                                     } catch (IOException e) {
                                         failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
