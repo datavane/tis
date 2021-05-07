@@ -15,15 +15,26 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.tis.hadoop.rpc.RpcServiceReference;
+
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-04-27 17:03
  **/
 public abstract class DataXJobSubmit {
+
+    public static Optional<DataXJobSubmit> getDataXJobSubmit(DataXJobSubmit.InstanceType expectDataXJobSumit) {
+        ExtensionList<DataXJobSubmit> jobSumits = TIS.get().getExtensionList(DataXJobSubmit.class);
+        Optional<DataXJobSubmit> jobSubmit = jobSumits.stream()
+                .filter((jsubmit) -> (expectDataXJobSumit) == jsubmit.getType()).findFirst();
+        return jobSubmit;
+    }
 
     public enum InstanceType {
         DISTRIBUTE, LOCAL

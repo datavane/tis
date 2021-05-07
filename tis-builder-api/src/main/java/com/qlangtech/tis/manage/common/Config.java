@@ -205,10 +205,15 @@ public class Config {
 
 
     public static TestCfgStream openTestCfgStream() throws IOException {
-        File f = new File("../tis-web-config/config.properties");
+        String propertiesFile = "tis-web-config/config.properties";
+        File f = new File("../" + propertiesFile);
         TestCfgStream cfgStream = new TestCfgStream(f);
         if (!f.exists()) {
-            return cfgStream;
+            f = new File(propertiesFile);
+            cfgStream = new TestCfgStream(f);
+            if (!f.exists()) {
+                return cfgStream;
+            }
         }
         return cfgStream.setPropsStream(FileUtils.openInputStream(f));
     }

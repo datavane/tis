@@ -83,7 +83,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
      *
      * @return
      */
-    protected abstract String getZookeeperAddress();
+    public abstract String getZookeeperAddress();
 
     public abstract String getZkQueuePath();
 

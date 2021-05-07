@@ -17,8 +17,11 @@ package com.qlangtech.tis.datax;
 
 import com.alibaba.datax.core.util.container.JarLoader;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.cloud.AdapterTisCoordinator;
+import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
@@ -30,11 +33,13 @@ import org.apache.curator.framework.recipes.queue.QueueBuilder;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.curator.utils.DefaultZookeeperFactory;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * DataX 执行器
@@ -52,14 +57,20 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         this.curatorClient = curatorClient;
     }
 
+    static {
+        CenterResource.setNotFetchFromCenterRepository();
+        HttpUtils.addMockGlobalParametersConfig();
+    }
+
     public static void main(String[] args) throws Exception {
 
         if (args.length < 2) {
             throw new IllegalArgumentException("args length can not small than 2");
         }
 
-        TisZkClient zkClient = new TisZkClient(Config.getZKHost(), 60000);
-        RpcServiceReference statusRpc = StatusRpcClient.getService(zkClient);
+
+//        List<String> children = zkClient.getChildren("/", null, true);
+//        Objects.requireNonNull(children);
 
         String zkQueuePath = args[1]; //System.getProperty(DataxUtils.DATAX_QUEUE_ZK_PATH);
         String zkAddress = args[0]; //System.getProperty(DataxUtils.DATAX_ZK_ADDRESS);
@@ -72,25 +83,12 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
             }
         };
 
+        CuratorFramework curatorClient = getCuratorFramework(zkAddress);
+        ITISCoordinator coordinator = getCoordinator(zkAddress, curatorClient);
+
+        RpcServiceReference statusRpc = StatusRpcClient.getService(coordinator);
+
         DataxExecutor dataxExecutor = new DataxExecutor(statusRpc, uberClassLoader);
-
-
-        ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        CuratorFrameworkFactory.Builder curatorBuilder = CuratorFrameworkFactory.builder();
-        curatorBuilder.retryPolicy(retryPolicy);
-        CuratorFramework curatorClient = curatorBuilder.zookeeperFactory(new DefaultZookeeperFactory() {
-            @Override
-            public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher, boolean canBeReadOnly) throws Exception {
-                if (StringUtils.equals(connectString, Config.getZKHost())) {
-                    logger.info("use the TIS system zookeeper instance,system zkHost:{},plugin zkHost:{}", Config.getZKHost(), connectString);
-                    return zkClient.getZK().getSolrZooKeeper();
-                } else {
-                    logger.info("create TIS new zookeeper instance with ,system zkHost:{},plugin zkHost:{}", Config.getZKHost(), connectString);
-                    return super.newZooKeeper(connectString, sessionTimeout, watcher, canBeReadOnly);
-                }
-            }
-        }).connectString(zkAddress).build();
-
         // String dataxName, Integer jobId, String jobName, String jobPath
         DataXJobConsumer dataXJobConsume = new DataXJobConsumer(dataxExecutor, curatorClient);
 
@@ -101,9 +99,69 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         }
     }
 
-    DistributedQueue<CuratorTaskMessage> createQueue(String zkQueuePath) {
+    private void createQueue(String zkQueuePath) {
+        createQueue(this.curatorClient, zkQueuePath, this);
+    }
 
+    public static CuratorFramework getCuratorFramework(String zkAddress) {
+        ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        CuratorFrameworkFactory.Builder curatorBuilder = CuratorFrameworkFactory.builder();
+        curatorBuilder.retryPolicy(retryPolicy);
+        CuratorFramework curatorClient = curatorBuilder
+//                .zookeeperFactory(new DefaultZookeeperFactory() {
+//                    @Override
+//                    public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher, boolean canBeReadOnly) throws Exception {
+//                        if (StringUtils.equals(connectString, Config.getZKHost())) {
+//                            logger.info("use the TIS system zookeeper instance,system zkHost:{},plugin zkHost:{}", Config.getZKHost(), connectString);
+//                            return zkClient.getZK().getSolrZooKeeper();
+//                        } else {
+//                            logger.info("create TIS new zookeeper instance with ,system zkHost:{},plugin zkHost:{}", Config.getZKHost(), connectString);
+//                            return super.newZooKeeper(connectString, sessionTimeout, watcher, canBeReadOnly);
+//                        }
+//                    }
+//                })
+                .connectString(zkAddress).build();
+        curatorClient.start();
+        return curatorClient;
+    }
+
+    private static ITISCoordinator getCoordinator(String zkAddress, CuratorFramework curatorClient) throws Exception {
+        ITISCoordinator coordinator = null;
+        //if (StringUtils.equals(zkAddress, Config.getZKHost())) {
+        ZooKeeper zooKeeper = curatorClient.getZookeeperClient().getZooKeeper();
+        coordinator = new AdapterTisCoordinator() {
+            @Override
+            public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
+                try {
+                    return zooKeeper.getChildren(zkPath, watcher);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override
+            public byte[] getData(String zkPath, Watcher o, Stat stat, boolean b) {
+                try {
+                    return zooKeeper.getData(zkPath, o, stat);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        logger.info("create TIS new zookeeper instance with ,system zkHost:{}", Config.getZKHost());
+//        } else {
+//            coordinator = new TisZkClient(Config.getZKHost(), 60000);
+//            logger.info("use the TIS system zookeeper instance,system zkHost:{},plugin zkHost:{}", Config.getZKHost(), zkAddress);
+//        }
+        return coordinator;
+    }
+
+    public static DistributedQueue<CuratorTaskMessage> createQueue(CuratorFramework curatorClient, String zkQueuePath
+            , QueueConsumer<CuratorTaskMessage> consumer) {
         try {
+            if (StringUtils.isEmpty(zkQueuePath)) {
+                throw new IllegalArgumentException("param zkQueuePath can not be null");
+            }
             // TaskConfig taskConfig = TaskConfig.getInstance();
             int count = 0;
             while (!curatorClient.getZookeeperClient().isConnected()) {
@@ -116,7 +174,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
 
             ZkUtils.guaranteeExist(curatorClient.getZookeeperClient().getZooKeeper(), zkQueuePath);
 
-            QueueBuilder<CuratorTaskMessage> builder = QueueBuilder.builder(curatorClient, this, new MessageSerializer(), zkQueuePath);
+            QueueBuilder<CuratorTaskMessage> builder = QueueBuilder.builder(curatorClient, consumer, new MessageSerializer(), zkQueuePath);
             // .maxItems(4);
 
             DistributedQueue<CuratorTaskMessage> queue = builder.buildQueue();

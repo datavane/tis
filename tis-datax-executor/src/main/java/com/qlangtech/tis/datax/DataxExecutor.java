@@ -126,7 +126,9 @@ public final class DataxExecutor {
 
         try {
             DataxReader reader = readerStore.getPlugin();
+            Objects.requireNonNull(reader, "dataxName:" + dataxName + " relevant reader can not be null");
             DataxWriter writer = writerStore.getPlugin();
+            Objects.requireNonNull(writer, "dataxName:" + dataxName + " relevant writer can not be null");
             this.readerMeta = reader.getDataxMeta();
             this.writerMeta = writer.getDataxMeta();
             Objects.requireNonNull(readerMeta, "readerMeta can not be null");

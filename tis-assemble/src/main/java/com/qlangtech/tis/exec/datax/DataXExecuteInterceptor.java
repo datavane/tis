@@ -16,7 +16,6 @@
 package com.qlangtech.tis.exec.datax;
 
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -24,7 +23,6 @@ import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
-import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
@@ -104,11 +102,12 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
     protected IRemoteJobTrigger createDataXJob(IExecChainContext execChainContext, RpcServiceReference statusRpc
             , DataxProcessor appSource, String fileName) {
-
-        ExtensionList<DataXJobSubmit> jobSumits = TIS.get().getExtensionList(DataXJobSubmit.class);
         DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();
-        Optional<DataXJobSubmit> jobSubmit = jobSumits.stream()
-                .filter((jsubmit) -> (expectDataXJobSumit) == jsubmit.getType()).findFirst();
+        Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(expectDataXJobSumit);
+//        ExtensionList<DataXJobSubmit> jobSumits = TIS.get().getExtensionList(DataXJobSubmit.class);
+//        DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();
+//        Optional<DataXJobSubmit> jobSubmit = jobSumits.stream()
+//                .filter((jsubmit) -> (expectDataXJobSumit) == jsubmit.getType()).findFirst();
 
         // 如果分布式worker ready的话
         if (!jobSubmit.isPresent()) {
