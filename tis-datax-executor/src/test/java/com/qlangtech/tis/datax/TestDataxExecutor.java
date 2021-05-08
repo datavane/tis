@@ -29,10 +29,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-20 14:12
  */
-public class TestDataxExecutor extends TISTestCase {
+public class TestDataxExecutor extends TISTestCase implements IExecutorContext{
+
+
 
     public void testDataxJobLaunch() throws Exception {
-        String dataXName = "baisuitest";
+
 
         //TisZkClient zkClient = new TisZkClient(Config.getZKHost(), 60000);
 

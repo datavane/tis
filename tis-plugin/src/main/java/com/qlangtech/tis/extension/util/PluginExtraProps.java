@@ -41,18 +41,22 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
      * @return
      * @throws IOException
      */
-    public static Optional<PluginExtraProps> load(Class<?> pluginClazz) throws IOException {
+    public static Optional<PluginExtraProps> load(Class<?> pluginClazz) {
         String resourceName = pluginClazz.getSimpleName() + ".json";
-        try (InputStream i = pluginClazz.getResourceAsStream(resourceName)) {
-            if (i == null) {
-                return Optional.empty();
+        try {
+            try (InputStream i = pluginClazz.getResourceAsStream(resourceName)) {
+                if (i == null) {
+                    return Optional.empty();
+                }
+                JSONObject o = JSON.parseObject(i, TisUTF8.get(), JSONObject.class);
+                PluginExtraProps props = new PluginExtraProps();
+                for (String propKey : o.keySet()) {
+                    props.put(propKey, new Props(validate(o.getJSONObject(propKey), propKey, pluginClazz, resourceName)));
+                }
+                return Optional.of(props);
             }
-            JSONObject o = JSON.parseObject(i, TisUTF8.get(), JSONObject.class);
-            PluginExtraProps props = new PluginExtraProps();
-            for (String propKey : o.keySet()) {
-                props.put(propKey, new Props(validate(o.getJSONObject(propKey), propKey, pluginClazz, resourceName)));
-            }
-            return Optional.of(props);
+        } catch (Exception e) {
+            throw new RuntimeException("resourceName:" + resourceName, e);
         }
     }
 
@@ -108,6 +112,12 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public String getHelpUrl() {
             return (String) props.get("helpUrl");
         }
+
+        @JSONField(serialize = false)
+        public String getHelpContent() {
+            return (String) props.get("help");
+        }
+
 
         @JSONField(serialize = false)
         public String getPlaceholder() {
