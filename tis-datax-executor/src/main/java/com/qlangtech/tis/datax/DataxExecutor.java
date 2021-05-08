@@ -27,11 +27,12 @@ import com.alibaba.datax.core.util.container.JarLoader;
 import com.alibaba.datax.core.util.container.LoadUtil;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
@@ -62,15 +63,25 @@ import java.util.Set;
 public final class DataxExecutor {
     private static final Field jarLoaderCenterField;
 
-    public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName) {
+    public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
         TIS.permitInitialize = false;
         try {
+            if (StringUtils.isBlank(dataxName)) {
+                throw new IllegalArgumentException("param dataXName can not be null");
+            }
+            if (StringUtils.isBlank(jobName)) {
+                throw new IllegalArgumentException("param jobName can not be null");
+            }
+            KeyedPluginStore<DataxProcessor> processStore = DataFlowAppSource.getPluginStore(dataxName);
             List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
-            keyedPluginStores.add(DataFlowAppSource.getPluginStore(dataxName));
+            keyedPluginStores.add(processStore);
             keyedPluginStores.add(DataxReader.getPluginStore(dataxName));
             keyedPluginStores.add(DataxWriter.getPluginStore(dataxName));
             ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
             dataxComponentMeta.synchronizePluginsFromRemoteRepository();
+
+            CenterResource.copyFromRemote2Local(
+                    TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath() + "/" + DataxProcessor.DATAX_CFG_DIR_NAME + "/" + jobName, true);
         } finally {
             TIS.permitInitialize = true;
         }

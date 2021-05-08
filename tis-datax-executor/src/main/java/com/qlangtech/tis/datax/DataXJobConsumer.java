@@ -19,9 +19,7 @@ import com.alibaba.datax.core.util.container.JarLoader;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.cloud.AdapterTisCoordinator;
 import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
@@ -188,7 +186,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         String jobPath = msg.getJobPath();
         String jobName = msg.getJobName();
         logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
-        DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName);
+        DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
         try {
             dataxExecutor.startWork(dataxName, jobId, jobName, jobPath);
         } finally {

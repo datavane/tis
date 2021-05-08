@@ -14,6 +14,7 @@
  */
 
 import com.qlangtech.tis.datax.TestDataxExecutor;
+import com.qlangtech.tis.datax.TestDataxExecutorSynRes;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -27,6 +28,7 @@ public class TestAll extends TestCase {
     public static Test suite() throws Exception {
         TestSuite suite = new TestSuite();
         suite.addTestSuite(TestDataxExecutor.class);
+        suite.addTestSuite(TestDataxExecutorSynRes.class);
         return suite;
     }
 }

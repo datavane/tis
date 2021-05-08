@@ -22,4 +22,5 @@ package com.qlangtech.tis.datax;
  **/
 public interface IExecutorContext {
      String dataXName = "baisuitest";
+     String jobName = "customer_order_relation_1.json";
 }

@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 public abstract class DataxProcessor implements IBasicAppSource, IdentityName, IDataxProcessor {
 
     protected static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
+    public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
 
     public static Descriptor<IAppSource> getPluginDescMeta() {
         DescriptorExtensionList<IAppSource, Descriptor<IAppSource>> descs = TIS.get().getDescriptorList(IAppSource.class);
@@ -88,7 +89,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     public File getDataxCfgDir() {
         KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this.identityValue());
         File targetFile = readerStore.getTargetFile();
-        return new File(targetFile.getParentFile(), "dataxCfg");
+        return new File(targetFile.getParentFile(), DATAX_CFG_DIR_NAME);
     }
 
     /**

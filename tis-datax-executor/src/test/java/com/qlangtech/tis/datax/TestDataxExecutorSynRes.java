@@ -15,9 +15,13 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import junit.framework.TestCase;
+
+import java.io.File;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -30,6 +34,11 @@ public class TestDataxExecutorSynRes extends TestCase implements IExecutorContex
     }
 
     public void testSynchronizeDataXPluginsFromRemoteRepository() {
-        DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataXName);
+        DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataXName, jobName);
+        DataxProcessor dataxProcessor = DataFlowAppSource.load(dataXName);
+        File dataxCfgDir = dataxProcessor.getDataxCfgDir();
+        assertTrue(dataxCfgDir.exists());
+        File jobCfgFile = new File(dataxCfgDir, jobName);
+        assertTrue("jobCfgFile must exist:" + jobCfgFile.getAbsolutePath(), jobCfgFile.exists());
     }
 }

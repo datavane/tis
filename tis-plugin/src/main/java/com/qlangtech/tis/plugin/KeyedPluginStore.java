@@ -28,7 +28,7 @@ import java.util.Objects;
  */
 public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
-    protected transient final Key key;
+    public transient final Key key;
 
     public KeyedPluginStore(Key key) {
         super(key.pluginClass, key.getSotreFile());
