@@ -56,15 +56,15 @@ public class HttpUtils {
         addMockApply(order, testStr, classpath, HttpUtils.class);
     }
 
-    public static void addMockApply(int order, String testStr, String classpath, Class<?> clazz) {
-        addMockApply(order, testStr, new ClasspathRes(order, classpath, clazz));
+    public static CacheMockRes addMockApply(int order, String testStr, String classpath, Class<?> clazz) {
+        return addMockApply(order, testStr, new ClasspathRes(order, classpath, clazz));
     }
 
     public static void addMockApply(String testStr, IClasspathRes classpathRes) {
         addMockApply(-1, testStr, classpathRes);
     }
 
-    public static void addMockApply(int orderIndex, MockMatchKey test, IClasspathRes classpathRes) {
+    public static CacheMockRes addMockApply(int orderIndex, MockMatchKey test, IClasspathRes classpathRes) {
         if (HttpUtils.mockConnMaker == null) {
             HttpUtils.mockConnMaker = new DefaultMockConnectionMaker();
         }
@@ -81,10 +81,11 @@ public class HttpUtils {
             }
             cacheMockRes.resources.set(orderIndex, classpathRes);
         }
+        return cacheMockRes;
     }
 
-    public static void addMockApply(int orderIndex, String testStr, IClasspathRes classpathRes) {
-        addMockApply(orderIndex, new MockMatchKey(testStr, false, false), classpathRes);
+    public static CacheMockRes addMockApply(int orderIndex, String testStr, IClasspathRes classpathRes) {
+        return addMockApply(orderIndex, new MockMatchKey(testStr, false, false), classpathRes);
     }
 
     public static DefaultMockConnectionMaker mockConnMaker;
@@ -299,18 +300,38 @@ public class HttpUtils {
         }
     }
 
-    private static class CacheMockRes {
+    public static class CacheMockRes {
         // 测试每访问一次递增1
         int getIndex = 0;
         List<IClasspathRes> resources = Lists.newArrayList();
         IClasspathRes lastElemnet = null;
 
+        int resFetchCount = 0;
+
+        public boolean verfiyResHasFetch() {
+            return resFetchCount > 0;
+        }
+
         IClasspathRes get() {
+            IClasspathRes res = null;
             if (getIndex >= resources.size()) {
-                return this.lastElemnet;
+                res = this.lastElemnet;
             } else {
-                return (lastElemnet = resources.get(getIndex++));
+                res = (lastElemnet = resources.get(getIndex++));
             }
+            IClasspathRes finalRes = res;
+            return new IClasspathRes() {
+                @Override
+                public InputStream getResourceAsStream() {
+                    resFetchCount++;
+                    return finalRes.getResourceAsStream();
+                }
+
+                @Override
+                public Map<String, List<String>> headerFields() {
+                    return finalRes.headerFields();
+                }
+            };
         }
     }
 

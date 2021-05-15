@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.datax.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
@@ -24,14 +25,14 @@ import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +45,26 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
 
     protected static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
+
+    public static DataxProcessor load(IPluginContext pluginContext, String dataXName) {
+        Optional<DataxProcessor> appSource = DataFlowAppSource.loadNullable(dataXName);
+        if (appSource.isPresent()) {
+            return appSource.get();
+        } else {
+            Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
+            Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData = new HashMap<String, com.alibaba.fastjson.JSONObject>() {
+                @Override
+                public JSONObject get(Object key) {
+                    JSONObject o = new JSONObject();
+                    o.put(Descriptor.KEY_primaryVal, null);
+                    return o;
+                }
+            };
+            Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable
+                    = pluginDescMeta.newInstance(pluginContext, formData, Optional.empty());
+            return (DataxProcessor) appSourceParseDescribable.instance;
+        }
+    }
 
     public static Descriptor<IAppSource> getPluginDescMeta() {
         DescriptorExtensionList<IAppSource, Descriptor<IAppSource>> descs = TIS.get().getDescriptorList(IAppSource.class);

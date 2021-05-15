@@ -14,14 +14,39 @@
  */
 package com.qlangtech.tis.manage.common;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年8月28日
  */
 public class TisUTF8 {
+
+    public static void main(String[] args) {
+        Charset big5 = Charset.forName("big5");
+        System.out.println(big5);
+        List<Option> all = allSupported();
+        for (Option o : all) {
+            System.out.println(o.getName() + ":" + o.getValue());
+        }
+    }
+
+    public static List<Option> allSupported() {
+        List<Option> all = Lists.newArrayList();
+        Option o = null;
+        for (Map.Entry<String, Charset> entry : Charset.availableCharsets().entrySet()) {
+            o = new Option(entry.getKey(), StringUtils.lowerCase(entry.getKey()));
+            all.add(o);
+        }
+        return all;
+    }
+
     private TisUTF8() {
     }
 

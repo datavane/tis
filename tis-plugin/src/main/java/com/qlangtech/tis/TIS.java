@@ -18,10 +18,14 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.component.GlobalComponent;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
+import com.qlangtech.tis.extension.impl.ExtensionRefreshException;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
+import com.qlangtech.tis.extension.model.UpdateCenter;
+import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.FlatTableBuilder;
@@ -42,9 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
@@ -55,6 +57,18 @@ import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
  */
 public class TIS {
 
+    /**
+     * The version number before it is "computed" (by a call to computeVersion()).
+     *
+     * @since 2.0
+     */
+    public static final String UNCOMPUTED_VERSION = "?";
+
+    /**
+     * Version number of this Jenkins.
+     */
+    public static String VERSION = UNCOMPUTED_VERSION;
+
     private static final Logger logger = LoggerFactory.getLogger(TIS.class);
     private static final String DB_GROUP_NAME = "db";
     public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
@@ -64,8 +78,8 @@ public class TIS {
     // public static final String KEY_TIS_INCR_COMPONENT_CONFIG_FILE = "incr_config.xml";
     public static final String KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE = "global_config.xml";
 
-    // 
-    // public static final String KEY_TIS_ENGINE_COMPONENT_CONFIG_FILE = "engine_config.xml";
+    private final transient UpdateCenter updateCenter = UpdateCenter.createUpdateCenter(null);
+
 
     /**
      * All {@link DescriptorExtensionList} keyed by their {@link DescriptorExtensionList}.
@@ -102,6 +116,95 @@ public class TIS {
             }
         }
     };
+
+
+    /**
+     * Parses {@link #VERSION} into {@link 'VersionNumber'}, or null if it's not parseable as a version number
+     * (such as when Jenkins is run with {@code mvn jetty:run})
+     */
+    public static VersionNumber getVersion() {
+        return toVersion(VERSION);
+    }
+
+
+    public UpdateCenter getUpdateCenter() {
+        return this.updateCenter;
+    }
+
+    /**
+     * Parses a version string into {@link VersionNumber}, or null if it's not parseable as a version number
+     * (such as when Jenkins is run with {@code mvn jetty:run})
+     */
+    private static VersionNumber toVersion(String versionString) {
+        if (versionString == null) {
+            return null;
+        }
+
+        try {
+            return new VersionNumber(versionString);
+        } catch (NumberFormatException e) {
+            try {
+                // for non-released version of Jenkins, this looks like "1.345 (private-foobar), so try to approximate.
+                int idx = versionString.indexOf(' ');
+                if (idx > 0) {
+                    return new VersionNumber(versionString.substring(0, idx));
+                }
+            } catch (NumberFormatException ignored) {
+                // fall through
+            }
+
+            // totally unparseable
+            return null;
+        } catch (IllegalArgumentException e) {
+            // totally unparseable
+            return null;
+        }
+    }
+
+    /**
+     * Refresh {@link ExtensionList}s by adding all the newly discovered extensions.
+     * <p>
+     * Exposed only for {@link 'PluginManager#dynamicLoad(File)'}.
+     */
+    public void refreshExtensions() throws ExtensionRefreshException {
+
+
+        List<ExtensionFinder> finders = ClassicPluginStrategy.finders; // getExtensionList(ExtensionFinder.class);
+//        for (ExtensionFinder ef : finders) {
+//            if (!ef.isRefreshable()) {
+//                throw new ExtensionRefreshException(ef + " doesn't support refresh");
+//            }
+//        }
+
+        List<ExtensionComponentSet> fragments = new ArrayList<>();
+        for (ExtensionFinder ef : finders) {
+            fragments.add(ef.refresh());
+        }
+        ExtensionComponentSet delta = ExtensionComponentSet.union(fragments).filtered();
+
+        // if we find a new ExtensionFinder, we need it to list up all the extension points as well
+        List<ExtensionComponent<ExtensionFinder>> newFinders = new ArrayList<>(delta.find(ExtensionFinder.class));
+        while (!newFinders.isEmpty()) {
+            ExtensionFinder f = newFinders.remove(newFinders.size() - 1).getInstance();
+
+            ExtensionComponentSet ecs = ExtensionComponentSet.allOf(f).filtered();
+            newFinders.addAll(ecs.find(ExtensionFinder.class));
+            delta = ExtensionComponentSet.union(delta, ecs);
+        }
+
+        for (ExtensionList el : extensionLists.values()) {
+            el.refresh(delta);
+        }
+        for (ExtensionList el : descriptorLists.values()) {
+            el.refresh(delta);
+        }
+
+//        // TODO: we need some generalization here so that extension points can be notified when a refresh happens?
+//        for (ExtensionComponent<RootAction> ea : delta.find(RootAction.class)) {
+//            Action a = ea.getInstance();
+//            if (!actions.contains(a)) actions.add(a);
+//        }
+    }
 
     public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
         DataSourceFactoryPluginStore pluginStore
@@ -149,7 +252,7 @@ public class TIS {
         return globalPluginStore.get(key);
     }
 
-    private final transient Memoizer<Class, ExtensionList> extensionLists = new Memoizer<Class, ExtensionList>() {
+    public final transient Memoizer<Class, ExtensionList> extensionLists = new Memoizer<Class, ExtensionList>() {
 
         public ExtensionList compute(Class key) {
             return ExtensionList.create(TIS.this, key);
@@ -159,7 +262,7 @@ public class TIS {
     /**
      * All {@link DescriptorExtensionList} keyed by their {@link DescriptorExtensionList}.
      */
-    private final transient Memoizer<Class, DescriptorExtensionList> descriptorLists = new Memoizer<Class, DescriptorExtensionList>() {
+    public final transient Memoizer<Class, DescriptorExtensionList> descriptorLists = new Memoizer<Class, DescriptorExtensionList>() {
 
         public DescriptorExtensionList compute(Class key) {
             return DescriptorExtensionList.createDescriptorList(TIS.this, key);
@@ -174,12 +277,14 @@ public class TIS {
 
     private static TIS tis;
 
-    public static void cleanTIS() {
-        tis.globalPluginStore.clear();
-        tis.extensionLists.clear();
-        tis.descriptorLists.clear();
-        tis.collectionPluginStore.clear();
-        tis = null;
+    public static void clean() {
+        if (tis != null) {
+            tis.globalPluginStore.clear();
+            tis.extensionLists.clear();
+            tis.descriptorLists.clear();
+            tis.collectionPluginStore.clear();
+            tis = null;
+        }
         initialized = false;
     }
 
@@ -196,7 +301,7 @@ public class TIS {
             final InitStrategy is = InitStrategy.get(Thread.currentThread().getContextClassLoader());
             executeReactor(// loading and preparing plugins
                     is, // load jobs
-                    pluginManager.initTasks(is), // forced ordering among key milestones
+                    pluginManager.initTasks(is, TIS.this), // forced ordering among key milestones
                     loadTasks(), InitMilestone.ordering());
             logger.info("tis plugin have been initialized,consume:{}ms.", System.currentTimeMillis() - start);
         } catch (Exception e) {

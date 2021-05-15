@@ -374,6 +374,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 enums.add(o);
                             });
                             fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
+
                         }
                     }
                     ptype.setExtraProp(fieldExtraProps);
@@ -702,8 +703,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     // @Override
-    public ParseDescribable<T> newInstance(IPluginContext pluginContext, Map<String, /** * attr key */
-            com.alibaba.fastjson.JSONObject> formData, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    public ParseDescribable<T> newInstance(
+            IPluginContext pluginContext, //
+            Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData, //
+            Optional<IPropertyType.SubFormFilter> subFormFilter) {
         try {
             PluginFormProperties pfPropertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
             T describable = pfPropertyTypes.accept(new PluginFormProperties.IVisitor() {

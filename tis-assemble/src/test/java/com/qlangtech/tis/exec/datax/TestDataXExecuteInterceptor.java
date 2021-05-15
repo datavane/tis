@@ -78,7 +78,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
 
         IExecChainContext execChainContext = mock("execChainContext", IExecChainContext.class);
 
-        TestDataxProcessor dataxProcessor = new TestDataxProcessor();
+        MockDataxProcessor dataxProcessor = new MockDataxProcessor();
 
         EasyMock.expect(execChainContext.getAppSource()).andReturn(dataxProcessor);
 
@@ -90,7 +90,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
     }
 
 
-    private static class TestDataxProcessor extends DataxProcessor {
+    private static class MockDataxProcessor extends DataxProcessor {
         @Override
         public Application buildApp() {
             return null;

@@ -19,18 +19,18 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ReflectionUtils;
 
@@ -44,6 +44,80 @@ import java.util.*;
 public class PluginAction extends BasicModule {
 
   private OfflineManager offlineManager;
+
+  /**
+   * 取得已经安装的插件
+   *
+   * @param context
+   */
+  public void doGetInstalledPlugins(Context context) {
+    PluginManager pluginManager = TIS.get().getPluginManager();
+    JSONArray response = new JSONArray();
+    JSONObject pluginInfo = null;
+    for (PluginWrapper plugin : pluginManager.getPlugins()) {
+      pluginInfo = new JSONObject();
+      pluginInfo.put("installed", true);
+      pluginInfo.put("name", plugin.getShortName());
+      pluginInfo.put("version", plugin.getVersion());
+      pluginInfo.put("title", plugin.getDisplayName());
+      pluginInfo.put("active", plugin.isActive());
+      pluginInfo.put("enabled", plugin.isEnabled());
+      // pluginInfo.put("bundled", plugin.isBundled);
+      pluginInfo.put("deleted", plugin.isDeleted());
+      pluginInfo.put("downgradable", plugin.isDowngradable());
+      pluginInfo.put("website", plugin.getUrl());
+      List<PluginWrapper.Dependency> dependencies = plugin.getDependencies();
+      if (dependencies != null && !dependencies.isEmpty()) {
+        Map<String, String> dependencyMap = new HashMap<>();
+        for (PluginWrapper.Dependency dependency : dependencies) {
+          dependencyMap.put(dependency.shortName, dependency.version);
+        }
+        pluginInfo.put("dependencies", dependencyMap);
+      } else {
+        pluginInfo.put("dependencies", Collections.emptyMap());
+      }
+      response.add(pluginInfo);
+    }
+    this.setBizResult(context, response);
+  }
+
+  /**
+   * 安装插件
+   *
+   * @param context
+   */
+  public void doInstallPlugins(Context context) {
+    JSONArray pluginsInstall = this.parseJsonArrayPost();
+    if (pluginsInstall.size() < 1) {
+      this.addErrorMessage(context, "请选择需要安装的插件");
+      return;
+    }
+
+    JSONObject willInstall = null;
+    String pluginName = null;
+    UpdateSite.Plugin plugin = null;
+    for (int i = 0; i < pluginsInstall.size(); i++) {
+      willInstall = pluginsInstall.getJSONObject(i);
+      pluginName = willInstall.getString("name");
+      if (StringUtils.isEmpty(pluginName)) {
+        throw new IllegalStateException("plugin name can not empty");
+      }
+      plugin = TIS.get().getUpdateCenter().getPlugin(pluginName);
+      plugin.deploy(true);
+    }
+  }
+
+  /**
+   * 取得当前可以被安装的插件
+   *
+   * @param context
+   */
+  public void doGetAvailablePlugins(Context context) {
+
+    Pager pager = this.createPager();
+    pager.setTotalCount(Integer.MAX_VALUE);
+    this.setBizResult(context, new PaginationResult(pager, TIS.get().getUpdateCenter().getAvailables()));
+  }
 
   /**
    * @param context
@@ -127,12 +201,13 @@ public class PluginAction extends BasicModule {
     if (plugins == null || plugins.size() < 1) {
       throw new IllegalArgumentException("param plugin is not illegal");
     }
-    org.json.JSONObject pluginDetail = new org.json.JSONObject();
-    org.json.JSONArray hlist = new org.json.JSONArray();
+    com.alibaba.fastjson.JSONObject pluginDetail = new com.alibaba.fastjson.JSONObject();
+    com.alibaba.fastjson.JSONArray hlist = new com.alibaba.fastjson.JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
-    for (UploadPluginMeta p : plugins) {
-      HeteroList<?> hList = p.getHeteroList(this);
-      hlist.put(hList.toJSON());
+    for (UploadPluginMeta pmeta : plugins) {
+      HeteroList<?> hList = pmeta.getHeteroList(this);
+      //hlist.put(hList.toJSON());
+      hlist.add(hList.toJSON());
     }
     pluginDetail.put("plugins", hlist);
     this.setBizResult(context, pluginDetail);

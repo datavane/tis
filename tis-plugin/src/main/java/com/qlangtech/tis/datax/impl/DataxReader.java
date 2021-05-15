@@ -62,7 +62,29 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
 
     @Override
-    public Descriptor<DataxReader> getDescriptor() {
-        return TIS.get().getDescriptor(this.getClass());
+    public final Descriptor<DataxReader> getDescriptor() {
+        Descriptor<DataxReader> descriptor = TIS.get().getDescriptor(this.getClass());
+        if (!(BaseDataxReaderDescriptor.class.isAssignableFrom(descriptor.getClass()))) {
+            throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of "
+                    + BaseDataxReaderDescriptor.class.getSimpleName());
+        }
+        return descriptor;
+    }
+
+    public static abstract class BaseDataxReaderDescriptor extends Descriptor<DataxReader> {
+
+        /**
+         * 像Mysql会有明确的表名，而OSS没有明确的表名,RDBMS 关系型数据库 应该都为true
+         *
+         * @return
+         */
+        public abstract boolean hasExplicitTable();
+
+        /**
+         * 是否可以选择多个表，像Mysql这样的 ,RDBMS 关系型数据库 应该都为true
+         *
+         * @return
+         */
+        public abstract boolean isMulitTableSelectable();
     }
 }

@@ -190,7 +190,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         try {
             dataxExecutor.startWork(dataxName, jobId, jobName, jobPath);
         } finally {
-            TIS.cleanTIS();
+            TIS.clean();
         }
     }
 

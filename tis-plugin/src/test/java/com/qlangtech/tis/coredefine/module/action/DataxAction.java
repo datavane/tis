@@ -16,7 +16,9 @@ package com.qlangtech.tis.coredefine.module.action;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.util.TestHeteroList;
+import edu.emory.mathcs.backport.java.util.Collections;
 
 import java.util.List;
 
@@ -25,6 +27,10 @@ import java.util.List;
  * @date 2021-04-13 11:00
  */
 public class DataxAction {
+
+    public static List<Option> getDepartments() {
+        return Collections.emptyList();
+    }
 
     public static List<String> getTablesInDB(String dataxName) {
         Assert.assertEquals("dataxName must equal", TestHeteroList.DATAX_INSTANCE_NAME, dataxName);

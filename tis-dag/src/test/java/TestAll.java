@@ -30,6 +30,7 @@
  * limitations under the License.
  */
 
+import com.qlangtech.tis.datax.impl.TestDataxProcessor;
 import com.qlangtech.tis.sql.parser.stream.generate.TestS4EmployeeStreamComponentCodeGenerator;
 import com.qlangtech.tis.sql.parser.stream.generate.TestStreamComponentCodeGenerator;
 import com.qlangtech.tis.sql.parser.stream.generate.TestTikvEmployee;
@@ -48,6 +49,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestS4EmployeeStreamComponentCodeGenerator.class);
         suite.addTestSuite(TestStreamComponentCodeGenerator.class);
         suite.addTestSuite(TestTikvEmployee.class);
+        suite.addTestSuite(TestDataxProcessor.class);
         return suite;
     }
 }

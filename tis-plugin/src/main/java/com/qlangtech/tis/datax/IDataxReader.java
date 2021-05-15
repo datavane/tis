@@ -30,16 +30,18 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta {
      *
      * @return
      */
-    public boolean hasMulitTable();
+    default boolean hasMulitTable() {
+        return getSelectedTabs().size() > 1;
+    }
 
     public <T extends ISelectedTab> List<T> getSelectedTabs();
 
-    /**
-     * 像Mysql会有明确的表名，而OSS没有明确的表名
-     *
-     * @return
-     */
-    public boolean hasExplicitTable();
+//    /**
+//     * 像Mysql会有明确的表名，而OSS没有明确的表名
+//     *
+//     * @return
+//     */
+//    public boolean hasExplicitTable();
 
     /**
      * 取得子任务

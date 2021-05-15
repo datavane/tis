@@ -15,6 +15,7 @@
 package com.qlangtech.tis;
 
 import com.qlangtech.tis.extension.impl.TestXmlFile;
+import com.qlangtech.tis.extension.model.TestUpdateCenter;
 import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.TestPluginExtraProps;
 import com.qlangtech.tis.plugin.TestComponentMeta;
@@ -45,6 +46,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestGroovyShellEvaluate.class);
         suite.addTestSuite(TestPluginExtraProps.class);
         suite.addTestSuite(TestDataSourceFactoryPluginStore.class);
+        suite.addTestSuite(TestUpdateCenter.class);
 
         return suite;
     }

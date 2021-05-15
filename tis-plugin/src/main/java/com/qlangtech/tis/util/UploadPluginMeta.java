@@ -15,6 +15,8 @@
 package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import org.apache.commons.lang.StringUtils;
 
@@ -162,13 +164,20 @@ public class UploadPluginMeta {
                 "," + this.extraParams.entrySet().stream().map((e) -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",")) + '}';
     }
 
-    public HeteroList<?> getHeteroList(IPluginContext pluginContext) {
+    public <T extends Describable<T>> HeteroList<T> getHeteroList(IPluginContext pluginContext) {
         HeteroEnum hEnum = getHeteroEnum();
-        HeteroList<?> hList = new HeteroList<>(this);
+        HeteroList<T> hList = new HeteroList<>(this);
         hList.setCaption(hEnum.caption);
         hList.setExtensionPoint(hEnum.extensionPoint);
         hList.setItems(hEnum.getPlugins(pluginContext, this));
-        hList.setDescriptors(hEnum.descriptors());
+
+        List<Descriptor<T>> descriptors = hEnum.descriptors();
+        String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
+        if (StringUtils.isNotEmpty(targetDesc)) {
+            descriptors = descriptors.stream().filter((d) -> targetDesc.equals(d.getDisplayName())).collect(Collectors.toList());
+        }
+
+        hList.setDescriptors(descriptors);
         hList.setSelectable(hEnum.selectable);
         return hList;
     }

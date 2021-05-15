@@ -128,8 +128,12 @@ public class DataXCfgGenerator {
         } catch (Exception e) {
             throw new RuntimeException(tpl + "\n", e);
         }
-
-        return JsonUtil.toString(JSON.parseObject(writerContent.toString()));
+        String content = writerContent.toString();
+        try {
+            return JsonUtil.toString(JSON.parseObject(content));
+        } catch (Exception e) {
+            throw new RuntimeException(content, e);
+        }
     }
 
     private VelocityContext createContext(IDataxContext reader, IDataxContext writer) {

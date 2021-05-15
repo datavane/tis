@@ -169,6 +169,12 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>xmodifier</artifactId>
         </dependency>
+        <dependency>
+            <groupId>backport-util-concurrent</groupId>
+            <artifactId>backport-util-concurrent</artifactId>
+            <version>3.1</version>
+            <scope>test</scope>
+        </dependency>
 
 
     </dependencies>

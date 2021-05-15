@@ -23,8 +23,11 @@ import java.util.List;
  * @date 2021-04-18 10:16
  */
 public interface ISelectedTab {
-    public String getName();
-    public String getWhere();
-    public boolean isAllCols();
-    public List<String> getCols() ;
+    String getName();
+
+    String getWhere();
+
+    boolean isAllCols();
+
+    List<String> getCols();
 }

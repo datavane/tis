@@ -1,21 +1,22 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.extension;
 
-import com.qlangtech.tis.TIS;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,11 +45,11 @@ public abstract class ExtensionComponentSet {
             public <T> Collection<ExtensionComponent<T>> find(Class<T> type) {
                 // List<ExtensionComponent<T>> a = Lists.newArrayList();
                 return base.find(type);
-            // for (ExtensionComponent<T> c : base.find(type)) {
-            // if (ExtensionFilter.isAllowed(type,c))
-            // a.add(c);
-            // }
-            // return a;
+                // for (ExtensionComponent<T> c : base.find(type)) {
+                // if (ExtensionFilter.isAllowed(type,c))
+                // a.add(c);
+                // }
+                // return a;
             }
         };
     }
@@ -73,7 +74,7 @@ public abstract class ExtensionComponentSet {
             @Override
             public <T> Collection<ExtensionComponent<T>> find(Class<T> type) {
                 List<ExtensionComponent<T>> r = Lists.newArrayList();
-                for (ExtensionComponentSet d : base) r.addAll(d.find(type));
+                for (ExtensionComponentSet d : base) { r.addAll(d.find(type));}
                 return r;
             }
         };

@@ -31,7 +31,6 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
-import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.*;
@@ -288,7 +287,8 @@ public class DataxAction extends BasicModule {
     String dataxName = this.getString("dataxName");
     // 表别名列表
     JSONArray tabAliasList = this.parseJsonArrayPost();
-    Optional<DataxProcessor> appSource = DataFlowAppSource.loadNullable(dataxName);
+    Objects.requireNonNull(tabAliasList, "tabAliasList can not be null");
+
     DataxProcessor dataxProcessor = null;
     JSONObject alias = null;
     IDataxProcessor.TableAlias tabAlias = null;
@@ -301,9 +301,9 @@ public class DataxAction extends BasicModule {
       tableMaps.add(tabAlias);
     }
 
-    Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
-    Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable = pluginDescMeta.newInstance(this, Collections.emptyMap(), Optional.empty());
-    dataxProcessor = appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
+    //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
+    //Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable = pluginDescMeta.newInstance(this, Collections.emptyMap(), Optional.empty());
+    dataxProcessor = DataxProcessor.load(this, dataxName);//  appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
     dataxProcessor.setTableMaps(tableMaps);
     DataFlowAppSource.save(dataxName, dataxProcessor);
   }
@@ -347,7 +347,32 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doValidateReaderWriter(Context context) {
+    JSONObject post = this.parseJsonPost();
 
+    String dataxPipeName = post.getString("dataxPipeName");
+
+    DataxReader dataxReader = DataxReader.load(dataxPipeName);
+    DataxReader.BaseDataxReaderDescriptor descriptor = (DataxReader.BaseDataxReaderDescriptor) dataxReader.getDescriptor();
+//    JSONObject readerDescriptor = post.getJSONObject("readerDescriptor");
+//    JSONObject writerDescriptor = post.getJSONObject("writerDescriptor");
+    DataXCreateProcessMeta processMeta = new DataXCreateProcessMeta();
+    // 使用这个属性来控制是否要进入创建流程的第三步
+    processMeta.readerMultiTableSelectable = descriptor.isMulitTableSelectable();
+    processMeta.explicitTable = descriptor.hasExplicitTable();
+    this.setBizResult(context, processMeta);
+  }
+
+  public static class DataXCreateProcessMeta {
+    boolean readerMultiTableSelectable;
+    boolean explicitTable;
+
+    public boolean isExplicitTable() {
+      return explicitTable;
+    }
+
+    public boolean isReaderMultiTableSelectable() {
+      return readerMultiTableSelectable;
+    }
   }
 
   public static List<String> getTablesInDB(String dataxName) {

@@ -31,4 +31,6 @@ public interface IAliyunToken extends IdentityName {
     String getAccessKeyId();
 
     String getAccessKeySecret();
+
+    String getEndpoint();
 }
