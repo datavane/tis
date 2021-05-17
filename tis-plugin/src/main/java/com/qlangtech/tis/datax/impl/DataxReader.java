@@ -66,7 +66,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         Descriptor<DataxReader> descriptor = TIS.get().getDescriptor(this.getClass());
         if (!(BaseDataxReaderDescriptor.class.isAssignableFrom(descriptor.getClass()))) {
             throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of "
-                    + BaseDataxReaderDescriptor.class.getSimpleName());
+                    + BaseDataxReaderDescriptor.class.getName());
         }
         return descriptor;
     }
@@ -78,13 +78,15 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
          *
          * @return
          */
-        public abstract boolean hasExplicitTable();
+        public boolean hasExplicitTable() {
+            return this.isRdbms();
+        }
 
         /**
          * 是否可以选择多个表，像Mysql这样的 ,RDBMS 关系型数据库 应该都为true
          *
          * @return
          */
-        public abstract boolean isMulitTableSelectable();
+        public abstract boolean isRdbms();
     }
 }

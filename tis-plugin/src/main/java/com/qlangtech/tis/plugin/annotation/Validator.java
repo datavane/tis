@@ -88,6 +88,17 @@ public enum Validator {
             return false;
         }
         return true;
+    }),
+    db_col_name((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.PATTERN_DB_COL_NAME.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_DB_COL_NAME_ERROR);
+            return false;
+        }
+        return true;
     });
 
     private final IFieldValidator fieldValidator;
@@ -120,6 +131,7 @@ public enum Validator {
     FieldValidatorResult validate(// 
                                   IControlMsgHandler handler, //
                                   Context context, String fieldKey, FieldValidators fvalidator) {
+
         FieldValidatorResult fieldData = new FieldValidatorResult(handler.getString(fieldKey));
         for (IFieldValidator v : fvalidator.validators) {
             if (!v.validate(handler, context, fieldKey, fieldData.fieldData)) {

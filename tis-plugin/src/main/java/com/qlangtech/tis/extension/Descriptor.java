@@ -247,7 +247,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     private PluginFormProperties getSubPluginFormPropertyTypes(String subFieldName) {
         IPropertyType propertyType = getPropertyTypes().get(subFieldName);
-        Objects.requireNonNull(propertyType, this.getT().getName() + "'s prop subField:" + subFieldName + " relevant prop can not be null");
+        if (propertyType == null) {
+            throw new IllegalStateException(this.clazz.getName() + "'s prop subField:" + subFieldName + " relevant prop can not be null,exist prop keys:"
+                    + getPropertyTypes().keySet().stream().collect(Collectors.joining(",")));
+        }
         if (!(propertyType instanceof SuFormProperties)) {
             throw new IllegalStateException("subFieldName:" + subFieldName + " prop must be "
                     + SuFormProperties.class.getSimpleName() + "but now is :" + propertyType.getClass().getName());

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,6 +23,11 @@ import java.util.regex.Pattern;
 public interface ValidatorCommons {
 
     Pattern PATTERN_URL = Pattern.compile("(https?|hdfs)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]");
+
+    // 数据库列名
+    Pattern PATTERN_DB_COL_NAME = Pattern.compile("(^_([a-zA-Z0-9]_?)*$)|(^[a-zA-Z](_?[a-zA-Z0-9])*_?$)");
+
+    String MSG_DB_COL_NAME_ERROR = "格式不正确；提示:'首位可以是字母以及下划线。首位之后可以是字母，数字以及下划线。下划线后不能接下划线'";
 
     String MSG_URL_ERROR = "不符合URL的规范";
 

@@ -15,6 +15,7 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
@@ -29,7 +30,6 @@ import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.util.IPluginContext;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.*;
@@ -76,6 +76,20 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         return dataxProcessDescs.get();
     }
 
+    public static DataXCreateProcessMeta getDataXCreateProcessMeta(String dataxPipeName) {
+        DataxWriter writer = DataxWriter.load(dataxPipeName);
+        DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
+        DataxReader dataxReader = DataxReader.load(dataxPipeName);
+        DataxReader.BaseDataxReaderDescriptor descriptor = (DataxReader.BaseDataxReaderDescriptor) dataxReader.getDescriptor();
+
+        DataXCreateProcessMeta processMeta = new DataXCreateProcessMeta(writer, dataxReader);
+        // 使用这个属性来控制是否要进入创建流程的第三步
+        processMeta.readerRDBMS = descriptor.isRdbms();
+        processMeta.explicitTable = descriptor.hasExplicitTable();
+        processMeta.writerRDBMS = writerDesc.isRdbms();
+        return processMeta;
+    }
+
     public abstract Application buildApp();
 
     private List<TableAlias> tableMaps;
@@ -91,6 +105,11 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
             return Collections.emptyMap();
         }
         return this.tableMaps.stream().collect(Collectors.toMap((m) -> m.getFrom(), (m) -> m));
+    }
+
+    public boolean isUnStructed2RDBMS() {
+        DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(this.identityValue());
+        return dataXCreateProcessMeta.isUnStructed2RDBMS();
     }
 
     @Override
@@ -127,6 +146,59 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
             throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
         }
         return Lists.newArrayList(dataxCfgDir.list());
+    }
+
+    public static class DataXCreateProcessMeta {
+        boolean readerRDBMS;
+        boolean explicitTable;
+        private boolean writerRDBMS;
+
+        private final DataxWriter writer;
+        private final DataxReader reader;
+
+        public DataXCreateProcessMeta(DataxWriter writer, DataxReader reader) {
+            this.writer = writer;
+            this.reader = reader;
+        }
+
+        @JSONField(serialize = false)
+        public DataxWriter getWriter() {
+            return writer;
+        }
+
+        @JSONField(serialize = false)
+        public DataxReader getReader() {
+            return reader;
+        }
+
+        /**
+         * 从非结构化的数据源导入到结构化的数据源，例如从OSS导入到MySQL
+         *
+         * @return
+         */
+        public boolean isUnStructed2RDBMS() {
+            return !readerRDBMS && writerRDBMS;
+        }
+
+        public boolean isWriterRDBMS() {
+            return this.writerRDBMS;
+        }
+
+        public boolean isReaderRDBMS() {
+            return readerRDBMS;
+        }
+
+        public boolean isExplicitTable() {
+            return explicitTable;
+        }
+
+        @Override
+        public String toString() {
+            return "ProcessMeta{" +
+                    "readerRDBMS=" + readerRDBMS +
+                    ", writerRDBMS=" + writerRDBMS +
+                    '}';
+        }
     }
 
 //     "setting": {

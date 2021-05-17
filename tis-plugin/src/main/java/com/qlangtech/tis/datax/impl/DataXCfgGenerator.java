@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -82,9 +83,21 @@ public class DataXCfgGenerator {
 
 
     public List<String> startGenerateCfg(File parentDir) throws Exception {
+
+        boolean unStructed2RDBMS = dataxProcessor.isUnStructed2RDBMS();
+
         IDataxReader reader = dataxProcessor.getReader();
         Map<String, IDataxProcessor.TableAlias> tabAlias = dataxProcessor.getTabAlias();
-        Map<String, ISelectedTab> selectedTabs = reader.getSelectedTabs().stream().collect(Collectors.toMap((t) -> t.getName(), (t) -> t));
+
+        AtomicReference<Map<String, ISelectedTab>> selectedTabsRef = new AtomicReference<>();
+        java.util.concurrent.Callable<Map<String, ISelectedTab>> selectedTabsCall = () -> {
+            if (selectedTabsRef.get() == null) {
+                Map<String, ISelectedTab> selectedTabs = reader.getSelectedTabs().stream().collect(Collectors.toMap((t) -> t.getName(), (t) -> t));
+                selectedTabsRef.set(selectedTabs);
+            }
+            return selectedTabsRef.get();
+        };
+
         Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
         File configFile = null;
@@ -92,7 +105,16 @@ public class DataXCfgGenerator {
         IDataxProcessor.TableMap tableMap = null;
         while (subTasks.hasNext()) {
             readerContext = subTasks.next();
-            tableMap = createTableMap(tabAlias, selectedTabs, readerContext);
+            if (unStructed2RDBMS) {
+                // 是在DataxAction的doSaveWriterColsMeta() 方法中持久化保存的
+                for (IDataxProcessor.TableAlias tab : tabAlias.values()) {
+                    tableMap = (IDataxProcessor.TableMap) tab;
+                    break;
+                }
+                Objects.requireNonNull(tableMap, "tableMap can not be null");
+            } else {
+                tableMap = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
+            }
             configFile = new File(parentDir, readerContext.getTaskName() + ".json");
             FileUtils.write(configFile, generateDataxConfig(readerContext, Optional.of(tableMap)), TisUTF8.get(), false);
             subTaskName.add(configFile.getName());
@@ -108,10 +130,16 @@ public class DataXCfgGenerator {
         ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
         tableMap.setFrom(tableAlias.getFrom());
         tableMap.setTo(tableAlias.getTo());
-        tableMap.setSourceCols(selectedTab.getCols());
+        tableMap.setSourceCols(selectedTab.getCols().stream().map((c) -> c.getName()).collect(Collectors.toList()));
         return tableMap;
     }
 
+    /**
+     * @param readerContext
+     * @param tableMap
+     * @return 生成的配置文件内容
+     * @throws IOException
+     */
     public String generateDataxConfig(IDataxReaderContext readerContext, Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
 
         StringWriter writerContent = null;

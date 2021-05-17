@@ -14,7 +14,11 @@
  */
 package com.qlangtech.tis.datax;
 
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 选中需要导入的表
@@ -29,5 +33,59 @@ public interface ISelectedTab {
 
     boolean isAllCols();
 
-    List<String> getCols();
+    List<ColMeta> getCols();
+
+    public class ColMeta {
+        private String name;
+        private DataXReaderColType type;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public DataXReaderColType getType() {
+            return type;
+        }
+
+        public void setType(DataXReaderColType type) {
+            this.type = type;
+        }
+    }
+
+    public enum DataXReaderColType {
+        Long("long"),
+        Double("double"),
+        STRING("string"),
+        Boolean("boolean"),
+        Date("date");
+
+        private final String literia;
+
+        private DataXReaderColType(String literia) {
+            this.literia = literia;
+        }
+
+        public static DataXReaderColType parse(String literia) {
+            literia = StringUtils.lowerCase(literia);
+            for (DataXReaderColType t : DataXReaderColType.values()) {
+                if (literia.equals(t.literia)) {
+                    return t;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return this.literia;
+        }
+
+        public static String toDesc() {
+            return Arrays.stream(DataXReaderColType.values()).map((t) -> "'" + t.literia + "'").collect(Collectors.joining(","));
+        }
+    }
 }

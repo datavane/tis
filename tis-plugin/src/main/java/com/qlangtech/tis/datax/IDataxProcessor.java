@@ -35,6 +35,13 @@ public interface IDataxProcessor {
     public File getDataxCfgDir();
 
     /**
+     * 从非结构化的数据源导入到结构化的数据源，例如从OSS导入到MySQL
+     *
+     * @return
+     */
+    public boolean isUnStructed2RDBMS();
+
+    /**
      * dataX配置文件列表
      *
      * @return

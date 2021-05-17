@@ -61,6 +61,21 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
 
     @Override
     public Descriptor<DataxWriter> getDescriptor() {
-        return TIS.get().getDescriptor(this.getClass());
+        Descriptor<DataxWriter> descriptor = TIS.get().getDescriptor(this.getClass());
+        if (!(BaseDataxWriterDescriptor.class.isAssignableFrom(descriptor.getClass()))) {
+            throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of "
+                    + BaseDataxWriterDescriptor.class.getName());
+        }
+        return descriptor;
+    }
+
+
+    public static abstract class BaseDataxWriterDescriptor extends Descriptor<DataxWriter> {
+        /**
+         * 是否可以选择多个表，像Mysql这样的 ,RDBMS 关系型数据库 应该都为true
+         *
+         * @return
+         */
+        public abstract boolean isRdbms();
     }
 }

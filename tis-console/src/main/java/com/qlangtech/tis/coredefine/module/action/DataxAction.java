@@ -15,6 +15,7 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -42,9 +43,13 @@ import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.io.FileUtils;
@@ -289,7 +294,7 @@ public class DataxAction extends BasicModule {
     JSONArray tabAliasList = this.parseJsonArrayPost();
     Objects.requireNonNull(tabAliasList, "tabAliasList can not be null");
 
-    DataxProcessor dataxProcessor = null;
+
     JSONObject alias = null;
     IDataxProcessor.TableAlias tabAlias = null;
     List<IDataxProcessor.TableAlias> tableMaps = Lists.newArrayList();
@@ -300,10 +305,14 @@ public class DataxAction extends BasicModule {
       tabAlias.setTo(alias.getString("to"));
       tableMaps.add(tabAlias);
     }
+    this.saveTableMapper(dataxName, tableMaps);
 
+  }
+
+  private void saveTableMapper(String dataxName, List<IDataxProcessor.TableAlias> tableMaps) {
     //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
     //Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable = pluginDescMeta.newInstance(this, Collections.emptyMap(), Optional.empty());
-    dataxProcessor = DataxProcessor.load(this, dataxName);//  appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
+    DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);//  appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
     dataxProcessor.setTableMaps(tableMaps);
     DataFlowAppSource.save(dataxName, dataxProcessor);
   }
@@ -342,6 +351,100 @@ public class DataxAction extends BasicModule {
   }
 
   /**
+   * 当reader为非RDBMS，writer为RDBMS类型时 需要为writer设置表名称，以及各个列的名称
+   *
+   * @param context
+   */
+  public void doGetWriterColsMeta(Context context) {
+    String dataxName = this.getString("dataxName");
+    // DataxReader dataxReader = DataxReader.load(dataxName);
+    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxName);
+
+    if (!processMeta.isUnStructed2RDBMS()) {
+      throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
+    }
+    int selectedTabsSize = processMeta.getReader().getSelectedTabs().size();
+    if (selectedTabsSize != 1) {
+      throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
+    }
+
+    for (ISelectedTab selectedTab : processMeta.getReader().getSelectedTabs()) {
+      // List<ISelectedTab.ColMeta> cols = selectedTab.getCols();
+      this.setBizResult(context, selectedTab);
+      return;
+    }
+  }
+
+  /**
+   * @param context
+   */
+  public void doSaveWriterColsMeta(Context context) {
+    String dataxName = this.getString("dataxName");
+    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxName);
+    if (!(processMeta.isUnStructed2RDBMS())) {
+      throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
+    }
+
+    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap();
+    List<String> writerCols = Lists.newArrayList();
+    tableMapper.setSourceCols(writerCols);
+    ////////////////////
+    final String keyColsMeta = "colsMeta";
+    IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());
+    if (!Validator.validate(handler, context, Validator.fieldsValidator( //
+      "writerTargetTabName" //
+      , new Validator.FieldValidators(Validator.require) {
+        @Override
+        public void setFieldVal(String val) {
+          //  System.out.println("writerTargetTabName:" + val);
+          tableMapper.setTo(val);
+        }
+      },
+      keyColsMeta //
+      , new Validator.FieldValidators(Validator.require) {
+        @Override
+        public void setFieldVal(String val) {
+        }
+      }
+      , new Validator.IFieldValidator() {
+        @Override
+        public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+          JSONArray targetCols = JSON.parseArray(fieldData);
+          JSONObject targetCol = null;
+          int index;
+          String targetColName = null;
+
+          if (targetCols.size() < 1) {
+            msgHandler.addFieldError(context, fieldKey, "Writer目标表列不能为空");
+            return false;
+          }
+
+          boolean validateFaild = false;
+          for (int i = 0; i < targetCols.size(); i++) {
+            targetCol = targetCols.getJSONObject(i);
+            index = targetCol.getInteger("index");
+            targetColName = targetCol.getString("name");
+            if (!Validator.require.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]", targetColName)) {
+              validateFaild = true;
+            } else if (!Validator.db_col_name.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]", targetColName)) {
+              validateFaild = true;
+            }
+
+            writerCols.add(targetColName);
+          }
+
+          return !validateFaild;
+        }
+      }
+    ))) {
+      return;
+    }
+
+
+    this.saveTableMapper(dataxName, Collections.singletonList(tableMapper));
+  }
+
+  /**
    * submit reader type and writer type form for validate
    *
    * @param context
@@ -350,29 +453,8 @@ public class DataxAction extends BasicModule {
     JSONObject post = this.parseJsonPost();
 
     String dataxPipeName = post.getString("dataxPipeName");
-
-    DataxReader dataxReader = DataxReader.load(dataxPipeName);
-    DataxReader.BaseDataxReaderDescriptor descriptor = (DataxReader.BaseDataxReaderDescriptor) dataxReader.getDescriptor();
-//    JSONObject readerDescriptor = post.getJSONObject("readerDescriptor");
-//    JSONObject writerDescriptor = post.getJSONObject("writerDescriptor");
-    DataXCreateProcessMeta processMeta = new DataXCreateProcessMeta();
-    // 使用这个属性来控制是否要进入创建流程的第三步
-    processMeta.readerMultiTableSelectable = descriptor.isMulitTableSelectable();
-    processMeta.explicitTable = descriptor.hasExplicitTable();
+    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxPipeName);
     this.setBizResult(context, processMeta);
-  }
-
-  public static class DataXCreateProcessMeta {
-    boolean readerMultiTableSelectable;
-    boolean explicitTable;
-
-    public boolean isExplicitTable() {
-      return explicitTable;
-    }
-
-    public boolean isReaderMultiTableSelectable() {
-      return readerMultiTableSelectable;
-    }
   }
 
   public static List<String> getTablesInDB(String dataxName) {
