@@ -38,9 +38,6 @@ public class JsonUtil {
      * @param value
      * @return
      */
-    //   public static TriggerParam deserialize(String value) {
-    //     return deserialize(value, new TriggerParam());
-    // }
     @SuppressWarnings("unchecked")
     public static <T extends HashMap<String, String>> T deserialize(String value, T object) {
         try {

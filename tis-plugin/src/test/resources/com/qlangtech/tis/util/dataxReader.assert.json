@@ -44,7 +44,7 @@
           "pk":false,
           "type":1,
           "key":"where",
-          "required":true
+          "required":false
         },
         {
           "ord":2,

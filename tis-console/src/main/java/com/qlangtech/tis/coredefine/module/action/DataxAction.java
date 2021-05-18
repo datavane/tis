@@ -25,13 +25,11 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISelectedTab;
-import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.*;
@@ -40,6 +38,7 @@ import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -50,9 +49,9 @@ import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
-import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
@@ -68,6 +67,8 @@ import java.util.*;
  */
 @InterceptorRefs({@InterceptorRef("tisStack")})
 public class DataxAction extends BasicModule {
+
+  private static final String PARAM_KEY_DATAX_NAME = DataxUtils.DATAX_NAME;
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
@@ -85,8 +86,39 @@ public class DataxAction extends BasicModule {
   /**
    * @param context
    */
-  public void doDataxProcessorDesc(Context context) {
-    this.setBizResult(context, new PluginDescMeta(Collections.singletonList(DataxProcessor.getPluginDescMeta())));
+  public void doDataxProcessorDesc(Context context) throws Exception {
+
+    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.APP_SOURCE.identity);
+    HeteroList<IAppSource> hlist = new HeteroList<>(pluginMeta);
+    hlist.setDescriptors(Collections.singletonList(DataxProcessor.getPluginDescMeta()));
+    hlist.setExtensionPoint(IAppSource.class);
+    hlist.setSelectable(Selectable.Single);
+    hlist.setCaption(StringUtils.EMPTY);
+
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    if (StringUtils.isNotEmpty(dataxName)) {
+      hlist.setItems(Collections.singletonList(DataxProcessor.load(this, dataxName)));
+    }
+
+    this.setBizResult(context, hlist.toJSON());
+  }
+
+  /**
+   * 取得读插件配置
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetReaderPluginInfo(Context context) throws Exception {
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    if (StringUtils.isEmpty(dataxName)) {
+      throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
+    }
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+    DataxReader reader = readerStore.getPlugin();
+    if (reader != null) {
+      this.setBizResult(context, (new DescribableJSON(reader)).getItemJson());
+    }
   }
 
   /**
@@ -207,7 +239,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doGetGenCfgFile(Context context) throws Exception {
-    String dataxName = this.getString("dataxName");
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     String fileName = this.getString("fileName");
     DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
     File dataxCfgDir = dataxProcessor.getDataxCfgDir();
@@ -252,7 +284,7 @@ public class DataxAction extends BasicModule {
    * @throws Exception
    */
   public void doGenerateDataxCfgs(Context context) throws Exception {
-    String dataxName = this.getString("dataxName");
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(dataxProcessor);
     File dataxCfgDir = dataxProcessor.getDataxCfgDir();
@@ -269,7 +301,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doCreateDatax(Context context) throws Exception {
-    String dataxName = this.getString("dataxName");
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
     Application app = dataxProcessor.buildApp(); //this.parseJsonPost(Application.class);
 
@@ -289,7 +321,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doSaveTableMapper(Context context) {
-    String dataxName = this.getString("dataxName");
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     // 表别名列表
     JSONArray tabAliasList = this.parseJsonArrayPost();
     Objects.requireNonNull(tabAliasList, "tabAliasList can not be null");
@@ -323,7 +355,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doGetTableMapper(Context context) {
-    String dataxName = this.getString("dataxName");
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
     DataxReader dataxReader = readerStore.getPlugin();
     Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
@@ -356,7 +388,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doGetWriterColsMeta(Context context) {
-    String dataxName = this.getString("dataxName");
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     // DataxReader dataxReader = DataxReader.load(dataxName);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxName);
 
@@ -379,7 +411,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   public void doSaveWriterColsMeta(Context context) {
-    String dataxName = this.getString("dataxName");
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxName);
     if (!(processMeta.isUnStructed2RDBMS())) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
@@ -453,7 +485,20 @@ public class DataxAction extends BasicModule {
     JSONObject post = this.parseJsonPost();
 
     String dataxPipeName = post.getString("dataxPipeName");
-    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxPipeName);
+
+    JSONObject reader = post.getJSONObject("readerDescriptor");
+    JSONObject writer = post.getJSONObject("writerDescriptor");
+    Objects.requireNonNull(reader, "reader can not be null");
+    Objects.requireNonNull(writer, "writer can not be null");
+    DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
+    DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
+    Objects.requireNonNull(readerDesc, "readerDesc can not be null");
+    Objects.requireNonNull(writerDesc, "writerDesc can not be null");
+
+    DataXBasicProcessMeta processMeta = new DataXBasicProcessMeta();
+    processMeta.setReaderHasExplicitTable(readerDesc.hasExplicitTable());
+    processMeta.setReaderRDBMS(readerDesc.isRdbms());
+    processMeta.setWriterRDBMS(writerDesc.isRdbms());
     this.setBizResult(context, processMeta);
   }
 

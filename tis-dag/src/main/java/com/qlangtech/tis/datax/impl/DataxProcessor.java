@@ -84,9 +84,9 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
 
         DataXCreateProcessMeta processMeta = new DataXCreateProcessMeta(writer, dataxReader);
         // 使用这个属性来控制是否要进入创建流程的第三步
-        processMeta.readerRDBMS = descriptor.isRdbms();
-        processMeta.explicitTable = descriptor.hasExplicitTable();
-        processMeta.writerRDBMS = writerDesc.isRdbms();
+        processMeta.setReaderRDBMS(descriptor.isRdbms());
+        processMeta.setReaderHasExplicitTable(descriptor.hasExplicitTable());
+        processMeta.setWriterRDBMS(writerDesc.isRdbms());
         return processMeta;
     }
 
@@ -148,10 +148,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         return Lists.newArrayList(dataxCfgDir.list());
     }
 
-    public static class DataXCreateProcessMeta {
-        boolean readerRDBMS;
-        boolean explicitTable;
-        private boolean writerRDBMS;
+    public static class DataXCreateProcessMeta extends DataXBasicProcessMeta {
+
 
         private final DataxWriter writer;
         private final DataxReader reader;
@@ -171,34 +169,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
             return reader;
         }
 
-        /**
-         * 从非结构化的数据源导入到结构化的数据源，例如从OSS导入到MySQL
-         *
-         * @return
-         */
-        public boolean isUnStructed2RDBMS() {
-            return !readerRDBMS && writerRDBMS;
-        }
 
-        public boolean isWriterRDBMS() {
-            return this.writerRDBMS;
-        }
-
-        public boolean isReaderRDBMS() {
-            return readerRDBMS;
-        }
-
-        public boolean isExplicitTable() {
-            return explicitTable;
-        }
-
-        @Override
-        public String toString() {
-            return "ProcessMeta{" +
-                    "readerRDBMS=" + readerRDBMS +
-                    ", writerRDBMS=" + writerRDBMS +
-                    '}';
-        }
     }
 
 //     "setting": {

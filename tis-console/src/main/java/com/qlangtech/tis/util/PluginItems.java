@@ -56,7 +56,7 @@ public class PluginItems {
     this.pluginContext = pluginContext;
   }
 
-  public void save(Context context) {
+  public List<Describable> save(Context context) {
     if (items == null) {
       throw new IllegalStateException("prop items can not be null");
     }
@@ -122,10 +122,11 @@ public class PluginItems {
     }
     //dlist
     if (!store.setPlugins(pluginContext, Optional.of(context), convert(dlist))) {
-      return;
+      return Collections.emptyList();
     }
     observable.notifyObservers(new
       PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList));
+    return describableList;
   }
 
   private <T extends Describable> List<Descriptor.ParseDescribable<T>> convert(List<Descriptor.ParseDescribable<?>> dlist) {

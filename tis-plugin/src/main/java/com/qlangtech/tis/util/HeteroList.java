@@ -81,7 +81,6 @@ public class HeteroList<T extends Describable<T>> {
     }
 
     public void addItem(T item) {
-        // = items;
         this.items.add(item);
     }
 
@@ -106,29 +105,11 @@ public class HeteroList<T extends Describable<T>> {
         JSONObject item = null;
 
         for (T i : this.getItems()) {
-
             item = (new DescribableJSON(i)).getItemJson(subFormFilter);
-
             items.add(item);
         }
         o.put("items", items);
+
         return o;
     }
-
-//    public static <T extends Describable<T>> HeteroList<T> getHeteroList(String caption, List<T> items, Class<T> clazz) {
-//        HeteroList<T> hList = new HeteroList<>();
-//        hList.setCaption(caption);
-//        hList.setItems(items);
-//        try {
-//            Class<T> componentType = clazz;
-//            if (componentType == null) {
-//                throw new IllegalStateException("componentType can not be null");
-//            }
-//            Method allMethod = componentType.getMethod("all");
-//            hList.setDescriptors((List<Descriptor<T>>) allMethod.invoke(null));
-//        } catch (Exception e) {
-//            throw new RuntimeException("caption:" + caption, e);
-//        }
-//        return hList;
-//    }
 }

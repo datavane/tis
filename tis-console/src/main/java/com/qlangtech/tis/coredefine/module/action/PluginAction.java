@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.*;
@@ -36,6 +37,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -193,11 +195,10 @@ public class PluginAction extends BasicModule {
   }
 
   public void doGetPluginConfigInfo(Context context) throws Exception {
-    //Thread.sleep(1000);
 
+    HeteroList<?> hList = null;
     List<UploadPluginMeta> plugins = getPluginMeta();
 
-    // final String[] plugins = this.getStringArray("plugin");
     if (plugins == null || plugins.size() < 1) {
       throw new IllegalArgumentException("param plugin is not illegal");
     }
@@ -205,8 +206,7 @@ public class PluginAction extends BasicModule {
     com.alibaba.fastjson.JSONArray hlist = new com.alibaba.fastjson.JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta pmeta : plugins) {
-      HeteroList<?> hList = pmeta.getHeteroList(this);
-      //hlist.put(hList.toJSON());
+      hList = pmeta.getHeteroList(this);
       hlist.add(hList.toJSON());
     }
     pluginDetail.put("plugins", hlist);
@@ -224,15 +224,13 @@ public class PluginAction extends BasicModule {
     }
     List<UploadPluginMeta> plugins = getPluginMeta();
     JSONArray pluginArray = parseJsonArrayPost();
+
+    // FileUtils.write(new File("test.json"), JsonUtil.toString(pluginArray), TisUTF8.get());
+
     UploadPluginMeta pluginMeta = null;
     // JSONObject itemObj = null;
     boolean faild = false;
     List<PluginItems> categoryPlugins = Lists.newArrayList();
-//    PluginItems pluginItems = null;
-//    HeteroEnum hEnum = null;
-//    Descriptor.PluginValidateResult validateResult = null;
-//    List<Descriptor.PluginValidateResult> items = null;
-//    Optional<IPropertyType.SubFormFilter> subFormFilter = null;
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
     final boolean bizValidate = this.getBoolean("verify");
     PluginItemsParser pluginItemsParser = null;
@@ -247,45 +245,6 @@ public class PluginAction extends BasicModule {
         faild = true;
       }
       categoryPlugins.add(pluginItemsParser.pluginItems);
-//      //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
-//      pluginItems = new PluginItems(this, pluginMeta);
-//      List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(this, itemsArray, subFormFilter);
-//      if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
-//        this.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
-//      }
-//      pluginItems.items = describableAttrValMapList;
-//      categoryPlugins.add(pluginItems);
-//      AttrValMap attrValMap = null;
-//
-//
-//      for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
-//        attrValMap = describableAttrValMapList.get(itemIndex);
-//        Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-//        if (!(validateResult = attrValMap.validate(context, bizValidate)).isValid()) {
-//          faild = true;
-//        } else {
-//          validateResult.setDescriptor(attrValMap.descriptor);
-//          items.add(validateResult);
-//        }
-//      }
-//
-//      /**===============================================
-//       * 校验Item字段的identity字段不能重复，不然就报错
-//       ===============================================*/
-//      Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
-//      Descriptor.PluginValidateResult previous = null;
-//      if (!faild && hEnum.isIdentityUnique()
-//        && hEnum.selectable == Selectable.Multi
-//        && items.size() > 1) {
-//        for (Descriptor.PluginValidateResult i : items) {
-//          if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
-//            previous.addIdentityFieldValueDuplicateError(this, context);
-//            i.addIdentityFieldValueDuplicateError(this, context);
-//            return;
-//          }
-//        }
-//      }
-
     }
     if (this.hasErrors(context) || bizValidate) {
       return;
@@ -295,11 +254,18 @@ public class PluginAction extends BasicModule {
       this.addErrorMessage(context, "提交表单内容有错误");
       return;
     }
-    for (PluginItems pi : categoryPlugins) {
-      pi.save(context);
-    }
 
+    List<Describable> describables = Lists.newArrayList();
+
+    for (PluginItems pi : categoryPlugins) {
+      describables.addAll(pi.save(context));
+    }
     addActionMessage(context, "配置保存成功");
+    // 成功保存的主键信息返回给客户端
+    this.setBizResult(context, describables.stream()
+      .filter((d) -> d instanceof IdentityName)
+      .map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
+
   }
 
 
