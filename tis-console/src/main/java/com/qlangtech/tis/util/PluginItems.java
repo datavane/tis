@@ -21,7 +21,7 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -77,7 +77,7 @@ public class PluginItems {
 
       for (Descriptor.ParseDescribable<?> d : dlist) {
         if (d.instance instanceof IdentityName) {
-          store = DataFlowAppSource.getPluginStore(((IdentityName) d.instance).identityValue());
+          store = IAppSource.getPluginStore(((IdentityName) d.instance).identityValue());
           break;
         }
       }

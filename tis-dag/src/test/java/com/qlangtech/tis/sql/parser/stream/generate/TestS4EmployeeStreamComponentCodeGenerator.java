@@ -2,7 +2,6 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.IAppSource;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 
 import java.util.List;
@@ -18,7 +17,7 @@ public class TestS4EmployeeStreamComponentCodeGenerator extends BasicTestCase {
         String collectionName = "search4test";
         String dfName = "current_dept_emp";
 
-        IAppSource appSource = DataFlowAppSource.load(collectionName);
+        IAppSource appSource = IAppSource.load(collectionName);
         assertNotNull(collectionName + " appSource can not be null", appSource);
 
         FacadeContext fc = new FacadeContext();

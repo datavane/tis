@@ -23,7 +23,6 @@ import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.manage.spring.MockZooKeeperGetter;
 import org.apache.commons.io.IOUtils;
@@ -72,7 +71,7 @@ public class TestAddAppAction extends BasicActionTestCase {
     assertTrue(aResult.isSuccess());
     verifyAll();
 
-    IAppSource appSource = DataFlowAppSource.load(TestSchemaAction.collection);
+    IAppSource appSource = IAppSource.load(TestSchemaAction.collection);
     assertTrue(appSource instanceof SingleTableAppSource);
   }
 

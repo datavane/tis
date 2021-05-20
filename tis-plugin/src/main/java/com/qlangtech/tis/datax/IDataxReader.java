@@ -31,7 +31,7 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta {
      * @return
      */
     default boolean hasMulitTable() {
-        return getSelectedTabs().size() > 1;
+        return getSelectedTabs().size() > 0;
     }
 
     public <T extends ISelectedTab> List<T> getSelectedTabs();

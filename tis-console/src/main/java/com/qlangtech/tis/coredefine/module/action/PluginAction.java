@@ -225,8 +225,6 @@ public class PluginAction extends BasicModule {
     List<UploadPluginMeta> plugins = getPluginMeta();
     JSONArray pluginArray = parseJsonArrayPost();
 
-    // FileUtils.write(new File("test.json"), JsonUtil.toString(pluginArray), TisUTF8.get());
-
     UploadPluginMeta pluginMeta = null;
     // JSONObject itemObj = null;
     boolean faild = false;

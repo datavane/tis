@@ -100,13 +100,13 @@ public interface IDataxProcessor {
      */
     public class TableMap extends TableAlias {
 
-        private List<String> sourceCols;
+        private List<ISelectedTab.ColMeta> sourceCols;
 
-        public List<String> getSourceCols() {
+        public List<ISelectedTab.ColMeta> getSourceCols() {
             return sourceCols;
         }
 
-        public void setSourceCols(List<String> sourceCols) {
+        public void setSourceCols(List<ISelectedTab.ColMeta> sourceCols) {
             this.sourceCols = sourceCols;
         }
 

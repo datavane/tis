@@ -82,6 +82,27 @@ public class DataXCfgGenerator {
     }
 
 
+    /**
+     * 取得之前已经存在的文件
+     *
+     * @param parentDir
+     * @return
+     */
+    public List<String> getExistCfg(File parentDir) {
+        IDataxReader reader = dataxProcessor.getReader();
+        Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
+        IDataxReaderContext readerContext = null;
+        File configFile = null;
+        List<String> subTaskName = Lists.newArrayList();
+        while (subTasks.hasNext()) {
+            readerContext = subTasks.next();
+            configFile = new File(parentDir, readerContext.getTaskName() + ".json");
+            subTaskName.add(configFile.getName());
+        }
+        return subTaskName;
+    }
+
+
     public List<String> startGenerateCfg(File parentDir) throws Exception {
 
         boolean unStructed2RDBMS = dataxProcessor.isUnStructed2RDBMS();
@@ -102,21 +123,21 @@ public class DataXCfgGenerator {
         IDataxReaderContext readerContext = null;
         File configFile = null;
         List<String> subTaskName = Lists.newArrayList();
-        IDataxProcessor.TableMap tableMap = null;
+        IDataxProcessor.TableMap tableMapper = null;
         while (subTasks.hasNext()) {
             readerContext = subTasks.next();
             if (unStructed2RDBMS) {
                 // 是在DataxAction的doSaveWriterColsMeta() 方法中持久化保存的
                 for (IDataxProcessor.TableAlias tab : tabAlias.values()) {
-                    tableMap = (IDataxProcessor.TableMap) tab;
+                    tableMapper = (IDataxProcessor.TableMap) tab;
                     break;
                 }
-                Objects.requireNonNull(tableMap, "tableMap can not be null");
+                Objects.requireNonNull(tableMapper, "tableMap can not be null");
             } else {
-                tableMap = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
+                tableMapper = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
             }
             configFile = new File(parentDir, readerContext.getTaskName() + ".json");
-            FileUtils.write(configFile, generateDataxConfig(readerContext, Optional.of(tableMap)), TisUTF8.get(), false);
+            FileUtils.write(configFile, generateDataxConfig(readerContext, Optional.of(tableMapper)), TisUTF8.get(), false);
             subTaskName.add(configFile.getName());
         }
         return subTaskName;
@@ -124,13 +145,16 @@ public class DataXCfgGenerator {
 
     private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias
             , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
-        IDataxProcessor.TableMap tableMap;
-        tableMap = new IDataxProcessor.TableMap();
         IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceEntityName());
+        if (tableAlias == null) {
+            throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias'");
+        }
         ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
+        IDataxProcessor.TableMap
+                tableMap = new IDataxProcessor.TableMap();
         tableMap.setFrom(tableAlias.getFrom());
         tableMap.setTo(tableAlias.getTo());
-        tableMap.setSourceCols(selectedTab.getCols().stream().map((c) -> c.getName()).collect(Collectors.toList()));
+        tableMap.setSourceCols(selectedTab.getCols());
         return tableMap;
     }
 

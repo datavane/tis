@@ -18,7 +18,6 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.ERRules;
@@ -52,7 +51,7 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
 
         Optional<ERRules> erRule = ERRules.getErRule(topologyName);
 
-        IAppSource appSource = DataFlowAppSource.load(collectionName);
+        IAppSource appSource = IAppSource.load(collectionName);
         assertTrue(appSource instanceof SingleTableAppSource);
 
         // 测试针对单表的的topology增量脚本生成

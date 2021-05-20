@@ -20,7 +20,6 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import junit.framework.TestCase;
@@ -67,7 +66,7 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
     private IndexStreamCodeGenerator getIndexStreamCodeGenerator() throws Exception {
 
 
-        IAppSource appSource = DataFlowAppSource.load(collection);
+        IAppSource appSource = IAppSource.load(collection);
         assertNotNull(appSource);
 
         return new IndexStreamCodeGenerator(collection, (IStreamIncrGenerateStrategy) appSource, dataflowTimestamp, (dbid, tables) -> {

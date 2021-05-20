@@ -32,6 +32,7 @@ import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.InstanceDirDesc
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
 import com.qlangtech.tis.manage.PermissionConstant;
@@ -209,7 +210,7 @@ public class CoreAction extends BasicModule {
   public static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
 
-    ISolrAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
+    ISolrAppSource appSource = IAppSource.load(module.getCollectionName());
     //Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
     //WorkFlow wf = module.loadDF(workFlowId);
     //SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
@@ -290,7 +291,7 @@ public class CoreAction extends BasicModule {
 
     // final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
 
-    ISolrAppSource appSource = DataFlowAppSource.load(this.getCollectionName());
+    ISolrAppSource appSource = IAppSource.load(this.getCollectionName());
 
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
@@ -355,7 +356,7 @@ public class CoreAction extends BasicModule {
 //  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
 //    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
-    ISolrAppSource appSource = DataFlowAppSource.load(module.getCollectionName());
+    ISolrAppSource appSource = IAppSource.load(module.getCollectionName());
 
     Date scriptLastOpTime = appSource.accept(new ISolrAppSourceVisitor<Date>() {
       @Override
@@ -422,7 +423,7 @@ public class CoreAction extends BasicModule {
 //      throw new IllegalArgumentException("param wfName can not be null");
 //    }
 
-    ISolrAppSource appSource = DataFlowAppSource.load(app.getProjectName());
+    ISolrAppSource appSource = IAppSource.load(app.getProjectName());
 
     if (!appSource.triggerFullIndexSwapeValidate(module, context)) {
       return new TriggerBuildResult(false);

@@ -188,21 +188,26 @@ public enum HeteroEnum {
      */
     public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         PluginStore store = null;
-        if (pluginContext.isCollectionAware()) {
-            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
-        } else if (pluginContext.isDataSourceAware()) {
-
-            PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
-            if (StringUtils.isEmpty(dsProp.getDbname())) {
-                return Collections.emptyList();
+        if (this == HeteroEnum.APP_SOURCE) {
+            final String dataxName = StringUtils.defaultIfEmpty(pluginMeta.getExtraParam(DataxUtils.DATAX_NAME), pluginContext.getCollectionName());
+            if (StringUtils.isEmpty(dataxName)) {
+                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
             }
-            store = TIS.getDataBasePluginStore(dsProp);
+            store = com.qlangtech.tis.manage.IAppSource.getPluginStore(dataxName);
         } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
             final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
             if (StringUtils.isEmpty(dataxName)) {
                 throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
             }
             store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(dataxName) : DataxWriter.getPluginStore(dataxName);
+        } else if (pluginContext.isCollectionAware()) {
+            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
+        } else if (pluginContext.isDataSourceAware()) {
+            PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
+            if (StringUtils.isEmpty(dsProp.getDbname())) {
+                return Collections.emptyList();
+            }
+            store = TIS.getDataBasePluginStore(dsProp);
         } else {
             store = TIS.getPluginStore(this.extensionPoint);
         }

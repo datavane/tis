@@ -20,10 +20,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -37,6 +34,8 @@ import java.util.stream.Collectors;
 public class UploadPluginMeta {
 
     private static final String ATTR_KEY_VALUE_SPLIT = "_";
+
+    private static final String KEY_JUST_GET_ITEM_RELEVANT = "justGetItemRelevant";
 
     private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\w]+");
 
@@ -169,15 +168,20 @@ public class UploadPluginMeta {
         HeteroList<T> hList = new HeteroList<>(this);
         hList.setCaption(hEnum.caption);
         hList.setExtensionPoint(hEnum.extensionPoint);
-        hList.setItems(hEnum.getPlugins(pluginContext, this));
+        List<T> items = hEnum.getPlugins(pluginContext, this);
+        hList.setItems(items);
 
         List<Descriptor<T>> descriptors = hEnum.descriptors();
         String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
-        if (StringUtils.isNotEmpty(targetDesc)) {
+        boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
+        if (justGetItemRelevant) {
+            Set<String> itemRelevantDescNames = items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
+            descriptors = descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
+        } else if (StringUtils.isNotEmpty(targetDesc)) {
             descriptors = descriptors.stream().filter((d) -> targetDesc.equals(d.getDisplayName())).collect(Collectors.toList());
         }
-
         hList.setDescriptors(descriptors);
+
         hList.setSelectable(hEnum.selectable);
         return hList;
     }

@@ -24,6 +24,7 @@ import com.qlangtech.tis.coredefine.biz.FCoreRequest;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
@@ -200,7 +201,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       return Optional.of(app);
     }
 
-    DataFlowAppSource.save(extApp.getProjectName(), extApp.createAppSource(this));
+    IAppSource.save(extApp.getProjectName(), extApp.createAppSource(this));
     /**
      * *************************************************************************************
      * 因为这里数据库的事务还没有提交，需要先将schema配置信息保存到缓存中去以便solrcore节点能获取到

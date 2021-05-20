@@ -25,8 +25,8 @@ import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
 import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -163,7 +163,7 @@ public class DefaultChainContext implements IExecChainContext {
 
     public <T extends IBasicAppSource> T getAppSource() {
         if (appSource == null) {
-            this.appSource = DataFlowAppSource.load(this.getIndexName());
+            this.appSource = IAppSource.load(this.getIndexName());
         }
         return (T) appSource;
     }

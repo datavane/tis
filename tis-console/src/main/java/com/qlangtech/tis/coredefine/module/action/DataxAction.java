@@ -35,7 +35,6 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
@@ -86,6 +85,7 @@ public class DataxAction extends BasicModule {
   /**
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doDataxProcessorDesc(Context context) throws Exception {
 
     UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.APP_SOURCE.identity);
@@ -104,19 +104,42 @@ public class DataxAction extends BasicModule {
   }
 
   /**
+   * 取得写插件配置
+   *
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doGetWriterPluginInfo(Context context) throws Exception {
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    JSONObject writerDesc = this.parseJsonPost();
+    if (StringUtils.isEmpty(dataxName)) {
+      throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
+    }
+    KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(dataxName);
+    DataxWriter writer = writerStore.getPlugin();
+    if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), writerDesc.getString("impl"))) {
+      this.setBizResult(context, (new DescribableJSON(writer)).getItemJson());
+    }
+  }
+
+  /**
    * 取得读插件配置
    *
    * @param context
    * @throws Exception
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetReaderPluginInfo(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    JSONObject readerDesc = this.parseJsonPost();
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
     }
     KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
     DataxReader reader = readerStore.getPlugin();
-    if (reader != null) {
+    if (reader != null && StringUtils.equals(reader.getDescriptor().getId(), readerDesc.getString("impl"))) {
+
       this.setBizResult(context, (new DescribableJSON(reader)).getItemJson());
     }
   }
@@ -126,6 +149,7 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doLaunchDataxWorker(Context context) {
     PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
     DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
@@ -149,6 +173,7 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doRemoveDataxWorker(Context context) {
     PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
     DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
@@ -164,6 +189,7 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetDataxWorkerMeta(Context context) {
     PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
     DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
@@ -184,6 +210,7 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveDataxWorker(Context context) {
     JSONObject postContent = this.parseJsonPost();
     JSONObject k8sSpec = postContent.getJSONObject("k8sSpec");
@@ -219,12 +246,13 @@ public class DataxAction extends BasicModule {
     jobWorkerStore.setPlugins(this, Optional.empty(), dlist, true);
   }
 
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doDataxWorkerDesc(Context context) {
-
     List<Descriptor<DataXJobWorker>> descriptors = HeteroEnum.DATAX_WORKER.descriptors();
     this.setBizResult(context, new PluginDescMeta(descriptors));
   }
 
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetSupportedReaderWriterTypes(Context context) {
 
     DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes = TIS.get().getDescriptorList(DataxReader.class);
@@ -238,10 +266,11 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetGenCfgFile(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     String fileName = this.getString("fileName");
-    DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
+    DataxProcessor dataxProcessor = IAppSource.load(dataxName);
     File dataxCfgDir = dataxProcessor.getDataxCfgDir();
     File cfgFile = new File(dataxCfgDir, fileName);
     if (!cfgFile.exists()) {
@@ -256,6 +285,7 @@ public class DataxAction extends BasicModule {
    * @param context
    * @throws Exception
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doValidateDataxProfile(Context context) throws Exception {
     Application app = this.parseJsonPost(Application.class);
     SchemaAction.CreateAppResult validateResult = this.createNewApp(context, app
@@ -283,15 +313,21 @@ public class DataxAction extends BasicModule {
    * @param context
    * @throws Exception
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doGenerateDataxCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
+    boolean getExist = this.getBoolean("getExist");
+    DataxProcessor dataxProcessor = IAppSource.load(dataxName);
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(dataxProcessor);
     File dataxCfgDir = dataxProcessor.getDataxCfgDir();
-    FileUtils.forceMkdir(dataxCfgDir);
-    // 先清空文件
-    FileUtils.cleanDirectory(dataxCfgDir);
-    this.setBizResult(context, cfgGenerator.startGenerateCfg(dataxCfgDir));
+
+    if (!getExist) {
+      FileUtils.forceMkdir(dataxCfgDir);
+      // 先清空文件
+      FileUtils.cleanDirectory(dataxCfgDir);
+    }
+
+    this.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir) : cfgGenerator.startGenerateCfg(dataxCfgDir));
   }
 
 
@@ -300,10 +336,11 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doCreateDatax(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor dataxProcessor = DataFlowAppSource.load(dataxName);
-    Application app = dataxProcessor.buildApp(); //this.parseJsonPost(Application.class);
+    DataxProcessor dataxProcessor = IAppSource.load(dataxName);
+    Application app = dataxProcessor.buildApp();
 
     SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app
       , false, (newAppId) -> {
@@ -320,23 +357,36 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveTableMapper(Context context) {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     // 表别名列表
     JSONArray tabAliasList = this.parseJsonArrayPost();
     Objects.requireNonNull(tabAliasList, "tabAliasList can not be null");
 
-
     JSONObject alias = null;
     IDataxProcessor.TableAlias tabAlias = null;
     List<IDataxProcessor.TableAlias> tableMaps = Lists.newArrayList();
+
+
+    String mapperToVal = null;
     for (int i = 0; i < tabAliasList.size(); i++) {
       alias = tabAliasList.getJSONObject(i);
       tabAlias = new IDataxProcessor.TableAlias();
       tabAlias.setFrom(alias.getString("from"));
-      tabAlias.setTo(alias.getString("to"));
+      mapperToVal = alias.getString("to");
+      String mapper2FieldKey = "tabMapperTo[" + i + "]";
+      if (Validator.require.validate(this, context, mapper2FieldKey, mapperToVal)) {
+        Validator.db_col_name.validate(this, context, mapper2FieldKey, mapperToVal);
+      }
+      tabAlias.setTo(mapperToVal);
       tableMaps.add(tabAlias);
     }
+
+    if (context.hasErrors()) {
+      return;
+    }
+
     this.saveTableMapper(dataxName, tableMaps);
 
   }
@@ -346,7 +396,7 @@ public class DataxAction extends BasicModule {
     //Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable = pluginDescMeta.newInstance(this, Collections.emptyMap(), Optional.empty());
     DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);//  appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
     dataxProcessor.setTableMaps(tableMaps);
-    DataFlowAppSource.save(dataxName, dataxProcessor);
+    IAppSource.save(dataxName, dataxProcessor);
   }
 
   /**
@@ -354,6 +404,7 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetTableMapper(Context context) {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
@@ -361,25 +412,27 @@ public class DataxAction extends BasicModule {
     Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
 
     IDataxProcessor.TableAlias tableAlias;
-    Optional<DataxProcessor> dataXAppSource = DataFlowAppSource.loadNullable(dataxName);
+    Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(dataxName);
     Map<String, IDataxProcessor.TableAlias> tabMaps = Collections.emptyMap();
     if (dataXAppSource.isPresent()) {
       DataxProcessor dataxSource = dataXAppSource.get();
       tabMaps = dataxSource.getTabAlias();
     }
 
-    if (dataxReader.hasMulitTable()) {
-      List<IDataxProcessor.TableAlias> tmapList = Lists.newArrayList();
-      for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
-        tableAlias = tabMaps.get(selectedTab.getName());
-        if (tableAlias == null) {
-          tmapList.add(new IDataxProcessor.TableAlias(selectedTab.getName()));
-        } else {
-          tmapList.add(tableAlias);
-        }
-      }
-      this.setBizResult(context, tmapList);
+    if (!dataxReader.hasMulitTable()) {
+      throw new IllegalStateException("reader has not set table at least");
     }
+    List<IDataxProcessor.TableAlias> tmapList = Lists.newArrayList();
+    for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
+      tableAlias = tabMaps.get(selectedTab.getName());
+      if (tableAlias == null) {
+        tmapList.add(new IDataxProcessor.TableAlias(selectedTab.getName()));
+      } else {
+        tmapList.add(tableAlias);
+      }
+    }
+    this.setBizResult(context, tmapList);
+
   }
 
   /**
@@ -387,10 +440,12 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetWriterColsMeta(Context context) {
-    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    // DataxReader dataxReader = DataxReader.load(dataxName);
+    final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxName);
+    DataxProcessor processor = DataxProcessor.load(this, dataxName);
+
 
     if (!processMeta.isUnStructed2RDBMS()) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
@@ -399,10 +454,24 @@ public class DataxAction extends BasicModule {
     if (selectedTabsSize != 1) {
       throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
     }
-
+    Map<String, IDataxProcessor.TableAlias> tabAlias = processor.getTabAlias();
+    Optional<IDataxProcessor.TableAlias> findMapper = tabAlias.values().stream().findFirst();
+    IDataxProcessor.TableMap tabMapper = null;
     for (ISelectedTab selectedTab : processMeta.getReader().getSelectedTabs()) {
       // List<ISelectedTab.ColMeta> cols = selectedTab.getCols();
-      this.setBizResult(context, selectedTab);
+
+      // IDataxProcessor.TableAlias tableAlias = tabAlias.get(selectedTab.getName());
+      if (findMapper.isPresent()) {
+        if (!(findMapper.get() instanceof IDataxProcessor.TableMap)) {
+          throw new IllegalStateException("tableAlias must be type of " + IDataxProcessor.TableMap.class.getName());
+        }
+        tabMapper = (IDataxProcessor.TableMap) findMapper.get();
+      } else {
+        tabMapper = new IDataxProcessor.TableMap();
+        tabMapper.setSourceCols(selectedTab.getCols());
+      }
+
+      this.setBizResult(context, tabMapper);
       return;
     }
   }
@@ -410,6 +479,7 @@ public class DataxAction extends BasicModule {
   /**
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveWriterColsMeta(Context context) {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxName);
@@ -418,17 +488,17 @@ public class DataxAction extends BasicModule {
     }
 
     IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap();
-    List<String> writerCols = Lists.newArrayList();
+    List<ISelectedTab.ColMeta> writerCols = Lists.newArrayList();
+
     tableMapper.setSourceCols(writerCols);
     ////////////////////
     final String keyColsMeta = "colsMeta";
     IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());
     if (!Validator.validate(handler, context, Validator.fieldsValidator( //
       "writerTargetTabName" //
-      , new Validator.FieldValidators(Validator.require) {
+      , new Validator.FieldValidators(Validator.require, Validator.db_col_name) {
         @Override
         public void setFieldVal(String val) {
-          //  System.out.println("writerTargetTabName:" + val);
           tableMapper.setTo(val);
         }
       },
@@ -441,6 +511,7 @@ public class DataxAction extends BasicModule {
       , new Validator.IFieldValidator() {
         @Override
         public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+          ISelectedTab.ColMeta colMeta = null;
           JSONArray targetCols = JSON.parseArray(fieldData);
           JSONObject targetCol = null;
           int index;
@@ -450,19 +521,27 @@ public class DataxAction extends BasicModule {
             msgHandler.addFieldError(context, fieldKey, "Writer目标表列不能为空");
             return false;
           }
-
+          Map<String, Integer> existCols = Maps.newHashMap();
           boolean validateFaild = false;
+          Integer previousColIndex = null;
           for (int i = 0; i < targetCols.size(); i++) {
             targetCol = targetCols.getJSONObject(i);
             index = targetCol.getInteger("index");
             targetColName = targetCol.getString("name");
+            if ((previousColIndex = existCols.put(targetColName, index)) != null) {
+              msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" + index + "行重复");
+              msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "内容不能与第" + previousColIndex + "行重复");
+              return false;
+            }
             if (!Validator.require.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]", targetColName)) {
               validateFaild = true;
             } else if (!Validator.db_col_name.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]", targetColName)) {
               validateFaild = true;
             }
-
-            writerCols.add(targetColName);
+            colMeta = new ISelectedTab.ColMeta();
+            colMeta.setName(targetColName);
+            colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
+            writerCols.add(colMeta);
           }
 
           return !validateFaild;
@@ -481,6 +560,7 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doValidateReaderWriter(Context context) {
     JSONObject post = this.parseJsonPost();
 

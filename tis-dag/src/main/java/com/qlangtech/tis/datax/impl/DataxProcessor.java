@@ -26,7 +26,6 @@ import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.util.IPluginContext;
@@ -47,12 +46,13 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
 
     public static DataxProcessor load(IPluginContext pluginContext, String dataXName) {
-        Optional<DataxProcessor> appSource = DataFlowAppSource.loadNullable(dataXName);
+        Optional<DataxProcessor> appSource = IAppSource.loadNullable(dataXName);
         if (appSource.isPresent()) {
             return appSource.get();
         } else {
             Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
-            Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData = new HashMap<String, com.alibaba.fastjson.JSONObject>() {
+            Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData
+                    = new HashMap<String, com.alibaba.fastjson.JSONObject>() {
                 @Override
                 public JSONObject get(Object key) {
                     JSONObject o = new JSONObject();
@@ -107,7 +107,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         return this.tableMaps.stream().collect(Collectors.toMap((m) -> m.getFrom(), (m) -> m));
     }
 
-    public boolean isUnStructed2RDBMS() {
+    public final boolean isUnStructed2RDBMS() {
         DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(this.identityValue());
         return dataXCreateProcessMeta.isUnStructed2RDBMS();
     }

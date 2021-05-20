@@ -23,7 +23,6 @@ import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
-import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
@@ -33,12 +32,10 @@ import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.fullbuild.taskflow.IFlatTableBuilder;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
 import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
-import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.FlatTableBuilder;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -69,7 +66,6 @@ import java.util.concurrent.Executors;
  * @date 2021-03-31 11:20
  */
 public class DataFlowAppSource implements ISolrAppSource, IStreamIncrGenerateStrategy {
-    //private static final Logger logger = LoggerFactory.getLogger(DataFlowAppSource.class);
     private static final Logger logger = LoggerFactory.getLogger("fullbuild");
     public static final File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_APP_DIR);
     private final String dataflowName;
@@ -101,49 +97,7 @@ public class DataFlowAppSource implements ISolrAppSource, IStreamIncrGenerateStr
         }
     }
 
-    /**
-     * save
-     *
-     * @param appname
-     * @param appSource
-     */
-    public static void save(String appname, IAppSource appSource) {
-        KeyedPluginStore<IAppSource> pluginStore = getPluginStore(appname);
-        Optional<Context> context = Optional.empty();
-        pluginStore.setPlugins(null, context, Collections.singletonList(new Descriptor.ParseDescribable(appSource)));
-    }
-
-    public static <T extends IAppSource> Optional<T> loadNullable(String appName) {
-        KeyedPluginStore<T> pluginStore = getPluginStore(appName);
-        IAppSource appSource = pluginStore.getPlugin();
-        return (Optional<T>) Optional.ofNullable(appSource);
-    }
-
-    public static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(String appName) {
-        return (KeyedPluginStore<T>) new KeyedPluginStore(new AppKey(appName));
-    }
-
-    /**
-     * load
-     *
-     * @param appName
-     * @return
-     */
-    public static <T extends IAppSource> T load(String appName) {
-        Optional<IAppSource> iAppSource = loadNullable(appName);
-        if (!iAppSource.isPresent()) {
-            throw new IllegalStateException("appName:" + appName + " relevant appSource can not be null");
-        }
-        return (T) iAppSource.get();
-    }
-
-    public static class AppKey extends KeyedPluginStore.Key<IAppSource> {
-        public AppKey(String collection) {
-            super(IFullBuildContext.NAME_APP_DIR, collection, IAppSource.class);
-        }
-    }
-
-//    @Override
+    //    @Override
 //    public boolean isTriggerIgnore(EntityName entityName) {
 //        //this.erRules.isTriggerIgnore(entityName);
 //        return this.getErRules().isTriggerIgnore(entityName);
