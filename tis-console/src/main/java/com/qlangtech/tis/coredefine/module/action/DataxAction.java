@@ -22,6 +22,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISelectedTab;
@@ -49,6 +50,8 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
 import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
@@ -56,6 +59,7 @@ import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -281,6 +285,66 @@ public class DataxAction extends BasicModule {
     this.setBizResult(context, fileMeta);
   }
 
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doGetExecStatistics(Context context) throws Exception {
+    WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
+    Date from = ManageUtils.getOffsetDate(-8);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd");
+    Map<String, DataXExecStatus> execStatis = Maps.newTreeMap();
+    ExecResult execResult = null;
+    DataXExecStatus execStatus = null;
+    String timeLab = null;
+    for (int i = 0; i < 8; i++) {
+      timeLab = dateFormat.format(ManageUtils.getOffsetDate(-i));
+      execStatis.put(timeLab, new DataXExecStatus(timeLab));
+    }
+    int successCount = 0;
+    int errCount = 0;
+    historyCriteria.createCriteria().andAppIdEqualTo(this.getAppDomain().getAppid()).andCreateTimeGreaterThan(from);
+    for (WorkFlowBuildHistory h : this.wfDAOFacade.getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria)) {
+      execResult = ExecResult.parse(h.getState());
+      execStatus = execStatis.get(dateFormat.format(h.getCreateTime()));
+      if (execResult == ExecResult.SUCCESS) {
+        execStatus.successCount++;
+        successCount++;
+      } else if (execResult == ExecResult.FAILD) {
+        execStatus.errCount++;
+        errCount++;
+      }
+    }
+    Map<String, Object> bizResult = Maps.newHashMap();
+    bizResult.put("data", execStatis.values());
+    Map<String, Integer> allStatis = Maps.newHashMap();
+    allStatis.put("errCount", errCount);
+    allStatis.put("successCount", successCount);
+    bizResult.put("statis", allStatis);
+    this.setBizResult(context, bizResult);
+  }
+
+  private static class DataXExecStatus {
+
+    private final String timeLab;
+
+    public DataXExecStatus(String timeLab) {
+      this.timeLab = timeLab;
+    }
+
+    public String getTimeLab() {
+      return timeLab;
+    }
+
+    int errCount;
+    int successCount;
+
+    public int getErrCount() {
+      return errCount;
+    }
+
+    public int getSuccessCount() {
+      return successCount;
+    }
+  }
+
   /**
    * @param context
    * @throws Exception
@@ -326,7 +390,6 @@ public class DataxAction extends BasicModule {
       // 先清空文件
       FileUtils.cleanDirectory(dataxCfgDir);
     }
-
     this.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir) : cfgGenerator.startGenerateCfg(dataxCfgDir));
   }
 

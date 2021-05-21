@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
  * @create: 2020-07-20 11:00
  */
 public class UploadPluginMeta {
+
+    public static final String KEY_PLUGIN_META = UploadPluginMeta.class.getName();
 
     private static final String ATTR_KEY_VALUE_SPLIT = "_";
 
@@ -51,6 +54,10 @@ public class UploadPluginMeta {
     private boolean required;
     // 除去 required 之外的其他参数
     private Map<String, String> extraParams = new HashMap<>();
+
+    public boolean isUpdate() {
+        return Boolean.parseBoolean(this.getExtraParam(PostedDSProp.KEY_UPDATE));
+    }
 
     public static void main(String[] args) throws Exception {
 

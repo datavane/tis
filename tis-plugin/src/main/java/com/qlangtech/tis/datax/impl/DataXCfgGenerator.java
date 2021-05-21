@@ -88,7 +88,8 @@ public class DataXCfgGenerator {
      * @param parentDir
      * @return
      */
-    public List<String> getExistCfg(File parentDir) {
+    public GenerateCfgs getExistCfg(File parentDir) throws Exception {
+        GenerateCfgs generateCfgs = new GenerateCfgs();
         IDataxReader reader = dataxProcessor.getReader();
         Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
@@ -99,12 +100,17 @@ public class DataXCfgGenerator {
             configFile = new File(parentDir, readerContext.getTaskName() + ".json");
             subTaskName.add(configFile.getName());
         }
-        return subTaskName;
+
+        generateCfgs.genTime = Long.parseLong(FileUtils.readFileToString(new File(parentDir, FILE_GEN), TisUTF8.get()));
+        generateCfgs.dataxFiles = subTaskName;
+        return generateCfgs;
     }
 
 
-    public List<String> startGenerateCfg(File parentDir) throws Exception {
+    private static final String FILE_GEN = "gen";
 
+    public GenerateCfgs startGenerateCfg(File parentDir) throws Exception {
+        GenerateCfgs cfgs = new GenerateCfgs();
         boolean unStructed2RDBMS = dataxProcessor.isUnStructed2RDBMS();
 
         IDataxReader reader = dataxProcessor.getReader();
@@ -140,7 +146,24 @@ public class DataXCfgGenerator {
             FileUtils.write(configFile, generateDataxConfig(readerContext, Optional.of(tableMapper)), TisUTF8.get(), false);
             subTaskName.add(configFile.getName());
         }
-        return subTaskName;
+        long current = System.currentTimeMillis();
+        FileUtils.write(new File(parentDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
+        cfgs.dataxFiles = subTaskName;
+        cfgs.genTime = current;
+        return cfgs;
+    }
+
+    private static class GenerateCfgs {
+        private List<String> dataxFiles;
+        private long genTime;
+
+        public List<String> getDataxFiles() {
+            return dataxFiles;
+        }
+
+        public long getGenTime() {
+            return genTime;
+        }
     }
 
     private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias

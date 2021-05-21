@@ -268,6 +268,7 @@ public class PluginAction extends BasicModule {
 
 
   public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, boolean bizValidate) {
+    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     PluginItemsParser parseResult = new PluginItemsParser();
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();

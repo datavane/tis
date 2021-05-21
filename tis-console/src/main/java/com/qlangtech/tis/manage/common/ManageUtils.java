@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,6 +63,17 @@ public class ManageUtils {
 
   public static long formatNowYyyyMMddHHmmss(Date date) {
     return Long.parseLong(dateFormatyyyyMMddHHmmss.get().format(date));
+  }
+
+
+  public static Date getOffsetDate(int offset) {
+    Calendar c = Calendar.getInstance();
+    c.add(Calendar.DAY_OF_YEAR, offset);
+    c.set(Calendar.HOUR_OF_DAY, 0);
+    c.set(Calendar.MINUTE, 0);
+    c.set(Calendar.SECOND, 0);
+    c.set(Calendar.MILLISECOND, 0);
+    return c.getTime();
   }
 
   private static final Pattern SERVLET_PATH = Pattern.compile("/([^\\.^/]+?)\\.[^\\.]+$");
