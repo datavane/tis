@@ -194,11 +194,11 @@ public final class DataxExecutor {
         String jobIdString = cl.getOptionValue("jobid");
         String RUNTIME_MODE = cl.getOptionValue("mode");
         Configuration configuration = parse(jobPath);
+        Objects.requireNonNull(configuration, "configuration can not be null");
         long jobId = 0;
         if (!"-1".equalsIgnoreCase(jobIdString)) {
             jobId = Long.parseLong(jobIdString);
         }
-
 
         boolean isStandAloneMode = "standalone".equalsIgnoreCase(RUNTIME_MODE);
         if (!isStandAloneMode && jobId == -1L) {
@@ -255,7 +255,11 @@ public final class DataxExecutor {
 
     // 注意屏蔽敏感信息
     public static String filterJobConfiguration(final Configuration configuration) {
-        Configuration jobConfWithSetting = configuration.getConfiguration("job").clone();
+        Configuration job = configuration.getConfiguration("job");
+        if (job == null) {
+            throw new IllegalStateException("job relevant info can not be null,\n" + configuration.toJSON());
+        }
+        Configuration jobConfWithSetting = job.clone();
 
         Configuration jobContent = jobConfWithSetting.getConfiguration("content");
 

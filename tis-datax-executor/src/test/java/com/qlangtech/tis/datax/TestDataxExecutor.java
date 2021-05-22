@@ -52,8 +52,8 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext{
         };
 
         DataxExecutor executor = new DataxExecutor(statusRpc, uberClassLoader);
-        final String jobName = "customer_order_relation_1.json";
-        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitest/dataxCfg/" + jobName);
+        final String jobName = "customer_order_relation_0.json";
+        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitestTestcase/dataxCfg/" + jobName);
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
         executor.startWork(dataXName, jobId, jobName, path.toString());

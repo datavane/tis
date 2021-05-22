@@ -37,7 +37,7 @@ public class TestDataxExecutorSynRes extends TestCase implements IExecutorContex
         DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataXName, jobName);
         DataxProcessor dataxProcessor = IAppSource.load(dataXName);
         File dataxCfgDir = dataxProcessor.getDataxCfgDir();
-        assertTrue(dataxCfgDir.exists());
+        assertTrue(dataxCfgDir.getAbsolutePath(), dataxCfgDir.exists());
         File jobCfgFile = new File(dataxCfgDir, jobName);
         assertTrue("jobCfgFile must exist:" + jobCfgFile.getAbsolutePath(), jobCfgFile.exists());
     }
