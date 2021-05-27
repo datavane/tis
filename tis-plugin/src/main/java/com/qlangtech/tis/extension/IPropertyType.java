@@ -26,7 +26,6 @@ import java.util.Optional;
  */
 public interface IPropertyType {
 
-
     /**
      * plugin form 某一个field为集合类型，且字段内为一个javabean类型，需要填写多个字段
      */

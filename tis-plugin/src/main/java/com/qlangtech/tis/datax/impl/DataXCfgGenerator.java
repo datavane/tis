@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
@@ -65,19 +66,23 @@ public class DataXCfgGenerator {
 
     private final IDataxProcessor dataxProcessor;
     private final IDataxGlobalCfg globalCfg;
+    private final String dataxName;
+    private final IPluginContext pluginCtx;
 
-    public DataXCfgGenerator(IDataxProcessor dataxProcessor) {
+    public DataXCfgGenerator(IPluginContext pluginCtx, String dataxName, IDataxProcessor dataxProcessor) {
         Objects.requireNonNull(dataxProcessor, "dataXprocessor can not be null");
         IDataxGlobalCfg dataXGlobalCfg = dataxProcessor.getDataXGlobalCfg();
         Objects.requireNonNull(dataXGlobalCfg, "globalCfg can not be null");
         this.dataxProcessor = dataxProcessor;
         this.globalCfg = dataXGlobalCfg;
+        this.dataxName = dataxName;
+        this.pluginCtx = pluginCtx;
     }
 
     public String getTemplateContent() {
         final String tpl = globalCfg.getTemplate();
-        String template = StringUtils.replace(tpl, "<!--reader-->", dataxProcessor.getReader().getTemplate());
-        template = StringUtils.replace(template, "<!--writer-->", dataxProcessor.getWriter().getTemplate());
+        String template = StringUtils.replace(tpl, "<!--reader-->", dataxProcessor.getReader(pluginCtx).getTemplate());
+        template = StringUtils.replace(template, "<!--writer-->", dataxProcessor.getWriter(pluginCtx).getTemplate());
         return template;
     }
 
@@ -90,7 +95,15 @@ public class DataXCfgGenerator {
      */
     public GenerateCfgs getExistCfg(File parentDir) throws Exception {
         GenerateCfgs generateCfgs = new GenerateCfgs();
-        IDataxReader reader = dataxProcessor.getReader();
+        IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
+
+        File genFile = new File(parentDir, FILE_GEN);
+        if (!genFile.exists()) {
+            return generateCfgs;
+        }
+
+        Objects.requireNonNull(reader.getSelectedTabs()
+                , "dataprocess:" + this.dataxName + " relevant DataXReader getSelectedTabs() can not be null");
         Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
         File configFile = null;
@@ -101,19 +114,19 @@ public class DataXCfgGenerator {
             subTaskName.add(configFile.getName());
         }
 
-        generateCfgs.genTime = Long.parseLong(FileUtils.readFileToString(new File(parentDir, FILE_GEN), TisUTF8.get()));
+        generateCfgs.genTime = Long.parseLong(FileUtils.readFileToString(genFile, TisUTF8.get()));
         generateCfgs.dataxFiles = subTaskName;
         return generateCfgs;
     }
 
 
-    private static final String FILE_GEN = "gen";
+    public static final String FILE_GEN = "gen";
 
-    public GenerateCfgs startGenerateCfg(File parentDir) throws Exception {
+    public GenerateCfgs startGenerateCfg(final File parentDir) throws Exception {
         GenerateCfgs cfgs = new GenerateCfgs();
-        boolean unStructed2RDBMS = dataxProcessor.isUnStructed2RDBMS();
+        boolean unStructed2RDBMS = dataxProcessor.isUnStructed2RDBMS(this.pluginCtx);
 
-        IDataxReader reader = dataxProcessor.getReader();
+        IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
         Map<String, IDataxProcessor.TableAlias> tabAlias = dataxProcessor.getTabAlias();
 
         AtomicReference<Map<String, ISelectedTab>> selectedTabsRef = new AtomicReference<>();
@@ -154,7 +167,7 @@ public class DataXCfgGenerator {
     }
 
     private static class GenerateCfgs {
-        private List<String> dataxFiles;
+        private List<String> dataxFiles = Collections.emptyList();
         private long genTime;
 
         public List<String> getDataxFiles() {
@@ -195,7 +208,7 @@ public class DataXCfgGenerator {
             throw new IllegalStateException("velocity template content can not be null");
         }
         try {
-            IDataxWriter writer = dataxProcessor.getWriter();
+            IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
 
             VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap));
             writerContent = new StringWriter();

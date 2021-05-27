@@ -66,7 +66,7 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
     private IndexStreamCodeGenerator getIndexStreamCodeGenerator() throws Exception {
 
 
-        IAppSource appSource = IAppSource.load(collection);
+        IAppSource appSource = IAppSource.load(null, collection);
         assertNotNull(appSource);
 
         return new IndexStreamCodeGenerator(collection, (IStreamIncrGenerateStrategy) appSource, dataflowTimestamp, (dbid, tables) -> {

@@ -101,7 +101,7 @@ public class Assert {
             return;
         if (expected != null && expected.equals(actual))
             return;
-        throw new RuntimeException(message + "expected:" + expected + ",actual:" + actual);
+        throw new AssertionError(message + "expected:" + expected + ",actual:" + actual);
     }
 
     /**

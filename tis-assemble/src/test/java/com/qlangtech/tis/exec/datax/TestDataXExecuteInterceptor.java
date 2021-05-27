@@ -101,6 +101,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
             return AP_NAME;
         }
 
+
         @Override
         public IDataxGlobalCfg getDataXGlobalCfg() {
             return null;

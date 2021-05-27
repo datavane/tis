@@ -21,10 +21,14 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang3.StringUtils;
@@ -57,6 +61,7 @@ public class PluginItems {
   }
 
   public List<Describable> save(Context context) {
+    Objects.requireNonNull(this.pluginContext,"pluginContext can not be null");
     if (items == null) {
       throw new IllegalStateException("prop items can not be null");
     }
@@ -66,18 +71,19 @@ public class PluginItems {
     List<Describable> describableList = Lists.newArrayList();
     for (int i = 0; i < this.items.size(); i++) {
       attrValMap = this.items.get(i);
+      /**====================================================
+       * 将客户端post数据包装
+       ======================================================*/
       describable = attrValMap.createDescribable(pluginContext);
       dlist.add(describable);
       describableList.add((Describable) describable.instance);
     }
     IPluginStoreSave<?> store = null;
-    if (this.pluginContext.isCollectionAware()) {
-      store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.extensionPoint);
-    } else if (heteroEnum == HeteroEnum.APP_SOURCE) {
+    if (heteroEnum == HeteroEnum.APP_SOURCE) {
 
       for (Descriptor.ParseDescribable<?> d : dlist) {
         if (d.instance instanceof IdentityName) {
-          store = IAppSource.getPluginStore(((IdentityName) d.instance).identityValue());
+          store = IAppSource.getPluginStore(pluginContext, ((IdentityName) d.instance).identityValue());
           break;
         }
       }
@@ -115,8 +121,39 @@ public class PluginItems {
 //          pluginContext.setBizResult(context, sourceMeta.getTablesInDB());
 //        }
 //      }
-      store = (heteroEnum == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(dataxName) : DataxWriter.getPluginStore(dataxName);
+      KeyedPluginStore<?> keyStore = (heteroEnum == HeteroEnum.DATAX_READER)
+        ? DataxReader.getPluginStore(this.pluginContext, dataxName) : DataxWriter.getPluginStore(this.pluginContext, dataxName);
+      store = keyStore;
 
+      Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+
+      if (subFormFilter.isPresent()) {
+        IPropertyType.SubFormFilter filter = subFormFilter.get();
+        Optional<Descriptor> firstDesc = heteroEnum.descriptors().stream()
+          .filter((des) -> filter.match(des)).map((des) -> (Descriptor) des).findFirst();
+        if (!firstDesc.isPresent()) {
+          throw new IllegalStateException("can not find relevant descriptor:" + filter.uploadPluginMeta.toString());
+        }
+
+        // Describable p = keyStore.getPlugin();
+        // Descriptor des = p.getDescriptor();
+        PluginFormProperties pluginProps = firstDesc.get().getPluginFormPropertyTypes(subFormFilter);
+
+        store = pluginProps.accept(new PluginFormProperties.IVisitor() {
+          @Override
+          public IPluginStoreSave<?> visit(SuFormProperties props) {
+            // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
+            // IPluginContext pluginContext, String appname, SuFormProperties subfieldForm, Class<TT> clazz
+            Class<Describable> clazz = (Class<Describable>) heteroEnum.extensionPoint;
+            DataxReader.SubFieldFormAppKey<Describable> key
+              = new DataxReader.SubFieldFormAppKey<>(pluginContext, dataxName, props, clazz);
+            return KeyedPluginStore.getPluginStore(key);
+          }
+        });
+      }
+
+    } else if (this.pluginContext.isCollectionAware()) {
+      store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.extensionPoint);
     } else {
       store = TIS.getPluginStore(heteroEnum.extensionPoint);
     }
@@ -124,8 +161,7 @@ public class PluginItems {
     if (!store.setPlugins(pluginContext, Optional.of(context), convert(dlist))) {
       return Collections.emptyList();
     }
-    observable.notifyObservers(new
-      PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList));
+    observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList));
     return describableList;
   }
 

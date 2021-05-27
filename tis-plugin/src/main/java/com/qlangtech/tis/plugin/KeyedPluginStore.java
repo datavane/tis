@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.plugin;
 
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
@@ -30,8 +31,13 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
     public transient final Key key;
 
-    public KeyedPluginStore(Key key) {
-        super(key.pluginClass, key.getSotreFile());
+    public static <TT extends Describable> KeyedPluginStore<TT> getPluginStore(
+            DataxReader.SubFieldFormAppKey<TT> subFieldFormKey, IPluginProcessCallback<TT>... pluginCreateCallback) {
+        return new KeyedPluginStore(subFieldFormKey, pluginCreateCallback);
+    }
+
+    public KeyedPluginStore(Key key, IPluginProcessCallback<T>... pluginCreateCallback) {
+        super(key.pluginClass, key.getSotreFile(), pluginCreateCallback);
         this.key = key;
     }
 

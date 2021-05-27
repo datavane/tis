@@ -32,6 +32,13 @@ public @interface SubForm {
     Class<?> desClazz();
 
     /**
+     * 至少选一个
+     *
+     * @return
+     */
+    boolean atLeastOne() default true;
+
+    /**
      * id list fetch method name which owned to describable plugin instance
      *
      * @return

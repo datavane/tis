@@ -28,6 +28,17 @@ import java.util.Optional;
  */
 public class TestUploadPluginMeta extends TestCase {
 
+
+    public void testDataXReaderWithExecId() {
+        String rawContent = "dataxReader:require,dataxName_mysql_mysql,execId_fe4e79f1-9f05-6976-7604-db6d1c3ad391";
+        UploadPluginMeta parseResult = UploadPluginMeta.parse(rawContent);
+        assertNotNull(parseResult);
+        assertTrue(parseResult.isRequired());
+        assertEquals("dataxReader", parseResult.getName());
+        assertEquals("mysql_mysql", parseResult.getExtraParam("dataxName"));
+        assertEquals("fe4e79f1-9f05-6976-7604-db6d1c3ad391", parseResult.getExtraParam("execId"));
+    }
+
     public void testPluginMetaParse() {
         //  String pluginName = "dsname_yuqing_zj2_bak";
         String pluginName = "test_plugin";

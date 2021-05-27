@@ -18,6 +18,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
@@ -27,6 +28,7 @@ import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.JoinRule;
@@ -58,6 +60,8 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.PluginItems;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
@@ -1001,16 +1005,40 @@ public class OfflineDatasourceAction extends BasicModule {
   }
 
 
+  private static final Set<Descriptor> dbUpdateEventObservers = Sets.newHashSet();
+
+  public static List<Option> existDbs = null;
+
   /**
-   * datax中显示已由数据源使用
+   * datax中显示已由数据源使用 <br>
+   * must call form Descriptor
    *
    * @param extendClass
    * @return
    */
   public static List<Option> getExistDbs(String extendClass) {
+    if (existDbs != null) {
+      return existDbs;
+    }
     if (StringUtils.isEmpty(extendClass)) {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
+
+    Descriptor descriptor = GroovyShellEvaluate.descriptorThreadLocal.get();
+    Objects.requireNonNull(descriptor, "descriptor can not be null");
+    if (dbUpdateEventObservers.add(descriptor)) {
+      // 当有数据源更新时需要将descriptor的属性重新更新一下
+      PluginItems.addPluginItemsSaveObserver(new PluginItems.PluginItemsSaveObserver() {
+        @Override
+        public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
+          if (event.heteroEnum == HeteroEnum.DATASOURCE) {
+            descriptor.cleanPropertyTypes();
+          }
+        }
+      });
+    }
+
+
     IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), IWorkflowDAOFacade.class);
     Objects.requireNonNull(wfFacade, "wfFacade can not be null");
     DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();

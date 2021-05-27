@@ -46,16 +46,24 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
     private final transient Class<T> pluginClass;
 
     private List<T> plugins = Lists.newArrayList();
+    // 在plugin 从xstream中反序列化之后再进行一下额外的处理
+    private final transient IPluginProcessCallback<T>[] pluginCreateCallback;
 
     private final transient XmlFile file;
 
-    public PluginStore(Class<T> pluginClass) {
-        this(pluginClass, Descriptor.getConfigFile(pluginClass.getName()));
+    public PluginStore(Class<T> pluginClass, IPluginProcessCallback<T>... pluginCreateCallback) {
+        this(pluginClass, Descriptor.getConfigFile(pluginClass.getName()), pluginCreateCallback);
     }
 
-    public PluginStore(Class<T> pluginClass, XmlFile file) {
+    public PluginStore(Class<T> pluginClass, XmlFile file, IPluginProcessCallback<T>... pluginCreateCallback) {
         this.pluginClass = pluginClass;
         this.file = file;
+        this.pluginCreateCallback = pluginCreateCallback;
+
+    }
+
+    public interface IPluginProcessCallback<T> {
+        void process(T t);
     }
 
     void cleanPlugins() {
@@ -201,6 +209,13 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
                 // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
             }
             file.unmarshal(this);
+            if (plugins != null) {
+                plugins.forEach((p) -> {
+                    for (IPluginProcessCallback<T> callback : this.pluginCreateCallback) {
+                        callback.process(p);
+                    }
+                });
+            }
             this.loaded = true;
         } catch (IOException e) {
             throw new RuntimeException(e);

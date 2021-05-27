@@ -71,7 +71,7 @@ public class TestAddAppAction extends BasicActionTestCase {
     assertTrue(aResult.isSuccess());
     verifyAll();
 
-    IAppSource appSource = IAppSource.load(TestSchemaAction.collection);
+    IAppSource appSource = IAppSource.load(null, TestSchemaAction.collection);
     assertTrue(appSource instanceof SingleTableAppSource);
   }
 

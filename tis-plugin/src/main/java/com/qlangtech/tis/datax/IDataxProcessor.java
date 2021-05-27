@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.util.IPluginContext;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -26,27 +28,28 @@ import java.util.Map;
  */
 public interface IDataxProcessor {
 
-    IDataxReader getReader();
+    IDataxReader getReader(IPluginContext pluginCtx);
 
-    IDataxWriter getWriter();
+    IDataxWriter getWriter(IPluginContext pluginCtx);
 
     IDataxGlobalCfg getDataXGlobalCfg();
 
-    public File getDataxCfgDir();
+    public File getDataxCfgDir(IPluginContext pluginCtx);
+    public File getDataXWorkDir(IPluginContext pluginContext);
 
     /**
      * 从非结构化的数据源导入到结构化的数据源，例如从OSS导入到MySQL
      *
      * @return
      */
-    public boolean isUnStructed2RDBMS();
+    public boolean isUnStructed2RDBMS(IPluginContext pluginCtx);
 
     /**
      * dataX配置文件列表
      *
      * @return
      */
-    public List<String> getDataxCfgFileNames();
+    public List<String> getDataxCfgFileNames(IPluginContext pluginCtx);
 
     /**
      * 表映射

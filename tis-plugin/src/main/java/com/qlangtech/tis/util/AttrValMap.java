@@ -44,7 +44,8 @@ public class AttrValMap {
     private IControlMsgHandler msgHandler;
     private final Optional<IPropertyType.SubFormFilter> subFormFilter;
 
-    public static List<AttrValMap> describableAttrValMapList(IControlMsgHandler fieldErrorHandler, JSONArray itemsArray, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    public static List<AttrValMap> describableAttrValMapList(IControlMsgHandler fieldErrorHandler
+            , JSONArray itemsArray, Optional<IPropertyType.SubFormFilter> subFormFilter) {
         List<AttrValMap> describableAttrValMapList = Lists.newArrayList();
         AttrValMap describableAttrValMap = null;
         JSONObject itemObj = null;
@@ -56,7 +57,8 @@ public class AttrValMap {
         return describableAttrValMapList;
     }
 
-    public static AttrValMap parseDescribableMap(IControlMsgHandler fieldErrorHandler, Optional<IPropertyType.SubFormFilter> subFormFilter, com.alibaba.fastjson.JSONObject jsonObject) {
+    public static AttrValMap parseDescribableMap(IControlMsgHandler fieldErrorHandler
+            , Optional<IPropertyType.SubFormFilter> subFormFilter, com.alibaba.fastjson.JSONObject jsonObject) {
         String impl = null;
         Descriptor descriptor;
         impl = jsonObject.getString(PLUGIN_EXTENSION_IMPL);
@@ -70,7 +72,8 @@ public class AttrValMap {
         return new AttrValMap(fieldErrorHandler, attrValMap, subFormFilter, descriptor);
     }
 
-    public AttrValMap(IControlMsgHandler msgHandler, Map<String, JSONObject> attrValMap, Optional<IPropertyType.SubFormFilter> subFormFilter, Descriptor descriptor) {
+    public AttrValMap(IControlMsgHandler msgHandler, Map<String, JSONObject> attrValMap
+            , Optional<IPropertyType.SubFormFilter> subFormFilter, Descriptor descriptor) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
         this.msgHandler = msgHandler;

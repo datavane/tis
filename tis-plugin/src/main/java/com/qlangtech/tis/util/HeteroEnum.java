@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -193,13 +194,13 @@ public enum HeteroEnum {
             if (StringUtils.isEmpty(dataxName)) {
                 throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
             }
-            store = com.qlangtech.tis.manage.IAppSource.getPluginStore(dataxName);
+            store = com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
         } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
             final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
             if (StringUtils.isEmpty(dataxName)) {
-                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
             }
-            store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(dataxName) : DataxWriter.getPluginStore(dataxName);
+            store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
         } else if (pluginContext.isCollectionAware()) {
             store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
         } else if (pluginContext.isDataSourceAware()) {
@@ -211,6 +212,7 @@ public enum HeteroEnum {
         } else {
             store = TIS.getPluginStore(this.extensionPoint);
         }
+        Objects.requireNonNull(store, "plugin store can not be null");
         return store.getPlugins();
     }
 

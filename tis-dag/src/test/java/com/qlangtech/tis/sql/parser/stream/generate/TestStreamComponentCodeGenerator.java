@@ -51,7 +51,7 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
 
         Optional<ERRules> erRule = ERRules.getErRule(topologyName);
 
-        IAppSource appSource = IAppSource.load(collectionName);
+        IAppSource appSource = IAppSource.load(null, collectionName);
         assertTrue(appSource instanceof SingleTableAppSource);
 
         // 测试针对单表的的topology增量脚本生成

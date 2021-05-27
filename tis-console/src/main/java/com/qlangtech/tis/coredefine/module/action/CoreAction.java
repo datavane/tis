@@ -210,7 +210,7 @@ public class CoreAction extends BasicModule {
   public static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
 
-    ISolrAppSource appSource = IAppSource.load(module.getCollectionName());
+    ISolrAppSource appSource = IAppSource.load(null, module.getCollectionName());
     //Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
     //WorkFlow wf = module.loadDF(workFlowId);
     //SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
@@ -291,7 +291,7 @@ public class CoreAction extends BasicModule {
 
     // final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
 
-    ISolrAppSource appSource = IAppSource.load(this.getCollectionName());
+    ISolrAppSource appSource = IAppSource.load(null, this.getCollectionName());
 
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
@@ -356,7 +356,7 @@ public class CoreAction extends BasicModule {
 //  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
 //    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
-    ISolrAppSource appSource = IAppSource.load(module.getCollectionName());
+    ISolrAppSource appSource = IAppSource.load(null, module.getCollectionName());
 
     Date scriptLastOpTime = appSource.accept(new ISolrAppSourceVisitor<Date>() {
       @Override
@@ -423,7 +423,7 @@ public class CoreAction extends BasicModule {
 //      throw new IllegalArgumentException("param wfName can not be null");
 //    }
 
-    ISolrAppSource appSource = IAppSource.load(app.getProjectName());
+    ISolrAppSource appSource = IAppSource.load(null, app.getProjectName());
 
     if (!appSource.triggerFullIndexSwapeValidate(module, context)) {
       return new TriggerBuildResult(false);

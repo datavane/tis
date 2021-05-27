@@ -18,10 +18,18 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.ValidatorCommons;
+import com.qlangtech.tis.util.IPluginContext;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * datax Reader
@@ -30,16 +38,54 @@ import java.util.Objects;
  * @date 2021-04-07 14:48
  */
 public abstract class DataxReader implements Describable<DataxReader>, IDataxReader {
+    public static final String HEAD_KEY_REFERER = "Referer";
 
     /**
      * save
      *
      * @param appname
      */
-    public static KeyedPluginStore<DataxReader> getPluginStore(String appname) {
-        KeyedPluginStore<DataxReader> pluginStore = new KeyedPluginStore(new AppKey(appname));
+    public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, String appname) {
+        KeyedPluginStore<DataxReader> pluginStore
+                = new KeyedPluginStore(new AppKey(pluginContext, appname, DataxReader.class)
+                , new PluginStore.IPluginProcessCallback<DataxReader>() {
+            @Override
+            public void process(DataxReader reader) {
+
+                List<PluginFormProperties> subFieldFormPropertyTypes = reader.getDescriptor().getSubPluginFormPropertyTypes();
+                if (subFieldFormPropertyTypes.size() > 0) {
+                    // 加载子字段
+                    subFieldFormPropertyTypes.forEach((pt) -> {
+                        pt.accept(new PluginFormProperties.IVisitor() {
+                            @Override
+                            public Void visit(SuFormProperties props) {
+
+                                try {
+                                    SubFieldFormAppKey<DataxReader> subFieldKey
+                                            = new SubFieldFormAppKey<>(pluginContext, appname, props, DataxReader.class);
+                                    KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
+                                    DataxReader subFieldReader = subFieldStore.getPlugin();
+                                    if (subFieldReader == null) {
+                                        return null;
+                                    }
+                                    props.subFormField.set(reader, props.subFormField.get(subFieldReader));
+                                } catch (IllegalAccessException e) {
+                                    throw new RuntimeException("get subField:" + props.getSubFormFieldName(), e);
+                                }
+
+
+                                return null;
+                            }
+                        });
+                    });
+                }
+            }
+
+        });
+
         return pluginStore;
     }
+
 
     /**
      * load
@@ -47,16 +93,46 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
      * @param appName
      * @return
      */
-    public static DataxReader load(String appName) {
-        DataxReader appSource = getPluginStore(appName).getPlugin();
+    public static DataxReader load(IPluginContext pluginContext, String appName) {
+        DataxReader appSource = getPluginStore(pluginContext, appName).getPlugin();
         Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
+
         return appSource;
     }
 
+    private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("/x/(" + ValidatorCommons.pattern_identity + ")/update");
 
-    public static class AppKey extends KeyedPluginStore.Key<DataxReader> {
-        public AppKey(String dataxName) {
-            super(IFullBuildContext.NAME_APP_DIR, dataxName, DataxReader.class);
+    public static class AppKey<TT extends Describable> extends KeyedPluginStore.Key<TT> {
+        public AppKey(IPluginContext pluginContext, String appname, Class<TT> clazz) {
+            super(IFullBuildContext.NAME_APP_DIR, calAppName(pluginContext, appname), clazz);
+        }
+
+        private static String calAppName(IPluginContext pluginContext, String appname) {
+            if (pluginContext == null) {
+                return appname;
+            }
+            String referer = pluginContext.getRequestHeader(HEAD_KEY_REFERER);
+            Matcher configPathMatcher = DATAX_UPDATE_PATH.matcher(referer);
+            boolean inUpdateProcess = configPathMatcher.find();
+            if (inUpdateProcess && !pluginContext.isCollectionAware()) {
+                throw new IllegalStateException("pluginContext.isCollectionAware() must be true");
+            }
+            return (pluginContext != null && inUpdateProcess)
+                    ? (appname + "-" + pluginContext.getExecId()) : appname;
+        }
+    }
+
+    public static class SubFieldFormAppKey<TT extends Describable> extends AppKey<TT> {
+        public final SuFormProperties subfieldForm;
+
+        public SubFieldFormAppKey(IPluginContext pluginContext, String appname, SuFormProperties subfieldForm, Class<TT> clazz) {
+            super(pluginContext, appname, clazz);
+            this.subfieldForm = subfieldForm;
+        }
+
+        @Override
+        protected String getSerializeFileName() {
+            return super.getSerializeFileName() + "." + this.subfieldForm.getSubFormFieldName();
         }
     }
 

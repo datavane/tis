@@ -40,7 +40,7 @@ public class UploadPluginMeta {
 
     private static final String KEY_JUST_GET_ITEM_RELEVANT = "justGetItemRelevant";
 
-    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\w]+");
+    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w]+");
 
     public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR
             = Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");
@@ -54,6 +54,7 @@ public class UploadPluginMeta {
     private boolean required;
     // 除去 required 之外的其他参数
     private Map<String, String> extraParams = new HashMap<>();
+    private final IPluginContext context;
 
     public boolean isUpdate() {
         return Boolean.parseBoolean(this.getExtraParam(PostedDSProp.KEY_UPDATE));
@@ -75,12 +76,16 @@ public class UploadPluginMeta {
     }
 
     public static List<UploadPluginMeta> parse(String[] plugins) {
+        return parse(null, plugins);
+    }
+
+    public static List<UploadPluginMeta> parse(IPluginContext context, String[] plugins) {
         if (plugins == null || plugins.length < 1) {
             throw new IllegalArgumentException("plugin size:" + plugins.length + " length can not small than 1");
         }
         List<UploadPluginMeta> metas = Lists.newArrayList();
         for (String plugin : plugins) {
-            metas.add(parse(plugin));
+            metas.add(parse(context, plugin));
         }
         if (plugins.length != metas.size()) {
             throw new IllegalStateException("param plugins length:" + plugins.length + " must equal with metaSize:" + metas.size());
@@ -88,18 +93,27 @@ public class UploadPluginMeta {
         return metas;
     }
 
+    public IPluginContext getPluginContext() {
+        return this.context;
+    }
+
+
+    public static UploadPluginMeta parse(String plugin) {
+        return parse(null, plugin);
+    }
+
     /**
      * @param plugin
      * @return
      */
-    public static UploadPluginMeta parse(String plugin) {
+    public static UploadPluginMeta parse(IPluginContext context, String plugin) {
         Matcher matcher, attrKVMatcher;
         UploadPluginMeta pmeta;
         Matcher attrMatcher;
         String attr;
         matcher = PATTERN_PLUGIN_META.matcher(plugin);
         if (matcher.matches()) {
-            pmeta = new UploadPluginMeta(matcher.group(1));
+            pmeta = new UploadPluginMeta(context, matcher.group(1));
             if (matcher.group(2) != null) {
                 attrMatcher = PATTERN_PLUGIN_ATTRIBUTE.matcher(matcher.group(2));
                 while (attrMatcher.find()) {
@@ -160,8 +174,9 @@ public class UploadPluginMeta {
         return this.extraParams.get(key);
     }
 
-    private UploadPluginMeta(String name) {
+    private UploadPluginMeta(IPluginContext context, String name) {
         this.name = name;
+        this.context = context;
     }
 
     @Override

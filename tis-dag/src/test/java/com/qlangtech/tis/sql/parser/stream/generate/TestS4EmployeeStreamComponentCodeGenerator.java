@@ -17,7 +17,7 @@ public class TestS4EmployeeStreamComponentCodeGenerator extends BasicTestCase {
         String collectionName = "search4test";
         String dfName = "current_dept_emp";
 
-        IAppSource appSource = IAppSource.load(collectionName);
+        IAppSource appSource = IAppSource.load(null,collectionName);
         assertNotNull(collectionName + " appSource can not be null", appSource);
 
         FacadeContext fc = new FacadeContext();

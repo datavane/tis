@@ -14,7 +14,11 @@
  */
 package com.qlangtech.tis.trigger.util;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+
+import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.extension.impl.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -69,6 +73,16 @@ public class JsonUtil {
     public static String toString(Object json) {
         return com.alibaba.fastjson.JSON.toJSONString(
                 json, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
+    }
+
+    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, String actual) {
+        String expectJson = com.alibaba.fastjson.JSON.toJSONString(
+                JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, assertFileName))
+                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
+        System.out.println(assertFileName + "\n" + expectJson);
+        String actualJson = com.alibaba.fastjson.JSON.toJSONString(JSON.parseObject(actual)
+                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
+        Assert.assertEquals("assertFile:" + assertFileName, expectJson, actualJson);
     }
 
 

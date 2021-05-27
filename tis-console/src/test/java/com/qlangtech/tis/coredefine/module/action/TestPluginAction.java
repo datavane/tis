@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 
 /**
@@ -39,9 +40,11 @@ public class TestPluginAction extends BasicActionTestCase {
 //    plugin: dataxReader:require,targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_baisuitest
 
     //doGetPluginConfigInfo
+    String dataXName = "baisuitestTestcase";
+    request.addHeader(DataxReader.HEAD_KEY_REFERER, "/x/" + dataXName + "/config");
     request.setParameter("event_submit_do_get_plugin_config_info", "y");
     request.setParameter("action", "plugin_action");
-    request.setParameter("plugin", "dataxReader:require,targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_baisuitest");
+    request.setParameter("plugin", "dataxReader:require,targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_" + dataXName);
     //JSONObject content = new JSONObject();
 
     //content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);

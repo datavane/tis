@@ -16,10 +16,11 @@ package com.qlangtech.tis.manage;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -32,27 +33,31 @@ import java.util.Optional;
  */
 public interface IAppSource extends Describable<IAppSource> {
 
-    static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(String appName) {
-        return (KeyedPluginStore<T>) new KeyedPluginStore(new AppKey(appName));
+    static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(IPluginContext context, String appName) {
+        return (KeyedPluginStore<T>) new KeyedPluginStore(new DataxReader.AppKey(context, appName, IAppSource.class));
     }
 
-    static <T extends IAppSource> Optional<T> loadNullable(String appName) {
-        KeyedPluginStore<T> pluginStore = getPluginStore(appName);
+    static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, String appName) {
+        KeyedPluginStore<T> pluginStore = getPluginStore(context, appName);
         IAppSource appSource = pluginStore.getPlugin();
         return (Optional<T>) Optional.ofNullable(appSource);
     }
-
+    static <T extends IAppSource> T load(String appName) {
+        return load(null, appName);
+    }
     /**
      * save
      *
      * @param appname
      * @param appSource
      */
-    static void save(String appname, IAppSource appSource) {
-        KeyedPluginStore<IAppSource> pluginStore = getPluginStore(appname);
+    static void save(IPluginContext pluginContext, String appname, IAppSource appSource) {
+        KeyedPluginStore<IAppSource> pluginStore = getPluginStore(pluginContext, appname);
         Optional<Context> context = Optional.empty();
-        pluginStore.setPlugins(null, context, Collections.singletonList(new Descriptor.ParseDescribable(appSource)));
+        pluginStore.setPlugins(pluginContext, context, Collections.singletonList(new Descriptor.ParseDescribable(appSource)));
     }
+
+
 
     /**
      * load
@@ -60,8 +65,8 @@ public interface IAppSource extends Describable<IAppSource> {
      * @param appName
      * @return
      */
-    static <T extends IAppSource> T load(String appName) {
-        Optional<IAppSource> iAppSource = loadNullable(appName);
+    static <T extends IAppSource> T load(IPluginContext pluginContext, String appName) {
+        Optional<IAppSource> iAppSource = loadNullable(pluginContext, appName);
         if (!iAppSource.isPresent()) {
             throw new IllegalStateException("appName:" + appName + " relevant appSource can not be null");
         }
@@ -73,10 +78,10 @@ public interface IAppSource extends Describable<IAppSource> {
     }
 
 
-    class AppKey extends KeyedPluginStore.Key<IAppSource> {
-        public AppKey(String collection) {
-            super(IFullBuildContext.NAME_APP_DIR, collection, IAppSource.class);
-        }
-    }
+//    class AppKey extends KeyedPluginStore.Key<IAppSource> {
+//        public AppKey(String collection) {
+//            super(IFullBuildContext.NAME_APP_DIR, collection, IAppSource.class);
+//        }
+//    }
 }
 

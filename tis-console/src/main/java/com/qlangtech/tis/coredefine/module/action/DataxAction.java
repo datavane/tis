@@ -30,6 +30,7 @@ import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -61,6 +62,8 @@ import org.apache.struts2.convention.annotation.InterceptorRefs;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * manage DataX pipe process logic
@@ -120,7 +123,7 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
     }
-    KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(dataxName);
+    KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(this, dataxName);
     DataxWriter writer = writerStore.getPlugin();
     if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), writerDesc.getString("impl"))) {
       this.setBizResult(context, (new DescribableJSON(writer)).getItemJson());
@@ -140,7 +143,7 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
     }
-    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
     DataxReader reader = readerStore.getPlugin();
     if (reader != null && StringUtils.equals(reader.getDescriptor().getId(), readerDesc.getString("impl"))) {
 
@@ -274,8 +277,8 @@ public class DataxAction extends BasicModule {
   public void doGetGenCfgFile(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     String fileName = this.getString("fileName");
-    DataxProcessor dataxProcessor = IAppSource.load(dataxName);
-    File dataxCfgDir = dataxProcessor.getDataxCfgDir();
+    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+    File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
     File cfgFile = new File(dataxCfgDir, fileName);
     if (!cfgFile.exists()) {
       throw new IllegalStateException("target file:" + cfgFile.getAbsolutePath());
@@ -358,6 +361,8 @@ public class DataxAction extends BasicModule {
       });
   }
 
+  public static List<Option> deps;
+
   /**
    * DataX中显示已有部门
    *
@@ -365,6 +370,9 @@ public class DataxAction extends BasicModule {
    * @return
    */
   public static List<Option> getDepartments() {
+    if (deps != null) {
+      return deps;
+    }
     RunContext runContext = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), RunContext.class);
     Objects.requireNonNull(runContext, "runContext can not be null");
     return BasicModule.getDptList(runContext, new IDepartmentGetter() {
@@ -381,9 +389,10 @@ public class DataxAction extends BasicModule {
   public void doGenerateDataxCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     boolean getExist = this.getBoolean("getExist");
-    DataxProcessor dataxProcessor = IAppSource.load(dataxName);
-    DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(dataxProcessor);
-    File dataxCfgDir = dataxProcessor.getDataxCfgDir();
+    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+
+    DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
+    File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
 
     if (!getExist) {
       FileUtils.forceMkdir(dataxCfgDir);
@@ -402,7 +411,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doCreateDatax(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor dataxProcessor = IAppSource.load(dataxName);
+    DataxProcessor dataxProcessor = IAppSource.load(null, dataxName);
     Application app = dataxProcessor.buildApp();
 
     SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app
@@ -412,7 +421,58 @@ public class DataxAction extends BasicModule {
         appResult.setNewAppId(newAppId);
         return appResult;
       });
+  }
 
+  private static final Pattern PatternEdittingDirSuffix = Pattern.compile("\\-[\\da-z]{8}\\-[\\da-z]{4}\\-[\\da-z]{4}\\-[\\da-z]{4}\\-[\\da-z]{12}");
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doUpdateDatax(Context context) throws Exception {
+    String dataxName = this.getCollectionName();
+    DataxProcessor old = IAppSource.load(null, dataxName);
+    DataxProcessor editting = IAppSource.load(this, dataxName);
+    File oldWorkDir = old.getDataXWorkDir(null);
+    File edittingDir = editting.getDataXWorkDir(this);
+
+    String edittingDirSuffix = StringUtils.substringAfter(edittingDir.getName(), oldWorkDir.getName());
+    Matcher matcher = PatternEdittingDirSuffix.matcher(edittingDirSuffix);
+    if (!matcher.matches()) {
+      throw new IllegalStateException("dir name is illegal,oldDir:" + oldWorkDir.getAbsolutePath() + " editting dir:" + edittingDir.getAbsolutePath());
+    }
+
+    File backDir = new File(oldWorkDir.getParentFile(), oldWorkDir.getName() + ".bak");
+    // 先备份
+    try {
+      FileUtils.moveDirectory(oldWorkDir, backDir);
+      FileUtils.moveDirectory(edittingDir, oldWorkDir);
+      FileUtils.forceDelete(backDir);
+    } catch (Exception e) {
+      try {
+        FileUtils.moveDirectory(backDir, oldWorkDir);
+      } catch (Throwable ex) {
+
+      }
+      throw new IllegalStateException("oldWorkDir update is illegal:" + oldWorkDir.getAbsolutePath(), e);
+    }
+    this.addActionMessage(context, "已经成功更新");
+  }
+
+  /**
+   * 创建一个临时执行目录
+   *
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doCreateUpdateProcess(Context context) throws Exception {
+    String dataXName = this.getCollectionName();
+    String execId = this.getString("execId");
+    if (StringUtils.isBlank(execId)) {
+      throw new IllegalArgumentException("param execId can not be null");
+    }
+    DataxProcessor dataxProcessor = IAppSource.load(null, dataXName);
+    dataxProcessor.makeTempDir(execId);
+    // 创建临时执行目录
+    this.setBizResult(context, execId);
   }
 
   /**
@@ -450,16 +510,16 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    this.saveTableMapper(dataxName, tableMaps);
+    this.saveTableMapper(this, dataxName, tableMaps);
 
   }
 
-  private void saveTableMapper(String dataxName, List<IDataxProcessor.TableAlias> tableMaps) {
+  private void saveTableMapper(IPluginContext pluginContext, String dataxName, List<IDataxProcessor.TableAlias> tableMaps) {
     //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
     //Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable = pluginDescMeta.newInstance(this, Collections.emptyMap(), Optional.empty());
     DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);//  appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
     dataxProcessor.setTableMaps(tableMaps);
-    IAppSource.save(dataxName, dataxProcessor);
+    IAppSource.save(pluginContext, dataxName, dataxProcessor);
   }
 
   /**
@@ -470,12 +530,12 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetTableMapper(Context context) {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
     DataxReader dataxReader = readerStore.getPlugin();
     Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
 
     IDataxProcessor.TableAlias tableAlias;
-    Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(dataxName);
+    Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, dataxName);
     Map<String, IDataxProcessor.TableAlias> tabMaps = Collections.emptyMap();
     if (dataXAppSource.isPresent()) {
       DataxProcessor dataxSource = dataXAppSource.get();
@@ -506,7 +566,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetWriterColsMeta(Context context) {
     final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxName);
+    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
     DataxProcessor processor = DataxProcessor.load(this, dataxName);
 
 
@@ -545,7 +605,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveWriterColsMeta(Context context) {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(dataxName);
+    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
     if (!(processMeta.isUnStructed2RDBMS())) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
     }
@@ -615,7 +675,7 @@ public class DataxAction extends BasicModule {
     }
 
 
-    this.saveTableMapper(dataxName, Collections.singletonList(tableMapper));
+    this.saveTableMapper(this, dataxName, Collections.singletonList(tableMapper));
   }
 
   /**
@@ -635,6 +695,11 @@ public class DataxAction extends BasicModule {
     Objects.requireNonNull(writer, "writer can not be null");
     DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
     DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
+    DataXBasicProcessMeta processMeta = getDataXBasicProcessMeta(readerDesc, writerDesc);
+    this.setBizResult(context, processMeta);
+  }
+
+  private DataXBasicProcessMeta getDataXBasicProcessMeta(DataxReader.BaseDataxReaderDescriptor readerDesc, DataxWriter.BaseDataxWriterDescriptor writerDesc) {
     Objects.requireNonNull(readerDesc, "readerDesc can not be null");
     Objects.requireNonNull(writerDesc, "writerDesc can not be null");
 
@@ -642,22 +707,51 @@ public class DataxAction extends BasicModule {
     processMeta.setReaderHasExplicitTable(readerDesc.hasExplicitTable());
     processMeta.setReaderRDBMS(readerDesc.isRdbms());
     processMeta.setWriterRDBMS(writerDesc.isRdbms());
-    this.setBizResult(context, processMeta);
+    return processMeta;
   }
 
-  public static List<String> getTablesInDB(String dataxName) {
-    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+  /**
+   * dataX创建之后的管理页面使用
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doGetDataXMeta(Context context) {
+    String dataXName = this.getCollectionName();
+
+    DataxProcessor processor = IAppSource.load(this, dataXName);
+
+    DataxReader reader = (DataxReader) processor.getReader(this);
+    DataxWriter writer = (DataxWriter) processor.getWriter(this);
+    DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
+    DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
+
+    DescriptorsJSON readerDescriptor = new DescriptorsJSON(readerDesc);
+    DescriptorsJSON writerDescriptor = new DescriptorsJSON(writerDesc);
+    Map<String, Object> result = Maps.newHashMap();
+    result.put("processMeta", getDataXBasicProcessMeta(readerDesc, writerDesc));
+    result.put("writerDesc", writerDescriptor.getDescriptorsJSON());
+    result.put("readerDesc", readerDescriptor.getDescriptorsJSON());
+    setBizResult(context, result);
+  }
+
+  public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
+
+    String dataxName = filter.param(DataxUtils.DATAX_NAME);
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(filter.uploadPluginMeta.getPluginContext(), dataxName);
     DataxReader reader = readerStore.getPlugin();
     Objects.requireNonNull(reader, "reader can not be null");
     return reader.getTablesInDB();
   }
 
   public static List<ColumnMetaData> getReaderTableSelectableCols(String dataxName, String table) {
-    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
-    DataxReader reader = readerStore.getPlugin();
-    Objects.requireNonNull(reader, "reader can not be null");
-    List<ColumnMetaData> tableMeta = reader.getTableMetadata(table);
-    return tableMeta;
+//    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
+//    DataxReader reader = readerStore.getPlugin();
+//    Objects.requireNonNull(reader, "reader can not be null");
+//    List<ColumnMetaData> tableMeta = reader.getTableMetadata(table);
+//    return tableMeta;
+
+    throw new UnsupportedOperationException();
   }
 
 //  /**

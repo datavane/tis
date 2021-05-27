@@ -61,13 +61,13 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
         List<IRemoteJobTrigger> triggers = Lists.newArrayList();
 
-        for (String fileName : appSource.getDataxCfgFileNames()) {
+        for (String fileName : appSource.getDataxCfgFileNames(null)) {
             jobTrigger = createDataXJob(execChainContext, statusRpc, appSource, fileName);
             triggers.add(jobTrigger);
         }
 
         logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
-                , appSource.getDataxCfgFileNames().stream().collect(Collectors.joining(",")));
+                , appSource.getDataxCfgFileNames(null).stream().collect(Collectors.joining(",")));
         for (IRemoteJobTrigger t : triggers) {
             t.submitJob();
         }

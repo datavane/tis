@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @date 2021-04-12 11:05
  */
 public class RootFormProperties extends PluginFormProperties {
-    private final Map<String, /*** fieldname*/PropertyType> propertiesType;
+    public final Map<String, /*** fieldname*/PropertyType> propertiesType;
 
     public RootFormProperties(Map<String, PropertyType> propertiesType) {
         this.propertiesType = propertiesType;

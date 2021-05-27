@@ -18,6 +18,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Descriptor;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 
@@ -26,6 +27,8 @@ import groovy.lang.Script;
  * @date 2021-02-06 13:27
  */
 public class GroovyShellEvaluate {
+
+    public final static ThreadLocal<Descriptor> descriptorThreadLocal = new ThreadLocal<>();
 
     final static GroovyShell shell = new GroovyShell(new ClassLoader() {
         @Override

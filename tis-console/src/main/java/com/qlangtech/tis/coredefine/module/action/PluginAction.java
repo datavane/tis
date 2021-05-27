@@ -32,6 +32,8 @@ import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.convention.annotation.InterceptorRef;
+import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ReflectionUtils;
 
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@InterceptorRefs({@InterceptorRef("tisStack")})
 public class PluginAction extends BasicModule {
 
   private OfflineManager offlineManager;
@@ -267,7 +270,8 @@ public class PluginAction extends BasicModule {
   }
 
 
-  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, boolean bizValidate) {
+  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta
+    , Context context, int pluginIndex, JSONArray itemsArray, boolean bizValidate) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     PluginItemsParser parseResult = new PluginItemsParser();
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();

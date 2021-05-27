@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -101,6 +100,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         // doing this turns out to be very error prone,
         // as field initializers in derived types will override values.
         // load();
+    }
+
+
+    public void cleanPropertyTypes() {
+        this.propertyTypes = null;
     }
 
     /**
@@ -258,6 +262,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return (SuFormProperties) propertyType;//filterFieldProp(((SuFormProperties) propertyType).fieldsType);
     }
 
+    public List<PluginFormProperties> getSubPluginFormPropertyTypes() {
+        return getPropertyTypes().values().stream()
+                .filter((pp) -> pp instanceof SuFormProperties)
+                .map((pp) -> (SuFormProperties) pp).collect(Collectors.toList());
+    }
+
     public PluginFormProperties getPluginFormPropertyTypes() {
         return getPluginFormPropertyTypes(Optional.empty());
     }
@@ -278,6 +288,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return props.entrySet().stream().filter((e) -> e.getValue() instanceof PropertyType)
                 .collect(Collectors.toMap((e) -> e.getKey(), (e) -> (PropertyType) e.getValue()));
     }
+
 
     private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes() {
         if (propertyTypes == null) {
@@ -367,17 +378,21 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 //                                        "val": false
 //                                }
                             // ]
+                            try {
+                                GroovyShellEvaluate.descriptorThreadLocal.set(this);
+                                List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
 
-                            List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
-                            JSONArray enums = new JSONArray();
-                            itEnums.forEach((key) -> {
-                                JSONObject o = new JSONObject();
-                                o.put("label", key.getName());
-                                o.put("val", key.getValue());
-                                enums.add(o);
-                            });
-                            fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
-
+                                JSONArray enums = new JSONArray();
+                                itEnums.forEach((key) -> {
+                                    JSONObject o = new JSONObject();
+                                    o.put("label", key.getName());
+                                    o.put("val", key.getValue());
+                                    enums.add(o);
+                                });
+                                fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
+                            } finally {
+                                GroovyShellEvaluate.descriptorThreadLocal.remove();
+                            }
                         }
                     }
                     ptype.setExtraProp(fieldExtraProps);
@@ -442,6 +457,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 Map<String, JSONObject> subform = null;
                 PostFormVals postFormVals = null;
 
+
                 if (bizValidate) {
                     // 校验的时候子表单是{key1:val1,key2:val2} 的格式
                     PostFormVals formVals = new PostFormVals(formData);
@@ -454,6 +470,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         return validateResult;
                     }
                 } else {
+
+                    if (props.subFormFieldsAnnotation.atLeastOne() && (formData.size() < 1)) {
+                        // 是否至少要选一个以上的校验
+                        msgHandler.addErrorMessage(context, "请至少选择一个");
+                        validateResult = new PluginValidateResult(null, 0, 0);
+                        validateResult.valid = false;
+                        return validateResult;
+                    }
+
                     // 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
                     validateResult = props.visitAllSubDetailed(formData, new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
                         @Override
@@ -711,24 +736,25 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData, //
             Optional<IPropertyType.SubFormFilter> subFormFilter) {
         try {
-            PluginFormProperties pfPropertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
-            T describable = pfPropertyTypes.accept(new PluginFormProperties.IVisitor() {
-                @Override
-                public <T> T visit(RootFormProperties props) {
-                    try {
-                        return (T) clazz.newInstance();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                @Override
-                public <T> T visit(SuFormProperties props) {
-                    Assert.assertTrue(subFormFilter.isPresent());
-                    IPropertyType.SubFormFilter filter = subFormFilter.get();
-                    return filter.getOwnerPlugin(pluginContext);
-                }
-            });
+            //PluginFormProperties pfPropertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
+            T describable = clazz.newInstance();
+//            T describable = pfPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+//                @Override
+//                public <T> T visit(RootFormProperties props) {
+//                    try {
+//                        return (T) clazz.newInstance();
+//                    } catch (Exception e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
+//
+//                @Override
+//                public <T> T visit(SuFormProperties props) {
+//                    Assert.assertTrue(subFormFilter.isPresent());
+//                    IPropertyType.SubFormFilter filter = subFormFilter.get();
+//                    return filter.getOwnerPlugin(pluginContext);
+//                }
+//            });
 
             return parseDescribable(pluginContext, describable, formData, subFormFilter);
         } catch (Exception e) {
@@ -736,15 +762,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
-    // protected boolean validateIdentity(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
-    // Matcher matcher = pattern_identity.matcher(value);
-    // if (!matcher.matches()) {
-    // msgHandler.addFieldError(context, fieldName, MSG_IDENTITY_ERROR);
-    // return false;
-    // }
-    // return true;
-    // }
-    private ParseDescribable<T> parseDescribable(IPluginContext pluginContext, T describable, Map<String, /*** Attr Name*/JSONObject> keyValMap
+
+    private ParseDescribable<T> parseDescribable(
+            IPluginContext pluginContext, T describable
+            , Map<String, /*** Attr Name*/JSONObject> keyValMap
             , Optional<IPropertyType.SubFormFilter> subFormFilter) {
         ParseDescribable<T> result = new ParseDescribable<>(describable);
 

@@ -28,10 +28,7 @@ import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -46,6 +43,11 @@ public class DescriptorsJSON<T extends Describable<T>> {
     public DescriptorsJSON(List<Descriptor<T>> descriptors) {
         this.descriptors = descriptors;
         // descriptors.stream().findFirst();
+    }
+
+    public DescriptorsJSON(Descriptor<T> descriptor) {
+        //  this.descriptors = Collections.singletonList(descriptor);
+        this(Collections.singletonList(descriptor));
     }
 
     public JSONObject getDescriptorsJSON() {

@@ -26,6 +26,13 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 public interface IPluginContext extends IMessageHandler {
 
     /**
+     * 执行更新流程客户端会保存一个ExecId的UUID
+     *
+     * @return
+     */
+    String getExecId();
+
+    /**
      * 是否在索引
      *
      * @return

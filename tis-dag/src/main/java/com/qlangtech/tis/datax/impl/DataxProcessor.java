@@ -29,6 +29,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.*;
@@ -46,7 +47,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
 
     public static DataxProcessor load(IPluginContext pluginContext, String dataXName) {
-        Optional<DataxProcessor> appSource = IAppSource.loadNullable(dataXName);
+        Optional<DataxProcessor> appSource = IAppSource.loadNullable(pluginContext, dataXName);
         if (appSource.isPresent()) {
             return appSource.get();
         } else {
@@ -76,10 +77,10 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         return dataxProcessDescs.get();
     }
 
-    public static DataXCreateProcessMeta getDataXCreateProcessMeta(String dataxPipeName) {
-        DataxWriter writer = DataxWriter.load(dataxPipeName);
+    public static DataXCreateProcessMeta getDataXCreateProcessMeta(IPluginContext pluginContext, String dataxPipeName) {
+        DataxWriter writer = DataxWriter.load(pluginContext, dataxPipeName);
         DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
-        DataxReader dataxReader = DataxReader.load(dataxPipeName);
+        DataxReader dataxReader = DataxReader.load(pluginContext, dataxPipeName);
         DataxReader.BaseDataxReaderDescriptor descriptor = (DataxReader.BaseDataxReaderDescriptor) dataxReader.getDescriptor();
 
         DataXCreateProcessMeta processMeta = new DataXCreateProcessMeta(writer, dataxReader);
@@ -107,29 +108,50 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         return this.tableMaps.stream().collect(Collectors.toMap((m) -> m.getFrom(), (m) -> m));
     }
 
-    public final boolean isUnStructed2RDBMS() {
-        DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(this.identityValue());
+    @Override
+    public final boolean isUnStructed2RDBMS(IPluginContext pluginCtx) {
+        DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(pluginCtx, this.identityValue());
         return dataXCreateProcessMeta.isUnStructed2RDBMS();
     }
 
     @Override
-    public IDataxReader getReader() {
-        return DataxReader.load(this.identityValue());
+    public IDataxReader getReader(IPluginContext pluginCtx) {
+        return DataxReader.load(pluginCtx, this.identityValue());
     }
 
     @Override
-    public IDataxWriter getWriter() {
-        return DataxWriter.load(this.identityValue());
+    public IDataxWriter getWriter(IPluginContext pluginCtx) {
+        return DataxWriter.load(pluginCtx, this.identityValue());
     }
 
     public void setTableMaps(List<TableAlias> tableMaps) {
         this.tableMaps = tableMaps;
     }
 
-    public File getDataxCfgDir() {
-        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this.identityValue());
+    @Override
+    public File getDataxCfgDir(IPluginContext pluginContext) {
+        File dataXWorkDir = getDataXWorkDir(pluginContext);
+        return new File(dataXWorkDir, DATAX_CFG_DIR_NAME);
+    }
+
+    @Override
+    public File getDataXWorkDir(IPluginContext pluginContext) {
+
+        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(pluginContext, this.identityValue());
         File targetFile = readerStore.getTargetFile();
-        return new File(targetFile.getParentFile(), DATAX_CFG_DIR_NAME);
+        return targetFile.getParentFile();
+    }
+
+    /**
+     * 创建一个临时工作目录
+     *
+     * @param execId
+     * @throws Exception
+     */
+    public void makeTempDir(String execId) throws Exception {
+
+        File workingDir = getDataXWorkDir(null);
+        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), workingDir.getName() + "-" + execId));
     }
 
     /**
@@ -137,15 +159,17 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
      *
      * @return
      */
-    public List<String> getDataxCfgFileNames() {
-        File dataxCfgDir = getDataxCfgDir();
+    public List<String> getDataxCfgFileNames(IPluginContext pluginContext) {
+        File dataxCfgDir = getDataxCfgDir(pluginContext);
         if (!dataxCfgDir.exists()) {
             throw new IllegalStateException("dataxCfgDir is not exist:" + dataxCfgDir.getAbsolutePath());
         }
         if (dataxCfgDir.list().length < 1) {
             throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
         }
-        return Lists.newArrayList(dataxCfgDir.list());
+        return Lists.newArrayList(dataxCfgDir.list((d, fileName) -> {
+            return !DataXCfgGenerator.FILE_GEN.equals(fileName);
+        }));
     }
 
     public static class DataXCreateProcessMeta extends DataXBasicProcessMeta {

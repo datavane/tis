@@ -1018,6 +1018,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
 
     @Override
+    public String getExecId() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void addActionMessage(Context context, String msg) {
 
     }

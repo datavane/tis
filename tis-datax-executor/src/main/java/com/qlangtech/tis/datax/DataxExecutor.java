@@ -72,11 +72,11 @@ public final class DataxExecutor {
             if (StringUtils.isBlank(jobName)) {
                 throw new IllegalArgumentException("param jobName can not be null");
             }
-            KeyedPluginStore<DataxProcessor> processStore = IAppSource.getPluginStore(dataxName);
+            KeyedPluginStore<DataxProcessor> processStore = IAppSource.getPluginStore(null, dataxName);
             List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
             keyedPluginStores.add(processStore);
-            keyedPluginStores.add(DataxReader.getPluginStore(dataxName));
-            keyedPluginStores.add(DataxWriter.getPluginStore(dataxName));
+            keyedPluginStores.add(DataxReader.getPluginStore(null, dataxName));
+            keyedPluginStores.add(DataxWriter.getPluginStore(null, dataxName));
             ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
             dataxComponentMeta.synchronizePluginsFromRemoteRepository();
 
@@ -125,8 +125,8 @@ public final class DataxExecutor {
         // TaskConfig config = TaskConfig.getInstance();
         String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath};
 
-        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
-        KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(dataxName);
+        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
+        KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
 //        TIS.permitInitialize = false;
 //        try {
 //            List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));

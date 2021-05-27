@@ -37,7 +37,7 @@ import java.util.*;
 public class SuFormProperties extends PluginFormProperties implements IPropertyType {
     public final Map<String, /*** fieldname */PropertyType> fieldsType;
     public final Field subFormField;
-    private final SubForm subFormFieldsAnnotation;
+    public final SubForm subFormFieldsAnnotation;
     public final Class<?> parentClazz;
     private final PropertyType pkPropertyType;
 
@@ -87,10 +87,8 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
                   }
             );
         }
-
+        @SuppressWarnings("all")
         public void loadMyClass(String name, String script) throws Exception {
-            // createCompilationUnit(config,
-            // codeSource.getCodeSource());
             CompilationUnit unit = new CompilationUnit();
             SourceUnit su = unit.addSource(name, script);
             ClassCollector collector = createCollector(unit, su);

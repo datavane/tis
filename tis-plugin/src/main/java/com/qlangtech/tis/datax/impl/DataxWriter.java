@@ -18,8 +18,8 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.Objects;
 
@@ -34,8 +34,8 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      *
      * @param appname
      */
-    public static KeyedPluginStore<DataxWriter> getPluginStore(String appname) {
-        KeyedPluginStore<DataxWriter> pluginStore = new KeyedPluginStore(new DataxWriter.AppKey(appname));
+    public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, String appname) {
+        KeyedPluginStore<DataxWriter> pluginStore = new KeyedPluginStore(new DataxReader.AppKey(context, appname, DataxWriter.class));
         return pluginStore;
     }
 
@@ -45,18 +45,18 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * @param appName
      * @return
      */
-    public static DataxWriter load(String appName) {
-        DataxWriter appSource = getPluginStore(appName).getPlugin();
+    public static DataxWriter load(IPluginContext context, String appName) {
+        DataxWriter appSource = getPluginStore(context, appName).getPlugin();
         Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
         return appSource;
     }
 
 
-    public static class AppKey extends KeyedPluginStore.Key<DataxWriter> {
-        public AppKey(String dataxName) {
-            super(IFullBuildContext.NAME_APP_DIR, dataxName, DataxWriter.class);
-        }
-    }
+//    public static class AppKey extends KeyedPluginStore.Key<DataxWriter> {
+//        public AppKey(String dataxName) {
+//            super(IFullBuildContext.NAME_APP_DIR, dataxName, DataxWriter.class);
+//        }
+//    }
 
 
     @Override

@@ -37,6 +37,7 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
+import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -160,7 +161,23 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   @Override
   public boolean isCollectionAware() {
-    return !(this.getAppDomain() instanceof AppDomainInfo.EnvironmentAppDomainInfo);
+
+    AppDomainInfo appDoamin = this.getAppDomain();
+//    if (appDoamin.getAppType() == AppType.DataXPipe) {
+//
+//    }
+    return !(appDoamin instanceof AppDomainInfo.EnvironmentAppDomainInfo);
+  }
+
+
+
+  @Override
+  public final String getExecId() {
+    String execId = this.getRequest().getHeader("execId");
+    if (StringUtils.isBlank(execId)) {
+      throw new IllegalStateException("execId shall present in Request Header");
+    }
+    return execId;
   }
 
   public String getCollectionName() {
@@ -169,6 +186,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       throw new IllegalStateException("param collection can not be null");
     }
     return collection;
+  }
+
+  @Override
+  public String getRequestHeader(String key) {
+    return this.getRequest().getHeader(key);
   }
 
   @Override
