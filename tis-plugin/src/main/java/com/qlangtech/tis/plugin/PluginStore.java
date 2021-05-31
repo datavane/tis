@@ -62,6 +62,11 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
 
     }
 
+    /**
+     * 反序列化之后需要额外从其他地方加载属性到实例对象上
+     *
+     * @param <T>
+     */
     public interface IPluginProcessCallback<T> {
         void process(T t);
     }

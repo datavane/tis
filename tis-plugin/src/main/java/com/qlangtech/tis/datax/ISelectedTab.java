@@ -58,6 +58,7 @@ public interface ISelectedTab {
 
     public enum DataXReaderColType {
         Long("long"),
+        INT("int"),
         Double("double"),
         STRING("string"),
         Boolean("boolean"),

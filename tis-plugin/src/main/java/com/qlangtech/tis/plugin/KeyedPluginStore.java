@@ -41,6 +41,19 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         this.key = key;
     }
 
+    public interface IPluginKeyAware {
+        public void setKey(Key key);
+    }
+
+    @Override
+    public T getPlugin() {
+        T plugin = super.getPlugin();
+        if (plugin instanceof IPluginKeyAware) {
+            ((IPluginKeyAware) plugin).setKey(this.key);
+        }
+        return plugin;
+    }
+
     @Override
     protected String getSerializeFileName() {
         return key.getSerializeFileName();

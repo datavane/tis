@@ -16,8 +16,6 @@ package com.qlangtech.tis.trigger.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-
-import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,14 +73,19 @@ public class JsonUtil {
                 json, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
     }
 
-    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, String actual) {
+
+    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, String actual, IAssert azzert) {
         String expectJson = com.alibaba.fastjson.JSON.toJSONString(
                 JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, assertFileName))
-                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
+                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
         System.out.println(assertFileName + "\n" + expectJson);
         String actualJson = com.alibaba.fastjson.JSON.toJSONString(JSON.parseObject(actual)
-                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
-        Assert.assertEquals("assertFile:" + assertFileName, expectJson, actualJson);
+                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
+        azzert.assertEquals("assertFile:" + assertFileName, expectJson, actualJson);
+    }
+
+    public interface IAssert {
+        public void assertEquals(String message, String expected, String actual);
     }
 
 

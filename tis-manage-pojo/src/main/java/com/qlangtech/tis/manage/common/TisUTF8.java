@@ -41,6 +41,18 @@ public class TisUTF8 {
         List<Option> all = Lists.newArrayList();
         Option o = null;
         for (Map.Entry<String, Charset> entry : Charset.availableCharsets().entrySet()) {
+            if (entry.getKey().startsWith("x-")) {
+                continue;
+            }
+            if (entry.getKey().startsWith("IBM")) {
+                continue;
+            }
+            if (entry.getKey().startsWith("windows-")) {
+                continue;
+            }
+            if (entry.getKey().startsWith("ISO-")) {
+                continue;
+            }
             o = new Option(entry.getKey(), StringUtils.lowerCase(entry.getKey()));
             all.add(o);
         }

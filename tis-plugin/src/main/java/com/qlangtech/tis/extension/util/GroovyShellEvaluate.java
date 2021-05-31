@@ -27,6 +27,15 @@ import groovy.lang.Script;
  * @date 2021-02-06 13:27
  */
 public class GroovyShellEvaluate {
+    static final boolean isInConsoleModule;
+
+    static {
+        boolean loaded = false;
+        try {
+            loaded = (null != Class.forName("com.qlangtech.tis.runtime.module.action.BasicModule"));
+        } catch (ClassNotFoundException e) { }
+        isInConsoleModule = loaded;
+    }
 
     public final static ThreadLocal<Descriptor> descriptorThreadLocal = new ThreadLocal<>();
 
@@ -50,6 +59,10 @@ public class GroovyShellEvaluate {
     }
 
     public static <T> T eval(String javaScript) {
+        if (!isInConsoleModule) {
+            // 如果不在console中运行则返回空即可
+            return null;
+        }
         try {
             Script script = scriptCache.get(javaScript);
             return (T) script.run();

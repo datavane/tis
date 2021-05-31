@@ -183,6 +183,10 @@ public class FSHistoryFileUtils {
         IPath toDelete = null;
         for (int index = (maxPartitionSave); index < timestampList.size(); index++) {
             toDelete = fileSys.getPath(parent, timestampList.get(index).pathName);
+            if (!fileSys.exists(toDelete)) {
+                logger.warn("toDelete path:`" + toDelete + "` is not exist,skip the delete process ");
+                continue;
+            }
             // toDelete = new Path(parent, timestampList.get(index).pathName);
             // 删除历史数据
             logger.info("history old file path:" + toDelete.toString() + " delete,success:" + fileSys.delete(toDelete, true) + ",getMaxPartitionSave:" + maxPartitionSave);

@@ -29,15 +29,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-20 14:12
  */
-public class TestDataxExecutor extends TISTestCase implements IExecutorContext{
+public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
+    private static DataxExecutor executor;
 
-
-
-    public void testDataxJobLaunch() throws Exception {
-
-
-        //TisZkClient zkClient = new TisZkClient(Config.getZKHost(), 60000);
-
+    static {
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
         RpcServiceReference statusRpc = new RpcServiceReference(ref);
@@ -51,11 +46,35 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext{
             }
         };
 
-        DataxExecutor executor = new DataxExecutor(statusRpc, uberClassLoader);
+        executor = new DataxExecutor(statusRpc, uberClassLoader);
+    }
+
+    public void testDataxJobMysql2Hdfs() throws Exception {
+        String dataxNameMysql2hdfs = "mysql2hdfs";
+        final String jobName = "datax_cfg.json";
+        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hdfs + "/dataxCfg/" + jobName);
+// tring dataxName, Integer jobId, String jobName, String jobPath
+        Integer jobId = 1;
+        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, path.toString());
+    }
+
+    public void testDataxJobMysql2Hive() throws Exception {
+        String dataxNameMysql2hive = "mysql2hive";
+        final String jobName = "datax_cfg.json";
+        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hive + "/dataxCfg/" + jobName);
+// tring dataxName, Integer jobId, String jobName, String jobPath
+        Integer jobId = 1;
+        executor.startWork(dataxNameMysql2hive, jobId, jobName, path.toString());
+    }
+
+    public void testDataxJobLaunch() throws Exception {
+
         final String jobName = "customer_order_relation_0.json";
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitestTestcase/dataxCfg/" + jobName);
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
         executor.startWork(dataXName, jobId, jobName, path.toString());
     }
+
+
 }
