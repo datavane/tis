@@ -190,7 +190,7 @@ public enum HeteroEnum {
     public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         PluginStore store = null;
         if (this == HeteroEnum.APP_SOURCE) {
-            final String dataxName = StringUtils.defaultIfEmpty(pluginMeta.getExtraParam(DataxUtils.DATAX_NAME), pluginContext.getCollectionName());
+            final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
             if (StringUtils.isEmpty(dataxName)) {
                 throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
             }

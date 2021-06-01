@@ -124,7 +124,9 @@ public class DataXCfgGenerator {
 
     public GenerateCfgs startGenerateCfg(final File parentDir) throws Exception {
         GenerateCfgs cfgs = new GenerateCfgs();
+
         boolean unStructed2RDBMS = dataxProcessor.isUnStructed2RDBMS(this.pluginCtx);
+
 
         IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
         Map<String, IDataxProcessor.TableAlias> tabAlias = dataxProcessor.getTabAlias();
@@ -152,9 +154,27 @@ public class DataXCfgGenerator {
                     break;
                 }
                 Objects.requireNonNull(tableMapper, "tableMap can not be null");
+            } else if (dataxProcessor.isRDBMS2UnStructed(this.pluginCtx)) {
+                // example: mysql -> oss
+                Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
+                ISelectedTab tab = selectedTabs.get(readerContext.getSourceEntityName());
+                Objects.requireNonNull(tab, readerContext.getSourceEntityName() + " relevant tab can not be null");
+                tableMapper = new IDataxProcessor.TableMap();
+                tableMapper.setSourceCols(tab.getCols());
+                tableMapper.setTo(tab.getName());
+                tableMapper.setFrom(tab.getName());
             } else {
                 tableMapper = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
             }
+
+            for (ISelectedTab.ColMeta colMeta : tableMapper.getSourceCols()) {
+                if (colMeta.getType() == null) {
+                    throw new IllegalStateException("reader context:" + readerContext.getSourceEntityName()
+                            + " relevant col type which's name " + colMeta.getName() + " can not be null");
+                }
+            }
+
+
             configFile = new File(parentDir, readerContext.getTaskName() + ".json");
             FileUtils.write(configFile, generateDataxConfig(readerContext, Optional.of(tableMapper)), TisUTF8.get(), false);
             subTaskName.add(configFile.getName());

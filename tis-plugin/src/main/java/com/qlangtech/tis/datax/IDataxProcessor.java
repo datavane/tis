@@ -44,6 +44,8 @@ public interface IDataxProcessor {
      */
     public boolean isUnStructed2RDBMS(IPluginContext pluginCtx);
 
+    public boolean isRDBMS2UnStructed(IPluginContext pluginCtx);
+
     /**
      * dataX配置文件列表
      *

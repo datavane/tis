@@ -16,6 +16,7 @@ package com.qlangtech.tis.datax;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,13 +57,15 @@ public interface ISelectedTab {
         }
     }
 
+    // https://github.com/alibaba/DataX/blob/master/mysqlreader/doc/mysqlreader.md#33-%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2
     public enum DataXReaderColType {
         Long("long"),
         INT("int"),
         Double("double"),
         STRING("string"),
         Boolean("boolean"),
-        Date("date");
+        Date("date"),
+        Bytes("bytes");
 
         private final String literia;
 
@@ -78,6 +81,40 @@ public interface ISelectedTab {
                 }
             }
             return null;
+        }
+
+        /**
+         * https://github.com/alibaba/DataX/blob/master/mysqlreader/doc/mysqlreader.md#33-%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2
+         *
+         * @param mysqlType java.sql.Types
+         * @return
+         */
+        public static DataXReaderColType parse(int mysqlType) {
+            switch (mysqlType) {
+                case Types.INTEGER:
+                case Types.TINYINT:
+                case Types.SMALLINT:
+                case Types.BIGINT:
+                    return DataXReaderColType.Long;
+                case Types.FLOAT:
+                case Types.DOUBLE:
+                case Types.DECIMAL:
+                    return DataXReaderColType.Double;
+                case Types.DATE:
+                case Types.TIME:
+                case Types.TIMESTAMP:
+                    return DataXReaderColType.Date;
+                case Types.BIT:
+                case Types.BOOLEAN:
+                    return DataXReaderColType.Boolean;
+                case Types.BLOB:
+                case Types.BINARY:
+                case Types.LONGVARBINARY:
+                case Types.VARBINARY:
+                    return DataXReaderColType.Bytes;
+                default:
+                    return DataXReaderColType.STRING;
+            }
         }
 
         @Override

@@ -99,6 +99,28 @@ public enum Validator {
             return false;
         }
         return true;
+    }),
+    relative_path((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.PATTERN_RELATIVE_PATH.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_RELATIVE_PATH_ERROR);
+            return false;
+        }
+        return true;
+    }),
+    absolute_path((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.PATTERN_ABSOLUTE_PATH.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
+            return false;
+        }
+        return true;
     });
 
     private final IFieldValidator fieldValidator;

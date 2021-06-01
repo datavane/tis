@@ -142,7 +142,9 @@ public class TestPluginItems extends TestCase {
     JSONObject pluginDesc = heteroList.toJSON();
 
 
-    JsonUtil.assertJSONEqual(this.getClass(), "datax_reader_mysql_post_subfield_to_json.json", pluginDesc.toJSONString());
+    JsonUtil.assertJSONEqual(this.getClass(), "datax_reader_mysql_post_subfield_to_json.json", pluginDesc.toJSONString(), (m, e, a) -> {
+      assertEquals(m, e, a);
+    });
 
     EasyMock.verify(pluginContext);
   }
@@ -167,7 +169,8 @@ public class TestPluginItems extends TestCase {
     PluginItems pluginItems = new PluginItems(pluginContext, subFieldPluginMeta);
     IControlMsgHandler fieldErrorHandler = EasyMock.createMock("fieldErrorHandler", IControlMsgHandler.class);
 
-    JSONArray jsonArray = IOUtils.loadResourceFromClasspath(TestPluginItems.class, "datax_reader_mysql_post_subfield_form.json", true, (input) -> {
+    JSONArray jsonArray = IOUtils.loadResourceFromClasspath(TestPluginItems.class
+      , "datax_reader_mysql_post_subfield_form.json", true, (input) -> {
       return JSON.parseArray(org.apache.commons.io.IOUtils.toString(input, TisUTF8.get()));
     });
 

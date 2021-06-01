@@ -26,6 +26,7 @@ import com.alibaba.datax.core.util.FrameworkErrorCode;
 import com.alibaba.datax.core.util.container.JarLoader;
 import com.alibaba.datax.core.util.container.LoadUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -61,7 +62,7 @@ import java.util.Set;
  * @date 2021-04-20 12:38
  */
 public final class DataxExecutor {
-    private static final Field jarLoaderCenterField;
+    public static final Field jarLoaderCenterField;
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
         TIS.permitInitialize = false;
@@ -148,18 +149,8 @@ public final class DataxExecutor {
             Objects.requireNonNull(readerMeta, "readerMeta can not be null");
             Objects.requireNonNull(writerMeta, "writerMeta can not be null");
 
-            Map<String, JarLoader> jarLoaderCenter = (Map<String, JarLoader>) jarLoaderCenterField.get(null);
-            jarLoaderCenter.clear();
-//            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
-//                @Override
-//                protected Class<?> findClass(String name) throws ClassNotFoundException {
-//                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-//                }
-//            };
-            jarLoaderCenter.put(this.getPluginReaderKey(), uberClassLoader);
-            jarLoaderCenter.put(this.getPluginWriterKey(), uberClassLoader);
+            initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), this.uberClassLoader);
 
-            Objects.requireNonNull(jarLoaderCenter, "jarLoaderCenter can not be null");
             try {
                 entry(args);
                 this.reportDataXJobStatus(false, jobId, jobName);
@@ -172,6 +163,24 @@ public final class DataxExecutor {
         } finally {
             //  TIS.cleanTIS();
         }
+    }
+
+    public static void initializeClassLoader(Set<String> pluginKeys, JarLoader classLoader) throws IllegalAccessException {
+        Map<String, JarLoader> jarLoaderCenter = (Map<String, JarLoader>) jarLoaderCenterField.get(null);
+        jarLoaderCenter.clear();
+//            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
+//                @Override
+//                protected Class<?> findClass(String name) throws ClassNotFoundException {
+//                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+//                }
+//            };
+        for (String pluginKey : pluginKeys) {
+            jarLoaderCenter.put(pluginKey, classLoader);
+        }
+//        jarLoaderCenter.put(this.getPluginReaderKey(), classLoader);
+//        jarLoaderCenter.put(this.getPluginWriterKey(), classLoader);
+        // jarLoaderCenter;
+        Objects.requireNonNull(jarLoaderCenter, "jarLoaderCenter can not be null");
     }
 
     private void reportDataXJobStatus(boolean faild, Integer taskId, String jobName) {
