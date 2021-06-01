@@ -245,7 +245,7 @@ public final class DataxExecutor {
 
 
         Objects.requireNonNull(configuration.get(getPluginReaderKey()), FormatKeyPluginReader + " can not be null");
-        Objects.requireNonNull(configuration.get(getPluginReaderKey()), FormatKeyPluginWriter + " can not be null");
+        Objects.requireNonNull(configuration.get(getPluginWriterKey()), FormatKeyPluginWriter + " can not be null");
         return configuration;
         // todo config优化，只捕获需要的plugin
     }
