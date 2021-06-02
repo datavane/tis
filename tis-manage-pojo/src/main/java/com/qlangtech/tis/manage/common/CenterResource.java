@@ -44,9 +44,13 @@ public class CenterResource {
 
     private static final String KEY_notFetchFromCenterRepository = "notFetchFromCenterRepository";
 
+    private static Boolean notFetchFromCenterRepository;
+
     public static boolean notFetchFromCenterRepository() {
-        boolean notFetchFromCenterRepository = Boolean.getBoolean(KEY_notFetchFromCenterRepository);
-        logger.info("notFetchFromCenterRepository:{}", notFetchFromCenterRepository);
+        if (notFetchFromCenterRepository == null) {
+            notFetchFromCenterRepository = Boolean.getBoolean(KEY_notFetchFromCenterRepository);
+            logger.info("notFetchFromCenterRepository:{}", notFetchFromCenterRepository);
+        }
         return notFetchFromCenterRepository;
     }
 

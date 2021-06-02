@@ -15,13 +15,21 @@
 
 package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.test.TISTestCase;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import junit.framework.TestCase;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-07 15:54
  **/
-public class TestDataXJobConsumer extends TISTestCase {
+public class TestDataXJobConsumer extends TestCase {
+    // TISTestCase {
+
+    static {
+        HttpUtils.addMockGlobalParametersConfig();
+        Config.setTestDataDir();
+    }
 
     /**
      * 需要执行 TestDistributedOverseerDataXJobSubmit.testPushMsgToDistributeQueue() 作为测试配合
@@ -29,7 +37,21 @@ public class TestDataXJobConsumer extends TISTestCase {
      * @throws Exception
      */
     public void testConsumeDistributeMsg() throws Exception {
-        String[] args = new String[]{"192.168.28.200:2181/tis/cloud", "/datax"};
-        DataXJobConsumer.main(args);
+
+//        String[] args = new String[]{"192.168.28.200:2181/tis/cloud", "/datax/jobs"};
+//        DataXJobConsumer.main(args);
+
+        DataXJobConsumer consumer = DataXJobConsumer.getDataXJobConsumer("/datax/jobs", "192.168.28.200:2181/tis/cloud");
+        assertNotNull(consumer);
+
+        // dataXName:ttt,jobid:866,jobName:customer_order_relation_0.json,jobPath:/opt/data/tis/cfg_repo/tis_plugin_config/ap/ttt/dataxCfg/customer_order_relation_0.json
+
+        CuratorTaskMessage msg = new CuratorTaskMessage();
+        msg.setDataXName("ttt");
+        msg.setJobPath("/opt/data/tis/cfg_repo/tis_plugin_config/ap/ttt/dataxCfg/customer_order_relation_0.json");
+        msg.setJobName("customer_order_relation_0.json");
+        msg.setJobId(866);
+
+        consumer.consumeMessage(msg);
     }
 }

@@ -28,6 +28,7 @@ import com.alibaba.datax.core.util.container.LoadUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -36,6 +37,7 @@ import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -74,8 +76,11 @@ public final class DataxExecutor {
             if (StringUtils.isBlank(jobName)) {
                 throw new IllegalArgumentException("param jobName can not be null");
             }
+
             KeyedPluginStore<DataxProcessor> processStore = IAppSource.getPluginStore(null, dataxName);
             List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
+            keyedPluginStores.add(TIS.getPluginStore(ParamsConfig.class));
+            keyedPluginStores.add(TIS.getPluginStore(FileSystemFactory.class));
             keyedPluginStores.add(processStore);
             keyedPluginStores.add(DataxReader.getPluginStore(null, dataxName));
             keyedPluginStores.add(DataxWriter.getPluginStore(null, dataxName));

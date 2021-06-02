@@ -69,6 +69,14 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         String zkAddress = args[0]; //System.getProperty(DataxUtils.DATAX_ZK_ADDRESS);
 
 
+        DataXJobConsumer dataXJobConsume = getDataXJobConsumer(zkQueuePath, zkAddress);
+
+        synchronized (dataXJobConsume) {
+            dataXJobConsume.wait();
+        }
+    }
+
+    public static DataXJobConsumer getDataXJobConsumer(String zkQueuePath, String zkAddress) throws Exception {
         final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
             @Override
             protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -86,10 +94,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         DataXJobConsumer dataXJobConsume = new DataXJobConsumer(dataxExecutor, curatorClient);
 
         dataXJobConsume.createQueue(zkQueuePath);
-
-        synchronized (dataXJobConsume) {
-            dataXJobConsume.wait();
-        }
+        return dataXJobConsume;
     }
 
     private void createQueue(String zkQueuePath) {
