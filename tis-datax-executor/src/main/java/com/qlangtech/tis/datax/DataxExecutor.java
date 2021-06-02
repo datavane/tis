@@ -28,6 +28,7 @@ import com.alibaba.datax.core.util.container.LoadUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
@@ -82,7 +83,8 @@ public final class DataxExecutor {
             dataxComponentMeta.synchronizePluginsFromRemoteRepository();
 
             CenterResource.copyFromRemote2Local(
-                    TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath() + "/" + DataxProcessor.DATAX_CFG_DIR_NAME + "/" + jobName, true);
+                    TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath()
+                            + "/" + DataxProcessor.DATAX_CFG_DIR_NAME + "/" + jobName, true);
         } finally {
             TIS.permitInitialize = true;
         }
@@ -238,6 +240,11 @@ public final class DataxExecutor {
         writerCfg.set("class", this.writerMeta.getImplClass());
         configuration.set(getPluginReaderKey(), readerCfg);
         configuration.set(getPluginWriterKey(), writerCfg);
+
+        String readerPluginName = configuration.getString("job.content[0].reader.name");
+        String writerPluginName = configuration.getString("job.content[0].writer.name");
+
+        DataXCfgGenerator.validatePluginName(writerMeta, readerMeta, writerPluginName, readerPluginName);
 
         configuration.merge(Configuration.from(IOUtils.loadResourceFromClasspath(DataxExecutor.class, "core.json")),
                 //ConfigParser.parseCoreConfig(CoreConstant.DATAX_CONF_PATH),

@@ -16,6 +16,8 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -227,9 +229,9 @@ public class DataXCfgGenerator {
         if (StringUtils.isEmpty(tpl)) {
             throw new IllegalStateException("velocity template content can not be null");
         }
+        IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
+        IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
         try {
-            IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
-
             VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap));
             writerContent = new StringWriter();
             velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
@@ -238,9 +240,30 @@ public class DataXCfgGenerator {
         }
         String content = writerContent.toString();
         try {
-            return JsonUtil.toString(JSON.parseObject(content));
+            JSONObject cfg = JSON.parseObject(content);
+            validatePluginName(writer, reader, cfg);
+            return JsonUtil.toString(cfg);
         } catch (Exception e) {
             throw new RuntimeException(content, e);
+        }
+    }
+
+    public void validatePluginName(IDataxWriter writer, IDataxReader reader, JSONObject cfg) {
+        JSONObject job = cfg.getJSONObject("job");
+        JSONArray contentAry = job.getJSONArray("content");
+        JSONObject rw = contentAry.getJSONObject(0);
+        String readerName = rw.getJSONObject("reader").getString("name");
+        String writerName = rw.getJSONObject("writer").getString("name");
+
+        validatePluginName(writer.getDataxMeta(), reader.getDataxMeta(), writerName, readerName);
+    }
+
+    public static void validatePluginName(IDataXPluginMeta.DataXMeta writer, IDataXPluginMeta.DataXMeta reader, String writerName, String readerName) {
+        if (!StringUtils.equals(readerName, reader.getName())) {
+            throw new IllegalStateException("reader plugin name:" + readerName + " must equal with '" + reader.getName() + "'");
+        }
+        if (!StringUtils.equals(writerName, writer.getName())) {
+            throw new IllegalStateException("reader plugin name:" + writerName + " must equal with '" + writer.getName() + "'");
         }
     }
 
