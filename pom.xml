@@ -25,6 +25,7 @@
         <java.version>1.8</java.version>
         <spring-version>3.0.6.RELEASE</spring-version>
         <solr.version>8.7.0</solr.version>
+        <curator.version>2.13.0</curator.version>
         <jetty.version>9.4.27.v20200227</jetty.version>
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
 
@@ -88,8 +89,15 @@
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
-                <version>2.12.0</version>
+                <version>${curator.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>commons-collections</groupId>
@@ -172,8 +180,6 @@
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
-
-
 
 
             <dependency>

@@ -250,12 +250,17 @@ public class DataXCfgGenerator {
 
     public void validatePluginName(IDataxWriter writer, IDataxReader reader, JSONObject cfg) {
         JSONObject job = cfg.getJSONObject("job");
-        JSONArray contentAry = job.getJSONArray("content");
-        JSONObject rw = contentAry.getJSONObject(0);
-        String readerName = rw.getJSONObject("reader").getString("name");
-        String writerName = rw.getJSONObject("writer").getString("name");
+        if (job != null) {
+            JSONArray contentAry = job.getJSONArray("content");
+            JSONObject rw = contentAry.getJSONObject(0);
+            String readerName = rw.getJSONObject("reader").getString("name");
+            String writerName = rw.getJSONObject("writer").getString("name");
+            validatePluginName(writer.getDataxMeta(), reader.getDataxMeta(), writerName, readerName);
+        } else {
+            // 在单元测试流程中
+            return;
+        }
 
-        validatePluginName(writer.getDataxMeta(), reader.getDataxMeta(), writerName, readerName);
     }
 
     public static void validatePluginName(IDataXPluginMeta.DataXMeta writer, IDataXPluginMeta.DataXMeta reader, String writerName, String readerName) {
@@ -263,7 +268,7 @@ public class DataXCfgGenerator {
             throw new IllegalStateException("reader plugin name:" + readerName + " must equal with '" + reader.getName() + "'");
         }
         if (!StringUtils.equals(writerName, writer.getName())) {
-            throw new IllegalStateException("reader plugin name:" + writerName + " must equal with '" + writer.getName() + "'");
+            throw new IllegalStateException("writer plugin name:" + writerName + " must equal with '" + writer.getName() + "'");
         }
     }
 

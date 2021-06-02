@@ -22,6 +22,16 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+        </dependency>
+
         <!--TODO： 可以的话需要将tis-datax-executor 去除掉，因为加入了datax的依赖，而现在为了方便先加入吧为了启动本地datax执行，届时可以考虑放到plugin或者单独起一个VM来执行-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
@@ -93,14 +103,11 @@
 
         <!-- <dependency> <groupId>asm</groupId> <artifactId>asm</artifactId> <version>5.0.1</version>
             </dependency> -->
-
-
         <dependency>
             <groupId>commons-digester</groupId>
             <artifactId>commons-digester</artifactId>
             <version>2.1</version>
         </dependency>
-
         <!--
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -171,10 +178,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-
-
-
 -->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>

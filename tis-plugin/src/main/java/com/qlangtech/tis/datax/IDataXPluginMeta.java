@@ -29,7 +29,7 @@ import java.io.InputStream;
 public interface IDataXPluginMeta {
 
     default DataXMeta getDataxMeta() {
-        Class<?> clazz = this.getClass();
+        Class<?> clazz = this.getOwnerClass();
         return IOUtils.loadResourceFromClasspath(clazz, clazz.getSimpleName() + "_plugin.json", true
                 , new IOUtils.WrapperResult<DataXMeta>() {
                     @Override
@@ -37,6 +37,10 @@ public interface IDataXPluginMeta {
                         return JSON.parseObject(input, DataXMeta.class);
                     }
                 });
+    }
+
+    default Class<?> getOwnerClass() {
+        return this.getClass();
     }
 
     public class DataXMeta {

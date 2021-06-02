@@ -75,11 +75,24 @@ public class JsonUtil {
 
 
     public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, String actual, IAssert azzert) {
+//        String expectJson = com.alibaba.fastjson.JSON.toJSONString(
+//                JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, assertFileName))
+//                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
+//        System.out.println(assertFileName + "\n" + expectJson);
+//        String actualJson = com.alibaba.fastjson.JSON.toJSONString(JSON.parseObject(actual)
+//                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
+//        azzert.assertEquals("assertFile:" + assertFileName, expectJson, actualJson);
+
+
+        assertJSONEqual(invokeClass, assertFileName, JSON.parseObject(actual), azzert);
+    }
+
+    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, com.alibaba.fastjson.JSONObject actual, IAssert azzert) {
         String expectJson = com.alibaba.fastjson.JSON.toJSONString(
                 JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, assertFileName))
                 , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
         System.out.println(assertFileName + "\n" + expectJson);
-        String actualJson = com.alibaba.fastjson.JSON.toJSONString(JSON.parseObject(actual)
+        String actualJson = com.alibaba.fastjson.JSON.toJSONString(actual
                 , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
         azzert.assertEquals("assertFile:" + assertFileName, expectJson, actualJson);
     }
