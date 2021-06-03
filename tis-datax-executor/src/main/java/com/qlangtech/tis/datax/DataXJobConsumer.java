@@ -197,7 +197,11 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
             dataxExecutor.startWork(dataxName, jobId, jobName, jobPath);
             success = true;
         } finally {
-            DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
+            try {
+                DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
+            } catch (Throwable e) {
+                logger.warn("notify exec result faild,jobId:{},jobName:{}", jobId, jobName);
+            }
             TIS.clean();
         }
     }
