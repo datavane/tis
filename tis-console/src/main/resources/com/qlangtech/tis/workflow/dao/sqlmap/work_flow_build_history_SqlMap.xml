@@ -17,7 +17,16 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="op_time" property="opTime" jdbcType="TIMESTAMP" />
     <result column="end_phase" property="endPhase" jdbcType="TINYINT" />
+
+
+
   </resultMap>
+
+  <resultMap id="ibatorgenerated_ResultMapWithBLOBs" class="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory" extends="work_flow_build_history.ibatorgenerated_BaseResultMap" >
+    <result column="last_ver" property="lastVer" jdbcType="SMALLINT" />
+    <result column="asyn_sub_task_status" property="asynSubTaskStatus" jdbcType="LONGVARCHAR" />
+  </resultMap>
+
   <sql id="ibatorgenerated_Example_Where_Clause" >
     <iterate property="oredCriteria" conjunction="or" prepend="where" removeFirstPrepend="iterate" >
       <isEqual property="oredCriteria[].valid" compareValue="true" >
@@ -57,9 +66,9 @@
     </isParameterPresent>
        ) bb inner join work_flow_build_history aa on aa.id=bb.id
   </select>
-  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory" >
+  <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory" >
     select id, start_time, end_time, state, trigger_type, op_user_id, op_user_name, app_id,
-      app_name, start_phase, history_id, work_flow_id, create_time, op_time, end_phase
+      app_name, start_phase, history_id, work_flow_id, create_time, op_time, end_phase, last_ver, asyn_sub_task_status
     from work_flow_build_history
     where id = #id:INTEGER#
   </select>
@@ -129,6 +138,12 @@
       <isNotNull prepend="," property="endPhase" >
         end_phase
       </isNotNull>
+      <isNotNull prepend="," property="lastVer" >
+        last_ver
+      </isNotNull>
+      <isNotNull prepend="," property="asynSubTaskStatus" >
+        asyn_sub_task_status
+      </isNotNull>
       )
     </dynamic>
     values
@@ -178,6 +193,14 @@
       <isNotNull prepend="," property="endPhase" >
         #endPhase:TINYINT#
       </isNotNull>
+
+      <isNotNull prepend="," property="lastVer" >
+        #lastVer:SMALLINT#
+      </isNotNull>
+      <isNotNull prepend="," property="asynSubTaskStatus" >
+        #asynSubTaskStatus:LONGVARCHAR#
+      </isNotNull>
+
       )
     </dynamic>
 
@@ -189,6 +212,7 @@
   <update id="ibatorgenerated_updateByExampleSelective" >
     update work_flow_build_history
     <dynamic prepend="set" >
+      last_ver=last_ver+1,
       <isNotNull prepend="," property="record.id" >
         id = #record.id:INTEGER#
       </isNotNull>
@@ -234,6 +258,10 @@
       <isNotNull prepend="," property="record.endPhase" >
         end_phase = #record.endPhase:TINYINT#
       </isNotNull>
+      <isNotNull prepend="," property="record.asynSubTaskStatus" >
+        asyn_sub_task_status = #record.asynSubTaskStatus:LONGVARCHAR#
+      </isNotNull>
+
     </dynamic>
     <isParameterPresent >
       <include refid="work_flow_build_history.ibatorgenerated_Example_Where_Clause" />

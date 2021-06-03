@@ -12,37 +12,30 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.fullbuild.indexbuild;
+
+package com.qlangtech.tis.fullbuild.indexbuild.impl;
+
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public interface IRemoteJobTrigger {
+ * 异步任务
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-06-02 18:03
+ **/
+public abstract class AsynRemoteJobTrigger implements IRemoteJobTrigger {
+    private final String jobName;
 
-    /**
-     * 是否是异步任务
-     *
-     * @return
-     */
-    default boolean isAsyn() {
-        return false;
+    public AsynRemoteJobTrigger(String jobName) {
+        this.jobName = jobName;
     }
 
-    /**
-     * 异步任务名称
-     *
-     * @return
-     */
-    public default String getAsynJobName() {
-        // 只有 isAsyn 返回true时候才能调用该方法
-        throw new UnsupportedOperationException();
+    @Override
+    public boolean isAsyn() {
+        return true;
     }
 
-    /**
-     * 触发任务
-     */
-    public void submitJob();
-
-    public RunningStatus getRunningStatus();
+    @Override
+    public String getAsynJobName() {
+        return jobName;
+    }
 }

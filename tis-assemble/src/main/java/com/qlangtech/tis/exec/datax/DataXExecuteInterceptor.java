@@ -61,13 +61,16 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
         List<IRemoteJobTrigger> triggers = Lists.newArrayList();
 
-        for (String fileName : appSource.getDataxCfgFileNames(null)) {
+        List<String> cfgFileNames = appSource.getDataxCfgFileNames(null);
+
+        for (String fileName : cfgFileNames) {
             jobTrigger = createDataXJob(execChainContext, statusRpc, appSource, fileName);
+
             triggers.add(jobTrigger);
         }
 
         logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
-                , appSource.getDataxCfgFileNames(null).stream().collect(Collectors.joining(",")));
+                , cfgFileNames.stream().collect(Collectors.joining(",")));
         for (IRemoteJobTrigger t : triggers) {
             t.submitJob();
         }
@@ -97,17 +100,20 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             }
         }
 
-        return new ExecuteResult(!faild);
+        ExecuteResult result = new ExecuteResult(!faild);
+        for (IRemoteJobTrigger trigger : triggers) {
+            if (trigger.isAsyn()) {
+                execChainContext.addAsynSubJob(new IExecChainContext.AsynSubJob(trigger.getAsynJobName()));
+            }
+        }
+
+        return result;
     }
 
     protected IRemoteJobTrigger createDataXJob(IExecChainContext execChainContext, RpcServiceReference statusRpc
             , DataxProcessor appSource, String fileName) {
         DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();
         Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(expectDataXJobSumit);
-//        ExtensionList<DataXJobSubmit> jobSumits = TIS.get().getExtensionList(DataXJobSubmit.class);
-//        DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();
-//        Optional<DataXJobSubmit> jobSubmit = jobSumits.stream()
-//                .filter((jsubmit) -> (expectDataXJobSumit) == jsubmit.getType()).findFirst();
 
         // 如果分布式worker ready的话
         if (!jobSubmit.isPresent()) {

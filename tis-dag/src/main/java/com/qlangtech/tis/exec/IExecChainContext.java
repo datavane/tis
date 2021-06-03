@@ -22,11 +22,27 @@ import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import org.apache.solr.common.cloud.ZkStateReader;
 
+import java.util.List;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年12月15日 上午11:48:16
  */
 public interface IExecChainContext extends IJoinTaskContext {
+
+    public void addAsynSubJob(AsynSubJob jobName);
+
+    public List<AsynSubJob> getAsynSubJobsName();
+
+    public boolean containAsynJob();
+
+    class AsynSubJob {
+        public final String jobName;
+
+        public AsynSubJob(String jobName) {
+            this.jobName = jobName;
+        }
+    }
 
     <T extends IBasicAppSource> T getAppSource();
 

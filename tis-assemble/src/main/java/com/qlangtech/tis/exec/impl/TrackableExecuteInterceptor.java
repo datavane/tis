@@ -47,12 +47,6 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
 
     private static final Logger log = LoggerFactory.getLogger(TrackableExecuteInterceptor.class);
 
-    public static final MessageFormat WORKFLOW_CONFIG_URL_FORMAT
-            = new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1}=true&handler={2}{3}");
-
-    public static final MessageFormat WORKFLOW_CONFIG_URL_POST_FORMAT
-            = new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1}=true");
-
     public static final Map<Integer, PhaseStatusCollection> /*** taskid*/
             taskPhaseReference = new HashMap<>();
 
@@ -115,32 +109,6 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
      */
     protected abstract ExecuteResult execute(IExecChainContext execChainContext) throws Exception;
 
-    public static void createTaskComplete(int taskid, ExecResult execResult) {
-        if (execResult == null) {
-            throw new IllegalArgumentException("param execResult can not be null");
-        }
-        String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_FORMAT.format(new Object[]{"fullbuild_workflow_action", "do_task_complete", StringUtils.EMPTY, /* advance_query_result */
-                StringUtils.EMPTY});
-        // 
-        List<PostParam> params = Lists.newArrayList(// 
-                new PostParam("execresult", String.valueOf(execResult.getValue())), //
-                new PostParam(IParamContext.KEY_TASK_ID, String.valueOf(taskid)));
-        HttpUtils.soapRemote(url, params, CreateNewTaskResult.class);
-    }
-
-    /**
-     * 开始执行一個新的任務
-     *
-     * @param newTaskParam taskid
-     * @return
-     */
-    public static Integer createNewTask(NewTaskParam newTaskParam) {
-        String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_POST_FORMAT
-                .format(new Object[]{"fullbuild_workflow_action", "do_create_new_task"});
-        AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
-        return result.getBizresult().getTaskid();
-    }
-
     /**
      * 创建新的Task执行结果
      */
@@ -174,72 +142,4 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
         }
     }
 
-    public static class NewTaskParam {
-
-        private Integer workflowid;
-
-        private TriggerType triggerType;
-
-        private String appname;
-
-        // 历史任务ID
-        private Integer historyTaskId;
-
-        public void setHistoryTaskId(Integer historyTaskId) {
-            this.historyTaskId = historyTaskId;
-        }
-
-        private ExecutePhaseRange executeRanage;
-
-        public Integer getWorkflowid() {
-            return workflowid;
-        }
-
-        public void setWorkflowid(Integer workflowid) {
-            this.workflowid = workflowid;
-        }
-
-        public TriggerType getTriggerType() {
-            return triggerType;
-        }
-
-        public void setTriggerType(TriggerType triggerType) {
-            this.triggerType = triggerType;
-        }
-
-        public String getAppname() {
-            return appname;
-        }
-
-        public void setAppname(String appname) {
-            this.appname = appname;
-        }
-
-        public ExecutePhaseRange getExecuteRanage() {
-            return executeRanage;
-        }
-
-        public void setExecuteRanage(ExecutePhaseRange executeRanage) {
-            this.executeRanage = executeRanage;
-        }
-
-        private List<PostParam> params() {
-            List<PostParam> params = Lists.newArrayList( //
-                    new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, workflowid)
-                    , new PostParam(IFullBuildContext.KEY_TRIGGER_TYPE, triggerType.getValue())
-                    , new PostParam(IParamContext.COMPONENT_START, executeRanage.getStart().getValue())
-                    , new PostParam(IParamContext.COMPONENT_END, executeRanage.getEnd().getValue()));
-            if (!executeRanage.contains(FullbuildPhase.FullDump)) {
-                if (historyTaskId == null) {
-                    throw new IllegalStateException("param historyTaskId can not be null");
-                }
-                params.add(new PostParam(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID, historyTaskId));
-            }
-            if (StringUtils.isNotBlank(appname)) {
-                // result.append("&").append(IFullBuildContext.KEY_APP_NAME).append("=").append(appname);
-                params.add(new PostParam(IFullBuildContext.KEY_APP_NAME, appname));
-            }
-            return params;
-        }
-    }
 }

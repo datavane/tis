@@ -22,11 +22,10 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
-import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
-import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor.NewTaskParam;
-import com.qlangtech.tis.exec.impl.WorkflowDumpAndJoinInterceptor;
+import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
@@ -170,9 +169,12 @@ public class TisServlet extends HttpServlet {
                                     //   chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
                                     countDown.countDown();
                                     // 开始执行内部任务
-                                    TrackableExecuteInterceptor.createTaskComplete(newTaskId, startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD);
+
+                                    ExecResult execResult = startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD;
+
+                                    DagTaskUtils.createTaskComplete(newTaskId, chainContext, execResult);
                                 } catch (Throwable e) {
-                                    TrackableExecuteInterceptor.createTaskComplete(newTaskId, ExecResult.FAILD);
+                                    DagTaskUtils.createTaskComplete(newTaskId, chainContext, ExecResult.FAILD);
                                     getLog().error(e.getMessage(), e);
                                     throw new RuntimeException(e);
                                 } finally {
@@ -421,7 +423,7 @@ public class TisServlet extends HttpServlet {
         newTaskParam.setExecuteRanage(executeRanage);
 
         newTaskParam.setTriggerType(TriggerType.MANUAL);
-        Integer taskid = WorkflowDumpAndJoinInterceptor.createNewTask(newTaskParam);
+        Integer taskid = DagTaskUtils.createNewTask(newTaskParam);
         log.info("create new taskid:" + taskid);
         chainContext.setAttribute(IParamContext.KEY_TASK_ID, taskid);
         return taskid;

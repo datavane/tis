@@ -20,6 +20,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.cloud.AdapterTisCoordinator;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
@@ -125,7 +126,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
 
     private static ITISCoordinator getCoordinator(String zkAddress, CuratorFramework curatorClient) throws Exception {
         ITISCoordinator coordinator = null;
-        //if (StringUtils.equals(zkAddress, Config.getZKHost())) {
+
         ZooKeeper zooKeeper = curatorClient.getZookeeperClient().getZooKeeper();
         coordinator = new AdapterTisCoordinator() {
             @Override
@@ -185,16 +186,18 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
 
     @Override
     public void consumeMessage(CuratorTaskMessage msg) throws Exception {
-        //  String dataxName, Integer jobId, String jobName, String jobPath
-        String dataxName = msg.getDataXName();
+        boolean success = false;
         Integer jobId = msg.getJobId();
-        String jobPath = msg.getJobPath();
         String jobName = msg.getJobName();
-        logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
-        DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
         try {
+            String dataxName = msg.getDataXName();
+            String jobPath = msg.getJobPath();
+            logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
+            DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
             dataxExecutor.startWork(dataxName, jobId, jobName, jobPath);
+            success = true;
         } finally {
+            DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
             TIS.clean();
         }
     }

@@ -20,30 +20,19 @@ package com.qlangtech.tis.assemble;
  */
 public enum ExecResult {
 
-    SUCCESS(1, "成功"), FAILD(-1, "失败"), DOING(2, "执行中"), CANCEL(3, "终止");
+    SUCCESS(1, "成功"), FAILD(-1, "失败"), DOING(2, "执行中"), ASYN_DOING(22, "执行中"), CANCEL(3, "终止");
 
     private final int value;
 
     private final String literal;
 
     public static ExecResult parse(int value) {
-
         for (ExecResult r : values()) {
             if (r.value == value) {
                 return r;
             }
         }
-//        if (SUCCESS.value == value) {
-//            return ExecResult.SUCCESS;
-//        } else if (FAILD.value == value) {
-//            return ExecResult.FAILD;
-//        } else if (DOING.value == value) {
-//            return DOING;
-//        } else if (CANCEL.value == value) {
-//            return CANCEL;
-//        } else {
         throw new IllegalStateException("vale:" + value + " is illegal");
-        // }
     }
 
     private ExecResult(int value, String literal) {

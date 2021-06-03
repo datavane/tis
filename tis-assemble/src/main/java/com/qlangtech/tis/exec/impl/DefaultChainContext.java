@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.exec.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
@@ -36,6 +37,7 @@ import org.apache.solr.common.cloud.ZkStateReader;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -65,6 +67,16 @@ public class DefaultChainContext implements IExecChainContext {
     private IRebindableMDC mdcParamContext;
 
     private IndexBuilderTriggerFactory indexBuilderTriggerFactory;
+
+    public final List<AsynSubJob> asynSubJobsName = Lists.newCopyOnWriteArrayList();
+
+    public void addAsynSubJob(AsynSubJob jobName) {
+        this.asynSubJobsName.add(jobName);
+    }
+
+    public boolean containAsynJob() {
+        return !this.asynSubJobsName.isEmpty();
+    }
 
     @Override
     public int getTaskId() {

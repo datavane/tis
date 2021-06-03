@@ -21,6 +21,7 @@ import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisActionMapper;
+import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.struts2.ServletActionContext;
@@ -31,6 +32,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,28 +61,38 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
   @Override
   protected String doIntercept(ActionInvocation invocation) throws Exception {
     HttpServletResponse response = ServletActionContext.getResponse();
-    TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+    HttpServletRequest request = ServletActionContext.getRequest();
+
+    boolean disableTransaction = Boolean.parseBoolean(request.getParameter(IParamContext.KEY_REQUEST_DISABLE_TRANSACTION));
+    TransactionStatus status = null;
+    if (!disableTransaction) {
+      status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+    }
     ActionProxy proxy = invocation.getProxy();
-    //proxy.getNamespace()
-    //final ActionMapping mapping = ServletActionContext.getActionMapping();
     AjaxValve.ActionExecResult execResult = null;
     try {
-      invocation.getInvocationContext().put(TransactionStatus.class.getSimpleName(), status);
-      final String result = invocation.invoke();
-      execResult = MockContext.getActionExecResult();
-      // 一定要invoke之后再执行
-      if (!execResult.isSuccess()) {
-        // 业务失败也要回滚
-        transactionManager.rollback(status);
+
+      if (disableTransaction) {
+        return invocation.invoke();
+      } else {
+        invocation.getInvocationContext().put(TransactionStatus.class.getSimpleName(), status);
+        final String result = invocation.invoke();
+        execResult = MockContext.getActionExecResult();
+        // 一定要invoke之后再执行
+        if (!execResult.isSuccess()) {
+          // 业务失败也要回滚
+          transactionManager.rollback(status);
+          return result;
+        }
+        if (!status.isCompleted()) {
+          transactionManager.commit(status);
+        }
         return result;
       }
-      if (!status.isCompleted()) {
-        transactionManager.commit(status);
-      }
-      return result;
+
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
-      if (!status.isCompleted()) {
+      if (!disableTransaction && !status.isCompleted()) {
         transactionManager.rollback(status);
       }
 //if (TisActionMapper.REQUEST_EXTENDSION_AJAX.equals(mapping.getExtension())) {

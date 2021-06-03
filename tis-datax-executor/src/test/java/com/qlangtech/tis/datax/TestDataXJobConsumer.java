@@ -52,6 +52,7 @@ public class TestDataXJobConsumer extends TestCase {
         msg.setJobName("customer_order_relation_0.json");
         msg.setJobId(866);
 
+
         consumer.consumeMessage(msg);
     }
 }
