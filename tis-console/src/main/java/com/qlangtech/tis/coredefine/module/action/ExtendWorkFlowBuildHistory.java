@@ -94,6 +94,7 @@ public class ExtendWorkFlowBuildHistory {
     ExecResult result = ExecResult.parse(this.delegate.getState());
     switch (result) {
       case DOING:
+      case ASYN_DOING:
         return "fa fa-cog fa-spin";
       case SUCCESS:
         return "fa fa-check";
@@ -112,6 +113,7 @@ public class ExtendWorkFlowBuildHistory {
     ExecResult result = ExecResult.parse(this.delegate.getState());
     switch (result) {
       case DOING:
+      case ASYN_DOING:
         return "blue";
       case SUCCESS:
         return "green";

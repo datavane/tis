@@ -25,7 +25,7 @@ import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.GitBranchInfo;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -100,7 +100,7 @@ public class FullbuildWorkflowAction extends BasicModule {
       task.setAppName(app.getProjectName());
     }
     // 生成一个新的taskid
-    this.setBizResult(context, new DagTaskUtils.CreateNewTaskResult(getHistoryDAO().insertSelective(task), app));
+    this.setBizResult(context, new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app));
   }
 
   /**
@@ -130,7 +130,7 @@ public class FullbuildWorkflowAction extends BasicModule {
     boolean execSuccess = this.getBoolean(IParamContext.KEY_ASYN_JOB_SUCCESS);
 
     this.updateAsynTaskState(taskid, jobName, execSuccess, 0);
-    this.setBizResult(context, new DagTaskUtils.CreateNewTaskResult(taskid, null));
+    this.setBizResult(context, new CreateNewTaskResult(taskid, null));
   }
 
   public static int MAX_CAS_RETRY_COUNT = 4;

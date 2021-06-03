@@ -23,7 +23,6 @@ import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.lang.StringUtils;
 
@@ -90,27 +89,6 @@ public class DagTaskUtils {
                 .format(new Object[]{"fullbuild_workflow_action", "do_create_new_task"});
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
         return result.getBizresult().getTaskid();
-    }
-
-    public static class CreateNewTaskResult {
-
-        private final int taskid;
-
-        private final Application app;
-
-        public CreateNewTaskResult(int taskid, Application app) {
-            super();
-            this.taskid = taskid;
-            this.app = app;
-        }
-
-        public int getTaskid() {
-            return taskid;
-        }
-
-        public Application getApp() {
-            return app;
-        }
     }
 
     public static class NewTaskParam {

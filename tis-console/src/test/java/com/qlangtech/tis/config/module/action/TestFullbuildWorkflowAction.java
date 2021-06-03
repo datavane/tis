@@ -22,7 +22,7 @@ import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
@@ -64,7 +64,7 @@ public class TestFullbuildWorkflowAction extends BasicActionTestCase {
       AjaxValve.ActionExecResult aResult = showBizResult();
       assertNotNull(aResult);
       assertTrue(aResult.isSuccess());
-      DagTaskUtils.CreateNewTaskResult bizResult = (DagTaskUtils.CreateNewTaskResult) aResult.getBizResult();
+      CreateNewTaskResult bizResult = (CreateNewTaskResult) aResult.getBizResult();
       assertNotNull(bizResult);
       taskId = bizResult.getTaskid();
       assertTrue(taskId > 0);
