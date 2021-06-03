@@ -68,14 +68,19 @@ public class DefaultChainContext implements IExecChainContext {
 
     private IndexBuilderTriggerFactory indexBuilderTriggerFactory;
 
-    public final List<AsynSubJob> asynSubJobsName = Lists.newCopyOnWriteArrayList();
+    public final List<AsynSubJob> asynSubJobs = Lists.newCopyOnWriteArrayList();
+
+    @Override
+    public List<AsynSubJob> getAsynSubJobs() {
+        return this.asynSubJobs;
+    }
 
     public void addAsynSubJob(AsynSubJob jobName) {
-        this.asynSubJobsName.add(jobName);
+        this.asynSubJobs.add(jobName);
     }
 
     public boolean containAsynJob() {
-        return !this.asynSubJobsName.isEmpty();
+        return !this.asynSubJobs.isEmpty();
     }
 
     @Override

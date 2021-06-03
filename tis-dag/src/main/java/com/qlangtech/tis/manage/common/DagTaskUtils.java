@@ -71,7 +71,7 @@ public class DagTaskUtils {
                 new HttpUtils.PostParam(IParamContext.KEY_TASK_ID, String.valueOf(taskid)));
 
         if (chainContext.containAsynJob()) {
-            for (IExecChainContext.AsynSubJob asynJob : chainContext.getAsynSubJobsName()) {
+            for (IExecChainContext.AsynSubJob asynJob : chainContext.getAsynSubJobs()) {
                 params.add(new HttpUtils.PostParam(IParamContext.KEY_ASYN_JOB_NAME, asynJob.jobName));
             }
         }

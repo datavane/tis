@@ -32,7 +32,7 @@ public interface IExecChainContext extends IJoinTaskContext {
 
     public void addAsynSubJob(AsynSubJob jobName);
 
-    public List<AsynSubJob> getAsynSubJobsName();
+    public List<AsynSubJob> getAsynSubJobs();
 
     public boolean containAsynJob();
 
