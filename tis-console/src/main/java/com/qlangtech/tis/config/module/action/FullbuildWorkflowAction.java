@@ -133,11 +133,16 @@ public class FullbuildWorkflowAction extends BasicModule {
     this.setBizResult(context, new CreateNewTaskResult(taskid, null));
   }
 
-  public static int MAX_CAS_RETRY_COUNT = 4;
+  public static int MAX_CAS_RETRY_COUNT = 5;
 
   private void updateAsynTaskState(Integer taskid, String jobName, boolean execSuccess, int tryCount) {
     validateMaxCasRetryCount(taskid, tryCount);
     final WorkFlowBuildHistory history = getBuildHistory(taskid);
+
+    if (ExecResult.ASYN_DOING != ExecResult.parse(history.getState())) {
+      updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
+      return;
+    }
 
     JSONObject status = JSON.parseObject(history.getAsynSubTaskStatus());
     JSONObject tskStat = status.getJSONObject(jobName);
@@ -181,7 +186,7 @@ public class FullbuildWorkflowAction extends BasicModule {
 
     if (getHistoryDAO().updateByExampleSelective(updateHistory, hq) < 1) {
 
-      System.out.println("old lastVer:" + history.getLastVer() + ",new UpdateVersion:" + updateHistory.getLastVer());
+      //  System.out.println("old lastVer:" + history.getLastVer() + ",new UpdateVersion:" + updateHistory.getLastVer());
       updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
     }
   }
@@ -189,7 +194,7 @@ public class FullbuildWorkflowAction extends BasicModule {
   private void validateMaxCasRetryCount(Integer taskid, int tryCount) {
     try {
       if (tryCount > 0) {
-        Thread.sleep(100);
+        Thread.sleep(200);
       }
     } catch (Throwable e) {
     }

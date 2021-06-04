@@ -39,14 +39,8 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
 
         //RpcServiceReference statusRpc = StatusRpcClient.getService(zkClient);
 
-        final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
-            @Override
-            protected Class<?> findClass(String name) throws ClassNotFoundException {
-                return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-            }
-        };
 
-        executor = new DataxExecutor(statusRpc, uberClassLoader);
+        executor = new DataxExecutor(statusRpc);
     }
 
     public void testDataxJobMysql2Hdfs() throws Exception {
@@ -55,7 +49,19 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hdfs + "/dataxCfg/" + jobName);
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
-        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, path.toString());
+
+        final JarLoader uberClassLoader = getJarLoader();
+
+        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, path.toString(), uberClassLoader);
+    }
+
+    private JarLoader getJarLoader() {
+        return new JarLoader(new String[]{"."}) {
+            @Override
+            protected Class<?> findClass(String name) throws ClassNotFoundException {
+                return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+            }
+        };
     }
 
     public void testDataxJobMysql2Hive() throws Exception {
@@ -64,7 +70,7 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hive + "/dataxCfg/" + jobName);
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
-        executor.startWork(dataxNameMysql2hive, jobId, jobName, path.toString());
+        executor.startWork(dataxNameMysql2hive, jobId, jobName, path.toString(), getJarLoader());
     }
 
     public void testDataxJobLaunch() throws Exception {
@@ -73,7 +79,7 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitestTestcase/dataxCfg/" + jobName);
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
-        executor.startWork(dataXName, jobId, jobName, path.toString());
+        executor.startWork(dataXName, jobId, jobName, path.toString(), getJarLoader());
     }
 
 

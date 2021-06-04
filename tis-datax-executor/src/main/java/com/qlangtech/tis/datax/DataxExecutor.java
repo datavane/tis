@@ -113,11 +113,10 @@ public final class DataxExecutor {
 
 
     private final RpcServiceReference statusRpc;
-    private final JarLoader uberClassLoader;
+    //private final JarLoader uberClassLoader;
 
-    public DataxExecutor(RpcServiceReference statusRpc, JarLoader uberClassLoader) {
+    public DataxExecutor(RpcServiceReference statusRpc) {
         this.statusRpc = statusRpc;
-        this.uberClassLoader = uberClassLoader;
     }
 
 
@@ -129,7 +128,7 @@ public final class DataxExecutor {
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(String dataxName, Integer jobId, String jobName, String jobPath) throws IOException, Exception {
+    public void startWork(String dataxName, Integer jobId, String jobName, String jobPath, final JarLoader uberClassLoader) throws IOException, Exception {
         // TaskConfig config = TaskConfig.getInstance();
         String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath};
 
@@ -156,7 +155,7 @@ public final class DataxExecutor {
             Objects.requireNonNull(readerMeta, "readerMeta can not be null");
             Objects.requireNonNull(writerMeta, "writerMeta can not be null");
 
-            initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), this.uberClassLoader);
+            initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), uberClassLoader);
 
             try {
                 entry(args);

@@ -78,19 +78,14 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
     }
 
     public static DataXJobConsumer getDataXJobConsumer(String zkQueuePath, String zkAddress) throws Exception {
-        final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
-            @Override
-            protected Class<?> findClass(String name) throws ClassNotFoundException {
-                return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-            }
-        };
+
 
         CuratorFramework curatorClient = getCuratorFramework(zkAddress);
         ITISCoordinator coordinator = getCoordinator(zkAddress, curatorClient);
 
         RpcServiceReference statusRpc = StatusRpcClient.getService(coordinator);
 
-        DataxExecutor dataxExecutor = new DataxExecutor(statusRpc, uberClassLoader);
+        DataxExecutor dataxExecutor = new DataxExecutor(statusRpc);
         // String dataxName, Integer jobId, String jobName, String jobPath
         DataXJobConsumer dataXJobConsume = new DataXJobConsumer(dataxExecutor, curatorClient);
 
@@ -190,17 +185,26 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         Integer jobId = msg.getJobId();
         String jobName = msg.getJobName();
         try {
+
+
             String dataxName = msg.getDataXName();
             String jobPath = msg.getJobPath();
             logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
             DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
-            dataxExecutor.startWork(dataxName, jobId, jobName, jobPath);
+
+            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
+                @Override
+                protected Class<?> findClass(String name) throws ClassNotFoundException {
+                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+                }
+            };
+            dataxExecutor.startWork(dataxName, jobId, jobName, jobPath, uberClassLoader);
             success = true;
         } finally {
             try {
                 DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
             } catch (Throwable e) {
-                logger.warn("notify exec result faild,jobId:{},jobName:{}", jobId, jobName);
+                logger.warn("notify exec result faild,jobId:" + jobId + ",jobName:" + jobName, e);
             }
             TIS.clean();
         }
