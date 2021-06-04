@@ -738,9 +738,11 @@ public class DataxAction extends BasicModule {
   public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
 
     String dataxName = filter.param(DataxUtils.DATAX_NAME);
-    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(filter.uploadPluginMeta.getPluginContext(), dataxName);
-    DataxReader reader = readerStore.getPlugin();
-    Objects.requireNonNull(reader, "reader can not be null");
+
+    DataxReader reader = DataxReader.load(filter.uploadPluginMeta.getPluginContext(), dataxName);
+//    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(filter.uploadPluginMeta.getPluginContext(), dataxName);
+//   readerStore.getPlugin();
+//    Objects.requireNonNull(reader, "reader can not be null");
     return reader.getTablesInDB();
   }
 

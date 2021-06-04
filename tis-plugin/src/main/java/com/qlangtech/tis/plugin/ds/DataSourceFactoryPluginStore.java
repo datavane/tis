@@ -97,7 +97,7 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
             throw new IllegalArgumentException("Context shall exist");
         }
         Context ctx = context.get();
-        final String dbName = this.key.keyVal;
+        final String dbName = this.key.keyVal.getVal();
         if (!super.setPlugins(pluginContext, context, dlist, update)) {
             return false;
         }
@@ -153,7 +153,7 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
             tisTable.setReflectCols(tableMeta.getCols());
             tisTable.setSelectSql(tableMeta.getSql());
             tisTable.setTableName(tableName);
-            tisTable.setDbName(this.key.keyVal);
+            tisTable.setDbName(this.key.keyVal.getVal());
             return tisTable;
         } catch (IOException e) {
             throw new RuntimeException(e);

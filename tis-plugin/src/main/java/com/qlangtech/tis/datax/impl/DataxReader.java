@@ -107,9 +107,9 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             super(IFullBuildContext.NAME_APP_DIR, calAppName(pluginContext, appname), clazz);
         }
 
-        private static String calAppName(IPluginContext pluginContext, String appname) {
+        private static KeyedPluginStore.KeyVal calAppName(IPluginContext pluginContext, String appname) {
             if (pluginContext == null) {
-                return appname;
+                return new KeyedPluginStore.KeyVal(appname);
             }
             String referer = pluginContext.getRequestHeader(HEAD_KEY_REFERER);
             Matcher configPathMatcher = DATAX_UPDATE_PATH.matcher(referer);
@@ -118,7 +118,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                 throw new IllegalStateException("pluginContext.isCollectionAware() must be true");
             }
             return (pluginContext != null && inUpdateProcess)
-                    ? (appname + "-" + pluginContext.getExecId()) : appname;
+                    ? new KeyedPluginStore.KeyVal(appname, pluginContext.getExecId()) : new KeyedPluginStore.KeyVal(appname);
         }
     }
 

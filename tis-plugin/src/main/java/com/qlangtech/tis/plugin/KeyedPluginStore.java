@@ -61,15 +61,17 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
     public static class Key<T extends Describable> {
 
-        public final String keyVal;
+        public final KeyVal keyVal;
         protected final String groupName;
 
         protected final Class<T> pluginClass;
 
         public Key(String groupName, String keyVal, Class<T> pluginClass) {
-            if (StringUtils.isEmpty(keyVal)) {
-                throw new IllegalArgumentException("param 'key' can not be null");
-            }
+            this(groupName, new KeyVal(keyVal), pluginClass);
+        }
+
+        public Key(String groupName, KeyVal keyVal, Class<T> pluginClass) {
+            Objects.requireNonNull(keyVal, "keyVal can not be null");
             this.keyVal = keyVal;
             this.pluginClass = pluginClass;
             this.groupName = groupName;
@@ -80,7 +82,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public String getSubDirPath() {
-            return groupName + File.separator + keyVal;
+            return groupName + File.separator + keyVal.getKeyVal();
         }
 
         public XmlFile getSotreFile() {
@@ -99,7 +101,41 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         @Override
         public int hashCode() {
-            return Objects.hash(keyVal, pluginClass);
+            return Objects.hash(keyVal.getKeyVal(), pluginClass);
+        }
+    }
+
+    public static class KeyVal {
+        private final String val;
+        private final String suffix;
+
+        public KeyVal(String val, String suffix) {
+            if (StringUtils.isEmpty(val)) {
+                throw new IllegalArgumentException("param 'key' can not be null");
+            }
+            this.val = val;
+            this.suffix = suffix;
+        }
+
+        @Override
+        public String toString() {
+            return getKeyVal();
+        }
+
+        public String getKeyVal() {
+            return StringUtils.isBlank(this.suffix) ? val : (val + "-" + this.suffix);
+        }
+
+        public KeyVal(String val) {
+            this(val, StringUtils.EMPTY);
+        }
+
+        public String getVal() {
+            return val;
+        }
+
+        public String getSuffix() {
+            return suffix;
         }
     }
 

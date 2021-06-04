@@ -60,7 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 执行DataX任务入口
@@ -136,16 +135,18 @@ public final class DataxExecutor {
             throw new IllegalArgumentException("arg 'incrStateCollectAddress' can not be null");
         }
 
-        StatusRpcClient.AssembleSvcCompsite statusRpc = StatusRpcClient.connect2RemoteIncrStatusServer(incrStateCollectAddress);
-        try {
-            DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
-            dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
-        } finally {
-            statusRpc.close();
-        }
+        Fibonacci.test();
+//        StatusRpcClient.AssembleSvcCompsite statusRpc = StatusRpcClient.connect2RemoteIncrStatusServer(incrStateCollectAddress);
+//        try {
+//            DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
+//            dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
+//        } finally {
+//            statusRpc.close();
+//        }
 
         System.exit(0);
     }
+
 
     public void exec(Integer jobId, String jobName, String dataxName, String jobPath) throws Exception {
         boolean success = false;
