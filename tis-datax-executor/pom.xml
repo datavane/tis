@@ -14,6 +14,12 @@
     <dependencies>
 
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-exec</artifactId>
+            <version>1.3</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
         </dependency>
@@ -65,10 +71,10 @@
             <artifactId>tis-dag</artifactId>
             <version>${project.version}</version>
             <exclusions>
-<!--                <exclusion>-->
-<!--                    <groupId>com.qlangtech.tis</groupId>-->
-<!--                    <artifactId>tis-sql-parser</artifactId>-->
-<!--                </exclusion>-->
+                <!--                <exclusion>-->
+                <!--                    <groupId>com.qlangtech.tis</groupId>-->
+                <!--                    <artifactId>tis-sql-parser</artifactId>-->
+                <!--                </exclusion>-->
             </exclusions>
         </dependency>
 

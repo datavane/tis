@@ -64,6 +64,7 @@ public class Config {
     private static Config config;
 
     public static final String KEY_DATA_DIR = "data.dir";
+    public static final String KEY_LOG_DIR = "log.dir";
 
 
     public static void setDataDir(String path) {

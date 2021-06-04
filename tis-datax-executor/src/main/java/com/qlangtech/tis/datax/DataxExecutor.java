@@ -37,7 +37,9 @@ import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -49,6 +51,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -57,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 执行DataX任务入口
@@ -103,6 +107,69 @@ public final class DataxExecutor {
             throw new RuntimeException("can not get field 'jarLoaderCenter' of LoadUtil", e);
         }
     }
+
+    /**
+     * 入口开始执行
+     *
+     * @param args
+     */
+    public static void main(String[] args) throws Exception {
+        if (args.length != 5) {
+            throw new IllegalArgumentException("args length must be 5");
+        }
+        Integer jobId = Integer.parseInt(args[0]);
+        String jobName = args[1];
+        String dataXName = args[2];
+        String jobPath = args[3];
+        String incrStateCollectAddress = args[4];
+
+        if (StringUtils.isEmpty(jobName)) {
+            throw new IllegalArgumentException("arg 'jobName' can not be null");
+        }
+        if (StringUtils.isEmpty(dataXName)) {
+            throw new IllegalArgumentException("arg 'dataXName' can not be null");
+        }
+        if (StringUtils.isEmpty(jobPath)) {
+            throw new IllegalArgumentException("arg 'jobPath' can not be null");
+        }
+        if (StringUtils.isEmpty(incrStateCollectAddress)) {
+            throw new IllegalArgumentException("arg 'incrStateCollectAddress' can not be null");
+        }
+
+        StatusRpcClient.AssembleSvcCompsite statusRpc = StatusRpcClient.connect2RemoteIncrStatusServer(incrStateCollectAddress);
+
+        DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
+
+        dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
+
+        System.exit(0);
+    }
+
+    public void exec(Integer jobId, String jobName, String dataxName, String jobPath) throws Exception {
+        boolean success = false;
+        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
+        try {
+            logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
+            DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
+
+            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
+                @Override
+                protected Class<?> findClass(String name) throws ClassNotFoundException {
+                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+                }
+            };
+            this.startWork(dataxName, jobId, jobName, jobPath, uberClassLoader);
+            success = true;
+        } finally {
+            TIS.clean();
+            try {
+                DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
+            } catch (Throwable e) {
+                logger.warn("notify exec result faild,jobId:" + jobId + ",jobName:" + jobName, e);
+            }
+        }
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
     private static final MessageFormat FormatKeyPluginReader = new MessageFormat("plugin.reader.{0}");

@@ -15,15 +15,11 @@
 
 package com.qlangtech.tis.datax;
 
-import com.alibaba.datax.core.util.container.JarLoader;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.cloud.AdapterTisCoordinator;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.solrj.util.ZkUtils;
-import com.tis.hadoop.rpc.RpcServiceReference;
-import com.tis.hadoop.rpc.StatusRpcClient;
+import org.apache.commons.exec.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -38,6 +34,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -48,12 +45,14 @@ import java.util.List;
  **/
 public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
     private static final Logger logger = LoggerFactory.getLogger(DataXJobConsumer.class);
-    private final DataxExecutor dataxExecutor;
+    //private final DataxExecutor dataxExecutor;
     private final CuratorFramework curatorClient;
+    private final ITISCoordinator coordinator;
 
-    public DataXJobConsumer(DataxExecutor dataxExecutor, CuratorFramework curatorClient) {
-        this.dataxExecutor = dataxExecutor;
+    public DataXJobConsumer(CuratorFramework curatorClient, ITISCoordinator coordinator) {
+        //  this.dataxExecutor = dataxExecutor;
         this.curatorClient = curatorClient;
+        this.coordinator = coordinator;
     }
 
 
@@ -79,15 +78,11 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
 
     public static DataXJobConsumer getDataXJobConsumer(String zkQueuePath, String zkAddress) throws Exception {
 
-
         CuratorFramework curatorClient = getCuratorFramework(zkAddress);
         ITISCoordinator coordinator = getCoordinator(zkAddress, curatorClient);
 
-        RpcServiceReference statusRpc = StatusRpcClient.getService(coordinator);
-
-        DataxExecutor dataxExecutor = new DataxExecutor(statusRpc);
         // String dataxName, Integer jobId, String jobName, String jobPath
-        DataXJobConsumer dataXJobConsume = new DataXJobConsumer(dataxExecutor, curatorClient);
+        DataXJobConsumer dataXJobConsume = new DataXJobConsumer(curatorClient, coordinator);
 
         dataXJobConsume.createQueue(zkQueuePath);
         return dataXJobConsume;
@@ -181,34 +176,59 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
 
     @Override
     public void consumeMessage(CuratorTaskMessage msg) throws Exception {
-        boolean success = false;
+        //MDC.put();
+
         Integer jobId = msg.getJobId();
+//        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         String jobName = msg.getJobName();
-        try {
+        String dataxName = msg.getDataXName();
+        String jobPath = msg.getJobPath();
+        logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
 
+        synchronized (DataXJobConsumer.class) {
+            //exec(msg);
+            CommandLine cmdLine = new CommandLine("java");
+            cmdLine.addArgument("-D" + Config.KEY_DATA_DIR + "=/opt/data/tis");
+            cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
+            cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=/opt/logs");
+            cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
+            cmdLine.addArgument("-classpath");
+            cmdLine.addArgument("./lib/*:./tis-datax-executor.jar:./conf/");
+            cmdLine.addArgument("com.qlangtech.tis.datax.DataxExecutor");
+            cmdLine.addArgument(String.valueOf(jobId));
+            cmdLine.addArgument(jobName);
+            cmdLine.addArgument(dataxName);
+            cmdLine.addArgument(jobPath, true);
+            cmdLine.addArgument(ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH));
 
-            String dataxName = msg.getDataXName();
-            String jobPath = msg.getJobPath();
-            logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
-            DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
+            DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
 
-            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
-                @Override
-                protected Class<?> findClass(String name) throws ClassNotFoundException {
-                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-                }
-            };
-            dataxExecutor.startWork(dataxName, jobId, jobName, jobPath, uberClassLoader);
-            success = true;
-        } finally {
-            try {
-                DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
-            } catch (Throwable e) {
-                logger.warn("notify exec result faild,jobId:" + jobId + ",jobName:" + jobName, e);
+            ExecuteWatchdog watchdog = new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT);
+            DefaultExecutor executor = new DefaultExecutor();
+            executor.setWorkingDirectory(new File("/opt/tis/tis-datax-executor"));
+
+            executor.setStreamHandler(new PumpStreamHandler(System.out));
+            executor.setExitValue(0);
+            executor.setWatchdog(watchdog);
+            executor.execute(cmdLine, resultHandler);
+
+            // 等待5个小时
+            resultHandler.waitFor(5 * 60 * 60 * 1000);
+
+            if (resultHandler.getExitValue() != 0) {
+                // it was killed on purpose by the watchdog
             }
-            TIS.clean();
+
+
+//            System.out.println("exitCode:" + resultHandler.getExitValue());
+//            if (resultHandler.getException() != null) {
+//                resultHandler.getException().printStackTrace();
+//            }
+
+
         }
     }
+
 
     @Override
     public void stateChanged(CuratorFramework curatorFramework, ConnectionState connectionState) {

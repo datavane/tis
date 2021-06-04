@@ -15,7 +15,7 @@
 
 package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import junit.framework.TestCase;
 
@@ -27,8 +27,9 @@ public class TestDataXJobConsumer extends TestCase {
     // TISTestCase {
 
     static {
+        CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
-        Config.setTestDataDir();
+        //  Config.setTestDataDir();
     }
 
     /**
@@ -51,8 +52,13 @@ public class TestDataXJobConsumer extends TestCase {
         msg.setJobPath("/opt/data/tis/cfg_repo/tis_plugin_config/ap/ttt/dataxCfg/customer_order_relation_0.json");
         msg.setJobName("customer_order_relation_0.json");
         msg.setJobId(866);
+        int count = 0;
+        while (count++ < 2) {
+            System.out.println("turn:" + count);
+            consumer.consumeMessage(msg);
+            Thread.sleep(3000);
+        }
 
 
-        consumer.consumeMessage(msg);
     }
 }
