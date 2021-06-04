@@ -137,10 +137,12 @@ public final class DataxExecutor {
         }
 
         StatusRpcClient.AssembleSvcCompsite statusRpc = StatusRpcClient.connect2RemoteIncrStatusServer(incrStateCollectAddress);
-
-        DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
-
-        dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
+        try {
+            DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
+            dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
+        } finally {
+            statusRpc.close();
+        }
 
         System.exit(0);
     }
