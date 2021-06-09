@@ -19,6 +19,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.RcDeployment;
+import com.qlangtech.tis.coredefine.module.action.RcHpaStatus;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -37,6 +38,7 @@ import java.util.Objects;
  **/
 public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
+    public static final String K8S_INSTANCE_NAME = "datax-worker";
 
     public static DataXJobWorker getDataxJobWorker() {
         PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
@@ -46,11 +48,13 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
     /**
-     * 重启增量节点
+     * 重启全部Pod节点
      *
      * @param
      */
     public abstract void relaunch();
+
+    public abstract void relaunch(String podName);
 
     /**
      * 获取已经启动的RC运行参数
@@ -59,6 +63,8 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
      * @return
      */
     public abstract RcDeployment getRCDeployment();
+
+    public abstract RcHpaStatus getHpaStatus();
 
     /**
      * 开始增量监听

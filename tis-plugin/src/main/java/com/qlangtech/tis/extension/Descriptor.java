@@ -336,13 +336,18 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
             Optional<PluginExtraProps> extraProps = null;// PluginExtraProps.load(clazz);
 
+            //PluginExtraProps extraProps = null;
+
             // 支持使用继承的方式来实现复用，例如：DataXHiveWriter继承DataXHdfsWriter来实现
             List allSuperclasses = ClassUtils.getAllSuperclasses(clazz);
             allSuperclasses.add(clazz);
             Class targetClass = null;
+
+            extraProps = PluginExtraProps.load(clazz);
+
             for (Object c : allSuperclasses) {
                 targetClass = (Class) c;
-                extraProps = PluginExtraProps.load(targetClass);
+                // extraProps = PluginExtraProps.load(targetClass);
                 for (Field f : targetClass.getDeclaredFields()) {
                     if (!Modifier.isPublic(f.getModifiers())) {
                         continue;
@@ -370,10 +375,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                             if ((formField.type() == FormFieldType.ENUM) || formField.type() == FormFieldType.MULTI_SELECTABLE) {
                                 Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
-                                if (anEnum == null) {
-                                    throw new IllegalStateException("fieldName:" + f.getName() + " relevant enum descriptor in json config can not be null");
-                                }
-                                if (anEnum instanceof String) {
+//                                if (anEnum == null) {
+//                                    throw new IllegalStateException("fieldName:" + f.getName() + " relevant enum descriptor in json config can not be null");
+//                                }
+                                if (anEnum != null && anEnum instanceof String) {
                                     // 使用了如下这种配置方式，需要使用groovy进行解析
                                     // "enum": "com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()"
                                     // 需要转化成以下这种格式:

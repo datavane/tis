@@ -25,6 +25,7 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TISK8sDelegate;
+import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
@@ -230,10 +231,16 @@ public class LogFeedbackServlet extends WebSocketServlet {
       if (!this.logtypes.add(monitorTarget.getLogType()) && /**
        * POD日志监听需要可能会因为超时而重连
        */
-        !monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE)) {
+        !monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE, LogType.DATAX_WORKER_POD_LOG)) {
         return;
       }
-      if (monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE)) {
+      if (monitorTarget.testLogType(LogType.DATAX_WORKER_POD_LOG)) {
+        PayloadMonitorTarget mtarget = (PayloadMonitorTarget) monitorTarget;
+        final String podName = mtarget.getPayLoad();
+        TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(DataXJobWorker.K8S_INSTANCE_NAME);
+        k8sDelegate.listPodsAndWatchLog(podName, this);
+        return;
+      } else if (monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE)) {
         PayloadMonitorTarget mtarget = (PayloadMonitorTarget) monitorTarget;
         final String podName = mtarget.getPayLoad();
         TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(monitorTarget.getCollection());

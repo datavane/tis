@@ -18,12 +18,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import org.apache.commons.lang.ClassUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * load extra prop desc like 'lable' and so on
@@ -34,14 +33,8 @@ import java.util.Optional;
 public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_DFTVAL_PROP = "dftVal";
 
-    /**
-     * field form extran descriptor
-     *
-     * @param pluginClazz
-     * @return
-     * @throws IOException
-     */
-    public static Optional<PluginExtraProps> load(Class<?> pluginClazz) {
+
+    private static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz) {
         String resourceName = pluginClazz.getSimpleName() + ".json";
         try {
             try (InputStream i = pluginClazz.getResourceAsStream(resourceName)) {
@@ -58,6 +51,33 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         } catch (Exception e) {
             throw new RuntimeException("resourceName:" + resourceName, e);
         }
+    }
+
+    /**
+     * field form extran descriptor
+     *
+     * @param
+     * @return
+     * @throws IOException
+     */
+    public static Optional<PluginExtraProps> load(Class<?> clazz) {
+        List allSuperclasses = ClassUtils.getAllSuperclasses(clazz);
+        allSuperclasses.add(clazz);
+        PluginExtraProps extraProps = null;
+        Class targetClass = null;
+        Optional<PluginExtraProps> nxtExtraProps;
+        for (Object c : allSuperclasses) {
+            targetClass = (Class) c;
+            nxtExtraProps = parseExtraProps(targetClass);
+            if (nxtExtraProps.isPresent()) {
+                if (extraProps == null) {
+                    extraProps = nxtExtraProps.get();
+                } else {
+                    extraProps.mergeProps(nxtExtraProps.get());
+                }
+            }
+        }
+        return Optional.ofNullable(extraProps);
     }
 
     private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String resourceName) {
@@ -86,6 +106,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public PluginExtraProps() {
     }
 
+
     public Props getProp(String key) {
         Props props = this.get(key);
         if (props == null) {
@@ -94,6 +115,21 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return props;
         }
 
+    }
+
+    public void mergeProps(PluginExtraProps props) {
+        if (props == null) {
+            throw new IllegalArgumentException("param props can not be null");
+        }
+        Props p = null;
+        for (Map.Entry<String, PluginExtraProps.Props> entry : props.entrySet()) {
+            p = this.get(entry.getKey());
+            if (p != null) {
+                p.merge(entry.getValue());
+            } else {
+                this.put(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     public static class Props {
@@ -132,6 +168,12 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         public JSONObject getProps() {
             return this.props;
+        }
+
+        public void merge(Props p) {
+            p.props.forEach((key, val) -> {
+                props.put(key, val);
+            });
         }
     }
 }

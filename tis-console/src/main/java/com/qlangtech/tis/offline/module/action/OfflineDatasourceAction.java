@@ -1005,47 +1005,9 @@ public class OfflineDatasourceAction extends BasicModule {
   }
 
 
-  private static final Set<Descriptor> dbUpdateEventObservers = Sets.newHashSet();
+
 
   public static List<Option> existDbs = null;
-
-  /**
-   * datax中显示已由数据源使用 <br>
-   * must call form Descriptor
-   *
-   * @param extendClass
-   * @return
-   */
-  public static List<Option> getExistDbs(String extendClass) {
-    if (existDbs != null) {
-      return existDbs;
-    }
-    if (StringUtils.isEmpty(extendClass)) {
-      throw new IllegalArgumentException("param extendClass can not be null");
-    }
-
-    Descriptor descriptor = GroovyShellEvaluate.descriptorThreadLocal.get();
-    Objects.requireNonNull(descriptor, "descriptor can not be null");
-    if (dbUpdateEventObservers.add(descriptor)) {
-      // 当有数据源更新时需要将descriptor的属性重新更新一下
-      PluginItems.addPluginItemsSaveObserver(new PluginItems.PluginItemsSaveObserver() {
-        @Override
-        public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
-          if (event.heteroEnum == HeteroEnum.DATASOURCE) {
-            descriptor.cleanPropertyTypes();
-          }
-        }
-      });
-    }
-
-
-    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), IWorkflowDAOFacade.class);
-    Objects.requireNonNull(wfFacade, "wfFacade can not be null");
-    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
-    dbCriteria.createCriteria().andExtendClassEqualTo(extendClass);
-    List<com.qlangtech.tis.workflow.pojo.DatasourceDb> dbs = wfFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
-    return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
-  }
 
 
   /**

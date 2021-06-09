@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.util.IOUtil;
+
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -37,11 +38,11 @@ import java.util.logging.Logger;
 /**
  * Abstract class for Mojo implementations, which produce Jenkins-style manifests.
  * The Mojo may be used to not only package plugins, but also JAR files like Jenkins modules
- * @see TpiMojo
- * @since 3.0
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/09/25
+ * @see TpiMojo
+ * @since 3.0
  */
 public abstract class AbstractTISManifestMojo extends AbstractHpiMojo {
 
@@ -118,7 +119,7 @@ public abstract class AbstractTISManifestMojo extends AbstractHpiMojo {
             LOGGER.log(Level.INFO, "Minimum Java version for the plugin: {0}", this.minimumJavaVersion);
         } catch (NumberFormatException ex) {
             if (this.minimumJavaVersion.equals("1.6") || this.minimumJavaVersion.equals("1.7") || this.minimumJavaVersion.equals("1.8")) {
-            // okay
+                // okay
             } else {
                 throw new MojoExecutionException("Unsupported Java version string: `" + this.minimumJavaVersion + "`. If you use Java 9 or above, see https://openjdk.java.net/jeps/223");
             }
@@ -143,7 +144,7 @@ public abstract class AbstractTISManifestMojo extends AbstractHpiMojo {
         if (v.endsWith("-SNAPSHOT") && pluginVersionDescription == null) {
             String dt = getGitHeadSha1();
             if (// if SHA1 isn't available, fall back to timestamp
-            dt == null)
+                    dt == null)
                 dt = new SimpleDateFormat("MM/dd/yyyy HH:mm").format(new Date());
             pluginVersionDescription = "private-" + dt + "-" + System.getProperty("user.name");
         }
@@ -198,8 +199,9 @@ public abstract class AbstractTISManifestMojo extends AbstractHpiMojo {
             }
         }
         // see http://jenkins-ci.361315.n4.nabble.com/Classloading-problem-when-referencing-classes-from-another-plugin-during-the-initialization-phase-of-td394967.html
-        for (Artifact a : (Collection<Artifact>) project.getDependencyArtifacts()) if ("provided".equals(a.getScope()) && wrap(a).isPlugin())
-            throw new MojoExecutionException(a.getId() + " is marked as 'provided' scope dependency, but it should be the 'compile' scope.");
+        for (Artifact a : (Collection<Artifact>) project.getDependencyArtifacts())
+            if ("provided".equals(a.getScope()) && wrap(a).isPlugin())
+                throw new MojoExecutionException(a.getId() + " is marked as 'provided' scope dependency, but it should be the 'compile' scope.");
         return buf.toString();
     }
 

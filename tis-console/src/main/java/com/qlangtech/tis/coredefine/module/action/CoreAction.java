@@ -130,7 +130,7 @@ public class CoreAction extends BasicModule {
   public void doRelaunchIncrProcess(Context context) throws Exception {
     PluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
-    IIncrSync incrSync = incrStream.getIncrSync();
+    IRCController incrSync = incrStream.getIncrSync();
     incrSync.relaunch(this.getCollectionName());
   }
 

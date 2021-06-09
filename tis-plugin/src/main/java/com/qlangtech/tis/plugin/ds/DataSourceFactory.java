@@ -14,14 +14,15 @@
  */
 package com.qlangtech.tis.plugin.ds;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.util.IPluginContext;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Abstract the dataSource modal
@@ -52,7 +53,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      *
      * @return
      */
-    public abstract DataDumpers getDataDumpers(TISTable table);
+    public DataDumpers getDataDumpers(TISTable table) {
+        throw new UnsupportedOperationException("datasource:" + this.identityValue() + " is not support direct dump");
+    }
 
     @Override
     public final Descriptor<DataSourceFactory> getDescriptor() {
@@ -93,7 +96,29 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
          */
         protected abstract boolean supportFacade();
 
-        protected abstract List<String> facadeSourceTypes();
+        protected List<String> facadeSourceTypes() {
+            if (supportFacade()) {
+                throw new UnsupportedOperationException("shall overwrite facadeSourceTypes");
+            }
+            return Collections.emptyList();
+        }
+
+        @Override
+        protected boolean validate(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+
+            ParseDescribable<DataSourceFactory> ds
+                    = this.newInstance((IPluginContext) msgHandler, postFormVals.rawFormData, Optional.empty());
+
+            try {
+                List<String> tables = ds.instance.getTablesInDB();
+                msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
+            } catch (Exception e) {
+                msgHandler.addErrorMessage(context, e.getMessage());
+                return false;
+            }
+
+            return true;
+        }
 
     }
 }

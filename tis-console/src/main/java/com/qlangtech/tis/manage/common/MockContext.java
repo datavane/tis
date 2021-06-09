@@ -17,8 +17,8 @@ package com.qlangtech.tis.manage.common;
 import com.alibaba.citrus.turbine.Context;
 import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import junit.framework.Assert;
 
 import java.util.List;
@@ -55,7 +55,16 @@ public class MockContext implements Context {
 
   @Override
   public boolean hasErrors() {
-    return this.get(IMessageHandler.ACTION_ERROR_MSG) != null && !((List<String>) this.get(IMessageHandler.ACTION_ERROR_MSG)).isEmpty();
+
+    if (this.get(IFieldErrorHandler.ACTION_ERROR_FIELDS) != null && !((List<Object>) this.get(IFieldErrorHandler.ACTION_ERROR_FIELDS)).isEmpty()) {
+      return true;
+    }
+
+    if (this.get(IMessageHandler.ACTION_ERROR_MSG) != null && !((List<String>) this.get(IMessageHandler.ACTION_ERROR_MSG)).isEmpty()) {
+      return true;
+    }
+
+    return false;
   }
 
   @Override

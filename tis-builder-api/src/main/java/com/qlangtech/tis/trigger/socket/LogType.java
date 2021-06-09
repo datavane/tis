@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,6 +24,7 @@ public enum LogType {
 
     // 部署状态变化
     INCR_DEPLOY_STATUS_CHANGE(1, "incrdeploy-change"),
+    DATAX_WORKER_POD_LOG(7, "datax-worker-pod-log"),
     // 近一段时间内增量监听的各个tag的多少值, 之前是监听rocketMQ的发送情况的
     MQ_TAGS_STATUS(2, "mq_tags_status"),
     // 全量构建各阶段日志信息
@@ -57,6 +58,6 @@ public enum LogType {
     private LogType(int typeKind, String value) {
         this.value = value;
         this.typeKind = typeKind;
-    // this(value, new MonitorFileCreator());
+        // this(value, new MonitorFileCreator());
     }
 }

@@ -16,6 +16,7 @@ package com.qlangtech.tis.util;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
@@ -24,14 +25,21 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.ServletActionContext;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,6 +56,8 @@ public class PluginItems {
 
   public List<AttrValMap> items;
 
+  private static final Set<Descriptor> dbUpdateEventObservers = Sets.newHashSet();
+
   private static final PluginItemsSaveObservable observable = new PluginItemsSaveObservable();
 
   public static void addPluginItemsSaveObserver(PluginItemsSaveObserver obsv) {
@@ -60,8 +70,46 @@ public class PluginItems {
     this.pluginContext = pluginContext;
   }
 
+  /**
+   * datax中显示已由数据源使用 <br>
+   * must call form Descriptor
+   *
+   * @param extendClass
+   * @return
+   */
+  public static List<Option> getExistDbs(String extendClass) {
+    if (OfflineDatasourceAction.existDbs != null) {
+      return OfflineDatasourceAction.existDbs;
+    }
+    if (org.apache.commons.lang.StringUtils.isEmpty(extendClass)) {
+      throw new IllegalArgumentException("param extendClass can not be null");
+    }
+
+    Descriptor descriptor = GroovyShellEvaluate.descriptorThreadLocal.get();
+    Objects.requireNonNull(descriptor, "descriptor can not be null");
+    if (dbUpdateEventObservers.add(descriptor)) {
+      // 当有数据源更新时需要将descriptor的属性重新更新一下
+      addPluginItemsSaveObserver(new PluginItemsSaveObserver() {
+        @Override
+        public void afterSaved(PluginItemsSaveEvent event) {
+          if (event.heteroEnum == HeteroEnum.DATASOURCE) {
+            descriptor.cleanPropertyTypes();
+          }
+        }
+      });
+    }
+
+
+    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), IWorkflowDAOFacade.class);
+    Objects.requireNonNull(wfFacade, "wfFacade can not be null");
+    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
+    dbCriteria.createCriteria().andExtendClassEqualTo(extendClass);
+    List<com.qlangtech.tis.workflow.pojo.DatasourceDb> dbs = wfFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
+    return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
+  }
+
   public List<Describable> save(Context context) {
-    Objects.requireNonNull(this.pluginContext,"pluginContext can not be null");
+    Objects.requireNonNull(this.pluginContext, "pluginContext can not be null");
     if (items == null) {
       throw new IllegalStateException("prop items can not be null");
     }

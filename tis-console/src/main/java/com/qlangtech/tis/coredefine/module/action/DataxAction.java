@@ -85,8 +85,6 @@ public class DataxAction extends BasicModule {
     params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.FullDump.getName()));
 
     CoreAction.triggerBuild(this, context, params);
-
-
   }
 
   /**
@@ -166,6 +164,11 @@ public class DataxAction extends BasicModule {
     }
 
     dataxJobWorker.launchService();
+    try {
+      Thread.sleep(4000l);
+    } catch (InterruptedException e) {
+
+    }
     this.doGetDataxWorkerMeta(context);
     AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
     DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
@@ -207,9 +210,32 @@ public class DataxAction extends BasicModule {
       return;
     }
 
+    boolean disableRcdeployment = this.getBoolean("disableRcdeployment");
     jobWorkerStatus.setK8sReplicationControllerCreated(dataxJobWorker.inService());
-    jobWorkerStatus.setRcDeployment(dataxJobWorker.getRCDeployment());
+    if (jobWorkerStatus.isK8sReplicationControllerCreated() && !disableRcdeployment) {
+      jobWorkerStatus.setRcDeployment(dataxJobWorker.getRCDeployment());
+    }
     this.setBizResult(context, jobWorkerStatus);
+  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doGetDataxWorkerHpa(Context context) {
+    DataXJobWorker jobWorker = DataXJobWorker.getDataxJobWorker();
+    if (jobWorker.getHpa() != null) {
+      RcHpaStatus hpaStatus = jobWorker.getHpaStatus();
+      this.setBizResult(context, hpaStatus);
+    }
+  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doRelaunchPodProcess(Context context) throws Exception {
+    DataXJobWorker jobWorker = DataXJobWorker.getDataxJobWorker();
+    String podName = this.getString("podName");
+    jobWorker.relaunch(podName);
+//    PluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
+//    IncrStreamFactory incrStream = incrStreamStore.getPlugin();
+//    IRCController incrSync = incrStream.getIncrSync();
+//    incrSync.relaunch(this.getCollectionName());
   }
 
   /**
@@ -256,6 +282,9 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doDataxWorkerDesc(Context context) {
     List<Descriptor<DataXJobWorker>> descriptors = HeteroEnum.DATAX_WORKER.descriptors();
+    if (DataXJobWorker.isDataXWorkerServiceOnDuty()) {
+      throw new IllegalStateException("dataX worker is on duty");
+    }
     this.setBizResult(context, new PluginDescMeta(descriptors));
   }
 
