@@ -83,6 +83,10 @@ public interface ISelectedTab {
             return null;
         }
 
+        public String getLiteria() {
+            return literia;
+        }
+
         /**
          * https://github.com/alibaba/DataX/blob/master/mysqlreader/doc/mysqlreader.md#33-%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2
          *

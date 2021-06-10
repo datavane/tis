@@ -19,6 +19,7 @@ import com.qlangtech.tis.util.IPluginContext;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Datax 执行器可以在各种容器上执行 https://github.com/alibaba/DataX
@@ -35,6 +36,7 @@ public interface IDataxProcessor {
     IDataxGlobalCfg getDataXGlobalCfg();
 
     public File getDataxCfgDir(IPluginContext pluginCtx);
+
     public File getDataXWorkDir(IPluginContext pluginContext);
 
     /**
@@ -115,5 +117,29 @@ public interface IDataxProcessor {
             this.sourceCols = sourceCols;
         }
 
+    }
+
+    public class TabCols {
+        private final List<String> cols;
+
+        public static TabCols create(TableMap tm) {
+            return new TabCols(tm.getSourceCols().stream().map((c) -> c.getName()).collect(Collectors.toList()));
+        }
+
+        private TabCols(List<String> cols) {
+            this.cols = cols;
+        }
+
+        public String getColsQuotes() {
+            return getColumnWithLink("\"`", "`\"");
+        }
+
+        public String getCols() {
+            return getColumnWithLink("`", "`");
+        }
+
+        private String getColumnWithLink(String left, String right) {
+            return this.cols.stream().map(r -> (left + r + right)).collect(Collectors.joining(","));
+        }
     }
 }

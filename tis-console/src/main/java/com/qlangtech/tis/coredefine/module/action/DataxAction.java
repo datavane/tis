@@ -124,6 +124,14 @@ public class DataxAction extends BasicModule {
     KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(this, dataxName);
     DataxWriter writer = writerStore.getPlugin();
     if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), writerDesc.getString("impl"))) {
+      DataxReader readerPlugin = DataxReader.load(this, dataxName);
+      DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
+      if (!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()) {
+        // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
+        throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()");
+      }
+
+      DataxWriter.dataReaderThreadlocal.set(readerPlugin);
       this.setBizResult(context, (new DescribableJSON(writer)).getItemJson());
     }
   }
@@ -320,7 +328,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetExecStatistics(Context context) throws Exception {
     WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
-    Date from = ManageUtils.getOffsetDate(-8);
+    Date from = ManageUtils.getOffsetDate(-7);
     SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd");
     Map<String, DataXExecStatus> execStatis = Maps.newTreeMap();
     ExecResult execResult = null;
@@ -336,6 +344,9 @@ public class DataxAction extends BasicModule {
     for (WorkFlowBuildHistory h : this.wfDAOFacade.getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria)) {
       execResult = ExecResult.parse(h.getState());
       execStatus = execStatis.get(dateFormat.format(h.getCreateTime()));
+      if (execStatus == null) {
+        continue;
+      }
       if (execResult == ExecResult.SUCCESS) {
         execStatus.successCount++;
         successCount++;

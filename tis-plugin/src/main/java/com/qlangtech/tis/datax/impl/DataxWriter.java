@@ -29,6 +29,8 @@ import java.util.Objects;
  */
 public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWriter {
 
+    public static final ThreadLocal<DataxReader> dataReaderThreadlocal = new ThreadLocal<>();
+
     /**
      * save
      *
@@ -71,6 +73,17 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
 
 
     public static abstract class BaseDataxWriterDescriptor extends Descriptor<DataxWriter> {
+
+
+        /**
+         * reader 中是否可以选择多个表，例如像elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
+         *
+         * @return
+         */
+        public boolean isSupportMultiTable() {
+            return true;
+        }
+
         /**
          * 是否可以选择多个表，像Mysql这样的 ,RDBMS 关系型数据库 应该都为true
          *

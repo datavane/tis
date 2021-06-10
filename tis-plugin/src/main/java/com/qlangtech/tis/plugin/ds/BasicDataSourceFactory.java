@@ -15,6 +15,7 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.db.parser.DBConfigParser;
 import com.qlangtech.tis.lang.TisException;
@@ -85,32 +86,7 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
 
             final DBConfig dbConfig = getDbConfig();
             dbConfig.vistDbName((config, ip, dbname) -> {
-                visitConnection(config, ip, dbname, config.getUserName(), config.getPassword(), (conn) -> {
-                    DatabaseMetaData metaData1 = null;
-                    ResultSet primaryKeys = null;
-                    ResultSet columns1 = null;
-                    try {
-                        metaData1 = conn.getMetaData();
-                        primaryKeys = metaData1.getPrimaryKeys(null, null, table);
-                        columns1 = metaData1.getColumns(null, null, table, null);
-                        Set<String> pkCols = Sets.newHashSet();
-                        while (primaryKeys.next()) {
-                            // $NON-NLS-1$
-                            String columnName = primaryKeys.getString("COLUMN_NAME");
-                            pkCols.add(columnName);
-                        }
-                        int i = 0;
-                        String colName = null;
-                        while (columns1.next()) {
-                            columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME"))
-                                    , columns1.getInt("DATA_TYPE"), pkCols.contains(colName)));
-                        }
-
-                    } finally {
-                        closeResultSet(columns1);
-                        closeResultSet(primaryKeys);
-                    }
-                });
+                columns.addAll(parseTableColMeta(table, config, ip, dbname));
                 return true;
             });
             return columns;
@@ -120,17 +96,17 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
         }
     }
 
+    private List<ColumnMetaData> parseTableColMeta(String table, DBConfig config, String ip, String dbname) throws Exception {
+        // List<ColumnMetaData> columns = Lists.newArrayList();
+        String jdbcUrl = buidJdbcUrl(config, ip, dbname);
 
-    protected void closeResultSet(ResultSet rs) {
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                // ignore
-                ;
-            }
-        }
+        return parseTableColMeta(table, config.getUserName(), config.getPassword(), jdbcUrl);
     }
+
+
+
+
+
 
     @Override
     public final List<String> getTablesInDB() {
@@ -209,7 +185,7 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
         //Connection conn = null;
         String jdbcUrl = buidJdbcUrl(db, ip, dbName);
         try {
-            validateConnection(jdbcUrl, db, username, password, p);
+            validateConnection(jdbcUrl, username, password, p);
         } catch (Exception e) {
             //MethodHandles.lookup().lookupClass()
             throw new TisException("请确认插件:" + this.getClass().getSimpleName() + "配置:" + this.identityValue() + ",jdbcUrl:" + jdbcUrl, e);
@@ -218,27 +194,6 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
 
     protected abstract String buidJdbcUrl(DBConfig db, String ip, String dbName);
 
-    protected static void validateConnection(String jdbcUrl, DBConfig db, String username, String password, IConnProcessor p) {
-        Connection conn = null;
-        try {
-            conn = getConnection(jdbcUrl, username, password);
-            p.vist(conn);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Throwable e) {
-                }
-            }
-        }
-    }
-
-    protected static Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
-        // 密码可以为空
-        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
-    }
 
     public interface IConnProcessor {
         void vist(Connection conn) throws SQLException;

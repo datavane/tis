@@ -15,13 +15,17 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.lang.StringUtils;
 
+import java.sql.*;
 import java.util.*;
 
 /**
@@ -67,6 +71,70 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return descriptor;
     }
 
+    protected static void validateConnection(String jdbcUrl, String username, String password, BasicDataSourceFactory.IConnProcessor p) {
+        Connection conn = null;
+        try {
+            conn = getConnection(jdbcUrl, username, password);
+            p.vist(conn);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Throwable e) {
+                }
+            }
+        }
+    }
+
+    protected static Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
+        // 密码可以为空
+        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
+    }
+
+
+    protected List<ColumnMetaData> parseTableColMeta(String table, String userName, String password, String jdbcUrl) {
+        final List<ColumnMetaData> columns = Lists.newArrayList();
+        validateConnection(jdbcUrl, userName, password, (conn) -> {
+            DatabaseMetaData metaData1 = null;
+            ResultSet primaryKeys = null;
+            ResultSet columns1 = null;
+            try {
+                metaData1 = conn.getMetaData();
+                primaryKeys = metaData1.getPrimaryKeys(null, null, table);
+                columns1 = metaData1.getColumns(null, null, table, null);
+                Set<String> pkCols = Sets.newHashSet();
+                while (primaryKeys.next()) {
+                    // $NON-NLS-1$
+                    String columnName = primaryKeys.getString("COLUMN_NAME");
+                    pkCols.add(columnName);
+                }
+                int i = 0;
+                String colName = null;
+                while (columns1.next()) {
+                    columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME"))
+                            , columns1.getInt("DATA_TYPE"), pkCols.contains(colName)));
+                }
+
+            } finally {
+                closeResultSet(columns1);
+                closeResultSet(primaryKeys);
+            }
+        });
+        return columns;
+    }
+
+    protected void closeResultSet(ResultSet rs) {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                // ignore
+                ;
+            }
+        }
+    }
 
     public abstract static class BaseDataSourceFactoryDescriptor extends Descriptor<DataSourceFactory> {
         @Override

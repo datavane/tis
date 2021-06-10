@@ -34,6 +34,7 @@ public interface ValidatorCommons {
 
     String MSG_DB_COL_NAME_ERROR = "格式不正确；提示:'首位可以是字母以及下划线。首位之后可以是字母，数字以及下划线。下划线后不能接下划线'";
 
+
     String MSG_URL_ERROR = "不符合URL的规范";
 
     Pattern pattern_identity = Pattern.compile("[a-z]{1}[\\da-z_\\-]+");

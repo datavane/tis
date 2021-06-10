@@ -1,0 +1,13 @@
+{
+  "dbName": {
+    "label": "数据库名",
+    "creator": {
+      "routerLink": "/offline/ds",
+      "label": "数据源管理"
+    }
+  },
+  "template": {
+    "label": "配置模版",
+    "rows": 18
+  }
+}

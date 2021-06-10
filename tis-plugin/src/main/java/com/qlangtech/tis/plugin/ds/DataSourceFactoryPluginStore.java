@@ -65,6 +65,10 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
 
     }
 
+    public <DS extends DataSourceFactory> DS getDataSource() {
+        return (DS) super.getPlugin();
+    }
+
     public void deleteDB() throws Exception {
         File targetFile = this.getTargetFile();
         if (getDSKey().isFacadeType()) {
