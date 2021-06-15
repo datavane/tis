@@ -14,8 +14,7 @@
  */
 package com.qlangtech.tis.wangjubao.jingwei;
 
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
-import com.qlangtech.tis.solrdao.pojo.PSchemaField;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -166,6 +166,7 @@ public class DataXCfgGenerator {
                 tableMapper.setTo(tab.getName());
                 tableMapper.setFrom(tab.getName());
             } else {
+                // example:oss -> oss
                 tableMapper = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
             }
 

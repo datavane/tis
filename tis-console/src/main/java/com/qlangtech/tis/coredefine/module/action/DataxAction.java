@@ -130,8 +130,6 @@ public class DataxAction extends BasicModule {
         // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
         throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()");
       }
-
-      DataxWriter.dataReaderThreadlocal.set(readerPlugin);
       this.setBizResult(context, (new DescribableJSON(writer)).getItemJson());
     }
   }
@@ -609,8 +607,7 @@ public class DataxAction extends BasicModule {
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
     DataxProcessor processor = DataxProcessor.load(this, dataxName);
 
-
-    if (!processMeta.isUnStructed2RDBMS()) {
+    if (processMeta.isReaderRDBMS()) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
     }
     int selectedTabsSize = processMeta.getReader().getSelectedTabs().size();
@@ -646,7 +643,7 @@ public class DataxAction extends BasicModule {
   public void doSaveWriterColsMeta(Context context) {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
-    if (!(processMeta.isUnStructed2RDBMS())) {
+    if ((processMeta.isReaderRDBMS())) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
     }
 

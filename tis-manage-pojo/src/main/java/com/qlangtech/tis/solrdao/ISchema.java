@@ -14,51 +14,23 @@
  */
 package com.qlangtech.tis.solrdao;
 
+import com.alibaba.fastjson.JSONArray;
+
+import java.util.List;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年5月8日
  */
-public interface ISchemaField {
-    //String DEFAULT_STRING_TYPE_NAME = "string";
-    String KEY_FIELD_TYPE = "fieldtype";
+public interface ISchema {
 
-    String getName();
+    <TT extends ISchemaField> List<TT> getSchemaFields();
 
-    /**
-     * 字段类型名称，不是全路径
-     *
-     * @return
-     */
-    String getTisFieldTypeName();
+    String getUniqueKey();
 
-    String getTokenizerType();
+    String getSharedKey();
 
-    boolean isIndexed();
+    JSONArray serialTypes();
 
-    boolean isStored();
-
-    boolean isDocValue();
-
-    // 是否是多值
-    boolean isMultiValue();
-
-    boolean isDynamic();
-
-//    /**
-//     * 类型是否是插件
-//     *
-//     * @return
-//     */
-//    default boolean isPluginType() {
-//        throw new UnsupportedOperationException();
-//    }
-
-    /**
-     * 默认值
-     *
-     * @return
-     */
-    String getDefaultValue();
-
-
+    void clearFields();
 }

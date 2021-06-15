@@ -16,7 +16,7 @@ package com.qlangtech.tis.realtime.transfer;
 
 import com.qlangtech.tis.cloud.ICloudInputDocument;
 import com.qlangtech.tis.common.utils.Assert;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.wangjubao.jingwei.AliasList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;

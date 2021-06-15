@@ -22,6 +22,7 @@ import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
 import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
 import com.qlangtech.tis.manage.servlet.ServerJoinGroup;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +114,7 @@ public class IndexQuery {
         logger.warn(e.getMessage(), e);
       }
     }
-    requestContext.schema = new SolrFieldsParser.ParseResult(false);
+    requestContext.schema = new ParseResult(false);
   }
 
   //
@@ -124,7 +125,7 @@ public class IndexQuery {
 
     public final HttpServletRequest request;
 
-    public SolrFieldsParser.ParseResult schema;
+    public ParseResult schema;
 
     public QueryRequestContext(HttpServletRequest request) {
       super();
@@ -139,11 +140,11 @@ public class IndexQuery {
   }
 
   //
-  private static SolrFieldsParser.ParseResult processSchema(final QueryIndexServlet.SolrQueryModuleCreator creator, final String url) throws MalformedURLException {
-    return ConfigFileContext.processContent(new URL(url + "/admin/file/?file=schema.xml"), new ConfigFileContext.StreamProcess<SolrFieldsParser.ParseResult>() {
+  private static ParseResult processSchema(final QueryIndexServlet.SolrQueryModuleCreator creator, final String url) throws MalformedURLException {
+    return ConfigFileContext.processContent(new URL(url + "/admin/file/?file=schema.xml"), new ConfigFileContext.StreamProcess<ParseResult>() {
 
       @Override
-      public SolrFieldsParser.ParseResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+      public ParseResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
         return creator.processSchema(stream);
       }
     });

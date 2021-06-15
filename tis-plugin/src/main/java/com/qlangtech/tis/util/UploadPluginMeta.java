@@ -48,6 +48,9 @@ public class UploadPluginMeta {
     private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))+)?");
 
     public static final String KEY_REQUIRE = "require";
+
+    public static final String KEY_UNCACHE = "uncache";
+
     private final String name;
 
     // plugin form must contain field where prop required is true
@@ -57,7 +60,7 @@ public class UploadPluginMeta {
     private final IPluginContext context;
 
     public boolean isUpdate() {
-        return Boolean.parseBoolean(this.getExtraParam(PostedDSProp.KEY_UPDATE));
+        return this.getBoolean(PostedDSProp.KEY_UPDATE);
     }
 
     public static void main(String[] args) throws Exception {
@@ -172,6 +175,10 @@ public class UploadPluginMeta {
 
     public String getExtraParam(String key) {
         return this.extraParams.get(key);
+    }
+
+    public boolean getBoolean(String key) {
+        return Boolean.parseBoolean(this.getExtraParam(key));
     }
 
     private UploadPluginMeta(IPluginContext context, String name) {

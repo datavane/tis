@@ -24,7 +24,7 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年1月6日下午6:31:17
  */
-public enum TokenizerType {
+public enum TokenizerType implements ISearchEngineTokenizerType {
     NULL(ReflectSchemaFieldType.STRING.literia, "无分词") //
     , IK(ReflectSchemaFieldType.IK.literia, "IK分词") //
     , LIKE(ReflectSchemaFieldType.LIKE.literia, "LIKE分词") //
@@ -43,7 +43,8 @@ public enum TokenizerType {
         visualTypeMap = visualTypeMapBuilder.build();
     }
 
-    private static void addNumericType(ImmutableMap.Builder<String, VisualType> visualTypeMapBuilder, String numericType) {
+    private static void addNumericType(
+            ImmutableMap.Builder<String, VisualType> visualTypeMapBuilder, String numericType) {
         VisualType type = new VisualType(numericType, false);
         visualTypeMapBuilder.put('p' + numericType, type);
     }
@@ -59,18 +60,9 @@ public enum TokenizerType {
      */
     public static VisualType parseVisualType(String key) {
         VisualType result = visualTypeMap.get(key);
-        // NumericVisualType numericVisualType = null;
         if (result != null) {
             return result;
         }
-//    else if ((numericVisualType = numericTypeMap.get(key)) != null) {
-//      return numericVisualType;
-//            for (VisualType type : visualTypeMap.values()) {
-//                if (type.isRanageQueryAware() && type.getRangedFieldName().equals(key)) {
-//                    return type;
-//                }
-//            }
-        //}
         for (TokenizerType type : TokenizerType.values()) {
             if (StringUtils.equals(type.getKey(), key)) {
                 return VisualType.STRING_TYPE;

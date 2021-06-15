@@ -15,9 +15,7 @@
 package com.qlangtech.tis.wangjubao.jingwei;
 
 import com.qlangtech.tis.common.utils.Assert;
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
-import com.qlangtech.tis.solrdao.pojo.PSchemaField;
-import org.apache.commons.io.FileUtils;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -31,7 +29,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 
@@ -56,7 +53,7 @@ public class TableClusterParser {
      * @return
      * @throws Exception
      */
-    public static TableCluster parse(String value, SolrFieldsParser.ParseResult schemaFieldsRefect) throws Exception {
+    public static TableCluster parse(String value, ParseResult schemaFieldsRefect) throws Exception {
         DocumentBuilder builder = schemaDocumentBuilderFactory.newDocumentBuilder();
         builder.setEntityResolver(new EntityResolver() {
 

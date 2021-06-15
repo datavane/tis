@@ -15,7 +15,7 @@
 package com.qlangtech.tis.solrdao;
 
 import com.qlangtech.tis.exec.IIndexMetaData;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;

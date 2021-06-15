@@ -53,6 +53,7 @@ import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
@@ -171,7 +172,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     biz.put(SqlTaskNodeMeta.KEY_PROFILE_TOPOLOGY, shards);
     SnapshotDomain snapshot = ViewPojo.getSnapshotDoamin(this, this.getAppDomain());
-    SolrFieldsParser.ParseResult parseResult = SolrFieldsParser.parse(() -> {
+    ParseResult parseResult = SolrFieldsParser.parse(() -> {
       return snapshot.getSolrSchema().getContent();
     }).getSchemaParseResult();
 

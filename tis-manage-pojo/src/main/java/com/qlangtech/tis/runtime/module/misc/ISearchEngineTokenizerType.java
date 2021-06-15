@@ -12,19 +12,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.solrdao;
 
-import java.util.List;
+package com.qlangtech.tis.runtime.module.misc;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2017年5月8日
- */
-public interface ISchema {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-06-15 10:09
+ **/
+public interface ISearchEngineTokenizerType {
+    public String getKey();
 
-    List<ISchemaField> getSchemaFields();
-
-    String getUniqueKey();
-
-    String getSharedKey();
+    public String getDesc();
 }

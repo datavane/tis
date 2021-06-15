@@ -14,7 +14,7 @@
  */
 package com.qlangtech.tis.wangjubao.jingwei;
 
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import junit.framework.TestCase;
 
 /**
@@ -24,7 +24,7 @@ import junit.framework.TestCase;
 public class TestTableCluster extends TestCase {
 
     public void testGetSchemaFields() throws Exception {
-        SolrFieldsParser.ParseResult schemaFields = TableCluster.getSchemaFields("search4totalpay");
+        ParseResult schemaFields = TableCluster.getSchemaFields("search4totalpay");
         assertNotNull(schemaFields);
         assertTrue(schemaFields.getSchemaFields().size() > 0);
     }

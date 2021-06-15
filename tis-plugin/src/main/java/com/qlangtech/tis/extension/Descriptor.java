@@ -38,10 +38,8 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
-import com.qlangtech.tis.util.AttrValMap;
-import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.ISelectOptionsGetter;
-import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.*;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
@@ -369,8 +367,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
                             String dftVal = fieldExtraProps.getDftVal();
 
+
                             if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
-                                fieldExtraProps.getProps().put(PluginExtraProps.KEY_DFTVAL_PROP, (String) GroovyShellEvaluate.eval(dftVal));
+
+                                UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
+                                boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
+                                JSONObject props = fieldExtraProps.getProps();
+                                Callable<String> valGetter = () -> (String) GroovyShellEvaluate.eval(meta.getName());
+                                props.put(PluginExtraProps.KEY_DFTVAL_PROP, unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call());
                             }
 
                             if ((formField.type() == FormFieldType.ENUM) || formField.type() == FormFieldType.MULTI_SELECTABLE) {

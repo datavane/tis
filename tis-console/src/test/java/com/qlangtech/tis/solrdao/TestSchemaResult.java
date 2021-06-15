@@ -23,6 +23,7 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.util.HeteroEnum;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
@@ -74,7 +75,7 @@ public class TestSchemaResult extends TestCase {
 
       SchemaResult schemaResult = SchemaAction.parseSchemaResultWithPluginCfg(collection, msgHandler, context, IOUtils.toByteArray(schema));
 
-      Collection<SolrFieldsParser.SolrType> fieldTypes = schemaResult.getParseResult().getFieldTypes();
+      Collection<SolrFieldsParser.SolrType> fieldTypes = ((ParseResult) schemaResult.getParseResult()).getFieldTypes();
       assertEquals("fieldTypes size", 2, fieldTypes.size());
 
       String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
@@ -83,7 +84,7 @@ public class TestSchemaResult extends TestCase {
       try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("s4totalpay-schema-already-contain-fieldtype-plugin-schema-result.json")) {
         assertNotNull(assertSchemaResultInput);
         FileUtils.write(new File("test.json"), content, TisUTF8.get());
-        assertEquals(StringUtils.trim( IOUtils.toString(assertSchemaResultInput, TisUTF8.get()) ), content);
+        assertEquals(StringUtils.trim(IOUtils.toString(assertSchemaResultInput, TisUTF8.get())), content);
       }
     }
 
@@ -118,7 +119,7 @@ public class TestSchemaResult extends TestCase {
 
       SchemaResult schemaResult = SchemaAction.parseSchemaResultWithPluginCfg(collection, msgHandler, context, IOUtils.toByteArray(schema));
 
-      Collection<SolrFieldsParser.SolrType> fieldTypes = schemaResult.getParseResult().getFieldTypes();
+      Collection<SolrFieldsParser.SolrType> fieldTypes = ((ParseResult) schemaResult.getParseResult()).getFieldTypes();
       assertEquals("fieldTypes size", 16, fieldTypes.size());
 
       String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()

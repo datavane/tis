@@ -29,8 +29,6 @@ import java.util.Objects;
  */
 public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWriter {
 
-    public static final ThreadLocal<DataxReader> dataReaderThreadlocal = new ThreadLocal<>();
-
     /**
      * save
      *

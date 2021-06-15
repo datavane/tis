@@ -23,7 +23,7 @@ import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.runtime.module.screen.IndexQuery.QueryRequestContext;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.SchemaFields;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import junit.framework.Assert;

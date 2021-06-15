@@ -17,7 +17,7 @@ package com.qlangtech.tis.exec.impl;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.exec.lifecycle.hook.IIndexBuildLifeCycleHook;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 
 /**
  * 客户端提交的构建请求，只要求构建宽表，不需要构建索引build
@@ -28,7 +28,7 @@ import com.qlangtech.tis.solrdao.SolrFieldsParser;
 public class DummyIndexMetaData implements IIndexMetaData {
 
     @Override
-    public SolrFieldsParser.ParseResult getSchemaParseResult() {
+    public ParseResult getSchemaParseResult() {
         throw new UnsupportedOperationException();
     }
 

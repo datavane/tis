@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.InputStream;
+import java.util.concurrent.Callable;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -31,6 +32,22 @@ public class Test {
 
     public static void main(String[] args) throws Exception {
         JSONObject jsonObject = new JSONObject();
+
+        Callable<String> c = new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return "hello";
+            }
+
+            @Override
+            public String toString() {
+                return "hello";
+            }
+        };
+        jsonObject.put("prop", new JsonUtil.UnCacheString(c));
+        //jsonObject.put("name", "baisui");
+        System.out.println(JsonUtil.toString(jsonObject));
+
         String readFrom = null;
         try (InputStream input = Test.class.getResourceAsStream("/test.txt")) {
             readFrom = IOUtils.toString(input, TisUTF8.get());

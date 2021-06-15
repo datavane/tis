@@ -17,8 +17,7 @@ package com.qlangtech.tis.wangjubao.jingwei;
 import com.qlangtech.tis.realtime.transfer.ITable;
 import com.qlangtech.tis.realtime.transfer.TisSolrInputDocument;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultTable;
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
-import com.qlangtech.tis.solrdao.pojo.PSchemaField;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import java.util.Map;
@@ -111,7 +110,7 @@ public class TestAliasList extends TestCase {
         assertTrue(ORDER_COLUMN_CHANGE_FOCUS.getTimeVersionCol().copy);
         // Set<String> acceptFields = Sets.newHashSet("id", "is_valid", "mobile", "name", "last_ver", "entity_id",
         // "send_status", "waitingorder_id", "status", "inner_code", "type");
-        SolrFieldsParser.ParseResult parseResult = TestTableClusterParser.getSchemaReflect();
+        ParseResult parseResult = TestTableClusterParser.getSchemaReflect();
         TisSolrInputDocument document = new TisSolrInputDocument(parseResult);
         Table tableProcessor = null;
         ITable tab = new DefaultTable(testTable, tableProcessor);

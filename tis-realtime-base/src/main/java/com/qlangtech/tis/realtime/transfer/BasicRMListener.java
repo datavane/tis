@@ -26,7 +26,7 @@ import com.qlangtech.tis.realtime.transfer.impl.DefaultFocusTags;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultPk;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultPojo;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultTable;
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.wangjubao.jingwei.AliasList;
 import com.qlangtech.tis.wangjubao.jingwei.ITableProcessGetter;
 import com.qlangtech.tis.wangjubao.jingwei.Table;
@@ -346,7 +346,7 @@ public abstract class BasicRMListener extends AbstractConsumerHandle
         return tableCluster.getTable(name);
     }
 
-    public SolrFieldsParser.ParseResult getSchemaFieldMeta() {
+    public ParseResult getSchemaFieldMeta() {
         return tableCluster.getSchemaFieldMeta();
     }
 

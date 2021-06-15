@@ -58,6 +58,7 @@ import com.qlangtech.tis.runtime.module.screen.BasicScreen;
 import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrj.extend.router.HashcodeRouter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
@@ -1053,7 +1054,7 @@ public class CoreAction extends BasicModule {
     SnapshotDomain snapshotDomain = module.getSnapshotViewDAO().getView(publishSnapshotId);
     InputStream input = null;
     IIndexMetaData meta = SolrFieldsParser.parse(() -> snapshotDomain.getSolrSchema().getContent());
-    SolrFieldsParser.ParseResult parseResult = meta.getSchemaParseResult();
+    ParseResult parseResult = meta.getSchemaParseResult();
     String routerField = parseResult.getSharedKey();
     if (StringUtils.isBlank(routerField)) {
       module.addErrorMessage(context, "Schema中还没有设置‘sharedKey’");

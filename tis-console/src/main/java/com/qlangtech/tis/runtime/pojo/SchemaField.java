@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.runtime.pojo;
 
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import org.apache.commons.lang.StringUtils;
 
@@ -126,5 +127,10 @@ public class SchemaField implements ISchemaField {
   @Override
   public String getDefaultValue() {
     return this.defaultVal;
+  }
+
+  @Override
+  public void serialVisualType2Json(JSONObject f) {
+    throw new UnsupportedOperationException();
   }
 }
