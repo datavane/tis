@@ -15,10 +15,12 @@
 package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -61,7 +63,15 @@ public enum FormFieldType {
      * 可对多选控件进行校验
      */
     public interface IMultiSelectValidator {
-        public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldName, List<SelectedItem> items);
+        /**
+         * @param msgHandler
+         * @param subFormFilter
+         * @param context
+         * @param fieldName
+         * @param items         多选条目列表
+         * @return
+         */
+        public boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter, Context context, String fieldName, List<SelectedItem> items);
     }
 
     public static class SelectedItem extends Option {

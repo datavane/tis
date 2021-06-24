@@ -23,6 +23,15 @@ public class DataXBasicProcessMeta {
     private boolean readerRDBMS;
     private boolean explicitTable;
     private boolean writerRDBMS;
+    private boolean isWriterSupportMultiTableInReader;
+
+    public boolean isWriterSupportMultiTableInReader() {
+        return isWriterSupportMultiTableInReader;
+    }
+
+    public void setWriterSupportMultiTableInReader(boolean writerSupportMultiTableInReader) {
+        isWriterSupportMultiTableInReader = writerSupportMultiTableInReader;
+    }
 
     /**
      * 从非结构化的数据源导入到结构化的数据源，例如从OSS导入到MySQL

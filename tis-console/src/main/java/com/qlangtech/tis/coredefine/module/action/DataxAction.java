@@ -25,6 +25,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
 import com.qlangtech.tis.datax.ISelectedTab;
 import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
@@ -46,6 +47,7 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -126,7 +128,7 @@ public class DataxAction extends BasicModule {
     if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), writerDesc.getString("impl"))) {
       DataxReader readerPlugin = DataxReader.load(this, dataxName);
       DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
-      if (!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()) {
+      if (!writerDescriptor.isSupportMultiTable() && readerPlugin.getSelectedTabs().size() > 1) {
         // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
         throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()");
       }
@@ -553,8 +555,11 @@ public class DataxAction extends BasicModule {
   }
 
   private void saveTableMapper(IPluginContext pluginContext, String dataxName, List<IDataxProcessor.TableAlias> tableMaps) {
-    //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
-    //Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable = pluginDescMeta.newInstance(this, Collections.emptyMap(), Optional.empty());
+
+    if (StringUtils.isBlank(dataxName)) {
+      throw new IllegalArgumentException("param dataxName can not be null");
+    }
+
     DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);//  appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
     dataxProcessor.setTableMaps(tableMaps);
     IAppSource.save(pluginContext, dataxName, dataxProcessor);
@@ -634,6 +639,27 @@ public class DataxAction extends BasicModule {
       this.setBizResult(context, tabMapper);
       return;
     }
+  }
+
+  @Func(value = PermissionConstant.APP_ADD)
+  public void doGotoEsAppCreateConfirm(Context context) throws Exception {
+    this.errorsPageShow(context);
+    // 这里只做schema的校验
+    CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);
+    String schemaContent = null;
+    if (confiemModel.isExpertModel()) {
+      schemaContent = confiemModel.getExpert().getXml();
+    } else {
+
+      ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, confiemModel.getDataxName());
+      schemaContent = typeTransfer.mergeFromStupidModel(confiemModel.getStupid().getModel()
+        , ISearchEngineTypeTransfer.getOriginExpertSchema(null)).toJSONString();
+    }
+
+    ESTableAlias esTableAlias = new ESTableAlias();
+    esTableAlias.setSchemaContent(schemaContent);
+
+    this.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
   }
 
   /**
@@ -722,14 +748,19 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doValidateReaderWriter(Context context) {
+    this.errorsPageShow(context);
     JSONObject post = this.parseJsonPost();
 
     String dataxPipeName = post.getString("dataxPipeName");
 
     JSONObject reader = post.getJSONObject("readerDescriptor");
     JSONObject writer = post.getJSONObject("writerDescriptor");
-    Objects.requireNonNull(reader, "reader can not be null");
-    Objects.requireNonNull(writer, "writer can not be null");
+//    Objects.requireNonNull(reader, "reader can not be null");
+//    Objects.requireNonNull(writer, "writer can not be null");
+    if (reader == null || writer == null) {
+      this.addErrorMessage(context, "请选择'Reader类型'和'Writer类型'");
+      return;
+    }
     DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
     DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
     DataXBasicProcessMeta processMeta = getDataXBasicProcessMeta(readerDesc, writerDesc);
@@ -744,6 +775,7 @@ public class DataxAction extends BasicModule {
     processMeta.setReaderHasExplicitTable(readerDesc.hasExplicitTable());
     processMeta.setReaderRDBMS(readerDesc.isRdbms());
     processMeta.setWriterRDBMS(writerDesc.isRdbms());
+    processMeta.setWriterSupportMultiTableInReader(writerDesc.isSupportMultiTable());
     return processMeta;
   }
 

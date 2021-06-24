@@ -21,6 +21,8 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.util.IPluginContext;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -60,21 +62,33 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
 
 
     @Override
-    public Descriptor<DataxWriter> getDescriptor() {
+    public final Descriptor<DataxWriter> getDescriptor() {
         Descriptor<DataxWriter> descriptor = TIS.get().getDescriptor(this.getClass());
-        if (!(BaseDataxWriterDescriptor.class.isAssignableFrom(descriptor.getClass()))) {
-            throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of "
-                    + BaseDataxWriterDescriptor.class.getName());
+        Class<BaseDataxWriterDescriptor> expectClazz = getExpectDescClass();
+        if (!(expectClazz.isAssignableFrom(descriptor.getClass()))) {
+            throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of " + expectClazz.getName());
         }
         return descriptor;
+    }
+
+    protected <TT extends BaseDataxWriterDescriptor> Class<TT> getExpectDescClass() {
+        return (Class<TT>) BaseDataxWriterDescriptor.class;
     }
 
 
     public static abstract class BaseDataxWriterDescriptor extends Descriptor<DataxWriter> {
 
+        @Override
+        public final Map<String, Object> getExtractProps() {
+            Map<String, Object> eprops = new HashMap<>();
+            eprops.put("supportMultiTable", this.isSupportMultiTable());
+            eprops.put("rdbms", this.isRdbms());
+            return eprops;
+        }
 
         /**
-         * reader 中是否可以选择多个表，例如像elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
+         * reader 中是否可以选择多个表，例如像elastic这样的writer中对于column的设置比较复杂，
+         * 需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
          *
          * @return
          */

@@ -14,10 +14,17 @@
  */
 package com.qlangtech.tis.plugin.annotation;
 
+import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Map;
 
 /**
  * plugin form can have an sub form ,where build form needs multi step
@@ -44,4 +51,9 @@ public @interface SubForm {
      * @return
      */
     String idListGetScript();
+
+    interface ISubFormItemValidate {
+        public boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context, SuFormProperties props
+                , IPropertyType.SubFormFilter subFormFilter, Map<String, /*** attr key */JSONObject> formData);
+    }
 }

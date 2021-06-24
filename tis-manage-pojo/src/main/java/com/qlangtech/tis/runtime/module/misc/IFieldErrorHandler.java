@@ -27,7 +27,8 @@ public interface IFieldErrorHandler {
     void addFieldError(final Context context, String fieldName, String msg, Object... params);
 
     enum BizLogic {
-        APP_NAME_DUPLICATE
+        APP_NAME_DUPLICATE,
+       // DB_NAME_DUPLICATE
     }
 
     /**

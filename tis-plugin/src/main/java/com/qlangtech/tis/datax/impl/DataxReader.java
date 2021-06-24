@@ -26,7 +26,9 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.util.IPluginContext;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -140,14 +142,26 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     @Override
     public final Descriptor<DataxReader> getDescriptor() {
         Descriptor<DataxReader> descriptor = TIS.get().getDescriptor(this.getClass());
-        if (!(BaseDataxReaderDescriptor.class.isAssignableFrom(descriptor.getClass()))) {
-            throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of "
-                    + BaseDataxReaderDescriptor.class.getName());
+        Class<BaseDataxReaderDescriptor> expectClass = getExpectDescClass();
+        if (!(expectClass.isAssignableFrom(descriptor.getClass()))) {
+            throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of " + expectClass.getName());
         }
         return descriptor;
     }
 
+    protected <TT extends DataxReader.BaseDataxReaderDescriptor> Class<TT> getExpectDescClass() {
+        return (Class<TT>) BaseDataxReaderDescriptor.class;
+    }
+
     public static abstract class BaseDataxReaderDescriptor extends Descriptor<DataxReader> {
+
+        @Override
+        public final Map<String, Object> getExtractProps() {
+            Map<String, Object> eprops = new HashMap<>();
+            eprops.put("rdbms", this.isRdbms());
+            return eprops;
+        }
+
 
         /**
          * 像Mysql会有明确的表名，而OSS没有明确的表名,RDBMS 关系型数据库 应该都为true

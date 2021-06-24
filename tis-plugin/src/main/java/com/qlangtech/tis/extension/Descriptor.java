@@ -135,16 +135,28 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         } catch (NoSuchMethodException e) {
             throw new AssertionError(getClass() + " is missing getDescriptor method.");
         }
-
-        try {
-            Method validateMethod = this.getClass().getDeclaredMethod(
-                    "validate", IControlMsgHandler.class, Context.class, PostFormVals.class);
-            this.overWriteValidateMethod = (validateMethod.getDeclaringClass() != Descriptor.class);
-        } catch (NoSuchMethodException e) {
-            //throw new AssertionError(this.getClass() + " is missing validate method.");
-        }
+        // this.getClass()
+        this.initializeValidateMethod();
 
         this.validateMethodMap = this.createValidateMap();
+    }
+
+    private void initializeValidateMethod() {
+        List<Class> allSuperclasses = Lists.newArrayList(this.getClass());
+        allSuperclasses.addAll(ClassUtils.getAllSuperclasses(this.getClass()));
+        for (Class clazz : allSuperclasses) {
+            if (clazz == Descriptor.class) {
+                break;
+            }
+            try {
+                Method validateMethod = clazz.getDeclaredMethod(
+                        "verify", IControlMsgHandler.class, Context.class, PostFormVals.class);
+                this.overWriteValidateMethod = true;//(validateMethod.getDeclaringClass() != Descriptor.class);
+                break;
+            } catch (NoSuchMethodException e) {
+                //throw new AssertionError(this.getClass() + " is missing validate method.");
+            }
+        }
     }
 
     /**
@@ -346,6 +358,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             for (Object c : allSuperclasses) {
                 targetClass = (Class) c;
                 // extraProps = PluginExtraProps.load(targetClass);
+                AA:
                 for (Field f : targetClass.getDeclaredFields()) {
                     if (!Modifier.isPublic(f.getModifiers())) {
                         continue;
@@ -367,6 +380,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
                             String dftVal = fieldExtraProps.getDftVal();
 
+                            if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
+                                continue AA;
+                            }
 
                             if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
 
@@ -433,13 +449,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      *
      * @param msgHandler
      * @param context
-     * @param bizValidate 是否进行业务逻辑校验，例如数据库是否能正常连接成功
+     * @param verify     是否进行业务逻辑校验，例如数据库是否能正常连接成功
      * @param formData
      * @return
      */
-    public final PluginValidateResult validate(IControlMsgHandler msgHandler
+    public final PluginValidateResult verify(IControlMsgHandler msgHandler
             , Context context //
-            , boolean bizValidate
+            , boolean verify
             , Map<String, /*** attr key */JSONObject> formData, Optional<IPropertyType.SubFormFilter> subFormFilter) {
 //        String impl = null;
 //        Descriptor descriptor;
@@ -449,9 +465,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 //        String attrVal;
 
 
-        PluginFormProperties /** * fieldname */
+        final PluginFormProperties /** * fieldname */
                 propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
-
 
         return propertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
@@ -463,9 +478,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
                         , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
 
-                boolean valid = isValid(msgHandler, context, bizValidate, subFormFilter, propertyTypes, postFormVals);
+                boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, postFormVals);
 
-                if (valid && bizValidate && !validate(msgHandler, context, postFormVals)) {
+                if (valid && verify && !verify(msgHandler, context, postFormVals)) {
+                    valid = false;
+                }
+                if (valid && !verify && !validateAll(msgHandler, context, postFormVals)) {
                     valid = false;
                 }
                 validateResult.valid = valid;
@@ -481,10 +499,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 PostFormVals postFormVals = null;
 
 
-                if (bizValidate) {
+                if (verify) {
                     // 校验的时候子表单是{key1:val1,key2:val2} 的格式
                     PostFormVals formVals = new PostFormVals(formData);
-                    boolean valid = isValid(msgHandler, context, bizValidate, subFormFilter, propertyTypes, formVals);
+                    boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
                     if (!valid) {
                         validateResult = new PluginValidateResult(formVals
                                 , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
@@ -502,12 +520,22 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         return validateResult;
                     }
 
+                    if (Descriptor.this instanceof SubForm.ISubFormItemValidate) {
+                        assert (subFormFilter.isPresent());
+                        if (!((SubForm.ISubFormItemValidate) Descriptor.this)
+                                .validateSubFormItems(msgHandler, context, props, subFormFilter.get(), formData)) {
+                            validateResult = new PluginValidateResult(null, 0, 0);
+                            validateResult.valid = false;
+                            return validateResult;
+                        }
+                    }
+
                     // 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
                     validateResult = props.visitAllSubDetailed(formData, new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
                         @Override
                         public PluginValidateResult process(String subFormId, Map<String, JSONObject> sform) {
                             PostFormVals pfv = new PostFormVals(sform);
-                            boolean valid = isValid(msgHandler, context, bizValidate, subFormFilter, propertyTypes, pfv);
+                            boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, pfv);
                             if (!valid) {
                                 PluginValidateResult vResult = new PluginValidateResult(pfv
                                         , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
@@ -626,7 +654,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         }
                     } else if (this instanceof FormFieldType.IMultiSelectValidator) {
                         FormFieldType.IMultiSelectValidator multiSelectValidator = (FormFieldType.IMultiSelectValidator) this;
-                        multiSelectValidator.validate(msgHandler, context, attr, selectedItems);
+                        if (!multiSelectValidator.validate(msgHandler, subFormFilter, context, attr, selectedItems)) {
+                            valid = false;
+                            break;
+                        }
                     }
                 } else {
                     // single value
@@ -670,6 +701,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         Objects.requireNonNull(eprops, "property '_eprops'   can not be null");
         // enums 格式例子：`com/qlangtech/tis/extension/form-prop-enum-example.json`
         JSONArray enums = eprops.getJSONArray("enum");
+        if (enums == null) {
+            enums = new JSONArray();
+            //   throw new IllegalStateException("enums of prop can not be null");
+        }
         JSONObject select = null;
         int selected = 0;
         List<FormFieldType.SelectedItem> selectedItems = Lists.newArrayList();
@@ -706,7 +741,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
         public void addIdentityFieldValueDuplicateError(IControlMsgHandler handler, Context context) {
             setValidateItemPos(context, validatePluginIndex, validatePluginItemIndex);
-            handler.addFieldError(context, descriptor.getIdentityField().displayName, "名称重复冲突");
+            handler.addFieldError(context, descriptor.getIdentityField().displayName, IdentityName.MSG_ERROR_NAME_DUPLICATE);
         }
 
         public String getIdentityFieldValue() {
@@ -738,14 +773,26 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     /**
-     * 校验整体表单
+     * 校验整体表单,表单提交不进行校验
      *
      * @param msgHandler
      * @param context
      * @param postFormVals
      * @return true 代表没有错误
      */
-    protected boolean validate(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+    protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+        return true;
+    }
+
+    /**
+     * 校验整体表单,需要进行校验
+     *
+     * @param msgHandler
+     * @param context
+     * @param postFormVals
+     * @return true 代表没有错误
+     */
+    protected boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
         return true;
     }
 
@@ -863,7 +910,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     attrDesc.setVal(describable, multi);
                 } else {
 
-                    boolean containVal = valJ.containsKey(KEY_primaryVal);
+                    boolean containVal = valJ.containsKey(KEY_primaryVal) && StringUtils.isNotBlank(valJ.getString(KEY_primaryVal));
                     // describable
                     if (!containVal && attrDesc.isInputRequired()) {
                         throw new IllegalStateException("prop:" + attr + " can not be empty");
@@ -1030,8 +1077,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public static class PostFormVals {
-
-        // receive from post form directly
         public final Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> rawFormData;
 
         public PostFormVals(Map<String, JSONObject> rawFormData) {

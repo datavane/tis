@@ -23,9 +23,13 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.IPluginContext;
-import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -64,20 +68,25 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     @Override
     public final Descriptor<DataSourceFactory> getDescriptor() {
         Descriptor<DataSourceFactory> descriptor = TIS.get().getDescriptor(this.getClass());
-        if (!(descriptor instanceof BaseDataSourceFactoryDescriptor)) {
-            throw new IllegalStateException(this.getClass().getSimpleName() + " must implement the Descriptor of "
-                    + BaseDataSourceFactoryDescriptor.class.getSimpleName());
+        Class<BaseDataSourceFactoryDescriptor> expectDesClass = getExpectDesClass();
+        if (!(expectDesClass.isAssignableFrom(descriptor.getClass()))) {
+            throw new IllegalStateException(descriptor.getClass().getName() + " must implement the Descriptor of "
+                    + expectDesClass.getSimpleName());
         }
         return descriptor;
     }
 
-    protected static void validateConnection(String jdbcUrl, String username, String password, BasicDataSourceFactory.IConnProcessor p) {
+    protected <C extends BaseDataSourceFactoryDescriptor> Class<C> getExpectDesClass() {
+        return (Class<C>) BaseDataSourceFactoryDescriptor.class;
+    }
+
+    protected void validateConnection(String jdbcUrl, BasicDataSourceFactory.IConnProcessor p) {
         Connection conn = null;
         try {
-            conn = getConnection(jdbcUrl, username, password);
+            conn = getConnection(jdbcUrl);
             p.vist(conn);
         } catch (Exception e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("jdbcUrl:" + jdbcUrl, e);
         } finally {
             if (conn != null) {
                 try {
@@ -88,15 +97,31 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         }
     }
 
-    protected static Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
-        // 密码可以为空
-        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
+
+    /**
+     * 获取jdbc Connection
+     * 为了驱动加载不出问题，需要每个实现类中拷贝一份这个代码，default implements:
+     * <pre>
+     *     @Override
+     *     protected Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
+     *         return DriverManager.getConnection(jdbcUrl, StringUtils.trimToNull(username), StringUtils.trimToNull(password));
+     *     }
+     * </pre>
+     *
+     * @param jdbcUrl
+     * @return
+     */
+    protected Connection getConnection(String jdbcUrl) throws SQLException {
+        throw new UnsupportedOperationException("jdbcUrl:" + jdbcUrl);
     }
+//        // 密码可以为空
+//        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
+//    }
 
 
-    protected List<ColumnMetaData> parseTableColMeta(String table, String userName, String password, String jdbcUrl) {
+    protected List<ColumnMetaData> parseTableColMeta(String table, String jdbcUrl) {
         final List<ColumnMetaData> columns = Lists.newArrayList();
-        validateConnection(jdbcUrl, userName, password, (conn) -> {
+        validateConnection(jdbcUrl, (conn) -> {
             DatabaseMetaData metaData1 = null;
             ResultSet primaryKeys = null;
             ResultSet columns1 = null;
@@ -136,7 +161,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         }
     }
 
-    public abstract static class BaseDataSourceFactoryDescriptor extends Descriptor<DataSourceFactory> {
+    public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T> {
+        private static final Logger logger = LoggerFactory.getLogger(BaseDataSourceFactoryDescriptor.class);
         @Override
         public final String getDisplayName() {
             return this.getDataSourceName();
@@ -171,20 +197,27 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             return Collections.emptyList();
         }
 
+
         @Override
-        protected boolean validate(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+        protected final boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+            ParseDescribable<T> dsFactory = this.newInstance((IPluginContext) msgHandler, postFormVals.rawFormData, Optional.empty());
+            T instance = dsFactory.instance;
+//            if (!msgHandler.validateBizLogic(IFieldErrorHandler.BizLogic.DB_NAME_DUPLICATE, context
+//                    , this.getIdentityField().displayName, instance.identityValue())) {
+//                return false;
+//            }
+            return validateDSFactory(msgHandler, context, instance);
+        }
 
-            ParseDescribable<DataSourceFactory> ds
-                    = this.newInstance((IPluginContext) msgHandler, postFormVals.rawFormData, Optional.empty());
-
+        protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
             try {
-                List<String> tables = ds.instance.getTablesInDB();
-                msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
+                List<String> tables = dsFactory.getTablesInDB();
+                // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
             } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
                 msgHandler.addErrorMessage(context, e.getMessage());
                 return false;
             }
-
             return true;
         }
 

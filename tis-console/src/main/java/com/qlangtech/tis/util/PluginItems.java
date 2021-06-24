@@ -77,11 +77,11 @@ public class PluginItems {
    * @param extendClass
    * @return
    */
-  public static List<Option> getExistDbs(String extendClass) {
+  public static List<Option> getExistDbs(String... extendClass) {
     if (OfflineDatasourceAction.existDbs != null) {
       return OfflineDatasourceAction.existDbs;
     }
-    if (org.apache.commons.lang.StringUtils.isEmpty(extendClass)) {
+    if (extendClass == null || extendClass.length < 1) {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
 
@@ -103,7 +103,11 @@ public class PluginItems {
     IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), IWorkflowDAOFacade.class);
     Objects.requireNonNull(wfFacade, "wfFacade can not be null");
     DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
-    dbCriteria.createCriteria().andExtendClassEqualTo(extendClass);
+    List<String> extendClazzs = Lists.newArrayList(); // Lists.newArrayList(extendClass).stre;
+    for (String type : extendClass) {
+      extendClazzs.add(StringUtils.lowerCase(type));
+    }
+    dbCriteria.createCriteria().andExtendClassIn(extendClazzs);
     List<com.qlangtech.tis.workflow.pojo.DatasourceDb> dbs = wfFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
     return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
   }

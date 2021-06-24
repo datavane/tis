@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import org.apache.commons.lang.ClassUtils;
 
 import java.util.*;
 
@@ -62,12 +63,22 @@ public class DescriptorsJSON<T extends Describable<T>> {
     public static abstract class SubFormFieldVisitor implements PluginFormProperties.IVisitor {
         @Override
         public final Void visit(SuFormProperties props) {
-            String jsonMeta = IOUtils.loadResourceFromClasspath(props.parentClazz
-                    , props.parentClazz.getSimpleName() + "." + props.getSubFormFieldName() + ".json", false);
             JSONObject behaviorMeta = null;
-            if (jsonMeta != null) {
-                behaviorMeta = JSON.parseObject(jsonMeta);
+            List allSuperclasses = Lists.newArrayList(props.parentClazz);
+            allSuperclasses.addAll(ClassUtils.getAllSuperclasses(props.parentClazz));
+
+            Class superClass = null;
+            for (Object clazz : allSuperclasses) {
+                superClass = (Class) clazz;
+                String jsonMeta = IOUtils.loadResourceFromClasspath(superClass
+                        , superClass.getSimpleName() + "." + props.getSubFormFieldName() + ".json", false);
+                if (jsonMeta != null) {
+                    behaviorMeta = JSON.parseObject(jsonMeta);
+                    break;
+                }
             }
+
+
             visitSubForm(behaviorMeta, props);
             return null;
         }

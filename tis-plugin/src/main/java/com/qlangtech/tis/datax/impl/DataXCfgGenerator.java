@@ -149,7 +149,19 @@ public class DataXCfgGenerator {
         IDataxProcessor.TableMap tableMapper = null;
         while (subTasks.hasNext()) {
             readerContext = subTasks.next();
-            if (unStructed2RDBMS) {
+            if (!dataxProcessor.isWriterSupportMultiTableInReader(this.pluginCtx)) {
+
+                if (tabAlias.size() == 1) {
+                    // 针对ES的情况
+                    Optional<IDataxProcessor.TableMap> first
+                            = tabAlias.values().stream().filter((t) -> t instanceof IDataxProcessor.TableMap)
+                            .map((t) -> (IDataxProcessor.TableMap) t).findFirst();
+                    if (first.isPresent()) {
+                        tableMapper = first.get();
+                    }
+                }
+                Objects.requireNonNull(tableMapper, "tabMapper can not be null");
+            } else if (unStructed2RDBMS) {
                 // 是在DataxAction的doSaveWriterColsMeta() 方法中持久化保存的
                 for (IDataxProcessor.TableAlias tab : tabAlias.values()) {
                     tableMapper = (IDataxProcessor.TableMap) tab;
@@ -169,6 +181,8 @@ public class DataXCfgGenerator {
                 // example:oss -> oss
                 tableMapper = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
             }
+
+
 
             for (ISelectedTab.ColMeta colMeta : tableMapper.getSourceCols()) {
                 if (colMeta.getType() == null) {
@@ -204,6 +218,8 @@ public class DataXCfgGenerator {
 
     private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias
             , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
+
+
         IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceEntityName());
         if (tableAlias == null) {
             throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias'");

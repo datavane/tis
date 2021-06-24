@@ -37,7 +37,7 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
-import com.qlangtech.tis.plugin.ValidatorCommons;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -50,6 +50,7 @@ import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
@@ -170,7 +171,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
 
-
   @Override
   public final String getExecId() {
     String execId = this.getRequest().getHeader("execId");
@@ -199,6 +199,15 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       case APP_NAME_DUPLICATE:
         AppNameDuplicateValidator nameDuplicateValidator = new AppNameDuplicateValidator(this.getApplicationDAO());
         return nameDuplicateValidator.validate(this, context, fieldName, value);
+//      case DB_NAME_DUPLICATE:
+//        DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
+//        dbCriteria.createCriteria().andNameEqualTo(value);
+//        int existDBsCount = this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(dbCriteria);
+//        if (existDBsCount > 0) {
+//          this.addFieldError(context, fieldName, IdentityName.MSG_ERROR_NAME_DUPLICATE);
+//          return false;
+//        }
+//        return true;
       default:
         throw new IllegalStateException("illegal logicType:" + logicType);
     }

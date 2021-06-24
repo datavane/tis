@@ -32,6 +32,7 @@ import java.util.*;
  */
 public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_DFTVAL_PROP = "dftVal";
+    public static final String KEY_DISABLE = "disable";
 
 
     private static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz) {
@@ -164,6 +165,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public String getDftVal() {
             Object o = props.get(KEY_DFTVAL_PROP);
             return o == null ? null : String.valueOf(o);
+        }
+
+        public boolean getBoolean(String key) {
+            return this.props.getBooleanValue(key);
         }
 
         public JSONObject getProps() {

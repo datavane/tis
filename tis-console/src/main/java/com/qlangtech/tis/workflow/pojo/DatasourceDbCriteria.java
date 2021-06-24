@@ -228,6 +228,11 @@ public class DatasourceDbCriteria extends TISBaseCriteria {
       return this;
     }
 
+    public Criteria andExtendClassIn(List<String> values) {
+      addCriterion("extend_class in", values, "extend_class");
+      return this;
+    }
+
     public Criteria andNameNotEqualTo(String value) {
       addCriterion("name <>", value, "name");
       return this;

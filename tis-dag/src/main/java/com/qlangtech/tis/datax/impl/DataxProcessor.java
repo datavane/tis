@@ -88,6 +88,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         processMeta.setReaderRDBMS(descriptor.isRdbms());
         processMeta.setReaderHasExplicitTable(descriptor.hasExplicitTable());
         processMeta.setWriterRDBMS(writerDesc.isRdbms());
+        processMeta.setWriterSupportMultiTableInReader(writerDesc.isSupportMultiTable());
+
         return processMeta;
     }
 
@@ -118,6 +120,12 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     public boolean isRDBMS2UnStructed(IPluginContext pluginCtx) {
         DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(pluginCtx, this.identityValue());
         return dataXCreateProcessMeta.isReaderRDBMS() && !dataXCreateProcessMeta.isWriterRDBMS();
+    }
+
+    @Override
+    public boolean isWriterSupportMultiTableInReader(IPluginContext pluginCtx) {
+        DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(pluginCtx, this.identityValue());
+        return dataXCreateProcessMeta.isWriterSupportMultiTableInReader();
     }
 
     @Override

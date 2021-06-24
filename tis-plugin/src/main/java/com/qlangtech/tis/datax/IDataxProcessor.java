@@ -48,6 +48,8 @@ public interface IDataxProcessor {
 
     public boolean isRDBMS2UnStructed(IPluginContext pluginCtx);
 
+    public boolean isWriterSupportMultiTableInReader(IPluginContext pluginCtx);
+
     /**
      * dataX配置文件列表
      *

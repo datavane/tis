@@ -23,6 +23,7 @@ import com.qlangtech.tis.plugin.TestComponentMeta;
 import com.qlangtech.tis.plugin.TestPluginStore;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
+import com.qlangtech.tis.util.TestAttrValMap;
 import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.TestUploadPluginMeta;
 import junit.framework.Test;
@@ -49,6 +50,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestDataSourceFactoryPluginStore.class);
         suite.addTestSuite(TestUpdateCenter.class);
         suite.addTestSuite(TestDescriptor.class);
+        suite.addTestSuite(TestAttrValMap.class);
 
         return suite;
     }

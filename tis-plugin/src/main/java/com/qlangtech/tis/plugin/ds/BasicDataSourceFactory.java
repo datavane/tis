@@ -15,25 +15,33 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.qlangtech.tis.db.parser.DBConfigParser;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-06-06 19:48
  **/
-public abstract class BasicDataSourceFactory extends DataSourceFactory {
+public abstract class BasicDataSourceFactory extends DataSourceFactory implements JdbcUrlBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(BasicDataSourceFactory.class);
 
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})
     public String name;
@@ -47,24 +55,24 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
 
     @FormField(ordinal = 3, type = FormFieldType.PASSWORD, validate = {})
     public String password;
+    /**
+     * 节点描述
+     */
+    @FormField(ordinal = 5, type = FormFieldType.TEXTAREA, validate = {Validator.require})
+    public String nodeDesc;
 
-    @FormField(ordinal = 4, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+    @FormField(ordinal = 7, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
     public int port;
     /**
      * 数据库编码
      */
-    @FormField(ordinal = 5, type = FormFieldType.ENUM, validate = {Validator.require, Validator.identity})
+    @FormField(ordinal = 9, type = FormFieldType.ENUM, validate = {Validator.require, Validator.identity})
     public String encode;
     /**
      * 附加参数
      */
-    @FormField(ordinal = 5, type = FormFieldType.INPUTTEXT)
+    @FormField(ordinal = 11, type = FormFieldType.INPUTTEXT)
     public String extraParams;
-    /**
-     * 节点描述
-     */
-    @FormField(ordinal = 6, type = FormFieldType.TEXTAREA, validate = {Validator.require})
-    public String nodeDesc;
 
 
     public String getUserName() {
@@ -100,40 +108,18 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
         // List<ColumnMetaData> columns = Lists.newArrayList();
         String jdbcUrl = buidJdbcUrl(config, ip, dbname);
 
-        return parseTableColMeta(table, config.getUserName(), config.getPassword(), jdbcUrl);
+        return parseTableColMeta(table, jdbcUrl);
     }
-
-
-
-
 
 
     @Override
     public final List<String> getTablesInDB() {
         try {
             final List<String> tabs = new ArrayList<>();
-
             final DBConfig dbConfig = getDbConfig();
-
             dbConfig.vistDbName((config, ip, databaseName) -> {
-                visitConnection(config, ip, databaseName, config.getUserName(), config.getPassword(), (conn) -> {
-                    Statement statement = null;
-                    ResultSet resultSet = null;
-                    try {
-                        statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                        statement.execute("show tables");
-                        resultSet = statement.getResultSet();
-                        while (resultSet.next()) {
-                            tabs.add(resultSet.getString(1));
-                        }
-                    } finally {
-                        if (resultSet != null) {
-                            resultSet.close();
-                        }
-                        if (statement != null) {
-                            statement.close();
-                        }
-                    }
+                visitConnection(config, ip, databaseName, (conn) -> {
+                    refectTableInDB(tabs, conn);
                 });
                 return true;
             });
@@ -143,27 +129,60 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
         }
     }
 
+    protected void refectTableInDB(List<String> tabs, Connection conn) throws SQLException {
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            statement.execute(getRefectTablesSql());
+            resultSet = statement.getResultSet();
+            while (resultSet.next()) {
+                tabs.add(resultSet.getString(1));
+            }
+        } finally {
+            if (resultSet != null) {
+                resultSet.close();
+            }
+            if (statement != null) {
+                statement.close();
+            }
+        }
+    }
+
+    protected String getRefectTablesSql() {
+        return "show tables";
+    }
+
     protected DBConfig getDbConfig() {
-        final DBConfig dbConfig = new DBConfig();
+        final DBConfig dbConfig = new DBConfig(this);
         dbConfig.setName(this.dbName);
-        dbConfig.setPassword(this.password);
-        dbConfig.setUserName(this.userName);
-        dbConfig.setPort(this.port);
         dbConfig.setDbEnum(DBConfigParser.parseDBEnum(dbName, this.nodeDesc));
         return dbConfig;
     }
 
-//    @Override
-//    public String getName() {
-//        if (StringUtils.isEmpty(this.dbName)) {
-//            throw new IllegalStateException("prop dbName can not be null");
-//        }
-//        return this.dbName;
-//    }
+
+    public List<String> getJdbcUrls() {
+        final DBConfig dbLinkMetaData = this.getDbConfig();
+        List<String> jdbcUrls = Lists.newArrayList();
+        dbLinkMetaData.vistDbURL(true, (dbName, jdbcUrl) -> {
+            jdbcUrls.add(jdbcUrl);
+        }, false);
+        return jdbcUrls;
+    }
+
+    @Override
+    public DataDumpers getDataDumpers(TISTable table) {
+        if (table == null) {
+            throw new IllegalArgumentException("param table can not be null");
+        }
+        List<String> jdbcUrls = getJdbcUrls();
+
+        return DataDumpers.create(jdbcUrls, table); // new DataDumpers(length, dsIt);
+    }
 
 
     private void visitConnection(DBConfig db, String ip, String dbName
-            , String username, String password, IConnProcessor p) throws Exception {
+            , IConnProcessor p) throws Exception {
         if (db == null) {
             throw new IllegalStateException("param db can not be null");
         }
@@ -173,9 +192,7 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
         if (StringUtils.isEmpty(dbName)) {
             throw new IllegalArgumentException("param dbName can not be null");
         }
-        if (StringUtils.isEmpty(username)) {
-            throw new IllegalArgumentException("param username can not be null");
-        }
+
 //        if (StringUtils.isEmpty(password)) {
 //            throw new IllegalArgumentException("param password can not be null");
 //        }
@@ -185,18 +202,40 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory {
         //Connection conn = null;
         String jdbcUrl = buidJdbcUrl(db, ip, dbName);
         try {
-            validateConnection(jdbcUrl, username, password, p);
+            validateConnection(jdbcUrl, p);
         } catch (Exception e) {
             //MethodHandles.lookup().lookupClass()
             throw new TisException("请确认插件:" + this.getClass().getSimpleName() + "配置:" + this.identityValue() + ",jdbcUrl:" + jdbcUrl, e);
         }
     }
 
-    protected abstract String buidJdbcUrl(DBConfig db, String ip, String dbName);
 
+    @Override
+    protected Class<BasicRdbmsDataSourceFactoryDescriptor> getExpectDesClass() {
+        return BasicRdbmsDataSourceFactoryDescriptor.class;
+    }
 
     public interface IConnProcessor {
         void vist(Connection conn) throws SQLException;
+    }
+
+    public abstract static class BasicRdbmsDataSourceFactoryDescriptor extends BaseDataSourceFactoryDescriptor<BasicDataSourceFactory> {
+        private static final Pattern urlParamsPattern = Pattern.compile("(\\w+?\\=\\w+?)(\\&\\w+?\\=\\w+?)*");
+
+        public boolean validateExtraParams(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
+
+            Matcher matcher = urlParamsPattern.matcher(value);
+            if (!matcher.matches()) {
+                msgHandler.addFieldError(context, fieldName, "不符合格式：" + urlParamsPattern);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    public static void main(String[] args) {
+        Matcher matcher = BasicRdbmsDataSourceFactoryDescriptor.urlParamsPattern.matcher("kkk=lll&bbb=lll");
+        System.out.println(matcher.matches());
     }
 
 }

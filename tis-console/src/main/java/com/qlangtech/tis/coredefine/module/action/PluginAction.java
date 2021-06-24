@@ -28,6 +28,7 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
@@ -233,7 +234,7 @@ public class PluginAction extends BasicModule {
     boolean faild = false;
     List<PluginItems> categoryPlugins = Lists.newArrayList();
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
-    final boolean bizValidate = this.getBoolean("verify");
+    final boolean verify = this.getBoolean("verify");
     PluginItemsParser pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
       // items = Lists.newArrayList();
@@ -241,13 +242,13 @@ public class PluginAction extends BasicModule {
       // subFormFilter = pluginMeta.getSubFormFilter();
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
       // hEnum = pluginMeta.getHeteroEnum();
-      pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, bizValidate);
+      pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, verify);
       if (pluginItemsParser.faild) {
         faild = true;
       }
       categoryPlugins.add(pluginItemsParser.pluginItems);
     }
-    if (this.hasErrors(context) || bizValidate) {
+    if (this.hasErrors(context) || verify) {
       return;
     }
     if (faild) {
@@ -263,15 +264,16 @@ public class PluginAction extends BasicModule {
     }
     addActionMessage(context, "配置保存成功");
     // 成功保存的主键信息返回给客户端
-    this.setBizResult(context, describables.stream()
-      .filter((d) -> d instanceof IdentityName)
-      .map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
-
+    if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
+      this.setBizResult(context, describables.stream()
+        .filter((d) -> d instanceof IdentityName)
+        .map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
+    }
   }
 
 
   public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta
-    , Context context, int pluginIndex, JSONArray itemsArray, boolean bizValidate) {
+    , Context context, int pluginIndex, JSONArray itemsArray, boolean verify) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     PluginItemsParser parseResult = new PluginItemsParser();
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
@@ -293,7 +295,7 @@ public class PluginAction extends BasicModule {
     for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
       attrValMap = describableAttrValMapList.get(itemIndex);
       Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-      if (!(validateResult = attrValMap.validate(context, bizValidate)).isValid()) {
+      if (!(validateResult = attrValMap.validate(context, verify)).isValid()) {
         parseResult.faild = true;
       } else {
         validateResult.setDescriptor(attrValMap.descriptor);
@@ -358,7 +360,7 @@ public class PluginAction extends BasicModule {
       datasourceDb.setSyncOnline(new Byte("0"));
       datasourceDb.setCreateTime(new Date());
       datasourceDb.setOpTime(new Date());
-      datasourceDb.setExtendClass((dbDesc.instance.getClass().getName()));
+      datasourceDb.setExtendClass(StringUtils.lowerCase(dbDesc.instance.getDescriptor().getDisplayName()));
 
       DatasourceDbCriteria criteria = new DatasourceDbCriteria();
       criteria.createCriteria().andNameEqualTo(dbName);
@@ -372,7 +374,7 @@ public class PluginAction extends BasicModule {
        */
       int dbId = module.getWorkflowDAOFacade().getDatasourceDbDAO().insertSelective(datasourceDb);
       datasourceDb.setId(dbId);
-      // this.setBizResult(context, datasourceDb);
+      //module.setBizResult(context, datasourceDb);
     } else {
       // 更新状态
       DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();

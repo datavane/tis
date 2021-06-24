@@ -18,7 +18,6 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
@@ -28,7 +27,6 @@ import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
-import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.JoinRule;
@@ -37,7 +35,6 @@ import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
@@ -60,11 +57,8 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
-import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.PluginItems;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
-import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
@@ -73,7 +67,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.struts2.ServletActionContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -1005,8 +998,6 @@ public class OfflineDatasourceAction extends BasicModule {
   }
 
 
-
-
   public static List<Option> existDbs = null;
 
 
@@ -1048,13 +1039,13 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context, configSuit);
   }
 
-  private void confusionPassword(DBConfig db) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < db.getPassword().length(); i++) {
-      sb.append("*");
-    }
-    db.setPassword(sb.toString());
-  }
+//  private void confusionPassword(DBConfig db) {
+//    StringBuilder sb = new StringBuilder();
+//    for (int i = 0; i < db.getPassword().length(); i++) {
+//      sb.append("*");
+//    }
+//    db.setPassword(sb.toString());
+//  }
 
   /**
    * Do get datasource table. 获取一个table的git配置信息
@@ -1306,12 +1297,9 @@ public class OfflineDatasourceAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT)
   public void doDeleteDatasourceDbById(Context context) throws Exception {
     Integer id = this.getInt("id");
+    Objects.requireNonNull(id, "param id can not be null");
     DbScope dbModel = DbScope.parse(this.getString("dbModel"));
-    if (id == null) {
-      this.addErrorMessage(context, "db id不能为空");
-      return;
-    }
-    this.offlineManager.deleteDatasourceDbById(id, dbModel, this, context);
+    this.offlineManager.deleteDbById(id, dbModel, this, context);
   }
 
   /**
@@ -1352,28 +1340,7 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     this.offlineManager.confirmWorkflowChange(id, this, context);
-    // this.doGetWorkflows(context);
   }
-
-
-//  /**
-//   * 创建一个工作流变更
-//   *
-//   * @param context
-//   */
-//  public void doCreateWorkflowChange(Context context) {
-//    String changeReason = this.getString("changeReason");
-//    if (StringUtils.isBlank(changeReason)) {
-//      this.addErrorMessage(context, "请输入变更理由");
-//      return;
-//    }
-//    String workflowName = this.getString("workflowName");
-//    if (StringUtils.isBlank(workflowName)) {
-//      this.addErrorMessage(context, "请选择工作流");
-//      return;
-//    }
-//    this.offlineManager.createWorkflowChange(changeReason, workflowName, this, context);
-//  }
 
   /**
    * 获取一个工作流的配置

@@ -61,7 +61,8 @@ public class DescriptorExtensionList<T extends Describable<T>, D extends Descrip
         for (ExtensionComponent<Descriptor> c : set) {
             Descriptor d = c.getInstance();
             try {
-                if (d.getT() == describableType) {
+               // if (d.getT() == describableType) {
+               if (describableType.isAssignableFrom(d.getT())  ) {
                     r.add((ExtensionComponent) c);
                 }
             } catch (IllegalStateException e) {

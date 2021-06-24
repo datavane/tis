@@ -12,35 +12,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.plugin;
 
+package com.qlangtech.tis.util.plugin;
+
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
 
 /**
- * The plugin global unique identity name
- *
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public interface IdentityName {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-06-22 10:37
+ **/
+public abstract class TestPlugin implements Describable<TestPlugin> {
 
-    String MSG_ERROR_NAME_DUPLICATE = "名称重复";
-
-//    /**
-//     * 相同类型的插件不能重名
-//     *
-//     * @return
-//     */
-//    String getName();
-
-    /**
-     * 取得唯一ID
-     *
-     * @return
-     */
-    default String identityValue() {
-        Describable plugin = (Describable) this;
-        return plugin.getDescriptor().getIdentityValue(plugin);
+    @Override
+    public Descriptor<TestPlugin> getDescriptor() {
+        Descriptor<TestPlugin> descriptor = TIS.get().getDescriptor(this.getClass());
+        return descriptor;
     }
-
 }

@@ -250,7 +250,7 @@ public class SchemaAction extends BasicModule {
     }
     ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, form.getDataxName());
 
-    JSONObject mergeTarget = JSON.parseObject(StringUtils.defaultIfEmpty(form.getSchemaXmlContent(), "{\"column\":[]}"));
+    JSONObject mergeTarget = ISearchEngineTypeTransfer.getOriginExpertSchema(form.getSchemaXmlContent());
 
     String esMapping = JsonUtil.toString(typeTransfer.mergeFromStupidModel(form, mergeTarget));
     UploadResource schemaResource = new UploadResource();
@@ -851,7 +851,7 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   @Func(value = PermissionConstant.APP_ADD)
-  public void doGotoAppCreateConfirm(Context context) throws Exception {
+  public void doGotoSolrAppCreateConfirm(Context context) throws Exception {
     this.errorsPageShow(context);
     // 这里只做schema的校验
     CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);

@@ -66,6 +66,7 @@ public class PropertyType implements IPropertyType {
         this.formField = formField;
     }
 
+
     /**
      * 是否是主键
      *

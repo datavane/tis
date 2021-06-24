@@ -23,62 +23,67 @@ import java.util.Date;
  */
 public class DatasourceTable implements Serializable, Comparable<DatasourceTable> {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private Integer id;
+    private Integer id;
 
-  private String name;
+    private String name;
 
-  private Integer dbId;
+    private Integer dbId;
 
-  private Date createTime;
+    private Date createTime;
 
-  private Date opTime;
-
-
-  public Integer getId() {
-    return id;
-  }
-
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name == null ? null : name.trim();
-  }
-
-  public Integer getDbId() {
-    return dbId;
-  }
-
-  public void setDbId(Integer dbId) {
-    this.dbId = dbId;
-  }
+    private Date opTime;
 
 
-  public Date getCreateTime() {
-    return createTime;
-  }
+    public Integer getId() {
+        return id;
+    }
 
-  public void setCreateTime(Date createTime) {
-    this.createTime = createTime;
-  }
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-  public Date getOpTime() {
-    return opTime;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public void setOpTime(Date opTime) {
-    this.opTime = opTime;
-  }
+    public void setName(String name) {
+        this.name = name == null ? null : name.trim();
+    }
 
-  @Override
-  public int compareTo(DatasourceTable o) {
-    return this.getName().compareTo(o.getName());
-  }
+    public Integer getDbId() {
+        return dbId;
+    }
+
+    public void setDbId(Integer dbId) {
+        this.dbId = dbId;
+    }
+
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getOpTime() {
+        return opTime;
+    }
+
+    public void setOpTime(Date opTime) {
+        this.opTime = opTime;
+    }
+
+    @Override
+    public int compareTo(DatasourceTable o) {
+        return this.getName().compareTo(o.getName());
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

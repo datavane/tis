@@ -46,7 +46,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
@@ -214,16 +217,9 @@ public class TIS {
 
     public static void deleteDB(String dbName, DbScope dbScope) {
         try {
-            if (dbScope == DbScope.DETAILED) {
-                DataSourceFactoryPluginStore dsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, DbScope.DETAILED));
-                dsPluginStore.deleteDB();
-                databasePluginStore.clear(dsPluginStore.getDSKey());
-            }
-
-            DataSourceFactoryPluginStore facetDsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, DbScope.FACADE));
-            facetDsPluginStore.deleteDB();
-            databasePluginStore.clear(facetDsPluginStore.getDSKey());
-
+            DataSourceFactoryPluginStore dsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, dbScope));
+            dsPluginStore.deleteDB();
+            databasePluginStore.clear(dsPluginStore.getDSKey());
         } catch (Exception e) {
             throw new RuntimeException(dbName, e);
         }

@@ -90,7 +90,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
         return result;
       }
 
-    } catch (Exception e) {
+    } catch (Throwable e) {
       logger.error(e.getMessage(), e);
       if (!disableTransaction && !status.isCompleted()) {
         transactionManager.rollback(status);
