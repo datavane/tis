@@ -1,33 +1,32 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.flume;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flume.Channel;
-import org.apache.flume.Context;
-import org.apache.flume.Event;
-import org.apache.flume.EventDeliveryException;
-import org.apache.flume.Transaction;
+import org.apache.flume.*;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.sink.AbstractSink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import com.qlangtech.tis.manage.common.TisUTF8;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -50,23 +49,23 @@ public class TisIncrLoggerSink extends AbstractSink implements Configurable {
 
     @Override
     public void configure(Context context) {
-    // String myProp = context.getString("myProp", "defaultValue");
-    // Process the myProp value (e.g. validation)
-    // Store myProp for later retrieval by process() method
-    // this.myProp = myProp;
+        // String myProp = context.getString("myProp", "defaultValue");
+        // Process the myProp value (e.g. validation)
+        // Store myProp for later retrieval by process() method
+        // this.myProp = myProp;
     }
 
     @Override
     public void start() {
-    // Initialize the connection to the external repository (e.g. HDFS) that
-    // this Sink will forward Events to ..
+        // Initialize the connection to the external repository (e.g. HDFS) that
+        // this Sink will forward Events to ..
     }
 
     @Override
     public void stop() {
-    // Disconnect from the external respository and do any
-    // additional cleanup (e.g. releasing resources or nulling-out
-    // field values) ..
+        // Disconnect from the external respository and do any
+        // additional cleanup (e.g. releasing resources or nulling-out
+        // field values) ..
     }
 
     @Override
@@ -92,7 +91,11 @@ public class TisIncrLoggerSink extends AbstractSink implements Configurable {
                     MDC.put("application", application);
                     MDC.put("group", execGroup);
                     MDC.put("host", host);
-                    MDC.put("app", headers.get("app"));
+                    MDC.put(TISCollectionUtils.KEY_COLLECTION, headers.get(TISCollectionUtils.KEY_COLLECTION));
+                    Object taskid = headers.get(IParamContext.KEY_TASK_ID);
+                    if (taskid != null) {
+                        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(taskid));
+                    }
                     String logtype = headers.get("logtype");
                     if (StringUtils.isEmpty(logtype)) {
                         logger.info(new String(event.getBody(), TisUTF8.get()));
@@ -102,16 +105,16 @@ public class TisIncrLoggerSink extends AbstractSink implements Configurable {
                 } finally {
                     MDC.clear();
                 }
-            // logger.info("take an event {}", event);
-            // System.out.println(new String(event.getBody(), "utf8"));
-            // for (Map.Entry<String, String> entry : event.getHeaders()
-            // .entrySet()) {
-            // System.out.println(entry.getKey() + ":" + entry.getValue());
-            // }
-            // System.out
-            // .println("==========================================");
-            // Send the Event to the external repository.
-            // storeSomeData(e);
+                // logger.info("take an event {}", event);
+                // System.out.println(new String(event.getBody(), "utf8"));
+                // for (Map.Entry<String, String> entry : event.getHeaders()
+                // .entrySet()) {
+                // System.out.println(entry.getKey() + ":" + entry.getValue());
+                // }
+                // System.out
+                // .println("==========================================");
+                // Send the Event to the external repository.
+                // storeSomeData(e);
             }
             txn.commit();
             if (txnEventCount < 1) {
@@ -119,7 +122,7 @@ public class TisIncrLoggerSink extends AbstractSink implements Configurable {
             } else {
                 return Status.READY;
             }
-        // status = Status.READY;
+            // status = Status.READY;
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
             txn.rollback();

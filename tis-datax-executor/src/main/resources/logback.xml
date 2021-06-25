@@ -26,7 +26,7 @@
         <batchSize>100</batchSize>
         <reportingWindow>1000</reportingWindow>
         <additionalAvroHeaders>
-            logtype=datax
+            logtype=fullbuild
         </additionalAvroHeaders>
         <application>datax</application>
         <layout class="ch.qos.logback.classic.PatternLayout">
@@ -38,7 +38,7 @@
     <root>
         <level value="INFO"/>
         <appender-ref ref="STDOUT"/>
-<!--        <appender-ref ref="datax"/>-->
+        <appender-ref ref="datax"/>
     </root>
 
 </configuration>

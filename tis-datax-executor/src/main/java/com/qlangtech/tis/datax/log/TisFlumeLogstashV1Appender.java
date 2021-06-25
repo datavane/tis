@@ -18,9 +18,11 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.gilt.logback.flume.FlumeLogstashV1Appender;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.HashMap;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 /**
@@ -51,12 +53,23 @@ public class TisFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
     protected Map<String, String> extractHeaders(ILoggingEvent eventObject) {
         Map<String, String> result = super.extractHeaders(eventObject);
         final Map<String, String> mdc = eventObject.getMDCPropertyMap();
+
+        String taskId = mdc.get(IParamContext.KEY_TASK_ID);
+
         String collection = StringUtils.defaultIfEmpty(mdc.get(TISCollectionUtils.KEY_COLLECTION), "unknown");
         result.put(TISCollectionUtils.KEY_COLLECTION, collection);
+        if (taskId != null) {
+            result.put(IParamContext.KEY_TASK_ID, taskId);
+        }
         return result;
     }
 
-//    @Override
+    @Override
+    protected String resolveHostname() throws UnknownHostException {
+        return NetUtils.getHostname();
+    }
+
+    //    @Override
 //    protected HashMap<String, String> createHeaders() {
 //        HashMap<String, String> headers = new HashMap<>();
 //        //headers.put(ENVIRONMENT_INCR_EXEC_GROUP, "tis-datax");

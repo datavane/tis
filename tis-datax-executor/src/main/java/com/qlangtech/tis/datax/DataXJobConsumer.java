@@ -18,6 +18,8 @@ package com.qlangtech.tis.datax;
 import com.qlangtech.tis.cloud.AdapterTisCoordinator;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.exec.*;
 import org.apache.commons.lang.StringUtils;
@@ -33,6 +35,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.io.File;
 import java.util.List;
@@ -183,6 +186,8 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         String jobName = msg.getJobName();
         String dataxName = msg.getDataXName();
         String jobPath = msg.getJobPath();
+        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
+        MDC.put(TISCollectionUtils.KEY_COLLECTION, dataxName);
         logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
 
         synchronized (DataXJobConsumer.class) {

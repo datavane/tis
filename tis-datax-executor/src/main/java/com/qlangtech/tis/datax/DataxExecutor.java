@@ -38,6 +38,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ComponentMeta;
@@ -122,6 +123,9 @@ public final class DataxExecutor {
         String dataXName = args[2];
         String jobPath = args[3];
         String incrStateCollectAddress = args[4];
+
+        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
+        MDC.put(TISCollectionUtils.KEY_COLLECTION, dataXName);
 
         if (StringUtils.isEmpty(jobName)) {
             throw new IllegalArgumentException("arg 'jobName' can not be null");
