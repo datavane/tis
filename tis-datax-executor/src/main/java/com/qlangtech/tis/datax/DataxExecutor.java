@@ -33,6 +33,7 @@ import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.manage.IAppSource;
@@ -147,8 +148,9 @@ public final class DataxExecutor {
             dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
         } finally {
             statusRpc.close();
+            TisFlumeLogstashV1Appender.instance.stop();
         }
-
+        logger.info("dataX:" + dataXName + ",taskid:" + jobId + " finished");
         System.exit(0);
     }
 

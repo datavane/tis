@@ -31,10 +31,14 @@ import java.util.Map;
  */
 public class TisFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
 
-//    public static final String ENVIRONMENT_INCR_EXEC_GROUP = "incr_exec_group";
+    public static TisFlumeLogstashV1Appender instance;
 
     public TisFlumeLogstashV1Appender() {
         super();
+        if (instance != null) {
+            throw new IllegalStateException(this.getClass().getSimpleName() + " shall have not been initialize");
+        }
+        instance = this;
         super.setFlumeAgents(Config.getAssembleHost() + ":" + Config.LogFlumeAddressPORT);
     }
 
