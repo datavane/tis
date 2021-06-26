@@ -146,6 +146,9 @@ public final class DataxExecutor {
         try {
             DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
             dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+            System.exit(1);
         } finally {
             statusRpc.close();
             TisFlumeLogstashV1Appender.instance.stop();
