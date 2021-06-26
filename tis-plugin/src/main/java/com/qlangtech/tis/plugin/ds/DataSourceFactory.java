@@ -139,7 +139,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 String colName = null;
                 while (columns1.next()) {
                     columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME"))
-                            , columns1.getInt("DATA_TYPE"), pkCols.contains(colName)));
+                            , getDataType(columns1), pkCols.contains(colName)));
                 }
 
             } finally {
@@ -148,6 +148,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             }
         });
         return columns;
+    }
+
+    protected int getDataType(ResultSet cols) throws SQLException {
+        return cols.getInt("DATA_TYPE");
     }
 
     protected void closeResultSet(ResultSet rs) {
