@@ -156,6 +156,12 @@ public final class DataxExecutor {
             dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
+            try {
+                //确保日志向远端写入了
+                Thread.sleep(3000);
+            } catch (InterruptedException ex) {
+
+            }
             System.exit(1);
         }
         logger.info("dataX:" + dataXName + ",taskid:" + jobId + " finished");
