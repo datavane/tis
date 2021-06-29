@@ -61,7 +61,8 @@ public class CrontabListAction extends BasicModule {
       result.put(o);
     }
     //
-    context.put("query_result", result.toString(1));
+    // context.put("query_result", result.toString(1));
+    this.setBizResult(context, result);
   }
 
   /**

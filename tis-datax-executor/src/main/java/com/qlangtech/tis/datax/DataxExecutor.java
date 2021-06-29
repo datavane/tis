@@ -141,17 +141,22 @@ public final class DataxExecutor {
             throw new IllegalArgumentException("arg 'incrStateCollectAddress' can not be null");
         }
 
+
         //Fibonacci.test();
         StatusRpcClient.AssembleSvcCompsite statusRpc = StatusRpcClient.connect2RemoteIncrStatusServer(incrStateCollectAddress);
+        Runtime.getRuntime().addShutdownHook(new Thread("dataX ShutdownHook") {
+            @Override
+            public void run() {
+                statusRpc.close();
+                TisFlumeLogstashV1Appender.instance.stop();
+            }
+        });
         try {
             DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
             dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
             System.exit(1);
-        } finally {
-            statusRpc.close();
-            TisFlumeLogstashV1Appender.instance.stop();
         }
         logger.info("dataX:" + dataXName + ",taskid:" + jobId + " finished");
         System.exit(0);

@@ -31,6 +31,7 @@ import java.util.concurrent.Callable;
 public class Test {
 
     public static void main(String[] args) throws Exception {
+        System.out.println(  Test.class.getResource("common-version-info.properties"));
 
 
         System.out.println("dddd");
