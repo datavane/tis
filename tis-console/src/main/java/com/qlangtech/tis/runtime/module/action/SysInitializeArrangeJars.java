@@ -55,7 +55,7 @@ public class SysInitializeArrangeJars {
     new SubProj("tis-assemble", commons_) //
     , new SubProj("solr", commons_)
     , new SubProj("tjs", commons_)
-  //  , new SubProj("tis-collect", commons_)
+    //  , new SubProj("tis-collect", commons_)
   );
 
   static final Memoizer<String, List<File>> jars = new Memoizer<String, List<File>>() {
@@ -96,8 +96,9 @@ public class SysInitializeArrangeJars {
 
     for (SubProj sbDir : subDirs) {
       subModuleLibDir = new File(uberDir, sbDir.getName() + "/lib");
-      if (!subModuleLibDir.exists()) {
-        throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
+      if (!subModuleLibDir.getParentFile().exists()) {
+        // throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
+        continue;
       }
       for (String jarFileName : subModuleLibDir.list()) {
         if (sbDir.isMatch(jarFileName)) {
@@ -113,9 +114,9 @@ public class SysInitializeArrangeJars {
       for (File f : subModuleJar.getValue()) {
         if (first) {
           File dest = new File(webStartDir, subModuleJar.getKey());
-          if(dest.exists()){
+          if (dest.exists()) {
             FileUtils.deleteQuietly(f);
-          }else{
+          } else {
             FileUtils.moveFile(f, dest);
           }
           first = false;
