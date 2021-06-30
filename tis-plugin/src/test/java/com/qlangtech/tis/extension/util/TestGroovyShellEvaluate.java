@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.extension.util;
 
+import com.qlangtech.tis.manage.common.Option;
 import junit.framework.TestCase;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -25,7 +26,7 @@ import java.util.List;
  */
 public class TestGroovyShellEvaluate extends TestCase {
     public void testEval() {
-        List<String> fieldTyps = GroovyShellEvaluate.eval("com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()");
+        List<Option> fieldTyps = GroovyShellEvaluate.eval("com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()");
         assertNotNull(fieldTyps);
 
         assertTrue(CollectionUtils.isEqualCollection(com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all(), fieldTyps));
