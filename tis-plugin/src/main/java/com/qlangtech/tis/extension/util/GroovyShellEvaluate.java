@@ -42,7 +42,6 @@ public class GroovyShellEvaluate {
     final static GroovyShell shell = new GroovyShell(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
-            // return super.findClass(name);
             return TIS.get().getPluginManager().uberClassLoader.findClass(name);
         }
     });

@@ -78,7 +78,7 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
 
     private static final class CustomerGroovyClassLoader extends GroovyClassLoader {
         public CustomerGroovyClassLoader() {
-            super(new ClassLoader() {
+            super(new ClassLoader(SuFormProperties.class.getClassLoader()) {
                       @Override
                       protected Class<?> findClass(String name) throws ClassNotFoundException {
                           // return super.findClass(name);
@@ -87,6 +87,7 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
                   }
             );
         }
+
         @SuppressWarnings("all")
         public void loadMyClass(String name, String script) throws Exception {
             CompilationUnit unit = new CompilationUnit();
