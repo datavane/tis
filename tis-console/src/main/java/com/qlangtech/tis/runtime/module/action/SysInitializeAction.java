@@ -218,9 +218,11 @@ public class SysInitializeAction   //extends BasicModule
       throw new IllegalStateException("tis has initialized:" + getSysInitializedTokenFile().getAbsolutePath());
     }
 
+    logger.info("needZkInit:{}", needZkInit);
 
     if (needZkInit && !initializeZkPath(Config.getZKHost())) {
       // 初始化ZK失败
+      logger.warn("ZkInit falid,zkAddress:{}", Config.getZKHost());
       return;
     }
 
@@ -292,14 +294,22 @@ public class SysInitializeAction   //extends BasicModule
     }
 
     ZooKeeper zk = null;
+    StringBuffer buildLog = new StringBuffer();
+    String createPath = null;
     try {
       zk = new ZooKeeper(zkServer, 50000, null);
       zk.getChildren("/", false);
-
-      ZkUtils.guaranteeExist(zk, zkSubDir + "/tis");
-      ZkUtils.guaranteeExist(zk, zkSubDir + "/tis-lock/dumpindex");
-      ZkUtils.guaranteeExist(zk, zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG);
-
+      buildLog.append("create zkServer ").append(zkServer);
+      createPath = zkSubDir + "/tis";
+      ZkUtils.guaranteeExist(zk, createPath);
+      buildLog.append(",path1:").append(createPath);
+      createPath = zkSubDir + "/tis-lock/dumpindex";
+      ZkUtils.guaranteeExist(zk, createPath);
+      buildLog.append(",path2:").append(createPath);
+      createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
+      ZkUtils.guaranteeExist(zk, createPath);
+      buildLog.append(",path3:").append(createPath);
+      logger.info(buildLog.toString());
     } catch (Throwable e) {
       throw new IllegalStateException("zk address:" + zkServer + " can not connect Zookeeper server", e);
     } finally {
