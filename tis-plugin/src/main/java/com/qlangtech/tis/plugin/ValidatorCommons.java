@@ -24,7 +24,7 @@ public interface ValidatorCommons {
 
     Pattern PATTERN_URL = Pattern.compile("(https?|hdfs)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]");
 
-    Pattern PATTERN_RELATIVE_PATH = Pattern.compile("([\\w\\d]+/)*([\\w\\d]+|(\\*)){1}");
+    Pattern PATTERN_RELATIVE_PATH = Pattern.compile("([\\w\\d\\.]+/)*([\\w\\d\\.]+|(\\*)){1}");
     String MSG_RELATIVE_PATH_ERROR = "不符合相对路径格式要求";
 
     Pattern PATTERN_ABSOLUTE_PATH = Pattern.compile("/" + PATTERN_RELATIVE_PATH.toString());

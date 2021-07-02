@@ -21,6 +21,7 @@ import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.TestPluginExtraProps;
 import com.qlangtech.tis.plugin.TestComponentMeta;
 import com.qlangtech.tis.plugin.TestPluginStore;
+import com.qlangtech.tis.plugin.TestValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
 import com.qlangtech.tis.util.TestAttrValMap;
@@ -38,6 +39,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestValidatorCommons.class);
         suite.addTestSuite(TestHeteroList.class);
         suite.addTestSuite(TestUploadPluginMeta.class);
         suite.addTestSuite(TestValidator.class);
