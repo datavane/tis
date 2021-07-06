@@ -105,6 +105,12 @@ public interface IDataxProcessor {
     }
 
     /**
+     * 标示DataXWriter会自己创建IDataxProcessor.TableMap实例，使用这个标示必须满足isSupportMultiTable为false，具体例子可以看DataXMongodbWriter
+     */
+    interface INullTableMapCreator {
+    }
+
+    /**
      * 类似MySQL(A库)导入MySQL(B库) A库中的一张a表可能对应的B库的表为aa表名称会不一致，
      */
     public class TableMap extends TableAlias {

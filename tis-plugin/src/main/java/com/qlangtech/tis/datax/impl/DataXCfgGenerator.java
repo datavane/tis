@@ -146,7 +146,7 @@ public class DataXCfgGenerator {
         IDataxReaderContext readerContext = null;
         File configFile = null;
         List<String> subTaskName = Lists.newArrayList();
-        IDataxProcessor.TableMap tableMapper = null;
+        Optional<IDataxProcessor.TableMap> tableMapper = null;
         while (subTasks.hasNext()) {
             readerContext = subTasks.next();
             if (!dataxProcessor.isWriterSupportMultiTableInReader(this.pluginCtx)) {
@@ -157,14 +157,20 @@ public class DataXCfgGenerator {
                             = tabAlias.values().stream().filter((t) -> t instanceof IDataxProcessor.TableMap)
                             .map((t) -> (IDataxProcessor.TableMap) t).findFirst();
                     if (first.isPresent()) {
-                        tableMapper = first.get();
+                        tableMapper = first;
+                    }
+                } else {
+                    IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
+                    if (writer instanceof IDataxProcessor.INullTableMapCreator) {
+                        tableMapper = Optional.empty();
                     }
                 }
-                Objects.requireNonNull(tableMapper, "tabMapper can not be null");
+                Objects.requireNonNull(tableMapper, "tabMapper can not be null,tabAlias.size()=" + tabAlias.size()
+                        + ",tabs:[" + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
             } else if (unStructed2RDBMS) {
                 // 是在DataxAction的doSaveWriterColsMeta() 方法中持久化保存的
                 for (IDataxProcessor.TableAlias tab : tabAlias.values()) {
-                    tableMapper = (IDataxProcessor.TableMap) tab;
+                    tableMapper = Optional.of((IDataxProcessor.TableMap) tab);
                     break;
                 }
                 Objects.requireNonNull(tableMapper, "tableMap can not be null");
@@ -173,27 +179,27 @@ public class DataXCfgGenerator {
                 Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
                 ISelectedTab tab = selectedTabs.get(readerContext.getSourceEntityName());
                 Objects.requireNonNull(tab, readerContext.getSourceEntityName() + " relevant tab can not be null");
-                tableMapper = new IDataxProcessor.TableMap();
-                tableMapper.setSourceCols(tab.getCols());
-                tableMapper.setTo(tab.getName());
-                tableMapper.setFrom(tab.getName());
+                IDataxProcessor.TableMap m = new IDataxProcessor.TableMap();
+                m.setSourceCols(tab.getCols());
+                m.setTo(tab.getName());
+                m.setFrom(tab.getName());
+                tableMapper = Optional.of(m);
             } else {
                 // example:oss -> oss
-                tableMapper = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
+                tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
             }
 
-
-
-            for (ISelectedTab.ColMeta colMeta : tableMapper.getSourceCols()) {
-                if (colMeta.getType() == null) {
-                    throw new IllegalStateException("reader context:" + readerContext.getSourceEntityName()
-                            + " relevant col type which's name " + colMeta.getName() + " can not be null");
+            if (tableMapper.isPresent()) {
+                for (ISelectedTab.ColMeta colMeta : tableMapper.get().getSourceCols()) {
+                    if (colMeta.getType() == null) {
+                        throw new IllegalStateException("reader context:" + readerContext.getSourceEntityName()
+                                + " relevant col type which's name " + colMeta.getName() + " can not be null");
+                    }
                 }
+
             }
-
-
             configFile = new File(parentDir, readerContext.getTaskName() + ".json");
-            FileUtils.write(configFile, generateDataxConfig(readerContext, Optional.of(tableMapper)), TisUTF8.get(), false);
+            FileUtils.write(configFile, generateDataxConfig(readerContext, (tableMapper)), TisUTF8.get(), false);
             subTaskName.add(configFile.getName());
         }
         long current = System.currentTimeMillis();

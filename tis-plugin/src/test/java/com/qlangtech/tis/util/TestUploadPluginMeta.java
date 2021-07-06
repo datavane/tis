@@ -29,6 +29,13 @@ import java.util.Optional;
 public class TestUploadPluginMeta extends TestCase {
 
 
+    public void testUncacheAttribute() {
+        String groovyScript = "com.qlangtech.tis.plugin.datax.DataXMongodbWriter.getDftColumn()";
+        UploadPluginMeta parseResult = UploadPluginMeta.parse(groovyScript + ":uncache_true");
+        assertTrue(parseResult.getBoolean(UploadPluginMeta.KEY_UNCACHE));
+        assertEquals(groovyScript, parseResult.getName());
+    }
+
     public void testDataXReaderWithExecId() {
         String rawContent = "dataxReader:require,dataxName_mysql_mysql,execId_fe4e79f1-9f05-6976-7604-db6d1c3ad391";
         UploadPluginMeta parseResult = UploadPluginMeta.parse(rawContent);

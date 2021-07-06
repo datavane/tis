@@ -41,6 +41,12 @@ import java.util.regex.Pattern;
  */
 public abstract class DataxReader implements Describable<DataxReader>, IDataxReader {
     public static final String HEAD_KEY_REFERER = "Referer";
+    public static final ThreadLocal<DataxReader> dataxReaderThreadLocal = new ThreadLocal<>();
+
+    public static DataxReader getThreadBingDataXReader() {
+        DataxReader reader = dataxReaderThreadLocal.get();
+        return reader;
+    }
 
     /**
      * save
@@ -98,7 +104,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     public static DataxReader load(IPluginContext pluginContext, String appName) {
         DataxReader appSource = getPluginStore(pluginContext, appName).getPlugin();
         Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
-
+        DataxReader.dataxReaderThreadLocal.set(appSource);
         return appSource;
     }
 
