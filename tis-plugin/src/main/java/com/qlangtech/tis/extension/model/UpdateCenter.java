@@ -15,11 +15,13 @@
 
 package com.qlangtech.tis.extension.model;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.VersionNumber;
+import com.qlangtech.tis.install.InstallUtil;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.PersistedList;
@@ -183,6 +185,33 @@ public class UpdateCenter implements Saveable {
         }
         return null;
     }
+
+
+    /**
+     * Called to persist the currently installing plugin states. This allows
+     * us to support install resume if Jenkins is restarted while plugins are
+     * being installed.
+     */
+    public synchronized void persistInstallStatus() {
+        List<UpdateCenterJob> jobs = getJobs();
+
+        boolean activeInstalls = false;
+        for (UpdateCenterJob job : jobs) {
+            if (job instanceof InstallationJob) {
+                InstallationJob installationJob = (InstallationJob) job;
+                if (!installationJob.status.isSuccess()) {
+                    activeInstalls = true;
+                }
+            }
+        }
+
+        if (activeInstalls) {
+            InstallUtil.persistInstallStatus(jobs); // save this info
+        } else {
+            InstallUtil.clearInstallStatus(); // clear this info
+        }
+    }
+
 
     private ConnectionCheckJob addConnectionCheckJob(UpdateSite site) {
         // Create a connection check job if the site was not already in the sourcesUsed set i.e. the first
@@ -681,6 +710,7 @@ public class UpdateCenter implements Saveable {
         /**
          * Which {@link UpdateSite} does this belong to?
          */
+        @JSONField(serialize = false)
         public final UpdateSite site;
 
         /**
@@ -914,6 +944,12 @@ public class UpdateCenter implements Saveable {
                 return getClass().getSimpleName();
             }
 
+            @JSONField(serialize = false)
+            @Override
+            public StackTraceElement[] getStackTrace() {
+                return super.getStackTrace();
+            }
+
             /**
              * Indicates that a restart is needed to complete the tasks.
              */
@@ -1003,6 +1039,7 @@ public class UpdateCenter implements Saveable {
         /**
          * What plugin are we trying to install?
          */
+        @JSONField(serialize = false)
         public final UpdateSite.Plugin plugin;
 
         protected final PluginManager pm = TIS.get().getPluginManager();
@@ -1180,6 +1217,59 @@ public class UpdateCenter implements Saveable {
 
     }
 
+
+    public final class CompleteBatchJob extends UpdateCenterJob {
+
+        private final List<PluginWrapper> batch;
+        private final long start;
+
+        public volatile CompleteBatchJobStatus status = new Pending();
+
+        public CompleteBatchJob(List<PluginWrapper> batch, long start, UUID correlationId) {
+            super(getCoreSource());
+            this.batch = batch;
+            this.start = start;
+            setCorrelationId(correlationId);
+        }
+
+        @Override
+        public void run() {
+            LOGGER.info("Completing installing of plugin batch…");
+            status = new Running();
+            try {
+                TIS.get().getPluginManager().start(batch);
+                status = new Success();
+            } catch (Exception x) {
+                status = new Failure(x);
+                LOGGER.warn("Failed to start some plugins", x);
+            }
+            LOGGER.info("Completed installation of {} plugins in {}ms", batch.size(), ((System.currentTimeMillis() - start)));
+        }
+
+
+        public abstract class CompleteBatchJobStatus {
+            public final int id = iota.incrementAndGet();
+        }
+
+        public class Pending extends CompleteBatchJobStatus {
+        }
+
+        public class Running extends CompleteBatchJobStatus {
+        }
+
+        public class Success extends CompleteBatchJobStatus {
+        }
+
+        public class Failure extends CompleteBatchJobStatus {
+            Failure(Throwable problemStackTrace) {
+                this.problemStackTrace = problemStackTrace;
+            }
+
+            public final Throwable problemStackTrace;
+        }
+
+    }
+
     /**
      * Enables a required plugin, provides feedback in the update center
      */
@@ -1231,6 +1321,16 @@ public class UpdateCenter implements Saveable {
                 status = new Success();
             }
         }
+    }
+
+    public UpdateSite getCoreSource() {
+        for (UpdateSite s : sites) {
+            UpdateSite.Data data = s.getData();
+            if (data != null && data.core != null) {
+                return s;
+            }
+        }
+        return null;
     }
 
     /**

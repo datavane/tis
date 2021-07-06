@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
  */
 public class SchemaAction extends BasicModule {
 
-  protected static final String FIELD_PROJECT_NAME = "projectName";
+  public static final String FIELD_PROJECT_NAME = "projectName";
   protected static final String FIELD_WORKFLOW = "workflow";
   protected static final String FIELD_DS_TYPE = "dsType";
   protected static final String FIELD_Recept = "recept";

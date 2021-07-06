@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.VersionNumber;
+import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.FlatTableBuilder;
@@ -40,6 +41,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.util.*;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.jvnet.hudson.reactor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +84,13 @@ public class TIS {
     public static final String KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE = "global_config.xml";
 
     private final transient UpdateCenter updateCenter = UpdateCenter.createUpdateCenter(null);
+
+
+    /**
+     * The Jenkins instance startup type i.e. NEW, UPGRADE etc
+     */
+    private transient String installStateName;
+    private InstallState installState;
 
 
     /**
@@ -557,5 +566,28 @@ public class TIS {
 
     private File getGlobalConfigFile() {
         return new File(pluginCfgRoot, "global" + File.separator + KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE);
+    }
+
+    /**
+     * Update the current install state. This will invoke state.initializeState()
+     * when the state has been transitioned.
+     */
+    public void setInstallState(@NonNull InstallState newState) {
+        String prior = installStateName;
+        installStateName = newState.name();
+        logger.info("Install state transitioning from: {} to : {}", prior, installStateName);
+        if (!installStateName.equals(prior)) {
+           // getSetupWizard().onInstallStateUpdate(newState);
+            newState.initializeState();
+        }
+    }
+
+    public InstallState getInstallState() {
+        if (installState != null) {
+            installStateName = installState.name();
+            installState = null;
+        }
+        InstallState is = installStateName != null ? InstallState.valueOf(installStateName) : InstallState.UNKNOWN;
+        return is != null ? is : InstallState.UNKNOWN;
     }
 }

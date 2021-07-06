@@ -37,7 +37,6 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
-import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -50,7 +49,6 @@ import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
-import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
@@ -407,7 +405,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
       Application app = new Application();
       app.setProjectName(fieldData);
-      if (!AddAppAction.isAppNameValid(msgHandler, context, app)) {
+      if (!AddAppAction.isAppNameValid(msgHandler, context, fieldKey, app)) {
         return false;
       }
       ApplicationCriteria criteria = new ApplicationCriteria();

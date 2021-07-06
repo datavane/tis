@@ -17,6 +17,8 @@ package com.qlangtech.tis.extension.model;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
@@ -25,11 +27,13 @@ import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.util.Util;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -41,7 +45,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -347,6 +350,8 @@ public class UpdateSite {
     static final Predicate<Object> IS_NOT_OPTIONAL = x -> "false".equals(get(((JSONObject) x), "optional"));
 
     public final class Plugin extends Entry {
+        public final String sizeLiteral;
+        public final long size;
         /**
          * Optional URL to the Wiki page that discusses this plugin.
          */
@@ -386,7 +391,17 @@ public class UpdateSite {
         /**
          * Dependencies of this plugin, a name -&gt; version mapping.
          */
-        public final Map<String, String> dependencies;
+        private final Map<String, String> dependencies;
+
+        public List<Option> getDependencies() {
+            Option opt = null;
+            List<Option> opts = Lists.newArrayList();
+            for (Map.Entry<String, String> entry : dependencies.entrySet()) {
+                opt = new Option(entry.getKey(), entry.getValue());
+                opts.add(opt);
+            }
+            return opts;
+        }
 
         /**
          * Optional dependencies of this plugin.
@@ -403,7 +418,7 @@ public class UpdateSite {
          *
          * @since 2.224
          */
-        public final Date releaseTimestamp;
+        public final long releaseTimestamp;
 
         /**
          * Popularity of this plugin.
@@ -420,22 +435,25 @@ public class UpdateSite {
 
         public Plugin(String sourceId, JSONObject o) {
             super(sourceId, o, UpdateSite.this.url);
+            this.size = o.getLongValue("size");
+            this.sizeLiteral = FileUtils.byteCountToDisplaySize(this.size);
             this.wiki = get(o, "wiki");
             this.title = get(o, "title");
-            this.excerpt = get(o, "excerpt");
+            this.excerpt = StringUtils.trimToNull(get(o, "excerpt"));
             this.compatibleSinceVersion = Util.intern(get(o, "compatibleSinceVersion"));
             this.minimumJavaVersion = Util.intern(get(o, "minimumJavaVersion"));
             this.latest = get(o, "latest");
             this.requiredCore = Util.intern(get(o, "requiredCore"));
-            final String releaseTimestamp = get(o, "releaseTimestamp");
-            Date date = null;
-            if (releaseTimestamp != null) {
-                try {
-                    date = Date.from(Instant.parse(releaseTimestamp));
-                } catch (Exception ex) {
-                    LOGGER.info("Failed to parse releaseTimestamp for " + title + " from " + sourceId, ex);
-                }
-            }
+            this.releaseTimestamp = o.getLongValue("buildDate");
+            // final String releaseTimestamp = get(o, "releaseTimestamp");
+//            Date date = null;
+//            if (releaseTimestamp != null) {
+//                try {
+//                    date = Date.from(Instant.parse(releaseTimestamp));
+//                } catch (Exception ex) {
+//                    LOGGER.info("Failed to parse releaseTimestamp for " + title + " from " + sourceId, ex);
+//                }
+//            }
             final String popularityFromJson = get(o, "popularity");
             Double popularity = 0.0;
             if (popularityFromJson != null) {
@@ -446,7 +464,7 @@ public class UpdateSite {
                 }
             }
             this.popularity = popularity;
-            this.releaseTimestamp = date;
+            // this.releaseTimestamp = date;
 
             JSONArray labels = o.getJSONArray("labels");
             if (labels != null) {
@@ -462,7 +480,7 @@ public class UpdateSite {
             dependencies = getPresizedMutableMap(depCount);
             optionalDependencies = getPresizedMutableMap(optionalDepCount);
 
-            for (Object jo : o.getJSONArray("dependencies")) {
+            for (Object jo : ja) {
                 JSONObject depObj = (JSONObject) jo;
                 // Make sure there's a name attribute and that the optional value isn't true.
                 String depName = Util.intern(get(depObj, "name"));
@@ -475,6 +493,7 @@ public class UpdateSite {
                 }
             }
         }
+
         public Future<UpdateCenter.UpdateCenterJob> deploy() {
             return deploy(false);
         }
@@ -591,6 +610,7 @@ public class UpdateSite {
             return Arrays.asList(categories).contains(category);
         }
 
+        @JSONField(serialize = false)
         public PluginWrapper getInstalled() {
             PluginManager pm = TIS.get().getPluginManager();
             return pm.getPlugin(name);

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,15 +26,16 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 /**
  * Build a war/webapp.
- * @version $Id: HpiMojo.java 33552 2010-08-03 23:28:55Z olamy $
  *
  * @author 百岁（baisui@qlangtech.com）
+ * @version $Id: HpiMojo.java 33552 2010-08-03 23:28:55Z olamy $
  * @date 2020/09/25
  */
 @Mojo(name = "tpi", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.RUNTIME)
@@ -48,6 +49,7 @@ public class TpiMojo extends AbstractTISManifestMojo {
 
     /**
      * The classifier to use when searching for the jar artifact.
+     *
      * @since 1.115
      */
     @Parameter(defaultValue = "")
@@ -113,7 +115,12 @@ public class TpiMojo extends AbstractTISManifestMojo {
         getLog().info("Checking for attached .jar artifact " + (StringUtils.isBlank(jarClassifier) ? "..." : "with classifier " + jarClassifier + "..."));
         File jarFile = null;
         for (Artifact artifact : (List<Artifact>) project.getAttachedArtifacts()) {
-            if (StringUtils.equals(project.getGroupId(), artifact.getGroupId()) && StringUtils.equals(project.getArtifactId(), artifact.getArtifactId()) && project.getArtifact().getVersionRange().equals(artifact.getVersionRange()) && StringUtils.equals("jar", artifact.getType()) && (StringUtils.isBlank(jarClassifier) ? !artifact.hasClassifier() : StringUtils.equals(jarClassifier, artifact.getClassifier())) && artifact.getFile() != null && artifact.getFile().isFile()) {
+            if (StringUtils.equals(project.getGroupId(), artifact.getGroupId())
+                    && StringUtils.equals(project.getArtifactId(), artifact.getArtifactId())
+                    && project.getArtifact().getVersionRange().equals(artifact.getVersionRange())
+                    && StringUtils.equals("jar", artifact.getType())
+                    && (StringUtils.isBlank(jarClassifier) ? !artifact.hasClassifier() : StringUtils.equals(jarClassifier, artifact.getClassifier()))
+                    && artifact.getFile() != null && artifact.getFile().isFile()) {
                 jarFile = artifact.getFile();
                 getLog().info("Found attached .jar artifact: " + jarFile.getAbsolutePath());
                 break;

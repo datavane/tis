@@ -165,7 +165,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     public void makeTempDir(String execId) throws Exception {
 
         File workingDir = getDataXWorkDir(null);
-        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), workingDir.getName() + "-" + execId));
+        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), KeyedPluginStore.TMP_DIR_NAME + workingDir.getName() + "-" + execId));
     }
 
     /**

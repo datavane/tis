@@ -23,6 +23,7 @@ import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.util.InitializerFinder;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.YesNoMaybe;
@@ -245,7 +246,7 @@ public class PluginManager {
             Set<String> dependents = new HashSet<>();
             for (PluginWrapper possibleDependent : plugins) {
                 // No need to check if plugin is dependent of itself
-                if(possibleDependent.getShortName().equals(plugin.getShortName())) {
+                if (possibleDependent.getShortName().equals(plugin.getShortName())) {
                     continue;
                 }
 
@@ -456,9 +457,13 @@ public class PluginManager {
                                 }
                             });
                         }
-                        g.followedBy().notFatal().attains(PLUGINS_STARTED).add("Load updateCenter", (reactor) -> {
-                            tis.getUpdateCenter().load();
-                        });
+
+                        if (CenterResource.notFetchFromCenterRepository()) {
+                            g.followedBy().notFatal().attains(PLUGINS_STARTED).add("Load updateCenter", (reactor) -> {
+                                tis.getUpdateCenter().load();
+                            });
+                        }
+
 
                         session.addAll(g.discoverTasks(session));
                     }

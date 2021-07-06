@@ -28,7 +28,7 @@ import java.util.Objects;
  * @date 2020/04/13
  */
 public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
-
+    public static final String TMP_DIR_NAME = ".tmp/";
     public transient final Key key;
 
     public static <TT extends Describable> KeyedPluginStore<TT> getPluginStore(
@@ -123,7 +123,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public String getKeyVal() {
-            return StringUtils.isBlank(this.suffix) ? val : (val + "-" + this.suffix);
+            return StringUtils.isBlank(this.suffix) ? val : TMP_DIR_NAME + (val + "-" + this.suffix);
         }
 
         public KeyVal(String val) {

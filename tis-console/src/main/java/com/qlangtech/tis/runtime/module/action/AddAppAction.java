@@ -555,9 +555,9 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       form.setDptId(d.getDptId());
       form.setDptName(d.getFullName());
     }
-    form.setProjectName(this.getString("projectName"));
+    form.setProjectName(this.getString(SchemaAction.FIELD_PROJECT_NAME));
     form.setRecept(this.getString("recept"));
-    if (!isAppNameValid(this, context, form)) {
+    if (!isAppNameValid(this, context, SchemaAction.FIELD_PROJECT_NAME, form)) {
       return;
     }
     // 是否使用自动部署新方案
@@ -606,10 +606,10 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     System.out.println(m.matches());
   }
 
-  public static boolean isAppNameValid(IFieldErrorHandler msgHandler, Context context, Application form) {
+  public static boolean isAppNameValid(IFieldErrorHandler msgHandler, Context context, String fieldKey, Application form) {
     Matcher m = APPNAME_PATTERN.matcher(form.getProjectName());
     if (!m.matches()) {
-      msgHandler.addFieldError(context, FIELD_PROJECT_NAME, "必须用小写字母或大写字母数字组成");
+      msgHandler.addFieldError(context, fieldKey, "必须用小写字母或大写字母数字组成");
       return false;
     }
     return true;

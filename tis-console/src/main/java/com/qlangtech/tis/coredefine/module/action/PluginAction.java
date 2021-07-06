@@ -23,7 +23,11 @@ import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
+import com.qlangtech.tis.install.InstallState;
+import com.qlangtech.tis.install.InstallUtil;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -35,11 +39,14 @@ import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -48,8 +55,35 @@ import java.util.stream.Collectors;
  */
 @InterceptorRefs({@InterceptorRef("tisStack")})
 public class PluginAction extends BasicModule {
-
+  private static final Logger logger = LoggerFactory.getLogger(PluginAction.class);
   private OfflineManager offlineManager;
+
+  /**
+   * 取得安装进度状态
+   *
+   * @param context
+   */
+  public void doGetUpdateCenterStatus(Context context) {
+    UpdateCenter updateCenter = TIS.get().getUpdateCenter();
+//    List<JSONObject> jobStats = Lists.newArrayList();
+//    JSONObject stat = null;
+//    for (UpdateCenter.UpdateCenterJob job : updateCenter.getJobs()) {
+//      stat = new JSONObject();
+//      stat.put("id", job.id);
+//      if (job instanceof UpdateCenter.InstallationJob) {
+//        UpdateCenter.InstallationJob installJob = (UpdateCenter.InstallationJob) job;
+//        stat.put("name", installJob.getDisplayName());
+//      }
+//      jobStats.add(stat);
+//    }
+    List<UpdateCenter.UpdateCenterJob> jobs = updateCenter.getJobs();
+
+    Collections.sort(jobs, (a, b) -> {
+      // 保证最新的安装job排列在最上面
+      return b.id - a.id;
+    });
+    setBizResult(context, jobs);
+  }
 
   /**
    * 取得已经安装的插件
@@ -60,9 +94,16 @@ public class PluginAction extends BasicModule {
     PluginManager pluginManager = TIS.get().getPluginManager();
     JSONArray response = new JSONArray();
     JSONObject pluginInfo = null;
+    UpdateSite.Plugin info = null;
     for (PluginWrapper plugin : pluginManager.getPlugins()) {
       pluginInfo = new JSONObject();
       pluginInfo.put("installed", true);
+      info = plugin.getInfo();
+      if (info != null) {
+        // pluginInfo.put("meta", info);
+        pluginInfo.put("releaseTimestamp", info.releaseTimestamp);
+        pluginInfo.put("excerpt", info.excerpt);
+      }
       pluginInfo.put("name", plugin.getShortName());
       pluginInfo.put("version", plugin.getVersion());
       pluginInfo.put("title", plugin.getDisplayName());
@@ -74,13 +115,15 @@ public class PluginAction extends BasicModule {
       pluginInfo.put("website", plugin.getUrl());
       List<PluginWrapper.Dependency> dependencies = plugin.getDependencies();
       if (dependencies != null && !dependencies.isEmpty()) {
-        Map<String, String> dependencyMap = new HashMap<>();
+        Option o = null;
+        List<Option> dependencyMap = Lists.newArrayList();
         for (PluginWrapper.Dependency dependency : dependencies) {
-          dependencyMap.put(dependency.shortName, dependency.version);
+          o = new Option(dependency.shortName, dependency.version);
+          dependencyMap.add(o);
         }
         pluginInfo.put("dependencies", dependencyMap);
       } else {
-        pluginInfo.put("dependencies", Collections.emptyMap());
+        pluginInfo.put("dependencies", Collections.emptyList());
       }
       response.add(pluginInfo);
     }
@@ -98,18 +141,66 @@ public class PluginAction extends BasicModule {
       this.addErrorMessage(context, "请选择需要安装的插件");
       return;
     }
-
+    long start = System.currentTimeMillis();
+    boolean dynamicLoad = true;
+    UUID correlationId = UUID.randomUUID();
+    UpdateCenter updateCenter = TIS.get().getUpdateCenter();
+    List<Future<UpdateCenter.UpdateCenterJob>> installJobs = new ArrayList<>();
     JSONObject willInstall = null;
     String pluginName = null;
     UpdateSite.Plugin plugin = null;
+    List<PluginWrapper> batch = new ArrayList<>();
     for (int i = 0; i < pluginsInstall.size(); i++) {
       willInstall = pluginsInstall.getJSONObject(i);
       pluginName = willInstall.getString("name");
       if (StringUtils.isEmpty(pluginName)) {
         throw new IllegalStateException("plugin name can not empty");
       }
-      plugin = TIS.get().getUpdateCenter().getPlugin(pluginName);
-      plugin.deploy(true);
+      plugin = updateCenter.getPlugin(pluginName);
+      Future<UpdateCenter.UpdateCenterJob> installJob = plugin.deploy(dynamicLoad, correlationId, batch);
+      installJobs.add(installJob);
+    }
+    if (dynamicLoad) {
+      installJobs.add(updateCenter.addJob(updateCenter.new CompleteBatchJob(batch, start, correlationId)));
+    }
+
+    final TIS tis = TIS.get();
+
+    if (!tis.getInstallState().isSetupComplete()) {
+      tis.setInstallState(InstallState.INITIAL_PLUGINS_INSTALLING);
+      updateCenter.persistInstallStatus();
+      new Thread() {
+        @Override
+        public void run() {
+          boolean failures = false;
+          INSTALLING:
+          while (true) {
+            try {
+              updateCenter.persistInstallStatus();
+              Thread.sleep(500);
+              failures = false;
+              for (Future<UpdateCenter.UpdateCenterJob> jobFuture : installJobs) {
+                if (!jobFuture.isDone() && !jobFuture.isCancelled()) {
+                  continue INSTALLING;
+                }
+                UpdateCenter.UpdateCenterJob job = jobFuture.get();
+                if (job instanceof UpdateCenter.InstallationJob && ((UpdateCenter.InstallationJob) job).status instanceof UpdateCenter.DownloadJob.Failure) {
+                  failures = true;
+                }
+              }
+            } catch (Exception e) {
+              logger.warn("Unexpected error while waiting for initial plugin set to install.", e);
+            }
+            break;
+          }
+          updateCenter.persistInstallStatus();
+          if (!failures) {
+            // try (ACLContext acl = ACL.as2(currentAuth)) {
+            InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
+            //}
+          }
+        }
+      }.start();
     }
   }
 

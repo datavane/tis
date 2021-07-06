@@ -16,6 +16,7 @@ package com.qlangtech.tis.extension;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
+import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.util.XStream2;
@@ -563,13 +564,14 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     // if(p!=null && p.isNewerThan(getVersion())) return p;
     // return null;
     // }
-    // /**
-    // * returns the {@link hudson.model.UpdateSite.Plugin} object, or null.
-    // */
-    // public UpdateSite.Plugin getInfo() {
-    // UpdateCenter uc = Jenkins.getInstance().getUpdateCenter();
-    // return uc.getPlugin(getShortName());
-    // }
+
+    /**
+     * returns the {@link com.qlangtech.tis.extension.model.UpdateSite.Plugin} object, or null.
+     */
+    public UpdateSite.Plugin getInfo() {
+        UpdateCenter uc = TIS.get().getUpdateCenter();
+        return uc.getPlugin(getShortName());
+    }
 
     /**
      * Returns true if this plugin has update in the update center.
@@ -584,7 +586,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     }
 
     public UpdateSite.Plugin getUpdateInfo() {
-        // if(p!=null && p.isNewerThan(getVersion())) return p;
+        //  if(p!=null && p.isNewerThan(getVersion())) return p;
         return null;
     }
 

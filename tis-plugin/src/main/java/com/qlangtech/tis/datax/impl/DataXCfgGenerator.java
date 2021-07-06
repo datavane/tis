@@ -104,8 +104,8 @@ public class DataXCfgGenerator {
             return generateCfgs;
         }
 
-        Objects.requireNonNull(reader.getSelectedTabs()
-                , "dataprocess:" + this.dataxName + " relevant DataXReader getSelectedTabs() can not be null");
+//        Objects.requireNonNull(reader.getSelectedTabs()
+//                , "dataprocess:" + this.dataxName + " relevant DataXReader getSelectedTabs() can not be null");
         Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
         File configFile = null;
