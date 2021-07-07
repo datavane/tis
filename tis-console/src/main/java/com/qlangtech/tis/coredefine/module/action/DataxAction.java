@@ -123,17 +123,22 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
     }
+    DataxReader.load(this, dataxName);
     KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(this, dataxName);
     DataxWriter writer = writerStore.getPlugin();
-    if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), writerDesc.getString("impl"))) {
+    Map<String, Object> pluginInfo = Maps.newHashMap();
+    final String requestDescId = writerDesc.getString("impl");
+    if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), requestDescId)) {
       DataxReader readerPlugin = DataxReader.load(this, dataxName);
       DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
       if (!writerDescriptor.isSupportMultiTable() && readerPlugin.getSelectedTabs().size() > 1) {
         // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
         throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()");
       }
-      this.setBizResult(context, (new DescribableJSON(writer)).getItemJson());
+      pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
     }
+    pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON());
+    this.setBizResult(context, pluginInfo);
   }
 
   /**
@@ -149,12 +154,15 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
     }
+    final String requestDescId = readerDesc.getString("impl");
     KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
     DataxReader reader = readerStore.getPlugin();
-    if (reader != null && StringUtils.equals(reader.getDescriptor().getId(), readerDesc.getString("impl"))) {
-
-      this.setBizResult(context, (new DescribableJSON(reader)).getItemJson());
+    Map<String, Object> pluginInfo = Maps.newHashMap();
+    if (reader != null && StringUtils.equals(reader.getDescriptor().getId(), requestDescId)) {
+      pluginInfo.put("item", (new DescribableJSON(reader)).getItemJson());
     }
+    pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON());
+    this.setBizResult(context, pluginInfo);
   }
 
   /**
