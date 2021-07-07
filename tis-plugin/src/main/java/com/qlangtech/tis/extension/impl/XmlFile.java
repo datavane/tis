@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,6 +19,7 @@ import com.qlangtech.tis.util.XStream2;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.converters.DataHolder;
+import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -29,6 +30,7 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.Locator2;
 import org.xml.sax.helpers.DefaultHandler;
+
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
@@ -84,17 +86,21 @@ public final class XmlFile {
         }
     }
 
+    public Object unmarshal(Object o) throws IOException {
+        return unmarshal(o, null);
+    }
+
     /**
      * Loads the contents of this file into an existing object.
      *
      * @return The unmarshalled object. Usually the same as <tt>o</tt>, but would be different
      * if the XML representation is completely new.
      */
-    public Object unmarshal(Object o) throws IOException {
+    public Object unmarshal(Object o, MapBackedDataHolder dataHolder) throws IOException {
         InputStream in = new BufferedInputStream(new FileInputStream(file));
         try {
             // TODO: expose XStream the driver from XStream
-            return xs.unmarshal(DEFAULT_DRIVER.createReader(in), o);
+            return xs.unmarshal(DEFAULT_DRIVER.createReader(in), o, dataHolder);
         } catch (Throwable e) {
             // mostly reflection errors
             throw new IOException("Unable to read " + file, e);
@@ -144,7 +150,7 @@ public final class XmlFile {
 
         @Override
         public void put(Object key, Object value) {
-        // map.put(key, value);
+            // map.put(key, value);
         }
 
         @Override

@@ -24,15 +24,13 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.XStream2;
+import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -201,6 +199,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         if (this.loaded) {
             return;
         }
+        MapBackedDataHolder dataHolder = new MapBackedDataHolder();
         try {
             ComponentMeta componentMeta = new ComponentMeta(this);
             componentMeta.downloaConfig();
@@ -213,7 +212,8 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
                 // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
                 // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
             }
-            file.unmarshal(this);
+
+            file.unmarshal(this, dataHolder);
             if (plugins != null) {
                 plugins.forEach((p) -> {
                     for (IPluginProcessCallback<T> callback : this.pluginCreateCallback) {
@@ -224,6 +224,13 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
             this.loaded = true;
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+        ArrayList<Throwable> errors = (ArrayList<Throwable>) dataHolder.get("ReadError");
+        if (CollectionUtils.isNotEmpty(errors)) {
+            for (Throwable t : errors) {
+                throw new RuntimeException(t);
+            }
         }
     }
 }
