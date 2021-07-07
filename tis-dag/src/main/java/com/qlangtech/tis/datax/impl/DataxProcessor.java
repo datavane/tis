@@ -111,9 +111,9 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     }
 
     @Override
-    public final boolean isUnStructed2RDBMS(IPluginContext pluginCtx) {
+    public final boolean isReaderUnStructed(IPluginContext pluginCtx) {
         DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(pluginCtx, this.identityValue());
-        return dataXCreateProcessMeta.isUnStructed2RDBMS();
+        return dataXCreateProcessMeta.isReaderUnStructed();
     }
 
     @Override

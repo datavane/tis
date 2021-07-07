@@ -44,7 +44,7 @@ public interface IDataxProcessor {
      *
      * @return
      */
-    public boolean isUnStructed2RDBMS(IPluginContext pluginCtx);
+    public boolean isReaderUnStructed(IPluginContext pluginCtx);
 
     public boolean isRDBMS2UnStructed(IPluginContext pluginCtx);
 

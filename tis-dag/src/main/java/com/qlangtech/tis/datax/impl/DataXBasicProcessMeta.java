@@ -38,8 +38,8 @@ public class DataXBasicProcessMeta {
      *
      * @return
      */
-    public boolean isUnStructed2RDBMS() {
-        return !readerRDBMS && writerRDBMS;
+    public boolean isReaderUnStructed() {
+        return !readerRDBMS;
     }
 
     public boolean isWriterRDBMS() {

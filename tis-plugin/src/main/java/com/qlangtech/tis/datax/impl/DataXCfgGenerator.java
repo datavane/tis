@@ -127,10 +127,11 @@ public class DataXCfgGenerator {
     public GenerateCfgs startGenerateCfg(final File parentDir) throws Exception {
         GenerateCfgs cfgs = new GenerateCfgs();
 
-        boolean unStructed2RDBMS = dataxProcessor.isUnStructed2RDBMS(this.pluginCtx);
+        boolean unStructedReader = dataxProcessor.isReaderUnStructed(this.pluginCtx);
 
 
         IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
+
         Map<String, IDataxProcessor.TableAlias> tabAlias = dataxProcessor.getTabAlias();
 
         AtomicReference<Map<String, ISelectedTab>> selectedTabsRef = new AtomicReference<>();
@@ -167,7 +168,7 @@ public class DataXCfgGenerator {
                 }
                 Objects.requireNonNull(tableMapper, "tabMapper can not be null,tabAlias.size()=" + tabAlias.size()
                         + ",tabs:[" + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
-            } else if (unStructed2RDBMS) {
+            } else if (unStructedReader) {
                 // 是在DataxAction的doSaveWriterColsMeta() 方法中持久化保存的
                 for (IDataxProcessor.TableAlias tab : tabAlias.values()) {
                     tableMapper = Optional.of((IDataxProcessor.TableMap) tab);
@@ -186,7 +187,8 @@ public class DataXCfgGenerator {
                 tableMapper = Optional.of(m);
             } else {
                 // example:oss -> oss
-                tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
+                // tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
+                throw new IllegalStateException("unexpect status");
             }
 
             if (tableMapper.isPresent()) {
@@ -222,22 +224,22 @@ public class DataXCfgGenerator {
         }
     }
 
-    private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias
-            , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
-
-
-        IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceEntityName());
-        if (tableAlias == null) {
-            throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias'");
-        }
-        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
-        IDataxProcessor.TableMap
-                tableMap = new IDataxProcessor.TableMap();
-        tableMap.setFrom(tableAlias.getFrom());
-        tableMap.setTo(tableAlias.getTo());
-        tableMap.setSourceCols(selectedTab.getCols());
-        return tableMap;
-    }
+//    private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias
+//            , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
+//
+//
+//        IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceEntityName());
+//        if (tableAlias == null) {
+//            throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias' keys:[" + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
+//        }
+//        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
+//        IDataxProcessor.TableMap
+//                tableMap = new IDataxProcessor.TableMap();
+//        tableMap.setFrom(tableAlias.getFrom());
+//        tableMap.setTo(tableAlias.getTo());
+//        tableMap.setSourceCols(selectedTab.getCols());
+//        return tableMap;
+//    }
 
     /**
      * @param readerContext
