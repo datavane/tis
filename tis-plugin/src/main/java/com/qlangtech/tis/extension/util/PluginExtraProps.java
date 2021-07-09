@@ -17,6 +17,7 @@ package com.qlangtech.tis.extension.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.lang.ClassUtils;
 
@@ -62,13 +63,13 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
      * @throws IOException
      */
     public static Optional<PluginExtraProps> load(Class<?> clazz) {
-        List allSuperclasses = ClassUtils.getAllSuperclasses(clazz);
-        allSuperclasses.add(clazz);
+        List allSuperclasses = Lists.newArrayList(clazz);
+        allSuperclasses.addAll(ClassUtils.getAllSuperclasses(clazz));
         PluginExtraProps extraProps = null;
         Class targetClass = null;
         Optional<PluginExtraProps> nxtExtraProps;
-        for (Object c : allSuperclasses) {
-            targetClass = (Class) c;
+        for (int i = allSuperclasses.size() - 2; i >= 0; i--) {
+            targetClass = (Class) allSuperclasses.get(i);
             nxtExtraProps = parseExtraProps(targetClass);
             if (nxtExtraProps.isPresent()) {
                 if (extraProps == null) {
@@ -78,6 +79,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 }
             }
         }
+
         return Optional.ofNullable(extraProps);
     }
 

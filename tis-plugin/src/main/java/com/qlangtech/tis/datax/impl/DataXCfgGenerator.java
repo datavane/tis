@@ -185,6 +185,9 @@ public class DataXCfgGenerator {
                 m.setTo(tab.getName());
                 m.setFrom(tab.getName());
                 tableMapper = Optional.of(m);
+            } else if (dataxProcessor.isRDBMS2RDBMS(this.pluginCtx)) {
+                // example: mysql -> mysql
+                tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
             } else {
                 // example:oss -> oss
                 // tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
@@ -224,22 +227,21 @@ public class DataXCfgGenerator {
         }
     }
 
-//    private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias
-//            , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
-//
-//
-//        IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceEntityName());
-//        if (tableAlias == null) {
-//            throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias' keys:[" + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
-//        }
-//        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
-//        IDataxProcessor.TableMap
-//                tableMap = new IDataxProcessor.TableMap();
-//        tableMap.setFrom(tableAlias.getFrom());
-//        tableMap.setTo(tableAlias.getTo());
-//        tableMap.setSourceCols(selectedTab.getCols());
-//        return tableMap;
-//    }
+    private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias
+            , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
+
+        IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceEntityName());
+        if (tableAlias == null) {
+            throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias' keys:[" + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
+        }
+        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
+        IDataxProcessor.TableMap
+                tableMap = new IDataxProcessor.TableMap();
+        tableMap.setFrom(tableAlias.getFrom());
+        tableMap.setTo(tableAlias.getTo());
+        tableMap.setSourceCols(selectedTab.getCols());
+        return tableMap;
+    }
 
     /**
      * @param readerContext

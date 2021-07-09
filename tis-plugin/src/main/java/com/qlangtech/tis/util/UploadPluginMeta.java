@@ -51,6 +51,9 @@ public class UploadPluginMeta {
 
     public static final String KEY_UNCACHE = "uncache";
 
+    //纯添加类型，更新之前需要将之前的类型plugin先load出来再更新
+    public static final String KEY_APPEND = "append";
+
     private final String name;
 
     // plugin form must contain field where prop required is true
@@ -61,6 +64,15 @@ public class UploadPluginMeta {
 
     public boolean isUpdate() {
         return this.getBoolean(PostedDSProp.KEY_UPDATE);
+    }
+
+    /**
+     * 纯添加类型，更新之前需要将之前的类型plugin先load出来再更新合并之后再更新
+     *
+     * @return
+     */
+    public boolean isAppend() {
+        return this.getBoolean(KEY_APPEND);
     }
 
     public static void main(String[] args) throws Exception {

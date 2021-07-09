@@ -232,6 +232,21 @@ public class PluginAction extends BasicModule {
   }
 
   /**
+   * @param context
+   */
+  public void doGetDescriptor(Context context) {
+    String impl = this.getString("impl");
+    if (StringUtils.isEmpty(impl)) {
+      throw new IllegalArgumentException("request param 'impl' can not be null");
+    }
+    Descriptor descriptor = TIS.get().getDescriptor(impl);
+    if (descriptor == null) {
+
+    }
+    this.setBizResult(context, new DescriptorsJSON(descriptor).getDescriptorsJSON());
+  }
+
+  /**
    * plugin form 的子表单的某条详细记录被点击
    *
    * @param context
@@ -377,6 +392,8 @@ public class PluginAction extends BasicModule {
     if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
       module.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
     }
+
+
     pluginItems.items = describableAttrValMapList;
     parseResult.pluginItems = pluginItems;
     //categoryPlugins.add(pluginItems);

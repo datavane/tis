@@ -123,6 +123,12 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     }
 
     @Override
+    public boolean isRDBMS2RDBMS(IPluginContext pluginCtx) {
+        DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(pluginCtx, this.identityValue());
+        return dataXCreateProcessMeta.isReaderRDBMS() && dataXCreateProcessMeta.isWriterRDBMS();
+    }
+
+    @Override
     public boolean isWriterSupportMultiTableInReader(IPluginContext pluginCtx) {
         DataXCreateProcessMeta dataXCreateProcessMeta = getDataXCreateProcessMeta(pluginCtx, this.identityValue());
         return dataXCreateProcessMeta.isWriterSupportMultiTableInReader();

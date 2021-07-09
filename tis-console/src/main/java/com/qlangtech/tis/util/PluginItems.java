@@ -34,6 +34,7 @@ import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -121,6 +122,23 @@ public class PluginItems {
     AttrValMap attrValMap = null;
     List<Descriptor.ParseDescribable<?>> dlist = Lists.newArrayList();
     List<Describable> describableList = Lists.newArrayList();
+
+    if (this.pluginMeta.isAppend()) {
+      PluginStore pluginStore = heteroEnum.getPluginStore(this.pluginContext, this.pluginMeta);
+      if (pluginStore != null) {
+        List<Describable> plugins = pluginStore.getPlugins();
+        boolean firstSkip = false;
+        for (Describable p : plugins) {
+          if (!firstSkip) {
+            firstSkip = true;
+            Descriptor.ParseDescribable describablesWithMeta = PluginStore.getDescribablesWithMeta(pluginStore, p);
+            dlist.add(describablesWithMeta);
+          } else {
+            dlist.add(new Descriptor.ParseDescribable(p));
+          }
+        }
+      }
+    }
     for (int i = 0; i < this.items.size(); i++) {
       attrValMap = this.items.get(i);
       /**====================================================

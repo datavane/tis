@@ -188,6 +188,38 @@ public enum HeteroEnum {
      * @return
      */
     public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+        PluginStore store = getPluginStore(pluginContext, pluginMeta);
+        if (store == null) {
+            return Collections.emptyList();
+        }
+//        if (this == HeteroEnum.APP_SOURCE) {
+//            final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
+//            if (StringUtils.isEmpty(dataxName)) {
+//                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+//            }
+//            store = com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
+//        } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
+//            final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+//            if (StringUtils.isEmpty(dataxName)) {
+//                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
+//            }
+//            store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+//        } else if (pluginContext.isCollectionAware()) {
+//            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
+//        } else if (pluginContext.isDataSourceAware()) {
+//            PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
+//            if (StringUtils.isEmpty(dsProp.getDbname())) {
+//                return Collections.emptyList();
+//            }
+//            store = TIS.getDataBasePluginStore(dsProp);
+//        } else {
+//            store = TIS.getPluginStore(this.extensionPoint);
+//        }
+        //Objects.requireNonNull(store, "plugin store can not be null");
+        return store.getPlugins();
+    }
+
+    public PluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         PluginStore store = null;
         if (this == HeteroEnum.APP_SOURCE) {
             final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
@@ -206,14 +238,14 @@ public enum HeteroEnum {
         } else if (pluginContext.isDataSourceAware()) {
             PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
             if (StringUtils.isEmpty(dsProp.getDbname())) {
-                return Collections.emptyList();
+                return null; //Collections.emptyList();
             }
             store = TIS.getDataBasePluginStore(dsProp);
         } else {
             store = TIS.getPluginStore(this.extensionPoint);
         }
         Objects.requireNonNull(store, "plugin store can not be null");
-        return store.getPlugins();
+        return store;
     }
 
     public <T extends Describable<T>> List<Descriptor<T>> descriptors() {

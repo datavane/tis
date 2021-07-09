@@ -149,16 +149,17 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         if (other.getPlugin() == null) {
             throw new IllegalStateException("from plugin store have not initialized");
         }
-        List<Descriptor.ParseDescribable<T>> dlist = Collections.singletonList(getDescribablesWithMeta(other));
+        List<Descriptor.ParseDescribable<T>> dlist = Collections.singletonList(getDescribablesWithMeta(other, other.getPlugin()));
         this.setPlugins(pluginContext, Optional.empty(), dlist);
     }
 
-    public static <TT extends Describable> Descriptor.ParseDescribable<TT> getDescribablesWithMeta(PluginStore<TT> other) {
-        Descriptor.ParseDescribable<TT> parseDescribable = new Descriptor.ParseDescribable<>(other.getPlugin());
+    public static <TT extends Describable> Descriptor.ParseDescribable<TT> getDescribablesWithMeta(PluginStore<TT> other, TT plugin) {
+        Descriptor.ParseDescribable<TT> parseDescribable = new Descriptor.ParseDescribable<>(plugin);
         ComponentMeta cmetas = new ComponentMeta(other);
         parseDescribable.extraPluginMetas.addAll(cmetas.loadPluginMeta());
         return parseDescribable;
     }
+
 
     @Override
     public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
