@@ -235,15 +235,20 @@ public class PluginAction extends BasicModule {
    * @param context
    */
   public void doGetDescriptor(Context context) {
-    String impl = this.getString("impl");
-    if (StringUtils.isEmpty(impl)) {
+    String displayName = this.getString("name");
+    if (StringUtils.isEmpty(displayName)) {
       throw new IllegalArgumentException("request param 'impl' can not be null");
     }
-    Descriptor descriptor = TIS.get().getDescriptor(impl);
-    if (descriptor == null) {
-
+    HeteroEnum hetero = HeteroEnum.of(this.getString("hetero"));
+    List<Descriptor<Describable>> descriptors = hetero.descriptors();
+    for (Descriptor desc : descriptors) {
+      if (StringUtils.equals(desc.getDisplayName(), displayName)) {
+        this.setBizResult(context, new DescriptorsJSON(desc).getDescriptorsJSON());
+        return;
+      }
     }
-    this.setBizResult(context, new DescriptorsJSON(descriptor).getDescriptorsJSON());
+
+    throw new IllegalStateException("displayName:" + displayName + " relevant Descriptor can not be null");
   }
 
   /**
@@ -411,14 +416,26 @@ public class PluginAction extends BasicModule {
       }
     }
 
+
     /**===============================================
      * 校验Item字段的identity字段不能重复，不然就报错
      ===============================================*/
     Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
+
     Descriptor.PluginValidateResult previous = null;
     if (!parseResult.faild && hEnum.isIdentityUnique()
       && hEnum.selectable == Selectable.Multi
-      && items.size() > 1) {
+      && (items.size() > 1 || pluginMeta.isAppend())) {
+
+      if (pluginMeta.isAppend()) {
+        List<IdentityName> plugins = hEnum.getPlugins(module, pluginMeta);
+        for (IdentityName p : plugins) {
+          Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(new Descriptor.PostFormVals(Collections.emptyMap()), 0, 0);
+          r.setDescriptor(((Describable) p).getDescriptor());
+          identityUniqueMap.put(p.identityValue(), r);
+        }
+      }
+
       for (Descriptor.PluginValidateResult i : items) {
         if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
           previous.addIdentityFieldValueDuplicateError(module, context);
@@ -459,7 +476,7 @@ public class PluginAction extends BasicModule {
     createDatabase(this, dbDesc, dbName, context, shallUpdateDB, this.offlineManager);
   }
 
-  public static void createDatabase(BasicModule module, Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context
+  public static DatasourceDb createDatabase(BasicModule module, Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context
     , boolean shallUpdateDB, OfflineManager offlineManager) {
     DatasourceDb datasourceDb = null;
     if (shallUpdateDB) {
@@ -475,7 +492,7 @@ public class PluginAction extends BasicModule {
       int exist = module.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
       if (exist > 0) {
         module.addErrorMessage(context, "已经有了同名(" + dbName + ")的数据库");
-        return;
+        return null;
       }
       /**
        * 校验数据库连接是否正常
@@ -495,6 +512,7 @@ public class PluginAction extends BasicModule {
     }
 
     module.setBizResult(context, offlineManager.getDbConfig(module, datasourceDb));
+    return datasourceDb;
   }
 
 

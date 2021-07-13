@@ -94,6 +94,14 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         return pluginStore;
     }
 
+    public interface IDataxReaderGetter {
+        DataxReader get(String appName);
+    }
+
+    /**
+     * 测试用
+     */
+    public static IDataxReaderGetter dataxReaderGetter;
 
     /**
      * load
@@ -102,7 +110,13 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
      * @return
      */
     public static DataxReader load(IPluginContext pluginContext, String appName) {
-        DataxReader appSource = getPluginStore(pluginContext, appName).getPlugin();
+        DataxReader appSource = null;
+        if (dataxReaderGetter != null) {
+            appSource = dataxReaderGetter.get(appName);
+            DataxReader.dataxReaderThreadLocal.set(appSource);
+            return appSource;
+        }
+        appSource = getPluginStore(pluginContext, appName).getPlugin();
         Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
         DataxReader.dataxReaderThreadLocal.set(appSource);
         return appSource;

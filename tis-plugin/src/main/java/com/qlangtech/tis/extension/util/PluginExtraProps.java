@@ -15,15 +15,21 @@
 package com.qlangtech.tis.extension.util;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * load extra prop desc like 'lable' and so on
@@ -34,6 +40,10 @@ import java.util.*;
 public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_DFTVAL_PROP = "dftVal";
     public static final String KEY_DISABLE = "disable";
+    public static final String KEY_CREATOR = "creator";
+
+    public static final String KEY_ROUTER_LINK = "routerLink";
+    public static final String KEY_LABEL = "label";
 
 
     private static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz) {
@@ -46,7 +56,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 JSONObject o = JSON.parseObject(i, TisUTF8.get(), JSONObject.class);
                 PluginExtraProps props = new PluginExtraProps();
                 for (String propKey : o.keySet()) {
-                    props.put(propKey, new Props(validate(o.getJSONObject(propKey), propKey, pluginClazz, resourceName)));
+                    props.put(propKey, new Props(validate(o.getJSONObject(propKey), propKey, pluginClazz, resourceName, false)));
                 }
                 return Optional.of(props);
             }
@@ -63,14 +73,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
      * @throws IOException
      */
     public static Optional<PluginExtraProps> load(Class<?> clazz) {
-        List allSuperclasses = Lists.newArrayList(clazz);
-        allSuperclasses.addAll(ClassUtils.getAllSuperclasses(clazz));
-        PluginExtraProps extraProps = null;
-        Class targetClass = null;
-        Optional<PluginExtraProps> nxtExtraProps;
-        for (int i = allSuperclasses.size() - 2; i >= 0; i--) {
-            targetClass = (Class) allSuperclasses.get(i);
-            nxtExtraProps = parseExtraProps(targetClass);
+
+        PluginExtraProps ep = visitAncestorsClass(clazz, (c, extraProps) -> {
+            Optional<PluginExtraProps> nxtExtraProps = parseExtraProps(c);
             if (nxtExtraProps.isPresent()) {
                 if (extraProps == null) {
                     extraProps = nxtExtraProps.get();
@@ -78,25 +83,80 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     extraProps.mergeProps(nxtExtraProps.get());
                 }
             }
+            return extraProps;
+        });
+
+
+        if (ep != null) {
+            String resourceName = clazz.getSimpleName() + ".json";
+            for (Map.Entry<String, PluginExtraProps.Props> entry : ep.entrySet()) {
+                validate(entry.getValue().props, entry.getKey(), clazz, resourceName, true);
+            }
         }
 
-        return Optional.ofNullable(extraProps);
+        return Optional.ofNullable(ep);
+
+//        List allSuperclasses = Lists.newArrayList(clazz);
+//        allSuperclasses.addAll(ClassUtils.getAllSuperclasses(clazz));
+//        PluginExtraProps extraProps = null;
+//        Class targetClass = null;
+//        Optional<PluginExtraProps> nxtExtraProps;
+//        for (int i = allSuperclasses.size() - 2; i >= 0; i--) {
+//            targetClass = (Class) allSuperclasses.get(i);
+//            nxtExtraProps = parseExtraProps(targetClass);
+//            if (nxtExtraProps.isPresent()) {
+//                if (extraProps == null) {
+//                    extraProps = nxtExtraProps.get();
+//                } else {
+//                    extraProps.mergeProps(nxtExtraProps.get());
+//                }
+//            }
+//        }
+//
+//        return Optional.ofNullable(extraProps);
     }
 
-    private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String resourceName) {
+    public static <T> T visitAncestorsClass(Class<?> clazz, IClassVisitor<T> clazzVisitor) {
+        List allSuperclasses = Lists.newArrayList(clazz);
+        allSuperclasses.addAll(ClassUtils.getAllSuperclasses(clazz));
+        T extraProps = null;
+        Class targetClass = null;
+        for (int i = allSuperclasses.size() - 2; i >= 0; i--) {
+            targetClass = (Class) allSuperclasses.get(i);
+            extraProps = clazzVisitor.process(targetClass, extraProps);
+        }
+        return extraProps;
+    }
+
+    public interface IClassVisitor<T> {
+        T process(Class<?> clazz, T extraProps);
+    }
+
+    private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String resourceName, boolean finalValidate) {
         String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
-        Object creator = props.get("creator");
+        Object creator = props.get(KEY_CREATOR);
         if (creator != null) {
             if (!(creator instanceof JSONObject)) {
                 throw new IllegalStateException("prop creator must be type of JSONObject:" + errDesc);
             }
-//                "creator": {
-//                    "routerLink": "/base/departmentlist",
-//                            "label": "部门管理"
-//                }
-            JSONObject creatorJ = (JSONObject) creator;
-            Objects.requireNonNull(creatorJ.get("routerLink"), errDesc);
-            Objects.requireNonNull(creatorJ.get("label"), errDesc);
+            if (finalValidate) {
+                JSONObject creatorJ = (JSONObject) creator;
+                Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
+                Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
+                JSONObject pmeta = null;
+                JSONArray plugins = creatorJ.getJSONArray("plugin");
+                if (plugins != null) {
+                    for (int i = 0; i < plugins.size(); i++) {
+                        pmeta = plugins.getJSONObject(i);
+                        if (StringUtils.isBlank(pmeta.getString("hetero"))
+                                || StringUtils.isBlank(pmeta.getString("descName"))
+                                || StringUtils.isBlank(pmeta.getString("extraParam"))
+                        ) {
+                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + ",pluginClazz:" + pluginClazz.getName());
+                        }
+                    }
+                }
+            }
         }
         return props;
     }
@@ -178,8 +238,58 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
 
         public void merge(Props p) {
-            p.props.forEach((key, val) -> {
-                props.put(key, val);
+            jsonMerge(props, p.props);
+        }
+
+        private static final Pattern PATTERN_PARENT = Pattern.compile("(.+?)\\-parent");
+
+        private void jsonMerge(JSONObject to, JSONObject from) {
+
+            final Map<String, JSONObject> parentMap = Maps.newHashMap();
+            Set<String> removeKeys = Sets.newHashSet();
+            to.forEach((key, val) -> {
+                Matcher matcher = PATTERN_PARENT.matcher(key);
+                if (!matcher.matches()) {
+                    return;
+                }
+                removeKeys.add(key);
+                String parentKey = matcher.group(1);
+                if (!(val instanceof JSONObject)) {
+                    throw new IllegalStateException("key:" + key + " relevant val must be 'JSONObject'");
+                }
+                parentMap.put(parentKey, (JSONObject) val);
+            });
+            removeKeys.forEach((removeKey) -> {
+                to.remove(removeKey);
+            });
+
+            from.forEach((key, val) -> {
+
+
+                if (val instanceof JSONObject) {
+                    Object toProp = to.get(key);
+                    if (toProp != null && toProp instanceof JSONObject) {
+                        jsonMerge((JSONObject) toProp, (JSONObject) val);
+                    } else {
+                        to.put(key, val);
+                    }
+                } else if (val instanceof JSONArray) {
+                    JSONArray arys = (JSONArray) val;
+                    JSONObject pval = parentMap.get(key);
+                    if (pval != null) {
+                        JSONArray narys = new JSONArray();
+                        JSONObject o = null;
+                        for (int i = 0; i < arys.size(); i++) {
+                            o = (JSONObject) pval.clone();
+                            jsonMerge(o, arys.getJSONObject(i));
+                            narys.add(o);
+                        }
+                        arys = narys;
+                    }
+                    to.put(key, arys);
+                } else {
+                    to.put(key, val);
+                }
             });
         }
     }

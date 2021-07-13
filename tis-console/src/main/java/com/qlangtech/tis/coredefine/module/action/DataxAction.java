@@ -283,7 +283,8 @@ public class DataxAction extends BasicModule {
       return;
     }
     PluginStore<DataXJobWorker> jobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-    Descriptor.ParseDescribable<DataXJobWorker> describablesWithMeta = PluginStore.getDescribablesWithMeta(jobWorkerStore);
+    Descriptor.ParseDescribable<DataXJobWorker> describablesWithMeta
+      = PluginStore.getDescribablesWithMeta(jobWorkerStore, jobWorkerStore.getPlugin());
     DataXJobWorker dataxJobWorker = describablesWithMeta.instance;
     Objects.requireNonNull(dataxJobWorker, "dataxJobWorker can not be null");
     dataxJobWorker.setReplicasSpec(incrSpecResult.getSpec());

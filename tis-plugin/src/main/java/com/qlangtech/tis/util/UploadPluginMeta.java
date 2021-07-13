@@ -53,6 +53,8 @@ public class UploadPluginMeta {
 
     //纯添加类型，更新之前需要将之前的类型plugin先load出来再更新
     public static final String KEY_APPEND = "append";
+    // 禁止向context中写入biz状态
+    public static final String KEY_DISABLE_BIZ_SET = "disableBizStore";
 
     private final String name;
 
@@ -73,6 +75,10 @@ public class UploadPluginMeta {
      */
     public boolean isAppend() {
         return this.getBoolean(KEY_APPEND);
+    }
+
+    public boolean isDisableBizSet() {
+        return this.getBoolean(KEY_DISABLE_BIZ_SET);
     }
 
     public static void main(String[] args) throws Exception {

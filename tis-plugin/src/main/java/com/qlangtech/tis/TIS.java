@@ -422,6 +422,22 @@ public class TIS {
         return candidate;
     }
 
+//    /**
+//     *
+//     * @param name
+//     * @return
+//     */
+//    public Descriptor getDescriptorByDisplayName(String name) {
+//        Iterable<Descriptor> descriptors = getExtensionList(Descriptor.class);
+//        for (Descriptor d : descriptors) {
+//            d.clazz
+//            if (d.getDisplayName().equals(name)) {
+//                return d;
+//            }
+//        }
+//        return null;
+//    }
+
     /**
      * Gets the {@link Descriptor} that corresponds to the given {@link Describable} type.
      * <p>
@@ -429,9 +445,10 @@ public class TIS {
      * you'll get the same instance that this method returns.
      */
     public Descriptor getDescriptor(Class<? extends Describable> type) {
-        for (Descriptor d : getExtensionList(Descriptor.class))
+        for (Descriptor d : getExtensionList(Descriptor.class)) {
             if (d.clazz == type)
                 return d;
+        }
         return null;
     }
 
@@ -577,7 +594,7 @@ public class TIS {
         installStateName = newState.name();
         logger.info("Install state transitioning from: {} to : {}", prior, installStateName);
         if (!installStateName.equals(prior)) {
-           // getSetupWizard().onInstallStateUpdate(newState);
+            // getSetupWizard().onInstallStateUpdate(newState);
             newState.initializeState();
         }
     }

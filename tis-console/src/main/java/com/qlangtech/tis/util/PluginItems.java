@@ -68,7 +68,14 @@ public class PluginItems {
   public PluginItems(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
     this.heteroEnum = pluginMeta.getHeteroEnum();
     this.pluginMeta = pluginMeta;
-    this.pluginContext = pluginContext;
+    this.pluginContext = pluginMeta.isDisableBizSet() ? new AdapterPluginContext(pluginContext) {
+      @Override
+      public void setBizResult(Context context, Object result) {
+        //super.setBizResult(context, result);
+      }
+    } : pluginContext;
+
+
   }
 
   /**
