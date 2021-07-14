@@ -176,12 +176,13 @@ public final class DataxExecutor {
             logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
             DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
 
-            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
-                @Override
-                protected Class<?> findClass(String name) throws ClassNotFoundException {
-                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-                }
-            };
+            final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
+//            {
+//                @Override
+//                protected Class<?> findClass(String name) throws ClassNotFoundException {
+//                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+//                }
+//            };
             this.startWork(dataxName, jobId, jobName, jobPath, uberClassLoader);
             success = true;
         } finally {
@@ -265,12 +266,7 @@ public final class DataxExecutor {
     public static void initializeClassLoader(Set<String> pluginKeys, JarLoader classLoader) throws IllegalAccessException {
         Map<String, JarLoader> jarLoaderCenter = (Map<String, JarLoader>) jarLoaderCenterField.get(null);
         jarLoaderCenter.clear();
-//            final JarLoader uberClassLoader = new JarLoader(new String[]{"."}) {
-//                @Override
-//                protected Class<?> findClass(String name) throws ClassNotFoundException {
-//                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-//                }
-//            };
+
         for (String pluginKey : pluginKeys) {
             jarLoaderCenter.put(pluginKey, classLoader);
         }

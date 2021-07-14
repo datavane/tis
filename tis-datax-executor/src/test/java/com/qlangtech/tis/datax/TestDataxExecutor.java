@@ -56,12 +56,13 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
     }
 
     private JarLoader getJarLoader() {
-        return new JarLoader(new String[]{"."}) {
-            @Override
-            protected Class<?> findClass(String name) throws ClassNotFoundException {
-                return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-            }
-        };
+        return new TISJarLoader(TIS.get().getPluginManager());
+//        {
+//            @Override
+//            protected Class<?> findClass(String name) throws ClassNotFoundException {
+//                return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+//            }
+//        };
     }
 
     public void testDataxJobMysql2Hive() throws Exception {
