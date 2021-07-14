@@ -723,7 +723,7 @@ public class DataxAction extends BasicModule {
             targetCol = targetCols.getJSONObject(i);
             index = targetCol.getInteger("index");
             targetColName = targetCol.getString("name");
-            if ((previousColIndex = existCols.put(targetColName, index)) != null) {
+            if ( StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
               msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" + index + "行重复");
               msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "内容不能与第" + previousColIndex + "行重复");
               return false;
