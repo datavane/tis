@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -36,7 +36,11 @@ import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -105,9 +109,20 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
 
             @Override
             public void process(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget, LoggingEvent e) {
-                PExecuteState s = createLogState(mtarget, e.getTimeStamp(), LogCollectorClient.convert(e.getLevel()), e.getFormattedMessage());
-                responseObserver.onNext(s);
-                registerMonitorEventHook.send2Client(s, e);
+                try {
+                    try (BufferedReader msgReader = new BufferedReader(new StringReader(e.getFormattedMessage()))) {
+                        String line = null;
+                        while ((line = msgReader.readLine()) != null) {
+                            PExecuteState s = createLogState(mtarget, e.getTimeStamp(), LogCollectorClient.convert(e.getLevel()), line);
+                            responseObserver.onNext(s);
+                            registerMonitorEventHook.send2Client(s, e);
+                        }
+                    }
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+
             }
 
             private PExecuteState createLogState(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget, long timestamp, com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState.InfoType level, String msg) {
@@ -142,10 +157,10 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                 if (serverCallStreamObserver.isReady() && !wasReady) {
                     wasReady = true;
                     logger.info("READY");
-                // Signal the request sender to send one message. This happens when isReady() turns true, signaling that
-                // the receive buffer has enough free space to receive more messages. Calling request() serves to prime
-                // the message pump.
-                // serverCallStreamObserver.request(1);
+                    // Signal the request sender to send one message. This happens when isReady() turns true, signaling that
+                    // the receive buffer has enough free space to receive more messages. Calling request() serves to prime
+                    // the message pump.
+                    // serverCallStreamObserver.request(1);
                 }
             }
         }
@@ -165,15 +180,15 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                     addListener(mtarget, listener);
                     // Check the provided ServerCallStreamObserver to see if it is still ready to accept more messages.
                     if (serverCallStreamObserver.isReady()) {
-                    // Signal the sender to send another request. As long as isReady() stays true, the server will keep
-                    // cycling through the loop of onNext() -> request(1)...onNext() -> request(1)... until the client runs
-                    // out of messages and ends the loop (via onCompleted()).
-                    // 
-                    // If request() was called here with the argument of more than 1, the server might runs out of receive
-                    // buffer space, and isReady() will turn false. When the receive buffer has sufficiently drained,
-                    // isReady() will turn true, and the serverCallStreamObserver's onReadyHandler will be called to restart
-                    // the message pump.
-                    // serverCallStreamObserver.request(1);
+                        // Signal the sender to send another request. As long as isReady() stays true, the server will keep
+                        // cycling through the loop of onNext() -> request(1)...onNext() -> request(1)... until the client runs
+                        // out of messages and ends the loop (via onCompleted()).
+                        //
+                        // If request() was called here with the argument of more than 1, the server might runs out of receive
+                        // buffer space, and isReady() will turn false. When the receive buffer has sufficiently drained,
+                        // isReady() will turn true, and the serverCallStreamObserver's onReadyHandler will be called to restart
+                        // the message pump.
+                        // serverCallStreamObserver.request(1);
                     } else {
                         // If not, note that back-pressure has begun.
                         onReadyHandler.wasReady = false;

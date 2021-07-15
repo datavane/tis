@@ -37,7 +37,21 @@ public class ExtendWorkFlowBuildHistory {
     super();
     this.delegate = delegate;
   }
-
+  /**
+   * 耗时
+   *
+   * @return
+   */
+  public String getConsuming() {
+    ExecResult result = ExecResult.parse(this.delegate.getState());
+    Date endTime = ((result == ExecResult.FAILD || result == ExecResult.SUCCESS) && this.getEndTime() != null) ? this.getEndTime() : new Date();
+    int consuming = (int) ((endTime.getTime() - this.getStartTime().getTime()) / 1000);
+    if (consuming < 60) {
+      return consuming + "秒";
+    } else {
+      return (consuming / 60) + "分钟";
+    }
+  }
   public Integer getId() {
     return delegate.getId();
   }
@@ -69,21 +83,7 @@ public class ExtendWorkFlowBuildHistory {
     // System.out.println(test.getNow());
   }
 
-  /**
-   * 耗时
-   *
-   * @return
-   */
-  public String getConsuming() {
-    ExecResult result = ExecResult.parse(this.delegate.getState());
-    Date endTime = ((result == ExecResult.FAILD || result == ExecResult.SUCCESS) && this.getEndTime() != null) ? this.getEndTime() : new Date();
-    int consuming = (int) ((endTime.getTime() - this.getStartTime().getTime()) / 1000);
-    if (consuming < 60) {
-      return consuming + "秒";
-    } else {
-      return (consuming / 60) + "分钟";
-    }
-  }
+
 
   public Date getEndTime() {
     return delegate.getEndTime();

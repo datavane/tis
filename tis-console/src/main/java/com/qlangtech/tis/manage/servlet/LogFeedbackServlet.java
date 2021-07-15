@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.cloud.ITISCoordinator;
@@ -320,7 +321,22 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
         if ((buildState.isComplete() ^ preTaskComplete)) {
           // 状态变化了要重新向客户发一个请求
-          this.sendMsg2Client(getBuildHistory());
+          int waitTry = 0;
+          ExtendWorkFlowBuildHistory status = null;
+          do {
+            if (waitTry++ > 4) {
+              // 等待尝试4次退出
+              break;
+            }
+            // assemble节点反馈执行状态与状态写入到数据库有一个时间差，需要等一下
+            Thread.sleep(2000);
+            status = getBuildHistory();
+            if (ExecResult.parse(status.getState()) != ExecResult.DOING
+              && (ExecResult.parse(status.getState()) != ExecResult.ASYN_DOING)) {
+              break;
+            }
+          } while (true);
+          this.sendMsg2Client(status);
           preTaskComplete = buildState.isComplete();
         }
       } else {
