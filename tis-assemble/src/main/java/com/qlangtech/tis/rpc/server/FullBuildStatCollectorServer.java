@@ -110,6 +110,10 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
             @Override
             public void process(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget, LoggingEvent e) {
                 try {
+                    String msg = e.getFormattedMessage();
+                    if (msg == null) {
+                        return;
+                    }
                     try (BufferedReader msgReader = new BufferedReader(new StringReader(e.getFormattedMessage()))) {
                         String line = null;
                         while ((line = msgReader.readLine()) != null) {
