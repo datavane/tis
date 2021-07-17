@@ -21,6 +21,8 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IdentityName;
 
+import java.util.List;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 18:07
@@ -33,8 +35,13 @@ public abstract class K8sImage implements Describable<K8sImage>, IdentityName {
 
     public abstract String getImagePath();
 
+    public abstract List<HostAlias> getHostAliases();
+
+//    public static class HostAliases extends ArrayList<HostAlias> {
+//    }
+
     /**
-     *ParamsConfig.createConfigInstance(): io.kubernetes.client.openapi.ApiClient
+     * ParamsConfig.createConfigInstance(): io.kubernetes.client.openapi.ApiClient
      *
      * @param
      * @return

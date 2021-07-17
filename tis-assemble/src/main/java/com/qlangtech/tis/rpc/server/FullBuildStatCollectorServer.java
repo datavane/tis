@@ -101,6 +101,9 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
             @Override
             public void readLogTailer(RealtimeLoggerCollectorAppender.LoggingEventMeta meta, File logFile) {
                 Utils.readLastNLine(logFile, 200, (line) -> {
+                    if (line == null) {
+                        return;
+                    }
                     PExecuteState s = createLogState(meta, 0, null, line);
                     responseObserver.onNext(s);
                     registerMonitorEventHook.send2ClientFromFileTailer(logFile, s);
@@ -129,7 +132,8 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
 
             }
 
-            private PExecuteState createLogState(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget, long timestamp, com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState.InfoType level, String msg) {
+            private PExecuteState createLogState(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget
+                    , long timestamp, com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState.InfoType level, String msg) {
                 PExecuteState.Builder serverLog = PExecuteState.newBuilder();
                 serverLog.setTime(timestamp);
                 if (level != null) {

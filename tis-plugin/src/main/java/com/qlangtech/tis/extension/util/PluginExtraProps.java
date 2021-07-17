@@ -21,7 +21,9 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -44,9 +46,31 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     public static final String KEY_ROUTER_LINK = "routerLink";
     public static final String KEY_LABEL = "label";
-
+    // private static final Parser mdParser = Parser.builder().build();
 
     private static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz) {
+
+        final String mdRes = pluginClazz.getSimpleName() + ".md";
+        final Map<String, StringBuffer> propHelps = Maps.newHashMap();
+        IOUtils.loadResourceFromClasspath(pluginClazz, mdRes, false, (input) -> {
+            LineIterator lines = org.apache.commons.io.IOUtils.lineIterator(input, TisUTF8.get());
+            String line = null;
+            StringBuffer propHelp = null;
+            int indexOf;
+            while (lines.hasNext()) {
+                line = lines.nextLine();
+
+                if ((indexOf = StringUtils.indexOf(line, "##")) > -1) {
+                    propHelp = new StringBuffer();
+                    propHelps.put(StringUtils.trimToNull(StringUtils.substring(line, indexOf + 2)), propHelp);
+                } else {
+                    Objects.requireNonNull(propHelp, "propHelp can not be null");
+                    propHelp.append(line).append("\n");
+                }
+            }
+            return null;
+        });
+
         String resourceName = pluginClazz.getSimpleName() + ".json";
         try {
             try (InputStream i = pluginClazz.getResourceAsStream(resourceName)) {
@@ -55,15 +79,24 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 }
                 JSONObject o = JSON.parseObject(i, TisUTF8.get(), JSONObject.class);
                 PluginExtraProps props = new PluginExtraProps();
+                Props pps = null;
                 for (String propKey : o.keySet()) {
-                    props.put(propKey, new Props(validate(o.getJSONObject(propKey), propKey, pluginClazz, resourceName, false)));
+                    pps = new Props(validate(o.getJSONObject(propKey), propKey, pluginClazz, resourceName, false));
+                    StringBuffer asynHelp = null;
+                    if ((asynHelp = propHelps.get(propKey)) != null) {
+                        pps.tagAsynHelp(asynHelp);
+                    }
+                    props.put(propKey, pps);
                 }
                 return Optional.of(props);
             }
         } catch (Exception e) {
             throw new RuntimeException("resourceName:" + resourceName, e);
         }
+
+
     }
+
 
     /**
      * field form extran descriptor
@@ -86,7 +119,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return extraProps;
         });
 
-
         if (ep != null) {
             String resourceName = clazz.getSimpleName() + ".json";
             for (Map.Entry<String, PluginExtraProps.Props> entry : ep.entrySet()) {
@@ -95,25 +127,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
 
         return Optional.ofNullable(ep);
-
-//        List allSuperclasses = Lists.newArrayList(clazz);
-//        allSuperclasses.addAll(ClassUtils.getAllSuperclasses(clazz));
-//        PluginExtraProps extraProps = null;
-//        Class targetClass = null;
-//        Optional<PluginExtraProps> nxtExtraProps;
-//        for (int i = allSuperclasses.size() - 2; i >= 0; i--) {
-//            targetClass = (Class) allSuperclasses.get(i);
-//            nxtExtraProps = parseExtraProps(targetClass);
-//            if (nxtExtraProps.isPresent()) {
-//                if (extraProps == null) {
-//                    extraProps = nxtExtraProps.get();
-//                } else {
-//                    extraProps.mergeProps(nxtExtraProps.get());
-//                }
-//            }
-//        }
-//
-//        return Optional.ofNullable(extraProps);
     }
 
     public static <T> T visitAncestorsClass(Class<?> clazz, IClassVisitor<T> clazzVisitor) {
@@ -196,10 +209,18 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     }
 
     public static class Props {
+        private static final String KEY_HELP = "help";
+        private static final String KEY_ASYNC_HELP = "asyncHelp";
         private final JSONObject props;
+        private String asynHelp;
 
         public Props(JSONObject props) {
             this.props = props;
+        }
+
+        @JSONField(serialize = false)
+        public String getAsynHelp() {
+            return this.asynHelp;
         }
 
         @JSONField(serialize = false)
@@ -214,7 +235,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         @JSONField(serialize = false)
         public String getHelpContent() {
-            return (String) props.get("help");
+            return (String) props.get(KEY_HELP);
         }
 
 
@@ -229,6 +250,19 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return o == null ? null : String.valueOf(o);
         }
 
+        /**
+         * 标记帮助内容从服务端异步获取
+         */
+        public void tagAsynHelp(StringBuffer asynHelp) {
+            props.put(KEY_ASYNC_HELP, true);
+            props.remove(KEY_HELP);
+            this.asynHelp = asynHelp.toString();
+        }
+
+        public boolean isAsynHelp() {
+            return props.getBooleanValue(KEY_ASYNC_HELP);
+        }
+
         public boolean getBoolean(String key) {
             return this.props.getBooleanValue(key);
         }
@@ -239,6 +273,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         public void merge(Props p) {
             jsonMerge(props, p.props);
+            if (p.isAsynHelp()) {
+                this.asynHelp = p.asynHelp;
+            }
         }
 
         private static final Pattern PATTERN_PARENT = Pattern.compile("(.+?)\\-parent");

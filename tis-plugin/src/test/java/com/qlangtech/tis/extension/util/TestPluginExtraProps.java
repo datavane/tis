@@ -38,6 +38,7 @@ public class TestPluginExtraProps extends TestCase {
         prop = extraProps.getProp("userName");
         assertNotNull(prop);
         assertNotNull("用户名", prop.getLable());
+        assertTrue("isAsynHelp must be true", prop.isAsynHelp());
 
 
         PluginExtraProps.Props encode = extraProps.getProp("encode");

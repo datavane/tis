@@ -22,9 +22,11 @@ import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.install.InstallUtil;
 import com.qlangtech.tis.manage.common.Option;
@@ -57,6 +59,31 @@ import java.util.stream.Collectors;
 public class PluginAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(PluginAction.class);
   private OfflineManager offlineManager;
+
+  /**
+   * 取得字段的帮助信息
+   *
+   * @param context
+   */
+  public void doGetPluginFieldHelp(Context context) {
+    String pluginImpl = this.getString("impl");
+    String fieldName = this.getString("field");
+    if (StringUtils.isEmpty(pluginImpl)) {
+      throw new IllegalArgumentException("param 'impl' can not be null");
+    }
+    if (StringUtils.isEmpty(fieldName)) {
+      throw new IllegalArgumentException("param 'field' can not be null");
+    }
+    Descriptor targetDesc = TIS.get().getDescriptor(pluginImpl);
+
+    PropertyType fieldProp = (PropertyType) targetDesc.getPropertyType(fieldName);
+
+    PluginExtraProps.Props props = fieldProp.extraProp;
+    if (!props.isAsynHelp()) {
+      throw new IllegalStateException("plugin:" + pluginImpl + ",field:" + fieldName + " is not support async help content fecthing");
+    }
+    this.setBizResult(context, props.getAsynHelp());
+  }
 
   /**
    * 取得安装进度状态
