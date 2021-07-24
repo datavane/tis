@@ -337,105 +337,194 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      */
     private Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Class<?> clazz) {
         try {
-            Map<String, IPropertyType> r = new HashMap<String, IPropertyType>();
-            FormField formField = null;
-            SubForm subFormFields = null;
-            PropertyType ptype = null;
-            PluginExtraProps.Props fieldExtraProps = null;
-            Class<?> subFromDescClass = null;
+            Map<String, IPropertyType> r = new HashMap<>();
 
-            Optional<PluginExtraProps> extraProps = null;// PluginExtraProps.load(clazz);
+
+            Optional<PluginExtraProps> extraProps = PluginExtraProps.load(clazz);// PluginExtraProps.load(clazz);
 
             //PluginExtraProps extraProps = null;
 
             // 支持使用继承的方式来实现复用，例如：DataXHiveWriter继承DataXHdfsWriter来实现
-            List allSuperclasses = ClassUtils.getAllSuperclasses(clazz);
-            allSuperclasses.add(clazz);
-            Class targetClass = null;
-
-            extraProps = PluginExtraProps.load(clazz);
-
-            for (Object c : allSuperclasses) {
-                targetClass = (Class) c;
-                // extraProps = PluginExtraProps.load(targetClass);
-                AA:
-                for (Field f : targetClass.getDeclaredFields()) {
-                    if (!Modifier.isPublic(f.getModifiers())) {
-                        continue;
-                    }
-
-                    if ((subFormFields = f.getAnnotation(SubForm.class)) != null) {
-                        subFromDescClass = subFormFields.desClazz();
-                        if (subFromDescClass == null) {
-                            throw new IllegalStateException("field " + f.getName()
-                                    + "'s SubForm annotation descClass can not be null");
-                        }
-                        r.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(subFromDescClass))));
-                    }
-
-                    formField = f.getAnnotation(FormField.class);
-                    if (formField != null) {
-                        ptype = new PropertyType(f, formField);
-                        if (extraProps.isPresent()
-                                && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
-                            String dftVal = fieldExtraProps.getDftVal();
-
-                            if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
-                                continue AA;
+            PluginExtraProps.visitAncestorsClass(clazz, new PluginExtraProps.IClassVisitor<Void>() {
+                @Override
+                public Void process(Class<?> targetClass, Void v) {
+                    FormField formField = null;
+                    SubForm subFormFields = null;
+                    PropertyType ptype = null;
+                    PluginExtraProps.Props fieldExtraProps = null;
+                    Class<?> subFromDescClass = null;
+                    try {
+                        for (Field f : targetClass.getDeclaredFields()) {
+                            if (!Modifier.isPublic(f.getModifiers())) {
+                                continue;
                             }
 
-                            if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
-
-                                UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
-                                boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
-                                JSONObject props = fieldExtraProps.getProps();
-                                Callable<String> valGetter = () -> (String) GroovyShellEvaluate.eval(meta.getName());
-                                props.put(PluginExtraProps.KEY_DFTVAL_PROP, unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call());
+                            if ((subFormFields = f.getAnnotation(SubForm.class)) != null) {
+                                subFromDescClass = subFormFields.desClazz();
+                                if (subFromDescClass == null) {
+                                    throw new IllegalStateException("field " + f.getName()
+                                            + "'s SubForm annotation descClass can not be null");
+                                }
+                                r.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(subFromDescClass))));
                             }
 
-                            if ((formField.type() == FormFieldType.ENUM) || formField.type() == FormFieldType.MULTI_SELECTABLE) {
-                                Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
+                            formField = f.getAnnotation(FormField.class);
+                            if (formField != null) {
+                                ptype = new PropertyType(f, formField);
+                                if (extraProps.isPresent()
+                                        && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
+                                    String dftVal = fieldExtraProps.getDftVal();
+
+                                    if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
+                                        r.remove(f.getName());
+                                        // continue AA;
+                                        return null;
+                                    }
+
+                                    if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
+
+                                        UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
+                                        boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
+                                        JSONObject props = fieldExtraProps.getProps();
+                                        Callable<String> valGetter = () -> (String) GroovyShellEvaluate.eval(meta.getName());
+                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP, unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call());
+                                    }
+
+                                    if ((formField.type() == FormFieldType.ENUM) || formField.type() == FormFieldType.MULTI_SELECTABLE) {
+                                        Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
 //                                if (anEnum == null) {
 //                                    throw new IllegalStateException("fieldName:" + f.getName() + " relevant enum descriptor in json config can not be null");
 //                                }
-                                if (anEnum != null && anEnum instanceof String) {
-                                    // 使用了如下这种配置方式，需要使用groovy进行解析
-                                    // "enum": "com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()"
-                                    // 需要转化成以下这种格式:
-                                    //                                "enum": [
-                                    //                                {
-                                    //                                    "label": "是",
-                                    //                                        "val": true
-                                    //                                },
-                                    //                                {
-                                    //                                    "label": "否",
-                                    //                                        "val": false
-                                    //                                }
-                                    // ]
-                                    try {
-                                        GroovyShellEvaluate.descriptorThreadLocal.set(this);
-                                        List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
-                                        JSONArray enums = new JSONArray();
-                                        if (itEnums != null) {
-                                            itEnums.forEach((key) -> {
-                                                JSONObject o = new JSONObject();
-                                                o.put("label", key.getName());
-                                                o.put("val", key.getValue());
-                                                enums.add(o);
-                                            });
+                                        if (anEnum != null && anEnum instanceof String) {
+                                            // 使用了如下这种配置方式，需要使用groovy进行解析
+                                            // "enum": "com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()"
+                                            // 需要转化成以下这种格式:
+                                            //                                "enum": [
+                                            //                                {
+                                            //                                    "label": "是",
+                                            //                                        "val": true
+                                            //                                },
+                                            //                                {
+                                            //                                    "label": "否",
+                                            //                                        "val": false
+                                            //                                }
+                                            // ]
+                                            try {
+                                                GroovyShellEvaluate.descriptorThreadLocal.set(Descriptor.this);
+                                                List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
+                                                JSONArray enums = new JSONArray();
+                                                if (itEnums != null) {
+                                                    itEnums.forEach((key) -> {
+                                                        JSONObject o = new JSONObject();
+                                                        o.put("label", key.getName());
+                                                        o.put("val", key.getValue());
+                                                        enums.add(o);
+                                                    });
+                                                }
+                                                fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
+                                            } finally {
+                                                GroovyShellEvaluate.descriptorThreadLocal.remove();
+                                            }
                                         }
-                                        fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
-                                    } finally {
-                                        GroovyShellEvaluate.descriptorThreadLocal.remove();
                                     }
+                                    ptype.setExtraProp(fieldExtraProps);
                                 }
+                                r.put(f.getName(), ptype);
                             }
-                            ptype.setExtraProp(fieldExtraProps);
                         }
-                        r.put(f.getName(), ptype);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
+                    return null;
                 }
-            }
+            });
+
+//            List allSuperclasses = ClassUtils.getAllSuperclasses(clazz);
+//            allSuperclasses.add(clazz);
+//            Class targetClass = null;
+
+
+//            for (Object c : allSuperclasses) {
+//                targetClass = (Class) c;
+//                // extraProps = PluginExtraProps.load(targetClass);
+//                AA:
+//                for (Field f : targetClass.getDeclaredFields()) {
+//                    if (!Modifier.isPublic(f.getModifiers())) {
+//                        continue;
+//                    }
+//
+//                    if ((subFormFields = f.getAnnotation(SubForm.class)) != null) {
+//                        subFromDescClass = subFormFields.desClazz();
+//                        if (subFromDescClass == null) {
+//                            throw new IllegalStateException("field " + f.getName()
+//                                    + "'s SubForm annotation descClass can not be null");
+//                        }
+//                        r.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(subFromDescClass))));
+//                    }
+//
+//                    formField = f.getAnnotation(FormField.class);
+//                    if (formField != null) {
+//                        ptype = new PropertyType(f, formField);
+//                        if (extraProps.isPresent()
+//                                && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
+//                            String dftVal = fieldExtraProps.getDftVal();
+//
+//                            if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
+//                                continue AA;
+//                            }
+//
+//                            if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
+//
+//                                UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
+//                                boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
+//                                JSONObject props = fieldExtraProps.getProps();
+//                                Callable<String> valGetter = () -> (String) GroovyShellEvaluate.eval(meta.getName());
+//                                props.put(PluginExtraProps.KEY_DFTVAL_PROP, unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call());
+//                            }
+//
+//                            if ((formField.type() == FormFieldType.ENUM) || formField.type() == FormFieldType.MULTI_SELECTABLE) {
+//                                Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
+////                                if (anEnum == null) {
+////                                    throw new IllegalStateException("fieldName:" + f.getName() + " relevant enum descriptor in json config can not be null");
+////                                }
+//                                if (anEnum != null && anEnum instanceof String) {
+//                                    // 使用了如下这种配置方式，需要使用groovy进行解析
+//                                    // "enum": "com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()"
+//                                    // 需要转化成以下这种格式:
+//                                    //                                "enum": [
+//                                    //                                {
+//                                    //                                    "label": "是",
+//                                    //                                        "val": true
+//                                    //                                },
+//                                    //                                {
+//                                    //                                    "label": "否",
+//                                    //                                        "val": false
+//                                    //                                }
+//                                    // ]
+//                                    try {
+//                                        GroovyShellEvaluate.descriptorThreadLocal.set(this);
+//                                        List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
+//                                        JSONArray enums = new JSONArray();
+//                                        if (itEnums != null) {
+//                                            itEnums.forEach((key) -> {
+//                                                JSONObject o = new JSONObject();
+//                                                o.put("label", key.getName());
+//                                                o.put("val", key.getValue());
+//                                                enums.add(o);
+//                                            });
+//                                        }
+//                                        fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
+//                                    } finally {
+//                                        GroovyShellEvaluate.descriptorThreadLocal.remove();
+//                                    }
+//                                }
+//                            }
+//                            ptype.setExtraProp(fieldExtraProps);
+//                        }
+//                        r.put(f.getName(), ptype);
+//                    }
+//                }
+//            }
             return r;
         } catch (Exception e) {
             throw new RuntimeException("parse desc:" + clazz.getName(), e);

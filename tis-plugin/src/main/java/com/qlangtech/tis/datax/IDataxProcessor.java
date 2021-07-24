@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
  * @date 2021-04-07 14:38
  */
 public interface IDataxProcessor {
+    public String DATAX_CREATE_DDL_FILE_NAME_SUFFIX = ".sql";
 
     IDataxReader getReader(IPluginContext pluginCtx);
 
@@ -36,6 +37,14 @@ public interface IDataxProcessor {
     IDataxGlobalCfg getDataXGlobalCfg();
 
     public File getDataxCfgDir(IPluginContext pluginCtx);
+
+    /**
+     * 取得自动建表目录
+     *
+     * @param pluginContext
+     * @return
+     */
+    public File getDataxCreateDDLDir(IPluginContext pluginContext);
 
     public File getDataXWorkDir(IPluginContext pluginContext);
 

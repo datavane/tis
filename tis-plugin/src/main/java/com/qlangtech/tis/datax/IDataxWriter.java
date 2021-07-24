@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.datax.impl.DataxWriter;
+
 import java.util.Optional;
 
 /**
@@ -22,6 +24,8 @@ import java.util.Optional;
  */
 public interface IDataxWriter extends IDataXPluginMeta {
     public String getTemplate();
+
+    public DataxWriter.BaseDataxWriterDescriptor getWriterDescriptor();
 
     /**
      * 取得子任务
@@ -38,4 +42,13 @@ public interface IDataxWriter extends IDataXPluginMeta {
      * @return
      */
     IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap);
+
+    /**
+     * 生成创建table的脚本
+     *
+     *
+     */
+    default StringBuffer generateCreateDDL( IDataxProcessor.TableMap tableMapper) {
+        throw new UnsupportedOperationException();
+    }
 }

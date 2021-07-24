@@ -314,6 +314,25 @@ public class DataxAction extends BasicModule {
     this.setBizResult(context, new DataxPluginDescMeta(readerTypes, writerTypes));
   }
 
+  enum GenCfgFileType {
+    DATAX_CFG("datax"), CREATE_TABLE_DDL("createTableDDL");
+    private final String val;
+
+    static GenCfgFileType parse(String val) {
+      for (GenCfgFileType t : GenCfgFileType.values()) {
+        if (t.val.equalsIgnoreCase(val)) {
+          return t;
+        }
+      }
+      throw new IllegalStateException("illegal val:" + val);
+    }
+
+    private GenCfgFileType(String val) {
+      this.val = val;
+    }
+  }
+
+
   /**
    * 取得生成的配置文件的内容
    *
@@ -323,14 +342,31 @@ public class DataxAction extends BasicModule {
   public void doGetGenCfgFile(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     String fileName = this.getString("fileName");
+    GenCfgFileType fileType = GenCfgFileType.parse(this.getString("fileType"));
     DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
-    File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
-    File cfgFile = new File(dataxCfgDir, fileName);
-    if (!cfgFile.exists()) {
-      throw new IllegalStateException("target file:" + cfgFile.getAbsolutePath());
-    }
     Map<String, Object> fileMeta = Maps.newHashMap();
-    fileMeta.put("content", FileUtils.readFileToString(cfgFile, TisUTF8.get()));
+    switch (fileType) {
+      case DATAX_CFG:
+        File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
+        File cfgFile = new File(dataxCfgDir, fileName);
+        if (!cfgFile.exists()) {
+          throw new IllegalStateException("target file:" + cfgFile.getAbsolutePath());
+        }
+        fileMeta.put("content", FileUtils.readFileToString(cfgFile, TisUTF8.get()));
+        break;
+      case CREATE_TABLE_DDL:
+        File ddlDir = dataxProcessor.getDataxCreateDDLDir(this);
+        File sqlScript = new File(ddlDir, fileName);
+        if (!sqlScript.exists()) {
+          throw new IllegalStateException("target file:" + sqlScript.getAbsolutePath());
+        }
+        fileMeta.put("content", FileUtils.readFileToString(sqlScript, TisUTF8.get()));
+        break;
+      default:
+        throw new IllegalStateException("illegal fileType:" + fileType);
+    }
+
+
     this.setBizResult(context, fileMeta);
   }
 
@@ -723,7 +759,7 @@ public class DataxAction extends BasicModule {
             targetCol = targetCols.getJSONObject(i);
             index = targetCol.getInteger("index");
             targetColName = targetCol.getString("name");
-            if ( StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
+            if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
               msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" + index + "行重复");
               msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "内容不能与第" + previousColIndex + "行重复");
               return false;

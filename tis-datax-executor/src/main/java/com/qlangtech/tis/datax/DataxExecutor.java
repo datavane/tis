@@ -96,6 +96,11 @@ public final class DataxExecutor {
             CenterResource.copyFromRemote2Local(
                     TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath()
                             + "/" + DataxProcessor.DATAX_CFG_DIR_NAME + "/" + jobName, true);
+
+            CenterResource.getSubFiles(
+                    TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath()
+                            + "/" + DataxProcessor.DATAX_CREATE_DDL_DIR_NAME, false, true);
+
         } finally {
             TIS.permitInitialize = true;
         }

@@ -32,6 +32,7 @@ import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
 
     protected static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
+    public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
+
 
     public static DataxProcessor load(IPluginContext pluginContext, String dataXName) {
         Optional<DataxProcessor> appSource = IAppSource.loadNullable(pluginContext, dataXName);
@@ -152,6 +155,18 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     public File getDataxCfgDir(IPluginContext pluginContext) {
         File dataXWorkDir = getDataXWorkDir(pluginContext);
         return new File(dataXWorkDir, DATAX_CFG_DIR_NAME);
+    }
+
+    @Override
+    public File getDataxCreateDDLDir(IPluginContext pluginContext) {
+        File dataXWorkDir = getDataXWorkDir(pluginContext);
+        File ddlDir = new File(dataXWorkDir, DATAX_CREATE_DDL_DIR_NAME);
+        try {
+            FileUtils.forceMkdir(ddlDir);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return ddlDir;
     }
 
     @Override

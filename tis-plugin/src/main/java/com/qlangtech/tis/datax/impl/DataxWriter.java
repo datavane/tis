@@ -75,6 +75,11 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
 
 
     @Override
+    public BaseDataxWriterDescriptor getWriterDescriptor() {
+        return (BaseDataxWriterDescriptor) getDescriptor();
+    }
+
+    @Override
     public final Descriptor<DataxWriter> getDescriptor() {
         Descriptor<DataxWriter> descriptor = TIS.get().getDescriptor(this.getClass());
         Class<BaseDataxWriterDescriptor> expectClazz = getExpectDescClass();
@@ -96,6 +101,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             Map<String, Object> eprops = new HashMap<>();
             eprops.put("supportMultiTable", this.isSupportMultiTable());
             eprops.put("rdbms", this.isRdbms());
+            eprops.put("createDDL", this.isSupportTabCreate());
             return eprops;
         }
 
@@ -115,5 +121,14 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
          * @return
          */
         public abstract boolean isRdbms();
+
+        /**
+         * 是否支持自动创建
+         *
+         * @return
+         */
+        public boolean isSupportTabCreate() {
+            return false;
+        }
     }
 }

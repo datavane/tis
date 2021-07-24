@@ -104,8 +104,11 @@ public class DataXCfgGenerator {
             return generateCfgs;
         }
 
-//        Objects.requireNonNull(reader.getSelectedTabs()
-//                , "dataprocess:" + this.dataxName + " relevant DataXReader getSelectedTabs() can not be null");
+        File dataxCreateDDLDir = dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
+        generateCfgs.createDDLFiles = Lists.newArrayList(dataxCreateDDLDir.list((dir, f) -> {
+            return StringUtils.endsWith(f, IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX);
+        }));
+
         Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
         File configFile = null;
@@ -131,6 +134,8 @@ public class DataXCfgGenerator {
 
 
         IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
+        IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
+        DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
 
         Map<String, IDataxProcessor.TableAlias> tabAlias = dataxProcessor.getTabAlias();
 
@@ -143,11 +148,15 @@ public class DataXCfgGenerator {
             return selectedTabsRef.get();
         };
 
+        File createDDLDir = this.dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
         Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
         File configFile = null;
         List<String> subTaskName = Lists.newArrayList();
+        List<String> createDDLFiles = Lists.newArrayList();
         Optional<IDataxProcessor.TableMap> tableMapper = null;
+        //StringBuffer createDDL = new StringBuffer();
+
         while (subTasks.hasNext()) {
             readerContext = subTasks.next();
             if (!dataxProcessor.isWriterSupportMultiTableInReader(this.pluginCtx)) {
@@ -161,7 +170,7 @@ public class DataXCfgGenerator {
                         tableMapper = first;
                     }
                 } else {
-                    IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
+                    //IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
                     if (writer instanceof IDataxProcessor.INullTableMapCreator) {
                         tableMapper = Optional.empty();
                     }
@@ -201,14 +210,28 @@ public class DataXCfgGenerator {
                                 + " relevant col type which's name " + colMeta.getName() + " can not be null");
                     }
                 }
-
+                // 创建ddl
+                if (writerDescriptor.isSupportTabCreate()) {
+                    IDataxProcessor.TableMap mapper = tableMapper.get();
+                    StringBuffer createDDL = writer.generateCreateDDL(mapper);
+                    if (createDDL != null) {
+                        String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
+                        createDDLFiles.add(sqlFileName);
+                        FileUtils.write(new File(createDDLDir, sqlFileName), createDDL.toString(), TisUTF8.get());
+                    }
+                }
             }
+
+
             configFile = new File(parentDir, readerContext.getTaskName() + ".json");
-            FileUtils.write(configFile, generateDataxConfig(readerContext, (tableMapper)), TisUTF8.get(), false);
+            FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, (tableMapper)), TisUTF8.get(), false);
             subTaskName.add(configFile.getName());
         }
+
+
         long current = System.currentTimeMillis();
         FileUtils.write(new File(parentDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
+        cfgs.createDDLFiles = createDDLFiles;
         cfgs.dataxFiles = subTaskName;
         cfgs.genTime = current;
         return cfgs;
@@ -216,10 +239,20 @@ public class DataXCfgGenerator {
 
     private static class GenerateCfgs {
         private List<String> dataxFiles = Collections.emptyList();
+        private List<String> createDDLFiles = Collections.emptyList();
         private long genTime;
 
         public List<String> getDataxFiles() {
-            return dataxFiles;
+            return this.dataxFiles;
+        }
+
+        /**
+         * 建表script
+         *
+         * @return
+         */
+        public List<String> getCreateDDLFiles() {
+            return this.createDDLFiles;
         }
 
         public long getGenTime() {
@@ -249,15 +282,22 @@ public class DataXCfgGenerator {
      * @return 生成的配置文件内容
      * @throws IOException
      */
-    public String generateDataxConfig(IDataxReaderContext readerContext, Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
-
+    public String generateDataxConfig(IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader
+            , Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
+        Objects.requireNonNull(writer, "writer can not be null");
         StringWriter writerContent = null;
         final String tpl = getTemplateContent();
         if (StringUtils.isEmpty(tpl)) {
             throw new IllegalStateException("velocity template content can not be null");
         }
-        IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
-        IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
+        // IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
+        // IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
+
+//        DataxWriter.BaseDataxWriterDescriptor wdesc = writer.getWriterDescriptor();
+//        if(wdesc.isSupportTabCreate()){
+//
+//        }
+
         try {
             VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap));
             writerContent = new StringWriter();
