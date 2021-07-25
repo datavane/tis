@@ -83,8 +83,18 @@ public class DataXCfgGenerator {
 
     public String getTemplateContent() {
         final String tpl = globalCfg.getTemplate();
-        String template = StringUtils.replace(tpl, "<!--reader-->", dataxProcessor.getReader(pluginCtx).getTemplate());
-        template = StringUtils.replace(template, "<!--writer-->", dataxProcessor.getWriter(pluginCtx).getTemplate());
+        IDataxReader reader = dataxProcessor.getReader(pluginCtx);
+        IDataxWriter writer = dataxProcessor.getWriter(pluginCtx);
+        String readerTpl = reader.getTemplate();
+        String writerTpl = writer.getTemplate();
+        if (StringUtils.isEmpty(readerTpl)) {
+            throw new IllegalStateException("readerTpl of '" + reader.getDataxMeta().getName() + "' can not be null");
+        }
+        if (StringUtils.isEmpty(writerTpl)) {
+            throw new IllegalStateException("writerTpl of '" + writer.getDataxMeta().getName() + "' can not be null");
+        }
+        String template = StringUtils.replace(tpl, "<!--reader-->", readerTpl);
+        template = StringUtils.replace(template, "<!--writer-->", writerTpl);
         return template;
     }
 

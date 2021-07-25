@@ -355,7 +355,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     Class<?> subFromDescClass = null;
                     try {
                         for (Field f : targetClass.getDeclaredFields()) {
-                            if (!Modifier.isPublic(f.getModifiers())) {
+                            if (!Modifier.isPublic(f.getModifiers()) || Modifier.isStatic(f.getModifiers())) {
                                 continue;
                             }
 
@@ -377,8 +377,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                                     if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
                                         r.remove(f.getName());
-                                        // continue AA;
-                                        return null;
+                                        continue;
+                                        //return null;
                                     }
 
                                     if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {

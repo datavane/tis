@@ -48,8 +48,17 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
 
+    public interface IDataxProcessorGetter {
+        DataxProcessor get(String dataXName);
+    }
+
+    // for TEST
+    public static IDataxProcessorGetter processorGetter;
 
     public static DataxProcessor load(IPluginContext pluginContext, String dataXName) {
+        if (processorGetter != null) {
+            return processorGetter.get(dataXName);
+        }
         Optional<DataxProcessor> appSource = IAppSource.loadNullable(pluginContext, dataXName);
         if (appSource.isPresent()) {
             return appSource.get();
