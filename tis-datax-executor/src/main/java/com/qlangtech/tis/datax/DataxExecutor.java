@@ -59,7 +59,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -71,7 +70,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2021-04-20 12:38
  */
 public final class DataxExecutor {
-    public static final Field jarLoaderCenterField;
+    //public static final Field jarLoaderCenterField;
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
         TIS.permitInitialize = false;
@@ -97,23 +96,22 @@ public final class DataxExecutor {
                     TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath()
                             + "/" + DataxProcessor.DATAX_CFG_DIR_NAME + "/" + jobName, true);
 
-            CenterResource.getSubFiles(
-                    TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath()
-                            + "/" + DataxProcessor.DATAX_CREATE_DDL_DIR_NAME, false, true);
+            CenterResource.synchronizeSubFiles(
+                    TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath() + "/" + DataxProcessor.DATAX_CREATE_DDL_DIR_NAME);
 
         } finally {
             TIS.permitInitialize = true;
         }
     }
 
-    static {
-        try {
-            jarLoaderCenterField = LoadUtil.class.getDeclaredField("jarLoaderCenter");
-            jarLoaderCenterField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException("can not get field 'jarLoaderCenter' of LoadUtil", e);
-        }
-    }
+//    static {
+//        try {
+//            jarLoaderCenterField = LoadUtil.class.getDeclaredField("jarLoaderCenter");
+//            jarLoaderCenterField.setAccessible(true);
+//        } catch (NoSuchFieldException e) {
+//            throw new RuntimeException("can not get field 'jarLoaderCenter' of LoadUtil", e);
+//        }
+//    }
 
     /**
      * 入口开始执行
@@ -269,16 +267,14 @@ public final class DataxExecutor {
     }
 
     public static void initializeClassLoader(Set<String> pluginKeys, JarLoader classLoader) throws IllegalAccessException {
-        Map<String, JarLoader> jarLoaderCenter = (Map<String, JarLoader>) jarLoaderCenterField.get(null);
-        jarLoaderCenter.clear();
-
-        for (String pluginKey : pluginKeys) {
-            jarLoaderCenter.put(pluginKey, classLoader);
-        }
-//        jarLoaderCenter.put(this.getPluginReaderKey(), classLoader);
-//        jarLoaderCenter.put(this.getPluginWriterKey(), classLoader);
-        // jarLoaderCenter;
-        Objects.requireNonNull(jarLoaderCenter, "jarLoaderCenter can not be null");
+//        Map<String, JarLoader> jarLoaderCenter = (Map<String, JarLoader>) jarLoaderCenterField.get(null);
+//        jarLoaderCenter.clear();
+//
+//        for (String pluginKey : pluginKeys) {
+//            jarLoaderCenter.put(pluginKey, classLoader);
+//        }
+//        Objects.requireNonNull(jarLoaderCenter, "jarLoaderCenter can not be null");
+        LoadUtil.initializeJarClassLoader(pluginKeys, classLoader);
     }
 
     private void reportDataXJobStatus(boolean faild, Integer taskId, String jobName) {

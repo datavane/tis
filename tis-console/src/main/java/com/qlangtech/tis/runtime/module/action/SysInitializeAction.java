@@ -279,7 +279,7 @@ public class SysInitializeAction   //extends BasicModule
   }
 
   // 初始化ZK内容
-  protected boolean initializeZkPath(String zkHost) {
+  public boolean initializeZkPath(String zkHost) {
 
     Matcher matcher = PATTERN_ZK_ADDRESS.matcher(zkHost);
     if (!matcher.matches()) {

@@ -15,6 +15,7 @@
 
 package com.qlangtech.tis.datax;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
@@ -22,6 +23,7 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import junit.framework.TestCase;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -40,5 +42,18 @@ public class TestDataxExecutorSynRes extends TestCase implements IExecutorContex
         assertTrue(dataxCfgDir.getAbsolutePath(), dataxCfgDir.exists());
         File jobCfgFile = new File(dataxCfgDir, jobName);
         assertTrue("jobCfgFile must exist:" + jobCfgFile.getAbsolutePath(), jobCfgFile.exists());
+    }
+
+    /**
+     * create DDL 下的文件是否同步过来
+     */
+    public void testSynchronizeCreateDDLFromRemoteRepository() {
+        String dataX = "mysql_clickhouse";
+        DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataX, jobName);
+        DataxProcessor dataxProcessor = IAppSource.load(null, dataX);
+        File dataxCreateDDLDir = dataxProcessor.getDataxCreateDDLDir(null);
+        List<String> synFiles = Lists.newArrayList(dataxCreateDDLDir.list());
+        assertTrue(synFiles.contains("customer_order_relation.sql"));
+        assertTrue(synFiles.contains("instancedetail.sql"));
     }
 }

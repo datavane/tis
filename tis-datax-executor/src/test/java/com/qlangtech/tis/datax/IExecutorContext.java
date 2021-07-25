@@ -21,6 +21,6 @@ package com.qlangtech.tis.datax;
  * @create: 2021-05-08 10:39
  **/
 public interface IExecutorContext {
-     String dataXName = "baisuitest";
+     String dataXName = "baisuitestTestcase";
      String jobName = "customer_order_relation_1.json";
 }

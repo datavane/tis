@@ -119,14 +119,15 @@ public class CenterResource {
         final URL url = getPathURL(Config.SUB_DIR_CFG_REPO, relativePath);
         List<String> subDirs = Lists.newArrayList();
         subDirs.addAll(HttpUtils.get(url, new ConfigFileContext.StreamProcess<List<String>>() {
-
             @Override
             public List<ConfigFileContext.Header> getHeaders() {
                 return HEADER_GET_META;
             }
-
             @Override
             public List<String> p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                if (isTargetResourceNotExist(headerFields)) {
+                    return Collections.emptyList();
+                }
                 List<String> subChild = headerFields.get(ConfigFileContext.KEY_HEAD_FILES);
                 Optional<String> first = subChild.stream().findFirst();
                 if (!first.isPresent()) {
@@ -219,8 +220,7 @@ public class CenterResource {
         ShallWriteLocalResult result = new ShallWriteLocalResult();
         result.shall = false;
         List<String> notExist = null;
-        if ((notExist = headerFields.get(ConfigFileContext.KEY_HEAD_FILE_NOT_EXIST)) != null
-                && notExist.contains(Boolean.TRUE.toString())) {
+        if (isTargetResourceNotExist(headerFields)) {
             // 远端文件不存在不需要拷贝
             logger.warn("remote file not exist:{},local:", url, local.getAbsolutePath());
             return result;
@@ -240,6 +240,18 @@ public class CenterResource {
         }
         result.shall = true;
         return result;
+    }
+
+    /**
+     * 目标资源是否存在?
+     *
+     * @param headerFields
+     * @return
+     */
+    private static boolean isTargetResourceNotExist(Map<String, List<String>> headerFields) {
+        List<String> notExist;
+        return (notExist = headerFields.get(ConfigFileContext.KEY_HEAD_FILE_NOT_EXIST)) != null
+                && notExist.contains(Boolean.TRUE.toString());
     }
 
     private static class ShallWriteLocalResult {
