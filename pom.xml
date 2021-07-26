@@ -32,7 +32,7 @@
 
         <scala.version>2.13.0</scala.version>
         <scala.binary.version>2.13</scala.binary.version>
-        <tisasm-maven-plugin.version>1.0.2</tisasm-maven-plugin.version>
+        <tisasm-maven-plugin.version>1.0.4</tisasm-maven-plugin.version>
     </properties>
 
 
