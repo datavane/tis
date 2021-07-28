@@ -193,6 +193,10 @@ public class Config {
         return getInstance().assembleHost;
     }
 
+    public static String getAssembleHttpHost() {
+        return "http://" + getAssembleHost() + ":8080" + CONTEXT_ASSEMBLE;
+    }
+
     public static TisDbConfig getDbCfg() {
         return getInstance().getDbConfig();
     }

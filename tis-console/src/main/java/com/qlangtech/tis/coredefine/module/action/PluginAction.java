@@ -74,7 +74,7 @@ public class PluginAction extends BasicModule {
         final String extendPoint = event.heteroEnum.extensionPoint.getName();
         // @see "com.qlangtech.tis.fullbuild.servlet.TaskStatusServlet"
         try {
-          URL url = new URL(Config.getAssembleHost() + "/task_status?" + DescriptorsJSON.KEY_EXTEND_POINT + "=" + extendPoint);
+          URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + DescriptorsJSON.KEY_EXTEND_POINT + "=" + extendPoint);
           HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
             @Override
             public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
