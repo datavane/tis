@@ -69,8 +69,9 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         void process(T t);
     }
 
-    void cleanPlugins() {
+    public void cleanPlugins() {
         this.plugins.clear();
+        this.loaded = false;
     }
 
     /**

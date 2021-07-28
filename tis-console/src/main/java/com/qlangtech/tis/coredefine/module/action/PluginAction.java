@@ -29,6 +29,9 @@ import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.install.InstallUtil;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -46,7 +49,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ReflectionUtils;
 
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -59,6 +64,30 @@ import java.util.stream.Collectors;
 public class PluginAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(PluginAction.class);
   private OfflineManager offlineManager;
+
+  static {
+
+    PluginItems.addPluginItemsSaveObserver((new PluginItems.PluginItemsSaveObserver() {
+      // 通知Assemble节点更新pluginStore的缓存
+      @Override
+      public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
+        final String extendPoint = event.heteroEnum.extensionPoint.getName();
+        // @see "com.qlangtech.tis.fullbuild.servlet.TaskStatusServlet"
+        try {
+          URL url = new URL(Config.getAssembleHost() + "/task_status?" + DescriptorsJSON.KEY_EXTEND_POINT + "=" + extendPoint);
+          HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
+            @Override
+            public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+              logger.info("has apply clean pluginStore cache by " + DescriptorsJSON.KEY_EXTEND_POINT + " " + extendPoint);
+              return null;
+            }
+          });
+        } catch (Exception e) {
+          throw new RuntimeException("extendPoint:" + extendPoint, e);
+        }
+      }
+    }));
+  }
 
   /**
    * 取得字段的帮助信息
@@ -354,6 +383,7 @@ public class PluginAction extends BasicModule {
     pluginDetail.put("plugins", hlist);
     this.setBizResult(context, pluginDetail);
   }
+
 
   /**
    * 保存blugin配置

@@ -38,6 +38,7 @@ import java.util.*;
 public class DescriptorsJSON<T extends Describable<T>> {
 
     public static final String KEY_DISPLAY_NAME = "displayName";
+    public static final String KEY_EXTEND_POINT = "extendPoint";
 
     private final List<Descriptor<T>> descriptors;
 
@@ -122,7 +123,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 }
             });
             des.put(KEY_DISPLAY_NAME, d.getDisplayName());
-            des.put("extendPoint", d.getT().getName());
+            des.put(KEY_EXTEND_POINT, d.getT().getName());
             des.put("impl", d.getId());
             des.put("veriflable", d.overWriteValidateMethod);
             if (IdentityName.class.isAssignableFrom(d.clazz)) {
