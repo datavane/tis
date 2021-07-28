@@ -131,7 +131,7 @@ public class UpdateSite {
      */
     public Future<FormValidation> updateDirectly(final boolean signatureCheck) {
         if (!getDataFile().exists() || isDue()) {
-            return TIS.get().getUpdateCenter().updateService.submit(new Callable<FormValidation>() {
+            return UpdateCenter.updateService.submit(new Callable<FormValidation>() {
                 @Override
                 public FormValidation call() throws Exception {
                     return updateDirectlyNow(signatureCheck);

@@ -21,6 +21,7 @@ import com.qlangtech.tis.extension.impl.MissingDependencyException;
 import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
+import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.manage.common.CenterResource;
@@ -460,7 +461,9 @@ public class PluginManager {
 
                         if (CenterResource.notFetchFromCenterRepository()) {
                             g.followedBy().notFatal().attains(PLUGINS_STARTED).add("Load updateCenter", (reactor) -> {
-                                tis.getUpdateCenter().load();
+                                UpdateCenter updateCenter = tis.getUpdateCenter();
+                                updateCenter.load();
+                                updateCenter.updateAllSites();
                             });
                         }
 

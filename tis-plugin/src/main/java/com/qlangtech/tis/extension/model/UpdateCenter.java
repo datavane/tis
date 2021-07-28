@@ -63,7 +63,7 @@ public class UpdateCenter implements Saveable {
     /**
      * An {@link ExecutorService} for updating UpdateSites.
      */
-    protected final ExecutorService updateService = Executors.newCachedThreadPool(
+    protected static final ExecutorService updateService = Executors.newCachedThreadPool(
             new NamingThreadFactory(new DaemonThreadFactory(), "Update site data downloader"));
 
     /**
