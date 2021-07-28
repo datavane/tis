@@ -22,10 +22,10 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
-import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
@@ -51,7 +51,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -159,13 +162,17 @@ public class TisServlet extends HttpServlet {
                                     mdcContext.resetParam(newTaskId);
                                     writeResult(true, msg, res, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(newTaskId)));
                                     IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
-                                    Objects.requireNonNull(builderFactory, "builderFactory can not be null");
+                                    //Objects.requireNonNull(builderFactory, "builderFactory can not be null");
                                     // chainContext.setIndexBuildFileSystem(builderFactory.getFsFactory());
+                                    chainContext.setIndexBuilderTriggerFactory(builderFactory);
 
                                     PluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
-                                    Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
-                                    chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
-                                    chainContext.setIndexBuilderTriggerFactory(builderFactory);
+                                    if (tableDumpFactory.getPlugin() != null) {
+                                        //  Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
+                                        chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
+                                    }
+
+
                                     //   chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
                                     countDown.countDown();
                                     // 开始执行内部任务

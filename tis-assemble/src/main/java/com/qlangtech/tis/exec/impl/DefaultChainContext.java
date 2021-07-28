@@ -96,8 +96,10 @@ public class DefaultChainContext implements IExecChainContext {
     }
 
     public void setIndexBuilderTriggerFactory(IndexBuilderTriggerFactory indexBuilderTriggerFactory) {
-        this.indexBuilderTriggerFactory = indexBuilderTriggerFactory;
-        this.setIndexBuildFileSystem(indexBuilderTriggerFactory.getFileSystem());
+        if (indexBuilderTriggerFactory != null) {
+            this.indexBuilderTriggerFactory = indexBuilderTriggerFactory;
+            this.setIndexBuildFileSystem(indexBuilderTriggerFactory.getFileSystem());
+        }
     }
 
     public void setMdcParamContext(IRebindableMDC mdcParamContext) {
