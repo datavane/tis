@@ -83,7 +83,8 @@ public class PluginAction extends BasicModule {
             }
           });
         } catch (Exception e) {
-          throw new RuntimeException("extendPoint:" + extendPoint, e);
+          //throw new RuntimeException("extendPoint:" + extendPoint, e);
+          logger.warn("apply clean pluginStore cache faild " + e.getMessage());
         }
       }
     }));
