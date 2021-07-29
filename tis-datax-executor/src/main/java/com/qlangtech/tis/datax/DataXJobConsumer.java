@@ -195,7 +195,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         synchronized (DataXJobConsumer.class) {
             //exec(msg);
             CommandLine cmdLine = new CommandLine("java");
-            cmdLine.addArgument("-D" + Config.KEY_DATA_DIR + "=/opt/data/tis");
+            cmdLine.addArgument("-D" + Config.KEY_DATA_DIR + "=" + Config.getDataDir().getAbsolutePath());
             cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
             cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=/opt/logs");
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
