@@ -61,6 +61,8 @@ public class Config {
 
     private static boolean test = false;
 
+    public static final String DEFAULT_DATA_DIR = "/opt/data/tis";
+
     private static Config config;
 
     public static final String KEY_DATA_DIR = "data.dir";
@@ -111,7 +113,7 @@ public class Config {
     }
 
     public static File getDataDir() {
-        File dir = new File(System.getProperty(KEY_DATA_DIR, "/opt/data/tis"));
+        File dir = new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
         if (!(dir.isDirectory() && dir.exists())) {
             throw new IllegalStateException("dir:" + dir.getAbsolutePath() + " is invalid DATA DIR");
         }
