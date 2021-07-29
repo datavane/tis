@@ -22,6 +22,7 @@ import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.exec.*;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -60,7 +61,8 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
 
 
     public static void main(String[] args) throws Exception {
-
+        FileUtils.forceMkdir(Config.getDataDir(false));
+        logger.info("Start dataX Executor");
         if (args.length < 2) {
             throw new IllegalArgumentException("args length can not small than 2");
         }

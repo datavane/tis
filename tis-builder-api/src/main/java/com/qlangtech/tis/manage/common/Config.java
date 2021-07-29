@@ -113,8 +113,12 @@ public class Config {
     }
 
     public static File getDataDir() {
+        return getDataDir(true);
+    }
+
+    public static File getDataDir(boolean valiate) {
         File dir = new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
-        if (!(dir.isDirectory() && dir.exists())) {
+        if (valiate && !(dir.isDirectory() && dir.exists())) {
             throw new IllegalStateException("dir:" + dir.getAbsolutePath() + " is invalid DATA DIR");
         }
         return dir;
