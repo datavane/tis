@@ -120,8 +120,8 @@ public final class DataxExecutor {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        if (args.length != 5) {
-            throw new IllegalArgumentException("args length must be 5");
+        if (args.length != 4) {
+            throw new IllegalArgumentException("args length must be 4");
         }
         Integer jobId = Integer.parseInt(args[0]);
         String jobName = args[1];
