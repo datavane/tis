@@ -205,7 +205,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
             cmdLine.addArgument(String.valueOf(jobId));
             cmdLine.addArgument(jobName);
             cmdLine.addArgument(dataxName);
-          //  cmdLine.addArgument(jobPath, true);
+            //  cmdLine.addArgument(jobPath, true);
             cmdLine.addArgument(ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH));
 
             DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
@@ -217,6 +217,8 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
             executor.setStreamHandler(new PumpStreamHandler(System.out));
             executor.setExitValue(0);
             executor.setWatchdog(watchdog);
+
+            logger.info("command:{}", cmdLine.getExecutable());
             executor.execute(cmdLine, resultHandler);
 
             // 等待5个小时
