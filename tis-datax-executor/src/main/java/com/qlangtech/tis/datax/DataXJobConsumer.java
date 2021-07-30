@@ -39,7 +39,9 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * DataX 执行器
@@ -218,7 +220,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
             executor.setExitValue(0);
             executor.setWatchdog(watchdog);
 
-            logger.info("command:{}", cmdLine.getExecutable());
+            logger.info("command:{}", Arrays.stream(cmdLine.toStrings()).collect(Collectors.joining(" ")));
             executor.execute(cmdLine, resultHandler);
 
             // 等待5个小时
