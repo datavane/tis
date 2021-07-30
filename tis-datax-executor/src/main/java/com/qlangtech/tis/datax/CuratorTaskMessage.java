@@ -24,7 +24,7 @@ public class CuratorTaskMessage {
 
     private Integer jobId;
 
-    private String jobPath;
+    //private String jobPath;
 
     private String jobName;
 
@@ -37,9 +37,9 @@ public class CuratorTaskMessage {
         return jobId;
     }
 
-    public String getJobPath() {
-        return jobPath;
-    }
+//    public String getJobPath() {
+//        return jobPath;
+//    }
 
     public String getJobName() {
         return jobName;
@@ -53,9 +53,9 @@ public class CuratorTaskMessage {
         this.jobId = jobId;
     }
 
-    public void setJobPath(String jobPath) {
-        this.jobPath = jobPath;
-    }
+//    public void setJobPath(String jobPath) {
+//        this.jobPath = jobPath;
+//    }
 
     public void setJobName(String jobName) {
         this.jobName = jobName;

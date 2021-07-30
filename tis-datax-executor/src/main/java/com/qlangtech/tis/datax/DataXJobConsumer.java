@@ -187,25 +187,25 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
 //        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         String jobName = msg.getJobName();
         String dataxName = msg.getDataXName();
-        String jobPath = msg.getJobPath();
+        //String jobPath = msg.getJobPath();
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(TISCollectionUtils.KEY_COLLECTION, dataxName);
-        logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
+        logger.info("process DataX job, dataXName:{},jobid:{},jobName:{}", dataxName, jobId, jobName);
 
         synchronized (DataXJobConsumer.class) {
             //exec(msg);
             CommandLine cmdLine = new CommandLine("java");
             cmdLine.addArgument("-D" + Config.KEY_DATA_DIR + "=" + Config.getDataDir().getAbsolutePath());
             cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
-            cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=/opt/logs");
+            cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + System.getProperty(Config.KEY_LOG_DIR));
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
             cmdLine.addArgument("-classpath");
             cmdLine.addArgument("./lib/*:./tis-datax-executor.jar:./conf/");
-            cmdLine.addArgument("com.qlangtech.tis.datax.DataxExecutor");
+            cmdLine.addArgument(DataxExecutor.class.getName());
             cmdLine.addArgument(String.valueOf(jobId));
             cmdLine.addArgument(jobName);
             cmdLine.addArgument(dataxName);
-            cmdLine.addArgument(jobPath, true);
+          //  cmdLine.addArgument(jobPath, true);
             cmdLine.addArgument(ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH));
 
             DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();

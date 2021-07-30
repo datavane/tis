@@ -55,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
@@ -125,8 +126,8 @@ public final class DataxExecutor {
         Integer jobId = Integer.parseInt(args[0]);
         String jobName = args[1];
         String dataXName = args[2];
-        String jobPath = args[3];
-        String incrStateCollectAddress = args[4];
+        //String jobPath = args[3];
+        String incrStateCollectAddress = args[3];
 
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(TISCollectionUtils.KEY_COLLECTION, dataXName);
@@ -137,9 +138,9 @@ public final class DataxExecutor {
         if (StringUtils.isEmpty(dataXName)) {
             throw new IllegalArgumentException("arg 'dataXName' can not be null");
         }
-        if (StringUtils.isEmpty(jobPath)) {
-            throw new IllegalArgumentException("arg 'jobPath' can not be null");
-        }
+//        if (StringUtils.isEmpty(jobPath)) {
+//            throw new IllegalArgumentException("arg 'jobPath' can not be null");
+//        }
         if (StringUtils.isEmpty(incrStateCollectAddress)) {
             throw new IllegalArgumentException("arg 'incrStateCollectAddress' can not be null");
         }
@@ -156,7 +157,7 @@ public final class DataxExecutor {
         });
         try {
             DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
-            dataxExecutor.exec(jobId, jobName, dataXName, jobPath);
+            dataxExecutor.exec(jobId, jobName, dataXName);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
             try {
@@ -172,11 +173,11 @@ public final class DataxExecutor {
     }
 
 
-    public void exec(Integer jobId, String jobName, String dataxName, String jobPath) throws Exception {
+    public void exec(Integer jobId, String jobName, String dataxName) throws Exception {
         boolean success = false;
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         try {
-            logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},jobPath:{}", dataxName, jobId, jobName, jobPath);
+            logger.info("process DataX job, dataXName:{},jobid:{},jobName:{}", dataxName, jobId, jobName);
             DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
 
             final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
@@ -186,7 +187,8 @@ public final class DataxExecutor {
 //                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
 //                }
 //            };
-            this.startWork(dataxName, jobId, jobName, jobPath, uberClassLoader);
+            DataxProcessor dataxProcessor = DataxProcessor.load(null, dataxName);
+            this.startWork(dataxName, jobId, jobName, dataxProcessor, uberClassLoader);
             success = true;
         } finally {
             TIS.clean();
@@ -219,16 +221,18 @@ public final class DataxExecutor {
      * 开始执行数据同步任务
      *
      * @param dataxName
-     * @param jobPath
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(String dataxName, Integer jobId, String jobName, String jobPath, final JarLoader uberClassLoader) throws IOException, Exception {
+    public void startWork(String dataxName, Integer jobId, String jobName, IDataxProcessor dataxProcessor
+            , final JarLoader uberClassLoader) throws IOException, Exception {
         // TaskConfig config = TaskConfig.getInstance();
-        String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath};
 
+        // DataxProcessor dataxProcessor = DataxProcessor.load(null, dataxName);
         KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
         KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
+        File jobPath = new File(dataxProcessor.getDataxCfgDir(null), jobName);
+        String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath.getAbsolutePath()};
 //        TIS.permitInitialize = false;
 //        try {
 //            List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));

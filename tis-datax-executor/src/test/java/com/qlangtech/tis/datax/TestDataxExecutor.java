@@ -20,7 +20,9 @@ import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
+import org.easymock.EasyMock;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,15 +46,24 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
     }
 
     public void testDataxJobMysql2Hdfs() throws Exception {
+
+        IDataxProcessor dataxProcessor = EasyMock.createMock("dataxProcessor", IDataxProcessor.class);
+
+
         String dataxNameMysql2hdfs = "mysql2hdfs";
         final String jobName = "datax_cfg.json";
-        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hdfs + "/dataxCfg/" + jobName);
+
+        File path = new File("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hdfs + "/dataxCfg");
+        EasyMock.expect(dataxProcessor.getDataxCfgDir(null)).andReturn(path);
+        //Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hdfs + "/dataxCfg/" + jobName);
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
 
         final JarLoader uberClassLoader = getJarLoader();
+        EasyMock.replay(dataxProcessor);
+        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, dataxProcessor, uberClassLoader);
 
-        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, path.toString(), uberClassLoader);
+        EasyMock.verify(dataxProcessor);
     }
 
     private JarLoader getJarLoader() {
@@ -68,19 +79,30 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
     public void testDataxJobMysql2Hive() throws Exception {
         String dataxNameMysql2hive = "mysql2hive";
         final String jobName = "datax_cfg.json";
-        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hive + "/dataxCfg/" + jobName);
+        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hive + "/dataxCfg");
+        IDataxProcessor dataxProcessor = EasyMock.createMock("dataxProcessor", IDataxProcessor.class);
+        EasyMock.expect(dataxProcessor.getDataxCfgDir(null)).andReturn(path.toFile());
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
-        executor.startWork(dataxNameMysql2hive, jobId, jobName, path.toString(), getJarLoader());
+
+        EasyMock.replay(dataxProcessor);
+        executor.startWork(dataxNameMysql2hive, jobId, jobName, dataxProcessor, getJarLoader());
+
+        EasyMock.verify(dataxProcessor);
     }
 
     public void testDataxJobLaunch() throws Exception {
 
         final String jobName = "customer_order_relation_0.json";
-        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitestTestcase/dataxCfg/" + jobName);
+        Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitestTestcase/dataxCfg");
+
+        IDataxProcessor dataxProcessor = EasyMock.createMock("dataxProcessor", IDataxProcessor.class);
+        EasyMock.expect(dataxProcessor.getDataxCfgDir(null)).andReturn(path.toFile());
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
-        executor.startWork(dataXName, jobId, jobName, path.toString(), getJarLoader());
+        EasyMock.replay(dataxProcessor);
+        executor.startWork(dataXName, jobId, jobName, dataxProcessor, getJarLoader());
+        EasyMock.verify(dataxProcessor);
     }
 
 
