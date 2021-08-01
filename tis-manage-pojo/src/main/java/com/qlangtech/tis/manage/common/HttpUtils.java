@@ -25,8 +25,6 @@ import com.qlangtech.tis.manage.common.ConfigFileContext.HTTPMethod;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -269,6 +267,10 @@ public class HttpUtils {
 
         private final Map<MockMatchKey, CacheMockRes> /*** url test  */
                 resourceStore = Maps.newHashMap();
+
+        public void clearStubs() {
+            this.resourceStore.clear();
+        }
 
         @Override
         public MockHttpURLConnection create(URL url, List<ConfigFileContext.Header> heads, HTTPMethod method, byte[] content) {

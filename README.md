@@ -19,6 +19,21 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
  ![tis](docs/tis-synoptic.png)
  
 ## 功能一瞥 
+
+选择Reader/Writer插件类型
+  ![tis](docs/datax-add-step2.png)
+
+添加MySqlReader
+  ![tis](docs/add-mysql-reader.png)
+
+设置MySqlReader目标表、列  
+   ![tis](docs/select-tab-cols.png)
+   
+添加ElasticWriter,可视化设置ElasticSearch的Schema Mapping
+   ![tis](docs/add-elastic-writer.png) 
+
+执行MySql->ElasticSearch DataX实例，运行状态 
+   ![tis](docs/datax-exec-status.png) 
  
 ## 相关代码 
 

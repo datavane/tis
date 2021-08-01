@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.sql.parser.shop;
 
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.sql.parser.ColName;
 import com.qlangtech.tis.sql.parser.SqlTaskBaseTestCase;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
@@ -34,7 +35,7 @@ public class TestShopTopologyParse extends SqlTaskBaseTestCase {
         assertTrue(processNodes.size() > 0);
         assertEquals(3, processNodes.size());
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(topologyName);
-        List<ColName> finalTaskNodeCols = topology.getFinalTaskNodeCols();
+        List<ColumnMetaData> finalTaskNodeCols = topology.getFinalTaskNodeCols();
         // 一共有32列
         assertEquals(32, finalTaskNodeCols.size());
     }
