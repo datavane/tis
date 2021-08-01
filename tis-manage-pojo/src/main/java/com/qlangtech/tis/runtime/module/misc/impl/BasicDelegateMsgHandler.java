@@ -30,6 +30,11 @@ public abstract class BasicDelegateMsgHandler implements IControlMsgHandler {
     }
 
     @Override
+    public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public final void addFieldError(Context context, String fieldName, String msg, Object... params) {
         delegate.addFieldError(context, fieldName, msg, params);
     }

@@ -30,11 +30,11 @@ public class VisualType {
     this.split = split;
   }
 
-  public TokenizerType[] getTokenerTypes() {
+  public ISearchEngineTokenizerType[] getTokenerTypes() {
     if (this.split) {
       return TokenizerType.values();
     } else {
-      return new TokenizerType[0];
+      return new ISearchEngineTokenizerType[0];
     }
   }
 

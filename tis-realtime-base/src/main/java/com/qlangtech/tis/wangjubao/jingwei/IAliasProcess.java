@@ -22,6 +22,5 @@ import java.util.Map;
  */
 public interface IAliasProcess {
 
-    // public Object process(Map<String, String> valuesStore);
     public Object process(String value);
 }

@@ -23,7 +23,11 @@
         "label": "utf8",
         "val": "UTF-8"
       }
-    ]
+    ],
+    "creator": {
+      "routerLink": "/base/departmentlist",
+      "label": "部门管理"
+    }
   },
   "extraParams": {
     "label": "附加参数",

@@ -21,11 +21,11 @@ import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IDataTupleCreator {
+public interface IDataTupleCreator extends IEntityNameGetter{
 
     public void accept(IDataTupleCreatorVisitor visitor);
 
-    public EntityName getEntityName();
+   // public EntityName getEntityName();
 
     public int refTableSourceCount();
 

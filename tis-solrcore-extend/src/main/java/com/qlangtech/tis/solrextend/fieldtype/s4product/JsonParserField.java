@@ -17,8 +17,8 @@ package com.qlangtech.tis.solrextend.fieldtype.s4product;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.index.IndexableField;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public class JsonParserField extends StrField {
 
-    private static final Log logger = LogFactory.getLog(JsonParserField.class);
+    private static final Logger logger = LoggerFactory.getLogger(JsonParserField.class);
 
     private IndexSchema schema;
 

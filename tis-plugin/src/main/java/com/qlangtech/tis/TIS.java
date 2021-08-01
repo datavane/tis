@@ -18,10 +18,15 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.component.GlobalComponent;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
+import com.qlangtech.tis.extension.impl.ExtensionRefreshException;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
+import com.qlangtech.tis.extension.model.UpdateCenter;
+import com.qlangtech.tis.extension.util.VersionNumber;
+import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.FlatTableBuilder;
@@ -36,12 +41,14 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.util.*;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.jvnet.hudson.reactor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +62,18 @@ import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
  */
 public class TIS {
 
+    /**
+     * The version number before it is "computed" (by a call to computeVersion()).
+     *
+     * @since 2.0
+     */
+    public static final String UNCOMPUTED_VERSION = "?";
+
+    /**
+     * Version number of this Jenkins.
+     */
+    public static String VERSION = UNCOMPUTED_VERSION;
+
     private static final Logger logger = LoggerFactory.getLogger(TIS.class);
     private static final String DB_GROUP_NAME = "db";
     public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
@@ -64,8 +83,15 @@ public class TIS {
     // public static final String KEY_TIS_INCR_COMPONENT_CONFIG_FILE = "incr_config.xml";
     public static final String KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE = "global_config.xml";
 
-    // 
-    // public static final String KEY_TIS_ENGINE_COMPONENT_CONFIG_FILE = "engine_config.xml";
+    private final transient UpdateCenter updateCenter = UpdateCenter.createUpdateCenter(null);
+
+
+    /**
+     * The Jenkins instance startup type i.e. NEW, UPGRADE etc
+     */
+    private transient String installStateName;
+    private InstallState installState;
+
 
     /**
      * All {@link DescriptorExtensionList} keyed by their {@link DescriptorExtensionList}.
@@ -103,6 +129,95 @@ public class TIS {
         }
     };
 
+
+    /**
+     * Parses {@link #VERSION} into {@link 'VersionNumber'}, or null if it's not parseable as a version number
+     * (such as when Jenkins is run with {@code mvn jetty:run})
+     */
+    public static VersionNumber getVersion() {
+        return toVersion(VERSION);
+    }
+
+
+    public UpdateCenter getUpdateCenter() {
+        return this.updateCenter;
+    }
+
+    /**
+     * Parses a version string into {@link VersionNumber}, or null if it's not parseable as a version number
+     * (such as when Jenkins is run with {@code mvn jetty:run})
+     */
+    private static VersionNumber toVersion(String versionString) {
+        if (versionString == null) {
+            return null;
+        }
+
+        try {
+            return new VersionNumber(versionString);
+        } catch (NumberFormatException e) {
+            try {
+                // for non-released version of Jenkins, this looks like "1.345 (private-foobar), so try to approximate.
+                int idx = versionString.indexOf(' ');
+                if (idx > 0) {
+                    return new VersionNumber(versionString.substring(0, idx));
+                }
+            } catch (NumberFormatException ignored) {
+                // fall through
+            }
+
+            // totally unparseable
+            return null;
+        } catch (IllegalArgumentException e) {
+            // totally unparseable
+            return null;
+        }
+    }
+
+    /**
+     * Refresh {@link ExtensionList}s by adding all the newly discovered extensions.
+     * <p>
+     * Exposed only for {@link 'PluginManager#dynamicLoad(File)'}.
+     */
+    public void refreshExtensions() throws ExtensionRefreshException {
+
+
+        List<ExtensionFinder> finders = ClassicPluginStrategy.finders; // getExtensionList(ExtensionFinder.class);
+//        for (ExtensionFinder ef : finders) {
+//            if (!ef.isRefreshable()) {
+//                throw new ExtensionRefreshException(ef + " doesn't support refresh");
+//            }
+//        }
+
+        List<ExtensionComponentSet> fragments = new ArrayList<>();
+        for (ExtensionFinder ef : finders) {
+            fragments.add(ef.refresh());
+        }
+        ExtensionComponentSet delta = ExtensionComponentSet.union(fragments).filtered();
+
+        // if we find a new ExtensionFinder, we need it to list up all the extension points as well
+        List<ExtensionComponent<ExtensionFinder>> newFinders = new ArrayList<>(delta.find(ExtensionFinder.class));
+        while (!newFinders.isEmpty()) {
+            ExtensionFinder f = newFinders.remove(newFinders.size() - 1).getInstance();
+
+            ExtensionComponentSet ecs = ExtensionComponentSet.allOf(f).filtered();
+            newFinders.addAll(ecs.find(ExtensionFinder.class));
+            delta = ExtensionComponentSet.union(delta, ecs);
+        }
+
+        for (ExtensionList el : extensionLists.values()) {
+            el.refresh(delta);
+        }
+        for (ExtensionList el : descriptorLists.values()) {
+            el.refresh(delta);
+        }
+
+//        // TODO: we need some generalization here so that extension points can be notified when a refresh happens?
+//        for (ExtensionComponent<RootAction> ea : delta.find(RootAction.class)) {
+//            Action a = ea.getInstance();
+//            if (!actions.contains(a)) actions.add(a);
+//        }
+    }
+
     public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
         DataSourceFactoryPluginStore pluginStore
                 = databasePluginStore.get(new DSKey(DB_GROUP_NAME, dsProp.getDbType(), dsProp.getDbname(), DataSourceFactory.class));
@@ -111,16 +226,9 @@ public class TIS {
 
     public static void deleteDB(String dbName, DbScope dbScope) {
         try {
-            if (dbScope == DbScope.DETAILED) {
-                DataSourceFactoryPluginStore dsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, DbScope.DETAILED));
-                dsPluginStore.deleteDB();
-                databasePluginStore.clear(dsPluginStore.getDSKey());
-            }
-
-            DataSourceFactoryPluginStore facetDsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, DbScope.FACADE));
-            facetDsPluginStore.deleteDB();
-            databasePluginStore.clear(facetDsPluginStore.getDSKey());
-
+            DataSourceFactoryPluginStore dsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, dbScope));
+            dsPluginStore.deleteDB();
+            databasePluginStore.clear(dsPluginStore.getDSKey());
         } catch (Exception e) {
             throw new RuntimeException(dbName, e);
         }
@@ -135,9 +243,6 @@ public class TIS {
      * @param <T>
      * @return
      */
-//    public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
-//        return getPluginStore(null, collection, key);
-//    }
     public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
         PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key("collection", collection, key));
         if (pluginStore == null) {
@@ -152,7 +257,7 @@ public class TIS {
         return globalPluginStore.get(key);
     }
 
-    private final transient Memoizer<Class, ExtensionList> extensionLists = new Memoizer<Class, ExtensionList>() {
+    public final transient Memoizer<Class, ExtensionList> extensionLists = new Memoizer<Class, ExtensionList>() {
 
         public ExtensionList compute(Class key) {
             return ExtensionList.create(TIS.this, key);
@@ -162,7 +267,7 @@ public class TIS {
     /**
      * All {@link DescriptorExtensionList} keyed by their {@link DescriptorExtensionList}.
      */
-    private final transient Memoizer<Class, DescriptorExtensionList> descriptorLists = new Memoizer<Class, DescriptorExtensionList>() {
+    public final transient Memoizer<Class, DescriptorExtensionList> descriptorLists = new Memoizer<Class, DescriptorExtensionList>() {
 
         public DescriptorExtensionList compute(Class key) {
             return DescriptorExtensionList.createDescriptorList(TIS.this, key);
@@ -177,6 +282,17 @@ public class TIS {
 
     private static TIS tis;
 
+    public static void clean() {
+        if (tis != null) {
+            tis.globalPluginStore.clear();
+            tis.extensionLists.clear();
+            tis.descriptorLists.clear();
+            tis.collectionPluginStore.clear();
+            tis = null;
+        }
+        initialized = false;
+    }
+
     // 插件运行系统是否已经初始化
     public static boolean initialized = false;
 
@@ -190,9 +306,9 @@ public class TIS {
             final InitStrategy is = InitStrategy.get(Thread.currentThread().getContextClassLoader());
             executeReactor(// loading and preparing plugins
                     is, // load jobs
-                    pluginManager.initTasks(is), // forced ordering among key milestones
+                    pluginManager.initTasks(is, TIS.this), // forced ordering among key milestones
                     loadTasks(), InitMilestone.ordering());
-            logger.info("tis plugin have been initialized,consume: {}ms.", System.currentTimeMillis() - start);
+            logger.info("tis plugin have been initialized,consume:{}ms.", System.currentTimeMillis() - start);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -306,6 +422,22 @@ public class TIS {
         return candidate;
     }
 
+//    /**
+//     *
+//     * @param name
+//     * @return
+//     */
+//    public Descriptor getDescriptorByDisplayName(String name) {
+//        Iterable<Descriptor> descriptors = getExtensionList(Descriptor.class);
+//        for (Descriptor d : descriptors) {
+//            d.clazz
+//            if (d.getDisplayName().equals(name)) {
+//                return d;
+//            }
+//        }
+//        return null;
+//    }
+
     /**
      * Gets the {@link Descriptor} that corresponds to the given {@link Describable} type.
      * <p>
@@ -313,9 +445,10 @@ public class TIS {
      * you'll get the same instance that this method returns.
      */
     public Descriptor getDescriptor(Class<? extends Describable> type) {
-        for (Descriptor d : getExtensionList(Descriptor.class))
+        for (Descriptor d : getExtensionList(Descriptor.class)) {
             if (d.clazz == type)
                 return d;
+        }
         return null;
     }
 
@@ -371,25 +504,6 @@ public class TIS {
             throw new RuntimeException(e);
         }
     }
-
-    // /**
-    // * 加载增量组件
-    // *
-    // * @param collection
-    // * @return
-    // */
-    // public IncrComponent loadIncrComponent(String collection) {
-    // try {
-    // File incrConfig = getIncrConfigFile(collection);
-    // if (!incrConfig.exists()) {
-    // // 不存在的话
-    // return new IncrComponent(collection);
-    // }
-    // return (IncrComponent) (new XmlFile(incrConfig).read());
-    // } catch (IOException e) {
-    // throw new RuntimeException(e);
-    // }
-    // }
 
     /**
      * 取得增量模块需要用到的plugin名称
@@ -467,18 +581,30 @@ public class TIS {
         return new ComponentMeta(resources);
     }
 
-    // public File getIncrConfigFile(String collection) {
-    // return new File(this.pluginCfgRoot, collection + File.separator + KEY_TIS_INCR_COMPONENT_CONFIG_FILE);
-    // }
     private File getGlobalConfigFile() {
         return new File(pluginCfgRoot, "global" + File.separator + KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE);
     }
-    // public void saveComponent(String collection, IncrComponent incrComponent) {
-    // try {
-    // File incrConfig = getIncrConfigFile(collection);
-    // (new XmlFile(incrConfig)).write(incrComponent, Collections.emptySet());
-    // } catch (IOException e) {
-    // throw new RuntimeException("collection:" + collection, e);
-    // }
-    // }
+
+    /**
+     * Update the current install state. This will invoke state.initializeState()
+     * when the state has been transitioned.
+     */
+    public void setInstallState(@NonNull InstallState newState) {
+        String prior = installStateName;
+        installStateName = newState.name();
+        logger.info("Install state transitioning from: {} to : {}", prior, installStateName);
+        if (!installStateName.equals(prior)) {
+            // getSetupWizard().onInstallStateUpdate(newState);
+            newState.initializeState();
+        }
+    }
+
+    public InstallState getInstallState() {
+        if (installState != null) {
+            installStateName = installState.name();
+            installState = null;
+        }
+        InstallState is = installStateName != null ? InstallState.valueOf(installStateName) : InstallState.UNKNOWN;
+        return is != null ? is : InstallState.UNKNOWN;
+    }
 }

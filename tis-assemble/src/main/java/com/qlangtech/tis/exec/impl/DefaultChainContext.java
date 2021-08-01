@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.exec.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
@@ -22,21 +23,21 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fs.ITISFileSystem;
-import com.qlangtech.tis.fs.ITISFileSystemFactory;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
-import com.qlangtech.tis.fullbuild.taskflow.IFlatTableBuilder;
 import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.ZkStateReader;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -46,7 +47,6 @@ import java.util.Objects;
  */
 public class DefaultChainContext implements IExecChainContext {
 
-    // private final Date startTime;
     private String ps;
 
     private TisZkClient zkClient;
@@ -55,9 +55,6 @@ public class DefaultChainContext implements IExecChainContext {
 
     private ITISFileSystem indexBuildFileSystem;
 
-   // private IFlatTableBuilder flatTableBuilderPlugin;
-
-    // private String indexName;
     private final IParamContext httpExecContext;
 
     // 执行阶段跨度
@@ -71,7 +68,20 @@ public class DefaultChainContext implements IExecChainContext {
 
     private IndexBuilderTriggerFactory indexBuilderTriggerFactory;
 
-    private SqlTaskNodeMeta.SqlDataFlowTopology topology;
+    public final List<AsynSubJob> asynSubJobs = Lists.newCopyOnWriteArrayList();
+
+    @Override
+    public List<AsynSubJob> getAsynSubJobs() {
+        return this.asynSubJobs;
+    }
+
+    public void addAsynSubJob(AsynSubJob jobName) {
+        this.asynSubJobs.add(jobName);
+    }
+
+    public boolean containAsynJob() {
+        return !this.asynSubJobs.isEmpty();
+    }
 
     @Override
     public int getTaskId() {
@@ -81,23 +91,15 @@ public class DefaultChainContext implements IExecChainContext {
     }
 
     @Override
-    public SqlTaskNodeMeta.SqlDataFlowTopology getTopology() {
-        return this.topology;
-    }
-
-    public void setTopology(SqlTaskNodeMeta.SqlDataFlowTopology topology) {
-        this.topology = topology;
-    }
-
-    @Override
     public IndexBuilderTriggerFactory getIndexBuilderFactory() {
-        // HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();;
         return this.indexBuilderTriggerFactory;
     }
 
     public void setIndexBuilderTriggerFactory(IndexBuilderTriggerFactory indexBuilderTriggerFactory) {
-        this.indexBuilderTriggerFactory = indexBuilderTriggerFactory;
-        this.setIndexBuildFileSystem(indexBuilderTriggerFactory.getFileSystem());
+        if (indexBuilderTriggerFactory != null) {
+            this.indexBuilderTriggerFactory = indexBuilderTriggerFactory;
+            this.setIndexBuildFileSystem(indexBuilderTriggerFactory.getFileSystem());
+        }
     }
 
     public void setMdcParamContext(IRebindableMDC mdcParamContext) {
@@ -133,18 +135,6 @@ public class DefaultChainContext implements IExecChainContext {
         this.indexMetaData = indexMetaData;
     }
 
-   // @Override
-//    public IFlatTableBuilder getFlatTableBuilder() {
-//        if (flatTableBuilderPlugin == null) {
-//            throw new IllegalStateException("prop flatTableBuilderPlugin can nto be null");
-//        }
-//        return flatTableBuilderPlugin;
-//    }
-//
-//    public void setFlatTableBuilderPlugin(IFlatTableBuilder flatTableBuilderPlugin) {
-//        this.flatTableBuilderPlugin = flatTableBuilderPlugin;
-//    }
-
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {
         if (this.executePhaseRange == null) {
@@ -159,10 +149,6 @@ public class DefaultChainContext implements IExecChainContext {
         Objects.requireNonNull(fileSystem, "indexBuild fileSystem can not be null");
         this.indexBuildFileSystem = fileSystem;
     }
-
-    // public void setIndexName(String indexName) {
-    // this.indexName = indexName;
-    // }
 
     /**
      * 每次执行全量会分配一个workflowid對應到 join規則文件
@@ -190,6 +176,15 @@ public class DefaultChainContext implements IExecChainContext {
         ps = LocalDateTime.now().format(SingleTableDump.DATE_TIME_FORMATTER);
         this.httpExecContext = execContext;
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
+    }
+
+    private IBasicAppSource appSource;
+
+    public <T extends IBasicAppSource> T getAppSource() {
+        if (appSource == null) {
+            this.appSource = IAppSource.load(this.getIndexName());
+        }
+        return (T) appSource;
     }
 
     public ZkStateReader getZkStateReader() {
@@ -257,10 +252,6 @@ public class DefaultChainContext implements IExecChainContext {
         return ps;
     }
 
-    // @Override
-    // public final String getContextUserName() {
-    // return "admin";
-    // }
     public String getString(String key) {
         return httpExecContext.getString(key);
     }

@@ -23,7 +23,6 @@ import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
 import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
 import com.qlangtech.tis.coredefine.biz.FCoreRequest;
@@ -33,11 +32,16 @@ import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.InstanceDirDesc
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
+import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.manage.servlet.QueryCloudSolrClient;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
 import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
@@ -54,13 +58,10 @@ import com.qlangtech.tis.runtime.module.screen.BasicScreen;
 import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrj.extend.router.HashcodeRouter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.er.ERRules;
-import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
-import com.qlangtech.tis.sql.parser.er.TableMeta;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
@@ -130,7 +131,7 @@ public class CoreAction extends BasicModule {
   public void doRelaunchIncrProcess(Context context) throws Exception {
     PluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
-    IIncrSync incrSync = incrStream.getIncrSync();
+    IRCController incrSync = incrStream.getIncrSync();
     incrSync.relaunch(this.getCollectionName());
   }
 
@@ -151,20 +152,18 @@ public class CoreAction extends BasicModule {
     PluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
     if (store.getPlugin() == null) {
       incrStatus.setK8sPluginInitialized(false);
-      //this.setBizResult(context, incrStatus);
       return incrStatus;
     }
     incrStatus.setK8sPluginInitialized(true);
-    IndexStreamCodeGenerator indexStreamCodeGenerator
-      = getIndexStreamCodeGenerator(module, module.getAppDomain().getApp().getWorkFlowId());
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
     StreamCodeContext streamCodeContext
       = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
     TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
-    IncrDeployment rcConfig = k8s.getRcConfig(getRcConfigInCache);
+    RcDeployment rcConfig = k8s.getRcConfig(getRcConfigInCache);
     incrStatus.setK8sReplicationControllerCreated(rcConfig != null);
     if (rcConfig != null) {
-      incrStatus.setIncrDeployment(rcConfig);
+      incrStatus.setRcDeployment(rcConfig);
       JobType.RemoteCallResult<IndexJobRunningStatus> callResult
         = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
         getAssembleNodeAddress(module.getSolrZkClient()),
@@ -209,27 +208,29 @@ public class CoreAction extends BasicModule {
     return generateDAOAndIncrScript(module, context, false, false);
   }
 
-  private static IndexIncrStatus generateDAOAndIncrScript(
+  public static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
-    Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
-    WorkFlow wf = module.loadDF(workFlowId);
-    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
 
-    if (topology.isSingleTableModel()) {
-      Optional<ERRules> erRule = ERRules.getErRule(topology.getName());
-      if (!erRule.isPresent()) {
-        ERRules.createDefaultErRule(topology);
-      }
-    }
+    ISolrAppSource appSource = IAppSource.load(null, module.getCollectionName());
+    //Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
+    //WorkFlow wf = module.loadDF(workFlowId);
+    //SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
 
-    return generateDAOAndIncrScript(module, context, wf
-      , validateGlobalIncrStreamFactory, compilerAndPackage, topology.isSingleTableModel());
+//    if (topology.isSingleTableModel()) {
+//      Optional<ERRules> erRule = ERRules.getErRule(topology.getName());
+//      if (!erRule.isPresent()) {
+//        ERRules.createDefaultErRule(topology);
+//      }
+//    }
+
+
+    return generateDAOAndIncrScript(module, context, validateGlobalIncrStreamFactory, compilerAndPackage, appSource.isExcludeFacadeDAOSupport());
   }
 
   /**
    * @param module
    * @param context
-   * @param workflow
+   * @param
    * @param validateGlobalIncrStreamFactory
    * @param compilerAndPackage
    * @param excludeFacadeDAOSupport         由于单表同步不需要dao支持，可以选择false即可
@@ -237,13 +238,11 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public static IndexIncrStatus generateDAOAndIncrScript(
-    BasicModule module, Context context, WorkFlow workflow
+    BasicModule module, Context context
     , boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean excludeFacadeDAOSupport) throws Exception {
-    if (workflow == null) {
-      throw new IllegalArgumentException("param workflowId can not be null");
-    }
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module, workflow, excludeFacadeDAOSupport);
+
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
     List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
     PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
@@ -291,17 +290,19 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT)
   public void doCompileAndPackage(Context context) throws Exception {
 
-    final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
+    // final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, wf.getId());
+    ISolrAppSource appSource = IAppSource.load(null, this.getCollectionName());
+
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(this, indexStreamCodeGenerator);
 
-    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
+    // SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
 
-    boolean excludeFacadeDAOSupport = wfTopology.isSingleDumpTableDependency();
+    //   boolean excludeFacadeDAOSupport = wfTopology.isSingleDumpTableDependency();
 
-    if (excludeFacadeDAOSupport) {
+    if (appSource.isExcludeFacadeDAOSupport()) {
       daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap());
     } else {
       Map<Integer, Long> dependencyDbs = getDependencyDbsMap(this, indexStreamCodeGenerator);
@@ -323,7 +324,7 @@ public class CoreAction extends BasicModule {
       return;
     }
     // 编译并且打包
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
 
     // 将打包好的构建，发布到k8s集群中去
     // https://github.com/kubernetes-client/java
@@ -347,26 +348,39 @@ public class CoreAction extends BasicModule {
       .collect(Collectors.toMap(DatasourceDb::getId, (r) -> ManageUtils.formatNowYyyyMMddHHmmss(r.getOpTime())));
   }
 
-  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
-    BasicModule module, Integer workflowid) throws Exception {
-    final WorkFlow workFlow = module.loadDF(workflowid);
+  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module) throws Exception {
+    //final WorkFlow workFlow = module.loadDF(workflowid);
+    //SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workFlow.getName());
+//    return getIndexStreamCodeGenerator(module);//, workFlow, wfTopology.isSingleDumpTableDependency());
+//  }
+//
+//  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
+//    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
-    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workFlow.getName());
-    return getIndexStreamCodeGenerator(module, workFlow, wfTopology.isSingleDumpTableDependency());
-  }
+    ISolrAppSource appSource = IAppSource.load(null, module.getCollectionName());
 
-  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
-    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
+    Date scriptLastOpTime = appSource.accept(new ISolrAppSourceVisitor<Date>() {
+      @Override
+      public Date visit(SingleTableAppSource single) {
+        DatasourceTable table = module.getWorkflowDAOFacade().getDatasourceTableDAO().loadFromWriteDB(single.getTabId());
+        return table.getOpTime();
+      }
 
-
-    return new IndexStreamCodeGenerator(module.getCollectionName(), workFlow.getName()
-      , ManageUtils.formatNowYyyyMMddHHmmss(workFlow.getOpTime()), (dbId, rewriteableTables) -> {
+      @Override
+      public Date visit(DataFlowAppSource dataflow) {
+        Integer dfId = dataflow.getDfId();
+        WorkFlow workFlow = module.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(dfId);
+        return workFlow.getOpTime();
+      }
+    });
+    return new IndexStreamCodeGenerator(module.getCollectionName(), appSource
+      , ManageUtils.formatNowYyyyMMddHHmmss(scriptLastOpTime), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
       DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
       tableCriteria.createCriteria().andDbIdEqualTo(dbId);
       List<DatasourceTable> tableList = module.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(tableCriteria);
       return tableList.stream().map((t) -> t.getName()).collect(Collectors.toList());
-    }, excludeFacadeDAOSupport);
+    }, appSource.isExcludeFacadeDAOSupport());
   }
 
 
@@ -383,63 +397,66 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
-    Application app = this.getApplicationDAO().selectByPrimaryKey(this.getAppDomain().getAppid());
+    Application app = this.getAppDomain().getApp();
     triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
   }
 
-  public static void triggerFullIndexSwape(BasicModule module, Context context, Application app, int sharedCount) throws Exception {
-    Assert.assertNotNull(app);
-    WorkFlow df = module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId());
-    Assert.assertNotNull(df);
-    triggerFullIndexSwape(module, context, app.getWorkFlowId(), df.getName(), sharedCount);
-  }
 
   /**
    * 触发全量索引构建
    *
    * @param module
    * @param context
-   * @param wfId
-   * @param wfName
+   * @param app
    * @param sharedCount
    * @return
    * @throws Exception
    */
-  public static TriggerBuildResult triggerFullIndexSwape(BasicModule module, Context context, Integer wfId, String wfName, int sharedCount) throws Exception {
+  public static TriggerBuildResult triggerFullIndexSwape(BasicModule module, Context context, Application app, int sharedCount) throws Exception {
 
-    Objects.requireNonNull(wfId, "wfId can not be null");
-    if (sharedCount < 1) {
-      throw new IllegalArgumentException("param sharedCount can not be null");
-    }
-    if (StringUtils.isEmpty(wfName)) {
-      throw new IllegalArgumentException("param wfName can not be null");
+    Objects.requireNonNull(app, "app can not be null");
+
+//    Objects.requireNonNull(wfId, "wfId can not be null");
+//    if (sharedCount < 1) {
+//      throw new IllegalArgumentException("param sharedCount can not be null");
+//    }
+//    if (StringUtils.isEmpty(wfName)) {
+//      throw new IllegalArgumentException("param wfName can not be null");
+//    }
+
+    ISolrAppSource appSource = IAppSource.load(null, app.getProjectName());
+
+    if (!appSource.triggerFullIndexSwapeValidate(module, context)) {
+      return new TriggerBuildResult(false);
     }
 
-    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wfName);
-    Objects.requireNonNull(topology, "topology:" + wfName + " relevant topology can not be be null");
-
-    Optional<ERRules> erRule = module.getErRules(wfName);
-    if (!topology.isSingleTableModel()) {
-      if (!erRule.isPresent()) {
-        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
-        return new TriggerBuildResult(false);
-      } else {
-        ERRules erRules = erRule.get();
-        List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
-        Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
-        if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
-          module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
-          return new TriggerBuildResult(false);
-        }
-      }
-    }
+//    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wfName);
+//    Objects.requireNonNull(topology, "topology:" + wfName + " relevant topology can not be be null");
+//
+//    Optional<ERRules> erRule = module.getErRules(wfName);
+//    if (!topology.isSingleTableModel()) {
+//      if (!erRule.isPresent()) {
+//        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
+//        return new TriggerBuildResult(false);
+//      } else {
+//        ERRules erRules = erRule.get();
+//        List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
+//        Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
+//        if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
+//          module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
+//          return new TriggerBuildResult(false);
+//        }
+//      }
+//    }
     return sendRequest2FullIndexSwapeNode(module, context, new AppendParams() {
       @Override
       List<PostParam> getParam() {
         return Lists.newArrayList(
-          new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, wfName)
-          , new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfId))
-          , new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(sharedCount)));
+//          new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, wfName)
+//          , new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfId))
+          // new PostParam(IFullBuildContext.KEY_APP_NAME, app.getProjectName())
+          //,
+          new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(sharedCount)));
       }
     });
   }
@@ -486,6 +503,7 @@ public class CoreAction extends BasicModule {
   }
 
   private static final String bizKey = "biz";
+  public static final String KEY_APPNAME = "appname";
 
   /**
    * @param context
@@ -496,7 +514,7 @@ public class CoreAction extends BasicModule {
   private static TriggerBuildResult sendRequest2FullIndexSwapeNode(BasicModule module, final Context context, AppendParams appendParams) throws Exception {
 
     List<HttpUtils.PostParam> params = appendParams.getParam();
-    params.add(new PostParam("appname", module.getCollectionName()));
+    params.add(new PostParam(KEY_APPNAME, module.getCollectionName()));
     return triggerBuild(module, context, params);
   }
 
@@ -589,23 +607,33 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doGetFullBuildHistory(Context context) throws Exception {
-    Integer wfid = this.getInt("wfid");
+    Integer wfid = this.getInt("wfid", -1);
     boolean getwf = this.getBoolean("getwf");
-    WorkFlowBuildHistoryCriteria query = new WorkFlowBuildHistoryCriteria();
-    // query.createCriteria().andAppIdEqualTo(this.getAppDomain().getAppid());
-    query.createCriteria().andWorkFlowIdEqualTo(wfid);
-    query.setOrderByClause("id desc");
     WorkFlow workFlow = new WorkFlow();
-    if (getwf) {
-      workFlow = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
-      if (workFlow == null) {
-        throw new IllegalStateException("can not find workflow in db ,wfid:" + wfid);
+    WorkFlowBuildHistoryCriteria query = new WorkFlowBuildHistoryCriteria();
+    WorkFlowBuildHistoryCriteria.Criteria criteria = query.createCriteria();
+    if (isCollectionAware()) {
+      criteria.andAppIdEqualTo(this.getAppDomain().getAppid());
+    } else {
+      if (wfid < 0) {
+        throw new IllegalArgumentException("param wfid can not small than 0");
+      }
+      criteria.andWorkFlowIdEqualTo(wfid);
+      workFlow = new WorkFlow();
+      if (getwf) {
+        workFlow = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
+        if (workFlow == null) {
+          throw new IllegalStateException("can not find workflow in db ,wfid:" + wfid);
+        }
       }
     }
+    query.setOrderByClause("id desc");
+
     IWorkFlowBuildHistoryDAO historyDAO = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
     Pager pager = this.createPager();
     pager.setTotalCount(historyDAO.countByExample(query));
-    this.setBizResult(context, new PaginationResult(pager, adapterBuildHistory(historyDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())), workFlow.getName()));
+    this.setBizResult(context
+      , new PaginationResult(pager, adapterBuildHistory(historyDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())), workFlow.getName()));
   }
 
   private List<ExtendWorkFlowBuildHistory> adapterBuildHistory(List<WorkFlowBuildHistory> histories) {
@@ -637,7 +665,10 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doGetIndexExist(Context context) throws Exception {
-    this.setBizResult(context, this.isIndexExist());
+    Map<String, Object> biz = Maps.newHashMap();
+    biz.put("indexExist", this.isIndexExist());
+    biz.put("app", this.getAppDomain().getApp());
+    this.setBizResult(context, biz);
   }
 
   /**
@@ -819,7 +850,7 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doIncrDelete(Context context) throws Exception {
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this, getAppDomain().getApp().getWorkFlowId());
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     indexStreamCodeGenerator.deleteScript();
 
     TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
@@ -1023,7 +1054,7 @@ public class CoreAction extends BasicModule {
     SnapshotDomain snapshotDomain = module.getSnapshotViewDAO().getView(publishSnapshotId);
     InputStream input = null;
     IIndexMetaData meta = SolrFieldsParser.parse(() -> snapshotDomain.getSolrSchema().getContent());
-    SolrFieldsParser.ParseResult parseResult = meta.getSchemaParseResult();
+    ParseResult parseResult = meta.getSchemaParseResult();
     String routerField = parseResult.getSharedKey();
     if (StringUtils.isBlank(routerField)) {
       module.addErrorMessage(context, "Schema中还没有设置‘sharedKey’");
@@ -1159,51 +1190,10 @@ public class CoreAction extends BasicModule {
   }
 
   public static interface ReplicaCallback {
-
     public boolean process(boolean isLeader, Replica replica) throws Exception;
   }
 
-  //
-  // /**
-  // * 设置这次操作的json描述
-  // *
-  // * @param request
-  // * @throws Exception
-  // */
-  // // private void setOperationLogDesc(FCoreRequest request) throws
-  // Exception {
-  // // JSONObject json = new JSONObject();
-  // // json.put("name", request.getRequest().getServiceName());
-  // // json.put("terminatorUrl", request.getRequest().getTerminatorUrl());
-  // // json.put("monopolized", request.getRequest().isMonopolized());
-  // //
-  // // JSONObject servers = new JSONObject();
-  // //
-  // // for (Map.Entry<Integer, Collection<String>> entry : request
-  // // .getServersView().entrySet()) {
-  // // JSONArray group = new JSONArray();
-  // //
-  // // for (String ip : entry.getValue()) {
-  // // group.put(ip);
-  // // }
-  // // servers.put("group" + entry.getKey(), group);
-  // // }
-  // // json.put("servers", servers);
-  // // request.getRequest().setOpDesc(json.toString());
-  // // request.getRequest().setLoggerContent(StringUtils.EMPTY);
-  // //
-  // // }
-  //
-  // private Map<String, CoreNode> getCoreNodeMap() {
-  // return getCoreNodeMap(/* getCoreNodeMap */false);
-  //
-  // }
-  //
-  // /**
-  // * 取得当前应用
-  // *
-  // * @return
-  // */
+
   private Map<String, CoreNode> getCoreNodeMap(boolean isAppNameAware) {
     CoreNode[] nodelist = SelectableServer.getCoreNodeInfo(this.getRequest(), this, false, isAppNameAware);
     Map<String, CoreNode> result = new HashMap<String, CoreNode>();

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,7 +20,6 @@ import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.util.AntClassLoader;
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
-import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -39,6 +38,7 @@ import org.apache.tools.zip.ZipExtraField;
 import org.apache.tools.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -46,6 +46,7 @@ import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 /**
@@ -107,7 +108,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
                 manifestHeaderInput.close();
             }
             if (firstLine.startsWith("Manifest-Version:")) {
-            // this is the manifest already
+                // this is the manifest already
             } else {
                 // indirection
                 archive = resolve(archive, firstLine);
@@ -208,7 +209,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
         String jenkinsVersion = atts.getValue("Jenkins-Version");
         if (jenkinsVersion == null)
             jenkinsVersion = atts.getValue("Hudson-Version");
-    // optionalDependencies.addAll(getImpliedDependencies(pluginName, jenkinsVersion));
+        // optionalDependencies.addAll(getImpliedDependencies(pluginName, jenkinsVersion));
     }
 
     @Deprecated
@@ -256,13 +257,14 @@ public class ClassicPluginStrategy implements PluginStrategy {
     public void initializeComponents(PluginWrapper plugin) {
     }
 
-    private static final List<ExtensionFinder> finders = Collections.singletonList(new ExtensionFinder.Sezpoz());
+    public static final List<ExtensionFinder> finders = Collections.singletonList(new ExtensionFinder.Sezpoz());
 
     public <T> List<ExtensionComponent<T>> findComponents(final Class<T> type, TIS tis) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Scout-loading ExtensionList: " + type);
         }
         for (ExtensionFinder finder : finders) {
+
             finder.scout(type, tis);
         }
         List<ExtensionComponent<T>> r = Lists.newArrayList();
@@ -545,7 +547,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
                             return c;
                         return ClassLoaderReflectionToolkit._findClass(pw.classLoader, name);
                     } catch (ClassNotFoundException e) {
-                    // not found. try next
+                        // not found. try next
                     }
                 }
             } else {
@@ -555,7 +557,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
                         try {
                             return p.classLoader.loadClass(name);
                         } catch (ClassNotFoundException _) {
-                        // try next
+                            // try next
                         }
                 }
             }

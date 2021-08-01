@@ -80,9 +80,9 @@ public class DBConfigParser {
         System.out.println("hostDesc:" + parser.hostDesc);
         System.out.println("type:" + db.getDbType());
         System.out.println("name:" + db.getName());
-        System.out.println("getPassword:" + db.getPassword());
-        System.out.println("getPort:" + db.getPort());
-        System.out.println("UserName:" + db.getUserName());
+//        System.out.println("getPassword:" + db.getPassword());
+//        System.out.println("getPort:" + db.getPort());
+//        System.out.println("UserName:" + db.getUserName());
         StringBuffer dbdesc = new StringBuffer();
         for (Map.Entry<String, List<String>> e : db.getDbEnum().entrySet()) {
             dbdesc.append(e.getKey()).append(":");
@@ -157,7 +157,7 @@ public class DBConfigParser {
                 t = tokenBuffer.nextToken();
                 if (t.isTokenType(TokenTypes.TT_IDENTIFIER)) {
                     tokenBuffer.popToken();
-                    this.dbConfigResult.setUserName(t.getContent());
+                  //  this.dbConfigResult.setUserName(t.getContent());
                 } else {
                     parseSuccess = false;
                 }
@@ -177,7 +177,7 @@ public class DBConfigParser {
                 t = tokenBuffer.nextToken();
                 if (t.isTokenType(TokenTypes.TT_IDENTIFIER)) {
                     tokenBuffer.popToken();
-                    this.dbConfigResult.setPassword(t.getContent());
+                  //  this.dbConfigResult.setPassword(t.getContent());
                 } else {
                     parseSuccess = false;
                 }
@@ -367,7 +367,7 @@ public class DBConfigParser {
                 if (token.isTokenType(TokenTypes.TT_RANGE_NUMBER)) {
                     tokenBuffer.popToken();
                     praseResult = true;
-                    dbConfigResult.setPort(Integer.parseInt(token.getContent()));
+                   // dbConfigResult.setPort(Integer.parseInt(token.getContent()));
                 }
             }
         }

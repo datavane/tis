@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class HiveColumn {
 
-    public static String HIVE_TYPE_STRING = "STRING";
+   // public static String HIVE_TYPE_STRING = "STRING";
 
     // 插入后的name
     private String name;

@@ -23,6 +23,7 @@ import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.result.StrutsResultSupport;
@@ -129,7 +130,8 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       } else if (extendVal instanceof JSONArray) {
         result.append(((JSONArray) extendVal).toString(1));
       } else {
-        result.append(com.alibaba.fastjson.JSON.toJSONString(extendVal, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
+        //com.alibaba.fastjson.JSON.toJSONString(extendVal, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat)
+        result.append( JsonUtil.toString(extendVal) );
       }
     }
     if (pluginErrorList != null) {

@@ -141,4 +141,14 @@ public class TISTable {
     public int hashCode() {
         return Objects.hash(tableName, tabId, dbName);
     }
+
+
+    @Override
+    public String toString() {
+        return "TISTable{" +
+                "tableName='" + tableName + '\'' +
+                ", tabId=" + tabId +
+                ", dbName='" + dbName + '\'' +
+                '}';
+    }
 }

@@ -21,16 +21,14 @@ import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
-import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.solr.common.DOMUtil;
 import com.qlangtech.tis.solrdao.extend.IndexBuildHook;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
-import com.qlangtech.tis.sql.parser.ColName;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -54,7 +52,6 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,13 +101,13 @@ public class SolrFieldsParser {
     }
 
     public static IIndexMetaData parse(ISolrConfigGetter configGetter, ISchemaFieldTypeContext schemaPlugin, boolean validateSchema) throws Exception {
-        SolrFieldsParser.ParseResult schemaParseResult;
+        ParseResult schemaParseResult;
         try (ByteArrayInputStream reader = new ByteArrayInputStream(configGetter.getSchema())) {
             schemaParseResult = solrFieldsParser.parseSchema(reader, schemaPlugin, validateSchema);
         }
         return new IIndexMetaData() {
             @Override
-            public SolrFieldsParser.ParseResult getSchemaParseResult() {
+            public ParseResult getSchemaParseResult() {
                 return schemaParseResult;
             }
 
@@ -607,7 +604,6 @@ public class SolrFieldsParser {
     }
 
 
-
     public static class SchemaFields extends ArrayList<PSchemaField> {
 
         private static final long serialVersionUID = 1L;
@@ -625,218 +621,14 @@ public class SolrFieldsParser {
         }
     }
 
-    private static final Set<String> reserved_words = new HashSet<String>();
 
-    private static final StringBuffer reservedWordsBuffer = new StringBuffer();
-
-    static {
-        reserved_words.add("_val_");
-        reserved_words.add("fq");
-        reserved_words.add("docId");
-        reserved_words.add("score");
-        reserved_words.add("q");
-        reserved_words.add("boost");
-        for (String s : reserved_words) {
-            reservedWordsBuffer.append("'").append(s).append("' ");
-        }
-    }
 
     public interface ParseResultCallback {
         /**
          * @param cols   topology 宽表中解析出来的宽表字段
          * @param result
          */
-        public void process(List<ColName> cols, ParseResult result);
-    }
-
-    public static class ParseResult implements ISchema {
-
-        public static final String DEFAULT = "default";
-
-        public SchemaFields dFields = new SchemaFields();
-
-        public Set<String> dFieldsNames;
-
-        public final Map<String, SolrType> types = new HashMap<>();
-
-        private String uniqueKey;
-        private String sharedKey;
-
-        private final boolean shallValidate;
-
-        private final List<ProcessorSchemaField> processorSchemasFields = new LinkedList<>();
-
-        private final List<IndexBuildHook> indexBuildHooks = new LinkedList<IndexBuildHook>();
-
-        private String indexBuilder;
-
-        public String getIndexBuilder() {
-            return indexBuilder;
-        }
-
-        public void setIndexBuilder(String indexBuilder) {
-            this.indexBuilder = indexBuilder;
-        }
-
-        // 索引构建的实现类
-        private String indexMakerClassName = DEFAULT;
-
-        // 对应接口的实现类
-        private String documentCreatorType = DEFAULT;
-
-        public List<ProcessorSchemaField> getProcessorSchemas() {
-            return processorSchemasFields;
-        }
-
-        public Set<String> getFieldNameSet() {
-            return this.dFieldsNames;
-        }
-
-        public void addProcessorSchema(ProcessorSchemaField processorSchema) {
-            processorSchemasFields.add(processorSchema);
-        }
-
-        public void addIndexBuildHook(IndexBuildHook indexBuildHook) {
-            this.indexBuildHooks.add(indexBuildHook);
-        }
-
-        public List<IndexBuildHook> getIndexBuildHooks() {
-            return Collections.unmodifiableList(indexBuildHooks);
-        }
-
-        public ParseResult(boolean shallValidate) {
-            this.shallValidate = shallValidate;
-        }
-
-        public List<String> errlist = new ArrayList<String>();
-
-        public Collection<SolrType> getFieldTypes() {
-            return types.values();
-        }
-
-        public Collection<String> getFieldTypesKey() {
-            return types.keySet();
-        }
-
-        public boolean containType(String typeName) {
-            return this.types.containsKey(typeName);
-        }
-
-        public void addFieldType(String typeName, SolrType type) {
-            if (StringUtils.isBlank(typeName)) {
-                throw new IllegalArgumentException("param typeName can not be null");
-            }
-            if (type == null) {
-                throw new IllegalArgumentException("param type can not be null");
-            }
-            types.put(typeName, type);
-        }
-
-        public SolrType getTisType(String fieldName) {
-            SolrType t = types.get(fieldName);
-            if (t == null) {
-                throw new IllegalStateException("fieldName:" + fieldName + " relevant FieldType can not be null");
-            }
-            return t;
-        }
-
-        public String getErrorSummary() {
-            StringBuffer summary = new StringBuffer();
-            for (String err : errlist) {
-                summary.append(err);
-                summary.append("\n");
-            }
-            return summary.toString();
-        }
-
-        public boolean isValid() {
-            if (!this.errlist.isEmpty()) {
-                return false;
-            }
-            if (!shallValidate) {
-                return true;
-            }
-            for (com.qlangtech.tis.solrdao.pojo.PSchemaField field : dFields) {
-                if (!field.isIndexed() && !field.isStored() && !field.isDocValue()) {
-                    errlist.add(getFieldPropRequiredErr(field.getName()));
-                }
-                String fieldName = StringUtils.lowerCase(field.getName());
-                if (reserved_words.contains(fieldName)) {
-                    errlist.add("字段名称:" + field.getName() + "不能命名成系统保留字符" + reservedWordsBuffer);
-                }
-            }
-            return errlist.isEmpty();
-        }
-
-        public String getUniqueKey() {
-            return uniqueKey;
-        }
-
-        public void setUniqueKey(String uniqueKey) {
-            this.uniqueKey = uniqueKey;
-        }
-
-        @Override
-        public String getSharedKey() {
-            return this.sharedKey;
-        }
-
-        public void setSharedKey(String sharedkey) {
-            this.sharedKey = sharedkey;
-        }
-
-        @Override
-        public List<ISchemaField> getSchemaFields() {
-            List<ISchemaField> result = new ArrayList<>();
-            for (PSchemaField f : this.dFields) {
-                result.add(f);
-            }
-            return result;
-        }
-
-        // @Override
-        // public String getDefaultSearchField() {
-        // return this.uniqueKey;
-        // }
-        public String getIndexMakerClassName() {
-            return this.indexMakerClassName;
-        }
-
-        public void setIndexMakerClassName(String indexMakerClassName) {
-            this.indexMakerClassName = indexMakerClassName;
-        }
-
-        public String getDocumentCreatorType() {
-            return this.documentCreatorType;
-        }
-
-        public void setDocumentCreatorType(String documentCreatorType) {
-            this.documentCreatorType = StringUtils.defaultIfBlank(documentCreatorType, "default");
-        }
-
-        /**
-         * 添加保留字段
-         */
-        public void addReservedFields() {
-            SolrType strType = this.getTisType(ReflectSchemaFieldType.STRING.literia);
-            SolrType longType = this.getTisType("long");
-            PSchemaField verField = new PSchemaField();
-            verField.setName("_version_");
-            verField.setDocValue(true);
-            verField.setStored(true);
-            verField.setType(longType);
-            this.dFields.add(verField);
-
-            PSchemaField textField = new PSchemaField();
-            textField.setName("text");
-            textField.setDocValue(false);
-            textField.setMltiValued(true);
-            textField.setStored(false);
-            textField.setIndexed(true);
-            textField.setType(strType);
-            this.dFields.add(textField);
-        }
-
+        public void process(List<ColumnMetaData> cols, ParseResult result);
     }
 
     public static String getFieldPropRequiredErr(String fieldName) {

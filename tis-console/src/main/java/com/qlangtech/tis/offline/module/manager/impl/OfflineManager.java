@@ -46,8 +46,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -59,7 +57,6 @@ import java.util.*;
  */
 public class OfflineManager {
 
-  // private static final String URL_ONLINE = "10.1.4.208:8080/config/config.ajax?action=offline_datasource_action";
   private IWorkflowDAOFacade workflowDAOFacade;
 
   public void setComDfireTisWorkflowDAOFacade(IWorkflowDAOFacade comDfireTisWorkflowDAOFacade) {
@@ -78,23 +75,6 @@ public class OfflineManager {
     return this.workflowDAOFacade.getWorkFlowDAO().selectByExample(query, 1, 100);
   }
 
-
-
-
-//  private void validateConnection(String jdbcUrl, DBConfig db, String username, String password, IConnProcessor p) throws Exception {
-//    Connection conn = null;
-//    try {
-//      conn = DriverManager.getConnection(jdbcUrl, username, password);
-//      p.vist(conn);
-//    } finally {
-//      if (conn != null) {
-//        try {
-//          conn.close();
-//        } catch (Throwable e) {
-//        }
-//      }
-//    }
-//  }
 
   public interface IConnProcessor {
 
@@ -189,7 +169,7 @@ public class OfflineManager {
     table.setTabId(dsTable.getId());
     action.setBizResult(context, table);
     // return dsTable;
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore( new PostedDSProp(db.getName()));
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
     return new ProcessedTable(dbPlugin.saveTable(tableName), db, dsTable);
   }
 
@@ -311,7 +291,7 @@ public class OfflineManager {
       return;
     }
     int tableId = tableList.get(0).getId();
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore( new PostedDSProp(dbName));
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dbName));
     dbPlugin.saveTable(tableLogicName);
     // update git
     // String path = dbName + "/" + tableLogicName;
@@ -335,21 +315,8 @@ public class OfflineManager {
     for (DatasourceDb datasourceDb : dbList) {
       dbNameList.add(new Option(datasourceDb.getName(), String.valueOf(datasourceDb.getId())));
     }
-    // Collections.sort(dbNameList);
     return dbNameList;
   }
-
-
-//  private void closeResultSet(ResultSet rs) {
-//    if (rs != null) {
-//      try {
-//        rs.close();
-//      } catch (SQLException e) {
-//        // ignore
-//        ;
-//      }
-//    }
-//  }
 
   /**
    * description: 获取数据源表 date: 6:21 PM 5/18/2017
@@ -385,83 +352,6 @@ public class OfflineManager {
     return tables;
   }
 
-  //
-  // /**
-  // * description: 添加工作流 date: 11:10 AM 5/19/2017
-  // */
-  //
-  // public void addWorkflow(WorkflowPojo pojo, BasicModule action, Context
-  // context) {
-  // String dataStreamName = pojo.getName();
-  //
-  // WorkFlowCriteria criteria = new WorkFlowCriteria();
-  // criteria.createCriteria().andNameEqualTo(dataStreamName);
-  // List<WorkFlow> workflowList =
-  // workflowDAOFacade.getWorkFlowDAO().selectByExample(criteria);
-  //
-  // // 1、检测是否重名
-  // if (!CollectionUtils.isEmpty(workflowList)) {
-  // action.addErrorMessage(context, "已经有了同名的工作流");
-  // return;
-  // }
-  //
-  // // 2、检测xml是否正确
-  // JoinRule task = pojo.getTask();
-  // if (task == null || StringUtils.isBlank(task.getContent())) {
-  // action.addErrorMessage(context, "脚本内容不能为空");
-  // return;
-  // }
-  //
-  // if (!isXmlValid(task)) {
-  // action.addErrorMessage(context, "XML解析失败，请检测XML格式");
-  // return;
-  // }
-  //
-  // // 3、add git
-  // JSONObject jsonObject = new JSONObject();
-  // jsonObject.put("name", dataStreamName);
-  // // jsonObject.put("tables", StringUtils.join(pojo.getDependTableIds(), ","));
-  // jsonObject.put("task", pojo.getTask());
-  // try {
-  // // 创建git分支
-  //
-  // // 在分支上添加 git配置文件
-  // // GitUtils.$().createWorkflowFile(dataStreamName, dataStreamName /*
-  // branchName
-  // // */,
-  // // Sets.newHashSet(pojo.getDependTableIds()), task, "add workflow " +
-  // // dataStreamName);
-  // } catch (Exception e) {
-  // action.addErrorMessage(context, "GIT文件添加失败");
-  // action.addErrorMessage(context, e.getMessage());
-  // return;
-  // }
-  //
-  // // 4、add db
-  // WorkFlow workFlow = new WorkFlow();
-  // workFlow.setName(dataStreamName);
-  // IUser user = action.getUser();
-  // workFlow.setOpUserId(1);
-  // workFlow.setOpUserName(user.getName());
-  // workFlow.setGitPath(dataStreamName);
-  // workFlow.setCreateTime(new Date());
-  // workFlow.setInChange(new Byte("1"));
-  // int workflowId = this.workflowDAOFacade.getWorkFlowDAO().insert(workFlow);
-  // action.addActionMessage(context, "全量工作流添加成功");
-  //
-  // // 5、变更记录表添加一条变更
-  // WorkFlowPublishHistory history = new WorkFlowPublishHistory();
-  // history.setCreateTime(new Date());
-  // history.setOpUserId(1);
-  // history.setOpUserName(user.getName());
-  // history.setWorkflowId(workflowId);
-  // history.setWorkflowName(dataStreamName);
-  // history.setPublishState(new Byte("3"));
-  // history.setType(new Byte("1"));
-  // history.setPublishReason("添加工作流" + dataStreamName);
-  // history.setInUse(false);
-  // this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().insert(history);
-  // }
   public void editWorkflow(WorkflowPojo pojo, BasicModule action, Context context) throws Exception {
     String name = pojo.getName();
     WorkFlowCriteria criteria = new WorkFlowCriteria();
@@ -510,22 +400,22 @@ public class OfflineManager {
     tableCriteria.createCriteria();
     List<DatasourceTable> tableList = workflowDAOFacade.getDatasourceTableDAO().selectByExample(tableCriteria);
     Map<Integer, OfflineDatasourceAction.DatasourceDb> dbsMap = new HashMap<>();
-    for (DatasourceDb datasourceDb : dbList) {
+    for (DatasourceDb db : dbList) {
       OfflineDatasourceAction.DatasourceDb datasourceDb1 = new OfflineDatasourceAction.DatasourceDb();
-      datasourceDb1.setId(datasourceDb.getId());
-      datasourceDb1.setName(datasourceDb.getName());
-      //datasourceDb1.setSyncOnline(datasourceDb.getSyncOnline());
-      dbsMap.put(datasourceDb.getId(), datasourceDb1);
+      datasourceDb1.setId(db.getId());
+      datasourceDb1.setName(db.getName());
+      dbsMap.put(db.getId(), datasourceDb1);
     }
-    for (DatasourceTable datasourceTable : tableList) {
-      int dbId = datasourceTable.getDbId();
+    for (DatasourceTable table : tableList) {
+      int dbId = table.getDbId();
       if (dbsMap.containsKey(dbId)) {
         OfflineDatasourceAction.DatasourceDb datasourceDb = dbsMap.get(dbId);
-        datasourceDb.addTable(datasourceTable);
-      } else {
-        throw new IllegalStateException(datasourceTable + "找不到对应的db, dbId="
-          + datasourceTable.getDbId() + ",tableId:" + datasourceTable.getName());
+        datasourceDb.addTable(table);
       }
+//      else {
+//        throw new IllegalStateException(table + "找不到对应的db, dbId="
+//          + table.getDbId() + ",tableId:" + table.getName());
+//      }
     }
     return dbsMap.values();
   }
@@ -536,12 +426,12 @@ public class OfflineManager {
 
     PostedDSProp dbProp = new PostedDSProp(db.getName(), DbScope.DETAILED);
 
-    PluginStore<DataSourceFactory> dbStore = TIS.getDataBasePluginStore( dbProp);
+    PluginStore<DataSourceFactory> dbStore = TIS.getDataBasePluginStore(dbProp);
 
     DataSourceFactory dsPlugin = dbStore.getPlugin();
     dbSuit.setDetailed(dsPlugin);
     DataSourceFactoryPluginStore facadeStore
-      = TIS.getDataBasePluginStore( new PostedDSProp(db.getName(), DbScope.FACADE));
+      = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.FACADE));
 
     if (facadeStore.getPlugin() != null) {
       dbSuit.setFacade(facadeStore.getPlugin());
@@ -564,7 +454,7 @@ public class OfflineManager {
   public TISTable getTableConfig(IPluginContext pluginContext, Integer tableId) {
     DatasourceTable tab = this.workflowDAOFacade.getDatasourceTableDAO().selectByPrimaryKey(tableId);
     DatasourceDb db = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(tab.getDbId());
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore( new PostedDSProp(db.getName()));
+    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
     TISTable t = dbPlugin.loadTableMeta(tab.getName());
     t.setDbName(db.getName());
     t.setTableName(tab.getName());
@@ -860,7 +750,7 @@ public class OfflineManager {
   // this.disableTableDump(datasourceTable.getId(), action, context);
   // }
   // }
-  public void deleteDatasourceDbById(int dbId, DbScope dbModel, BasicModule action, Context context) throws Exception {
+  public void deleteDbById(int dbId, DbScope dbModel, BasicModule action, Context context) throws Exception {
     // 1 先检查db是否存在
     DatasourceDb db = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
     if (db == null) {

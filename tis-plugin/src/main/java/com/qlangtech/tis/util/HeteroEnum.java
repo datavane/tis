@@ -17,25 +17,30 @@ package com.qlangtech.tis.util;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.offline.FileSystemFactory;
-import com.qlangtech.tis.offline.FlatTableBuilder;
-import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-import com.qlangtech.tis.offline.TableDumpFactory;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.offline.*;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
+import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.solr.config.QueryParserFactory;
 import com.qlangtech.tis.plugin.solr.config.SearchComponentFactory;
 import com.qlangtech.tis.plugin.solr.config.TISTransformerFactory;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 表明一种插件的类型
@@ -72,6 +77,18 @@ public enum HeteroEnum {
             "params-cfg", // },//
             "基础配置", Selectable.Multi),
     // ////////////////////////////////////////////////////////
+    K8S_IMAGES(//
+            K8sImage.class, //
+            "k8s-images", // },//
+            "K8S-Images", Selectable.Multi)
+    // ////////////////////////////////////////////////////////
+    ,
+    DATAX_WORKER(//
+            DataXJobWorker.class, //
+            "datax-worker", // },//
+            "DataX Worker", Selectable.Single),
+    // ////////////////////////////////////////////////////////
+
     INCR_K8S_CONFIG(//
             IncrStreamFactory.class, //
             "incr-config", // },
@@ -100,6 +117,21 @@ public enum HeteroEnum {
             TISTransformerFactory.class, //
             "transformer", //
             "Transformer", //
+            Selectable.Multi),
+    DATAX_READER(//
+            DataxReader.class, //
+            "dataxReader", //
+            "DataX Reader", //
+            Selectable.Multi),
+    DATAX_WRITER(//
+            DataxWriter.class, //
+            "dataxWriter", //
+            "DataX Writer", //
+            Selectable.Multi),
+    APP_SOURCE(//
+            IAppSource.class, //
+            "appSource", //
+            "App Source", //
             Selectable.Multi);
 
     public final String caption;
@@ -112,9 +144,9 @@ public enum HeteroEnum {
     // private final IItemGetter itemGetter;
     public final Selectable selectable;
 
-    <T extends Describable<T>> HeteroEnum(// IDescriptorsGetter descriptorsGetter,
-                                          Class<T> extensionPoint, // IDescriptorsGetter descriptorsGetter,
-                                          String identity, String caption, Selectable selectable) {
+    <T extends Describable<T>> HeteroEnum(
+            Class<T> extensionPoint,
+            String identity, String caption, Selectable selectable) {
         this.extensionPoint = extensionPoint;
         this.caption = caption;
         // this.descriptorsGetter = descriptorsGetter;
@@ -147,21 +179,73 @@ public enum HeteroEnum {
         return (T) store.getPlugin();
     }
 
+    /**
+     * ref: PluginItems.save()
+     *
+     * @param pluginContext
+     * @param pluginMeta
+     * @param <T>
+     * @return
+     */
     public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+        PluginStore store = getPluginStore(pluginContext, pluginMeta);
+        if (store == null) {
+            return Collections.emptyList();
+        }
+//        if (this == HeteroEnum.APP_SOURCE) {
+//            final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
+//            if (StringUtils.isEmpty(dataxName)) {
+//                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+//            }
+//            store = com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
+//        } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
+//            final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+//            if (StringUtils.isEmpty(dataxName)) {
+//                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
+//            }
+//            store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+//        } else if (pluginContext.isCollectionAware()) {
+//            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
+//        } else if (pluginContext.isDataSourceAware()) {
+//            PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
+//            if (StringUtils.isEmpty(dsProp.getDbname())) {
+//                return Collections.emptyList();
+//            }
+//            store = TIS.getDataBasePluginStore(dsProp);
+//        } else {
+//            store = TIS.getPluginStore(this.extensionPoint);
+//        }
+        //Objects.requireNonNull(store, "plugin store can not be null");
+        return store.getPlugins();
+    }
+
+    public PluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         PluginStore store = null;
-        if (pluginContext.isCollectionAware()) {
+        if (this == HeteroEnum.APP_SOURCE) {
+            final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
+            if (StringUtils.isEmpty(dataxName)) {
+                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+            }
+            store = com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
+        } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
+            final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+            if (StringUtils.isEmpty(dataxName)) {
+                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
+            }
+            store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+        } else if (pluginContext.isCollectionAware()) {
             store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
         } else if (pluginContext.isDataSourceAware()) {
-
             PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
             if (StringUtils.isEmpty(dsProp.getDbname())) {
-                return Collections.emptyList();
+                return null; //Collections.emptyList();
             }
             store = TIS.getDataBasePluginStore(dsProp);
         } else {
             store = TIS.getPluginStore(this.extensionPoint);
         }
-        return store.getPlugins();
+        Objects.requireNonNull(store, "plugin store can not be null");
+        return store;
     }
 
     public <T extends Describable<T>> List<Descriptor<T>> descriptors() {
@@ -175,6 +259,7 @@ public enum HeteroEnum {
                 return he;
             }
         }
-        throw new IllegalStateException("identity:" + identity + " is illegal");
+        throw new IllegalStateException("identity:" + identity + " is illegal,exist:"
+                + Arrays.stream(HeteroEnum.values()).map((h) -> "'" + h.identity + "'").collect(Collectors.joining(",")));
     }
 }

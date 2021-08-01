@@ -106,7 +106,7 @@ public class StatusRpcClient {
         });
     }
 
-    private AssembleSvcCompsite connect2RemoteIncrStatusServer(String incrStateCollectAddress, AssembleSvcCompsiteCallback rpcCallback) {
+    private  AssembleSvcCompsite connect2RemoteIncrStatusServer(String incrStateCollectAddress, AssembleSvcCompsiteCallback rpcCallback) {
         InetSocketAddress address;
         Matcher matcher = ADDRESS_PATTERN.matcher(incrStateCollectAddress);
         if (matcher.matches()) {
@@ -115,7 +115,7 @@ public class StatusRpcClient {
             // setDoReport(false);
             throw new IllegalStateException("incrStatusRpcServer:" + incrStateCollectAddress + " is not match the pattern:" + ADDRESS_PATTERN);
         }
-        this.info("status server address:" + address);
+        info("status server address:" + address);
         AssembleSvcCompsite oldRpc = rpcCallback.getOld();
         try {
             if (oldRpc != null) {
@@ -126,9 +126,8 @@ public class StatusRpcClient {
             IncrStatusClient newRpc = new IncrStatusClient(channel);
             LogCollectorClient logCollectorClient = new LogCollectorClient(channel);
             // IncrStatusUmbilicalProtocol newRpc = RPC.getProxy(IncrStatusUmbilicalProtocol.class, IncrStatusUmbilicalProtocol.versionID, address, new Configuration());
-            this.info("successful connect to " + address + ",pingResult:" + newRpc.ping());
+            info("successful connect to " + address + ",pingResult:" + newRpc.ping());
             return rpcCallback.process(oldRpc, new AssembleSvcCompsite(newRpc, logCollectorClient) {
-
                 @Override
                 public void close() {
                     try {
@@ -139,7 +138,7 @@ public class StatusRpcClient {
                 }
             });
         } catch (Exception e) {
-            this.error(e.getMessage(), e);
+            error(e.getMessage(), e);
             // setDoReport(false);
             rpcCallback.errorOccur(oldRpc, e);
         }
@@ -259,11 +258,11 @@ public class StatusRpcClient {
         }
     }
 
-    private void info(String msg) {
+    private static void info(String msg) {
         System.out.println(msg);
     }
 
-    private void error(String msg, Throwable e) {
+    private static void error(String msg, Throwable e) {
         info("err:" + msg);
         if (e != null) {
             info(ExceptionUtils.getFullStackTrace(e));
@@ -285,7 +284,7 @@ public class StatusRpcClient {
         }
     }
 
-    private static class MockLogReporter implements ILogReporter {
+    public static class MockLogReporter implements ILogReporter {
 
         @Override
         public StreamObserver<PMonotorTarget> registerMonitorEvent(ILogListener logListener) {

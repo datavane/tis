@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -16,12 +16,17 @@ package com.qlangtech.tis.extension;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
+import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.util.YesNoMaybe;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.LogFactory;
-import java.io.*;
+
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +36,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static java.util.logging.Level.WARNING;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
@@ -58,6 +64,20 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
  * @date 2020/04/13
  */
 public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
+
+    /**
+     * List of plugins that depend on this plugin.
+     */
+    //   private Set<String> dependents = Collections.emptySet();
+    /**
+     * List of plugins that depend on this plugin.
+     */
+    private Set<String> dependents = Collections.emptySet();
+
+    /**
+     * List of plugins that depend optionally on this plugin.
+     */
+    private Set<String> optionalDependents = Collections.emptySet();
 
     /**
      * {@link PluginManager} to which this belongs to.
@@ -120,10 +140,6 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     /*package*/
     boolean isBundled;
 
-    /**
-     * List of plugins that depend on this plugin.
-     */
-    private Set<String> dependants = Collections.emptySet();
 
     /**
      * The core can depend on a plugin if it is bundled. Sometimes it's the only thing that
@@ -135,10 +151,10 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     /**
      * Set the list of components that depend on this plugin.
      *
-     * @param dependants The list of components that depend on this plugin.
+     * @param dependents The list of components that depend on this plugin.
      */
-    public void setDependants(Set<String> dependants) {
-        this.dependants = dependants;
+    public void setDependents(Set<String> dependents) {
+        this.dependents = dependents;
     }
 
     /**
@@ -146,11 +162,11 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
      *
      * @return The list of components that depend on this plugin.
      */
-    public Set<String> getDependants() {
-        if (isBundled && dependants.isEmpty()) {
+    public Set<String> getDependents() {
+        if (isBundled && dependents.isEmpty()) {
             return CORE_ONLY_DEPENDANT;
         } else {
-            return dependants;
+            return dependents;
         }
     }
 
@@ -161,7 +177,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
      * plugin, otherwise {@code false}.
      */
     public boolean hasDependants() {
-        return (isBundled || !dependants.isEmpty());
+        return (isBundled || !dependents.isEmpty());
     }
 
     /**
@@ -172,6 +188,22 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     public boolean hasDependencies() {
         return (dependencies != null && !dependencies.isEmpty());
     }
+
+    public YesNoMaybe supportsDynamicLoad() {
+        String v = manifest.getMainAttributes().getValue("Support-Dynamic-Loading");
+        if (v == null) { return YesNoMaybe.MAYBE;}
+        return Boolean.parseBoolean(v) ? YesNoMaybe.YES : YesNoMaybe.NO;
+    }
+
+    /**
+     * Set the list of components that depend optionally on this plugin.
+     *
+     * @param optionalDependents The list of components that depend optionally on this plugin.
+     */
+    public void setOptionalDependents(Set<String> optionalDependents) {
+        this.optionalDependents = optionalDependents;
+    }
+
 
     // @ExportedBean
     public static final class Dependency {
@@ -235,6 +267,19 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         return StringUtils.removeStart(getLongName(), "Jenkins ");
     }
 
+    /**
+     * Gets the instance of {@link Plugin} contributed by this plugin.
+     *
+     * @throws Exception no plugin in the {@link 'PluginInstanceStore'}
+     */
+    public Plugin getPluginOrFail() throws Exception {
+        Plugin plugin = getPlugin();
+        if (plugin == null) {
+            throw new Exception("Cannot find the plugin instance: " + shortName);
+        }
+        return plugin;
+    }
+
     // public Api getApi() {
     // Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
     // return new Api(this);
@@ -292,7 +337,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         // TIS.get().getPluginInstanceStore(PluginManager.PluginInstanceStore.class);
         PluginManager.PluginInstanceStore pis = parent.pluginInstanceStore;
         return pis.store.get(this);
-    // throw new UnsupportedOperationException();
+        // throw new UnsupportedOperationException();
     }
 
     // /**
@@ -302,17 +347,17 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     // * @since 1.283
     // */
     // @Exported
-    // public String getUrl() {
-    // // first look for the manifest entry. This is new in maven-hpi-plugin 1.30
-    // String url = manifest.getMainAttributes().getValue("Url");
-    // if (url != null) return url;
-    // 
-    // // fallback to update center metadata
-    // UpdateSite.Plugin ui = getInfo();
-    // if (ui != null) return ui.wiki;
-    // 
-    // return null;
-    // }
+    public String getUrl() {
+        // first look for the manifest entry. This is new in maven-hpi-plugin 1.30
+        String url = manifest.getMainAttributes().getValue("Url");
+        if (url != null) return url;
+        // fallback to update center metadata
+//        UpdateSite.Plugin ui = getInfo();
+//        if (ui != null) return ui.wiki;
+
+        return null;
+    }
+
     @Override
     public String toString() {
         return "Plugin:" + getShortName();
@@ -338,6 +383,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     // if (v == null) return YesNoMaybe.MAYBE;
     // return Boolean.parseBoolean(v) ? YesNoMaybe.YES : YesNoMaybe.NO;
     // }
+
     /**
      * Returns the version number of this plugin
      */
@@ -393,7 +439,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         }
         // Work around a bug in commons-logging.
         // See http://www.szegedi.org/articles/memleak.html
-        LogFactory.release(classLoader);
+        // LogFactory.release(classLoader);
     }
 
     public void releaseClassLoader() {
@@ -413,8 +459,9 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
             LOGGER.log(Level.FINEST, "Plugin {0} has been already enabled. Skipping the enable() operation", getShortName());
             return;
         }
-        if (!disableFile.delete())
+        if (!disableFile.delete()) {
             throw new IOException("Failed to delete " + disableFile);
+        }
     }
 
     /**
@@ -422,8 +469,9 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
      */
     public void disable() throws IOException {
         // creates an empty file
-        OutputStream os = new FileOutputStream(disableFile);
-        os.close();
+        FileUtils.touch(disableFile);
+//        OutputStream os = new FileOutputStream(disableFile);
+//        os.close();
     }
 
     /**
@@ -489,8 +537,9 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         List<Dependency> missingDependencies = new ArrayList<>();
         // make sure dependencies exist
         for (Dependency d : dependencies) {
-            if (parent.getPlugin(d.shortName) == null)
+            if (parent.getPlugin(d.shortName) == null) {
                 missingDependencies.add(d);
+            }
         }
         if (!missingDependencies.isEmpty())
             throw new MissingDependencyException(this.shortName, missingDependencies);
@@ -515,13 +564,15 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     // if(p!=null && p.isNewerThan(getVersion())) return p;
     // return null;
     // }
-    // /**
-    // * returns the {@link hudson.model.UpdateSite.Plugin} object, or null.
-    // */
-    // public UpdateSite.Plugin getInfo() {
-    // UpdateCenter uc = Jenkins.getInstance().getUpdateCenter();
-    // return uc.getPlugin(getShortName());
-    // }
+
+    /**
+     * returns the {@link com.qlangtech.tis.extension.model.UpdateSite.Plugin} object, or null.
+     */
+    public UpdateSite.Plugin getInfo() {
+        UpdateCenter uc = TIS.get().getUpdateCenter();
+        return uc.getPlugin(getShortName());
+    }
+
     /**
      * Returns true if this plugin has update in the update center.
      *
@@ -535,7 +586,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     }
 
     public UpdateSite.Plugin getUpdateInfo() {
-        // if(p!=null && p.isNewerThan(getVersion())) return p;
+        //  if(p!=null && p.isNewerThan(getVersion())) return p;
         return null;
     }
 
@@ -607,7 +658,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
      */
     public XStream2.PluginMeta getDesc() {
         return new XStream2.PluginMeta(this.getShortName(), trimVersion(this.getVersion()));
-    // return this.getShortName() + XStream2.PluginMeta.NAME_VER_SPLIT + trimVersion(this.getVersion()); // : null;
+        // return this.getShortName() + XStream2.PluginMeta.NAME_VER_SPLIT + trimVersion(this.getVersion()); // : null;
     }
 
     static String trimVersion(String version) {

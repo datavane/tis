@@ -14,10 +14,10 @@
  */
 package com.qlangtech.tis.plugin;
 
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
-import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -28,19 +28,30 @@ import java.util.Objects;
  * @date 2020/04/13
  */
 public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
+    public static final String TMP_DIR_NAME = ".tmp/";
+    public transient final Key key;
 
-    //private transient final String serializeFileName;
-    //protected transient final String keyVal;
-    protected transient final Key key;
+    public static <TT extends Describable> KeyedPluginStore<TT> getPluginStore(
+            DataxReader.SubFieldFormAppKey<TT> subFieldFormKey, IPluginProcessCallback<TT>... pluginCreateCallback) {
+        return new KeyedPluginStore(subFieldFormKey, pluginCreateCallback);
+    }
 
-    //protected transient final IPluginContext pluginContext;
-
-    public KeyedPluginStore(Key key) {
-        super(key.pluginClass, key.getSotreFile());
-        // this.serializeFileName = key.getSerializeFileName();
+    public KeyedPluginStore(Key key, IPluginProcessCallback<T>... pluginCreateCallback) {
+        super(key.pluginClass, key.getSotreFile(), pluginCreateCallback);
         this.key = key;
-       // this.pluginContext = key.pluginContext;
-        // this.keyVal = key.keyVal;
+    }
+
+    public interface IPluginKeyAware {
+        public void setKey(Key key);
+    }
+
+    @Override
+    public T getPlugin() {
+        T plugin = super.getPlugin();
+        if (plugin instanceof IPluginKeyAware) {
+            ((IPluginKeyAware) plugin).setKey(this.key);
+        }
+        return plugin;
     }
 
     @Override
@@ -50,38 +61,31 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
     public static class Key<T extends Describable> {
 
-        public final String keyVal;
+        public final KeyVal keyVal;
         protected final String groupName;
-        //private final IPluginContext pluginContext;
 
         protected final Class<T> pluginClass;
 
         public Key(String groupName, String keyVal, Class<T> pluginClass) {
-            if (StringUtils.isEmpty(keyVal)) {
-                throw new IllegalArgumentException("param key.collection can not be null");
-            }
+            this(groupName, new KeyVal(keyVal), pluginClass);
+        }
+
+        public Key(String groupName, KeyVal keyVal, Class<T> pluginClass) {
+            Objects.requireNonNull(keyVal, "keyVal can not be null");
             this.keyVal = keyVal;
             this.pluginClass = pluginClass;
             this.groupName = groupName;
-           // this.pluginContext = pluginContext;
         }
-
-//        public IPluginContext getPluginContext() {
-//            if (this.pluginContext == null) {
-//                throw new IllegalStateException("pluginContext can not be null");
-//            }
-//            return this.pluginContext;
-//        }
 
         protected String getSerializeFileName() {
             return this.getSubDirPath() + File.separator + pluginClass.getName();
         }
 
         public String getSubDirPath() {
-            return groupName + File.separator + keyVal;
+            return groupName + File.separator + keyVal.getKeyVal();
         }
 
-        private XmlFile getSotreFile() {
+        public XmlFile getSotreFile() {
             return Descriptor.getConfigFile(getSerializeFileName());
         }
 
@@ -97,7 +101,41 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         @Override
         public int hashCode() {
-            return Objects.hash(keyVal, pluginClass);
+            return Objects.hash(keyVal.getKeyVal(), pluginClass);
+        }
+    }
+
+    public static class KeyVal {
+        private final String val;
+        private final String suffix;
+
+        public KeyVal(String val, String suffix) {
+            if (StringUtils.isEmpty(val)) {
+                throw new IllegalArgumentException("param 'key' can not be null");
+            }
+            this.val = val;
+            this.suffix = suffix;
+        }
+
+        @Override
+        public String toString() {
+            return getKeyVal();
+        }
+
+        public String getKeyVal() {
+            return StringUtils.isBlank(this.suffix) ? val : TMP_DIR_NAME + (val + "-" + this.suffix);
+        }
+
+        public KeyVal(String val) {
+            this(val, StringUtils.EMPTY);
+        }
+
+        public String getVal() {
+            return val;
+        }
+
+        public String getSuffix() {
+            return suffix;
         }
     }
 

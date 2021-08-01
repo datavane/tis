@@ -21,4 +21,5 @@ package com.qlangtech.tis.fullbuild.indexbuild;
 public interface ITabPartition {
 
     public String getPt();
+
 }

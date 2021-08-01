@@ -22,6 +22,7 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.WorkflowDumpAndJoinInterceptor;
+import com.qlangtech.tis.fullbuild.indexbuild.DftTabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
@@ -65,7 +66,6 @@ public class SingleTableDump extends DataflowTask {
 
     private final int dataSourceTableId;
 
-    // private long currentTime;
     private String pt;
 
     private boolean forceReDump;
@@ -195,7 +195,7 @@ public class SingleTableDump extends DataflowTask {
         ;
         Map<String, String> params = Maps.newHashMap();
         params.put(IParamContext.KEY_TASK_ID, String.valueOf(taskid));
-        params.put(ITableDumpConstant.DUMP_START_TIME,this.pt);
+        params.put(ITableDumpConstant.DUMP_START_TIME, this.pt);
 
         TaskContext taskContext = TaskContext.create((key) -> params.get(key));
         taskContext.setCoordinator(this.zkClient);
@@ -226,7 +226,7 @@ public class SingleTableDump extends DataflowTask {
     private void recordPt() {
         //  Map<IDumpTable, ITabPartition> dateParams = ExecChainContextUtils.getDependencyTablesPartitions(execChainContext);
         TabPartitions dateParams = ExecChainContextUtils.getDependencyTablesPartitions(execChainContext);
-        dateParams.putPt(this.dumpTable, () -> pt);
+        dateParams.putPt(this.dumpTable, new DftTabPartition(pt));
     }
 
     /**

@@ -1,18 +1,20 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.manage.biz.dal.pojo;
+
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -26,6 +28,7 @@ public class Application implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer appId;
+    private Integer appType;
 
     private String projectName;
 
@@ -48,28 +51,29 @@ public class Application implements Serializable {
      */
     private Integer dptId;
 
-    // private String indexsetName;
     /**
      * prop:dpt_name
      */
     private String dptName;
 
-    private Integer workFlowId;
-
-    private String dataflowName;
 
     private String fullBuildCronTime;
 
+
     public Integer getAppId() {
-        return appId;
+        return this.appId;
     }
 
-    public String getDataflowName() {
-        return dataflowName;
+    public Integer getAppType() {
+        return this.appType;
     }
 
-    public void setDataflowName(String dataflowName) {
-        this.dataflowName = dataflowName;
+    public AppType parseAppType() {
+        return AppType.parse(this.appType);
+    }
+
+    public void setAppType(Integer appType) {
+        this.appType = appType;
     }
 
     public void setAppId(Integer appId) {
@@ -161,18 +165,14 @@ public class Application implements Serializable {
     }
 
     public Integer getWorkFlowId() {
-        return workFlowId;
-    }
-
-    public void setWorkFlowId(Integer workFlowId) {
-        this.workFlowId = workFlowId;
+        return 0;
     }
 
     public String getFullBuildCronTime() {
-        return fullBuildCronTime;
+        return this.fullBuildCronTime;
     }
 
     public void setFullBuildCronTime(String fullBuildCronTime) {
-        this.fullBuildCronTime = fullBuildCronTime == null ? null : fullBuildCronTime.trim();
+        this.fullBuildCronTime = StringUtils.trimToNull(fullBuildCronTime);
     }
 }

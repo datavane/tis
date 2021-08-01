@@ -14,7 +14,10 @@
  */
 package com.qlangtech.tis.config.aliyun;
 
+import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.plugin.IdentityName;
+
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -24,6 +27,12 @@ public interface IAliyunToken extends IdentityName {
 
     String KEY_FIELD_ALIYUN_TOKEN = "aliyunToken";
 
+    public static IAliyunToken getToken(String endpoint) {
+        IAliyunToken aliyunToken = ParamsConfig.getItem(endpoint, IAliyunToken.class);
+        Objects.requireNonNull(aliyunToken, "aliyunToekn can not be null");
+        return aliyunToken;
+    }
+
     // private static String endpoint = "*** Provide OSS endpoint ***";
     // private static String accessKeyId = "*** Provide your AccessKeyId ***";
     // private static String accessKeySecret = "*** Provide your AccessKeySecret ***";
@@ -31,4 +40,6 @@ public interface IAliyunToken extends IdentityName {
     String getAccessKeyId();
 
     String getAccessKeySecret();
+
+    String getEndpoint();
 }

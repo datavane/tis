@@ -19,6 +19,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.cloud.MockZKUtils;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -28,10 +30,7 @@ import com.qlangtech.tis.fs.IPath;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fs.TISFSDataOutputStream;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
-import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
-import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
-import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
+import com.qlangtech.tis.fullbuild.indexbuild.*;
 import com.qlangtech.tis.fullbuild.phasestatus.IProcessDetailStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
@@ -39,28 +38,25 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.offline.FileSystemFactory;
-import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
-import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
+import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -73,8 +69,8 @@ import java.util.regex.Pattern;
  */
 public class TestIndexSwapTaskflowLauncher extends TestCase {
 
-    private static final int TASK_ID = 253;
-
+    static final int TASK_ID = 253;
+    static final int shardCount = 1;
     private static final String WF_ID = "45";
 
     private static final String TAB_TOTALPYINFO = "order.totalpayinfo";
@@ -82,15 +78,15 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
     static {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
-        try {
-            File tmpDir = new File("/tmp/tis");
-            FileUtils.forceMkdir(tmpDir);
-            Config.setDataDir(tmpDir.getAbsolutePath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        ComponentMeta dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent();
-        dumpAndIndexBuilderComponent.synchronizePluginsFromRemoteRepository();
+//        try {
+//            File tmpDir = new File("/tmp/tis");
+//            FileUtils.forceMkdir(tmpDir);
+//            Config.setDataDir(tmpDir.getAbsolutePath());
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        ComponentMeta dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent();
+//        dumpAndIndexBuilderComponent.synchronizePluginsFromRemoteRepository();
     }
 
     public void testZkHostGetter() {
@@ -102,6 +98,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
     public void setUp() throws Exception {
         clearMocks();
     }
+
 
     public void testIndexBuilder() throws Exception {
         String pt = "20200616170903";
@@ -127,9 +124,11 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
     }
 
     public void startFullBuild(DefaultChainContext chainContext, FullBuildStrategy strategy) throws Exception {
+        ITISCoordinator zkMock = MockZKUtils.createZkMock();
+        mocks.add(zkMock);
         final String partitionTimestamp = chainContext.getPartitionTimestamp();
         assertNotNull("has create partitionTimestamp", partitionTimestamp);
-       // final MockFlatTableBuilder flatTableBuilder = new MockFlatTableBuilder();
+        // final MockFlatTableBuilder flatTableBuilder = new MockFlatTableBuilder();
         TableDumpFactory tableDumpFactory = mock("tableDumpFactory", TableDumpFactory.class);
         // FlatTableBuilder flatTableBuilder
         // = EasyMock.createMock("flatTableBuilder", FlatTableBuilder.class);
@@ -139,9 +138,10 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         ITISFileSystem fileSystem = mock("tisFileSystem", ITISFileSystem.class);
         // EasyMock.expect(fileSystem.getName()).andReturn("easymock").anyTimes();
         EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem()).andReturn(fileSystem).anyTimes();
-        EasyMock.expect(indexBuilderTriggerFactory.getFileSystem()).andReturn(indexBuilderFileSystemFactory.getFileSystem());
-        SnapshotDomain domain = HttpConfigFileReader.getResource(SEARCH_APP_NAME, 0, RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
-        ImportDataProcessInfo processInfo = new ImportDataProcessInfo(TASK_ID, indexBuilderFileSystemFactory.getFileSystem(), chainContext.getZkClient());
+        //EasyMock.expect(indexBuilderTriggerFactory.getFileSystem()).andReturn(indexBuilderFileSystemFactory.getFileSystem());
+        SnapshotDomain domain = HttpConfigFileReader.getResource(SEARCH_APP_NAME, 0
+                , RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
+        ImportDataProcessInfo processInfo = new ImportDataProcessInfo(TASK_ID, fileSystem, zkMock);
         if (!strategy.errorTest()) {
             for (int groupNum = 0; groupNum < shardCount; groupNum++) {
                 IRemoteJobTrigger builderTrigger = this.mock("indexbuild_" + groupNum, IRemoteJobTrigger.class);
@@ -154,7 +154,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
                 expectSolrMetaOutput(fsRoot, "solrconfig", ConfigFileReader.FILE_SOLR, fileSystem, domain, groupNum);
             }
         }
-        EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem().getRootDir()).andReturn(fsRoot).anyTimes();
+        EasyMock.expect(fileSystem.getRootDir()).andReturn(fsRoot).anyTimes();
         if (!strategy.errorTest()) {
             // EasyMock.expect(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).andReturn("xxxx");
         }
@@ -183,7 +183,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         }
         replay();
         chainContext.setTableDumpFactory(tableDumpFactory);
-      //  chainContext.setFlatTableBuilderPlugin(flatTableBuilder);
+        //  chainContext.setFlatTableBuilderPlugin(flatTableBuilder);
         // chainContext.setIndexBuildFileSystem(indexBuilderFileSystemFactory);
         chainContext.setIndexBuilderTriggerFactory(indexBuilderTriggerFactory);
         IndexSwapTaskflowLauncher taskflowLauncher = new IndexSwapTaskflowLauncher();
@@ -217,7 +217,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         }
     }
 
-    private class FullBuildStrategy {
+    public static class FullBuildStrategy {
 
         boolean errorTest() {
             return getTableDumpFaild().size() > 0;
@@ -255,7 +255,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         });
     }
 
-    private static List<Object> mocks = Lists.newArrayList();
+    static List<Object> mocks = Lists.newArrayList();
 
     public <T> T mock(String name, Class<?> toMock) {
         Object mock = EasyMock.createMock(name, toMock);
@@ -295,26 +295,30 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         taskflowLauncher.startWork(chainContext);
     }
 
-    static final int shardCount = 8;
 
     static final String SEARCH_APP_NAME = "search4totalpay";
 
     public static DefaultChainContext createRangeChainContext(FullbuildPhase start, FullbuildPhase end, String... pts) throws Exception {
+        return createRangeChainContext(SEARCH_APP_NAME, start, end, pts);
+    }
+
+    public static DefaultChainContext createRangeChainContext(String collectionName, FullbuildPhase start, FullbuildPhase end, String... pts) throws Exception {
         TestParamContext params = new TestParamContext();
         params.set(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(shardCount));
-        params.set(IFullBuildContext.KEY_APP_NAME, SEARCH_APP_NAME);
+        params.set(IFullBuildContext.KEY_APP_NAME, collectionName);
         params.set(IFullBuildContext.KEY_WORKFLOW_NAME, "totalpay");
         params.set(IFullBuildContext.KEY_WORKFLOW_ID, WF_ID);
         params.set(IExecChainContext.COMPONENT_START, start.getName());
         params.set(IExecChainContext.COMPONENT_END, end.getName());
         final DefaultChainContext chainContext = new DefaultChainContext(params);
+
         ExecutePhaseRange range = chainContext.getExecutePhaseRange();
         Assert.assertEquals(start, range.getStart());
         Assert.assertEquals(end, range.getEnd());
-        Map<EntityName, ITabPartition> dateParams = Maps.newHashMap();
-        chainContext.setAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS, dateParams);
+        Map<IDumpTable, ITabPartition> dateParams = Maps.newHashMap();
+        chainContext.setAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS, new TabPartitions(dateParams));
         chainContext.setAttribute(IExecChainContext.KEY_TASK_ID, TASK_ID);
-        chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
+        // chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
         final PluginStore<IndexBuilderTriggerFactory> buildTriggerFactory = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
         assertNotNull(buildTriggerFactory.getPlugin());
         // chainContext.setIndexBuildFileSystem(buildTriggerFactory.getPlugin().getFsFactory());

@@ -16,28 +16,38 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.ISelectedTab;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
+import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.Savefilecontent;
 import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction;
 import com.qlangtech.tis.runtime.module.misc.*;
 import com.qlangtech.tis.solrdao.*;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.SolrType;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
-import com.qlangtech.tis.sql.parser.ColName;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import com.yushu.tis.xmodifier.XModifier;
@@ -46,11 +56,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.DocType;
 import org.jdom2.Document;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -66,17 +71,51 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+//import org.json.JSONArray;
+//import org.json.JSONException;
+//import org.json.JSONObject;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年11月11日
  */
 public class SchemaAction extends BasicModule {
 
+  public static final String FIELD_PROJECT_NAME = "projectName";
+  protected static final String FIELD_WORKFLOW = "workflow";
+  protected static final String FIELD_DS_TYPE = "dsType";
+  protected static final String FIELD_Recept = "recept";
+  protected static final String FIELD_DptId = "dptId";
   private static final long serialVersionUID = 1L;
 
   protected static final String INDEX_PREFIX = "search4";
 
-  private static Logger log = LoggerFactory.getLogger(SchemaAction.class);
+  //private static Logger log = LoggerFactory.getLogger(SchemaAction.class);
+
+  /**
+   * DataX 创建流程中取得es的默认字段
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetEsTplFields(Context context) throws Exception {
+    String dataxName = this.getString(DataxUtils.DATAX_NAME);
+    DataxProcessor process = DataxProcessor.load(this, dataxName);
+    //  IDataxProcessor.TableMap tabMapper = null;
+    //  ESField field = null;
+
+    ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, dataxName);
+    DataxReader dataxReader = DataxReader.load(this, dataxName);
+    // ESField field = null;
+    for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
+      // ESSchema parseResult = new ESSchema();
+      SchemaMetaContent tplSchema = typeTransfer.initSchemaMetaContent(tab);
+      this.setBizResult(context, tplSchema.toJSON());
+      return;
+    }
+
+    throw new IllegalStateException("have not find any tab in DataXReader");
+  }
 
   /**
    * 创建新索引流程取得通过workflow反射Schema 生成索引
@@ -85,12 +124,17 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   public void doGetTplFields(Context context) throws Exception {
-    final String wfName = StringUtils.substringAfter(this.getString("wfname"), ":");
-    WorkFlow workflow = getWorkflow(wfName);
-    SchemaResult tplSchema = mergeWfColsWithTplCollection(this, context, workflow, ISchemaPluginContext.NULL);
+    AddAppAction.ExtendApp app = this.parseJsonPost(AddAppAction.ExtendApp.class);
+    CreateAppResult validateResult = this.createNewApp(context, app, -1, /* publishSnapshotId */
+      null, /* schemaContent */
+      true);
+    if (!validateResult.isSuccess()) {
+      return;
+    }
+
+    ISolrAppSource appSource = app.createAppSource(this);
+    SchemaResult tplSchema = mergeWfColsWithTplCollection(this, context, appSource, ISchemaPluginContext.NULL);
     Objects.requireNonNull(tplSchema, "tplSchema can not be null");
-//    if (tplSchema == null) return;
-    // writer.close();
     // 序列化结果
     this.setBizResult(context, tplSchema.toJSON());
   }
@@ -104,25 +148,24 @@ public class SchemaAction extends BasicModule {
    *
    * @param module
    * @param context
-   * @param workflow
+   * @param appSource
    * @return
    * @throws Exception
    */
   public static SchemaResult mergeWfColsWithTplCollection(BasicModule module, Context context
-    , WorkFlow workflow, final ISchemaPluginContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
+    , ISolrAppSource appSource, final ISchemaPluginContext schemaPlugin, SolrFieldsParser.ParseResultCallback... parseResultCallback) throws Exception {
     // 通过version取默认模板
     Application tplApp = getTemplateApp(module);
     SchemaResult tplSchema = getTemplateSchema(module, context, tplApp);
     if (!tplSchema.isSuccess()) {
       return null;
     }
-    ParseResult parseResult = tplSchema.getParseResult();
+    ParseResult parseResult = (ParseResult) tplSchema.getParseResult();
     SolrType strType = parseResult.getTisType(ReflectSchemaFieldType.STRING.literia);
-    SqlTaskNodeMeta.SqlDataFlowTopology dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workflow.getName());
-    List<ColName> cols = dfTopology.getFinalTaskNodeCols();
-    for (ColName colName : cols) {
+    List<ColumnMetaData> cols = appSource.reflectCols();
+    for (ColumnMetaData colName : cols) {
       PSchemaField f = new PSchemaField();
-      f.setName(colName.getAliasName());
+      f.setName(colName.getKey());
       f.setType(strType);
       f.setStored(true);
       f.setIndexed(false);
@@ -157,11 +200,11 @@ public class SchemaAction extends BasicModule {
       return schemaResult;
     }
     schemaResult.setTplAppId(tplApp.getAppId());
-    ParseResult parseResult = schemaResult.getParseResult();
+    ISchema parseResult = schemaResult.getParseResult();
     if (parseResult == null) {
       throw new IllegalStateException("schemaResult:'" + tplApp.getProjectName() + "'.parseResult can not be null");
     }
-    parseResult.dFields.clear();
+    parseResult.clearFields();
     return schemaResult;
   }
 
@@ -187,27 +230,45 @@ public class SchemaAction extends BasicModule {
     JSONObject schema = new JSONObject();
     schema.put("schema", new String(schemaResource.getContent(), getEncode()));
     JSONArray disabledInputs = new JSONArray();
-    for (SchemaField f : fields) {
-      // if (f.isInputDisabled()) {
-      // disabledInputs.put(f.getName());
-      // }
-    }
+//    for (SchemaField f : fields) {
+//      // if (f.isInputDisabled()) {
+//      // disabledInputs.put(f.getName());
+//      // }
+//    }
     schema.put("inputDisabled", disabledInputs);
     this.setBizResult(context, schema);
+  }
+
+  /**
+   * ES普通视图模式下保存到缓存(点击专家模式)
+   */
+  @Func(value = PermissionConstant.APP_SCHEMA_UPDATE, sideEffect = false)
+  public void doToggleEsExpertModel(Context context) throws Exception {
+    UploadSchemaWithRawContentForm form = this.getFormValues();
+    if (!validateStupidContent(context, form)) {
+      return;
+    }
+    ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, form.getDataxName());
+
+    JSONObject mergeTarget = ISearchEngineTypeTransfer.getOriginExpertSchema(form.getSchemaXmlContent());
+
+    String esMapping = JsonUtil.toString(typeTransfer.mergeFromStupidModel(form, mergeTarget));
+    UploadResource schemaResource = new UploadResource();
+    schemaResource.setContent(esMapping.getBytes(TisUTF8.get()));
+    this.doGetXmlContent(context, schemaResource, form.getFields());
   }
 
   /**
    * 普通视图模式下保存到缓存(点击专家模式)
    */
   @Func(value = PermissionConstant.APP_SCHEMA_UPDATE, sideEffect = false)
-  public void doToggleExpertModel(Context context) throws Exception {
+  public void doToggleSolrExpertModel(Context context) throws Exception {
     UploadSchemaWithRawContentForm form = this.getFormValues();
     if (!validateStupidContent(context, form)) {
       return;
     }
     String schema = this.createSchema(ISchemaPluginContext.NULL, form, context);
-    // refreshSchemaInCache(schema);
-    // this.addActionMessage(context, "swap success");
+
     UploadResource schemaResource = new UploadResource();
     schemaResource.setContent(schema.getBytes(Charset.forName(getEncode())));
     this.doGetXmlContent(context, schemaResource, form.getFields());
@@ -321,14 +382,35 @@ public class SchemaAction extends BasicModule {
   }
 
   /**
-   * 高级视图模式下保存到缓存(点击小白模式)
+   * Solr高级视图模式下保存到缓存(点击小白模式)
    */
   @Func(value = PermissionConstant.APP_SCHEMA_UPDATE, sideEffect = false)
-  public void doToggleStupidModel(Context context) throws Exception {
+  public void doToggleSolrStupidModel(Context context) throws Exception {
     // 整段xml文本
     com.alibaba.fastjson.JSONObject body = this.parseJsonPost();
     byte[] schemaContent = body.getString("content").getBytes(TisUTF8.get());
     this.getStructSchema(context, ISchemaPluginContext.NULL, schemaContent);
+  }
+
+  /**
+   * ES:高级视图模式下保存到缓存(点击小白模式)
+   */
+  @Func(value = PermissionConstant.APP_SCHEMA_UPDATE, sideEffect = false)
+  public void doToggleEsStupidModel(Context context) throws Exception {
+    // 整段xml文本
+    com.alibaba.fastjson.JSONObject body = this.parseJsonPost();
+
+    ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, body.getString(DataxUtils.DATAX_NAME));
+
+    final String content = body.getString("content");
+    //byte[] schemaContent = body.getString("content").getBytes(TisUTF8.get());
+    //JSONArray fields = JSON.parseArray(content);
+    SchemaMetaContent schemaContent = new SchemaMetaContent();
+    schemaContent.content = content.getBytes(TisUTF8.get());
+    schemaContent.parseResult = typeTransfer.projectionFromExpertModel(body);
+    // this.getStructSchema(context, ISchemaPluginContext.NULL, schemaContent);
+
+    this.setBizResult(context, schemaContent.toJSON());
   }
 
   /**
@@ -402,7 +484,7 @@ public class SchemaAction extends BasicModule {
     if (!result.isSuccess()) {
       return false;
     }
-    ParseResult parseResult = result.getParseResult();
+    ISchema parseResult = result.getParseResult();
     com.alibaba.fastjson.JSONObject schema = SchemaResult.create(parseResult, schemaContent).toJSON();
     for (ISchemaJsonVisitor visitor : scmVisitor) {
       visitor.process(schema);
@@ -573,7 +655,8 @@ public class SchemaAction extends BasicModule {
   /**
    * Schema XML模式 --> 专家模式 是一个数据结构投影，确保XML转专家模式，再专家模式转xml模式信息不会减少
    */
-  protected String createSchema(ISchemaPluginContext schemaPlugin, UploadSchemaWithRawContentForm schemaForm, boolean shallExecuteDelete) throws Exception {
+  protected String createSchema(ISchemaPluginContext schemaPlugin
+    , UploadSchemaWithRawContentForm schemaForm, boolean shallExecuteDelete) throws Exception {
     Assert.assertNotNull(schemaForm);
     // 先解析库中已经存在的模板
     if (StringUtils.isBlank(schemaForm.getSchemaXmlContent())) {
@@ -605,20 +688,6 @@ public class SchemaAction extends BasicModule {
     });
 
     return new String(modifiedContent, TisUTF8.get());
-//    ByteArrayInputStream inputStream = new ByteArrayInputStream(originContent);
-//    org.jdom2.Document document2 = XModifier.saxBuilder.build(inputStream);
-//    //final XModifier modifier = new XModifier(document2);
-//
-//    // final Set<String> intersectionKeys = new HashSet<String>();
-//
-//    // 将生成的元素加入文档：根元素
-//    // 添加docType属性
-//    DocType docType = new DocType("schema", "solrres://tisrepository/dtd/solrschema.dtd");
-//    document2.setDocType(docType);
-//    XMLOutputter xmlout = new XMLOutputter(xmlPrettyformat);
-//    ByteArrayOutputStream writer = new ByteArrayOutputStream();
-//    xmlout.output(document2, writer);
-//    return writer.toString(getEncode());
   }
 
   /**
@@ -627,17 +696,15 @@ public class SchemaAction extends BasicModule {
    * @param document2
    * @param modifier
    */
-  private static void updateSchemaXML(Map<String, SolrType> fieldTypes, ISchemaPluginContext schemaPlugin, ISchema schemaForm, Document document2, final XModifier modifier) {
+  private static void updateSchemaXML(Map<String, SolrType> fieldTypes, ISchemaPluginContext schemaPlugin
+    , ISchema schemaForm, Document document2, final XModifier modifier) {
     SolrType type = null;
     String fieldTypeRef = null;
     FieldTypeFactory fieldTypeFactory = null;
-    // PluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
-    // Objects.requireNonNull(fieldTypePluginStore, "fieldTypePluginStore can not be null");
+
     String pluginName = null;
     for (ISchemaField field : schemaForm.getSchemaFields()) {
-//      if (!(field instanceof SchemaField)) {
-//        throw new IllegalStateException("field must be type of " + SchemaField.class + " but now is " + field.getClass());
-//      }
+
       modifySchemaProperty(modifier, field, "type", (fieldTypeRef = parseSolrFieldType(field)));
       modifySchemaProperty(modifier, field, "stored", field.isStored());
       modifySchemaProperty(modifier, field, "indexed", field.isIndexed());
@@ -646,9 +713,8 @@ public class SchemaAction extends BasicModule {
       type = fieldTypes.get(fieldTypeRef);
       Objects.requireNonNull(type, "fieldName:" + field.getName() + " relevant fieldType can not be null");
       if (type.plugin) {
-        // type = ((SchemaField) field).getType();
-        pluginName = type.getPluginName();// StringUtils.substringAfter(type.getSolrType(), SolrFieldsParser.KEY_PLUGIN + ":");
-        fieldTypeFactory = schemaPlugin.findFieldTypeFactory(pluginName);// fieldTypePluginStore.find();
+        pluginName = type.getPluginName();
+        fieldTypeFactory = schemaPlugin.findFieldTypeFactory(pluginName);
         Objects.requireNonNull(fieldTypeFactory, "pluginName:" + pluginName + " relevant fieldTypeFactory can not be null");
         fieldTypeFactory.process(document2, modifier);
       }
@@ -717,6 +783,16 @@ public class SchemaAction extends BasicModule {
 
   public static class UploadSchemaWithRawContentForm extends UploadSchemaForm {
 
+    private String dataxName;
+
+    public String getDataxName() {
+      return this.dataxName;
+    }
+
+    public void setDataxName(String dataxName) {
+      this.dataxName = dataxName;
+    }
+
     // 原始SchemaXml 文本内容
     private String schemaXmlContent;
 
@@ -775,7 +851,7 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   @Func(value = PermissionConstant.APP_ADD)
-  public void doGotoAppCreateConfirm(Context context) throws Exception {
+  public void doGotoSolrAppCreateConfirm(Context context) throws Exception {
     this.errorsPageShow(context);
     // 这里只做schema的校验
     CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);
@@ -802,7 +878,7 @@ public class SchemaAction extends BasicModule {
       schemaContent = createSchema(schemaPlugin, confiemModel.getStupid().getModel(), context);
       if (!this.validateStupidContent(context, confiemModel.getStupid().getModel())) {
         // 校验失败
-        schemaParse = new SchemaResult();
+        schemaParse = SchemaResult.create(null, null);
         return schemaParse.faild();// = false;
         // return schemaParse;
       }
@@ -868,7 +944,7 @@ public class SchemaAction extends BasicModule {
       JSONObject errors = new JSONObject();
       errors.put("code", 300);
       errors.put("reason", err.toString());
-      context.put("query_result", errors.toString(1));
+      context.put("query_result", errors);
       return false;
     }
     ServerGroup record = new ServerGroup();
@@ -880,26 +956,6 @@ public class SchemaAction extends BasicModule {
     return true;
   }
 
-  /**
-   * @param context
-   * @return
-   * @throws Exception
-   */
-  // private String getUploadeSchema(Context context) throws Exception {
-  // NewAppInfo appinfo;
-  // // 先更新缓存
-  // if (StringUtils.isNotEmpty(this.getString("content"))) {
-  // doModifedContext2CacheXml(context);
-  // } else {
-  // this.doModifedContext2CacheCommon(context);
-  // }
-  //
-  // appinfo = this.getAppinfoFromTair();
-  // if (StringUtils.isEmpty(appinfo.getSchemaXml())) {
-  // throw new IllegalStateException("xml can not be null");
-  // }
-  // return appinfo.getSchemaXml();
-  // }
   private static Integer createNewResource(Context context, ISchemaPluginContext schemaPlugin, final byte[] uploadContent, final String md5, PropteryGetter fileGetter
     , IMessageHandler messageHandler, RunContext runContext) throws SchemaFileInvalidException {
     UploadResource resource = new UploadResource();
@@ -944,6 +1000,70 @@ public class SchemaAction extends BasicModule {
     return createResult;
   }
 
+  protected CreateAppResult createNewApp(Context context, AddAppAction.ExtendApp app
+    , int publishSnapshotId, byte[] schemaContent, boolean justValidate) throws Exception {
+    IAfterApplicationCreate afterAppCreate = null;
+    if (justValidate) {
+      afterAppCreate = (newAppid) -> {
+        throw new UnsupportedOperationException();
+      };
+    } else {
+      afterAppCreate = (newAppid) -> {
+        IUser loginUser = getUser();
+        //if (schemaContent != null) {
+        Objects.requireNonNull(schemaContent, "schemaContent can not be null");
+        SnapshotDomain domain = getSnapshotViewDAO().getView(publishSnapshotId);
+        domain.getSnapshot().setAppId(newAppid);
+        CreateSnapshotResult snapshotResult = AddAppAction.createNewSnapshot(
+          context, // Long.parseLong(loginUser.getId())
+          domain, // Long.parseLong(loginUser.getId())
+          ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
+          ISchemaPluginContext.NULL,
+          schemaContent, // Long.parseLong(loginUser.getId())
+          SchemaAction.this, // Long.parseLong(loginUser.getId())
+          StringUtils.EMPTY, -1l, loginUser.getName());
+        snapshotResult.setNewAppId(newAppid);
+        // if (!snapshotResult.isSuccess()) {
+        if (snapshotResult.isSuccess()) {
+          GroupAction.createGroup(RunEnvironment.DAILY, AddAppAction.FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), getServerGroupDAO());
+          GroupAction.createGroup(RunEnvironment.ONLINE, AddAppAction.FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), getServerGroupDAO());
+        }
+        return snapshotResult;
+        //}
+        //}
+      };
+    }
+
+    return createNewApp(context, app, justValidate, afterAppCreate
+      , SchemaAction.FIELD_DS_TYPE, new Validator.FieldValidators(Validator.require) {
+      }, //
+      new Validator.IFieldValidator() {
+        @Override
+        public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+
+          if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(app.getDsType())) {
+            String[] tabCascadervalues = app.getTabCascadervalues();
+            if (tabCascadervalues == null) {
+              msgHandler.addFieldError(context, fieldKey, "请选择数据数据表");
+              return false;
+            }
+          } else if (AddAppAction.SOURCE_TYPE_DF.equals(app.getDsType())) {
+            String workflowName = app.getWorkflow();
+            if (StringUtils.isEmpty(workflowName)) {
+              msgHandler.addFieldError(context, fieldKey, "请选择数据流名称");
+              return false;
+            }
+          } else {
+            msgHandler.addFieldError(context, fieldKey, "dsType:" + app.getDsType() + " is not illegal");
+            return false;
+            // throw new IllegalStateException("dsType:" + app.getDsType() + " is not illegal");
+          }
+
+          return true;
+        }
+      });
+  }
+
   private static // BasicModule module
   Integer createNewSnapshot(// BasicModule module
                             final Snapshot snapshot, // BasicModule module
@@ -972,17 +1092,10 @@ public class SchemaAction extends BasicModule {
     return newId;
   }
 
-  public static class CreateSnapshotResult {
-
-    private Integer newSnapshotId;
-
+  public static class CreateAppResult {
     private Integer newAppId;
 
     private boolean success = false;
-
-    public Integer getNewId() {
-      return newSnapshotId;
-    }
 
     public Integer getNewAppId() {
       return newAppId;
@@ -992,18 +1105,28 @@ public class SchemaAction extends BasicModule {
       this.newAppId = newAppId;
     }
 
-    public void setNewSnapshotId(Integer newId) {
-      this.newSnapshotId = newId;
-    }
-
     public boolean isSuccess() {
       return success;
     }
 
-    public CreateSnapshotResult setSuccess(boolean success) {
+    public <T extends CreateAppResult> T setSuccess(boolean success) {
       this.success = success;
-      return this;
+      return (T) this;
     }
+  }
+
+  public static class CreateSnapshotResult extends CreateAppResult {
+
+    private Integer newSnapshotId;
+
+    public Integer getNewId() {
+      return newSnapshotId;
+    }
+
+    public void setNewSnapshotId(Integer newId) {
+      this.newSnapshotId = newId;
+    }
+
   }
 
 

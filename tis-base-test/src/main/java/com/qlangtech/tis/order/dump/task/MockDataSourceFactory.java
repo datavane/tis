@@ -24,6 +24,9 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +37,10 @@ import java.util.Map;
  * @date 2021-03-03 14:24
  */
 public class MockDataSourceFactory extends DataSourceFactory implements ITestDumpCommon {
+
+    protected Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
+        return DriverManager.getConnection(jdbcUrl, StringUtils.trimToNull(username), StringUtils.trimToNull(password));
+    }
 
     /**
      * 模拟Employee表的导入
@@ -56,7 +63,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     }
 
     @Override
-    public List<String> getTablesInDB() throws Exception {
+    public List<String> getTablesInDB() {
         throw new UnsupportedOperationException();
     }
 

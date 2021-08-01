@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import org.apache.commons.lang.StringUtils;
 import com.google.common.collect.Lists;
 
@@ -27,7 +29,7 @@ import com.google.common.collect.Lists;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class ValChain {
+public class ValChain implements IValChain {
 
     private List<PropGetter> chain = Lists.newArrayList();
 
@@ -39,6 +41,7 @@ public class ValChain {
 
     private final AtomicBoolean everReverse = new AtomicBoolean(false);
 
+    @Override
     public boolean useAliasOutputName() {
         return !StringUtils.equals(last.getOutputColName().getName(), first.getOutputColName().getAliasName());
     }
@@ -56,10 +59,12 @@ public class ValChain {
         this.last = p;
     }
 
+    @Override
     public <R> Stream<R> mapChainValve(Function<PropGetter, ? extends R> mapper) {
         return chain.stream().map(mapper);
     }
 
+    @Override
     public Stream<PropGetter> chainStream() {
         if (everReverse.compareAndSet(false, true)) {
             // 将原有的列表反向排列
@@ -79,6 +84,7 @@ public class ValChain {
         return this.chain.stream();
     }
 
+    @Override
     public boolean hasFuncTuple() {
         for (PropGetter p : chain) {
             if (p.getTupleCreator() != null && p.getTupleCreator() instanceof FunctionDataTupleCreator) {
@@ -88,10 +94,12 @@ public class ValChain {
         return false;
     }
 
+    @Override
     public PropGetter first() {
         return this.first;
     }
 
+    @Override
     public PropGetter last() {
         return this.last;
     }

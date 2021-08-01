@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.runtime.module.misc;
 
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import org.apache.commons.lang.StringUtils;
 
@@ -48,7 +49,6 @@ public class SchemaField implements ISchemaField {
 
   // 是否开通docvalue
   private boolean docval;
-
 
 
   public int getId() {
@@ -119,6 +119,11 @@ public class SchemaField implements ISchemaField {
     return defaultValue;
   }
 
+  @Override
+  public void serialVisualType2Json(JSONObject f) {
+    throw new UnsupportedOperationException();
+  }
+
   public void setDefaultValue(String defaultValue) {
     this.defaultValue = defaultValue;
   }
@@ -167,7 +172,7 @@ public class SchemaField implements ISchemaField {
     return name.hashCode();
   }
 
-  public Boolean isRequired() {
+  public boolean isRequired() {
     return required;
   }
 
@@ -184,7 +189,7 @@ public class SchemaField implements ISchemaField {
   }
 
   public String getFieldtype() {
-    return fieldtype;
+    return this.getTisFieldTypeName();
   }
 
   public void setFieldtype(String fieldtype) {

@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
+import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.*;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
@@ -53,10 +53,10 @@ import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.TopologyDir;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
@@ -172,7 +172,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     biz.put(SqlTaskNodeMeta.KEY_PROFILE_TOPOLOGY, shards);
     SnapshotDomain snapshot = ViewPojo.getSnapshotDoamin(this, this.getAppDomain());
-    SolrFieldsParser.ParseResult parseResult = SolrFieldsParser.parse(() -> {
+    ParseResult parseResult = SolrFieldsParser.parse(() -> {
       return snapshot.getSolrSchema().getContent();
     }).getSchemaParseResult();
 
@@ -296,7 +296,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       throw new IllegalStateException("datasource item can not small than 1,now:" + dataSourceItems.items.size());
     }
 
-    TargetColumnMeta targetColMetas = getTargetColumnMeta(context, post, targetTable, dataSourceItems);
+    TargetColumnMeta targetColMetas = getTargetColumnMeta(this, context, post, targetTable, dataSourceItems);
     if (!targetColMetas.valid) {
       return;
     }
@@ -337,7 +337,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       hasCreateCollection = true;
       if (incrCfg != null) {
         logger.info("start incr channel create");
-        if (!createIncrSyncChannel(context, df, incrCfg)) {
+        if (!createIncrSyncChannel(context, incrCfg)) {
           return;
         }
       }
@@ -408,23 +408,23 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (app == null) {
       throw new IllegalStateException("indexName:" + this.indexName.getCollectionName() + " relevant instance in db can not be empty");
     }
-    final WorkFlow workFlow = this.loadDF(app.getWorkFlowId());
+    // final WorkFlow workFlow = this.loadDF(app.getWorkFlowId());
     this.rescycleAppDB(app.getAppId());
-    this.getWorkflowDAOFacade().getWorkFlowDAO().deleteByPrimaryKey(workFlow.getId());
+    //this.getWorkflowDAOFacade().getWorkFlowDAO().deleteByPrimaryKey(workFlow.getId());
     WorkFlowBuildHistoryCriteria wfHistoryCriteria = new WorkFlowBuildHistoryCriteria();
-    wfHistoryCriteria.createCriteria().andWorkFlowIdEqualTo(workFlow.getId());
+    //wfHistoryCriteria.createCriteria().andWorkFlowIdEqualTo(workFlow.getId());
     this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().deleteByExample(wfHistoryCriteria);
 
     this.deleteCollectionInCloud(context, app.getProjectName());
 
     // 删除workflow数据库及本地存储文件
-    TopologyDir topologyDir = SqlTaskNodeMeta.getTopologyDir(workFlow.getName());
-    if (topologyDir.synchronizeSubRemoteRes().size() > 0) {
-      IndexStreamCodeGenerator indexStreamCodeGenerator
-        = CoreAction.getIndexStreamCodeGenerator(this, workFlow, false);
-      indexStreamCodeGenerator.deleteScript();
-    }
-    topologyDir.delete();
+//    TopologyDir topologyDir = SqlTaskNodeMeta.getTopologyDir(workFlow.getName());
+//    if (topologyDir.synchronizeSubRemoteRes().size() > 0) {
+//      IndexStreamCodeGenerator indexStreamCodeGenerator
+//        = CoreAction.getIndexStreamCodeGenerator(this, workFlow, false);
+//      indexStreamCodeGenerator.deleteScript();
+//    }
+//    topologyDir.delete();
 
     PluginStore<IncrStreamFactory> store = CoreAction.getIncrStreamFactoryStore(this);
     try {
@@ -577,14 +577,14 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
 
   private TargetColumnMeta getTargetColumnMeta(
-    Context context, JSONObject post, String targetTable, PluginItems dataSourceItems) {
+    IPluginContext pluginContext, Context context, JSONObject post, String targetTable, PluginItems dataSourceItems) {
     TargetColumnMeta columnMeta = new TargetColumnMeta(targetTable);
     Map<String, ColumnMetaData> colMetas = null;
     for (AttrValMap vals : dataSourceItems.items) {
       if (!vals.validate(context, false).isValid()) {
         return columnMeta.invalid();
       }
-      DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable().instance;
+      DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext).instance;
       List<ColumnMetaData> tableMetadata = dsFactory.getTableMetadata(targetTable);
       colMetas = tableMetadata.stream().collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
       break;
@@ -831,7 +831,8 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
    *
    * @param incrCfg
    */
-  private boolean createIncrSyncChannel(Context context, WorkFlow df, JSONObject incrCfg) throws Exception {
+  private boolean createIncrSyncChannel(Context context //, WorkFlow df
+    , JSONObject incrCfg) throws Exception {
 
     // 生成DAO脚本
     HeteroEnum pluginType = HeteroEnum.MQ;
@@ -854,16 +855,16 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     /**=======================================
      *开始生成脚本并且编译打包
      *=======================================*/
-    SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(df.getName());
+    // SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(df.getName());
 
     IndexIncrStatus incrStatus = CoreAction.generateDAOAndIncrScript(
-      this, context, this.loadDF(df.getId()), true, true, wfTopology.isSingleDumpTableDependency());
+      this, context, true, true);
 
     if (context.hasErrors()) {
       return false;
     }
 
-    IncrSpec incrPodSpec = new IncrSpec();
+    ReplicasSpec incrPodSpec = new ReplicasSpec();
     //FIXME 目前先写死
     incrPodSpec.setReplicaCount(1);
     incrPodSpec.setMemoryRequest(Specification.parse("1G"));
@@ -923,7 +924,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     item.put(AttrValMap.PLUGIN_EXTENSION_IMPL, dsDescriptpr.getId());
     item.put(AttrValMap.PLUGIN_EXTENSION_VALS, vals);
     itemsArray.add(item);
-    items.items = AttrValMap.describableAttrValMapList(this, itemsArray);
+    items.items = AttrValMap.describableAttrValMapList(this, itemsArray, pluginMeta.getSubFormFilter());
     return items;
   }
 
@@ -1011,9 +1012,33 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       return pluginType == HeteroEnum.DATASOURCE;
     }
 
+    @Override
+    public void errorsPageShow(Context context) {
+
+    }
 
     @Override
-    public void addDb(String dbName, Context context, boolean shallUpdateDB) {
+    public String getExecId() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addActionMessage(Context context, String msg) {
+
+    }
+
+    @Override
+    public void setBizResult(Context context, Object result) {
+      CollectionAction.this.setBizResult(context, result);
+    }
+
+    @Override
+    public void addErrorMessage(Context context, String msg) {
+
+    }
+
+    @Override
+    public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
       // CollectionAction.this.
       DatasourceDbCriteria criteria = new DatasourceDbCriteria();
       criteria.createCriteria().andNameEqualTo(dbName);
@@ -1027,7 +1052,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
         }
       }
       if (shallUpdateDB) {
-        PluginAction.createDatabase(CollectionAction.this, dbName, context, true, offlineManager);
+        PluginAction.createDatabase(CollectionAction.this, dbDesc, dbName, context, true, offlineManager);
       }
 
     }

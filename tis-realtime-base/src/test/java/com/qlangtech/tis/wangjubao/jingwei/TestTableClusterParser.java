@@ -17,6 +17,7 @@ package com.qlangtech.tis.wangjubao.jingwei;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 
@@ -29,7 +30,7 @@ import java.io.InputStream;
 public class TestTableClusterParser extends TestCase {
 
     public void testParse() throws Exception {
-        SolrFieldsParser.ParseResult parseResult = getSchemaReflect();
+        ParseResult parseResult = getSchemaReflect();
         TableCluster tabCluster = getTableCluster(parseResult);
         Table totalpayinfo = tabCluster.getTable("totalpayinfo");
         TabField currDateFieldProcess = totalpayinfo.findAliasColumn("curr_date");
@@ -41,7 +42,7 @@ public class TestTableClusterParser extends TestCase {
         assertEquals("20201109", String.valueOf(result));
     }
 
-    public static TableCluster getTableCluster(SolrFieldsParser.ParseResult parseResult) throws Exception {
+    public static TableCluster getTableCluster(ParseResult parseResult) throws Exception {
         TableCluster tabCluster = null;
         try (InputStream input = TestTableClusterParser.class.getResourceAsStream("field-transfer.xml")) {
             tabCluster = TableClusterParser.parse(IOUtils.toString(input, TisUTF8.get()), parseResult);
@@ -50,9 +51,9 @@ public class TestTableClusterParser extends TestCase {
         return tabCluster;
     }
 
-    public static SolrFieldsParser.ParseResult getSchemaReflect() throws Exception {
+    public static ParseResult getSchemaReflect() throws Exception {
         // SolrFieldsParser solrFieldsParser = new SolrFieldsParser();
-        SolrFieldsParser.ParseResult parseResult = null;
+        ParseResult parseResult = null;
         try (InputStream reader = TestTableClusterParser.class.getResourceAsStream("s4totalpay-schema.xml")) {
             IIndexMetaData meta = SolrFieldsParser.parse(() -> IOUtils.toByteArray(reader), (fieldType) -> false);
             // solrFieldsParser.parseSchema(reader, false);

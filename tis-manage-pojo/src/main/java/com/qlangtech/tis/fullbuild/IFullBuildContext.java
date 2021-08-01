@@ -41,4 +41,5 @@ public interface IFullBuildContext {
     String KEY_TRIGGER_TYPE = "triggertype";
 
     String KEY_BUILD_HISTORY_TASK_ID = "history.task.id";
+    String NAME_APP_DIR = "ap";
 }

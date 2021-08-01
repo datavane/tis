@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,168 +23,195 @@ import java.util.Date;
  */
 public class WorkFlowBuildHistory implements Serializable {
 
-    private Integer id;
+  private Integer id;
 
-    private Date startTime;
+  private Date startTime;
 
-    private Date endTime;
+  private Date endTime;
 
-    private Byte state;
+  private Byte state;
 
-    private Integer triggerType;
+  private Integer triggerType;
 
-    private Integer opUserId;
+  private Integer opUserId;
 
-    private String opUserName;
+  private String opUserName;
 
-    private Integer appId;
+  private Integer appId;
 
-    private String appName;
+  private String appName;
 
-    /**
-     * prop:1:dump 2:join 3 build 4 backflow
-     */
-    private Integer startPhase;
+  private Integer lastVer;
 
-    private Integer endPhase;
+  /**
+   * 异步任务状态描述
+   * {
+   * taskName1:{complete:bool,success:bool},
+   * }
+   */
+  private String asynSubTaskStatus;
 
-    private Integer historyId;
+  /**
+   * prop:1:dump 2:join 3 build 4 backflow
+   */
+  private Integer startPhase;
 
-    private Integer workFlowId;
+  private Integer endPhase;
 
-    private Date createTime;
+  private Integer historyId;
 
-    private Date opTime;
+  private Integer workFlowId;
 
-    private static final long serialVersionUID = 1L;
+  private Date createTime;
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
+  private Date opTime;
 
-    public Integer getId() {
-        return id;
-    }
+  private static final long serialVersionUID = 1L;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+  public static long getSerialVersionUID() {
+    return serialVersionUID;
+  }
 
-    public Date getStartTime() {
-        return startTime;
-    }
 
-    public void setStartTime(Date startTime) {
-        this.startTime = startTime;
-    }
+  public Integer getLastVer() {
+    return lastVer;
+  }
 
-    public Date getEndTime() {
-        return endTime;
-    }
+  public void setLastVer(Integer lastVer) {
+    this.lastVer = lastVer;
+  }
 
-    public void setEndTime(Date endTime) {
-        this.endTime = endTime;
-    }
+  public String getAsynSubTaskStatus() {
+    return asynSubTaskStatus;
+  }
 
-    public Byte getState() {
-        return state;
-    }
+  public void setAsynSubTaskStatus(String asynSubTaskStatus) {
+    this.asynSubTaskStatus = asynSubTaskStatus;
+  }
 
-    public void setState(Byte state) {
-        this.state = state;
-    }
+  public Integer getId() {
+    return id;
+  }
 
-    public Integer getTriggerType() {
-        return triggerType;
-    }
+  public void setId(Integer id) {
+    this.id = id;
+  }
 
-    public void setTriggerType(Integer triggerType) {
-        this.triggerType = triggerType;
-    }
+  public Date getStartTime() {
+    return startTime;
+  }
 
-    public Integer getOpUserId() {
-        return opUserId;
-    }
+  public void setStartTime(Date startTime) {
+    this.startTime = startTime;
+  }
 
-    public void setOpUserId(Integer opUserId) {
-        this.opUserId = opUserId;
-    }
+  public Date getEndTime() {
+    return endTime;
+  }
 
-    public String getOpUserName() {
-        return opUserName;
-    }
+  public void setEndTime(Date endTime) {
+    this.endTime = endTime;
+  }
 
-    public void setOpUserName(String opUserName) {
-        this.opUserName = opUserName == null ? null : opUserName.trim();
-    }
+  public Byte getState() {
+    return state;
+  }
 
-    public Integer getAppId() {
-        return appId;
-    }
+  public void setState(Byte state) {
+    this.state = state;
+  }
 
-    public void setAppId(Integer appId) {
-        this.appId = appId;
-    }
+  public Integer getTriggerType() {
+    return triggerType;
+  }
 
-    public String getAppName() {
-        return appName;
-    }
+  public void setTriggerType(Integer triggerType) {
+    this.triggerType = triggerType;
+  }
 
-    public void setAppName(String appName) {
-        this.appName = appName == null ? null : appName.trim();
-    }
+  public Integer getOpUserId() {
+    return opUserId;
+  }
 
-    /**
-     * get:1:dump 2:join 3 build 4 backflow
-     */
-    public Integer getStartPhase() {
-        return startPhase;
-    }
+  public void setOpUserId(Integer opUserId) {
+    this.opUserId = opUserId;
+  }
 
-    /**
-     * set:1:dump 2:join 3 build 4 backflow
-     */
-    public void setStartPhase(Integer startPhase) {
-        this.startPhase = startPhase;
-    }
+  public String getOpUserName() {
+    return opUserName;
+  }
 
-    public Integer getHistoryId() {
-        return historyId;
-    }
+  public void setOpUserName(String opUserName) {
+    this.opUserName = opUserName == null ? null : opUserName.trim();
+  }
 
-    public void setHistoryId(Integer historyId) {
-        this.historyId = historyId;
-    }
+  public Integer getAppId() {
+    return appId;
+  }
 
-    public Integer getWorkFlowId() {
-        return workFlowId;
-    }
+  public void setAppId(Integer appId) {
+    this.appId = appId;
+  }
 
-    public void setWorkFlowId(Integer workFlowId) {
-        this.workFlowId = workFlowId;
-    }
+  public String getAppName() {
+    return appName;
+  }
 
-    public Date getCreateTime() {
-        return createTime;
-    }
+  public void setAppName(String appName) {
+    this.appName = appName == null ? null : appName.trim();
+  }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
+  /**
+   * get:1:dump 2:join 3 build 4 backflow
+   */
+  public Integer getStartPhase() {
+    return startPhase;
+  }
 
-    public Date getOpTime() {
-        return opTime;
-    }
+  /**
+   * set:1:dump 2:join 3 build 4 backflow
+   */
+  public void setStartPhase(Integer startPhase) {
+    this.startPhase = startPhase;
+  }
 
-    public void setOpTime(Date opTime) {
-        this.opTime = opTime;
-    }
+  public Integer getHistoryId() {
+    return historyId;
+  }
 
-    public Integer getEndPhase() {
-        return endPhase;
-    }
+  public void setHistoryId(Integer historyId) {
+    this.historyId = historyId;
+  }
 
-    public void setEndPhase(Integer endPhase) {
-        this.endPhase = endPhase;
-    }
+  public Integer getWorkFlowId() {
+    return workFlowId;
+  }
+
+  public void setWorkFlowId(Integer workFlowId) {
+    this.workFlowId = workFlowId;
+  }
+
+  public Date getCreateTime() {
+    return createTime;
+  }
+
+  public void setCreateTime(Date createTime) {
+    this.createTime = createTime;
+  }
+
+  public Date getOpTime() {
+    return opTime;
+  }
+
+  public void setOpTime(Date opTime) {
+    this.opTime = opTime;
+  }
+
+  public Integer getEndPhase() {
+    return endPhase;
+  }
+
+  public void setEndPhase(Integer endPhase) {
+    this.endPhase = endPhase;
+  }
 }

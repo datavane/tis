@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class ERRules implements IPrimaryTabFinder {
+public class ERRules implements IPrimaryTabFinder, IERRules {
 
     public static final String ER_RULES_FILE_NAME = "er_rules.yaml";
 
@@ -65,9 +65,7 @@ public class ERRules implements IPrimaryTabFinder {
 
     private List<DependencyNode> dumpNodes = Lists.newArrayList();
 
-    private Map<String, DependencyNode> /**
-     * TODO 先用String，将来再改成EntityName
-     */
+    private Map<String, DependencyNode> /*** TODO 先用String，将来再改成EntityName */
             dumpNodesMap;
 
     private List<String> ignoreIncrTriggerEntities;
@@ -135,9 +133,7 @@ public class ERRules implements IPrimaryTabFinder {
         erRules.addDumpNode(node);
         erRules.setTimeCharacteristic(TimeCharacteristic.ProcessTime);
         write(topologyName, erRules);
-        /***********************************************************
-         * <<<<<<<<
-         **********************************************************/}
+       }
 
     /**
      * 使用默认DumpNode创建ERRule并且持久化
@@ -157,6 +153,11 @@ public class ERRules implements IPrimaryTabFinder {
         }
         createErRule(topology.getName(), dumpNode, firstPK.get());
     }
+
+//    @Override
+//    public Optional<TableMeta> getPrimaryTab(EntityName entityName) {
+//        return Optional.empty();
+//    }
 
     private DependencyNode getDumpNode(EntityName tabName) {
         if (this.dumpNodesMap == null) {
@@ -237,6 +238,8 @@ public class ERRules implements IPrimaryTabFinder {
         return this.relationList;
     }
 
+
+
     /**
      * 取得表的所有主表信息
      *
@@ -294,7 +297,6 @@ public class ERRules implements IPrimaryTabFinder {
             if (StringUtils.equals(child.getName(), tabName)) {
                 resultRel = relation;
                 // 判断parent表是否是主表？
-                //hasPrimaryParent = primaryTableNames.stream().filter((r) -> StringUtils.equals(relation.getParent().getName(), r.getTabName())).findFirst();
                 // 优先选取主索引表
                 if (isPrimaryTable(relation.getParent().getName()).isPresent()) {
                     return Optional.of(relation);
@@ -337,20 +339,15 @@ public class ERRules implements IPrimaryTabFinder {
     @JSONField(serialize = false)
     public List<String> getIgnoreIncrTriggerEntities() {
         if (ignoreIncrTriggerEntities == null) {
-            ignoreIncrTriggerEntities = this.getDumpNodes().stream().filter((d) -> d.getExtraMeta() != null && !d.getExtraMeta().isMonitorTrigger()).map((d) -> d.getName()).collect(Collectors.toList());
+            ignoreIncrTriggerEntities = this.getDumpNodes().stream()
+                    .filter((d) -> d.getExtraMeta() != null && !d.getExtraMeta().isMonitorTrigger())
+                    .map((d) -> d.getName()).collect(Collectors.toList());
         }
         return this.ignoreIncrTriggerEntities;
     }
 
+    @Override
     public boolean isTimestampVerColumn(EntityName tableName, String colName) {
-//        if (this.isTriggerIgnore(tableName)) {
-//            return false;
-//        }
-//        DependencyNode dumpNode = getDumpNode(tableName);
-//        TabExtraMeta extraMeta = dumpNode.getExtraMeta();
-//        if (extraMeta == null || StringUtils.isEmpty(extraMeta.getTimeVerColName())) {
-//            throw new IllegalStateException("table:" + tableName + " can not find 'timeVerColName' prop");
-//        }
         return StringUtils.equals(getTimestampVerColumn(tableName), colName);
     }
 
@@ -366,6 +363,7 @@ public class ERRules implements IPrimaryTabFinder {
      * @param tableName
      * @return
      */
+    @Override
     public String getTimestampVerColumn(EntityName tableName) {
         if (this.isTriggerIgnore(tableName)) {
             throw new IllegalStateException("tab:" + tableName + " is not monitor in incr process");
@@ -381,7 +379,10 @@ public class ERRules implements IPrimaryTabFinder {
     @JSONField(serialize = false)
     public List<TabFieldProcessor> getTabFieldProcessors() {
         if (processors == null) {
-            this.processors = this.getDumpNodes().stream().filter((d) -> d.getExtraMeta() != null && d.getExtraMeta().getColTransfers().size() > 0).map((d) -> new TabFieldProcessor(d.parseEntityName(), d.getExtraMeta().getColTransfers())).collect(Collectors.toList());
+            this.processors = this.getDumpNodes().stream()
+                    .filter((d) -> d.getExtraMeta() != null && d.getExtraMeta().getColTransfers().size() > 0)
+                    .map((d) -> new TabFieldProcessor(d.parseEntityName(), d.getExtraMeta().getColTransfers()))
+                    .collect(Collectors.toList());
         }
         return processors;
     }
@@ -415,6 +416,7 @@ public class ERRules implements IPrimaryTabFinder {
                 (p) -> StringUtils.equals(p.getTabName(), entityName.getTableName())).map((r) -> (TableMeta) r).findFirst();
         return first;
     }
+
 
     /**
      * 表实体在增量处理时候是否需要忽略

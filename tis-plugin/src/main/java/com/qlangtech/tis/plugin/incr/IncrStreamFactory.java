@@ -15,7 +15,7 @@
 package com.qlangtech.tis.plugin.incr;
 
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.coredefine.module.action.IIncrSync;
+import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -26,7 +26,7 @@ import com.qlangtech.tis.plugin.IdentityName;
  */
 public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IdentityName {
 
-    public abstract IIncrSync getIncrSync();
+    public abstract IRCController getIncrSync();
 
     @Override
     public final Descriptor<IncrStreamFactory> getDescriptor() {

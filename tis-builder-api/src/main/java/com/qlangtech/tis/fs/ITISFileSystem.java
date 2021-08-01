@@ -125,4 +125,12 @@ public interface ITISFileSystem {
          */
         boolean accept(IPath path);
     }
+
+    /**
+     * 取得被包裹的 SPI实现对象
+     *
+     * @param
+     * @return
+     */
+    public <T> T unwrap();
 }

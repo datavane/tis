@@ -39,6 +39,9 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     public abstract <INSTANCE> INSTANCE createConfigInstance();
 
     public static <T extends IdentityName> T getItem(String identityName, Class<T> type) {
+        if (StringUtils.isEmpty(identityName)) {
+            throw new IllegalArgumentException("param identityName can not be empty");
+        }
         List<T> items = getItems(type);
         for (T i : items) {
             if (StringUtils.equals(i.identityValue(), identityName)) {

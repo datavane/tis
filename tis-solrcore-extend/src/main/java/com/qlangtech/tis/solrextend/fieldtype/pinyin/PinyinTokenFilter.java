@@ -15,8 +15,8 @@
 package com.qlangtech.tis.solrextend.fieldtype.pinyin;
 
 import java.io.IOException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -41,7 +41,7 @@ public class PinyinTokenFilter extends TokenFilter {
      */
     private static final HanyuPinyinOutputFormat outputFormat;
 
-    private static final Log logger = LogFactory.getLog(PinyinTokenFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(PinyinTokenFilter.class);
 
     static {
         outputFormat = new HanyuPinyinOutputFormat();

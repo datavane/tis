@@ -14,15 +14,22 @@
  */
 package com.qlangtech.tis.extension;
 
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
+import com.qlangtech.tis.extension.impl.ExtensionRefreshException;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
+import com.qlangtech.tis.extension.init.InitMilestone;
+import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
+import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
+import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.util.InitializerFinder;
 import com.qlangtech.tis.util.Util;
+import com.qlangtech.tis.util.YesNoMaybe;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.logging.LogFactory;
 import org.jvnet.hudson.reactor.Executable;
 import org.jvnet.hudson.reactor.Reactor;
 import org.jvnet.hudson.reactor.TaskBuilder;
@@ -34,11 +41,13 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.*;
 
@@ -60,10 +69,17 @@ public class PluginManager {
 
     public final File rootDir;
 
+    /**
+     * Once plugin is uploaded, this flag becomes true.
+     * This is used to report a message that Jenkins needs to be restarted
+     * for new plugins to take effect.
+     */
+    public volatile boolean pluginUploaded = false;
+
     // private static final Logger logger = LoggerFactory.getLogger(TIS.class.getName());
     public final PluginManager.PluginInstanceStore pluginInstanceStore = new PluginManager.PluginInstanceStore();
 
-    public final ClassLoader uberClassLoader = new UberClassLoader();
+    public final UberClassLoader uberClassLoader = new UberClassLoader();
 
     public File getWorkDir() {
         return workDir;
@@ -79,7 +95,7 @@ public class PluginManager {
     /**
      * All active plugins, topologically sorted so that when X depends on Y, Y appears in the list before X does.
      */
-    protected final List<PluginWrapper> activePlugins = new CopyOnWriteArrayList<PluginWrapper>();
+    public final List<PluginWrapper> activePlugins = new CopyOnWriteArrayList<PluginWrapper>();
 
     protected final List<FailedPlugin> failedPlugins = new ArrayList<FailedPlugin>();
 
@@ -105,7 +121,164 @@ public class PluginManager {
         return strategy;
     }
 
-    public TaskBuilder initTasks(final InitStrategy initStrategy) {
+    /**
+     * Try the dynamicLoad, removeExisting to attempt to dynamic load disabled plugins
+     */
+    public void dynamicLoad(File arc, boolean removeExisting, List<PluginWrapper> batch) throws IOException, InterruptedException, RestartRequiredException {
+        // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
+        LOGGER.info("Attempting to dynamic load {}", arc);
+        PluginWrapper p = null;
+        String sn;
+        try {
+            sn = strategy.getShortName(arc);
+        } catch (AbstractMethodError x) {
+            LOGGER.info("JENKINS-12753 fix not active: {}", x.getMessage());
+            p = strategy.createPluginWrapper(arc);
+            sn = p.getShortName();
+        }
+        PluginWrapper pw = getPlugin(sn);
+        if (pw != null) {
+            if (removeExisting) { // try to load disabled plugins
+                for (Iterator<PluginWrapper> i = plugins.iterator(); i.hasNext(); ) {
+                    pw = i.next();
+                    if (sn.equals(pw.getShortName())) {
+                        i.remove();
+                        break;
+                    }
+                }
+            } else {
+                throw new RestartRequiredException("PluginIsAlreadyInstalled_RestartRequired:" + (sn));
+            }
+        }
+        if (p == null) {
+            p = strategy.createPluginWrapper(arc);
+        }
+        if (p.supportsDynamicLoad() == YesNoMaybe.NO) {
+            throw new RestartRequiredException("PluginDoesntSupportDynamicLoad_RestartRequired:" + (sn));
+        }
+        // there's no need to do cyclic dependency check, because we are deploying one at a time,
+        // so existing plugins can't be depending on this newly deployed one.
+
+        plugins.add(p);
+        if (p.isActive())
+            activePlugins.add(p);
+        synchronized (((UberClassLoader) uberClassLoader).loaded) {
+            ((UberClassLoader) uberClassLoader).loaded.clear();
+        }
+
+        // TODO antimodular; perhaps should have a PluginListener to complement ExtensionListListener?
+        //  CustomClassFilter.Contributed.load();
+
+        try {
+            p.resolvePluginDependencies();
+            strategy.load(p);
+
+            if (batch != null) {
+                batch.add(p);
+            } else {
+                start(Collections.singletonList(p));
+            }
+
+        } catch (Exception e) {
+            failedPlugins.add(new FailedPlugin(sn, e));
+            activePlugins.remove(p);
+            plugins.remove(p);
+            throw new IOException("Failed to install " + sn + " plugin", e);
+        }
+
+        LOGGER.info("Plugin {}:{} dynamically {}", p.getShortName(), p.getVersion(), batch != null ? "loaded but not yet started" : "installed");
+        //}
+    }
+
+
+    public void start(List<PluginWrapper> plugins) throws Exception {
+        // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
+        Map<String, PluginWrapper> pluginsByName = plugins.stream().collect(Collectors.toMap(PluginWrapper::getShortName, p -> p));
+
+        // recalculate dependencies of plugins optionally depending the newly deployed ones.
+        for (PluginWrapper depender : this.plugins) {
+            if (plugins.contains(depender)) {
+                // skip itself.
+                continue;
+            }
+            for (PluginWrapper.Dependency d : depender.getOptionalDependencies()) {
+                PluginWrapper dependee = pluginsByName.get(d.shortName);
+                if (dependee != null) {
+                    // this plugin depends on the newly loaded one!
+                    // recalculate dependencies!
+                    getPluginStrategy().updateDependency(depender, dependee);
+                    break;
+                }
+            }
+        }
+
+        // Redo who depends on who.
+        resolveDependentPlugins();
+
+        try {
+            TIS.get().refreshExtensions();
+        } catch (ExtensionRefreshException e) {
+            throw new IOException("Failed to refresh extensions after installing some plugins", e);
+        }
+        for (PluginWrapper p : plugins) {
+            //TODO:According to the postInitialize() documentation, one may expect that
+            //p.getPluginOrFail() NPE will continue the initialization. Keeping the original behavior ATM
+            p.getPluginOrFail().postInitialize();
+        }
+
+        // run initializers in the added plugins
+        Reactor r = new Reactor(InitMilestone.ordering());
+        Set<ClassLoader> loaders = plugins.stream().map(p -> p.classLoader).collect(Collectors.toSet());
+        r.addAll(new InitializerFinder(uberClassLoader) {
+            @Override
+            protected boolean filter(Method e) {
+                return !loaders.contains(e.getDeclaringClass().getClassLoader()) || super.filter(e);
+            }
+        }.discoverTasks(r));
+        new InitReactorRunner().run(r);
+
+    }
+
+
+    public synchronized void resolveDependentPlugins() {
+        for (PluginWrapper plugin : plugins) {
+            // Set of optional dependents plugins of plugin
+            Set<String> optionalDependents = new HashSet<>();
+            Set<String> dependents = new HashSet<>();
+            for (PluginWrapper possibleDependent : plugins) {
+                // No need to check if plugin is dependent of itself
+                if (possibleDependent.getShortName().equals(plugin.getShortName())) {
+                    continue;
+                }
+
+                // The plugin could have just been deleted. If so, it doesn't
+                // count as a dependent.
+                if (possibleDependent.isDeleted()) {
+                    continue;
+                }
+                List<PluginWrapper.Dependency> dependencies = possibleDependent.getDependencies();
+                for (PluginWrapper.Dependency dependency : dependencies) {
+                    if (dependency.shortName.equals(plugin.getShortName())) {
+                        dependents.add(possibleDependent.getShortName());
+
+                        // If, in addition, the dependency is optional, add to the optionalDependents list
+                        if (dependency.optional) {
+                            optionalDependents.add(possibleDependent.getShortName());
+                        }
+
+                        // already know possibleDependent depends on plugin, no need to continue with the rest of
+                        // dependencies. We continue with the next possibleDependent
+                        break;
+                    }
+                }
+            }
+            plugin.setDependents(dependents);
+            plugin.setOptionalDependents(optionalDependents);
+        }
+    }
+
+
+    public TaskBuilder initTasks(final InitStrategy initStrategy, TIS tis) {
         TaskBuilder builder;
         if (!pluginListed) {
             builder = new TaskGraphBuilder() {
@@ -255,7 +428,7 @@ public class PluginManager {
                                         failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
                                         activePlugins.remove(pluginWrapper);
                                         plugins.remove(pluginWrapper);
-                                        LOGGER.error("Failed to install {0}: {1}", new Object[]{pluginWrapper.getShortName(), e.getMessage()});
+                                        LOGGER.error("Failed to install {}: {}", pluginWrapper.getShortName(), e.getMessage());
                                         return;
                                     } catch (IOException e) {
                                         failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
@@ -285,13 +458,16 @@ public class PluginManager {
                                 }
                             });
                         }
-                        // g.followedBy().attains(PLUGINS_STARTED).add("Discovering plugin initialization tasks", new Executable() {
-                        // public void run(Reactor reactor) throws Exception {
-                        // // rescan to find plugin-contributed @Initializer
-                        // reactor.addAll(initializerFinder.discoverTasks(reactor));
-                        // }
-                        // });
-                        // register them all
+
+                        if (CenterResource.notFetchFromCenterRepository()) {
+                            g.followedBy().notFatal().attains(PLUGINS_STARTED).add("Load updateCenter", (reactor) -> {
+                                UpdateCenter updateCenter = tis.getUpdateCenter();
+                                updateCenter.load();
+                                updateCenter.updateAllSites();
+                            });
+                        }
+
+
                         session.addAll(g.discoverTasks(session));
                     }
                 });
@@ -322,7 +498,7 @@ public class PluginManager {
                     }
                 }
             }
-            plugin.setDependants(dependants);
+            plugin.setDependents(dependants);
         }
     }
 
@@ -337,7 +513,7 @@ public class PluginManager {
         activePlugins.clear();
         // Work around a bug in commons-logging.
         // See http://www.szegedi.org/articles/memleak.html
-        LogFactory.release(uberClassLoader);
+        //LogFactory.release(uberClassLoader);
     }
 
     protected Collection<String> loadBundledPlugins() throws Exception {
@@ -458,7 +634,7 @@ public class PluginManager {
         }
 
         @Override
-        protected Class<?> findClass(String name) throws ClassNotFoundException {
+        public Class<?> findClass(String name) throws ClassNotFoundException {
             WeakReference<Class> wc = generatedClasses.get(name);
             if (wc != null) {
                 Class c = wc.get();

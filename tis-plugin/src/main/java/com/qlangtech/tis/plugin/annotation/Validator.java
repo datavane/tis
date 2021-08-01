@@ -88,6 +88,39 @@ public enum Validator {
             return false;
         }
         return true;
+    }),
+    db_col_name((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.PATTERN_DB_COL_NAME.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_DB_COL_NAME_ERROR);
+            return false;
+        }
+        return true;
+    }),
+    relative_path((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.PATTERN_RELATIVE_PATH.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_RELATIVE_PATH_ERROR);
+            return false;
+        }
+        return true;
+    }),
+    absolute_path((msgHandler, context, fieldKey, fieldData) -> {
+        if (StringUtils.isEmpty(fieldData)) {
+            return true;
+        }
+        Matcher matcher = ValidatorCommons.PATTERN_ABSOLUTE_PATH.matcher(fieldData);
+        if (!matcher.matches()) {
+            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
+            return false;
+        }
+        return true;
     });
 
     private final IFieldValidator fieldValidator;
@@ -120,6 +153,7 @@ public enum Validator {
     FieldValidatorResult validate(// 
                                   IControlMsgHandler handler, //
                                   Context context, String fieldKey, FieldValidators fvalidator) {
+
         FieldValidatorResult fieldData = new FieldValidatorResult(handler.getString(fieldKey));
         for (IFieldValidator v : fvalidator.validators) {
             if (!v.validate(handler, context, fieldKey, fieldData.fieldData)) {
@@ -148,7 +182,10 @@ public enum Validator {
         return result;
     }
 
-    private static void addValidateRule(Map<String, FieldValidators> result, Object[] p) {
+    public static void addValidateRule(Map<String, FieldValidators> result, Object[] p) {
+        if (p == null || p.length < 1) {
+            return;
+        }
         String fieldName = null;
         List<Object> rules = null;
         for (int i = 0; i < p.length; i++) {

@@ -14,14 +14,23 @@
  */
 package com.qlangtech.tis.plugin.ds;
 
+import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.util.IPluginContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * Abstract the dataSource modal
@@ -29,28 +38,14 @@ import java.util.Map;
  * @author: baisui 百岁
  * @create: 2020-11-24 10:40
  **/
-public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName {
+public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName, DataSourceMeta {
 
     public static final String DS_TYPE_MYSQL = "MySQL";
 
-    public static List<DataSourceFactory> all() {
-        return TIS.get().getExtensionList(DataSourceFactory.class);
-    }
+//    public static List<DataSourceFactory> all() {
+//        return TIS.get().getExtensionList(DataSourceFactory.class);
+//    }
 
-    /**
-     * Get all the tables in dataBase
-     *
-     * @return
-     */
-    public abstract List<String> getTablesInDB() throws Exception;
-
-    /**
-     * Get table column metaData list
-     *
-     * @param table
-     * @return
-     */
-    public abstract List<ColumnMetaData> getTableMetadata(String table);
 
     /**
      * DataSource like TiSpark has store format as RDD shall skip the phrase of data dump
@@ -66,20 +61,112 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      *
      * @return
      */
-    public abstract DataDumpers getDataDumpers(TISTable table);
+    public DataDumpers getDataDumpers(TISTable table) {
+        throw new UnsupportedOperationException("datasource:" + this.identityValue() + " is not support direct dump");
+    }
 
     @Override
     public final Descriptor<DataSourceFactory> getDescriptor() {
         Descriptor<DataSourceFactory> descriptor = TIS.get().getDescriptor(this.getClass());
-        if (!(descriptor instanceof BaseDataSourceFactoryDescriptor)) {
-            throw new IllegalStateException(this.getClass().getSimpleName() + " must implement the Descriptor of "
-                    + BaseDataSourceFactoryDescriptor.class.getSimpleName());
+        Class<BaseDataSourceFactoryDescriptor> expectDesClass = getExpectDesClass();
+        if (!(expectDesClass.isAssignableFrom(descriptor.getClass()))) {
+            throw new IllegalStateException(descriptor.getClass().getName() + " must implement the Descriptor of "
+                    + expectDesClass.getSimpleName());
         }
         return descriptor;
     }
 
+    protected <C extends BaseDataSourceFactoryDescriptor> Class<C> getExpectDesClass() {
+        return (Class<C>) BaseDataSourceFactoryDescriptor.class;
+    }
 
-    public abstract static class BaseDataSourceFactoryDescriptor extends Descriptor<DataSourceFactory> {
+    protected void validateConnection(String jdbcUrl, BasicDataSourceFactory.IConnProcessor p) {
+        Connection conn = null;
+        try {
+            conn = getConnection(jdbcUrl);
+            p.vist(conn);
+        } catch (Exception e) {
+            throw new IllegalStateException("jdbcUrl:" + jdbcUrl, e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Throwable e) {
+                }
+            }
+        }
+    }
+
+
+    /**
+     * 获取jdbc Connection
+     * 为了驱动加载不出问题，需要每个实现类中拷贝一份这个代码，default implements:
+     * <pre>
+     *     @Override
+     *     protected Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
+     *         return DriverManager.getConnection(jdbcUrl, StringUtils.trimToNull(username), StringUtils.trimToNull(password));
+     *     }
+     * </pre>
+     *
+     * @param jdbcUrl
+     * @return
+     */
+    protected Connection getConnection(String jdbcUrl) throws SQLException {
+        throw new UnsupportedOperationException("jdbcUrl:" + jdbcUrl);
+    }
+//        // 密码可以为空
+//        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
+//    }
+
+
+    protected List<ColumnMetaData> parseTableColMeta(String table, String jdbcUrl) {
+        final List<ColumnMetaData> columns = Lists.newArrayList();
+        validateConnection(jdbcUrl, (conn) -> {
+            DatabaseMetaData metaData1 = null;
+            ResultSet primaryKeys = null;
+            ResultSet columns1 = null;
+            try {
+                metaData1 = conn.getMetaData();
+                primaryKeys = metaData1.getPrimaryKeys(null, null, table);
+                columns1 = metaData1.getColumns(null, null, table, null);
+                Set<String> pkCols = Sets.newHashSet();
+                while (primaryKeys.next()) {
+                    // $NON-NLS-1$
+                    String columnName = primaryKeys.getString("COLUMN_NAME");
+                    pkCols.add(columnName);
+                }
+                int i = 0;
+                String colName = null;
+                while (columns1.next()) {
+                    columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME"))
+                            , getDataType(columns1), pkCols.contains(colName)));
+                }
+
+            } finally {
+                closeResultSet(columns1);
+                closeResultSet(primaryKeys);
+            }
+        });
+        return columns;
+    }
+
+    protected int getDataType(ResultSet cols) throws SQLException {
+        return cols.getInt("DATA_TYPE");
+    }
+
+    protected void closeResultSet(ResultSet rs) {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                // ignore
+                ;
+            }
+        }
+    }
+
+    public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T> {
+        private static final Logger logger = LoggerFactory.getLogger(BaseDataSourceFactoryDescriptor.class);
         @Override
         public final String getDisplayName() {
             return this.getDataSourceName();
@@ -107,7 +194,36 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
          */
         protected abstract boolean supportFacade();
 
-        protected abstract List<String> facadeSourceTypes();
+        protected List<String> facadeSourceTypes() {
+            if (supportFacade()) {
+                throw new UnsupportedOperationException("shall overwrite facadeSourceTypes");
+            }
+            return Collections.emptyList();
+        }
+
+
+        @Override
+        protected final boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+            ParseDescribable<T> dsFactory = this.newInstance((IPluginContext) msgHandler, postFormVals.rawFormData, Optional.empty());
+            T instance = dsFactory.instance;
+//            if (!msgHandler.validateBizLogic(IFieldErrorHandler.BizLogic.DB_NAME_DUPLICATE, context
+//                    , this.getIdentityField().displayName, instance.identityValue())) {
+//                return false;
+//            }
+            return validateDSFactory(msgHandler, context, instance);
+        }
+
+        protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
+            try {
+                List<String> tables = dsFactory.getTablesInDB();
+                // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
+            } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
+                msgHandler.addErrorMessage(context, e.getMessage());
+                return false;
+            }
+            return true;
+        }
 
     }
 }

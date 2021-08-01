@@ -65,6 +65,10 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
 
     }
 
+    public <DS extends DataSourceFactory> DS getDataSource() {
+        return (DS) super.getPlugin();
+    }
+
     public void deleteDB() throws Exception {
         File targetFile = this.getTargetFile();
         if (getDSKey().isFacadeType()) {
@@ -90,16 +94,20 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     @Override
     public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context
             , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
+        if (dlist.size() != 1) {
+            throw new IllegalArgumentException("size of dlist must equal to 1");
+        }
         if (!context.isPresent()) {
             throw new IllegalArgumentException("Context shall exist");
         }
         Context ctx = context.get();
-        final String dbName = this.key.keyVal;
+        final String dbName = this.key.keyVal.getVal();
         if (!super.setPlugins(pluginContext, context, dlist, update)) {
             return false;
         }
-        pluginContext.addDb(dbName, ctx, (shallUpdateDB && !update));
-        return ctx.hasErrors();
+        Descriptor.ParseDescribable<DataSourceFactory> dbDesc = dlist.get(0);
+        pluginContext.addDb(dbDesc, dbName, ctx, (shallUpdateDB && !update));
+        return !ctx.hasErrors();
     }
 
 
@@ -149,7 +157,7 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
             tisTable.setReflectCols(tableMeta.getCols());
             tisTable.setSelectSql(tableMeta.getSql());
             tisTable.setTableName(tableName);
-            tisTable.setDbName(this.key.keyVal);
+            tisTable.setDbName(this.key.keyVal.getVal());
             return tisTable;
         } catch (IOException e) {
             throw new RuntimeException(e);

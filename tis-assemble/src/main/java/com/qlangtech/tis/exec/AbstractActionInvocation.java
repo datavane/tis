@@ -1,3 +1,4 @@
+
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
  * <p>
@@ -16,23 +17,29 @@ package com.qlangtech.tis.exec;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.exec.datax.DataXExecuteInterceptor;
 import com.qlangtech.tis.exec.impl.*;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
-import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.manage.IBasicAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
+import com.qlangtech.tis.manage.common.ConfigFileReader;
+import com.qlangtech.tis.manage.common.HttpConfigFileReader;
+import com.qlangtech.tis.manage.common.SnapshotDomain;
+import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
-import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
-import com.qlangtech.tis.sql.parser.er.TableMeta;
-import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -53,40 +60,62 @@ public class AbstractActionInvocation implements ActionInvocation {
     public static final IExecuteInterceptor[] workflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
             new WorkflowDumpAndJoinInterceptor(), new WorkflowIndexBuildInterceptor(), new IndexBackFlowInterceptor()};
 
+    public static final IExecuteInterceptor[] dataXBuild = new IExecuteInterceptor[]{new DataXExecuteInterceptor()};
+
+    private static IIndexMetaData createIndexMetaData(DefaultChainContext chainContext) {
+        if (!chainContext.hasIndexName()) {
+            return new DummyIndexMetaData();
+        }
+        try {
+            SnapshotDomain domain = HttpConfigFileReader.getResource(chainContext.getIndexName(), RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA);
+            return SolrFieldsParser.parse(() -> {
+                return ConfigFileReader.FILE_SCHEMA.getContent(domain);
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * 创建执行链
      *
      * @param chainContext
      * @return
      */
-    public static ActionInvocation createExecChain(IExecChainContext chainContext) throws Exception {
+    public static ActionInvocation createExecChain(DefaultChainContext chainContext) throws Exception {
         IExecuteInterceptor[] ints = null;
-        if (chainContext.getWorkflowId() != null) {
-            ints = workflowBuild;
-            Integer workflowId = chainContext.getWorkflowId();
-            SqlDataFlowTopology workflowDetail = chainContext.getTopology();
-            Objects.requireNonNull(workflowDetail, "workflowDetail can not be null");
-            EntityName targetEntity = null;
-            if (workflowDetail.isSingleTableModel()) {
-                DependencyNode dumpNode = workflowDetail.getDumpNodes().get(0);
-                targetEntity = dumpNode.parseEntityName();
-            } else {
-                SqlTaskNodeMeta finalN = workflowDetail.getFinalNode();
-                targetEntity = EntityName.parse(finalN.getExportName());
-            }
-            chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
+
+        if (StringUtils.isEmpty(chainContext.getIndexName()) && chainContext.getWorkflowId() != null) {
+            //console中直接用workflow触发
+            throw new NotImplementedException("console中直接用workflow触发");
+
+        } else if (StringUtils.isNotBlank(chainContext.getIndexName())) {
+
+            IBasicAppSource appSource = chainContext.getAppSource();// DataFlowAppSource.load(chainContext.getIndexName());
+            ints = appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
+                @Override
+                public IExecuteInterceptor[] visit(ISolrAppSource appSource) {
+
+                    Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
+                    Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
+                    chainContext.setIndexMetaData(createIndexMetaData(chainContext));
+
+                    EntityName targetEntity = appSource.getTargetEntity();
+                    chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
+                    IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
+                    chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
+                    return workflowBuild;
+                }
+
+                @Override
+                public IExecuteInterceptor[] visit(DataxProcessor app) {
+                    return dataXBuild;
+                }
+            });
 
             Integer taskid = chainContext.getTaskId();
             TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange()));
-            chainContext.setAttribute(IFullBuildContext.KEY_WORKFLOW_ID, workflowDetail);
-            Optional<ERRules> erRule = ERRules.getErRule(workflowDetail.getName());
-            IPrimaryTabFinder pTabFinder = null;
-            if (!erRule.isPresent()) {
-                pTabFinder = new DftTabFinder();
-            } else {
-                pTabFinder = erRule.get();
-            }
-            chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
+
         } else {
             if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
                 ints = directBuild;
@@ -138,7 +167,8 @@ public class AbstractActionInvocation implements ActionInvocation {
         public Integer get(FullbuildPhase key) {
             Integer index = this.orders.get(key);
             if (index == null) {
-                throw new IllegalStateException("key:" + key + " can not find relevant map keys[" + orders.keySet().stream().map((r) -> r.getName()).collect(Collectors.joining(",")) + "]");
+                throw new IllegalStateException("key:" + key + " can not find relevant map keys["
+                        + orders.keySet().stream().map((r) -> r.getName()).collect(Collectors.joining(",")) + "]");
             }
             return index;
         }
@@ -219,16 +249,5 @@ public class AbstractActionInvocation implements ActionInvocation {
         this.chainContext = action;
     }
 
-    private static class DftTabFinder implements IPrimaryTabFinder {
-        @Override
-        public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
-            return Optional.empty();
-        }
 
-        @Override
-        public final Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
-            //throw new UnsupportedOperationException();
-            return Collections.emptyMap();
-        }
-    }
 }

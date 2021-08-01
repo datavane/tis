@@ -37,10 +37,11 @@ import com.qlangtech.tis.indexbuilder.merger.IndexMergerImpl;
 import com.qlangtech.tis.indexbuilder.source.impl.HDFSReaderFactory;
 import com.qlangtech.tis.indexbuilder.utils.Context;
 import com.qlangtech.tis.manage.common.IndexBuildParam;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 import com.qlangtech.tis.solrextend.cloud.TisSolrResourceLoader;
 import com.tis.hadoop.rpc.RpcServiceReference;
@@ -63,13 +64,11 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * HdfsIndexBuilder 索引入口map类
@@ -80,8 +79,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class IndexBuilderTask implements TaskMapper {
 
     public static final Logger logger = LoggerFactory.getLogger(IndexBuilderTask.class);
-
-    public static final String KEY_COLLECTION = "app";
 
     long startTime;
 
@@ -111,7 +108,7 @@ public class IndexBuilderTask implements TaskMapper {
     private final RpcServiceReference statusRpc;
 
     public static void setMdcAppName(String appname) {
-        MDC.put(KEY_COLLECTION, appname);
+        MDC.put(TISCollectionUtils.KEY_COLLECTION, appname);
     }
 
     public IndexBuilderTask(IndexBuilderTriggerFactory propsGetter, RpcServiceReference statusRpc) {

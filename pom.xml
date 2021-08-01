@@ -10,24 +10,29 @@
         <version>1.1.0</version>
     </parent>
 
+
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis-solr-parent</artifactId>
-    <version>2.2.0</version>
+    <!--https://maven.apache.org/maven-ci-friendly.html-->
+    <version>2.3.0</version>
     <packaging>pom</packaging>
     <name>tis-solr-parent</name>
     <url>http://maven.apache.org</url>
     <properties>
+        <alibaba.datax.version>0.0.1-SNAPSHOT</alibaba.datax.version>
+        <tisasm.oss.put.skip>true</tisasm.oss.put.skip>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss</maven.build.timestamp.format>
         <java.version>1.8</java.version>
         <spring-version>3.0.6.RELEASE</spring-version>
         <solr.version>8.7.0</solr.version>
+        <curator.version>2.13.0</curator.version>
         <jetty.version>9.4.27.v20200227</jetty.version>
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
 
         <scala.version>2.13.0</scala.version>
         <scala.binary.version>2.13</scala.binary.version>
-        <tisasm-maven-plugin.version>1.0.2</tisasm-maven-plugin.version>
+        <tisasm-maven-plugin.version>1.0.4</tisasm-maven-plugin.version>
     </properties>
 
 
@@ -61,7 +66,7 @@
         <module>tis-scala-compiler-dependencies</module>
 
         <module>maven-tpi-plugin</module>
-
+        <module>tis-datax-executor</module>
 
 
     </modules>
@@ -85,6 +90,19 @@
 
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>commons-collections</groupId>
@@ -132,7 +150,7 @@
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>
                 <artifactId>logback-flume-appender</artifactId>
-                <version>1.0.3</version>
+                <version>1.0.4</version>
             </dependency>
 
             <dependency>
@@ -167,8 +185,6 @@
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
-
-
 
 
             <dependency>
@@ -502,7 +518,7 @@
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.2.25.sec10</version>
+                <version>1.2.76</version>
             </dependency>
 
             <dependency>
@@ -729,7 +745,6 @@
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

@@ -38,8 +38,11 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 import com.qlangtech.tis.runtime.module.action.AddAppAction;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
+import com.qlangtech.tis.solr.common.DOMUtil;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
+import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -48,7 +51,6 @@ import com.qlangtech.tis.workflow.pojo.DatasourceTableCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.TISZkStateReader;
-import com.qlangtech.tis.solr.common.DOMUtil;
 import org.easymock.EasyMock;
 import org.shai.xmodifier.util.StringUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -389,7 +391,7 @@ public class TestCollectionAction extends BasicActionTestCase {
     };
     AtomicBoolean schemaParseResultProcessed = new AtomicBoolean(false);
     SchemaAction.parseResultCallback4test = (cols, schemaParseResult) -> {
-      List<ISchemaField> schemaFields = schemaParseResult.getSchemaFields();
+      List<PSchemaField> schemaFields = ((ParseResult) schemaParseResult).getSchemaFields();
       assertNotNull(schemaFields);
       assertEquals(8, schemaFields.size());
 

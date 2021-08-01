@@ -16,7 +16,7 @@ package com.qlangtech.tis.indexbuilder.columnProcessor;
 
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.indexbuilder.columnProcessor.impl.*;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;

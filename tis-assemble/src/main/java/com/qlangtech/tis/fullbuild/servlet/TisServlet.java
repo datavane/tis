@@ -22,19 +22,17 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
-import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
-import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor.NewTaskParam;
-import com.qlangtech.tis.exec.impl.WorkflowDumpAndJoinInterceptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
-import com.qlangtech.tis.offline.FlatTableBuilder;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -53,7 +51,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -161,19 +162,26 @@ public class TisServlet extends HttpServlet {
                                     mdcContext.resetParam(newTaskId);
                                     writeResult(true, msg, res, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(newTaskId)));
                                     IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
-                                    Objects.requireNonNull(builderFactory, "builderFactory can not be null");
+                                    //Objects.requireNonNull(builderFactory, "builderFactory can not be null");
                                     // chainContext.setIndexBuildFileSystem(builderFactory.getFsFactory());
+                                    chainContext.setIndexBuilderTriggerFactory(builderFactory);
 
                                     PluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
-                                    Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
-                                    chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
-                                    chainContext.setIndexBuilderTriggerFactory(builderFactory);
-                                    chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
+                                    if (tableDumpFactory.getPlugin() != null) {
+                                        //  Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
+                                        chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
+                                    }
+
+
+                                    //   chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
                                     countDown.countDown();
                                     // 开始执行内部任务
-                                    TrackableExecuteInterceptor.createTaskComplete(newTaskId, startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD);
+
+                                    ExecResult execResult = startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD;
+
+                                    DagTaskUtils.createTaskComplete(newTaskId, chainContext, execResult);
                                 } catch (Throwable e) {
-                                    TrackableExecuteInterceptor.createTaskComplete(newTaskId, ExecResult.FAILD);
+                                    DagTaskUtils.createTaskComplete(newTaskId, chainContext, ExecResult.FAILD);
                                     getLog().error(e.getMessage(), e);
                                     throw new RuntimeException(e);
                                 } finally {
@@ -250,7 +258,9 @@ public class TisServlet extends HttpServlet {
         final String indexName = execContext.getString(IFullBuildContext.KEY_APP_NAME);
         if (StringUtils.isNotEmpty(indexName)) {
             MDC.put("app", indexName);
-            return new FullPhraseMDCParamContext(indexName, res);
+            return StringUtils.startsWith(indexName, TISCollectionUtils.NAME_PREFIX) ?
+                    new FullPhraseMDCParamContext(indexName, res)
+                    : new DataXMDCParamContext(indexName, res);
         }
         Long wfid = execContext.getLong(IFullBuildContext.KEY_WORKFLOW_ID);
         MDC.put(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfid));
@@ -379,10 +389,21 @@ public class TisServlet extends HttpServlet {
         boolean validateParam() throws ServletException {
             if (shallValidateCollectionExist() && !indexSwapTaskflowLauncher.containIndex(indexName)) {
                 String msg = "indexName:" + indexName + " is not acceptable";
-                getLog().warn(msg + ",exist collection:{}", indexSwapTaskflowLauncher.getIndexNames());
+                getLog().error(msg + ",exist collection:{}", indexSwapTaskflowLauncher.getIndexNames());
                 writeResult(false, msg, res);
                 return false;
             }
+            return true;
+        }
+    }
+
+    private class DataXMDCParamContext extends FullPhraseMDCParamContext {
+        public DataXMDCParamContext(String dataxName, HttpServletResponse res) {
+            super(dataxName, res);
+        }
+
+        @Override
+        boolean validateParam() throws ServletException {
             return true;
         }
     }
@@ -393,11 +414,11 @@ public class TisServlet extends HttpServlet {
      * @param chainContext
      * @return taskid
      */
-    private Integer createNewTask(IExecChainContext chainContext) {
+    Integer createNewTask(IExecChainContext chainContext) {
         Integer workflowId = chainContext.getWorkflowId();
         NewTaskParam newTaskParam = new NewTaskParam();
         ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
-        if (executeRanage.getEnd().bigThan(FullbuildPhase.JOIN)) {
+        if (chainContext.hasIndexName() || executeRanage.getEnd().bigThan(FullbuildPhase.JOIN)) {
             String indexname = chainContext.getIndexName();
             newTaskParam.setAppname(indexname);
         }
@@ -407,9 +428,9 @@ public class TisServlet extends HttpServlet {
         }
         newTaskParam.setWorkflowid(workflowId);
         newTaskParam.setExecuteRanage(executeRanage);
-        // newTaskParam.setToPhase(FullbuildPhase.IndexBackFlow);
+
         newTaskParam.setTriggerType(TriggerType.MANUAL);
-        Integer taskid = WorkflowDumpAndJoinInterceptor.createNewTask(newTaskParam);
+        Integer taskid = DagTaskUtils.createNewTask(newTaskParam);
         log.info("create new taskid:" + taskid);
         chainContext.setAttribute(IParamContext.KEY_TASK_ID, taskid);
         return taskid;

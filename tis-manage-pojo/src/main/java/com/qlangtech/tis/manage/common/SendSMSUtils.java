@@ -43,11 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class SendSMSUtils {
 
-    public static final Contact BAISUI_PHONE = new Contact(15868113480l, "baisui@2dfire.com");
-
-    // private static final String appKey = "100007";
-    // private static final String salt = "718c131f96d644e68976884b186f0ada";
-    private static final String UTF8 = "utf8";
+    public static final Contact BAISUI_PHONE = new Contact(15868113480l, "baisui@qlangtech.com");
 
 
     private static final Logger logger = LoggerFactory.getLogger(SendSMSUtils.class);
@@ -57,8 +53,6 @@ public class SendSMSUtils {
 
     private static AtomicInteger errCount = new AtomicInteger(0);
 
-
-    // wiki: http://k.2dfire.net/pages/viewpage.action?pageId=11468888
     public static void send(String content, Contact... contact) {
         if (!RunEnvironment.isOnlineMode()) {
             return;
@@ -96,14 +90,16 @@ public class SendSMSUtils {
                 }
             }
             // 发送丁丁消息
-            URL url = new URL("http://sm.2dfire-inc.com/sm-soa/sm/send_msg?msg=" + URLEncoder.encode("from:" + Inet4Address.getLocalHost().getHostAddress() + "|" + content, UTF8) + "&tos=" + URLEncoder.encode(email.toString(), UTF8));
+            URL url = new URL("http://sm.2dfire-inc.com/sm-soa/sm/send_msg?msg="
+                    + URLEncoder.encode("from:" + Inet4Address.getLocalHost().getHostAddress() + "|" + content, TisUTF8.getName())
+                    + "&tos=" + URLEncoder.encode(email.toString(), TisUTF8.getName()));
             logger.info("dingding url:" + url);
             ConfigFileContext.processContent(url, new StreamProcess<Object>() {
 
                 @Override
                 public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                     try {
-                        System.out.println("receive dingding reply:" + IOUtils.toString(stream, "utf8"));
+                        System.out.println("receive dingding reply:" + IOUtils.toString(stream, TisUTF8.get()));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -168,22 +164,6 @@ public class SendSMSUtils {
                 }
             }
         });
-        // ConfigFileContext.processContent(url, new StreamProcess<Object>() {
-        // @Override
-        // public Object p(int status, InputStream stream, String md5) {
-        // try {
-        // JSONObject result = new JSONObject(new
-        // JSONTokener(IOUtils.toString(stream)));
-        // if (result.getInt("code") != 1) {
-        // throw new IllegalStateException("send sms msg faild:" +
-        // result.getInt("code"));
-        // }
-        // return null;
-        // } catch (Exception e) {
-        // throw new RuntimeException(e);
-        // }
-        // }
-        // });
     }
 
     public static class Contact {
@@ -210,61 +190,4 @@ public class SendSMSUtils {
             return email;
         }
     }
-    // public static void send(String content, long phone) {
-    // if (!RunEnvironment.isOnlineMode()) {
-    // return;
-    // }
-    // errCount.incrementAndGet();
-    // 
-    // AtomicLong lastSendSMSTimestamp = lastSendSMSTimestampMap.get(phone);
-    // if (lastSendSMSTimestamp == null) {
-    // lastSendSMSTimestamp = new AtomicLong();
-    // lastSendSMSTimestampMap.put(phone, lastSendSMSTimestamp);
-    // }
-    // 
-    // long last = lastSendSMSTimestamp.get();
-    // // 十分钟之内不能重复发送消息
-    // if ((last + (15 * 60 * 1000)) < System.currentTimeMillis()) {
-    // 
-    // if (lastSendSMSTimestamp.compareAndSet(last, System.currentTimeMillis()))
-    // {
-    // 
-    // try {
-    // content =
-    // StringUtils.substring(Inet4Address.getLocalHost().getHostAddress()
-    // + "|errs:" + errCount.get() + "|" + content, 0, 100);
-    // final String SIGN = "content" + content + "mobile" + phone + salt;
-    // 
-    // URL url = new URL("http://api.2dfire.com/sms/v2/sendSms1?mobile=" + phone
-    // + "&content=" + URLEncoder.encode(content, UTF8) + "&appKey=" + appKey
-    // + "&format=json&sign=" + DigestUtils.md5Hex(SIGN.getBytes(UTF8)));
-    // logger.info("smsurl:" + url);
-    // ConfigFileContext.processContent(url, new StreamProcess<Object>() {
-    // @Override
-    // public Object p(int status, InputStream stream, String md5) {
-    // try {
-    // JSONObject result = new JSONObject(
-    // new JSONTokener(IOUtils.toString(stream)));
-    // if (result.getInt("code") != 1) {
-    // throw new IllegalStateException(
-    // "send sms msg faild:" + result.getInt("code"));
-    // }
-    // return null;
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // }
-    // });
-    // 
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // errCount.set(0);
-    // logger.info("send sms");
-    // }
-    // } else {
-    // logger.info("send frequency is too high,ignore msg:" + content);
-    // }
-    // 
-    // }
 }

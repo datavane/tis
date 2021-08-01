@@ -14,8 +14,8 @@
  */
 package com.qlangtech.tis.trigger.zk;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -27,7 +27,7 @@ import org.apache.zookeeper.Watcher.Event.EventType;
  */
 public abstract class AbstractWatcher implements Watcher {
 
-    private static final Log log = LogFactory.getLog(AbstractWatcher.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractWatcher.class);
 
     public final void process(WatchedEvent event) {
         if (EventType.None.equals(event.getType())) {

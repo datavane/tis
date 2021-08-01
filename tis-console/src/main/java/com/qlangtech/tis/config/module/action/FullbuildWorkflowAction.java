@@ -1,20 +1,22 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.config.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
@@ -23,6 +25,7 @@ import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.GitBranchInfo;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -30,8 +33,10 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -39,179 +44,253 @@ import java.util.List;
  */
 public class FullbuildWorkflowAction extends BasicModule {
 
-    /**
-     */
-    private static final long serialVersionUID = 1L;
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * description: table有效时间
-     */
-    private static final long VALID_TIME = 4 * 60 * 60 * 1000;
+  /**
+   * description: table有效时间
+   */
+  private static final long VALID_TIME = 4 * 60 * 60 * 1000;
 
-    /**
-     * assemble 节点接收到来自console节点的触发任务，开始执行需要创建一个new的workflowbuildhistory记录
-     *
-     * @param context
-     */
-    @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
-    public void doCreateNewTask(Context context) {
-        Integer worflowid = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID);
-        final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
-        Application app = null;
-        // appname 可以为空
-        String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
-        if (StringUtils.isNotBlank(appname)) {
-            app = this.getApplicationDAO().selectByName(appname);
-            if (app == null) {
-                throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
-            }
-        }
-        WorkFlowBuildHistory task = new WorkFlowBuildHistory();
-        task.setCreateTime(new Date());
-        task.setStartTime(new Date());
-        task.setWorkFlowId(worflowid);
-        task.setTriggerType(triggerType.getValue());
-        task.setState((byte) ExecResult.DOING.getValue());
-        // Integer buildHistoryId = null;
-        // 从什么阶段开始执行
-        FullbuildPhase fromPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()));
-        FullbuildPhase endPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()));
-        if (app == null) {
-            if (endPhase.bigThan(FullbuildPhase.JOIN)) {
-                endPhase = FullbuildPhase.JOIN;
-            }
-        }
-        if (fromPhase.getValue() > FullbuildPhase.FullDump.getValue()) {
-            // 如果是从非第一步开始执行的话，需要客户端提供依赖的history记录id
-            // buildHistoryId = this.getInt("buildHistoryId");
-            // if (buildHistoryId == null) {
-            // throw new IllegalArgumentException("fromPhase:" + fromPhase + " must provide
-            // a buildHistoryId param");
-            // }
-            task.setHistoryId(this.getInt(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID));
-        }
-        // 说明只有workflow的流程和索引没有关系，所以不可能执行到索引build阶段去
-        // task.setEndPhase((app == null) ? FullbuildPhase.JOIN.getValue() : FullbuildPhase.IndexBackFlow.getValue());
-        task.setEndPhase(endPhase.getValue());
-        task.setStartPhase(fromPhase.getValue());
-        if (app != null) {
-            task.setAppId(app.getAppId());
-            task.setAppName(app.getProjectName());
-        }
-        // 生成一个新的taskid
-        this.setBizResult(context, new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app));
+  /**
+   * assemble 节点接收到来自console节点的触发任务，开始执行需要创建一个new的workflowbuildhistory记录
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doCreateNewTask(Context context) {
+
+    final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
+    Application app = null;
+    // appname 可以为空
+    String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
+    if (StringUtils.isNotBlank(appname)) {
+      app = this.getApplicationDAO().selectByName(appname);
+      if (app == null) {
+        throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
+      }
+    }
+    WorkFlowBuildHistory task = new WorkFlowBuildHistory();
+    task.setCreateTime(new Date());
+    task.setStartTime(new Date());
+    // task.setWorkFlowId(worflowid);
+    task.setTriggerType(triggerType.getValue());
+    task.setState((byte) ExecResult.DOING.getValue());
+    // Integer buildHistoryId = null;
+    // 从什么阶段开始执行
+    FullbuildPhase fromPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()));
+    FullbuildPhase endPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()));
+    if (app == null) {
+      if (endPhase.bigThan(FullbuildPhase.JOIN)) {
+        endPhase = FullbuildPhase.JOIN;
+      }
+    }
+    if (fromPhase.getValue() > FullbuildPhase.FullDump.getValue()) {
+      // 如果是从非第一步开始执行的话，需要客户端提供依赖的history记录id
+      task.setHistoryId(this.getInt(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID));
+    }
+    // 说明只有workflow的流程和索引没有关系，所以不可能执行到索引build阶段去
+    // task.setEndPhase((app == null) ? FullbuildPhase.JOIN.getValue() : FullbuildPhase.IndexBackFlow.getValue());
+    task.setEndPhase(endPhase.getValue());
+    task.setStartPhase(fromPhase.getValue());
+    if (app != null) {
+      task.setAppId(app.getAppId());
+      task.setAppName(app.getProjectName());
+    }
+    // 生成一个新的taskid
+    this.setBizResult(context, new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app));
+  }
+
+  /**
+   * 执行阶段结束
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doTaskComplete(Context context) {
+    Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
+    // 执行结果
+    ExecResult execResult = ExecResult.parse(this.getInt(IParamContext.KEY_EXEC_RESULT));
+    String[] asynJobsName = this.getStringArray(IParamContext.KEY_ASYN_JOB_NAME);
+
+    updateWfHistory(taskid, execResult, asynJobsName, 0);
+  }
+
+  /**
+   * 接收异步执行任务执行状态
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doFeedbackAsynTaskStatus(Context context) {
+    Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
+    String jobName = this.getString(IParamContext.KEY_ASYN_JOB_NAME);
+    boolean execSuccess = this.getBoolean(IParamContext.KEY_ASYN_JOB_SUCCESS);
+
+    this.updateAsynTaskState(taskid, jobName, execSuccess, 0);
+    this.setBizResult(context, new CreateNewTaskResult(taskid, null));
+  }
+
+  public static int MAX_CAS_RETRY_COUNT = 5;
+
+  private void updateAsynTaskState(Integer taskid, String jobName, boolean execSuccess, int tryCount) {
+    validateMaxCasRetryCount(taskid, tryCount);
+    final WorkFlowBuildHistory history = getBuildHistory(taskid);
+
+    if (ExecResult.ASYN_DOING != ExecResult.parse(history.getState())) {
+      updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
+      return;
     }
 
-    // public void doPhaseStart(Context context) {
-    // Integer taskid = this.getInt("taskid");
-    // if (taskid == null) {
-    // throw new IllegalArgumentException("taskid can not be null");
-    // }
-    // FullbuildPhase taskPhase = FullbuildPhase.parse(this.getInt("taskphase"));
-    // WorkFlowBuildPhase phase = new WorkFlowBuildPhase();
-    // phase.setCreateTime(new Date());
-    // phase.setOpTime(new Date());
-    // phase.setPhase(taskPhase.getValue());
-    // phase.setWorkFlowBuildHistoryId(taskid);
-    // this.setBizResult(context, getPhaseDAO().insertSelective(phase));
-    // }
-    /**
-     * 执行阶段结束
-     *
-     * @param context
-     */
-    @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
-    public void doTaskComplete(Context context) {
-        // Integer phaseid = this.getInt("phaseid");
-        Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
-        // 执行结果
-        // final String phaseinfo = this.getString("phaseinfo");
-        // WorkFlowBuildPhase phase = new WorkFlowBuildPhase();
-        // phase.setOpTime(new Date());
-        // if (StringUtils.isNotBlank(phaseinfo)) {
-        // phase.setPhaseInfo(phaseinfo);
-        // }
-        ExecResult execResult = ExecResult.parse(this.getInt("execresult"));
-        // phase.setResult(execResult.getValue());
-        // WorkFlowBuildPhaseCriteria query = new WorkFlowBuildPhaseCriteria();
-        // query.createCriteria().andIdEqualTo(phaseid);
-        // getPhaseDAO().updateByExampleSelective(phase, query);
-        // WorkFlowBuildPhase phaseInfo = this.getPhaseDAO().loadFromWriteDB(phaseid);
-        // workflow history 表更新
-        WorkFlowBuildHistory history = this.getHistoryDAO().loadFromWriteDB(taskid);
-        if (history == null) {
-            throw new IllegalStateException("taskid:" + taskid + " relevant WorkFlowBuildHistory obj can not be null");
+    JSONObject status = JSON.parseObject(history.getAsynSubTaskStatus());
+    JSONObject tskStat = status.getJSONObject(jobName);
+    if (tskStat == null) {
+      throw new IllegalStateException("jobName:" + jobName
+        + " relevant status is not in history,now exist keys:" + status.keySet().stream().collect(Collectors.joining(",")));
+    }
+    tskStat.put(IParamContext.KEY_ASYN_JOB_COMPLETE, true);
+    tskStat.put(IParamContext.KEY_ASYN_JOB_SUCCESS, execSuccess);
+    status.put(jobName, tskStat);
+    boolean[] allComplete = new boolean[]{true};
+    boolean[] faild = new boolean[]{false};
+    status.forEach((key, val) -> {
+      JSONObject s = (JSONObject) val;
+      if (s.getBoolean(IParamContext.KEY_ASYN_JOB_COMPLETE)) {
+        if (!s.getBoolean(IParamContext.KEY_ASYN_JOB_SUCCESS)) {
+          faild[0] = true;
         }
-        WorkFlowBuildHistoryCriteria hq = new WorkFlowBuildHistoryCriteria();
-        hq.createCriteria().andIdEqualTo(taskid);
-        history = new WorkFlowBuildHistory();
-        history.setEndTime(new Date());
-        history.setState((byte) execResult.getValue());
-        getHistoryDAO().updateByExampleSelective(history, hq);
+      } else {
+        allComplete[0] = false;
+      }
+    });
+
+    WorkFlowBuildHistory updateHistory = new WorkFlowBuildHistory();
+    updateHistory.setAsynSubTaskStatus(status.toJSONString());
+    updateHistory.setLastVer(history.getLastVer() + 1);
+    ExecResult execResult = null;
+    if (faild[0]) {
+      // 有任务失败了
+      execResult = ExecResult.FAILD;
+    } else if (allComplete[0]) {
+      execResult = ExecResult.SUCCESS;
     }
 
-    protected IWorkFlowBuildHistoryDAO getHistoryDAO() {
-        return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
+    if (execResult != null) {
+      updateHistory.setState((byte) execResult.getValue());
+      updateHistory.setEndTime(new Date());
+    }
+    WorkFlowBuildHistoryCriteria hq = new WorkFlowBuildHistoryCriteria();
+    hq.createCriteria().andIdEqualTo(taskid).andLastVerEqualTo(history.getLastVer());
+
+    if (getHistoryDAO().updateByExampleSelective(updateHistory, hq) < 1) {
+
+      //  System.out.println("old lastVer:" + history.getLastVer() + ",new UpdateVersion:" + updateHistory.getLastVer());
+      updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
+    }
+  }
+
+  private void validateMaxCasRetryCount(Integer taskid, int tryCount) {
+    try {
+      if (tryCount > 0) {
+        Thread.sleep(200);
+      }
+    } catch (Throwable e) {
+    }
+    if (tryCount > MAX_CAS_RETRY_COUNT) {
+      throw new IllegalStateException("taskId:" + taskid + " exceed max try count " + MAX_CAS_RETRY_COUNT);
+    }
+  }
+
+  /**
+   * CAS更新，尝试4次
+   *
+   * @param taskid
+   * @param execResult
+   * @param asynJobsName
+   * @param tryCount
+   */
+  private void updateWfHistory(Integer taskid, final ExecResult execResult, String[] asynJobsName, int tryCount) {
+    validateMaxCasRetryCount(taskid, tryCount);
+
+    WorkFlowBuildHistory history = getBuildHistory(taskid);
+    WorkFlowBuildHistoryCriteria hq = new WorkFlowBuildHistoryCriteria();
+    WorkFlowBuildHistoryCriteria.Criteria criteria = hq.createCriteria().andIdEqualTo(taskid);
+    criteria.andLastVerEqualTo(history.getLastVer());
+    WorkFlowBuildHistory upHistory = new WorkFlowBuildHistory();
+    upHistory.setLastVer(history.getLastVer() + 1);
+
+    JSONObject jobState = null;
+    if (asynJobsName != null && asynJobsName.length > 0) {
+      JSONObject asynSubTaskStatus = new JSONObject();
+      for (String jobName : asynJobsName) {
+        jobState = new JSONObject();
+        jobState.put(IParamContext.KEY_ASYN_JOB_COMPLETE, false);
+        jobState.put(IParamContext.KEY_ASYN_JOB_SUCCESS, false);
+        asynSubTaskStatus.put(jobName, jobState);
+      }
+      upHistory.setState((byte) ExecResult.ASYN_DOING.getValue());
+      upHistory.setAsynSubTaskStatus(asynSubTaskStatus.toJSONString());
+    } else {
+      upHistory.setState((byte) execResult.getValue());
+      upHistory.setEndTime(new Date());
     }
 
-    public static class CreateNewTaskResult {
+    if (getHistoryDAO().updateByExampleSelective(upHistory, hq) < 1) {
+      updateWfHistory(taskid, execResult, asynJobsName, ++tryCount);
+    }
+  }
 
-        private final int taskid;
+  private WorkFlowBuildHistory getBuildHistory(Integer taskid) {
+    WorkFlowBuildHistory history = this.getHistoryDAO().loadFromWriteDB(taskid);
+    if (history == null) {
+      throw new IllegalStateException("taskid:" + taskid + " relevant WorkFlowBuildHistory obj can not be null");
+    }
+    return history;
+  }
 
-        private final Application app;
+  protected IWorkFlowBuildHistoryDAO getHistoryDAO() {
+    return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
+  }
 
-        public CreateNewTaskResult(int taskid, Application app) {
-            super();
-            this.taskid = taskid;
-            this.app = app;
-        }
+  private DatasourceTable getTable(String tabName) {
+    DatasourceTableCriteria query = new DatasourceTableCriteria();
+    query.createCriteria().andNameEqualTo(tabName);
+    List<DatasourceTable> tabList = this.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(query);
+    return tabList.stream().findFirst().get();
+  }
 
-        public int getTaskid() {
-            return taskid;
-        }
+  public static GitUtils.GitBranchInfo getBranch(WorkFlow workFlow) {
+    RunEnvironment runtime = RunEnvironment.getSysRuntime();
+    if (runtime == RunEnvironment.ONLINE) {
+      return GitBranchInfo.$(GitUtils.GitBranch.MASTER);
+    } else {
+      // : GitBranchInfo.$(workFlow.getName());
+      return GitBranchInfo.$(GitUtils.GitBranch.DEVELOP);
+    }
+  }
 
-        public Application getApp() {
-            return app;
-        }
+  public static class ValidTableDump {
+
+    boolean hasValidTableDump;
+
+    String pt = "";
+
+    public boolean isHasValidTableDump() {
+      return hasValidTableDump;
     }
 
-    private DatasourceTable getTable(String tabName) {
-        DatasourceTableCriteria query = new DatasourceTableCriteria();
-        query.createCriteria().andNameEqualTo(tabName);
-        List<DatasourceTable> tabList = this.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(query);
-        return tabList.stream().findFirst().get();
+    public void setHasValidTableDump(boolean hasValidTableDump) {
+      this.hasValidTableDump = hasValidTableDump;
     }
 
-    public static GitUtils.GitBranchInfo getBranch(WorkFlow workFlow) {
-        RunEnvironment runtime = RunEnvironment.getSysRuntime();
-        if (runtime == RunEnvironment.ONLINE) {
-            return GitBranchInfo.$(GitUtils.GitBranch.MASTER);
-        } else {
-            // : GitBranchInfo.$(workFlow.getName());
-            return GitBranchInfo.$(GitUtils.GitBranch.DEVELOP);
-        }
+    public String getPt() {
+      return pt;
     }
 
-    public static class ValidTableDump {
-
-        boolean hasValidTableDump;
-
-        String pt = "";
-
-        public boolean isHasValidTableDump() {
-            return hasValidTableDump;
-        }
-
-        public void setHasValidTableDump(boolean hasValidTableDump) {
-            this.hasValidTableDump = hasValidTableDump;
-        }
-
-        public String getPt() {
-            return pt;
-        }
-
-        public void setPt(String pt) {
-            this.pt = pt;
-        }
+    public void setPt(String pt) {
+      this.pt = pt;
     }
+  }
 }

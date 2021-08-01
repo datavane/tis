@@ -30,9 +30,16 @@ public interface IParamContext {
 
     public String KEY_TASK_ID = "taskid";
 
+    public String KEY_ASYN_JOB_NAME = "asynJobName";
+    public String KEY_ASYN_JOB_SUCCESS = "success";
+    public String KEY_ASYN_JOB_COMPLETE = "complete";
+
+    public String KEY_EXEC_RESULT = "execresult";
+
     public String KEY_BUILD_TARGET_TABLE_NAME = "targetTableName";
 
     public String KEY_BUILD_INDEXING_ALL_ROWS_COUNT = "indexing.all.rows.count";
+    String KEY_REQUEST_DISABLE_TRANSACTION = "disableTransaction";
 
     ExecutePhaseRange getExecutePhaseRange();
 

@@ -14,10 +14,6 @@
  */
 package com.qlangtech.tis.manage.util;
 
-/**
- * @author 百岁 baisui@2dfire.com
- * @date 2015年9月22日 下午5:22:56
- */
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -142,11 +138,11 @@ public class LRUCache<K, V> {
     // return;
     // long warmingStartTime = System.currentTimeMillis();
     // LRUCache<K, V> other = (LRUCache<K, V>) old;
-    // 
+    //
     // // warm entries
     // if (autowarmCount != 0) {
     // Object[] keys, vals = null;
-    // 
+    //
     // // Don't do the autowarming in the synchronized block, just pull out
     // // the keys and values.
     // synchronized (other.map) {
@@ -155,24 +151,24 @@ public class LRUCache<K, V> {
     // sz = Math.min(sz, autowarmCount);
     // keys = new Object[sz];
     // vals = new Object[sz];
-    // 
+    //
     // Iterator<Map.Entry<K, V>> iter = other.map.entrySet()
     // .iterator();
-    // 
+    //
     // // iteration goes from oldest (least recently used) to most
     // // recently used,
     // // so we need to skip over the oldest entries.
     // int skip = other.map.size() - sz;
     // for (int i = 0; i < skip; i++)
     // iter.next();
-    // 
+    //
     // for (int i = 0; i < sz; i++) {
     // Map.Entry<K, V> entry = iter.next();
     // keys[i] = entry.getKey();
     // vals[i] = entry.getValue();
     // }
     // }
-    // 
+    //
     // // autowarm from the oldest to the newest entries so that the
     // // ordering will be
     // // correct in the new cache.
@@ -188,7 +184,7 @@ public class LRUCache<K, V> {
     // }
     // }
     // }
-    // 
+    //
     // warmupTime = System.currentTimeMillis() - warmingStartTime;
     // }
     public void close() {

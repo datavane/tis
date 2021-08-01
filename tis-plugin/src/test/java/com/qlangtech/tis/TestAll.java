@@ -14,13 +14,18 @@
  */
 package com.qlangtech.tis;
 
+import com.qlangtech.tis.extension.TestDescriptor;
 import com.qlangtech.tis.extension.impl.TestXmlFile;
+import com.qlangtech.tis.extension.model.TestUpdateCenter;
 import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.TestPluginExtraProps;
 import com.qlangtech.tis.plugin.TestComponentMeta;
 import com.qlangtech.tis.plugin.TestPluginStore;
+import com.qlangtech.tis.plugin.TestValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
+import com.qlangtech.tis.util.TestAttrValMap;
+import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.TestUploadPluginMeta;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -34,6 +39,8 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestValidatorCommons.class);
+        suite.addTestSuite(TestHeteroList.class);
         suite.addTestSuite(TestUploadPluginMeta.class);
         suite.addTestSuite(TestValidator.class);
         suite.addTestSuite(TestTIS.class);
@@ -43,6 +50,9 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestGroovyShellEvaluate.class);
         suite.addTestSuite(TestPluginExtraProps.class);
         suite.addTestSuite(TestDataSourceFactoryPluginStore.class);
+        suite.addTestSuite(TestUpdateCenter.class);
+        suite.addTestSuite(TestDescriptor.class);
+        suite.addTestSuite(TestAttrValMap.class);
 
         return suite;
     }

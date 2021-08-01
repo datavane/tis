@@ -70,21 +70,4 @@ public class Test extends TestCase {
         // System.out.println(m.group(2));
         // }
     }
-
-    /**
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
-        // LineIterator it = FileUtils.lineIterator(new
-        // File("D:\\tmp\\tab.txt"));
-        //
-        // Set<String> tabs = new HashSet<String>();
-        // while (it.hasNext()) {
-        // tabs.add(it.nextLine());
-        // }
-        //
-        // for (String tab : tabs) {
-        // System.out.println(tab);
-        // }
-    }
 }

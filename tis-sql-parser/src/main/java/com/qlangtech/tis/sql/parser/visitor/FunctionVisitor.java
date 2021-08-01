@@ -554,6 +554,10 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
     }
 
     private static class MockScriptGenerateContext implements IScriptGenerateContext {
+        @Override
+        public IDataTupleCreator getTupleCreator() {
+            return null;
+        }
 
         @Override
         public boolean isLastFunctInChain() {

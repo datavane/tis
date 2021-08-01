@@ -19,7 +19,6 @@ import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.cloud.MockZKUtils;
-import com.qlangtech.tis.config.module.action.TestCollectionAction;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.MockZooKeeperGetter;
@@ -86,7 +85,7 @@ public class TestCoreAction extends BasicActionTestCase {
    */
   public void testTriggerFullbuildTask() throws Exception {
     TableMeta tableMeta = new TableMeta(totalpayinfo.getTableName(), "entity_id");
-    ITISCoordinator zkCoordinator =  MockZKUtils.createZkMock();
+    ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
     MockZooKeeperGetter.mockCoordinator = zkCoordinator;
 //    this.createCoordinatorMock(false, (zk) -> {
 //      TestCollectionAction.createAssembleLogCollectPathMock(zk);
@@ -104,7 +103,7 @@ public class TestCoreAction extends BasicActionTestCase {
   public void testTriggerFullbuildTaskByWithoutDefinePrimaryTable() throws Exception {
     TableMeta tableMeta = new TableMeta(totalpayinfo.getTableName(), null);
 
-    ITISCoordinator zkCoordinator =  MockZKUtils.createZkMock();
+    ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
     MockZooKeeperGetter.mockCoordinator = zkCoordinator;
 
 //    this.createCoordinatorMock(false, (zk) -> {
@@ -122,7 +121,7 @@ public class TestCoreAction extends BasicActionTestCase {
    */
   public void testTriggerFullbuildTaskByWithoutDefinePrimaryTableShareKey() throws Exception {
 
-    ITISCoordinator zkCoordinator =  MockZKUtils.createZkMock();
+    ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
     MockZooKeeperGetter.mockCoordinator = zkCoordinator;
 
 //    this.createCoordinatorMock(false, (zk) -> {

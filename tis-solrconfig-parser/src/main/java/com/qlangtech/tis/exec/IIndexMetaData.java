@@ -16,7 +16,7 @@ package com.qlangtech.tis.exec;
 
 import com.qlangtech.tis.exec.lifecycle.hook.IIndexBuildLifeCycleHook;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

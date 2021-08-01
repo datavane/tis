@@ -24,6 +24,8 @@ import com.qlangtech.tis.coredefine.biz.FCoreRequest;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria.Criteria;
@@ -31,19 +33,20 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher.CriteriaSetter;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.openapi.impl.AppKey;
-import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
-import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
-import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JavaBeanMsgHandler;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
+import com.qlangtech.tis.workflow.pojo.DatasourceDb;
+import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.DocCollection;
@@ -64,6 +67,9 @@ import java.util.regex.Pattern;
  * @date 2012-4-1
  */
 public class AddAppAction extends SchemaAction implements ModelDriven<Application> {
+  // tab or df
+  public static String SOURCE_TYPE_SINGLE_TABLE = "tab";
+  public static String SOURCE_TYPE_DF = "df";
   // 单元测试用，生产环境中不需要使用
   public static AppKey.IAppKeyProcess appKeyProcess = (key) -> {
   };
@@ -74,14 +80,6 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   private OfflineManager offlineManager;
 
   public static final int FIRST_GROUP_INDEX = 0;
-
-  private static final String FIELD_PROJECT_NAME = "projectName";
-
-  private static final String FIELD_WORKFLOW = "workflow";
-
-  private static final String FIELD_Recept = "recept";
-
-  private static final String FIELD_DptId = "dptId";
 
   private final Application app = new Application();
 
@@ -99,13 +97,18 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   @Func(PermissionConstant.APP_ADD)
   public void doGetCreateAppMasterData(Context context) throws Exception {
     Map<String, Object> masterData = Maps.newHashMap();
+    boolean justbizLine = this.getBoolean("justbizLine");
+
     masterData.put("bizlinelist", this.getBizLineList());
-    final List<Option> verList = new ArrayList<>();
-    for (LuceneVersion v : LuceneVersion.values()) {
-      verList.add(new Option(v.getKey(), v.getKey()));
+
+    if (!justbizLine) {
+      final List<Option> verList = new ArrayList<>();
+      for (LuceneVersion v : LuceneVersion.values()) {
+        verList.add(new Option(v.getKey(), v.getKey()));
+      }
+      masterData.put("tplenum", verList);
+      masterData.put("usableWorkflow", this.offlineManager.getUsableWorkflow());
     }
-    masterData.put("tplenum", verList);
-    masterData.put("usableWorkflow", this.offlineManager.getUsableWorkflow());
     this.setBizResult(context, masterData);
   }
 
@@ -127,16 +130,10 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);
     confiemModel.setTplAppId(getTemplateApp(this).getAppId());
     SchemaResult schemaResult = this.parseSchema(context, ISchemaPluginContext.NULL, confiemModel);
-    // if (!createNewApp(context, confiemModel.getAppform(), -1, /* publishSnapshotId */
-    // null, /* schemaContent */
-    // true).isSuccess()) {
-    // //只作表单校验 表单校验不通过
-    // return;
-    // }
+
     this.createCollection(context, confiemModel, schemaResult, (ctx, app, publishSnapshotId, schemaContent) -> {
       CreateSnapshotResult result = new CreateSnapshotResult();
       result.setSuccess(true);
-      // final Integer publishSnapshotId = ;
       Application a = getApplicationDAO().selectByName(app.getProjectName());
       if (a == null) {
         throw new IllegalStateException("appname:" + app.getProjectName() + " relevant app can not be find in DB");
@@ -169,29 +166,26 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     });
   }
 
-  protected void createCollection(Context context, CreateIndexConfirmModel confiemModel
+  protected Optional<Application> createCollection(Context context, CreateIndexConfirmModel confiemModel
     , SchemaResult schemaResult, ICreateNewApp appCreator) throws Exception {
     ExtendApp extApp = confiemModel.getAppform();
     appendPrefix(extApp);
     String workflow = confiemModel.getAppform().getWorkflow();
     if (StringUtils.isBlank(workflow)) {
       this.addErrorMessage(context, "缺少全量数据流信息");
-      return;
+      return Optional.empty();
     }
     final String[] candidateNodeIps = confiemModel.getCoreNodeCandidate();
     if (candidateNodeIps == null || candidateNodeIps.length < 1) {
-      // throw new IllegalStateException();
       this.addErrorMessage(context, "请选择引擎节点");
-      return;
+      return Optional.empty();
     }
-    // }
     if (!schemaResult.isSuccess()) {
-      return;
+      return Optional.empty();
     }
     Application app = new Application();
     app.setAppId(confiemModel.getTplAppId());
     Integer publishSnapshotId = getPublishSnapshotId(this.getServerGroupDAO(), app);
-    // IUser loginUser = this.getUser();
     byte[] content = schemaResult.content;
     SelectableServer.ServerNodeTopology coreNode = confiemModel.getCoreNode();
     final int gourpCount = coreNode.getShardCount();
@@ -202,10 +196,12 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       request.addNodeIps(gourpCount - 1, ip);
     }
     request.setValid(true);
-    CreateSnapshotResult createResult = appCreator.createNewApp(context, extApp, publishSnapshotId, content);
+    CreateAppResult createResult = appCreator.createNewApp(context, extApp, publishSnapshotId, content);
     if (!createResult.isSuccess()) {
-      return;
+      return Optional.of(app);
     }
+
+    IAppSource.save(this, extApp.getProjectName(), extApp.createAppSource(this));
     /**
      * *************************************************************************************
      * 因为这里数据库的事务还没有提交，需要先将schema配置信息保存到缓存中去以便solrcore节点能获取到
@@ -216,16 +212,22 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
 //      new AppKey(extApp.getProjectName(), /* appName ========== */
 //      (short) 0, /* groupIndex */
 //      RunEnvironment.getSysRuntime(), false);
-    appKey.setTargetSnapshotId((long) createResult.getNewId());
+
+    if (!(createResult instanceof CreateSnapshotResult)) {
+      throw new IllegalStateException("instance of createResult must be CreateSnapshotResult");
+    }
+    CreateSnapshotResult snapshotResult = (CreateSnapshotResult) createResult;
+    appKey.setTargetSnapshotId((long) snapshotResult.getNewId());
     appKey.setFromCache(false);
     appKeyProcess.process(appKey);
     LoadSolrCoreConfigByAppNameServlet.getSnapshotDomain(ConfigFileReader.getConfigList(), appKey, this);
-    CoreAction.createCollection(this, context, gourpCount, repliation, request, createResult.getNewId());
+    CoreAction.createCollection(this, context, gourpCount, repliation, request, snapshotResult.getNewId());
+    return Optional.of(app);
   }
 
   public interface ICreateNewApp {
 
-    public CreateSnapshotResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception;
+    public CreateAppResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception;
   }
 
   /**
@@ -249,7 +251,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     }
   }
 
-  private static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
+  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
     , ISchemaPluginContext schemaPlugin, byte[] uploadContent, BasicModule module, String memo, Long userId, String userName) {
     CreateSnapshotResult createResult = new CreateSnapshotResult();
     final String md5 = ConfigFileReader.md5file(uploadContent);
@@ -276,52 +278,8 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
    * @param context
    * @param app
    */
-  protected CreateSnapshotResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception {
+  protected CreateAppResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent) throws Exception {
     return this.createNewApp(context, app, publishSnapshotId, schemaContent, false);
-  }
-
-  private CreateSnapshotResult createNewApp(Context context, ExtendApp app, int publishSnapshotId, byte[] schemaContent, boolean justValidate) throws Exception {
-    IControlMsgHandler handler = new DelegateControl4JavaBeanMsgHandler(this, app);
-    Map<String, Validator.FieldValidators> validateRule = //
-      Validator.fieldsValidator(//
-        FIELD_PROJECT_NAME, new Validator.FieldValidators(Validator.require) {
-        }, //
-        new Validator.IFieldValidator() {
-
-          @Override
-          public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-            if (!isAppNameValid(msgHandler, context, app)) {
-              return false;
-            }
-            ApplicationCriteria criteria = new ApplicationCriteria();
-            criteria.createCriteria().andProjectNameEqualTo(app.getProjectName());
-            if (getApplicationDAO().countByExample(criteria) > 0) {
-              msgHandler.addFieldError(context, FIELD_PROJECT_NAME, "已经有同名(‘" + app.getProjectName() + "’)索引存在");
-              return false;
-            }
-            return true;
-          }
-        }, //
-        FIELD_WORKFLOW, new Validator.FieldValidators(Validator.require) {
-        }, //
-        FIELD_Recept, new Validator.FieldValidators(Validator.require) {
-        }, //
-        FIELD_DptId, new Validator.FieldValidators(Validator.require) {
-        });
-    CreateSnapshotResult result = new CreateSnapshotResult();
-    result.setSuccess(true);
-    if (!Validator.validate(handler, context, validateRule)) {
-      return result.setSuccess(false);
-    }
-    app.setDptName(getDepartment(this, app.getDptId()).getFullName());
-    app.setCreateTime(new Date());
-    app.setIsAutoDeploy(true);
-    if (!justValidate) {
-      result = createApplication(app, publishSnapshotId, /* publishSnapshotId */
-        schemaContent, context, this);
-      addActionMessage(context, "已经成功创建索引[" + app.getProjectName() + "]");
-    }
-    return result;
   }
 
 
@@ -405,42 +363,47 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
 
   /**
    * @param app
-   * @param tplPublishSnapshotId 模板ID
-   * @param schemaContent
    * @param context
    * @param module
    * @param
    * @return
    * @throws Exception
    */
-  public static CreateSnapshotResult createApplication(Application app, Integer tplPublishSnapshotId, byte[] schemaContent, Context context, BasicModule module) throws Exception {
+  public static CreateAppResult createApplication(Application app //, Integer tplPublishSnapshotId, byte[] schemaContent
+    , Context context, BasicModule module, IAfterApplicationCreate afterAppCreate) throws Exception {
     final Integer newAppid = module.getApplicationDAO().insertSelective(app);
-    IUser loginUser = module.getUser();
-    CreateSnapshotResult snapshotResult = new CreateSnapshotResult();
+    // IUser loginUser = module.getUser();
+    CreateAppResult snapshotResult = new CreateSnapshotResult();
     snapshotResult.setNewAppId(newAppid);
     snapshotResult.setSuccess(true);
-    if (schemaContent != null) {
-      SnapshotDomain domain = module.getSnapshotViewDAO().getView(tplPublishSnapshotId);
-      domain.getSnapshot().setAppId(newAppid);
-      snapshotResult = createNewSnapshot(// Long.parseLong(loginUser.getId())
-        context, // Long.parseLong(loginUser.getId())
-        domain, // Long.parseLong(loginUser.getId())
-        ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
-        ISchemaPluginContext.NULL,
-        schemaContent, // Long.parseLong(loginUser.getId())
-        module, // Long.parseLong(loginUser.getId())
-        StringUtils.EMPTY, -1l, loginUser.getName());
-      snapshotResult.setNewAppId(newAppid);
-      if (!snapshotResult.isSuccess()) {
-        return snapshotResult;
-      }
+
+    SchemaAction.CreateAppResult createAppResult = null;
+    if (!(createAppResult = afterAppCreate.process(newAppid)).isSuccess()) {
+      return createAppResult;
     }
+
+//    if (schemaContent != null) {
+//      SnapshotDomain domain = module.getSnapshotViewDAO().getView(tplPublishSnapshotId);
+//      domain.getSnapshot().setAppId(newAppid);
+//      snapshotResult = createNewSnapshot(// Long.parseLong(loginUser.getId())
+//        context, // Long.parseLong(loginUser.getId())
+//        domain, // Long.parseLong(loginUser.getId())
+//        ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
+//        ISchemaPluginContext.NULL,
+//        schemaContent, // Long.parseLong(loginUser.getId())
+//        module, // Long.parseLong(loginUser.getId())
+//        StringUtils.EMPTY, -1l, loginUser.getName());
+//      snapshotResult.setNewAppId(newAppid);
+//      if (!snapshotResult.isSuccess()) {
+//        return snapshotResult;
+//      }
+//    }
     int offset = (int) (Math.random() * 10);
     // TriggerAction.createJob(newAppid, context, "0 0 " + offset + " * * ?", JobConstant.JOB_TYPE_FULL_DUMP, module, triggerContext);
     // TriggerAction.createJob(newAppid, context, "0 0/10 * * * ?", JobConstant.JOB_INCREASE_DUMP, module, triggerContext);
     // 创建默认组和服务器
-    GroupAction.createGroup(RunEnvironment.DAILY, FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), module.getServerGroupDAO());
-    GroupAction.createGroup(RunEnvironment.ONLINE, FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), module.getServerGroupDAO());
+//    GroupAction.createGroup(RunEnvironment.DAILY, FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), module.getServerGroupDAO());
+//    GroupAction.createGroup(RunEnvironment.ONLINE, FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), module.getServerGroupDAO());
     return snapshotResult;
   }
 
@@ -592,9 +555,9 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       form.setDptId(d.getDptId());
       form.setDptName(d.getFullName());
     }
-    form.setProjectName(this.getString("projectName"));
+    form.setProjectName(this.getString(SchemaAction.FIELD_PROJECT_NAME));
     form.setRecept(this.getString("recept"));
-    if (!isAppNameValid(this, context, form)) {
+    if (!isAppNameValid(this, context, SchemaAction.FIELD_PROJECT_NAME, form)) {
       return;
     }
     // 是否使用自动部署新方案
@@ -643,10 +606,10 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     System.out.println(m.matches());
   }
 
-  public static boolean isAppNameValid(IFieldErrorHandler msgHandler, Context context, Application form) {
+  public static boolean isAppNameValid(IFieldErrorHandler msgHandler, Context context, String fieldKey, Application form) {
     Matcher m = APPNAME_PATTERN.matcher(form.getProjectName());
     if (!m.matches()) {
-      msgHandler.addFieldError(context, FIELD_PROJECT_NAME, "必须用小写字母或大写字母数字组成");
+      msgHandler.addFieldError(context, fieldKey, "必须用小写字母或大写字母数字组成");
       return false;
     }
     return true;
@@ -664,14 +627,16 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     return true;
   }
 
+
   public static class ExtendApp extends Application {
 
     private static final long serialVersionUID = 1L;
 
     private List<Option> selectableDepartment;
+    // format:  [ "196", "169%employees" ]
+    private String[] tabCascadervalues;
 
-    // // 应用选择的模板
-    // private String tisTpl;
+    private String dsType;
     private String workflow;
 
     @JSONField(serialize = false)
@@ -684,16 +649,52 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
       this.setProjectName(name);
     }
 
-    // // public void setTisTpl(String val) {
-    // this.tisTpl = val;
-    // }
     public void setWorkflow(String val) {
       this.workflow = val;
     }
 
-    // public String getTisTpl() {
-    // return tisTpl;
-    // }
+    public ISolrAppSource createAppSource(BasicModule module) {
+      if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(this.getDsType())) {
+        String[] tabCascadervalues = this.getTabCascadervalues();
+        if (tabCascadervalues == null) {
+          throw new IllegalStateException("tabCascadervalues can not be null");
+        }
+        //[ "196", "169%employees"];
+        Integer dbId = Integer.parseInt(tabCascadervalues[0]);
+        String[] pair = StringUtils.split(tabCascadervalues[1], "%");
+        Integer tabId = Integer.parseInt(pair[0]);
+        String tabName = StringUtils.trimToEmpty(pair[1]);
+        DatasourceTable table = module.wfDAOFacade.getDatasourceTableDAO().loadFromWriteDB(tabId);
+        DatasourceDb db = module.wfDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbId);
+        return new SingleTableAppSource(db, table);
+      } else if (AddAppAction.SOURCE_TYPE_DF.equals(this.getDsType())) {
+        String workflowName = this.getWorkflow();
+        if (StringUtils.isEmpty(workflowName)) {
+          throw new IllegalStateException("workflowName can not be null");
+        }
+        String wfName = StringUtils.split(workflowName, ":")[1];
+        Integer wfId = Integer.parseInt(StringUtils.split(workflowName, ":")[0]);
+        return new DataFlowAppSource(module.loadDF(wfId));
+      }
+      throw new IllegalStateException("dsType:" + this.getDsType() + " is not illegal");
+    }
+
+    public String[] getTabCascadervalues() {
+      return tabCascadervalues;
+    }
+
+    public void setTabCascadervalues(String[] tabCascadervalues) {
+      this.tabCascadervalues = tabCascadervalues;
+    }
+
+    public String getDsType() {
+      return dsType;
+    }
+
+    public void setDsType(String dsType) {
+      this.dsType = dsType;
+    }
+
     public List<Option> getSelectableDepartment() {
       return selectableDepartment;
     }

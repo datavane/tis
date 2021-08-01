@@ -17,8 +17,8 @@ package com.qlangtech.tis.manage.spring;
 import java.util.regex.Matcher;
 
 import com.qlangtech.tis.cloud.ITISCoordinator;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -29,7 +29,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
  */
 public class ZooKeeperGetter extends EnvironmentBindService<ITISCoordinator> {
 
-    private static final Log log = LogFactory.getLog(ZooKeeperGetter.class);
+    private static final Logger log = LoggerFactory.getLogger(ZooKeeperGetter.class);
 
     private void validateMultiServerIsReachable(final String zkAddress) {
         Matcher matcher = ZK_ADDRESS.matcher(zkAddress);

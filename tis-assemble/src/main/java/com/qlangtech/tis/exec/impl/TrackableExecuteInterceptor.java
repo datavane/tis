@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -31,12 +31,11 @@ import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 执行进度可跟踪的执行器
@@ -48,16 +47,9 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
 
     private static final Logger log = LoggerFactory.getLogger(TrackableExecuteInterceptor.class);
 
-    public static final MessageFormat WORKFLOW_CONFIG_URL_FORMAT = new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1}=true&handler={2}" + "{3}");
+    public static final Map<Integer, PhaseStatusCollection> /*** taskid*/
+            taskPhaseReference = new HashMap<>();
 
-    public static final MessageFormat WORKFLOW_CONFIG_URL_POST_FORMAT = new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1}=true");
-
-    public static final Map<Integer, PhaseStatusCollection> /**
-     * taskid
-     */
-    taskPhaseReference = new HashMap<>();
-
-    protected static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     /**
      * 标记当前任务的ID
@@ -68,7 +60,7 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
     @SuppressWarnings("all")
     public <T extends BasicPhaseStatus<?>> T getPhaseStatus(IExecChainContext execContext, FullbuildPhase phase) {
         PhaseStatusCollection phaseStatusCollection = taskPhaseReference.get(execContext.getTaskId());
-        switch(phase) {
+        switch (phase) {
             case FullDump:
                 return (T) phaseStatusCollection.getDumpPhase();
             case JOIN:
@@ -95,7 +87,6 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
             if (!result.isSuccess()) {
                 log.error("taskid:" + taskid + ",phase:" + FullbuildPhase.desc(this.getPhase()) + " faild,reason:" + result.getMessage());
             }
-        // createCompletePhase(taskid, phaseId, result.isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD, result.getMessage());
         } catch (Exception e) {
             // }
             throw e;
@@ -117,47 +108,6 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
      * @throws Exception
      */
     protected abstract ExecuteResult execute(IExecChainContext execChainContext) throws Exception;
-
-    // /**
-    // * 创建节点完成
-    // *
-    // * @param taskid
-    // * @return newphaseid
-    // */
-    public static void createTaskComplete(int taskid, ExecResult execResult) {
-        if (execResult == null) {
-            throw new IllegalArgumentException("param execResult can not be null");
-        }
-        String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_FORMAT.format(new Object[] { "fullbuild_workflow_action", "do_task_complete", StringUtils.EMPTY, /* advance_query_result */
-        StringUtils.EMPTY });
-        // 
-        List<PostParam> params = Lists.newArrayList(// 
-        new PostParam("execresult", String.valueOf(execResult.getValue())), // 
-        new PostParam(IParamContext.KEY_TASK_ID, String.valueOf(taskid)));
-        HttpUtils.soapRemote(url, params, CreateNewTaskResult.class);
-    }
-
-    // public static Integer createNewPhase(int taskid, FullbuildPhase phase) {
-    // String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_POST_FORMAT
-    // .format(new Object[]{"fullbuild_workflow_action", "do_phase_start", "", /* advance_query_result */
-    // "" /* extra params */
-    // });
-    // List<PostParam> params = Lists.newArrayList();
-    // params.add(new PostParam("taskid", String.valueOf(taskid)));
-    // params.add(new PostParam("taskphase", String.valueOf(phase.getValue())));
-    // return HttpUtils.soapRemote(url, params, Integer.class).getBizresult();
-    // }
-    /**
-     * 开始执行一個新的任務
-     *
-     * @param newTaskParam taskid
-     * @return
-     */
-    public static Integer createNewTask(NewTaskParam newTaskParam) {
-        String url = WorkflowDumpAndJoinInterceptor.WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[] { "fullbuild_workflow_action", "do_create_new_task" });
-        AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote((url), newTaskParam.params(), CreateNewTaskResult.class);
-        return result.getBizresult().getTaskid();
-    }
 
     /**
      * 创建新的Task执行结果
@@ -192,79 +142,4 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
         }
     }
 
-    public static class NewTaskParam {
-
-        private Integer workflowid;
-
-        private TriggerType triggerType;
-
-        private String appname;
-
-        // 历史任务ID
-        private Integer historyTaskId;
-
-        public void setHistoryTaskId(Integer historyTaskId) {
-            this.historyTaskId = historyTaskId;
-        }
-
-        // private FullbuildPhase fromPhase;
-        // private FullbuildPhase toPhase;
-        private ExecutePhaseRange executeRanage;
-
-        public Integer getWorkflowid() {
-            return workflowid;
-        }
-
-        public void setWorkflowid(Integer workflowid) {
-            this.workflowid = workflowid;
-        }
-
-        public TriggerType getTriggerType() {
-            return triggerType;
-        }
-
-        public void setTriggerType(TriggerType triggerType) {
-            this.triggerType = triggerType;
-        }
-
-        public String getAppname() {
-            return appname;
-        }
-
-        public void setAppname(String appname) {
-            this.appname = appname;
-        }
-
-        // public Integer getBuildHistoryId() {
-        // return buildHistoryId;
-        // }
-        // 
-        // public void setBuildHistoryId(Integer buildHistoryId) {
-        // this.buildHistoryId = buildHistoryId;
-        // }
-        // 历史taskid
-        // private Integer buildHistoryId;
-        public ExecutePhaseRange getExecuteRanage() {
-            return executeRanage;
-        }
-
-        public void setExecuteRanage(ExecutePhaseRange executeRanage) {
-            this.executeRanage = executeRanage;
-        }
-
-        private List<PostParam> params() {
-            List<PostParam> params = Lists.newArrayList(new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, workflowid), new PostParam(IFullBuildContext.KEY_TRIGGER_TYPE, triggerType.getValue()), new PostParam(IParamContext.COMPONENT_START, executeRanage.getStart().getValue()), new PostParam(IParamContext.COMPONENT_END, executeRanage.getEnd().getValue()));
-            if (!executeRanage.contains(FullbuildPhase.FullDump)) {
-                if (historyTaskId == null) {
-                    throw new IllegalStateException("param historyTaskId can not be null");
-                }
-                params.add(new PostParam(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID, historyTaskId));
-            }
-            if (StringUtils.isNotBlank(appname)) {
-                // result.append("&").append(IFullBuildContext.KEY_APP_NAME).append("=").append(appname);
-                params.add(new PostParam(IFullBuildContext.KEY_APP_NAME, appname));
-            }
-            return params;
-        }
-    }
 }

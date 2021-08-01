@@ -24,6 +24,8 @@ import com.qlangtech.tis.extension.Describable;
  */
 public interface IdentityName {
 
+    String MSG_ERROR_NAME_DUPLICATE = "名称重复";
+
 //    /**
 //     * 相同类型的插件不能重名
 //     *
@@ -33,6 +35,7 @@ public interface IdentityName {
 
     /**
      * 取得唯一ID
+     *
      * @return
      */
     default String identityValue() {

@@ -27,8 +27,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
@@ -53,7 +53,7 @@ public class ODPSTaskCreator {
 
     private String odpsHome;
 
-    private static final Log log = LogFactory.getLog(ODPSTaskCreator.class);
+    private static final Logger log = LoggerFactory.getLogger(ODPSTaskCreator.class);
 
     /**
      * @param outputDir

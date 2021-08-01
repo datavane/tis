@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.wangjubao.jingwei;
 
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,10 +32,15 @@ public class TableIgnorRule implements ITableIgnorRule {
     }
 
     public void setGroovyScript(String tableName, int ruleIndex, String script) {
-        final String wrapScript = "package " + TabField.TSEARCH_PACKAGE + ";" + "import com.qlangtech.tis.wangjubao.jingwei.ITableIgnorRule;" + "import java.util.Map;" + "class IGNOR" + tableName + ruleIndex + " implements ITableIgnorRule{" + "	public boolean ignor(Map<String, String> record) {" + script + "	}" + "}";
+        final String wrapScript = "package " + IMessageHandler.TSEARCH_PACKAGE + ";"
+                + "import com.qlangtech.tis.wangjubao.jingwei.ITableIgnorRule;"
+                + "import java.util.Map;" + "class IGNOR" + tableName + ruleIndex
+                + " implements ITableIgnorRule{"
+                + "	public boolean ignor(Map<String, String> record) {"
+                + script + "	}" + "}";
         try {
             TabField.loader.loadMyClass(tableName + ruleIndex, wrapScript);
-            Class<?> clazz = TabField.loader.loadClass(TabField.TSEARCH_PACKAGE + ".IGNOR" + tableName + ruleIndex);
+            Class<?> clazz = TabField.loader.loadClass(IMessageHandler.TSEARCH_PACKAGE + ".IGNOR" + tableName + ruleIndex);
             target = (ITableIgnorRule) clazz.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);

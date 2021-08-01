@@ -14,14 +14,20 @@
  */
 package com.qlangtech.tis.trigger.util;
 
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.*;
+import com.qlangtech.tis.extension.impl.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Callable;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -38,9 +44,6 @@ public class JsonUtil {
      * @param value
      * @return
      */
-    //   public static TriggerParam deserialize(String value) {
-    //     return deserialize(value, new TriggerParam());
-    // }
     @SuppressWarnings("unchecked")
     public static <T extends HashMap<String, String>> T deserialize(String value, T object) {
         try {
@@ -69,9 +72,72 @@ public class JsonUtil {
         return toString(json);
     }
 
+    static {
+
+        com.alibaba.fastjson.serializer.ObjectSerializer serializer = new ObjectSerializer() {
+            @Override
+            public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features) throws IOException {
+                try {
+                    SerializeWriter out = serializer.out;
+
+                    UnCacheString value = (UnCacheString) object;
+                    Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
+
+                    out.writeString(value.getValue());
+                } catch (Exception e) {
+                    throw new IOException(e);
+                }
+            }
+        };
+
+        SerializeConfig.globalInstance.put(UnCacheString.class, serializer);
+    }
+
+    public static final class UnCacheString {
+        private final Callable<String> valGetter;
+
+        public UnCacheString(Callable<String> valGetter) {
+            this.valGetter = valGetter;
+        }
+
+        public String getValue() throws Exception {
+            return this.valGetter.call();
+        }
+    }
+
     public static String toString(Object json) {
+
+
         return com.alibaba.fastjson.JSON.toJSONString(
                 json, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
+    }
+
+
+    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, String actual, IAssert azzert) {
+//        String expectJson = com.alibaba.fastjson.JSON.toJSONString(
+//                JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, assertFileName))
+//                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
+//        System.out.println(assertFileName + "\n" + expectJson);
+//        String actualJson = com.alibaba.fastjson.JSON.toJSONString(JSON.parseObject(actual)
+//                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
+//        azzert.assertEquals("assertFile:" + assertFileName, expectJson, actualJson);
+
+
+        assertJSONEqual(invokeClass, assertFileName, JSON.parseObject(actual), azzert);
+    }
+
+    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, com.alibaba.fastjson.JSONObject actual, IAssert azzert) {
+        String expectJson = com.alibaba.fastjson.JSON.toJSONString(
+                JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, assertFileName))
+                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
+        System.out.println(assertFileName + "\n" + expectJson);
+        String actualJson = com.alibaba.fastjson.JSON.toJSONString(actual
+                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
+        azzert.assertEquals("assertFile:" + assertFileName, expectJson, actualJson);
+    }
+
+    public interface IAssert {
+        public void assertEquals(String message, String expected, String actual);
     }
 
 

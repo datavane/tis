@@ -24,15 +24,13 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.XStream2;
+import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,20 +44,34 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
     private final transient Class<T> pluginClass;
 
     private List<T> plugins = Lists.newArrayList();
+    // 在plugin 从xstream中反序列化之后再进行一下额外的处理
+    private final transient IPluginProcessCallback<T>[] pluginCreateCallback;
 
     private final transient XmlFile file;
 
-    public PluginStore(Class<T> pluginClass) {
-        this(pluginClass, Descriptor.getConfigFile(pluginClass.getName()));
+    public PluginStore(Class<T> pluginClass, IPluginProcessCallback<T>... pluginCreateCallback) {
+        this(pluginClass, Descriptor.getConfigFile(pluginClass.getName()), pluginCreateCallback);
     }
 
-    public PluginStore(Class<T> pluginClass, XmlFile file) {
+    public PluginStore(Class<T> pluginClass, XmlFile file, IPluginProcessCallback<T>... pluginCreateCallback) {
         this.pluginClass = pluginClass;
         this.file = file;
+        this.pluginCreateCallback = pluginCreateCallback;
+
     }
 
-    void cleanPlugins() {
+    /**
+     * 反序列化之后需要额外从其他地方加载属性到实例对象上
+     *
+     * @param <T>
+     */
+    public interface IPluginProcessCallback<T> {
+        void process(T t);
+    }
+
+    public void cleanPlugins() {
         this.plugins.clear();
+        this.loaded = false;
     }
 
     /**
@@ -138,11 +150,17 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         if (other.getPlugin() == null) {
             throw new IllegalStateException("from plugin store have not initialized");
         }
-        Descriptor.ParseDescribable<T> parseDescribable = new Descriptor.ParseDescribable<>(other.getPlugin());
+        List<Descriptor.ParseDescribable<T>> dlist = Collections.singletonList(getDescribablesWithMeta(other, other.getPlugin()));
+        this.setPlugins(pluginContext, Optional.empty(), dlist);
+    }
+
+    public static <TT extends Describable> Descriptor.ParseDescribable<TT> getDescribablesWithMeta(PluginStore<TT> other, TT plugin) {
+        Descriptor.ParseDescribable<TT> parseDescribable = new Descriptor.ParseDescribable<>(plugin);
         ComponentMeta cmetas = new ComponentMeta(other);
         parseDescribable.extraPluginMetas.addAll(cmetas.loadPluginMeta());
-        this.setPlugins(pluginContext, Optional.empty(), Collections.singletonList(parseDescribable));
+        return parseDescribable;
     }
+
 
     @Override
     public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
@@ -183,6 +201,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         if (this.loaded) {
             return;
         }
+        MapBackedDataHolder dataHolder = new MapBackedDataHolder();
         try {
             ComponentMeta componentMeta = new ComponentMeta(this);
             componentMeta.downloaConfig();
@@ -195,10 +214,25 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
                 // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
                 // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
             }
-            file.unmarshal(this);
+
+            file.unmarshal(this, dataHolder);
+            if (plugins != null) {
+                plugins.forEach((p) -> {
+                    for (IPluginProcessCallback<T> callback : this.pluginCreateCallback) {
+                        callback.process(p);
+                    }
+                });
+            }
             this.loaded = true;
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+        ArrayList<Throwable> errors = (ArrayList<Throwable>) dataHolder.get("ReadError");
+        if (CollectionUtils.isNotEmpty(errors)) {
+            for (Throwable t : errors) {
+                throw new RuntimeException(t);
+            }
         }
     }
 }

@@ -19,27 +19,259 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.model.UpdateCenter;
+import com.qlangtech.tis.extension.model.UpdateSite;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.install.InstallState;
+import com.qlangtech.tis.install.InstallUtil;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.convention.annotation.InterceptorRef;
+import org.apache.struts2.convention.annotation.InterceptorRefs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ReflectionUtils;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@InterceptorRefs({@InterceptorRef("tisStack")})
 public class PluginAction extends BasicModule {
-
+  private static final Logger logger = LoggerFactory.getLogger(PluginAction.class);
   private OfflineManager offlineManager;
+
+  static {
+
+    PluginItems.addPluginItemsSaveObserver((new PluginItems.PluginItemsSaveObserver() {
+      // 通知Assemble节点更新pluginStore的缓存
+      @Override
+      public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
+        final String extendPoint = event.heteroEnum.extensionPoint.getName();
+        // @see "com.qlangtech.tis.fullbuild.servlet.TaskStatusServlet"
+        try {
+          URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + DescriptorsJSON.KEY_EXTEND_POINT + "=" + extendPoint);
+          HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
+            @Override
+            public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+              logger.info("has apply clean pluginStore cache by " + DescriptorsJSON.KEY_EXTEND_POINT + " " + extendPoint);
+              return null;
+            }
+          });
+        } catch (Exception e) {
+          //throw new RuntimeException("extendPoint:" + extendPoint, e);
+          logger.warn("apply clean pluginStore cache faild " + e.getMessage());
+        }
+      }
+    }));
+  }
+
+  /**
+   * 取得字段的帮助信息
+   *
+   * @param context
+   */
+  public void doGetPluginFieldHelp(Context context) {
+    String pluginImpl = this.getString("impl");
+    String fieldName = this.getString("field");
+    if (StringUtils.isEmpty(pluginImpl)) {
+      throw new IllegalArgumentException("param 'impl' can not be null");
+    }
+    if (StringUtils.isEmpty(fieldName)) {
+      throw new IllegalArgumentException("param 'field' can not be null");
+    }
+    Descriptor targetDesc = TIS.get().getDescriptor(pluginImpl);
+
+    PropertyType fieldProp = (PropertyType) targetDesc.getPropertyType(fieldName);
+
+    PluginExtraProps.Props props = fieldProp.extraProp;
+    if (!props.isAsynHelp()) {
+      throw new IllegalStateException("plugin:" + pluginImpl + ",field:" + fieldName + " is not support async help content fecthing");
+    }
+    this.setBizResult(context, props.getAsynHelp());
+  }
+
+  /**
+   * 取得安装进度状态
+   *
+   * @param context
+   */
+  public void doGetUpdateCenterStatus(Context context) {
+    UpdateCenter updateCenter = TIS.get().getUpdateCenter();
+//    List<JSONObject> jobStats = Lists.newArrayList();
+//    JSONObject stat = null;
+//    for (UpdateCenter.UpdateCenterJob job : updateCenter.getJobs()) {
+//      stat = new JSONObject();
+//      stat.put("id", job.id);
+//      if (job instanceof UpdateCenter.InstallationJob) {
+//        UpdateCenter.InstallationJob installJob = (UpdateCenter.InstallationJob) job;
+//        stat.put("name", installJob.getDisplayName());
+//      }
+//      jobStats.add(stat);
+//    }
+    List<UpdateCenter.UpdateCenterJob> jobs = updateCenter.getJobs();
+
+    Collections.sort(jobs, (a, b) -> {
+      // 保证最新的安装job排列在最上面
+      return b.id - a.id;
+    });
+    setBizResult(context, jobs);
+  }
+
+  /**
+   * 取得已经安装的插件
+   *
+   * @param context
+   */
+  public void doGetInstalledPlugins(Context context) {
+    PluginManager pluginManager = TIS.get().getPluginManager();
+    JSONArray response = new JSONArray();
+    JSONObject pluginInfo = null;
+    UpdateSite.Plugin info = null;
+    for (PluginWrapper plugin : pluginManager.getPlugins()) {
+      pluginInfo = new JSONObject();
+      pluginInfo.put("installed", true);
+      info = plugin.getInfo();
+      if (info != null) {
+        // pluginInfo.put("meta", info);
+        pluginInfo.put("releaseTimestamp", info.releaseTimestamp);
+        pluginInfo.put("excerpt", info.excerpt);
+      }
+      pluginInfo.put("name", plugin.getShortName());
+      pluginInfo.put("version", plugin.getVersion());
+      pluginInfo.put("title", plugin.getDisplayName());
+      pluginInfo.put("active", plugin.isActive());
+      pluginInfo.put("enabled", plugin.isEnabled());
+      // pluginInfo.put("bundled", plugin.isBundled);
+      pluginInfo.put("deleted", plugin.isDeleted());
+      pluginInfo.put("downgradable", plugin.isDowngradable());
+      pluginInfo.put("website", plugin.getUrl());
+      List<PluginWrapper.Dependency> dependencies = plugin.getDependencies();
+      if (dependencies != null && !dependencies.isEmpty()) {
+        Option o = null;
+        List<Option> dependencyMap = Lists.newArrayList();
+        for (PluginWrapper.Dependency dependency : dependencies) {
+          o = new Option(dependency.shortName, dependency.version);
+          dependencyMap.add(o);
+        }
+        pluginInfo.put("dependencies", dependencyMap);
+      } else {
+        pluginInfo.put("dependencies", Collections.emptyList());
+      }
+      response.add(pluginInfo);
+    }
+    this.setBizResult(context, response);
+  }
+
+  /**
+   * 安装插件
+   *
+   * @param context
+   */
+  public void doInstallPlugins(Context context) {
+    JSONArray pluginsInstall = this.parseJsonArrayPost();
+    if (pluginsInstall.size() < 1) {
+      this.addErrorMessage(context, "请选择需要安装的插件");
+      return;
+    }
+    long start = System.currentTimeMillis();
+    boolean dynamicLoad = true;
+    UUID correlationId = UUID.randomUUID();
+    UpdateCenter updateCenter = TIS.get().getUpdateCenter();
+    List<Future<UpdateCenter.UpdateCenterJob>> installJobs = new ArrayList<>();
+    JSONObject willInstall = null;
+    String pluginName = null;
+    UpdateSite.Plugin plugin = null;
+    List<PluginWrapper> batch = new ArrayList<>();
+    for (int i = 0; i < pluginsInstall.size(); i++) {
+      willInstall = pluginsInstall.getJSONObject(i);
+      pluginName = willInstall.getString("name");
+      if (StringUtils.isEmpty(pluginName)) {
+        throw new IllegalStateException("plugin name can not empty");
+      }
+      plugin = updateCenter.getPlugin(pluginName);
+      Future<UpdateCenter.UpdateCenterJob> installJob = plugin.deploy(dynamicLoad, correlationId, batch);
+      installJobs.add(installJob);
+    }
+    if (dynamicLoad) {
+      installJobs.add(updateCenter.addJob(updateCenter.new CompleteBatchJob(batch, start, correlationId)));
+    }
+
+    final TIS tis = TIS.get();
+
+    if (!tis.getInstallState().isSetupComplete()) {
+      tis.setInstallState(InstallState.INITIAL_PLUGINS_INSTALLING);
+      updateCenter.persistInstallStatus();
+      new Thread() {
+        @Override
+        public void run() {
+          boolean failures = false;
+          INSTALLING:
+          while (true) {
+            try {
+              updateCenter.persistInstallStatus();
+              Thread.sleep(500);
+              failures = false;
+              for (Future<UpdateCenter.UpdateCenterJob> jobFuture : installJobs) {
+                if (!jobFuture.isDone() && !jobFuture.isCancelled()) {
+                  continue INSTALLING;
+                }
+                UpdateCenter.UpdateCenterJob job = jobFuture.get();
+                if (job instanceof UpdateCenter.InstallationJob && ((UpdateCenter.InstallationJob) job).status instanceof UpdateCenter.DownloadJob.Failure) {
+                  failures = true;
+                }
+              }
+            } catch (Exception e) {
+              logger.warn("Unexpected error while waiting for initial plugin set to install.", e);
+            }
+            break;
+          }
+          updateCenter.persistInstallStatus();
+          if (!failures) {
+            // try (ACLContext acl = ACL.as2(currentAuth)) {
+            InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
+            //}
+          }
+        }
+      }.start();
+    }
+  }
+
+  /**
+   * 取得当前可以被安装的插件
+   *
+   * @param context
+   */
+  public void doGetAvailablePlugins(Context context) {
+
+    Pager pager = this.createPager();
+    pager.setTotalCount(Integer.MAX_VALUE);
+    this.setBizResult(context, new PaginationResult(pager, TIS.get().getUpdateCenter().getAvailables()));
+  }
 
   /**
    * @param context
@@ -56,31 +288,103 @@ public class PluginAction extends BasicModule {
     this.setBizResult(context, tis.loadGlobalComponent().isShowExtensionDetail());
   }
 
-  public void doGetPluginConfigInfo(Context context) throws Exception {
-    //Thread.sleep(1000);
+  /**
+   * @param context
+   */
+  public void doGetDescriptor(Context context) {
+    String displayName = this.getString("name");
+    if (StringUtils.isEmpty(displayName)) {
+      throw new IllegalArgumentException("request param 'impl' can not be null");
+    }
+    HeteroEnum hetero = HeteroEnum.of(this.getString("hetero"));
+    List<Descriptor<Describable>> descriptors = hetero.descriptors();
+    for (Descriptor desc : descriptors) {
+      if (StringUtils.equals(desc.getDisplayName(), displayName)) {
+        this.setBizResult(context, new DescriptorsJSON(desc).getDescriptorsJSON());
+        return;
+      }
+    }
 
+    throw new IllegalStateException("displayName:" + displayName + " relevant Descriptor can not be null");
+  }
+
+  /**
+   * plugin form 的子表单的某条详细记录被点击
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doSubformDetailedClick(Context context) throws Exception {
+    List<UploadPluginMeta> pluginsMeta = getPluginMeta();
+    //String targetMethod = this.getString("targetMethod");
+    // String[] params = StringUtils.split(this.getString("params"), ",");
+    List<Describable> plugins = null;
+    Map<String, String> execContext = Maps.newHashMap();
+    execContext.put("id", this.getString("id"));
+
+    HeteroEnum heteroEnum = null;
+    for (UploadPluginMeta meta : pluginsMeta) {
+      heteroEnum = meta.getHeteroEnum();
+      plugins = heteroEnum.getPlugins(this, meta);
+      for (Describable p : plugins) {
+
+        PluginFormProperties pluginFormPropertyTypes = p.getDescriptor().getPluginFormPropertyTypes(meta.getSubFormFilter());
+        pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor() {
+          @Override
+          protected void visitSubForm(JSONObject behaviorMeta, SuFormProperties props) {
+            JSONObject fieldDataGetterMeta = null;
+            JSONArray params = null;
+            JSONObject onClickFillData = behaviorMeta.getJSONObject("onClickFillData");
+            Objects.requireNonNull(onClickFillData, "onClickFillData can not be null");
+            Map<String, Object> fillFieldsData = Maps.newHashMap();
+            for (String fillField : onClickFillData.keySet()) {
+              fieldDataGetterMeta = onClickFillData.getJSONObject(fillField);
+              Objects.requireNonNull(fieldDataGetterMeta, "fillField:" + fillField + " relevant behavier meta can not be null");
+              String targetMethod = fieldDataGetterMeta.getString("method");
+              params = fieldDataGetterMeta.getJSONArray("params");
+              Objects.requireNonNull(params, "params can not be null");
+              Class<?>[] paramClass = new Class<?>[params.size()];
+              String[] paramsVals = new String[params.size()];
+              for (int index = 0; index < params.size(); index++) {
+                paramClass[index] = String.class;
+                paramsVals[index] = Objects.requireNonNull(execContext.get(params.getString(index))
+                  , "param:" + params.getString(index) + " can not be null in context");
+              }
+              Method method = ReflectionUtils.findMethod(p.getClass(), targetMethod, paramClass);
+              Objects.requireNonNull(method, "target method '" + targetMethod + "' of " + p.getClass() + " can not be null");
+              fillFieldsData.put(fillField, ReflectionUtils.invokeMethod(method, p, paramsVals));
+            }
+            // params 必须全为spring类型的
+            setBizResult(context, fillFieldsData);
+          }
+        });
+
+
+        return;
+      }
+    }
+    throw new IllegalStateException("have not set plugin meta");
+  }
+
+  public void doGetPluginConfigInfo(Context context) throws Exception {
+
+    HeteroList<?> hList = null;
     List<UploadPluginMeta> plugins = getPluginMeta();
 
-    // final String[] plugins = this.getStringArray("plugin");
     if (plugins == null || plugins.size() < 1) {
       throw new IllegalArgumentException("param plugin is not illegal");
     }
-    org.json.JSONObject pluginDetail = new org.json.JSONObject();
-    org.json.JSONArray hlist = new org.json.JSONArray();
+    com.alibaba.fastjson.JSONObject pluginDetail = new com.alibaba.fastjson.JSONObject();
+    com.alibaba.fastjson.JSONArray hlist = new com.alibaba.fastjson.JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
-    for (UploadPluginMeta p : plugins) {
-      HeteroEnum hEnum = p.getHeteroEnum();
-      HeteroList<?> hList = new HeteroList<>();
-      hList.setCaption(hEnum.caption);
-      hList.setExtensionPoint(hEnum.extensionPoint);
-      hList.setItems(hEnum.getPlugins(this, p));
-      hList.setDescriptors(hEnum.descriptors());
-      hList.setSelectable(hEnum.selectable);
-      hlist.put(hList.toJSON());
+    for (UploadPluginMeta pmeta : plugins) {
+      hList = pmeta.getHeteroList(this);
+      hlist.add(hList.toJSON());
     }
     pluginDetail.put("plugins", hlist);
     this.setBizResult(context, pluginDetail);
   }
+
 
   /**
    * 保存blugin配置
@@ -93,64 +397,27 @@ public class PluginAction extends BasicModule {
     }
     List<UploadPluginMeta> plugins = getPluginMeta();
     JSONArray pluginArray = parseJsonArrayPost();
+
     UploadPluginMeta pluginMeta = null;
-    JSONObject itemObj = null;
+    // JSONObject itemObj = null;
     boolean faild = false;
     List<PluginItems> categoryPlugins = Lists.newArrayList();
-    PluginItems pluginItems = null;
-    HeteroEnum hEnum = null;
-    Descriptor.PluginValidateResult validateResult = null;
-    List<Descriptor.PluginValidateResult> items = null;
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
-    final boolean bizValidate = this.getBoolean("verify");
+    final boolean verify = this.getBoolean("verify");
+    PluginItemsParser pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
-      items = Lists.newArrayList();
+      // items = Lists.newArrayList();
       pluginMeta = plugins.get(pluginIndex);
+      // subFormFilter = pluginMeta.getSubFormFilter();
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
-      hEnum = pluginMeta.getHeteroEnum();
-      //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
-      pluginItems = new PluginItems(this, pluginMeta);
-      List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(this, itemsArray);
-      if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
-        this.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
+      // hEnum = pluginMeta.getHeteroEnum();
+      pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, verify);
+      if (pluginItemsParser.faild) {
+        faild = true;
       }
-      pluginItems.items = describableAttrValMapList;
-      categoryPlugins.add(pluginItems);
-      AttrValMap attrValMap = null;
-
-
-      for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
-        attrValMap = describableAttrValMapList.get(itemIndex);
-//        context.put(KEY_VALIDATE_ITEM_INDEX, new Integer(itemIndex));
-//        context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
-        Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-        if (!(validateResult = attrValMap.validate(context, bizValidate)).isValid()) {
-          faild = true;
-        } else {
-          validateResult.setDescriptor(attrValMap.descriptor);
-          items.add(validateResult);
-        }
-      }
-
-      /**===============================================
-       * 校验Item字段的identity字段不能重复，不然就报错
-       ===============================================*/
-      Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
-      Descriptor.PluginValidateResult previous = null;
-      if (!faild && hEnum.isIdentityUnique()
-        && hEnum.selectable == Selectable.Multi
-        && items.size() > 1) {
-        for (Descriptor.PluginValidateResult i : items) {
-          if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
-            previous.addIdentityFieldValueDuplicateError(this, context);
-            i.addIdentityFieldValueDuplicateError(this, context);
-            return;
-          }
-        }
-      }
-
+      categoryPlugins.add(pluginItemsParser.pluginItems);
     }
-    if (this.hasErrors(context) || bizValidate) {
+    if (this.hasErrors(context) || verify) {
       return;
     }
     if (faild) {
@@ -158,10 +425,89 @@ public class PluginAction extends BasicModule {
       this.addErrorMessage(context, "提交表单内容有错误");
       return;
     }
+
+    List<Describable> describables = Lists.newArrayList();
+
     for (PluginItems pi : categoryPlugins) {
-      pi.save(context);
+      describables.addAll(pi.save(context));
     }
     addActionMessage(context, "配置保存成功");
+    // 成功保存的主键信息返回给客户端
+    if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
+      this.setBizResult(context, describables.stream()
+        .filter((d) -> d instanceof IdentityName)
+        .map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
+    }
+  }
+
+
+  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta
+    , Context context, int pluginIndex, JSONArray itemsArray, boolean verify) {
+    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
+    PluginItemsParser parseResult = new PluginItemsParser();
+    List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
+    Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+    Descriptor.PluginValidateResult validateResult = null;
+    HeteroEnum hEnum = pluginMeta.getHeteroEnum();
+    //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
+    PluginItems pluginItems = new PluginItems(module, pluginMeta);
+    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(module, itemsArray, subFormFilter);
+    if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
+      module.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
+    }
+
+
+    pluginItems.items = describableAttrValMapList;
+    parseResult.pluginItems = pluginItems;
+    //categoryPlugins.add(pluginItems);
+    AttrValMap attrValMap = null;
+
+
+    for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
+      attrValMap = describableAttrValMapList.get(itemIndex);
+      Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
+      if (!(validateResult = attrValMap.validate(context, verify)).isValid()) {
+        parseResult.faild = true;
+      } else {
+        validateResult.setDescriptor(attrValMap.descriptor);
+        items.add(validateResult);
+      }
+    }
+
+
+    /**===============================================
+     * 校验Item字段的identity字段不能重复，不然就报错
+     ===============================================*/
+    Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
+
+    Descriptor.PluginValidateResult previous = null;
+    if (!parseResult.faild && hEnum.isIdentityUnique()
+      && hEnum.selectable == Selectable.Multi
+      && (items.size() > 1 || pluginMeta.isAppend())) {
+
+      if (pluginMeta.isAppend()) {
+        List<IdentityName> plugins = hEnum.getPlugins(module, pluginMeta);
+        for (IdentityName p : plugins) {
+          Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(new Descriptor.PostFormVals(Collections.emptyMap()), 0, 0);
+          r.setDescriptor(((Describable) p).getDescriptor());
+          identityUniqueMap.put(p.identityValue(), r);
+        }
+      }
+
+      for (Descriptor.PluginValidateResult i : items) {
+        if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
+          previous.addIdentityFieldValueDuplicateError(module, context);
+          i.addIdentityFieldValueDuplicateError(module, context);
+          return parseResult;
+        }
+      }
+    }
+    return parseResult;
+  }
+
+  public static class PluginItemsParser {
+    public boolean faild = false;
+    public PluginItems pluginItems;
   }
 
   private List<UploadPluginMeta> getPluginMeta() {
@@ -184,11 +530,11 @@ public class PluginAction extends BasicModule {
    * description: 添加一个 数据源库 date: 2:30 PM 4/28/2017
    */
   @Override
-  public final void addDb(String dbName, Context context, boolean shallUpdateDB) {
-    createDatabase(this, dbName, context, shallUpdateDB, this.offlineManager);
+  public final void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
+    createDatabase(this, dbDesc, dbName, context, shallUpdateDB, this.offlineManager);
   }
 
-  public static void createDatabase(BasicModule module, String dbName, Context context
+  public static DatasourceDb createDatabase(BasicModule module, Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context
     , boolean shallUpdateDB, OfflineManager offlineManager) {
     DatasourceDb datasourceDb = null;
     if (shallUpdateDB) {
@@ -197,19 +543,21 @@ public class PluginAction extends BasicModule {
       datasourceDb.setSyncOnline(new Byte("0"));
       datasourceDb.setCreateTime(new Date());
       datasourceDb.setOpTime(new Date());
+      datasourceDb.setExtendClass(StringUtils.lowerCase(dbDesc.instance.getDescriptor().getDisplayName()));
+
       DatasourceDbCriteria criteria = new DatasourceDbCriteria();
       criteria.createCriteria().andNameEqualTo(dbName);
       int exist = module.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
       if (exist > 0) {
         module.addErrorMessage(context, "已经有了同名(" + dbName + ")的数据库");
-        return;
+        return null;
       }
       /**
        * 校验数据库连接是否正常
        */
       int dbId = module.getWorkflowDAOFacade().getDatasourceDbDAO().insertSelective(datasourceDb);
       datasourceDb.setId(dbId);
-      // this.setBizResult(context, datasourceDb);
+      //module.setBizResult(context, datasourceDb);
     } else {
       // 更新状态
       DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
@@ -222,6 +570,7 @@ public class PluginAction extends BasicModule {
     }
 
     module.setBizResult(context, offlineManager.getDbConfig(module, datasourceDb));
+    return datasourceDb;
   }
 
 

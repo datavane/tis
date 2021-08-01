@@ -16,6 +16,9 @@ package com.qlangtech.tis.coredefine.module.action;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.config.k8s.ReplicasSpec;
+import com.qlangtech.tis.coredefine.module.action.impl.AdapterRCController;
+import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
@@ -66,11 +69,10 @@ public class TISK8sDelegate {
 
   private final String indexName;
 
-  private final IncrStreamFactory k8sConfig;
 
-  private IIncrSync incrSync;
+  private final IRCController incrSync;
 
-  private IncrDeployment incrDeployment;
+  private RcDeployment incrDeployment;
 
   private long latestIncrDeploymentFetchtime;
 
@@ -80,17 +82,28 @@ public class TISK8sDelegate {
     if (StringUtils.isEmpty(indexName)) {
       throw new IllegalArgumentException("param indexName can not be null");
     }
-    PluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
-    this.k8sConfig = store.getPlugin();
-    if (this.k8sConfig == null) {
-      throw new IllegalStateException(" have not set k8s plugin");
+    if (DataXJobWorker.K8S_INSTANCE_NAME.equals(indexName)) {
+      DataXJobWorker dataxWorker = DataXJobWorker.getDataxJobWorker();
+      this.incrSync = new AdapterRCController() {
+        @Override
+        public WatchPodLog listPodAndWatchLog(String collection, String podName, ILogListener listener) {
+          return dataxWorker.listPodAndWatchLog(podName, listener);
+        }
+      };
+    } else {
+      PluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
+      IncrStreamFactory k8sConfig = store.getPlugin();
+      if (k8sConfig == null) {
+        throw new IllegalStateException("key" + indexName + " have not set k8s plugin");
+      }
+      this.incrSync = k8sConfig.getIncrSync();
     }
-    this.incrSync = k8sConfig.getIncrSync();
+
     this.indexName = indexName;
   }
 
   public static void main(String[] args) throws Exception {
-    IncrSpec incrSpec = new IncrSpec();
+    ReplicasSpec incrSpec = new ReplicasSpec();
     incrSpec.setReplicaCount(1);
     incrSpec.setCpuLimit(Specification.parse("2"));
     incrSpec.setCpuRequest(Specification.parse("500m"));
@@ -100,7 +113,7 @@ public class TISK8sDelegate {
     incrK8s.isRCDeployment(true);
   }
 
-  public void deploy(IncrSpec incrSpec, final long timestamp) throws Exception {
+  public void deploy(ReplicasSpec incrSpec, final long timestamp) throws Exception {
     this.incrSync.deploy(this.indexName, incrSpec, timestamp);
   }
 
@@ -113,7 +126,7 @@ public class TISK8sDelegate {
     return getRcConfig(canGetCache) != null;
   }
 
-  public IncrDeployment getRcConfig(boolean canGetCache) {
+  public RcDeployment getRcConfig(boolean canGetCache) {
     long current = System.currentTimeMillis();
     // 40秒缓存
     if (!canGetCache || this.incrDeployment == null || (current > (latestIncrDeploymentFetchtime + 40000))) {
@@ -154,6 +167,9 @@ public class TISK8sDelegate {
    * 列表pod，并且显示日志
    */
   public void listPodsAndWatchLog(String podName, ILogListener listener) {
+    if (StringUtils.isEmpty(podName)) {
+      throw new IllegalArgumentException("illegal argument 'podName' can not be null");
+    }
     WatchPodLog watchPodLog = null;
     synchronized (this) {
       if ((watchPodLog = this.watchPodLogMap.get(podName)) == null) {

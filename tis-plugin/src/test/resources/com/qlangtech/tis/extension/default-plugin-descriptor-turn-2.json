@@ -1,0 +1,29 @@
+{
+  "com.qlangtech.tis.extension.DefaultPlugin":{
+    "attrs":[
+      {
+        "describable":false,
+        "key":"name",
+        "ord":0,
+        "pk":false,
+        "required":false,
+        "type":1
+      },
+      {
+        "describable":false,
+        "eprops":{
+          "dftVal":"[{\"name\":\"baisui2\"}]"
+        },
+        "key":"cols",
+        "ord":0,
+        "pk":false,
+        "required":false,
+        "type":2
+      }
+    ],
+    "displayName":"DefaultPlugin",
+    "extendPoint":"com.qlangtech.tis.extension.DefaultPlugin",
+    "impl":"com.qlangtech.tis.extension.DefaultPlugin",
+    "veriflable":false
+  }
+}

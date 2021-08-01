@@ -57,7 +57,9 @@ public class ComponentMeta {
      * 下载配置文件
      */
     public void downloaConfig() {
-        resources.forEach((r) -> r.copyConfigFromRemote());
+        resources.forEach((r) -> {
+            r.copyConfigFromRemote();
+        });
     }
 
     /**

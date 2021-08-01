@@ -14,8 +14,8 @@
  */
 package com.qlangtech.tis.solrextend.dir;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 // import org.apache.solr.common.StringUtils;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -30,7 +30,7 @@ public class TisNRTCachingDirectoryFactory extends NRTCachingDirectoryFactory {
     // private ITisCoreContext coreDesc;
     private SolrParams params;
 
-    private static final Log log = LogFactory.getLog(TisNRTCachingDirectoryFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(TisNRTCachingDirectoryFactory.class);
 
     private double maxMergeSizeMB;
 

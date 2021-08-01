@@ -25,8 +25,6 @@ import java.util.Map;
  */
 public class TabField {
 
-    public static final String TSEARCH_PACKAGE = "com.qlangtech.tis";
-
     private final String column;
 
     private final String tabName;
@@ -57,7 +55,11 @@ public class TabField {
                 synchronized (this) {
                     if (aliasProcess == null) {
                         String className = "AliasFieldProcess" + this.getColumn();
-                        String script = "	package com.qlangtech.tis ;" + "import java.util.Map;" + "import com.qlangtech.tis.wangjubao.jingwei.impl.AliasProcessImpl;" + "class " + className + " extends AliasProcessImpl {" + "	@Override" + "	public Object process(String value) {" + this.getGroovyScript() + "	}" + "}";
+                        String script = "	package com.qlangtech.tis ;"
+                                + "import java.util.Map;"
+                                + "import com.qlangtech.tis.wangjubao.jingwei.impl.AliasProcessImpl;"
+                                + "class " + className + " extends AliasProcessImpl {"
+                                + "	@Override" + "	public Object process(String value) {" + this.getGroovyScript() + "	}" + "}";
                         loader.loadMyClass(tabName + this.getColumn(), script);
                         Class<?> groovyClass = loader.loadClass("com.qlangtech.tis." + className);
                         aliasProcess = (IAliasProcess) groovyClass.newInstance();

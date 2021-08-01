@@ -168,6 +168,12 @@
         <appender-ref ref="dump-bind-taskid"/>
     </logger>
 
+    <logger name="com.alibaba.datax">
+        <level value="INFO"/>
+        <appender-ref ref="dump"/>
+        <appender-ref ref="dump-bind-taskid"/>
+    </logger>
+
 
     <logger name="receive">
         <level value="DEBUG"/>

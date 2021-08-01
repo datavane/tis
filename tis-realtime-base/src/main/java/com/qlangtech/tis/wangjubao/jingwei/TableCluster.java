@@ -22,6 +22,7 @@ import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -41,18 +42,18 @@ public class TableCluster {
 
     private static final Logger logger = LoggerFactory.getLogger(TableCluster.class);
 
-    private static final Map<String, SolrFieldsParser.ParseResult> fieldsMap = new HashMap<>();
+    private static final Map<String, ParseResult> fieldsMap = new HashMap<>();
 
-    private final SolrFieldsParser.ParseResult schemaFieldMeta;
+    private final ParseResult schemaFieldMeta;
 
-    public TableCluster(SolrFieldsParser.ParseResult schemaFieldMeta) {
+    public TableCluster(ParseResult schemaFieldMeta) {
         if (schemaFieldMeta == null) {
             throw new IllegalArgumentException("schemaFieldMeta can not be null");
         }
         this.schemaFieldMeta = schemaFieldMeta;
     }
 
-    public SolrFieldsParser.ParseResult getSchemaFieldMeta() {
+    public ParseResult getSchemaFieldMeta() {
         return schemaFieldMeta;
     }
 
@@ -77,8 +78,8 @@ public class TableCluster {
      * @return
      * @throws Exception
      */
-    public static SolrFieldsParser.ParseResult getSchemaFields(String collection) throws Exception {
-        SolrFieldsParser.ParseResult parseResult = fieldsMap.get(collection);
+    public static ParseResult getSchemaFields(String collection) throws Exception {
+        ParseResult parseResult = fieldsMap.get(collection);
         if (parseResult == null) {
             synchronized (fieldsMap) {
                 parseResult = fieldsMap.get(collection);

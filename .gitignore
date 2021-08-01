@@ -16,3 +16,4 @@
 *.versionsBackup
 *.swp
 **/*.log
+.flattened-pom.xml

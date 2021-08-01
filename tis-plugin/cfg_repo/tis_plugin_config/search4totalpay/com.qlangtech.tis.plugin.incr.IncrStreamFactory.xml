@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<com.qlangtech.tis.plugin.CollectionPluginStore plugin="tis-k8s-plugin@saturn-1.0.0-SNAPSHOT">
+<com.qlangtech.tis.plugin.KeyedPluginStore plugin="tis-k8s-plugin@saturn-1.0.0-SNAPSHOT">
   <plugins>
     <com.qlangtech.tis.plugin.incr.DefaultIncrK8sConfig plugin="tis-k8s-plugin@saturn-1.0.0-SNAPSHOT">
       <k8sName>minikube</k8sName>
@@ -8,4 +8,4 @@
     </com.qlangtech.tis.plugin.incr.DefaultIncrK8sConfig>
   </plugins>
   <serializeFileName>search4totalpay/com.qlangtech.tis.plugin.incr.IncrStreamFactory</serializeFileName>
-</com.qlangtech.tis.plugin.CollectionPluginStore>
+</com.qlangtech.tis.plugin.KeyedPluginStore>

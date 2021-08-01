@@ -1,25 +1,26 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.extension;
 
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.impl.ExtensionRefreshException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.impl.ExtensionRefreshException;
 import net.java.sezpoz.Index;
 import net.java.sezpoz.IndexItem;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -39,10 +40,10 @@ import java.util.logging.Logger;
  * <p>
  * {@link ExtensionFinder} itself is an extension point, but to avoid infinite recursion,
  * Jenkins discovers {@link ExtensionFinder}s through {@link Sezpoz} and that alone.
- * @since 1.286
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
+ * @since 1.286
  */
 public abstract class ExtensionFinder {
 
@@ -55,13 +56,14 @@ public abstract class ExtensionFinder {
     /**
      * Returns true if this extension finder supports the {@link #refresh()} operation.
      */
-    public boolean isRefreshable() {
-        try {
-            return getClass().getMethod("refresh").getDeclaringClass() != ExtensionFinder.class;
-        } catch (NoSuchMethodException e) {
-            return false;
-        }
-    }
+    //  public boolean isRefreshable() {
+//        try {
+//            return getClass().getMethod("refresh").getDeclaringClass() != ExtensionFinder.class;
+//        } catch (NoSuchMethodException e) {
+//            return false;
+//        }
+    //     return true;
+    // }
 
     /**
      * Rebuilds the internal index, if any, so that future
@@ -73,10 +75,10 @@ public abstract class ExtensionFinder {
      * objects, such as {@link Descriptor}s.
      *
      * <p>
-     * The behaviour is undefined if {@link #isRefreshable()} is returning false.
+     * The behaviour is undefined if {@link #'isRefreshable()'} is returning false.
      *
      * @return never null
-     * @see #isRefreshable()
+     * @see #'isRefreshable()'
      * @since 1.442
      */
     public abstract ExtensionComponentSet refresh() throws ExtensionRefreshException;
@@ -147,8 +149,9 @@ public abstract class ExtensionFinder {
         public synchronized ExtensionComponentSet refresh() {
             final List<IndexItem<TISExtension, Object>> old = indices;
             // we haven't loaded anything
-            if (old == null)
+            if (old == null) {
                 return ExtensionComponentSet.EMPTY;
+            }
             final List<IndexItem<TISExtension, Object>> delta = listDelta(TISExtension.class, old);
             List<IndexItem<TISExtension, Object>> r = Lists.newArrayList(old);
             r.addAll(delta);
@@ -162,7 +165,8 @@ public abstract class ExtensionFinder {
             };
         }
 
-        static <T extends Annotation> List<IndexItem<T, Object>> listDelta(Class<T> annotationType, List<? extends IndexItem<?, Object>> old) {
+        static <T extends Annotation> List<IndexItem<T, Object>> listDelta(
+                Class<T> annotationType, List<? extends IndexItem<?, Object>> old) {
             // list up newly discovered components
             final List<IndexItem<T, Object>> delta = Lists.newArrayList();
             ClassLoader cl = TIS.get().getPluginManager().uberClassLoader;

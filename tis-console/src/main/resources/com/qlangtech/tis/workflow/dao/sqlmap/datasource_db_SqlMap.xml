@@ -4,6 +4,7 @@
   <resultMap id="ibatorgenerated_BaseResultMap" class="com.qlangtech.tis.workflow.pojo.DatasourceDb" >
     <result column="id" property="id" jdbcType="INTEGER" />
     <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="extend_class" property="extendClass" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="op_time" property="opTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -37,7 +38,7 @@
     </iterate>
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria" >
-    select aa.id, name, create_time, op_time
+    select aa.id, name, create_time, op_time, extend_class
      from ( select id from datasource_db
     <isParameterPresent >
       <include refid="datasource_db.ibatorgenerated_Example_Where_Clause" />
@@ -48,12 +49,13 @@
     </isParameterPresent>
        ) bb inner join datasource_db aa on aa.id=bb.id
   </select>
-    <select id="ibatorgenerated_minSelectByExample" resultMap="ibatorgenerated_MinResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria" >
+  <select id="ibatorgenerated_minSelectByExample" resultMap="ibatorgenerated_MinResultMap"
+            parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria" >
         select id from datasource_db
         <include refid="datasource_db.ibatorgenerated_Example_Where_Clause" />
-    </select>
+  </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDb" >
-    select id, name, create_time, op_time
+    select id, name, extend_class, create_time, op_time
     from datasource_db
     where id = #id:INTEGER#
   </select>
@@ -66,10 +68,9 @@
     <include refid="datasource_db.ibatorgenerated_Example_Where_Clause" />
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDb" >
-    insert into datasource_db (id, name, create_time, op_time)
+    insert into datasource_db (id, name, create_time, op_time, extend_class)
     values (#id:INTEGER#, #name:VARCHAR#, #createTime:TIMESTAMP#,
-      #opTime:TIMESTAMP#)
-
+      #opTime:TIMESTAMP# , #extendClass:VARCHAR#)
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.workflow.pojo.DatasourceDb" >
     insert into datasource_db
@@ -86,6 +87,9 @@
       <isNotNull prepend="," property="opTime" >
         op_time
       </isNotNull>
+      <isNotNull prepend="," property="extendClass" >
+        extend_class
+      </isNotNull>
       )
     </dynamic>
     values
@@ -101,6 +105,9 @@
       </isNotNull>
       <isNotNull prepend="," property="opTime" >
         #opTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="extendClass" >
+        #extendClass:VARCHAR#
       </isNotNull>
       )
     </dynamic>
@@ -125,6 +132,9 @@
       <isNotNull prepend="," property="record.opTime" >
         op_time = #record.opTime:TIMESTAMP#
       </isNotNull>
+      <isNotNull prepend="," property="record.extendClass" >
+        extend_class = #record.extendClass:VARCHAR#
+      </isNotNull>
     </dynamic>
     <isParameterPresent >
       <include refid="datasource_db.ibatorgenerated_Example_Where_Clause" />
@@ -135,7 +145,8 @@
     set id = #record.id:INTEGER#,
       name = #record.name:VARCHAR#,
       create_time = #record.createTime:TIMESTAMP#,
-      op_time = #record.opTime:TIMESTAMP#
+      op_time = #record.opTime:TIMESTAMP#,
+      extend_class = #record.extendClass:VARCHAR#
     <isParameterPresent >
       <include refid="datasource_db.ibatorgenerated_Example_Where_Clause" />
     </isParameterPresent>

@@ -22,8 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -59,9 +61,12 @@ public class Config {
 
     private static boolean test = false;
 
+    public static final String DEFAULT_DATA_DIR = "/opt/data/tis";
+
     private static Config config;
 
     public static final String KEY_DATA_DIR = "data.dir";
+    public static final String KEY_LOG_DIR = "log.dir";
 
 
     public static void setDataDir(String path) {
@@ -108,8 +113,12 @@ public class Config {
     }
 
     public static File getDataDir() {
-        File dir = new File(System.getProperty(KEY_DATA_DIR, "/opt/data/tis"));
-        if (!(dir.isDirectory() && dir.exists())) {
+        return getDataDir(true);
+    }
+
+    public static File getDataDir(boolean valiate) {
+        File dir = new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
+        if (valiate && !(dir.isDirectory() && dir.exists())) {
             throw new IllegalStateException("dir:" + dir.getAbsolutePath() + " is invalid DATA DIR");
         }
         return dir;
@@ -128,6 +137,17 @@ public class Config {
 
     private final TisDbConfig dbCfg;
 
+    private static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
+    private static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
+
+    private static final Set<String> localDftValsKeys;
+
+    static {
+        localDftValsKeys = new HashSet<>();
+        localDftValsKeys.add(KEY_TIS_DATASOURCE_TYPE);
+        localDftValsKeys.add(KEY_TIS_DATASOURCE_DBNAME);
+    }
+
     private Config() {
         P p = P.create();
         this.zkHost = p.getString(KEY_ZK_HOST, true);
@@ -137,8 +157,8 @@ public class Config {
 
         this.dbCfg = new TisDbConfig();
         try {
-            dbCfg.dbtype = p.getString("tis.datasource.type", true);
-            dbCfg.dbname = p.getString("tis.datasource.dbname", true);
+            dbCfg.dbtype = p.getString(KEY_TIS_DATASOURCE_TYPE, true);
+            dbCfg.dbname = p.getString(KEY_TIS_DATASOURCE_DBNAME, true);
             if (DB_TYPE_MYSQL.equals(dbCfg.dbtype)) {
                 dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
                 dbCfg.url = p.getString("tis.datasource.url");
@@ -179,9 +199,9 @@ public class Config {
         return getInstance().assembleHost;
     }
 
-//    public static String getAssembleHttpHost() {
-    //   return "http://" + getInstance().assembleHost + ":8080" + CONTEXT_ASSEMBLE;
-//    }
+    public static String getAssembleHttpHost() {
+        return "http://" + getAssembleHost() + ":8080" + CONTEXT_ASSEMBLE;
+    }
 
     public static TisDbConfig getDbCfg() {
         return getInstance().getDbConfig();
@@ -205,10 +225,15 @@ public class Config {
 
 
     public static TestCfgStream openTestCfgStream() throws IOException {
-        File f = new File("../tis-web-config/config.properties");
+        String propertiesFile = "tis-web-config/config.properties";
+        File f = new File("../" + propertiesFile);
         TestCfgStream cfgStream = new TestCfgStream(f);
         if (!f.exists()) {
-            return cfgStream;
+            f = new File(propertiesFile);
+            cfgStream = new TestCfgStream(f);
+            if (!f.exists()) {
+                return cfgStream;
+            }
         }
         return cfgStream.setPropsStream(FileUtils.openInputStream(f));
     }
@@ -251,9 +276,11 @@ public class Config {
         public static P create() {
             if (Boolean.getBoolean(KEY_JAVA_RUNTIME_PROP_ENV_PROPS)) {
                 return new P() {
-
                     @Override
                     protected String getProp(String key) {
+                        if (localDftValsKeys.contains(key)) {
+                            return "defaultVal";
+                        }
                         return System.getenv(key);
                     }
                 };

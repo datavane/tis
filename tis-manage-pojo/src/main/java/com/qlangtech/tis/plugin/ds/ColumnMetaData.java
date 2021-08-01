@@ -15,6 +15,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.base.Joiner;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.sql.parser.ColName;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -24,7 +25,7 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class ColumnMetaData {
+public class ColumnMetaData extends Option {
 
     public static final String KEY_COLS_METADATA = "cols-metadata";
 
@@ -69,7 +70,7 @@ public class ColumnMetaData {
      * @param type column类型 java.sql.Types
      */
     public ColumnMetaData(int index, String key, int type, boolean pk) {
-        super();
+        super(key,key);
         this.pk = pk;
         this.key = key;
         this.type = type;

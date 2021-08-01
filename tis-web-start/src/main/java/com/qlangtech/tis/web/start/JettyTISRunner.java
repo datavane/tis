@@ -279,14 +279,15 @@ public class JettyTISRunner {
         // waitForSolr(context);
     }
 
-    private void setSolrHome()  {
+    private void setSolrHome() {
         //Context c = new InitialContext();
         File solrHome = (new File(getDataDir(), "solrhome"));
         File solrXML = new File(solrHome, "solr.xml");
         if (!solrXML.exists()) {
-            throw new IllegalStateException("solr.xml is not exist:" + solrXML.getAbsolutePath());
+            //  throw new IllegalStateException("solr.xml is not exist:" + solrXML.getAbsolutePath());
+            return;
         }
-        System.setProperty("solr.solr.home",solrHome.getAbsolutePath());
+        System.setProperty("solr.solr.home", solrHome.getAbsolutePath());
         //c.bind("java:comp/env/solr/home", solrHome.getAbsolutePath());
     }
 

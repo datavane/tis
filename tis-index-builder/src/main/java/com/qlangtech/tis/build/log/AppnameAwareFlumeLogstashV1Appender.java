@@ -16,8 +16,8 @@ package com.qlangtech.tis.build.log;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.gilt.logback.flume.FlumeLogstashV1Appender;
-import com.qlangtech.tis.indexbuilder.IndexBuilderTask;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import java.util.HashSet;
 import java.util.Map;
@@ -81,8 +81,8 @@ public class AppnameAwareFlumeLogstashV1Appender extends FlumeLogstashV1Appender
     protected Map<String, String> extractHeaders(ILoggingEvent eventObject) {
         Map<String, String> result = super.extractHeaders(eventObject);
         final Map<String, String> mdc = eventObject.getMDCPropertyMap();
-        String collection = StringUtils.defaultIfEmpty(mdc.get(IndexBuilderTask.KEY_COLLECTION), "unknown");
-        result.put(IndexBuilderTask.KEY_COLLECTION, collection);
+        String collection = StringUtils.defaultIfEmpty(mdc.get(TISCollectionUtils.KEY_COLLECTION), "unknown");
+        result.put(TISCollectionUtils.KEY_COLLECTION, collection);
         return result;
     }
 }

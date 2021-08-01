@@ -15,13 +15,16 @@
 package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 解析提交的plugin元数据信息，如果plugin为"xxxplugin:require" 则是在告诉服务端，该plugin必须要有输入内容，该plugin不可缺省
@@ -31,9 +34,13 @@ import java.util.regex.Pattern;
  */
 public class UploadPluginMeta {
 
+    public static final String KEY_PLUGIN_META = UploadPluginMeta.class.getName();
+
     private static final String ATTR_KEY_VALUE_SPLIT = "_";
 
-    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\w]+");
+    private static final String KEY_JUST_GET_ITEM_RELEVANT = "justGetItemRelevant";
+
+    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w]+");
 
     public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR
             = Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");
@@ -41,11 +48,38 @@ public class UploadPluginMeta {
     private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))+)?");
 
     public static final String KEY_REQUIRE = "require";
+
+    public static final String KEY_UNCACHE = "uncache";
+
+    //纯添加类型，更新之前需要将之前的类型plugin先load出来再更新
+    public static final String KEY_APPEND = "append";
+    // 禁止向context中写入biz状态
+    public static final String KEY_DISABLE_BIZ_SET = "disableBizStore";
+
     private final String name;
 
+    // plugin form must contain field where prop required is true
     private boolean required;
     // 除去 required 之外的其他参数
     private Map<String, String> extraParams = new HashMap<>();
+    private final IPluginContext context;
+
+    public boolean isUpdate() {
+        return this.getBoolean(PostedDSProp.KEY_UPDATE);
+    }
+
+    /**
+     * 纯添加类型，更新之前需要将之前的类型plugin先load出来再更新合并之后再更新
+     *
+     * @return
+     */
+    public boolean isAppend() {
+        return this.getBoolean(KEY_APPEND);
+    }
+
+    public boolean isDisableBizSet() {
+        return this.getBoolean(KEY_DISABLE_BIZ_SET);
+    }
 
     public static void main(String[] args) throws Exception {
 
@@ -63,12 +97,16 @@ public class UploadPluginMeta {
     }
 
     public static List<UploadPluginMeta> parse(String[] plugins) {
+        return parse(null, plugins);
+    }
+
+    public static List<UploadPluginMeta> parse(IPluginContext context, String[] plugins) {
         if (plugins == null || plugins.length < 1) {
             throw new IllegalArgumentException("plugin size:" + plugins.length + " length can not small than 1");
         }
         List<UploadPluginMeta> metas = Lists.newArrayList();
         for (String plugin : plugins) {
-            metas.add(parse(plugin));
+            metas.add(parse(context, plugin));
         }
         if (plugins.length != metas.size()) {
             throw new IllegalStateException("param plugins length:" + plugins.length + " must equal with metaSize:" + metas.size());
@@ -76,18 +114,27 @@ public class UploadPluginMeta {
         return metas;
     }
 
+    public IPluginContext getPluginContext() {
+        return this.context;
+    }
+
+
+    public static UploadPluginMeta parse(String plugin) {
+        return parse(null, plugin);
+    }
+
     /**
      * @param plugin
      * @return
      */
-    public static UploadPluginMeta parse(String plugin) {
+    public static UploadPluginMeta parse(IPluginContext context, String plugin) {
         Matcher matcher, attrKVMatcher;
         UploadPluginMeta pmeta;
         Matcher attrMatcher;
         String attr;
         matcher = PATTERN_PLUGIN_META.matcher(plugin);
         if (matcher.matches()) {
-            pmeta = new UploadPluginMeta(matcher.group(1));
+            pmeta = new UploadPluginMeta(context, matcher.group(1));
             if (matcher.group(2) != null) {
                 attrMatcher = PATTERN_PLUGIN_ATTRIBUTE.matcher(matcher.group(2));
                 while (attrMatcher.find()) {
@@ -134,16 +181,55 @@ public class UploadPluginMeta {
     }
 
 
+    public Optional<IPropertyType.SubFormFilter> getSubFormFilter() {
+
+        String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
+        String subFormField = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD);
+        if (StringUtils.isNotEmpty(targetDesc)) {
+            return Optional.of(new IPropertyType.SubFormFilter(this, targetDesc, subFormField));
+        }
+        return Optional.empty();
+    }
+
     public String getExtraParam(String key) {
         return this.extraParams.get(key);
     }
 
-    private UploadPluginMeta(String name) {
+    public boolean getBoolean(String key) {
+        return Boolean.parseBoolean(this.getExtraParam(key));
+    }
+
+    private UploadPluginMeta(IPluginContext context, String name) {
         this.name = name;
+        this.context = context;
     }
 
     @Override
     public String toString() {
-        return "UploadPluginMeta{" + "name='" + name + '\'' + ", required=" + required + '}';
+        return "UploadPluginMeta{" + "name='" + name + '\'' + ", required=" + required +
+                "," + this.extraParams.entrySet().stream().map((e) -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",")) + '}';
+    }
+
+    public <T extends Describable<T>> HeteroList<T> getHeteroList(IPluginContext pluginContext) {
+        HeteroEnum hEnum = getHeteroEnum();
+        HeteroList<T> hList = new HeteroList<>(this);
+        hList.setCaption(hEnum.caption);
+        hList.setExtensionPoint(hEnum.extensionPoint);
+        List<T> items = hEnum.getPlugins(pluginContext, this);
+        hList.setItems(items);
+
+        List<Descriptor<T>> descriptors = hEnum.descriptors();
+        String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
+        boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
+        if (justGetItemRelevant) {
+            Set<String> itemRelevantDescNames = items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
+            descriptors = descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
+        } else if (StringUtils.isNotEmpty(targetDesc)) {
+            descriptors = descriptors.stream().filter((d) -> targetDesc.equals(d.getDisplayName())).collect(Collectors.toList());
+        }
+        hList.setDescriptors(descriptors);
+
+        hList.setSelectable(hEnum.selectable);
+        return hList;
     }
 }

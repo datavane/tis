@@ -23,6 +23,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
@@ -56,7 +57,6 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
-import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
@@ -999,6 +999,10 @@ public class OfflineDatasourceAction extends BasicModule {
     return new WorkflowPojo(name, new JoinRule(taskScript));
   }
 
+
+  public static List<Option> existDbs = null;
+
+
   /**
    * Do get datasource info. 获得所有数据源库和表
    *
@@ -1006,27 +1010,21 @@ public class OfflineDatasourceAction extends BasicModule {
    * @throws Exception the exception
    */
   public void doGetDatasourceInfo(Context context) throws Exception {
-    // this.setBizResult(context, offlineManager.getDatasourceInfo());
     this.setBizResult(context
       , new ConfigDsMeta(offlineManager.getDatasourceInfo(), TIS.get().getDescriptorList(DataSourceFactory.class)));
   }
 
 
-  public static class ConfigDsMeta {
+  public static class ConfigDsMeta extends PluginDescMeta {
     private final Collection<OfflineDatasourceAction.DatasourceDb> dbs;
-    private final DescriptorsJSON pluginDesc;
 
     public ConfigDsMeta(Collection<DatasourceDb> dbs, DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> descList) {
+      super(descList);
       this.dbs = dbs;
-      this.pluginDesc = new DescriptorsJSON(descList);
     }
 
     public Collection<DatasourceDb> getDbs() {
       return dbs;
-    }
-
-    public com.alibaba.fastjson.JSONObject getPluginDesc() {
-      return pluginDesc.getDescriptorsJSON();
     }
   }
 
@@ -1043,13 +1041,13 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context, configSuit);
   }
 
-  private void confusionPassword(DBConfig db) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < db.getPassword().length(); i++) {
-      sb.append("*");
-    }
-    db.setPassword(sb.toString());
-  }
+//  private void confusionPassword(DBConfig db) {
+//    StringBuilder sb = new StringBuilder();
+//    for (int i = 0; i < db.getPassword().length(); i++) {
+//      sb.append("*");
+//    }
+//    db.setPassword(sb.toString());
+//  }
 
   /**
    * Do get datasource table. 获取一个table的git配置信息
@@ -1301,12 +1299,9 @@ public class OfflineDatasourceAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT)
   public void doDeleteDatasourceDbById(Context context) throws Exception {
     Integer id = this.getInt("id");
+    Objects.requireNonNull(id, "param id can not be null");
     DbScope dbModel = DbScope.parse(this.getString("dbModel"));
-    if (id == null) {
-      this.addErrorMessage(context, "db id不能为空");
-      return;
-    }
-    this.offlineManager.deleteDatasourceDbById(id, dbModel, this, context);
+    this.offlineManager.deleteDbById(id, dbModel, this, context);
   }
 
   /**
@@ -1347,28 +1342,7 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     this.offlineManager.confirmWorkflowChange(id, this, context);
-    // this.doGetWorkflows(context);
   }
-
-
-//  /**
-//   * 创建一个工作流变更
-//   *
-//   * @param context
-//   */
-//  public void doCreateWorkflowChange(Context context) {
-//    String changeReason = this.getString("changeReason");
-//    if (StringUtils.isBlank(changeReason)) {
-//      this.addErrorMessage(context, "请输入变更理由");
-//      return;
-//    }
-//    String workflowName = this.getString("workflowName");
-//    if (StringUtils.isBlank(workflowName)) {
-//      this.addErrorMessage(context, "请选择工作流");
-//      return;
-//    }
-//    this.offlineManager.createWorkflowChange(changeReason, workflowName, this, context);
-//  }
 
   /**
    * 获取一个工作流的配置

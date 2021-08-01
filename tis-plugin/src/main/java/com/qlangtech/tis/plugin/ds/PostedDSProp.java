@@ -16,7 +16,6 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * DS update extra params posted form client
@@ -37,7 +36,7 @@ public class PostedDSProp {
     public static PostedDSProp parse(UploadPluginMeta pluginMeta) {
         return new PostedDSProp(pluginMeta.getExtraParam(KEY_DB_NAME)
                 , DbScope.parse(pluginMeta.getExtraParam(KEY_TYPE))
-                , "true".equalsIgnoreCase(pluginMeta.getExtraParam(KEY_UPDATE)));
+                , pluginMeta.isUpdate());
     }
 
     public void setDbname(String dbname) {

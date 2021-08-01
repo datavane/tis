@@ -22,11 +22,6 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
  * @date 2020/04/13
  */
 public interface IIndexBuildJobFactory extends IServerTask {
-
-
-
-
-
     /**
      * 创建build索引任务
      *

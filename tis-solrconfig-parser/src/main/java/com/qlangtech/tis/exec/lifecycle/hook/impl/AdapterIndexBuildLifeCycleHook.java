@@ -16,7 +16,7 @@ package com.qlangtech.tis.exec.lifecycle.hook.impl;
 
 import com.qlangtech.tis.exec.lifecycle.hook.IIndexBuildLifeCycleHook;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.extend.IndexBuildHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

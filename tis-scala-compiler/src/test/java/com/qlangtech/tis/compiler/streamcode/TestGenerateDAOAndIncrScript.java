@@ -18,8 +18,10 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import junit.framework.TestCase;
 
 import java.util.Map;
@@ -62,13 +64,23 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
     }
 
     private IndexStreamCodeGenerator getIndexStreamCodeGenerator() throws Exception {
-        return new IndexStreamCodeGenerator(collection, dataflowName, dataflowTimestamp, (dbid, tables) -> {
+
+
+        IAppSource appSource = IAppSource.load(null, collection);
+        assertNotNull(appSource);
+
+        return new IndexStreamCodeGenerator(collection, (IStreamIncrGenerateStrategy) appSource, dataflowTimestamp, (dbid, tables) -> {
             assertTrue(tables.size() > 0);
             return tables;
         }, false);
     }
 
     private static class DefaultMessageHandler implements IControlMsgHandler {
+
+        @Override
+        public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
         public String getString(String key) {

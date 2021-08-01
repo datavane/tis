@@ -16,13 +16,14 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.er.IERRules;
 import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
-import com.qlangtech.tis.sql.parser.tuple.creator.impl.ValChain;
+import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
 import org.apache.commons.lang.StringUtils;
 
@@ -39,18 +40,20 @@ public class MergeData {
 
     private final String collection;
     private final boolean excludeFacadeDAOSupport;
+    private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
 
     private final Map<EntityName, StreamComponentCodeGenerator.MapDataMethodCreator> mapDataMethodCreatorMap;
 
     private final FunctionVisitor.FuncFormat aliasListBuilder;
 
-    private final Map<TableTupleCreator, List<ValChain>> tabTriggers;
+    private final Map<IEntityNameGetter, List<IValChain>> tabTriggers;
 
     private final List<FacadeContext> facadeContextList;
 
     private final Set<PrimaryTableMeta> primaryTableNames;
+    private final IERRules erRules;
 
-    private final ERRules erRules;
+    // private final ERRules erRules;
 
     private final Map<String, FunctionVisitor.IToString> /**
      * method token
@@ -80,9 +83,10 @@ public class MergeData {
      */
     public MergeData(
             String collection, Map<EntityName, StreamComponentCodeGenerator.MapDataMethodCreator> mapDataMethodCreatorMap
-            , FunctionVisitor.FuncFormat aliasListBuilder, Map<TableTupleCreator, List<ValChain>> tabTriggers
-            , List<FacadeContext> facadeContextList, ERRules erRules, boolean excludeFacadeDAOSupport) {
+            , FunctionVisitor.FuncFormat aliasListBuilder, Map<IEntityNameGetter, List<IValChain>> tabTriggers
+            , List<FacadeContext> facadeContextList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy, boolean excludeFacadeDAOSupport) {
         super();
+        this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
         this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
         this.collection = collection;
         this.mapDataMethodCreatorMap = mapDataMethodCreatorMap;
@@ -92,7 +96,8 @@ public class MergeData {
             throw new IllegalArgumentException("param facadeContextList can not be null");
         }
         this.facadeContextList = facadeContextList;
-        List<PrimaryTableMeta> primaryTabs = erRules.getPrimaryTabs();
+        this.erRules = streamIncrGenerateStrategy.getERRule();
+        List<PrimaryTableMeta> primaryTabs = this.erRules.getPrimaryTabs();// erRules.getPrimaryTabs();
         // 索引的主索引表
         // Sets.newHashSet(new PrimaryTableMeta("totalpayinfo", "totalpay_id"));
         Set<PrimaryTableMeta> primaryTablesName = Sets.newHashSet(primaryTabs);
@@ -101,10 +106,10 @@ public class MergeData {
             throw new IllegalStateException("primaryTableName is not illegal");
         }
         this.primaryTableNames = primaryTablesName;
-        this.erRules = erRules;
-        if (erRules == null) {
-            throw new IllegalArgumentException("erRules can not be null");
-        }
+//        this.erRules = erRules;
+//        if (erRules == null) {
+//            throw new IllegalArgumentException("erRules can not be null");
+//        }
     }
 
     private final Stack<FlatTableRelation> unprocessedTableRelations = new Stack<>();

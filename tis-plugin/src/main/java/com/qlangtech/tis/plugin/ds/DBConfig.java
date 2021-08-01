@@ -43,11 +43,13 @@ public class DBConfig implements IDbMeta {
 
     private String name;
 
-    private String userName;
+    private final JdbcUrlBuilder jdbcUrlBuilder;
 
-    private String password;
+    // private String userName;
 
-    private int port = 3306;
+    // private String password;
+
+    // private int port = 3306;
 
     private Map<String, List<String>> /* host|ip */ dbEnum = new HashMap<>();
 
@@ -56,6 +58,14 @@ public class DBConfig implements IDbMeta {
     }
 
     private StringBuffer hostDesc;
+
+    public DBConfig(JdbcUrlBuilder jdbcUrlBuilder) {
+        this.jdbcUrlBuilder = jdbcUrlBuilder;
+    }
+
+    public DBConfig() {
+        this(null);
+    }
 
     @Override
     @JSONField(serialize = false)
@@ -146,7 +156,8 @@ public class DBConfig implements IDbMeta {
         for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
             for (String dbName : entry.getValue()) {
                 // TODO 访问mysql的方式，将来如果有其他数据库可以再扩展一下
-                String jdbcUrl = "jdbc:mysql://" + (resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey()) + ":" + this.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
+                // String jdbcUrl = "jdbc:mysql://" + (resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey()) + ":" + this.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
+                String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey(), dbName);
                 hostCount++;
                 fixedThreadPool.execute(() -> {
                     try {
@@ -204,29 +215,29 @@ public class DBConfig implements IDbMeta {
         this.name = name;
     }
 
-    public String getUserName() {
-        return userName;
-    }
+//    public String getUserName() {
+//        return userName;
+//    }
+//
+//    public void setUserName(String userName) {
+//        this.userName = userName;
+//    }
+//
+//    public String getPassword() {
+//        return password;
+//    }
+//
+//    public void setPassword(String password) {
+//        this.password = password;
+//    }
+//
+//    public int getPort() {
+//        return port;
+//    }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
+//    public void setPort(int port) {
+//        this.port = port;
+//    }
 
     @JSONField(serialize = false)
     public Map<String, List<String>> getDbEnum() {
@@ -266,8 +277,8 @@ public class DBConfig implements IDbMeta {
         void visit(String dbName, String jdbcUrl);
     }
 
-    @Override
-    public String toString() {
-        return "{" + "name='" + name + '\'' + "password='" + "******" + '\'' + ", userName='" + userName + '\'' + ", port=" + port + ", hostDesc=" + hostDesc + '}';
-    }
+//    @Override
+//    public String toString() {
+//        return "{" + "name='" + name + '\'' + "password='" + "******" + '\'' + ", userName='" + userName + '\'' + ", port=" + port + ", hostDesc=" + hostDesc + '}';
+//    }
 }

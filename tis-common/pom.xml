@@ -4,17 +4,17 @@
     <parent>
         <groupId>com.qlangtech.tis</groupId>
         <artifactId>tis-solr-parent</artifactId>
-        <version>2.2.0</version>
+        <version>2.3.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis-common</artifactId>
-    <version>2.2.0</version>
+
     <packaging>jar</packaging>
 
     <name>tis-common</name>
     <url>http://maven.apache.org</url>
-
+    <description>对Cassandra NoSql数据源进行封装，使TIS可以Cassandra作为数据源的表。另外，支持以Cassandra作为目标源的DataX Reader和Writer</description>
     <properties>
 
 

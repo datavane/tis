@@ -15,15 +15,14 @@
 package com.qlangtech.tis.compiler.streamcode;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamComponentCodeGenerator;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -40,8 +39,8 @@ import java.util.Stack;
 public class IndexStreamCodeGenerator {
     public final String collection;
 
-    private SqlTaskNodeMeta.SqlDataFlowTopology dfTopology;
-
+    // private SqlTaskNodeMeta.SqlDataFlowTopology dfTopology;
+    private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
     public final long incrScriptTimestamp;
 
     public List<FacadeContext> facadeList;
@@ -52,22 +51,19 @@ public class IndexStreamCodeGenerator {
 
     private final IDBTableNamesGetter dbTableNamesGetter;
 
-    private String workflowName;
-
+    // private String workflowName;
     // 自动生成的incr脚本中需要dao支持吗？
     private final boolean excludeFacadeDAOSupport;
 
 
-    public IndexStreamCodeGenerator(String collection, String workflowName, long incrScriptTimestamp
+    public IndexStreamCodeGenerator(String collection, IStreamIncrGenerateStrategy streamIncrGenerateStrategy, long incrScriptTimestamp
             , IDBTableNamesGetter dbTableNamesGetter, boolean excludeFacadeDAOSupport) throws Exception {
         if (StringUtils.isEmpty(collection)) {
             throw new IllegalArgumentException("argument collection can not be null");
         }
 
-        // this.appDomain = CoreAction.this.getAppDomain();
-        // this.appDomain.getAppName();
         this.collection = collection;
-        this.workflowName = workflowName;
+        this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
         this.dbTableNamesGetter = dbTableNamesGetter;
         if (incrScriptTimestamp < 1) {
             throw new IllegalArgumentException("illegal incrScriptTimestamp can not small than 1");
@@ -88,39 +84,33 @@ public class IndexStreamCodeGenerator {
 
     private void initialize() throws Exception {
         // FullbuildWorkflowAction.getDataflowTopology(CoreAction.this, this.workFlow);
-        this.dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.workflowName);
-        this.dbTables = getDependencyTables(dfTopology);
+       // this.dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.workflowName);
+      //  this.dbTables = getDependencyTables(dfTopology);
         facadeList = Lists.newArrayList();
         streamCodeGenerator = new StreamComponentCodeGenerator(
-                this.collection, incrScriptTimestamp, facadeList, dfTopology, excludeFacadeDAOSupport);
+                this.collection, incrScriptTimestamp, facadeList, this.streamIncrGenerateStrategy, excludeFacadeDAOSupport);
         this.streamScriptRootDir = StreamContextConstant.getStreamScriptRootDir(this.collection, incrScriptTimestamp);
     }
 
-    private Map<DBNode, List<String>> /* tables */
-            dbTables;
+//    private Map<DBNode, List<String>> /* tables */
+//            dbTables;
 
     public Map<DBNode, List<String>> getDbTables() {
-        return this.dbTables;
+        return this.streamIncrGenerateStrategy.getDependencyTables( this.dbTableNamesGetter);
     }
 
-    // public Set<DBNode> getDbSet() {
-    // return this.dbTables.keySet();
-    // }
     public boolean isIncrScriptDirCreated() {
         return this.streamCodeGenerator.isIncrScriptDirCreated();
     }
 
-    // getIncrScriptDir().getAbsolutePath()
     public String getIncrScriptDirPath() {
         return this.streamCodeGenerator.getIncrScriptDir().getAbsolutePath();
     }
 
-    // public AppDomainInfo getAppDomain() {
-    // return appDomain;
-    // }
-    public SqlTaskNodeMeta.SqlDataFlowTopology getDfTopology() {
-        return dfTopology;
-    }
+
+//    public SqlTaskNodeMeta.SqlDataFlowTopology getDfTopology() {
+//        return dfTopology;
+//    }
 
     public long getIncrScriptTimestamp() {
         return this.incrScriptTimestamp;
@@ -174,9 +164,10 @@ public class IndexStreamCodeGenerator {
         // this.streamCodeGenerator.generateConfigFiles(this.mqConfigMetas);
     }
 
-    public void saveDbDependencyMetaConfig() throws Exception {
-        this.dbTables.keySet();
-    }
+   // public void saveDbDependencyMetaConfig() throws Exception {
+//        streamIncrGenerateStrategy.getDependencyTables(this.dbTableNamesGetter);
+//        this.dbTables.keySet();
+   // }
 
     // public File getMqConfigMetaFile() {
     // return new File(this.streamScriptRootDir, "meta/mq_config.yaml");
@@ -190,47 +181,30 @@ public class IndexStreamCodeGenerator {
     // , StreamContextConstant.DIR_META + "/" + StreamContextConstant.FILE_DB_DEPENDENCY_CONFIG);
     // }
 
-    /**
-     * 取得依赖的db->table映射关系
-     */
-    private Map<DBNode, /* dbname */
-            List<String>> getDependencyTables(SqlTaskNodeMeta.SqlDataFlowTopology dfTopology) throws Exception {
-        Map<DBNode, List<String>> /* tables */
-                dbNameMap = Maps.newHashMap();
-        List<String> tables = null;
-        DBNode dbNode = null;
-        for (DependencyNode node : dfTopology.getDumpNodes()) {
-            dbNode = new DBNode(node.getDbName(), Integer.parseInt(node.getDbid()));
-            node.parseEntityName();
-            tables = dbNameMap.get(dbNode);
-            if (tables == null) {
-                // DB 下的全部table
-                tables = Lists.newArrayList();
-                dbNameMap.put(dbNode, tables);
-                // DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-                // tableCriteria.createCriteria().andDbIdEqualTo(Integer.parseInt(node.getDbid()));
-                // List<DatasourceTable> tableList = CoreAction.this.getWorkflowDAOFacade().getDatasourceTableDAO()
-                // .selectByExample(tableCriteria);
-                // dbNameMap.put(dbNode,
-                // tableList.stream().map((t) -> t.getName()).collect(Collectors.toList()));
-            }
-            tables.add(node.getName());
-        }
-        for (Map.Entry<DBNode, List<String>> /* tables */
-                entry : dbNameMap.entrySet()) {
-            entry.setValue(dbTableNamesGetter.getTableNames(entry.getKey().getDbId(), entry.getValue()));
-        }
-        return dbNameMap;
-    }
+//    /**
+//     * 取得依赖的db->table映射关系
+//     */
+//    private Map<DBNode, /** dbname */List<String>> getDependencyTables(SqlTaskNodeMeta.SqlDataFlowTopology dfTopology) throws Exception {
+//        Map<DBNode, List<String>> /* tables */dbNameMap = Maps.newHashMap();
+//        List<String> tables = null;
+//        DBNode dbNode = null;
+//        for (DependencyNode node : dfTopology.getDumpNodes()) {
+//            dbNode = new DBNode(node.getDbName(), Integer.parseInt(node.getDbid()));
+//            node.parseEntityName();
+//            tables = dbNameMap.get(dbNode);
+//            if (tables == null) {
+//                // DB 下的全部table
+//                tables = Lists.newArrayList();
+//                dbNameMap.put(dbNode, tables);
+//            }
+//            tables.add(node.getName());
+//        }
+//        for (Map.Entry<DBNode, List<String>> /* tables */
+//                entry : dbNameMap.entrySet()) {
+//            entry.setValue(dbTableNamesGetter.getTableNames(entry.getKey().getDbId(), entry.getValue()));
+//        }
+//        return dbNameMap;
+//    }
 
 
-    public interface IDBTableNamesGetter {
-
-        /**
-         * @param dbId
-         * @param reWriteableTables 为dataflow中已经使用到的table枚举，在实现方法中可以通过 dbId在系统库中补充
-         * @return
-         */
-        public List<String> getTableNames(Integer dbId, List<String> reWriteableTables);
-    }
 }

@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -101,7 +101,11 @@ public class Assert {
             return;
         if (expected != null && expected.equals(actual))
             return;
-        throw new RuntimeException(message + "expected:" + expected + ",actual:" + actual);
+
+//        return formatted + "expected:<" + expectedString + "> but was:<"
+//                + actualString + ">";
+
+        throw new AssertionError(message + "expected:<" + expected + ">,but was:<" + actual + ">");
     }
 
     /**
@@ -122,7 +126,7 @@ public class Assert {
             if (!(expected == actual))
                 failNotEquals(message, new Double(expected), new Double(actual));
         } else if (// Because
-        !(Math.abs(expected - actual) <= delta))
+                !(Math.abs(expected - actual) <= delta))
             // comparison with
             // NaN always
             // returns false

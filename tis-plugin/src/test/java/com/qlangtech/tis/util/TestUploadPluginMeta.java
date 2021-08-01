@@ -14,15 +14,37 @@
  */
 package com.qlangtech.tis.util;
 
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import junit.framework.TestCase;
+import org.easymock.EasyMock;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-07-20 13:21
  */
 public class TestUploadPluginMeta extends TestCase {
+
+
+    public void testUncacheAttribute() {
+        String groovyScript = "com.qlangtech.tis.plugin.datax.DataXMongodbWriter.getDftColumn()";
+        UploadPluginMeta parseResult = UploadPluginMeta.parse(groovyScript + ":uncache_true");
+        assertTrue(parseResult.getBoolean(UploadPluginMeta.KEY_UNCACHE));
+        assertEquals(groovyScript, parseResult.getName());
+    }
+
+    public void testDataXReaderWithExecId() {
+        String rawContent = "dataxReader:require,dataxName_mysql_mysql,execId_fe4e79f1-9f05-6976-7604-db6d1c3ad391";
+        UploadPluginMeta parseResult = UploadPluginMeta.parse(rawContent);
+        assertNotNull(parseResult);
+        assertTrue(parseResult.isRequired());
+        assertEquals("dataxReader", parseResult.getName());
+        assertEquals("mysql_mysql", parseResult.getExtraParam("dataxName"));
+        assertEquals("fe4e79f1-9f05-6976-7604-db6d1c3ad391", parseResult.getExtraParam("execId"));
+    }
 
     public void testPluginMetaParse() {
         //  String pluginName = "dsname_yuqing_zj2_bak";
@@ -61,5 +83,33 @@ public class TestUploadPluginMeta extends TestCase {
         assertEquals(pluginName, meta.getName());
         assertTrue(meta.isRequired());
         assertEquals(dbName, meta.getExtraParam(dsnameKey));
+
+
+        //=======================================================================
+        final String targetDescriptor = "MySQLDataxReader";
+        final String subFieldName = "subFieldName";
+
+        plugins = new String[]{pluginName + ":" + IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME
+                + "_" + targetDescriptor + "," + IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_" + subFieldName + ",require"};
+
+        pluginMetas = UploadPluginMeta.parse(plugins);
+
+        assertEquals(1, pluginMetas.size());
+        meta = pluginMetas.get(0);
+        assertTrue(meta.isRequired());
+        Optional<IPropertyType.SubFormFilter> subFormFilter = meta.getSubFormFilter();
+        assertTrue(subFormFilter.isPresent());
+        IPropertyType.SubFormFilter filter = subFormFilter.get();
+
+        assertEquals(subFieldName, filter.subFieldName);
+        Descriptor descriptor = EasyMock.createMock("descriptor", Descriptor.class);
+        EasyMock.expect(descriptor.getDisplayName()).andReturn(targetDescriptor);
+        EasyMock.expect(descriptor.getDisplayName()).andReturn("dddd");
+
+        EasyMock.replay(descriptor);
+        assertTrue(filter.match(descriptor));
+        assertFalse(filter.match(descriptor));
+        EasyMock.verify(descriptor);
+
     }
 }

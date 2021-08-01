@@ -16,7 +16,7 @@ package com.qlangtech.tis.indexbuilder.columnProcessor.impl;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.indexbuilder.columnProcessor.AdapterExternalDataColumnProcessor;
-import com.qlangtech.tis.solrdao.SolrFieldsParser.ParseResult;
+import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import org.apache.commons.codec.digest.DigestUtils;

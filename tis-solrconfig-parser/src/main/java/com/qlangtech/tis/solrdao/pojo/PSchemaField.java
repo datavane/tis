@@ -14,7 +14,12 @@
  */
 package com.qlangtech.tis.solrdao.pojo;
 
+import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
+import com.qlangtech.tis.runtime.module.misc.TokenizerType;
+import com.qlangtech.tis.runtime.module.misc.VisualType;
 import com.qlangtech.tis.solrdao.ISchemaField;
+import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.SolrFieldsParser.SolrType;
 import org.apache.commons.lang.StringUtils;
 
@@ -22,27 +27,15 @@ import org.apache.commons.lang.StringUtils;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class PSchemaField implements ISchemaField {
+public class PSchemaField extends BasicSchemaField {
 
-    // 分词类型
-    private String tokenizerType;
-
-    private String name;
 
     private SolrType type;
 
-    private boolean indexed;
-
-    private boolean stored;
-
-    private boolean required;
-
-    private boolean mltiValued;
-
     // 是否为动态字段
     private boolean dynamic;
+    private String defaultValue;
 
-    private boolean docValue;
 
     private boolean useDocValuesAsStored;
 
@@ -54,15 +47,6 @@ public class PSchemaField implements ISchemaField {
         this.useDocValuesAsStored = useDocValuesAsStored;
     }
 
-    public boolean isDocValue() {
-        return docValue;
-    }
-
-    public void setDocValue(boolean docValue) {
-        this.docValue = docValue;
-    }
-
-    private String defaultValue;
 
     public String getDefaultValue() {
         return defaultValue;
@@ -80,10 +64,6 @@ public class PSchemaField implements ISchemaField {
         this.dynamic = dynamic;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return StringUtils.equals(name, ((PSchemaField) obj).name);
-    }
 
     public String getSetMethodName() {
         return "set" + StringUtils.capitalize(this.getPropertyName());
@@ -102,7 +82,7 @@ public class PSchemaField implements ISchemaField {
     }
 
     public String getPropertyName() {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         boolean isLetterGap = false;
         char[] nameChar = this.name.toCharArray();
         for (int i = 0; i < nameChar.length; i++) {
@@ -128,22 +108,6 @@ public class PSchemaField implements ISchemaField {
         return name.hashCode();
     }
 
-    public boolean isRequired() {
-        return required;
-    }
-
-    public void setRequired(boolean required) {
-        this.required = required;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public SolrType getType() {
         return type;
@@ -157,62 +121,58 @@ public class PSchemaField implements ISchemaField {
         this.type = type;
     }
 
-    public boolean isIndexed() {
-        return indexed;
-    }
-
-    public void setIndexed(boolean indexed) {
-        this.indexed = indexed;
-    }
-
-    public boolean isMltiValued() {
-        return mltiValued;
-    }
-
-    @Override
-    public boolean isMultiValue() {
-        return isMltiValued();
-    }
-
-    public void setMltiValued(boolean mltiValued) {
-        this.mltiValued = mltiValued;
-    }
 
     @Override
     public boolean isStored() {
-        return useDocValuesAsStored || stored;
+        return useDocValuesAsStored || super.isStored();
     }
 
-    public void setStored(boolean stored) {
-        this.stored = stored;
-    }
 
     @Override
     public String getTisFieldTypeName() {
-        // return this.type.getSolrType();
         return this.type.getSType().getName();
     }
 
     @Override
-    public String toString() {
-        return "{ name='" + name + '\'' +
-                ", indexed=" + indexed +
-                ", stored=" + stored +
-                ", docValue=" + docValue +
-                '}';
+    public void serialVisualType2Json(JSONObject f) {
+
+        if (this.getType() == null) {
+            throw new IllegalStateException("field:" + this.getName() +
+                    " 's fieldType is can not be null");
+        }
+//            serialVisualType2Json(f, this.getType());
+        SolrFieldsParser.SolrType solrType = this.getType();
+        String type = solrType.getSType().getName();
+        TokenizerType tokenizerType = TokenizerType.parse(type);
+        if (tokenizerType == null) {
+            // 非分词字段
+            if (solrType.tokenizerable) {
+                setStringType(f, type, ReflectSchemaFieldType.STRING.literia);
+            } else {
+                f.put("split", false);
+                VisualType vtype = TokenizerType.visualTypeMap.get(type);
+                if (vtype != null) {
+                    f.put(ISchemaField.KEY_FIELD_TYPE, vtype.getType());
+                    return;
+                }
+                f.put(ISchemaField.KEY_FIELD_TYPE, type);
+            }
+        } else {
+            // 分词字段
+            setStringType(f, tokenizerType.getKey(), ReflectSchemaFieldType.STRING.literia);
+        }
+//        } else {
+//            throw new IllegalStateException("field:" + this.getName() + " 's fieldType is can not be null");
+//        }
     }
 
-    /**
-     * 分词类型
-     *
-     * @param tokenizerType
-     */
-    public void setTokenizerType(String tokenizerType) {
-        this.tokenizerType = tokenizerType;
-    }
 
     @Override
-    public String getTokenizerType() {
-        return this.tokenizerType;
+    public String toString() {
+        return "{ name='" + name + '\'' +
+                ", indexed=" + isIndexed() +
+                ", stored=" + isStored() +
+                ", docValue=" + isDocValue() +
+                '}';
     }
 }

@@ -53,7 +53,6 @@ public class RobustReflectionConverter implements Converter {
     public static final String KEY_ATT_PLUGIN = "plugin";
 
     public static ThreadLocal<Set<XStream2.PluginMeta>> usedPluginInfo = new ThreadLocal<Set<XStream2.PluginMeta>>() {
-
         @Override
         protected Set<XStream2.PluginMeta> initialValue() {
             return new HashSet<XStream2.PluginMeta>();

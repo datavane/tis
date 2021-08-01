@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class Corenodemanage extends BasicScreen {
 
-    // private static final Log log = LogFactory.getLog(Corenodemanage.class);
+    // private static final Logger log = LoggerFactory.getLogger(Corenodemanage.class);
     private static final long serialVersionUID = 1L;
 
     @Override

@@ -97,7 +97,8 @@ public class SqlRewriter extends Formatter {
             StringBuffer result = new StringBuffer(a.getAlias() + "." + IDumpTable.PARTITION_PT + ",");
 
             // 如果当前是索引构建的场景下，需要校验是否已经设置分区键，这个判断非常重要2021/2/7，这个校验在最开始的点击触发按钮的时候也要校验
-            if (joinContext.getExecutePhaseRange().contains(FullbuildPhase.BUILD) && !TableMeta.hasValidPrimayTableSharedKey(ptab)) {
+            if (joinContext.getExecutePhaseRange().contains(FullbuildPhase.BUILD)
+                    && !TableMeta.hasValidPrimayTableSharedKey(ptab)) {
                 throw new IllegalStateException(ERROR_WithoutDefinePrimaryTableShareKey);
             }
 
