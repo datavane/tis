@@ -39,7 +39,7 @@ public interface TriggerJobConsole extends Remote {
 	/**
 	 * Í£Ö¹Ö´ÐÐ
 	 * 
-	 * @param jobids
+	 * @param
 	 * @throws RemoteException
 	 */
 	public void pause(String coreName) throws RemoteException;

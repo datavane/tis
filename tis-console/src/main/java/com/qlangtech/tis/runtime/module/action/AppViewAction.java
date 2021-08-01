@@ -23,7 +23,6 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria.Criteria;
 import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.spring.aop.Func;
-import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -93,10 +92,10 @@ public class AppViewAction extends BasicModule {
 
     apps = this.getApplicationDAO().selectByExample(query, pager.getCurPage(), pager.getRowsPerPage());
     apps.forEach((app) -> {
-      WorkFlow df = null;
-      if (app.getWorkFlowId() != null && (df = getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId())) != null) {
-        app.setDataflowName(df.getName());
-      }
+//      WorkFlow df = null;
+//      if (app.getWorkFlowId() != null && (df = getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId())) != null) {
+//        app.setDataflowName(df.getName());
+//      }
     });
     this.setBizResult(context, new PaginationResult(pager, apps));
   }
