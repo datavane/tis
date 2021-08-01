@@ -85,7 +85,7 @@ public class TestUpdateCenter extends TestCase {
 
     private HttpUtils.CacheMockRes getUpdateSiteHttpStub() {
         if (HttpUtils.mockConnMaker != null) {
-            HttpUtils.mockConnMaker.clearStubs();
+           // HttpUtils.mockConnMaker.clearStubs();
         }
         return HttpUtils.addMockApply(0, "http://mirror.qlangtech.com/update-site/default.json", "default-update-site.json", TestUpdateCenter.class);
     }

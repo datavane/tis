@@ -18,6 +18,8 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 
  ![tis](docs/tis-synoptic.png)
  
+## 功能一瞥 
+ 
 ## 相关代码 
 
 - WEB UI [https://github.com/qlangtech/ng-tis](https://github.com/qlangtech/ng-tis)
