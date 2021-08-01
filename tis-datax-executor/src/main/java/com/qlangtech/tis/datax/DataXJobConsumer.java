@@ -226,8 +226,13 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
             // 等待5个小时
             resultHandler.waitFor(5 * 60 * 60 * 1000);
 
-            if (resultHandler.getExitValue() != 0) {
+            if (resultHandler.hasResult() && resultHandler.getExitValue() != 0) {
                 // it was killed on purpose by the watchdog
+                if (resultHandler.getException() != null) {
+//                resultHandler.getException().printStackTrace();
+                    logger.error("dataX:" + dataxName, resultHandler.getException());
+//            }
+                }
             }
 
 
