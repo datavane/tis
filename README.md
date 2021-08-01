@@ -3,17 +3,27 @@
 [![Stargazers over time](https://starchart.cc/qlangtech/tis-solr.svg)](https://starchart.cc/qlangtech/tis-solr)
 ![tis](docs/tis-logo.png)
 ## TIS介绍
-TIS平台是一套为企业级用户提供大数据多维、实时、查询的搜索中台产品。用户可以在TIS上自助快速构建搜索服务，它大大降低了搜索技术的门槛 [详细说明](http://tis.pub/docs/) 
 
+TIS快速为您构建企业级数仓库服务，**基于DataX，提供简单易用的 操作界面，降低用户使用DataX的学习成本，缩短任务配置时间，避免配置过程中出错，使数据抽取变得简单、易用** [详细介绍](http://tis.pub/docs/enhance-extra/) 
+<!--
+TIS平台是一套为企业级用户提供大数据多维、实时、查询的搜索中台产品。用户可以在TIS上自助快速构建搜索服务，它大大降低了搜索技术的门槛 [详细说明](http://tis.pub/docs/) 
+-->
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
  
 ## 安装说明
 
-  通过Ansible脚本快速将TIS在分布式环境中一键安装（支持私有云、公有云等环境），方便、快捷 [详细说明](http://tis.pub/docs/install/)
+  速将TIS在分布式环境中一键安装（支持私有云、公有云等环境），方便、快捷 [详细说明](http://tis.pub/docs/install/uber)
 
 ## 架构
 
  ![tis](docs/tis-synoptic.png)
+ 
+## 相关代码 
+
+- WEB UI [https://github.com/qlangtech/ng-tis](https://github.com/qlangtech/ng-tis)
+- 基于Ansible的打包工具 [https://github.com/qlangtech/tis-ansible](https://github.com/qlangtech/tis-ansible)
+- TIS 插件 [https://github.com/qlangtech/plugins](https://github.com/qlangtech/plugins)
+- TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
  
 ## 许可协议
 
