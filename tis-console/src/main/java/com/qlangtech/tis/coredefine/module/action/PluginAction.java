@@ -252,9 +252,24 @@ public class PluginAction extends BasicModule {
           }
           updateCenter.persistInstallStatus();
           if (!failures) {
-            // try (ACLContext acl = ACL.as2(currentAuth)) {
+
             InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
-            //}
+            // 为了让Assemble等节点的uberClassLoader重新加载一次，需要主动向Assemble等节点发送一个指令
+            try {
+              URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + TIS.KEY_ACTION_CLEAN_TIS + "=true");
+              HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
+                @Override
+                public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                  logger.info("has apply clean TIS cache " + TIS.KEY_ACTION_CLEAN_TIS);
+                  return null;
+                }
+              });
+            } catch (Exception e) {
+              //throw new RuntimeException("extendPoint:" + extendPoint, e);
+              logger.warn("apply clean TIS cache faild " + e.getMessage());
+            }
+
+
           }
         }
       }.start();

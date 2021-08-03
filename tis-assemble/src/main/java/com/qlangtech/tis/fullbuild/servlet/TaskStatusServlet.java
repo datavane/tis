@@ -60,6 +60,13 @@ public class TaskStatusServlet extends HttpServlet {
             throw new ServletException("clean plugin store cache faild ", e);
         }
 
+        if (Boolean.parseBoolean(req.getParameter(TIS.KEY_ACTION_CLEAN_TIS))) {
+            TIS.clean();
+            logger.info(" clean TIS cache", extendPoint);
+            return;
+        }
+
+
         int taskid = Integer.parseInt(req.getParameter(IParamContext.KEY_TASK_ID));
         // 是否要获取全部的日志信息，比如dump已經完成了，那麼只需要獲取dump之後的日志信息
         // boolean all = Boolean.parseBoolean(req.getParameter("all"));

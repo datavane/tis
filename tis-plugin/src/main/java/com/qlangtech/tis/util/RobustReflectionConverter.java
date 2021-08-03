@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
- * Custom {@link ReflectionConverter} that handle errors more gracefully.
+ * Custom  that handle errors more gracefully.
  * <ul>
  * <li>If the field is missing, the value is ignored instead of causing an error.
  *     This makes evolution easy.
