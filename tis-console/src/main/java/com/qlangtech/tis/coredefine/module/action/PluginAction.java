@@ -223,7 +223,8 @@ public class PluginAction extends BasicModule {
 
     final TIS tis = TIS.get();
 
-    if (!tis.getInstallState().isSetupComplete()) {
+    //TODO: 每个安装流程都要进来
+    if (true || !tis.getInstallState().isSetupComplete()) {
       tis.setInstallState(InstallState.INITIAL_PLUGINS_INSTALLING);
       updateCenter.persistInstallStatus();
       new Thread() {
