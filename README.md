@@ -20,6 +20,14 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
  
 ## 功能一瞥 
 
+- 视频示例
+    * [安装示例](https://www.bilibili.com/video/BV18q4y1p73B/)
+    * [启用分布式执行功能](https://www.bilibili.com/video/BV1Cq4y1D7z4?share_source=copy_web)
+    * [MySQL导入ElasticSearch](https://www.bilibili.com/video/BV1G64y1B7wm?share_source=copy_web)
+    * [MySQL导入Hive](https://www.bilibili.com/video/BV1Vb4y1z7DN?share_source=copy_web)
+    * [MySQL导入Clickhouse](https://www.bilibili.com/video/BV1x64y1B7V8/)
+
+
 选择Reader/Writer插件类型
   ![tis](docs/datax-add-step2.png)
 

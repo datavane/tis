@@ -73,21 +73,24 @@ public class PluginAction extends BasicModule {
       public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
         final String extendPoint = event.heteroEnum.extensionPoint.getName();
         // @see "com.qlangtech.tis.fullbuild.servlet.TaskStatusServlet"
-        try {
-          URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + DescriptorsJSON.KEY_EXTEND_POINT + "=" + extendPoint);
-          HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
-            @Override
-            public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-              logger.info("has apply clean pluginStore cache by " + DescriptorsJSON.KEY_EXTEND_POINT + " " + extendPoint);
-              return null;
-            }
-          });
-        } catch (Exception e) {
-          //throw new RuntimeException("extendPoint:" + extendPoint, e);
-          logger.warn("apply clean pluginStore cache faild " + e.getMessage());
-        }
+        notifyPluginUpdate2AssembleNode(DescriptorsJSON.KEY_EXTEND_POINT + "=" + extendPoint, "pluginStore");
       }
     }));
+  }
+
+  private static void notifyPluginUpdate2AssembleNode(String applyParams, String targetResource) {
+    try {
+      URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + applyParams);
+      HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
+        @Override
+        public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+          logger.info("has apply clean " + targetResource + " cache by " + applyParams);
+          return null;
+        }
+      });
+    } catch (Exception e) {
+      logger.warn("apply clean " + targetResource + " cache faild " + e.getMessage());
+    }
   }
 
   /**
@@ -256,21 +259,7 @@ public class PluginAction extends BasicModule {
 
             InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
             // 为了让Assemble等节点的uberClassLoader重新加载一次，需要主动向Assemble等节点发送一个指令
-            try {
-              URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + TIS.KEY_ACTION_CLEAN_TIS + "=true");
-              HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
-                @Override
-                public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                  logger.info("has apply clean TIS cache " + TIS.KEY_ACTION_CLEAN_TIS);
-                  return null;
-                }
-              });
-            } catch (Exception e) {
-              //throw new RuntimeException("extendPoint:" + extendPoint, e);
-              logger.warn("apply clean TIS cache faild " + e.getMessage());
-            }
-
-
+            notifyPluginUpdate2AssembleNode(TIS.KEY_ACTION_CLEAN_TIS + "=true", "TIS");
           }
         }
       }.start();
