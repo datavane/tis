@@ -165,7 +165,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
             }
             getAllTransferChannel(result);
         });
-        // "/tis/incr-transfer-group/incr-state-collect"
+
         ZkUtils.registerAddress2ZK(// "/tis/incr-transfer-group/incr-state-collect"
                 this.zkClient, // "/tis/incr-transfer-group/incr-state-collect"
                 ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, exportPort);

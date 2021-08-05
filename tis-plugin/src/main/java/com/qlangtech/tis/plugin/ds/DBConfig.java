@@ -17,6 +17,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
 import org.apache.commons.lang.StringUtils;

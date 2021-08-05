@@ -17,6 +17,7 @@ package com.qlangtech.tis.solrj.util;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.SolrZkClient;
@@ -26,8 +27,6 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.Inet4Address;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -102,16 +101,13 @@ public class ZkUtils {
      * @throws InterruptedException
      */
     public static String registerAddress2ZK(final TisZkClient zookeeper, final String zkPath, final int port) throws KeeperException, InterruptedException {
-        try {
-            String ip = Inet4Address.getLocalHost().getHostAddress();
+
+        String ip = NetUtils.getHost();
+        registerMyIp(zkPath, ip, port, zookeeper.getZK());
+        zookeeper.addOnReconnect(() -> {
             registerMyIp(zkPath, ip, port, zookeeper.getZK());
-            zookeeper.addOnReconnect(() -> {
-                registerMyIp(zkPath, ip, port, zookeeper.getZK());
-            });
-            return ip;
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+        });
+        return ip;
     }
 
     /**
@@ -145,7 +141,6 @@ public class ZkUtils {
         } catch (Exception e) {
             logger.error(e.getMessage() + "\n zkpath:" + zkpath, e);
             throw new ZooKeeperException(SolrException.ErrorCode.SERVER_ERROR, e.getMessage() + "\n zkpath:" + zkpath, e);
-            // throw new RuntimeException(e);
         }
     }
 
@@ -164,13 +159,6 @@ public class ZkUtils {
             }
             registerContent(parentNodepath + "/nodes", ip, zookeeper);
             return ip;
-            // String[] pathname = StringUtils.split(parentNodepath,
-            // PATH_SPLIT);
-            // StringBuffer path = new StringBuffer();
-            // guaranteeExist(zookeeper, path, pathname, 0);
-            //
-            // zookeeper.create(parentNodepath + "/nodes", ip.getBytes(),
-            // CreateMode.EPHEMERAL_SEQUENTIAL, true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -208,16 +196,6 @@ public class ZkUtils {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        // String fromZkAddress = args[0];
-        // String toZkAddress = args[1];
-        // 
-        // System.out.println("fromZkAddress:" + fromZkAddress);
-        // System.out.println("toZkAddress:" + toZkAddress);
-        // 
-        // TisZkClient fromZk = new TisZkClient(fromZkAddress, 30000);
-        // TisZkClient toZk = new TisZkClient(toZkAddress, 30000);
-        // final String parent = PATH_SPLIT;
-        // processNode(fromZk, toZk, parent);
         System.out.println("start");
         String[] pathname = new String[]{"a", "b"};
         pathname = Arrays.copyOfRange(pathname, 0, pathname.length - 1);

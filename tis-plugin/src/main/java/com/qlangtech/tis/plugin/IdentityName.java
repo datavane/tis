@@ -15,6 +15,9 @@
 package com.qlangtech.tis.plugin;
 
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+
+import java.util.Objects;
 
 /**
  * The plugin global unique identity name
@@ -40,7 +43,9 @@ public interface IdentityName {
      */
     default String identityValue() {
         Describable plugin = (Describable) this;
-        return plugin.getDescriptor().getIdentityValue(plugin);
+        Descriptor des = plugin.getDescriptor();
+        Objects.requireNonNull(des, " Descriptor of Describable instance of " + plugin.getClass().getName());
+        return des.getIdentityValue(plugin);
     }
 
 }

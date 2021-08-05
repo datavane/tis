@@ -110,7 +110,6 @@ public class TransferStatusMBean extends BaseModelMBean implements InitializingB
             // "/consume";
             // .toString();
             String uuid = String.valueOf(UUID.randomUUID());
-            // String ip = Inet4Address.getLocalHost().getHostAddress();
             // if (StringUtils.equals("127.0.0.1", ip)) {
             // throw new IllegalStateException("ip can not be 127.0.0.1");
             // }
@@ -135,7 +134,6 @@ public class TransferStatusMBean extends BaseModelMBean implements InitializingB
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println(new String(Inet4Address.getLocalHost().getHostAddress()));
-        System.out.println(new String(Inet4Address.getLocalHost().getHostName()));
+
     }
 }

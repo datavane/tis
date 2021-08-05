@@ -16,6 +16,7 @@ package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -101,7 +102,7 @@ public class ManageUtils {
 
 
   public static String getServerIp() throws UnknownHostException {
-    return InetAddress.getLocalHost().getHostAddress();
+    return NetUtils.getHost();
   }
 
   public static boolean isInPauseState(boolean hasfulldump, boolean fulljobStop, boolean hasincrdump, boolean incrjobStop) {

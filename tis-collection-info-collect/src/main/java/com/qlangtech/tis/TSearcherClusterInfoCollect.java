@@ -23,6 +23,7 @@ import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.SendSMSUtils;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.tis.zookeeper.ZkPathUtils;
@@ -40,8 +41,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -527,11 +526,7 @@ public class TSearcherClusterInfoCollect implements // Daemon
         JSONObject result = new JSONObject();
         result.put("view_time", format.format(date));
         result.put(TIMESTAMP_PROPERTY, String.valueOf(date.getTime()));
-        try {
-            result.put("execute_ip", Inet4Address.getLocalHost().getHostAddress());
-        } catch (UnknownHostException e) {
-            log.error(e.getMessage(), e);
-        }
+        result.put("execute_ip", NetUtils.getHost());
         return result.toString().getBytes();
     }
 

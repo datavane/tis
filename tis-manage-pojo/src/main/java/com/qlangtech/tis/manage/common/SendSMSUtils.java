@@ -17,6 +17,7 @@ package com.qlangtech.tis.manage.common;
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
@@ -91,7 +92,7 @@ public class SendSMSUtils {
             }
             // 发送丁丁消息
             URL url = new URL("http://sm.2dfire-inc.com/sm-soa/sm/send_msg?msg="
-                    + URLEncoder.encode("from:" + Inet4Address.getLocalHost().getHostAddress() + "|" + content, TisUTF8.getName())
+                    + URLEncoder.encode("from:" + NetUtils.getHost() + "|" + content, TisUTF8.getName())
                     + "&tos=" + URLEncoder.encode(email.toString(), TisUTF8.getName()));
             logger.info("dingding url:" + url);
             ConfigFileContext.processContent(url, new StreamProcess<Object>() {
@@ -121,7 +122,7 @@ public class SendSMSUtils {
             logger.info("sms url:" + url);
             StringBuffer buffer = new StringBuffer();
             Map<String, String> paramString = new HashMap<>();
-            paramString.put("fromip", StringUtils.replace(Inet4Address.getLocalHost().getHostAddress(), ".", "-"));
+            paramString.put("fromip", StringUtils.replace(NetUtils.getHost(), ".", "-"));
             paramString.put("collection", "#");
             paramString.put("msg", content);
             Map<String, String> params = new HashMap<>();

@@ -142,7 +142,7 @@ public class TestIncrStatusServer extends BaseTestCase {
 
     private UpdateCounterMap createUpdateCounterMap(String uuid, boolean incrProcessPaused) {
         UpdateCounterMap updateCt = new UpdateCounterMap();
-        updateCt.setFrom(NetUtils.getHostname());
+        updateCt.setFrom(NetUtils.getHost());
         updateCt.setGcCounter(12);
         updateCt.setUpdateTime(System.currentTimeMillis() / 1000);
         TableSingleDataIndexStatus tableUpdateCounter = new TableSingleDataIndexStatus();

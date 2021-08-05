@@ -44,6 +44,12 @@ public class NetUtils {
 
     public static final String LOCAL_HOST_VALUE = "127.0.0.1";
 
+    public static void main(String[] args) {
+        System.out.println(getHostname());
+
+        System.out.println(getHost());
+    }
+
     /**
      * net system properties
      */

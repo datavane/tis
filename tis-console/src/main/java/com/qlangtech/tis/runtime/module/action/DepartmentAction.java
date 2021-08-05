@@ -113,19 +113,12 @@ public class DepartmentAction extends BasicModule {
     if (!Validator.validate(handler, context, validateRule)) {
       return false;
     }
-//    Integer parentid = this.getInt("parentid");
-//    String dptName = this.getString("dptName");
-//    if (StringUtils.isEmpty(dptName)) {
-//      this.addErrorMessage(context, "部门名称不能为空");
-//      return;
-//    }
+
     Department parentDpt = this.getDepartmentDAO().selectByPrimaryKey(dpt.getParentId());
     dpt.setFullName("/" + parentDpt.getName() + "/" + dpt.getName());
     dpt.setGmtCreate(new Date());
     dpt.setGmtModified(new Date());
     dpt.setLeaf(true);
-//    dpt.setName(dptName);
-//    dpt.setParentId(parentid);
     dptProcess.process(dpt);
     this.setBizResult(context, dpt);
     return true;

@@ -643,7 +643,6 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
     // InetSocketAddress address = server.getListenerAddress();
     // // NetUtils.createSocketAddrForHost(null,
     // // server.getListenerAddress().getPort());
-    // System.out.println(InetAddress.getLocalHost().getHostAddress());
     // System.out.println(address.getHostName());
     // System.out.println(address.getAddress().getHostName());
     // } catch (IOException e) {

@@ -62,7 +62,7 @@ public class TransferIncrContainer extends BasicTransferTool {
     public TransferIncrContainer(String collection, long timestamp, URLClassLoader classLoader) {
         super(classLoader, timestamp);
         this.collection = collection;
-        this.hostName = NetUtils.getHostname();
+        this.hostName = NetUtils.getHost();
     }
 
     public void start() throws Exception {
@@ -86,63 +86,6 @@ public class TransferIncrContainer extends BasicTransferTool {
         this.info("launch transfer node success");
     }
 
-    // /**
-    // * 发送节点状态到小米Falcon
-    // */
-    // void sendStatus2Falcon(List<IOnsListenerStatus> allChannels) throws Exception {
-    // 
-    // long timestamp = System.currentTimeMillis() / 1000;
-    // // 发送数据格式：https://book.open-falcon.org/zh/usage/data-push.html
-    // long fullgc = GCJmxUtils.getFullGC();
-    // long yonggc = GCJmxUtils.getYongGC();
-    // JSONArray result = new JSONArray();
-    // MonitorSysTagMarker tagMarker = null;
-    // for (IOnsListenerStatus status : allChannels) {
-    // 
-    // for (Map.Entry<String, IIncreaseCounter> entry : status.getUpdateStatic()) {
-    // if ((tagMarker = entry.getValue().getMonitorTagMarker()) != null
-    // && tagMarker.shallCollectByMonitorSystem()) {
-    // result.put(addMetric(hostName, timestamp, status.getCollectionName(), entry.getKey(),
-    // entry.getValue().getAccumulation(), CounterType.COUNTER, entry.getValue()));
-    // }
-    // }
-    // 
-    // result.put(addMetric(hostName, timestamp, status.getCollectionName(), "tis_buf_remain",
-    // status.getBufferQueueRemainingCapacity(), CounterType.GAUGE));
-    // result.put(addMetric(hostName, timestamp, status.getCollectionName(), "tis_consume_err",
-    // status.getConsumeErrorCount(), CounterType.COUNTER));
-    // result.put(addMetric(hostName, timestamp, status.getCollectionName(), "tis_ignore",
-    // status.getIgnoreRowsCount(), CounterType.COUNTER));
-    // // ===========================================================
-    // }
-    // 
-    // result.put(addMetric(hostName, timestamp, collectionNames, "incr_fullgc", fullgc, CounterType.COUNTER));
-    // result.put(addMetric(hostName, timestamp, collectionNames, "incr_yonggc", yonggc, CounterType.COUNTER));
-    // 
-    // String content = result.toString();
-    // // System.out.println(content);
-    // 
-    // HttpUtils.post(new URL("http://127.0.0.1:1988/v1/push"), content.getBytes(Charset.forName("utf8")),
-    // new PostFormStreamProcess<Object>() {
-    // 
-    // @Override
-    // public ContentType getContentType() {
-    // 
-    // return ContentType.TEXT_HTML;
-    // }
-    // 
-    // @Override
-    // public Object p(int status, InputStream stream, String md5) {
-    // // try {
-    // // System.out.println(IOUtils.toString(stream, "utf8"));
-    // // } catch (IOException e) {
-    // //
-    // // }
-    // 
-    // return null;
-    // }
-    // });
-    // }
     private void info(String msg) {
         System.out.println(msg);
     }
@@ -197,7 +140,7 @@ public class TransferIncrContainer extends BasicTransferTool {
 
         IncrStatusReportWorker(Collection<IOnsListenerStatus> incrChannels, Map<String, String> indexUUID) {
             super(incrChannels);
-            this.hostName = NetUtils.getHostname();
+            this.hostName = NetUtils.getHost();
             this.indexUUID = indexUUID;
         }
 

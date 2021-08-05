@@ -26,6 +26,7 @@ import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.pubhook.common.IPreTriggerProcess;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.trigger.biz.dal.dao.AppTrigger;
 import com.qlangtech.tis.trigger.biz.dal.dao.IJobMetaDataDAO;
 import com.qlangtech.tis.trigger.biz.dal.dao.ITerminatorTriggerBizDalDAOFacade;
@@ -49,10 +50,8 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.Inet4Address;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -215,11 +214,8 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
         JSONObject result = new JSONObject();
         result.put("view_time", format.format(date));
         result.put(TIMESTAMP_PROPERTY, String.valueOf(date.getTime()));
-        try {
-            result.put("execute_ip", Inet4Address.getLocalHost().getHostAddress());
-        } catch (UnknownHostException e) {
-            log.error(e.getMessage(), e);
-        }
+        result.put("execute_ip", NetUtils.getHost());
+
         return result.toString().getBytes();
     }
 

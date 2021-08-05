@@ -70,7 +70,7 @@ public class TisFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
 
     @Override
     protected String resolveHostname() throws UnknownHostException {
-        return NetUtils.getHostname();
+        return NetUtils.getHost();
     }
 
     //    @Override
