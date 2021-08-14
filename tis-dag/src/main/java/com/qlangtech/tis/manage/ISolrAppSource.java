@@ -49,11 +49,12 @@ public interface ISolrAppSource extends IBasicAppSource, IStreamIncrGenerateStra
      */
     boolean triggerFullIndexSwapeValidate(IMessageHandler msgHandler, Context ctx);
 
-    <T> T accept(ISolrAppSourceVisitor<T> visitor);
+    // <T> T accept(ISolrAppSourceVisitor<T> visitor);
 
     @Override
     default <T> T accept(IAppSourceVisitor<T> visitor) {
-        return visitor.visit(this);
+        //return visitor.visit(this);
+        throw new UnsupportedOperationException();
     }
 
     /**

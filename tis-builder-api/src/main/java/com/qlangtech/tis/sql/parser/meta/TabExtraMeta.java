@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -54,17 +54,11 @@ public class TabExtraMeta {
         return colTransfers;
     }
 
-    private Map<String, ColumnTransfer> /**
+    /**
      * colKey
      */
-    colTransfersMap;
+    private Map<String, ColumnTransfer> colTransfersMap;
 
-    // public Map<String /**colKey*/, ColumnTransfer> fetchColTransfersMap() {
-    // if (colTransfersMap == null) {
-    // colTransfersMap = this.colTransfers.stream().collect(Collectors.toMap((r) -> r.getColKey(), (r) -> r));
-    // }
-    // return colTransfersMap;
-    // }
     public void addColumnTransfer(ColumnTransfer colTransfer) {
         this.colTransfers.add(colTransfer);
     }

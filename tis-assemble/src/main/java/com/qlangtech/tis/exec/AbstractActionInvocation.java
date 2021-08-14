@@ -27,6 +27,8 @@ import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
@@ -94,7 +96,14 @@ public class AbstractActionInvocation implements ActionInvocation {
             IBasicAppSource appSource = chainContext.getAppSource();// DataFlowAppSource.load(chainContext.getIndexName());
             ints = appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
                 @Override
-                public IExecuteInterceptor[] visit(ISolrAppSource appSource) {
+                public IExecuteInterceptor[] visit(SingleTableAppSource single) {
+                    return visitSolrAppSource(single);
+                }
+                @Override
+                public IExecuteInterceptor[] visit(DataFlowAppSource dataflow) {
+                    return visitSolrAppSource(dataflow);
+                }
+                private IExecuteInterceptor[] visitSolrAppSource(ISolrAppSource appSource) {
 
                     Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
                     Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");

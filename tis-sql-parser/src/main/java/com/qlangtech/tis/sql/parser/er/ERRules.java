@@ -396,7 +396,7 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
     }
 
     /**
-     * 索引主标，如果索引是UNION结构，则返回的集合的size则大于1
+     * 索引主表，如果索引是UNION结构，则返回的集合的size则大于1
      *
      * @return
      */

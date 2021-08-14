@@ -25,7 +25,6 @@ import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.manage.ISolrAppSource;
-import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -66,10 +65,10 @@ public class SingleTableAppSource implements ISolrAppSource, IStreamIncrGenerate
         return tabId;
     }
 
-    @Override
-    public <T> T accept(ISolrAppSourceVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
+//    @Override
+//    public <T> T accept(ISolrAppSourceVisitor<T> visitor) {
+//        return visitor.visit(this);
+//    }
 
     @Override
     public boolean isExcludeFacadeDAOSupport() {

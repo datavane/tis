@@ -194,7 +194,7 @@ public class IncrUtils {
     final String KEY_MAX_HPA_POD = "maxHpaPod";
     final String KEY_CPU_AVERAGE_UTILIZATION = "cpuAverageUtilization";
 
-    boolean supportHpa = form.getBoolean("supportHpa");
+    boolean supportHpa = form.getBooleanValue("supportHpa");
     if (supportHpa) {
       // 支持弹性扩容
       Integer maxHpaPod = form.getInteger(KEY_MAX_HPA_POD);

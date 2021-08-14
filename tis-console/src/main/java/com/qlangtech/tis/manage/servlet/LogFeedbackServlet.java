@@ -128,6 +128,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
       this.taskid = Integer.parseInt(this.getParameter(IParamContext.KEY_TASK_ID, Collections.singletonList("-1")));
       this.collectionName = getParameter("collection", Collections.singletonList(MonotorTarget.DUMP_COLLECTION));
       List<RegisterMonotorTarget> typies = parseLogTypes(this.getParameter("logtype"));
+      logger.info("taskid:{},appname:{},typies:{}", this.taskid, this.collectionName
+        , typies.stream().map((t) -> String.valueOf(t)).collect(Collectors.joining(",")));
       try {
         if (this.taskid > 0 && typies.size() < 2) {
           buildTask = getBuildHistory();

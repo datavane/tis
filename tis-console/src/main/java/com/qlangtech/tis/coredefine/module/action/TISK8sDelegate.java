@@ -99,7 +99,7 @@ public class TISK8sDelegate {
       this.incrSync = k8sConfig.getIncrSync();
     }
 
-    this.indexName = indexName;
+    this.indexName = StringUtils.replace(indexName, "_", "-");
   }
 
   public static void main(String[] args) throws Exception {
@@ -132,6 +132,9 @@ public class TISK8sDelegate {
     if (!canGetCache || this.incrDeployment == null || (current > (latestIncrDeploymentFetchtime + 40000))) {
       latestIncrDeploymentFetchtime = current;
       this.incrDeployment = this.incrSync.getRCDeployment(this.indexName);
+      if (this.incrDeployment == null) {
+        return null;
+      }
       this.watchPodLogMap.entrySet().removeIf((entry) -> {
         return !incrDeployment.getPods().stream().filter((p) -> StringUtils.equals(p.getName(), entry.getKey())).findFirst().isPresent();
       });

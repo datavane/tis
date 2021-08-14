@@ -30,11 +30,12 @@ import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.InstanceDirDesc;
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
-import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
@@ -64,6 +65,7 @@ import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -211,7 +213,7 @@ public class CoreAction extends BasicModule {
   public static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
 
-    ISolrAppSource appSource = IAppSource.load(null, module.getCollectionName());
+    IStreamIncrGenerateStrategy appSource = IAppSource.load(null, module.getCollectionName());
     //Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
     //WorkFlow wf = module.loadDF(workFlowId);
     //SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
@@ -292,7 +294,7 @@ public class CoreAction extends BasicModule {
 
     // final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
 
-    ISolrAppSource appSource = IAppSource.load(null, this.getCollectionName());
+    IBasicAppSource appSource = IAppSource.load(null, this.getCollectionName());
 
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
@@ -357,9 +359,15 @@ public class CoreAction extends BasicModule {
 //  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
 //    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
-    ISolrAppSource appSource = IAppSource.load(null, module.getCollectionName());
+    IBasicAppSource appSource = IAppSource.load(null, module.getCollectionName());
 
-    Date scriptLastOpTime = appSource.accept(new ISolrAppSourceVisitor<Date>() {
+    Date scriptLastOpTime = appSource.accept(new IBasicAppSource.IAppSourceVisitor<Date>() {
+      @Override
+      public Date visit(DataxProcessor app) {
+        Application application = module.getApplicationDAO().selectByName(app.identityValue());
+        return application.getUpdateTime();
+      }
+
       @Override
       public Date visit(SingleTableAppSource single) {
         DatasourceTable table = module.getWorkflowDAOFacade().getDatasourceTableDAO().loadFromWriteDB(single.getTabId());
@@ -511,7 +519,8 @@ public class CoreAction extends BasicModule {
    * @return
    * @throws MalformedURLException
    */
-  private static TriggerBuildResult sendRequest2FullIndexSwapeNode(BasicModule module, final Context context, AppendParams appendParams) throws Exception {
+  private static TriggerBuildResult sendRequest2FullIndexSwapeNode(
+    BasicModule module, final Context context, AppendParams appendParams) throws Exception {
 
     List<HttpUtils.PostParam> params = appendParams.getParam();
     params.add(new PostParam(KEY_APPNAME, module.getCollectionName()));

@@ -112,24 +112,65 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
     }
 
 
+    /**
+     * 访问第一个JDBC Connection对象
+     *
+     * @param connProcessor
+     */
+    public final void visitFirstConnection(final IConnProcessor connProcessor) {
+        this.visitConnection(connProcessor, false);
+    }
+
+    /**
+     * 遍历所有conn
+     *
+     * @param connProcessor
+     */
+    public final void visitAllConnection(final IConnProcessor connProcessor) {
+        this.visitConnection(connProcessor, true);
+    }
+
+    private final void visitConnection(final IConnProcessor connProcessor, final boolean visitAll) {
+        try {
+            final DBConfig dbConfig = getDbConfig();
+            dbConfig.vistDbName((config, ip, databaseName) -> {
+                visitConnection(config, ip, databaseName, connProcessor);
+                return !visitAll;
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     @Override
     public final List<String> getTablesInDB() {
         try {
             final List<String> tabs = new ArrayList<>();
-            final DBConfig dbConfig = getDbConfig();
-            dbConfig.vistDbName((config, ip, databaseName) -> {
-                visitConnection(config, ip, databaseName, (conn) -> {
-                    refectTableInDB(tabs, conn);
-                });
-                return true;
+
+            this.visitFirstConnection((conn) -> {
+                refectTableInDB(tabs, conn);
             });
+
+//            final DBConfig dbConfig = getDbConfig();
+//            dbConfig.vistDbName((config, ip, databaseName) -> {
+//                visitConnection(config, ip, databaseName, (conn) -> {
+//                    refectTableInDB(tabs, conn);
+//                });
+//                return true;
+//            });
             return tabs;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected void refectTableInDB(List<String> tabs, Connection conn) throws SQLException {
+    @Override
+    public Connection getConnection(String jdbcUrl) throws SQLException {
+        return super.getConnection(jdbcUrl);
+    }
+
+    public void refectTableInDB(List<String> tabs, Connection conn) throws SQLException {
         Statement statement = null;
         ResultSet resultSet = null;
         try {

@@ -86,7 +86,7 @@ public class DataxAction extends BasicModule {
     params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
     params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.FullDump.getName()));
 
-    CoreAction.triggerBuild(this, context, params);
+    this.setBizResult(context, CoreAction.triggerBuild(this, context, params));
   }
 
   /**

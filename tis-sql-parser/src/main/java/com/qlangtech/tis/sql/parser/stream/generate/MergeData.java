@@ -16,6 +16,7 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 import com.qlangtech.tis.sql.parser.er.IERRules;
 import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
@@ -28,7 +29,6 @@ import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -53,8 +53,6 @@ public class MergeData {
     private final Set<PrimaryTableMeta> primaryTableNames;
     private final IERRules erRules;
 
-    // private final ERRules erRules;
-
     private final Map<String, FunctionVisitor.IToString> /**
      * method token
      */
@@ -67,11 +65,13 @@ public class MergeData {
     }
 
     public static String getJavaName(String collection) {
-        Matcher matcher = PATTERN_COLLECTION_NAME.matcher(collection);
-        if (!matcher.matches()) {
-            throw new IllegalStateException("collection:" + collection + " is not match the Pattern:" + PATTERN_COLLECTION_NAME);
-        }
-        return matcher.replaceFirst("S4$2");
+//        Matcher matcher = PATTERN_COLLECTION_NAME.matcher(collection);
+//        if (!matcher.matches()) {
+//            throw new IllegalStateException("collection:" + collection + " is not match the Pattern:" + PATTERN_COLLECTION_NAME);
+//        }
+//        return matcher.replaceFirst("S4$2");
+        // return StringUtils.capitalize(collection);
+        return String.valueOf( UnderlineUtils.removeUnderline(collection) );
     }
 
     /**
@@ -97,6 +97,7 @@ public class MergeData {
         }
         this.facadeContextList = facadeContextList;
         this.erRules = streamIncrGenerateStrategy.getERRule();
+        Objects.requireNonNull(erRules, "erRules can not be null");
         List<PrimaryTableMeta> primaryTabs = this.erRules.getPrimaryTabs();// erRules.getPrimaryTabs();
         // 索引的主索引表
         // Sets.newHashSet(new PrimaryTableMeta("totalpayinfo", "totalpay_id"));

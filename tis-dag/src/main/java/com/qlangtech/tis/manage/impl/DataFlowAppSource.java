@@ -33,7 +33,7 @@ import com.qlangtech.tis.fullbuild.taskflow.IFlatTableBuilder;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
 import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
 import com.qlangtech.tis.manage.ISolrAppSource;
-import com.qlangtech.tis.manage.ISolrAppSourceVisitor;
+
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -45,7 +45,6 @@ import com.qlangtech.tis.sql.parser.er.*;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
-import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TaskNodeTraversesCreatorVisitor;
@@ -65,7 +64,7 @@ import java.util.concurrent.Executors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:20
  */
-public class DataFlowAppSource implements ISolrAppSource, IStreamIncrGenerateStrategy {
+public class DataFlowAppSource implements ISolrAppSource {
     private static final Logger logger = LoggerFactory.getLogger("fullbuild");
     public static final File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_APP_DIR);
     private final String dataflowName;
@@ -81,10 +80,10 @@ public class DataFlowAppSource implements ISolrAppSource, IStreamIncrGenerateStr
         return this.dataflow.getId();
     }
 
-    @Override
-    public <T> T accept(ISolrAppSourceVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
+//    @Override
+//    public <T> T accept(ISolrAppSourceVisitor<T> visitor) {
+//        return visitor.visit(this);
+//    }
 
 
     @Override
@@ -149,7 +148,7 @@ public class DataFlowAppSource implements ISolrAppSource, IStreamIncrGenerateStr
     public ExecuteResult getProcessDataResults(IExecChainContext execChainContext
             , ISingleTableDumpFactory singleTableDumpFactory, IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception {
         // 执行工作流数据结构
-        SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataflowName);// execChainContext.getAttribute(IFullBuildContext.KEY_WORKFLOW_ID);
+        SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataflowName);
         Map<String, TISReactor.TaskAndMilestone> /*** taskid*/taskMap = Maps.newHashMap();
         // 取得workflowdump需要依赖的表
         Collection<DependencyNode> tables = topology.getDumpNodes();

@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
@@ -28,6 +29,14 @@ import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.sql.parser.DBNode;
+import com.qlangtech.tis.sql.parser.er.ERRules;
+import com.qlangtech.tis.sql.parser.er.IERRules;
+import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
+import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
+import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 
@@ -42,7 +51,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 16:46
  */
-public abstract class DataxProcessor implements IBasicAppSource, IdentityName, IDataxProcessor {
+public abstract class DataxProcessor implements IBasicAppSource, IdentityName, IDataxProcessor, IStreamIncrGenerateStrategy {
 
     protected static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
@@ -250,4 +259,37 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
 //        }
 //    },
 
+
+    /**
+     * =======================================
+     * impl:IStreamIncrGenerateStrategy
+     * =========================================
+     */
+    @Override
+    public boolean isExcludeFacadeDAOSupport() {
+        return true;
+    }
+
+    @Override
+    public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public IERRules getERRule() {
+        ERRules erRules = new ERRules() {
+            public List<PrimaryTableMeta> getPrimaryTabs() {
+                TabExtraMeta tabMeta = new TabExtraMeta();
+                PrimaryTableMeta ptab = new PrimaryTableMeta("tabName", tabMeta);
+                return Collections.singletonList(ptab);
+            }
+        };
+
+        return erRules;
+    }
 }
