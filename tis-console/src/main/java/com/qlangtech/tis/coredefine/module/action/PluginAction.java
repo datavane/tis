@@ -571,7 +571,7 @@ public class PluginAction extends BasicModule {
         datasourceDb = db;
         break;
       }
-      Objects.requireNonNull(datasourceDb, "datasourceDb can not be null");
+      Objects.requireNonNull(datasourceDb, "dbName:" + dbName + " relevant datasourceDb can not be null");
     }
 
     module.setBizResult(context, offlineManager.getDbConfig(module, datasourceDb));

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--~
+  ~ Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+  ~ <p>
+  ~   This program is free software: you can use, redistribute, and/or modify
+  ~   it under the terms of the GNU Affero General Public License, version 3
+  ~   or later ("AGPL"), as published by the Free Software Foundation.
+  ~ <p>
+  ~  This program is distributed in the hope that it will be useful, but WITHOUT
+  ~  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  ~   FITNESS FOR A PARTICULAR PURPOSE.
+  ~ <p>
+  ~  You should have received a copy of the GNU Affero General Public License
+  ~  along with this program. If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.qlangtech.tis</groupId>
+        <artifactId>tis-plugin-parent</artifactId>
+        <version>2.3.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <packaging>tpi</packaging>
+    <modelVersion>4.0.0</modelVersion>
+    <scm>
+        <connection>scm:git:git://github.com/qlangtech/plugins.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/qlangtech/plugins.git</developerConnection>
+        <url>https://github.com/qlangtech/plugins/tree/master/tis-datax-common-plugin</url>
+        <tag>HEAD</tag>
+    </scm>
+    <artifactId>tis-datax-common-plugin</artifactId>
+
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.qlangtech.tis.plugin</groupId>
+            <artifactId>tis-datax-test-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-plugin</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-dag</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-datax-executor</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.qlangtech.tis</groupId>
+                    <artifactId>tis-plugin</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.qlangtech.tis</groupId>
+                    <artifactId>tis-hadoop-rpc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.qlangtech.tis</groupId>
+                    <artifactId>logback-flume-appender</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+</project>

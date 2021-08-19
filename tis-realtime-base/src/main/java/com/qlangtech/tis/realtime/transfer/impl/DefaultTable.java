@@ -37,7 +37,6 @@ public class DefaultTable extends AbstractRowValueGetter implements ITable {
     public DefaultTable(String tableName, Table tableProcessor) {
         super(tableProcessor);
         this.tableName = (tableName);
-    // this.versionCreator = versionCreator;
     }
 
     /**
@@ -84,28 +83,6 @@ public class DefaultTable extends AbstractRowValueGetter implements ITable {
         }
     }
 
-    // private static final long VERSION_0 = 0;
-    /**
-     * 数据更新版本，一般以时间戳标记，防止在row更新過程中被脏数据覆盖
-     *
-     * @return
-     */
-    // public long getVersion() {
-    // return getVersion(this, versionCreator);
-    // }
-    // private static long getVersion(IRowValueGetter rvalGetter, RowVersionCreator[] versionCreator) {
-    // String version = null;
-    // inner:
-    // for (RowVersionCreator versionCol : versionCreator) {
-    // version = rvalGetter.getColumn(versionCol.getVersionColumnName());
-    // if (version == null) {
-    // continue inner;
-    // }
-    // 
-    // return versionCol.getVersion(version);
-    // }
-    // return 0l;
-    // }
     /**
      * 字符串是否相
      *
@@ -230,9 +207,6 @@ public class DefaultTable extends AbstractRowValueGetter implements ITable {
     @Override
     public String toString() {
         StringBuffer result = new StringBuffer();
-        // new StringBuffer("rowcontent:").append(this.rowDto.getRowContent()).append("\n");
-        // return "rowcontent:" + this.rowDto.getRowContent() +
-        // JSON.toJSONString(this, false);
         desc(result);
         return result.toString();
     }

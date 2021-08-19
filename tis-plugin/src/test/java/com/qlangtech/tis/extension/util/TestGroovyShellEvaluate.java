@@ -15,8 +15,8 @@
 package com.qlangtech.tis.extension.util;
 
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 import junit.framework.TestCase;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 
@@ -25,10 +25,18 @@ import java.util.List;
  * @date 2021-02-06 13:38
  */
 public class TestGroovyShellEvaluate extends TestCase {
+
     public void testEval() {
         List<Option> fieldTyps = GroovyShellEvaluate.eval("com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()");
         assertNotNull(fieldTyps);
-
-        assertTrue(CollectionUtils.isEqualCollection(com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all(), fieldTyps));
+        List<Option> allOpts = ReflectSchemaFieldType.all();
+        assertEquals(allOpts.size(), fieldTyps.size());
+        int index = 0;
+        Option actualOpt = null;
+        for (Option o : allOpts) {
+            actualOpt = fieldTyps.get(index++);
+            assertEquals("index:" + index, o.getName() + "_" + o.getValue()
+                    , actualOpt.getName() + "_" + actualOpt.getValue());
+        }
     }
 }

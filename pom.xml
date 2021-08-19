@@ -750,6 +750,9 @@
                     <!--
                     <test>TestAll</test>
 -->
+                    <includes>
+                        <include>**/TestAll.java</include>
+                    </includes>
                     <classpathDependencyExcludes>
                         <classpathDependencyExclude>log4j:log4j</classpathDependencyExclude>
                         <classpathDependencyExclude>org.slf4j:slf4j-log4j12</classpathDependencyExclude>

@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.config.yarn.IYarnConfig;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -26,9 +27,12 @@ import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.TestHeteroList;
 import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +41,14 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-25 11:09
  */
-public class TestComponentMeta extends TestCase  {
+public class TestComponentMeta extends TestCase {
 
-    static {
-//
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        CenterResource.setFetchFromCenterRepository(false);
+        HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();//.clearStubs();
         final String paramsConfig = "com.qlangtech.tis.config.ParamsConfig.xml";
         HttpUtils.addMockApply(paramsConfig, new LatestUpdateTimestampClasspathRes() {
             @Override
@@ -48,6 +56,11 @@ public class TestComponentMeta extends TestCase  {
                 return TestComponentMeta.class.getResourceAsStream(paramsConfig);
             }
         });
+
+        stubTpi("tis-datax-common-plugin.tpi");
+        stubTpi("tis-hive-flat-table-builder-plugin.tpi");
+        stubTpi("tis-k8s-plugin.tpi");
+        // stubTpi("tis-hive-flat-table-builder-plugin");
 
         String tableDumpFactory = "com.qlangtech.tis.offline.TableDumpFactory.xml";
         HttpUtils.addMockApply(tableDumpFactory, new LatestUpdateTimestampClasspathRes() {
@@ -64,25 +77,47 @@ public class TestComponentMeta extends TestCase  {
                 return TestComponentMeta.class.getResourceAsStream(indexBuilderTriggerFactory);
             }
         });
+
+        String flatTableBuilder = "com.qlangtech.tis.offline.FlatTableBuilder.xml";
+        HttpUtils.addMockApply(flatTableBuilder, new LatestUpdateTimestampClasspathRes() {
+            @Override
+            public InputStream getResourceAsStream() {
+                return TestComponentMeta.class.getResourceAsStream(flatTableBuilder);
+            }
+        });
+
+        System.clearProperty(Config.KEY_DATA_DIR);
+        TIS.clean();
+        Config.setTestDataDir();
+        TestHeteroList.setTISField();
+
+        // TIS.initialized = false;
     }
 
-
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        Config.setTestDataDir();
-        TIS.initialized = false;
+    private static void stubTpi(String tpiFileName) {
+        HttpUtils.addMockApply(tpiFileName, new LatestUpdateTimestampClasspathRes() {
+            @Override
+            public InputStream getResourceAsStream() {
+                String pluginFilePath = "/opt/data/tis/libs/plugins/" + tpiFileName;
+                try {
+                    return FileUtils.openInputStream(new File(pluginFilePath));
+                } catch (IOException e) {
+                    throw new RuntimeException(pluginFilePath, e);
+                }
+            }
+        });
     }
 
     /**
      * Assemble节点启动执行
      */
     public void testAssembleComponent() {
+
         ComponentMeta assembleComponent = TIS.getAssembleComponent();
         assembleComponent.synchronizePluginsFromRemoteRepository();
+        TIS.clean();
         IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
         assertNotNull("builderFactory can not be null", builderFactory);
-        //  Objects.requireNonNull(builderFactory, );
 
         PluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
         assertNotNull("flatTableBuilder can not be null", pluginStore.getPlugin());

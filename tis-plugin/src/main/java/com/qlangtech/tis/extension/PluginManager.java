@@ -575,8 +575,9 @@ public class PluginManager {
      */
     public PluginWrapper getPlugin(String shortName) {
         for (PluginWrapper p : getPlugins()) {
-            if (p.getShortName().equals(shortName))
+            if (p.getShortName().equals(shortName)){
                 return p;
+            }
         }
         return null;
     }

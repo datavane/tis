@@ -42,7 +42,7 @@ public class CenterResource {
     private static final Logger logger = LoggerFactory.getLogger(CenterResource.class);
     public static final String KEY_LAST_MODIFIED_EXTENDION = ".lastmodified";
 
-    private static final String KEY_notFetchFromCenterRepository = "notFetchFromCenterRepository";
+    public static final String KEY_notFetchFromCenterRepository = "notFetchFromCenterRepository";
 
     private static Boolean notFetchFromCenterRepository;
 
@@ -55,7 +55,14 @@ public class CenterResource {
     }
 
     public static void setNotFetchFromCenterRepository() {
-        System.setProperty(KEY_notFetchFromCenterRepository, String.valueOf(true));
+        //System.setProperty(KEY_notFetchFromCenterRepository, String.valueOf(true));
+
+        setFetchFromCenterRepository(true);
+    }
+
+    public static void setFetchFromCenterRepository(boolean notFetchFromCenterRepository) {
+        System.setProperty(KEY_notFetchFromCenterRepository, String.valueOf(notFetchFromCenterRepository));
+        CenterResource.notFetchFromCenterRepository = null;
     }
 
     private static void copyFromRemote2Local(final URL url, final File local) {
@@ -123,6 +130,7 @@ public class CenterResource {
             public List<ConfigFileContext.Header> getHeaders() {
                 return HEADER_GET_META;
             }
+
             @Override
             public List<String> p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                 if (isTargetResourceNotExist(headerFields)) {

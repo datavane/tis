@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class PluginItems {
 
-    public static List<Option> getExistDbs(String describleName) {
+    public static List<Option> getExistDbs(String... describleName) {
         String name = "com.qlangtech.tis.plugin.ds.mysql.MySQLDataSourceFactory";
         return Collections.singletonList(new Option("testDbName", "testDbName"));
     }

@@ -15,12 +15,20 @@
 package com.qlangtech.tis;
 
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.util.TestHeteroList;
 import junit.framework.TestCase;
 
 public class BasicTestCase extends TestCase {
-    static {
+
+    @Override
+    protected void setUp() throws Exception {
+        Config.setDataDir(Config.DEFAULT_DATA_DIR);
+        TestHeteroList.setTISField();
         CenterResource.setNotFetchFromCenterRepository();
+        HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
         HttpUtils.addMockGlobalParametersConfig();
+        TIS.clean();
     }
 }

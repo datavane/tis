@@ -27,6 +27,7 @@ import java.util.Map;
 public class DefaultRowValueGetter extends AbstractRowValueGetter implements IRowValueGetter {
 
     public UpdatePropsCollector updateProps;
+    public final Map<String, String> vals = new HashMap<>();
 
     public DefaultRowValueGetter(Table tableProcessor) {
         super(tableProcessor);
@@ -46,7 +47,7 @@ public class DefaultRowValueGetter extends AbstractRowValueGetter implements IRo
         return updateProps.vals;
     }
 
-    public final Map<String, String> vals = new HashMap<>();
+
 
     public void put(String key, String val) {
         val = this.processRawVal(key, val);

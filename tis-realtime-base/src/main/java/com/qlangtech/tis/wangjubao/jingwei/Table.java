@@ -29,14 +29,15 @@ public class Table {
     private static final Logger log = LoggerFactory.getLogger(Table.class);
 
     private final String name;
-
     // private String primaryKey;
     // private final String indexName;
     private final Set<String> ignorFields = new HashSet<String>();
-
     private final ParseResult schemaParseResult;
-
     private final List<ITableIgnorRule> recordIgnorRules = new ArrayList<ITableIgnorRule>();
+    private final Map<String, TabField> alias = new HashMap<String, TabField>();
+    // 在表中添加
+    // <deletecriteria>record['id']+'_'+record['sellerid']+'_'+record['buyer_id']+'_'+record['fieldId']</deletecriteria>
+    private TabField deleteCriteria;
 
     public void addRecordIgnorRule(ITableIgnorRule rule) {
         this.recordIgnorRules.add(rule);
@@ -92,9 +93,6 @@ public class Table {
         return ignorFields.contains(col) || this.schemaParseResult.dFields.getField(col) == null;
     }
 
-    // public String getIndexName() {
-    // return this.indexName;
-    // }
     public TabField findAliasColumn(String column) {
         TabField field = alias.get(column);
         return (field == null) ? null : field;
@@ -107,13 +105,6 @@ public class Table {
     public String getName() {
         return name;
     }
-
-    private final Map<String, TabField> alias = new HashMap<String, TabField>();
-
-    // 在表中添加
-    // <deletecriteria>record['id']+'_'+record['sellerid']+'_'+record['buyer_id']+'_'+record['fieldId']</deletecriteria>
-    private TabField deleteCriteria;
-
     public TabField getDeleteCriteria() {
         return deleteCriteria;
     }

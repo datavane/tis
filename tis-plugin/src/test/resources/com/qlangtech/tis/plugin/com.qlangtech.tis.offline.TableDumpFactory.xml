@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<com.qlangtech.tis.plugin.PluginStore plugin="tis-hdfs-plugin@2.2.0,tis-hive-flat-table-builder-plugin@2.2.0">
+<com.qlangtech.tis.plugin.PluginStore plugin="tis-hive-flat-table-builder-plugin@2.2.0">
     <plugins>
         <com.qlangtech.tis.fullbuild.indexbuild.impl.YarnTableDumpFactory plugin="tis-hive-flat-table-builder-plugin@2.2.0">
             <name>yarn_tab_dump</name>

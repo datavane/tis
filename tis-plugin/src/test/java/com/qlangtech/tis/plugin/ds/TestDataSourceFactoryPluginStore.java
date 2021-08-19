@@ -31,10 +31,10 @@ public class TestDataSourceFactoryPluginStore extends BasicTestCase {
     public void testLoadTableMeta() {
         DataSourceFactoryPluginStore dbPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(DB_NAME));
         //dbPluginStore.getPlugin()
-        assertNotNull(dbPluginStore.getPlugin());
+        assertNotNull("db:" + DB_NAME + " relevant plugin config", dbPluginStore.getPlugin());
         TISTable tab = dbPluginStore.loadTableMeta(TABLE_NAME);
         assertNotNull(tab);
-        assertEquals(37, tab.getReflectCols().size());
+        assertEquals(5, tab.getReflectCols().size());
     }
 
 

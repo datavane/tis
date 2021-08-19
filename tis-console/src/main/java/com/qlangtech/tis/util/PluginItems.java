@@ -30,6 +30,7 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -176,8 +177,9 @@ public class PluginItems {
           for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
 
             PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
-            dbExtraProps.setDbname(plugin.instance.identityValue());
-
+            if (DbScope.DETAILED == dbExtraProps.getDbType()) {
+              dbExtraProps.setDbname(plugin.instance.identityValue());
+            }
             boolean success = TIS.getDataBasePluginStore(dbExtraProps)
               .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
             if (!success) {

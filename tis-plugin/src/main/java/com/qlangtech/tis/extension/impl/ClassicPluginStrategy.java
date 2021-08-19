@@ -54,7 +54,7 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
  * @date 2020/04/13
  */
 public class ClassicPluginStrategy implements PluginStrategy {
-
+    public static final List<ExtensionFinder> finders = Collections.singletonList(new ExtensionFinder.Sezpoz());
     /**
      * Filter for jar files.
      */
@@ -257,7 +257,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
     public void initializeComponents(PluginWrapper plugin) {
     }
 
-    public static final List<ExtensionFinder> finders = Collections.singletonList(new ExtensionFinder.Sezpoz());
+
 
     public <T> List<ExtensionComponent<T>> findComponents(final Class<T> type, TIS tis) {
         if (LOGGER.isInfoEnabled()) {

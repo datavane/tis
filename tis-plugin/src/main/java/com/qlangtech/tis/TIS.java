@@ -285,12 +285,13 @@ public class TIS {
 
     public static void clean() {
         if (tis != null) {
-            tis.globalPluginStore.clear();
             tis.extensionLists.clear();
             tis.descriptorLists.clear();
-            tis.collectionPluginStore.clear();
             tis = null;
         }
+        globalPluginStore.clear();
+        collectionPluginStore.clear();
+        databasePluginStore.clear();
         initialized = false;
     }
 

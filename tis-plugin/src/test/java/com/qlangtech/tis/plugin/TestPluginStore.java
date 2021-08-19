@@ -31,18 +31,19 @@ import java.util.Optional;
  */
 public class TestPluginStore extends TestCase {
 
-    static {
-        CenterResource.setNotFetchFromCenterRepository();
-        HttpUtils.addMockGlobalParametersConfig();
-    }
-
     private static final String VALUE_PROP_1 = "prop1-1";
 
     private static final String VALUE_PROP_2 = "prop2-1";
 
+    @Override
+    protected void setUp() throws Exception {
+        CenterResource.setNotFetchFromCenterRepository();
+        HttpUtils.addMockGlobalParametersConfig();
+    }
+
     public void testTableDumpFactory() {
 
-        assertFalse(TIS.initialized);
+       // assertFalse(TIS.initialized);
         PluginStore<TestPlugin> pstore = new PluginStore<>(TestPlugin.class);
         TestPlugin p = new TestPlugin();
         p.prop1 = VALUE_PROP_1;

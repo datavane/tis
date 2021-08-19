@@ -14,13 +14,14 @@
  */
 import com.qlangtech.tis.rpc.grpc.log.stream.TestPhaseStatusCollection;
 import junit.framework.Test;
+import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-12 11:50
  */
-public class TestAll {
+public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
