@@ -21,6 +21,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.FacadeDataSource;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -90,31 +91,23 @@ public class DBNode {
 //                        , (db) -> GitUtils.$().getDbLinkMetaData(db.getDbName(), DbScope.FACADE)));
             Map<String, DataSourceFactoryPluginStore> dbConfigsMap = null;
 
-            // List<DBNode> dbs = null;
             try (InputStream input = FileUtils.openInputStream(StreamContextConstant.getDbDependencyConfigMetaFile(collection, timestamp))) {
-//                for (DBNode db : DBNode.load(input)) {
-//                    dsFactoryPluginStore
-//                            = TIS.getDataBasePluginStore(null, new PostedDSProp(db.getDbName(), DbScope.FACADE));
-//                    //factory.registerBeanDefinition(db.getDbName() + "Datasource", dsFactoryPluginStore.createFacadeDataSource());
-//                    datasourceName = db.getDbName() + "Datasource";
-//                    logger.info("register dataSource:");
-//                    factory.registerSingleton(datasourceName, dsFactoryPluginStore.createFacadeDataSource());
-//                }
                 // 这样可以去重
                 dbConfigsMap
-                        = DBNode.load(input).stream().collect(Collectors.toMap((db) -> db.getDbName()
-                        , (db) -> TIS.getDataBasePluginStore(new PostedDSProp(db.getDbName(), DbScope.FACADE))));
-//
+                        = DBNode.load(input).stream().collect(Collectors.toMap(
+                        (db) -> db.getDbName(),
+                        (db) -> TIS.getDataBasePluginStore(new PostedDSProp(db.getDbName(), DbScope.FACADE))));
+
+                FacadeDataSource ds = null;
                 for (Map.Entry<String, DataSourceFactoryPluginStore> entry : dbConfigsMap.entrySet()) {
-                    factory.registerSingleton(entry.getKey() + "Datasource", entry.getValue().createFacadeDataSource());
+                    ds = entry.getValue().createFacadeDataSource();
+                    factory.registerSingleton(entry.getKey() + "Datasource", ds.dataSource);
                 }
 
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        // throw new UnsupportedOperationException();
     }
 
 //    @Override

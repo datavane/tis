@@ -75,7 +75,7 @@ public class TestIndexSwapTaskflowLauncherWithSingleTableIndexBuild extends TIST
 
     public void testSingleTableIndexBuild() throws Exception {
         //int order, String testStr, String classpath, Class<?> clazz
-        HttpUtils.addMockApply(0, "search4employee4local/0/daily/schema.xml/solrconfig.xml?snapshotid=0"
+        HttpUtils.addMockApply(0, "search4employee4local/0/daily/schema.xml"
                 , "search4employee4local_schema_response.xml", TestIndexSwapTaskflowLauncherWithSingleTableIndexBuild.class);
 
 

@@ -24,6 +24,7 @@ import org.easymock.EasyMock;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class TestCenterResource extends TestCase  {
         // 模拟服务端没有数据
         HttpUtils.addMockApply(0, cfgFile, new HttpUtils.IClasspathRes() {
             @Override
-            public InputStream getResourceAsStream() {
+            public InputStream getResourceAsStream(URL url) {
                 return new ByteArrayInputStream(new byte[0]);
             }
 
@@ -69,7 +70,7 @@ public class TestCenterResource extends TestCase  {
         EasyMock.expect(vals.stream()).andReturn(Lists.newArrayList(String.valueOf(lastupdate)).stream()).times(1);
         HttpUtils.addMockApply(1, cfgFile, new HttpUtils.IClasspathRes() {
             @Override
-            public InputStream getResourceAsStream() {
+            public InputStream getResourceAsStream(URL url) {
                 return TestCenterResource.class.getResourceAsStream(cfgFile);
             }
 

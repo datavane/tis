@@ -18,15 +18,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
-import com.qlangtech.tis.manage.common.DefaultFilter;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -35,6 +40,22 @@ import java.io.InputStream;
 public class TestSchemaAction extends BasicActionTestCase {
 
   public static final String collection = "search4totalpay";
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    Config.setConfig(null);
+    HttpUtils.addMockApply(-1, "solrschema.dtd", new HttpUtils.IClasspathRes() {
+      @Override
+      public InputStream getResourceAsStream(URL url) {
+        try {
+          return FileUtils.openInputStream(new File("./webapp/dtd/solrschema.dtd"));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+  }
 
   public void testGetFieldsBySnapshotId() throws Exception {
     request.setParameter("emethod", "getFieldsBySnapshotId");
@@ -80,7 +101,7 @@ public class TestSchemaAction extends BasicActionTestCase {
     }
 
     ActionProxy proxy = getActionProxy();
-    //this.replay();
+
     String result = proxy.execute();
     assertEquals("SchemaAction_ajax", result);
     AjaxValve.ActionExecResult aResult = showBizResult();
@@ -104,9 +125,12 @@ public class TestSchemaAction extends BasicActionTestCase {
       assertEquals(mallIdTypeModifiedXmlExpect, StringUtils.trimToEmpty(mallIdTypeModifiedXml));
     }
 
+//    JsonUtil.assertJSONEqual(TestSchemaAction.class, "schema-action-do-save-by-expert-model-modify-mallid-type-assert.xml"
+//      , mallIdTypeModifiedXml, (msg, e, a) -> {
+//        assertEquals(msg, e, a);
+//      });
 
   }
-
 
 
   private ActionProxy getActionProxy() {

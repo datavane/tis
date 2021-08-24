@@ -16,6 +16,7 @@ package com.qlangtech.tis.order.dump.task;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fs.ITaskContext;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
 import com.qlangtech.tis.git.GitUtils;
@@ -29,6 +30,7 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.test.TISEasyMock;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
@@ -50,13 +52,15 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestSingleTableDumpTask extends TestCase implements ITableDumpConstant, ITestDumpCommon {
+public class TestSingleTableDumpTask extends TestCase implements ITableDumpConstant, ITestDumpCommon, TISEasyMock {
 
-    static {
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
         HttpUtils.addMockGlobalParametersConfig();
         CenterResource.setNotFetchFromCenterRepository();
     }
-
 
     public void testDumpEmployees() throws Exception {
         GitUtils.ExecuteGetTableConfigCount = 0;
@@ -64,17 +68,25 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
         EntityName entityName = EntityName.parse(DB_EMPLOYEES + "." + TABLE_EMPLOYEES);
         TISTable tisTable = CommonTerminatorBeanFactory.getTisTable(entityName);
 
-        FileSystemFactory fsFactory = FileSystemFactory.getFsFactory("local_fs");
-        assertNotNull(fsFactory);
+        String fsFactoryName = "hdfs1";
+        FileSystemFactory fsFactory = this.mock("fileSystemFactory", FileSystemFactory.class);
+        assertNotNull("name:" + fsFactoryName + " relevant instance can not be null", fsFactory);
+
+        ITISFileSystem fileSystem = this.mock("fileSystem", ITISFileSystem.class);
+      //  EasyMock.expect(fsFactory.getFileSystem()).andReturn(fileSystem);
 
         DataSourceFactory dataSourceFactory = MockDataSourceFactory.getMockEmployeesDataSource();
+        TableDumpFactory tableDumpPlugin = mock("tableDumpFactory", TableDumpFactory.class);
 
+        tableDumpPlugin.startTask(EasyMock.anyObject());
+        EasyMock.expectLastCall().times(2);
+       // tableDumpPlugin.startTask(EasyMock.anyObject());
 
-        TableDumpFactory tableDumpPlugin = EasyMock.createMock("tableDumpFactory", TableDumpFactory.class);
+        EasyMock.expect(tableDumpPlugin.getFileSystem()).andReturn(fileSystem);
 
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         final String startTimeStamp = format.format(new Date());
-        TisZkClient zkClient = EasyMock.createMock("tisZkClient", TisZkClient.class);
+        TisZkClient zkClient = mock("tisZkClient", TisZkClient.class);
 
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
@@ -95,18 +107,16 @@ public class TestSingleTableDumpTask extends TestCase implements ITableDumpConst
         params.put(IParamContext.KEY_TASK_ID, "1234567");
         // 有已经导入的数据存在是否有必要重新导入
         params.put(ITableDumpConstant.DUMP_FORCE, "true");
-        EasyMock.replay(zkClient);
+        replay();
         // 开始执行
         tableDumpTask.map(taskContext);
-        assertEquals(1, GitUtils.ExecuteGetTableConfigCount);
+        //assertEquals(1, GitUtils.ExecuteGetTableConfigCount);
         int allTableDumpRows = tableDumpTask.getAllTableDumpRows();
         assertTrue(allTableDumpRows > 0);
         tableDumpPlugin.startTask((r) -> {
             testConnectionWorkRegular(r, tableDumpTask.getDumpContext(), startTimeStamp);
         });
-
-        EasyMock.verify(zkClient);
-
+        verifyAll();
     }
 
     private void testConnectionWorkRegular(ITaskContext r, TSearcherDumpContext dumpContext, String startTimeStamp) {

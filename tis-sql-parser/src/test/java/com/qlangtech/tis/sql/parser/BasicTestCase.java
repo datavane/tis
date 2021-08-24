@@ -23,14 +23,12 @@ import junit.framework.TestCase;
  * @date 2020/04/13
  */
 public class BasicTestCase extends TestCase {
-    static {
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
         CenterResource.setNotFetchFromCenterRepository();
-//        Config.setDataDir(dataflowDir);
-//        try {
-//            FileUtils.forceMkdir(new File(dataflowDir));
-//        } catch (IOException e) {
-//            throw new RuntimeException(dataflowDir, e);
-//        }
+        HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
         HttpUtils.addMockGlobalParametersConfig();
     }
 }

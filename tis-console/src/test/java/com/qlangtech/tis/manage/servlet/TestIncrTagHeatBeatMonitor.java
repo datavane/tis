@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -53,7 +54,7 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
     AtomicInteger resFetchCount = new AtomicInteger();
     HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker() {
       @Override
-      protected MockHttpURLConnection createConnection(List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method
+      protected MockHttpURLConnection createConnection(URL url, List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method
         , byte[] content, HttpUtils.IClasspathRes cpRes) {
         String res = String.format(resName, resFetchCount.incrementAndGet());
         try {

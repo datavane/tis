@@ -231,7 +231,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         ArrayList<Throwable> errors = (ArrayList<Throwable>) dataHolder.get("ReadError");
         if (CollectionUtils.isNotEmpty(errors)) {
             for (Throwable t : errors) {
-                throw new RuntimeException(t);
+                throw new RuntimeException(file.getFile().getAbsolutePath(), t);
             }
         }
     }

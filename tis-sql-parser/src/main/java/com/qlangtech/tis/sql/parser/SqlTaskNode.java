@@ -51,7 +51,7 @@ public class SqlTaskNode {
     // "D:\\j2ee_solution\\eclipse-standard-kepler-SR2-win32-x86_64\\workspace\\tis-saturn\\tis-sql-parser\\src\\main\\resources\\totalpaytest");
     public static final String NAME_DATAFLOW_DIR = "df";
 
-    public static final File parent = new File(Config.getMetaCfgDir(), NAME_DATAFLOW_DIR);
+    public static File parent = new File(Config.getMetaCfgDir(), NAME_DATAFLOW_DIR);
 
     // private Map<String, SqlTaskNode> all;
     private Optional<TisGroupBy> groupBy = Optional.empty();

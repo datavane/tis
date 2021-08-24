@@ -23,6 +23,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.plugin.PluginStubUtils;
 import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.io.FileUtils;
@@ -38,31 +39,32 @@ import java.util.Objects;
  **/
 public class TestDataXExecuteInterceptor extends TISTestCase {
     private static final String AP_NAME = "testDataxProcessor";
-    private static final File dataxCfgDir;
+    private static File dataxCfgDir;
     private static final String dataCfgFileName = "customer_order_relation_1.json";
 
-    static {
-        try {
-            Config.setTestDataDir();
-            dataxCfgDir = new File(Config.getDataDir(), "/cfg_repo/tis_plugin_config/ap/" + AP_NAME + "/dataxCfg");
-            FileUtils.forceMkdir(dataxCfgDir);
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        this.clearMocks();
+        System.clearProperty(Config.KEY_DATA_DIR);
+        Config.setTestDataDir();
+        PluginStubUtils.setTISField();
+        dataxCfgDir = new File(Config.getDataDir(), "/cfg_repo/tis_plugin_config/ap/" + AP_NAME + "/dataxCfg");
+        FileUtils.forceMkdir(dataxCfgDir);
 
-            try (InputStream res = TestDataXExecuteInterceptor.class.getResourceAsStream(dataCfgFileName)) {
-                Objects.requireNonNull(res, dataCfgFileName + " can not be null");
-                FileUtils.copyInputStreamToFile(res, new File(dataxCfgDir, dataCfgFileName));
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        try (InputStream res = TestDataXExecuteInterceptor.class.getResourceAsStream(dataCfgFileName)) {
+            Objects.requireNonNull(res, dataCfgFileName + " can not be null");
+            FileUtils.copyInputStreamToFile(res, new File(dataxCfgDir, dataCfgFileName));
         }
     }
-
 
     public void testExecute() throws Exception {
 
 
         IRemoteJobTrigger jobTrigger = mock("remoteJobTrigger", IRemoteJobTrigger.class);
+        //
+        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
         jobTrigger.submitJob();
         RunningStatus runningStatus = RunningStatus.SUCCESS;
         EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);

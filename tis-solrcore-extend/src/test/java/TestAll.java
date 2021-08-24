@@ -28,7 +28,7 @@ public class TestAll extends TestCase {
     public static Test suite() {
         TestSuite suite = new TestSuite();
         suite.addTestSuite(TestDateMathParser.class);
-        suite.addTestSuite(TestTisCoreAdminHandler.class);
+        //suite.addTestSuite(TestTisCoreAdminHandler.class);
 
         return suite;
     }

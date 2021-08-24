@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,6 +23,8 @@ import com.qlangtech.tis.fullbuild.taskflow.TISReactor.TaskAndMilestone;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher;
 import junit.framework.TestCase;
 import org.jvnet.hudson.reactor.Reactor;
+import org.jvnet.hudson.reactor.ReactorListener;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -98,16 +100,17 @@ public class TestReactor extends TestCase {
         // Reactor s = buildSession("->t1->m1 m1->t2->m2 m2->t3->", (session, id) ->
         // System.out.println(id));
         assertEquals(3, s.size());
-        String sw = tisReactor.execute(Executors.newCachedThreadPool(), s);
+        String sw = tisReactor.execute(Executors.newCachedThreadPool(), s, new ReactorListener() {
+        });
         System.out.println(sw);
         System.out.println("last");
         for (String taskname : Lists.newArrayList("a", "b", "c")) {
             Assert.assertNotNull("taskname:" + taskname + " shall have execute", successToken.get(taskname));
             Assert.assertTrue("taskname:" + taskname + " shall have execute", successToken.get(taskname));
         }
-    // assertEqualsIgnoreNewlineStyle(
-    // "Started t1\nEnded t1\nAttained m1\nStarted t2\nEnded t2\nAttained
-    // m2\nStarted t3\nEnded t3\n", sw);
+        // assertEqualsIgnoreNewlineStyle(
+        // "Started t1\nEnded t1\nAttained m1\nStarted t2\nEnded t2\nAttained
+        // m2\nStarted t3\nEnded t3\n", sw);
     }
 
     private static void assertEqualsIgnoreNewlineStyle(String s1, String s2) {

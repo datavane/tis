@@ -1,34 +1,35 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.sql.parser.er;
 
-import com.qlangtech.tis.sql.parser.meta.ColumnTransfer;
-import com.qlangtech.tis.sql.parser.meta.DependencyNode;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
-import com.qlangtech.tis.sql.parser.meta.Position;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
+import com.qlangtech.tis.sql.parser.meta.*;
 import junit.framework.TestCase;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -43,8 +44,11 @@ public class TestERRules extends TestCase {
 
     public static ERRules totalpayErRules = new ERRules();
 
-    static {
-        // System.setProperty("data.dir", "/");
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        CenterResource.setNotFetchFromCenterRepository();
         Config.setDataDir("./dataflow");
         try {
             SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(topology_totalpay);
@@ -65,9 +69,9 @@ public class TestERRules extends TestCase {
             totalpayErRules.addRelation($("7f0eb8d2-b9ad-9f34-683d-35f984ad60fc", "totalpayinfo", "servicebillinfo", TabCardinality.ONE_ONE).addJoinerKey("totalpay_id", "servicebill_id").addJoinerKey("entity_id", "entity_id"));
             totalpayErRules.addRelation($("a89f7bf6-01b4-e9b1-c604-05212d373b52", "orderdetail", "order_bill", TabCardinality.ONE_ONE).addJoinerKey("order_id", "order_id").addJoinerKey("entity_id", "entity_id"));
             totalpayErRules.addRelation($("f8f043a3-b463-5539-1e28-258d73256979", "orderdetail", "takeout_order_extra", TabCardinality.ONE_ONE).addJoinerKey("order_id").addJoinerKey("entity_id"));
-        // totalpayErRules.addIgnoreIncrTriggerEntity("card");
-        // totalpayErRules.addIgnoreIncrTriggerEntity("customer");
-        // totalpayErRules.addIgnoreIncrTriggerEntity("mall_shop");
+            // totalpayErRules.addIgnoreIncrTriggerEntity("card");
+            // totalpayErRules.addIgnoreIncrTriggerEntity("customer");
+            // totalpayErRules.addIgnoreIncrTriggerEntity("mall_shop");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -79,7 +83,7 @@ public class TestERRules extends TestCase {
         List<TableRelation> rList = erRule.getRelationList();
         for (TableRelation r : rList) {
             testMap.put(r.getId(), r);
-        // System.out.println(r.getId() + ",p:" + r.getParent().getName() + ",c:" + r.getChild().getName());
+            // System.out.println(r.getId() + ",p:" + r.getParent().getName() + ",c:" + r.getChild().getName());
         }
         ERRules example = totalpayErRules;
         // testRelation = null;
@@ -107,24 +111,29 @@ public class TestERRules extends TestCase {
         // }
         final String totalpayinfo = "totalpayinfo";
         final String orderdetail = "orderdetail";
-        List<String> expectIgnoreTab = Lists.newArrayList("card", "customer", "mall_shop");
+        List<String> expectIgnoreTab = Lists.newArrayList("card", "customer", "mall_shop", "takeout_order_extra");
         List<String> ignoreTabs = erRule.getIgnoreIncrTriggerEntities();
-        assertEquals(3, ignoreTabs.size());
+        assertEquals("actual:" + ignoreTabs.stream().collect(Collectors.joining(",")), 4, ignoreTabs.size());
         CollectionUtils.isEqualCollection(expectIgnoreTab, ignoreTabs);
         List<PrimaryTableMeta> primaryTabs = erRule.getPrimaryTabs();
         assertEquals(1, primaryTabs.size());
         PrimaryTableMeta primaryTableMeta = primaryTabs.get(0);
         assertEquals(totalpayinfo, primaryTableMeta.getTabName());
-        assertEquals("totalpay_id", primaryTableMeta.getPrimaryKeyNames());
+      //  assertEquals("totalpay_id", primaryTableMeta.getPrimaryKeyNames());
+        Set<String> pks = Sets.newHashSet("totalpay_id", "entity_id");
+        for (PrimaryLinkKey pk : primaryTableMeta.getPrimaryKeyNames()) {
+            assertTrue(pk.getName() + " must contain in pks", pks.contains(pk.getName()));
+        }
+
         List<TabFieldProcessor> tabFieldProcessors = erRule.getTabFieldProcessors();
-        assertEquals(2, tabFieldProcessors.size());
+        assertEquals(9, tabFieldProcessors.size());
         Map<String, TabFieldProcessor> collect = tabFieldProcessors.stream().collect(Collectors.toMap((r) -> r.getName(), (r) -> r));
         // TODO further assert for tabFieldProcessors
         TabFieldProcessor totalpayProcess = collect.get(totalpayinfo);
         assertNotNull(totalpayProcess);
         TabFieldProcessor orderProcess = collect.get(orderdetail);
         assertNotNull(orderProcess);
-    // ignoreIncrTriggerEntities: ["card","customer","mall_shop"]
+        // ignoreIncrTriggerEntities: ["card","customer","mall_shop"]
     }
 
     private void testDependencyNodeEqual(DependencyNode test, DependencyNode exampe) {

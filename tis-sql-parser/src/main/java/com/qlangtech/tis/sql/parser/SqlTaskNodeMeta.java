@@ -25,6 +25,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
@@ -134,6 +135,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         yaml.addTypeDescription(new TypeDescription(DumpNodes.class, Tag.MAP, DumpNodes.class));
     }
 
+
     /**
      * 对sql进行粗略的校验
      *
@@ -146,6 +148,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
         // 这个sql语句有错误，需要校验成错误，抛异常
         taskNodeMeta.setSql(sql);
+
+        final IJoinTaskContext tskContext = new DftJoinTaskContext(ExecutePhaseRange.fullRange());
 
         final ITemplateContext tplContext = new ITemplateContext() {
             @Override
@@ -160,7 +164,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
             @Override
             public IJoinTaskContext getExecContext() {
-                return null;
+                return tskContext;
             }
         };
 
@@ -385,7 +389,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         if (subFiles.size() < 1) {
             throw new IllegalStateException("subFiles size can not small than 1,file:" + topologyDir.dir);
         }
-        // topologyDir.synchronizeRemoteRes(FILE_NAME_DEPENDENCY_TABS);
+
         File dependencyTabFile = new File(topologyDir.dir, FILE_NAME_DEPENDENCY_TABS);
         try {
             // dump节点
@@ -890,6 +894,74 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         private String getParam(String base, String field, ColumnTransfer transfer) {
             return StringUtils.replace(transfer.getParam(), "value", base + "." + field);
+        }
+    }
+
+    private static class DftJoinTaskContext implements IJoinTaskContext {
+        private final ExecutePhaseRange executePhaseRange;
+
+        public DftJoinTaskContext(ExecutePhaseRange executePhaseRange) {
+            this.executePhaseRange = executePhaseRange;
+        }
+
+        @Override
+        public String getIndexName() {
+            return null;
+        }
+
+        @Override
+        public boolean hasIndexName() {
+            return false;
+        }
+
+        @Override
+        public int getTaskId() {
+            return 0;
+        }
+
+        @Override
+        public int getIndexShardCount() {
+            return 0;
+        }
+
+        @Override
+        public <T> T getAttribute(String key) {
+            return null;
+        }
+
+        @Override
+        public void setAttribute(String key, Object v) {
+
+        }
+
+        @Override
+        public ExecutePhaseRange getExecutePhaseRange() {
+            return executePhaseRange;
+        }
+
+        @Override
+        public String getString(String key) {
+            return null;
+        }
+
+        @Override
+        public boolean getBoolean(String key) {
+            return false;
+        }
+
+        @Override
+        public int getInt(String key) {
+            return 0;
+        }
+
+        @Override
+        public long getLong(String key) {
+            return 0;
+        }
+
+        @Override
+        public String getPartitionTimestamp() {
+            return null;
         }
     }
 }

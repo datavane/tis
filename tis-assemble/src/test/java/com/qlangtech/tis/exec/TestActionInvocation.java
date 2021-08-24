@@ -22,6 +22,8 @@ import com.qlangtech.tis.exec.impl.IndexBuildInterceptor;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
+import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
@@ -44,6 +46,14 @@ public class TestActionInvocation extends TestCase {
 
     private static final AtomicInteger backflowCount = new AtomicInteger();
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        System.clearProperty(Config.DEFAULT_DATA_DIR);
+        Config.setDataDir(Config.DEFAULT_DATA_DIR);
+        CenterResource.setNotFetchFromCenterRepository();
+    }
+
     // 工作流執行方式
     private static final IExecuteInterceptor[] testworkflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
             new TestWorkflowDumpAndJoinInterceptor(execCount), new TestWorkflowIndexBuildInterceptor(buildCount), new TestIndexBackFlowInterceptor(backflowCount)};
@@ -61,7 +71,7 @@ public class TestActionInvocation extends TestCase {
         assertNotNull(workflowDetail);
         assertEquals(45, workflowDetail.getDataflowId());
         assertEquals(wfname, workflowDetail.getName());
-        assertEquals(1586426742446l, workflowDetail.getTimestamp());
+        assertEquals(1594780413149l, workflowDetail.getTimestamp());
     }
 
     public void testActionInvocation() throws Exception {

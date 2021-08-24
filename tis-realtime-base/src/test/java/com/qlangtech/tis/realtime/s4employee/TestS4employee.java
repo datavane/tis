@@ -34,14 +34,10 @@ import java.util.concurrent.TimeUnit;
  * @create: 2020-08-26 14:19
  */
 public class TestS4employee extends BasicEmployeeTestCase {
-
-
     private IEmployeesDAOFacade employeesDAOFacade;
-
     public static final String TAB_DEPT_EMP = "dept_emp";
 
     public TestS4employee() {
-        //boolean shallRegisterMQ, String collectionName, long wfTimestamp, String... configLocations
         super(false);
         this.employeesDAOFacade = getEmployeesDAOFacade(this.appContext);
     }
@@ -51,12 +47,7 @@ public class TestS4employee extends BasicEmployeeTestCase {
         return appContext.getBean("employeesDAOFacade", IEmployeesDAOFacade.class);
     }
 
-    //  public void testGetBeanGroup() {
-//        BeanGroup beanGroup = new BeanGroup().invoke();
-//        assertNotNull(beanGroup);
-//        beanGroup.totalpayinfo.startCollectUpdateProp();
-//        assertTrue(beanGroup.totalpayinfo.vals.isUpdatePropsCollect());
-    // }
+
 
     /**
      * 添加部门职工
@@ -84,9 +75,6 @@ public class TestS4employee extends BasicEmployeeTestCase {
                 assertEquals("1991-04-28", doc.getFieldValue("from_date"));
                 assertEquals("1991-05-09", doc.getFieldValue("to_date"));
                 assertEquals(19910428l, doc.getFieldValue("_version_"));
-
-
-                System.out.println("=====================");
             } catch (Throwable e) {
                 errors.add(e);
             } finally {
@@ -134,10 +122,8 @@ public class TestS4employee extends BasicEmployeeTestCase {
 
         @Override
         public void initSyncWithDB(DeptEmp pojo) {
-//String deptNo, Integer empNo
             employeesDAOFacade.getDeptEmpDAO().deleteByPrimaryKey(pojo.getDeptNo(), pojo.getEmpNo());
             employeesDAOFacade.getDeptEmpDAO().insertSelective(pojo);
-
         }
 
         @Override

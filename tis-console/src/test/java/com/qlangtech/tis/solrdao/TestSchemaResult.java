@@ -24,14 +24,12 @@ import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.solrdao.impl.ParseResult;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
 import junit.framework.TestCase;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +41,9 @@ import java.util.List;
 public class TestSchemaResult extends TestCase {
   static final String collection = "search4totalpay";
 
-  static {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     CenterResource.setNotFetchFromCenterRepository();
   }
 
@@ -78,14 +78,18 @@ public class TestSchemaResult extends TestCase {
       Collection<SolrFieldsParser.SolrType> fieldTypes = ((ParseResult) schemaResult.getParseResult()).getFieldTypes();
       assertEquals("fieldTypes size", 2, fieldTypes.size());
 
-      String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
-        , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
+//      String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
+//        , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
+//      try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("s4totalpay-schema-already-contain-fieldtype-plugin-schema-result.json")) {
+//        assertNotNull(assertSchemaResultInput);
+//        FileUtils.write(new File("test.json"), content, TisUTF8.get());
+//        assertEquals(StringUtils.trim(IOUtils.toString(assertSchemaResultInput, TisUTF8.get())), content);
+//      }
 
-      try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("s4totalpay-schema-already-contain-fieldtype-plugin-schema-result.json")) {
-        assertNotNull(assertSchemaResultInput);
-        FileUtils.write(new File("test.json"), content, TisUTF8.get());
-        assertEquals(StringUtils.trim(IOUtils.toString(assertSchemaResultInput, TisUTF8.get())), content);
-      }
+      JsonUtil.assertJSONEqual(this.getClass(), "s4totalpay-schema-already-contain-fieldtype-plugin-schema-result.json"
+        , schemaResult.toJSON(), (m, e, a) -> {
+          assertEquals(m, e, a);
+        });
     }
 
     EasyMock.verify(msgHandler, context);
@@ -122,13 +126,17 @@ public class TestSchemaResult extends TestCase {
       Collection<SolrFieldsParser.SolrType> fieldTypes = ((ParseResult) schemaResult.getParseResult()).getFieldTypes();
       assertEquals("fieldTypes size", 16, fieldTypes.size());
 
-      String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
-        , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
+//      String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
+//        , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
+//
+//      try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("assertSchemaResult.json")) {
+//        assertNotNull(assertSchemaResultInput);
+//        assertEquals(IOUtils.toString(assertSchemaResultInput, TisUTF8.get()), content);
+//      }
 
-      try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("assertSchemaResult.json")) {
-        assertNotNull(assertSchemaResultInput);
-        assertEquals(IOUtils.toString(assertSchemaResultInput, TisUTF8.get()), content);
-      }
+      JsonUtil.assertJSONEqual(this.getClass(), "assertSchemaResult.json", schemaResult.toJSON(), (m, e, a) -> {
+        assertEquals(m, e, a);
+      });
     }
 
     EasyMock.verify(msgHandler, context);

@@ -39,7 +39,7 @@ public class TestAddAppAction extends BasicActionTestCase {
   public void setUp() throws Exception {
     super.setUp();
     HttpUtils.mockConnMaker.clearStubs();
-    HttpUtils.addMockApply(CoreAction.CREATE_COLLECTION_PATH, () -> {
+    HttpUtils.addMockApply(CoreAction.CREATE_COLLECTION_PATH, (url) -> {
       return TestCollectionAction.class.getResourceAsStream("s4employees_create_success.json");
     });
   }

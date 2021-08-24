@@ -32,7 +32,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TestSysInitializeAction extends TestCase implements TISEasyMock {
 
-//  public void testInitializeAppAndSchema() throws Exception {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    this.clearMocks();
+  }
+
+  //  public void testInitializeAppAndSchema() throws Exception {
 //    request.setParameter("emethod", "init");
 //    request.setParameter("action", "sys_initialize_action");
 //
@@ -53,30 +59,41 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
 
     String[] args = new String[]{"/opt/misc/tis-ansible/tis_console_derby.sql", Config.DB_TYPE_DERBY};
     Config config = this.mock("config", Config.class);
+
+
+    EasyMock.expect(config.getZkHost()).andReturn("192.168.28.200:2181/tis/cloud");
     EasyMock.expect(config.getRuntime()).andReturn(RunEnvironment.DAILY.getKeyName()).anyTimes();
     Config.TisDbConfig mockDBType = new Config.TisDbConfig();
     mockDBType.dbtype = Config.DB_TYPE_DERBY;
     mockDBType.dbname = "tis_console_db";
-    File dbDir = new File(mockDBType.dbname);
+    File dbDir = new File(Config.getDataDir(), mockDBType.dbname);
     FileUtils.deleteQuietly(dbDir);
     EasyMock.expect(config.getDbConfig()).andReturn(mockDBType).anyTimes();
     Config.setConfig(config);
 
     replay();
+    int[] tryIndex = new int[1];
     AtomicBoolean hasExecDSCreateInspector = new AtomicBoolean();
     TISDataSourceFactory.dsCreateInspector = new TISDataSourceFactory.IDSCreatorInspect() {
       @Override
       public void checkDataSource(boolean getDSFromJNDI, BasicDataSource dataSource) {
         assertFalse(getDSFromJNDI);
-        assertEquals("jdbc:derby:" + mockDBType.dbname + ";create=true", dataSource.getUrl());
+        if (tryIndex[0]++ == 0) {
+          assertEquals("jdbc:derby:" + mockDBType.dbname + ";create=true", dataSource.getUrl());
+        } else {
+          assertEquals("jdbc:derby:" + mockDBType.dbname + ";create=false", dataSource.getUrl());
+        }
+
         hasExecDSCreateInspector.set(true);
       }
     };
+
     SysInitializeAction.main(args);
     assertTrue("hasExecDSCreateInspector must be true", hasExecDSCreateInspector.get());
     // File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
     assertTrue("initialSuccessToken fiel:" + initialSuccessToken.getAbsolutePath(), initialSuccessToken.exists());
-
+    assertEquals("create db 2 times", tryIndex[0], 2);
+    assertTrue("dbDir must exist:" + dbDir.getAbsolutePath(), dbDir.exists());
     verifyAll();
   }
 

@@ -212,7 +212,7 @@ public class Config {
     }
 
     public static String getZKHost() {
-        String zkAddress = getInstance().zkHost;
+        String zkAddress = getInstance().getZkHost();
         if (StringUtils.isBlank(zkAddress)) {
             throw new IllegalStateException("zkAddress can not be null");
         }
@@ -381,6 +381,17 @@ public class Config {
         public String userName;
         public String password;
 
+        @Override
+        public String toString() {
+            return "{" +
+                    "dbtype='" + dbtype + '\'' +
+                    ", dbname='" + dbname + '\'' +
+                    ", port=" + port +
+                    ", url='" + url + '\'' +
+                    ", userName='" + userName + '\'' +
+                    ", password='" + password + '\'' +
+                    '}';
+        }
     }
 
     public static class FuncGroup {

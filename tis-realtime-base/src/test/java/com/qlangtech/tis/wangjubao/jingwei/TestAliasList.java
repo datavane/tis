@@ -14,7 +14,6 @@
  */
 package com.qlangtech.tis.wangjubao.jingwei;
 
-import com.qlangtech.tis.realtime.transfer.ITable;
 import com.qlangtech.tis.realtime.transfer.TisSolrInputDocument;
 import com.qlangtech.tis.realtime.transfer.impl.DefaultTable;
 import com.qlangtech.tis.solrdao.impl.ParseResult;
@@ -117,7 +116,8 @@ public class TestAliasList extends TestCase {
         ParseResult parseResult = TestTableClusterParser.getSchemaReflect();
         TisSolrInputDocument document = new TisSolrInputDocument(parseResult);
         Table tableProcessor = null;
-        ITable tab = new DefaultTable(testTable, tableProcessor);
+        DefaultTable tab = new DefaultTable(testTable, tableProcessor);
+        tab.addColumn("id", String.valueOf(123));
         ORDER_COLUMN_CHANGE_FOCUS.copy2TisDocument(tab, document, false);
         Assert.assertEquals("1", document.getFieldValue(toColumncard_customer_phone));
     }

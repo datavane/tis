@@ -22,7 +22,7 @@ public class TestCoreStatisticsReport extends TestCase {
         final AtomicInteger httpGetCount = new AtomicInteger();
         HttpUtils.addMockApply(
                 CoreStatisticsReport.GET_METRIX_PATH
-                , (HttpUtils.IClasspathRes) () -> {
+                , (HttpUtils.IClasspathRes) (url) -> {
                     return TestCoreStatisticsReport.class.getResourceAsStream(
                             "search4totalpay_query_update_metrix_time" + httpGetCount.incrementAndGet() + ".xml");
                 }

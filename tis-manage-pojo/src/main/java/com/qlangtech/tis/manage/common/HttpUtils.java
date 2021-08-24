@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.ajax.AjaxResult;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
  * @date 2014年11月4日上午11:24:38
  */
 public class HttpUtils {
+
 
     public interface IMsgProcess {
         public void err(String content);
@@ -279,24 +281,24 @@ public class HttpUtils {
                 matchKey = entry.getKey();
                 if (matchKey.startWith) {
                     if (StringUtils.startsWith(url.toString(), matchKey.matchTxt)) {
-                        return createConnection(heads, method, content, entry.getValue().get());
+                        return createConnection(url, heads, method, content, entry.getValue().get());
                     }
                     // return null;
                 } else if (matchKey.endWith) {
                     if (StringUtils.endsWith(url.toString(), matchKey.matchTxt)) {
-                        return createConnection(heads, method, content, entry.getValue().get());
+                        return createConnection(url, heads, method, content, entry.getValue().get());
                     }
                     // return null;
                 } else if (StringUtils.indexOf(url.toString(), matchKey.matchTxt) > -1) {
-                    return createConnection(heads, method, content, entry.getValue().get());
+                    return createConnection(url, heads, method, content, entry.getValue().get());
                 }
             }
             return null;
         }
 
-        protected MockHttpURLConnection createConnection(List<ConfigFileContext.Header> heads
+        protected MockHttpURLConnection createConnection(URL url, List<ConfigFileContext.Header> heads
                 , HTTPMethod method, byte[] content, IClasspathRes cpRes) {
-            return new MockHttpURLConnection(cpRes.getResourceAsStream(), cpRes.headerFields());
+            return new MockHttpURLConnection(cpRes.getResourceAsStream(url), cpRes.headerFields());
         }
     }
 
@@ -322,9 +324,9 @@ public class HttpUtils {
             IClasspathRes finalRes = res;
             return new IClasspathRes() {
                 @Override
-                public InputStream getResourceAsStream() {
+                public InputStream getResourceAsStream(URL url) {
                     resFetchCount++;
-                    return finalRes.getResourceAsStream();
+                    return finalRes.getResourceAsStream(url);
                 }
 
                 @Override
@@ -336,7 +338,7 @@ public class HttpUtils {
     }
 
     public interface IClasspathRes {
-        InputStream getResourceAsStream();
+        InputStream getResourceAsStream(URL url);
 
         default Map<String, List<String>> headerFields() {
             return Collections.emptyMap();
@@ -357,12 +359,19 @@ public class HttpUtils {
             this.order = order;
         }
 
-        public InputStream getResourceAsStream() {
+        public InputStream getResourceAsStream(URL url) {
             return getResourceAsStream(classpath);
         }
 
         public InputStream getResourceAsStream(String cpResName) {
             return this.relClass.getResourceAsStream(cpResName);
+        }
+    }
+
+    public static abstract class LatestUpdateTimestampClasspathRes implements IClasspathRes {
+        @Override
+        public Map<String, List<String>> headerFields() {
+            return ImmutableMap.of(ConfigFileContext.KEY_HEAD_LAST_UPDATE, Lists.newArrayList(String.valueOf(System.currentTimeMillis())));
         }
     }
 }

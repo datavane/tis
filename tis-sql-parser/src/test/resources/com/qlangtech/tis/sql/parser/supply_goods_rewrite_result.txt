@@ -57,7 +57,7 @@ SELECT
 , g.last_ver
 , g.extend_fields
 , g.apply_time
-, g.pt,g.pmod
+, g.pt,abs( hash( cast( g.entity_id as string)) % 1 ) AS pmod
 FROM
   scmdb.goods g
 LEFT JOIN tis.supplier_collapse s ON (((g.entity_id = s.entity_id) AND (g.id = s.goods_id)) AND s.pt='20200703113848' AND g.pt='20200703113848')

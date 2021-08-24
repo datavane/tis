@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -33,9 +33,11 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -52,9 +54,24 @@ public class TestIncrStatusServer extends BaseTestCase {
     final int exportPort = 9999;
 
     final Exception[] ex = new Exception[1];
+    private IncrStatusServer incrStatusServer;
 
-    public TestIncrStatusServer() {
-        this.startRpcServer();
+    final static String uuid = UUID.randomUUID().toString();
+
+    @Override
+    protected void setUp() throws Exception {
+        // System.out.println("=======================uuid:" + uuid);
+        super.setUp();
+        startRpcServer();
+        assertNull("exception shall be null", ex[0]);
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        ex[0] = null;
+        FullBuildStatCollectorServer.registerMonitorEventHook = new RegisterMonitorEventHook();
+        this.incrStatusServer.stop();
+        this.sleep(3000);
     }
 
     /**
@@ -62,7 +79,8 @@ public class TestIncrStatusServer extends BaseTestCase {
      */
     public void testHasReceiveIncrPausedCommand() {
         StatusRpcClient.AssembleSvcCompsite svc = getRpcClient();
-        String uuid = UUID.randomUUID().toString();
+
+
         final AtomicBoolean hasReceiveIncrPausedCommand = new AtomicBoolean(false);
         final AtomicBoolean hasReceiveIncrResumeCommand = new AtomicBoolean(false);
         Runnable runnable = (() -> {
@@ -73,6 +91,7 @@ public class TestIncrStatusServer extends BaseTestCase {
                 incrProcessPaused = true;
             }
             UpdateCounterMap updateCt = createUpdateCounterMap(uuid, incrProcessPaused);
+            Objects.requireNonNull(svc, "rpc service can not be null");
             MasterJob masterJob = svc.reportStatus(updateCt);
             if (masterJob != null && masterJob.isCollectionIncrProcessCommand(collectionName)) {
                 if (masterJob.isStop()) {
@@ -104,9 +123,12 @@ public class TestIncrStatusServer extends BaseTestCase {
         runningStatus = instance.getIndexJobRunningStatus(collectionName);
         assertTrue(runningStatus.isIncrGoingOn());
         assertFalse(runningStatus.isIncrProcessPaused());
+
+        svc.close();
     }
 
     private void incrProcessReport(Runnable runnable) {
+        sleep(2000);
         // 一定要跑两次
         runnable.run();
         runnable.run();
@@ -125,19 +147,27 @@ public class TestIncrStatusServer extends BaseTestCase {
      */
     public void testReportStatus() {
         StatusRpcClient.AssembleSvcCompsite svc = getRpcClient();
-        String uuid = UUID.randomUUID().toString();
-        UpdateCounterMap updateCt = createUpdateCounterMap(uuid, false);
-        MasterJob masterJob = svc.reportStatus(updateCt);
-        assertNull(masterJob);
-        IncrStatusUmbilicalProtocolImpl instance = IncrStatusUmbilicalProtocolImpl.getInstance();
-        instance.pauseConsume(collectionName);
-        masterJob = svc.reportStatus(updateCt);
-        assertNotNull(masterJob);
-        assertTrue("the processing of incr shall be stop", masterJob.isStop());
-        instance.resumeConsume(collectionName);
-        masterJob = svc.reportStatus(updateCt);
-        assertNotNull(masterJob);
-        assertFalse("the processing of incr shall be start", masterJob.isStop());
+        try {
+            // String uuid = UUID.randomUUID().toString();
+            UpdateCounterMap updateCt = createUpdateCounterMap(uuid, false);
+            MasterJob masterJob = svc.reportStatus(updateCt);
+            assertNull(masterJob);
+            IncrStatusUmbilicalProtocolImpl instance = IncrStatusUmbilicalProtocolImpl.getInstance();
+
+            assertTrue(collectionName + " execute pauseConsume shall success", instance.pauseConsume(collectionName));
+            this.sleep(1000);
+            masterJob = svc.reportStatus(updateCt);
+            assertNotNull(masterJob);
+            assertTrue("the processing of incr shall be stop", masterJob.isStop());
+
+            assertTrue(collectionName + " execute resumeConsume shall success", instance.resumeConsume(collectionName));
+            this.sleep(1000);
+            masterJob = svc.reportStatus(updateCt);
+            assertNotNull(masterJob);
+            assertFalse("the processing of incr shall be start", masterJob.isStop());
+        } finally {
+            svc.close();
+        }
     }
 
     private UpdateCounterMap createUpdateCounterMap(String uuid, boolean incrProcessPaused) {
@@ -160,21 +190,26 @@ public class TestIncrStatusServer extends BaseTestCase {
      */
     public void testNodeLaunchReport() {
         StatusRpcClient.AssembleSvcCompsite svc = getRpcClient();
-        Map<String, TopicInfo> /**
-         * collection
-         */
-        collectionFocusTopicInfo = Maps.newHashMap();
-        String testTopic = "test-topic";
-        TopicInfo topicInfo = new TopicInfo();
-        topicInfo.addTag(testTopic, Sets.newHashSet("tag1", "tag2", "tag3"));
-        collectionFocusTopicInfo.put(collectionName, topicInfo);
-        LaunchReportInfo launchReportInfo = new LaunchReportInfo(collectionFocusTopicInfo);
-        svc.nodeLaunchReport(launchReportInfo);
-        IncrStatusUmbilicalProtocolImpl instance = IncrStatusUmbilicalProtocolImpl.getInstance();
-        com.qlangtech.tis.grpc.TopicInfo receivedTopicInfo = instance.getFocusTopicInfo(collectionName);
-        assertNotNull(receivedTopicInfo);
-        assertEquals(1, receivedTopicInfo.getTopicWithTagsCount());
-        assertEquals(testTopic, receivedTopicInfo.getTopicWithTags(0).getTopicName());
+        try {
+            /**
+             * key:collection
+             */
+            Map<String, TopicInfo>
+                    collectionFocusTopicInfo = Maps.newHashMap();
+            String testTopic = "test-topic";
+            TopicInfo topicInfo = new TopicInfo();
+            topicInfo.addTag(testTopic, Sets.newHashSet("tag1", "tag2", "tag3"));
+            collectionFocusTopicInfo.put(collectionName, topicInfo);
+            LaunchReportInfo launchReportInfo = new LaunchReportInfo(collectionFocusTopicInfo);
+            svc.nodeLaunchReport(launchReportInfo);
+            IncrStatusUmbilicalProtocolImpl instance = IncrStatusUmbilicalProtocolImpl.getInstance();
+            com.qlangtech.tis.grpc.TopicInfo receivedTopicInfo = instance.getFocusTopicInfo(collectionName);
+            assertNotNull(receivedTopicInfo);
+            assertEquals(1, receivedTopicInfo.getTopicWithTagsCount());
+            assertEquals(testTopic, receivedTopicInfo.getTopicWithTags(0).getTopicName());
+        } finally {
+            svc.close();
+        }
     }
 
     public void testServer() throws Exception {
@@ -184,11 +219,8 @@ public class TestIncrStatusServer extends BaseTestCase {
         RegisterMonitorEventHook eventHook = new RegisterMonitorEventHook() {
 
             boolean hasStartSession = false;
-
             boolean hasCloseSession = false;
-
             int send2ClientCount = 0;
-
             int readFromFileTailerCount = 0;
 
             @Override
@@ -235,95 +267,97 @@ public class TestIncrStatusServer extends BaseTestCase {
             }
         };
         Thread tt = new Thread(writeLog);
+        tt.setDaemon(true);
         tt.start();
         StatusRpcClient.AssembleSvcCompsite svc = getRpcClient();
-        CountDownLatch countdown = new CountDownLatch(1);
-        // BlockingQueue<MonotorTarget> focusTarget = new ArrayBlockingQueue<>(10);
-        int[] receiveCount = new int[1];
-        StreamObserver<PMonotorTarget> observer = svc.registerMonitorEvent(new ILogListener() {
+        try {
+            CountDownLatch countdown = new CountDownLatch(1);
 
-            @Override
-            public void sendMsg2Client(Object biz) throws IOException {
-            }
+            int[] receiveCount = new int[1];
+            StreamObserver<PMonotorTarget> observer = svc.registerMonitorEvent(new ILogListener() {
 
-            @Override
-            public void read(Object event) {
-                PExecuteState stat = (PExecuteState) event;
-                System.out.println(stat.getTaskId() + " " + stat.getMsg());
-                if (receiveCount[0]++ > 5) {
-                    try {
-                        // 收到服务端 5次消息之后，模拟webSocket session 关闭
-                        clientClosed.set(true);
-                    // throw new RuntimeException("dddddddddddddd");
-                    } finally {
-                        countdown.countDown();
+                @Override
+                public void sendMsg2Client(Object biz) throws IOException {
+                }
+
+                @Override
+                public void read(Object event) {
+                    PExecuteState stat = (PExecuteState) event;
+                    System.out.println(stat.getTaskId() + " " + stat.getMsg());
+                    if (receiveCount[0]++ > 5) {
+                        try {
+                            // 收到服务端 5次消息之后，模拟webSocket session 关闭
+                            clientClosed.set(true);
+                            // throw new RuntimeException("dddddddddddddd");
+                        } finally {
+                            countdown.countDown();
+                        }
                     }
                 }
-            }
 
-            @Override
-            public boolean isClosed() {
-                return clientClosed.get();
-            }
-        });
-        PMonotorTarget.Builder mt = PMonotorTarget.newBuilder();
-        mt.setCollection("dummy");
-        mt.setTaskid(taskid);
-        mt.setLogtype(LogCollectorClient.convert(LogType.FULL.typeKind));
-        PMonotorTarget mtarget = mt.build();
-        observer.onNext(mtarget);
-        String targetToken = FullBuildStatCollectorServer.addListener(LogCollectorClient.convert(mtarget), new RealtimeLoggerCollectorAppender.LoggerCollectorAppenderListener() {
+                @Override
+                public boolean isClosed() {
+                    return clientClosed.get();
+                }
+            });
+            PMonotorTarget.Builder mt = PMonotorTarget.newBuilder();
+            mt.setCollection("dummy");
+            mt.setTaskid(taskid);
+            mt.setLogtype(LogCollectorClient.convert(LogType.FULL.typeKind));
+            PMonotorTarget mtarget = mt.build();
+            observer.onNext(mtarget);
+            String targetToken = FullBuildStatCollectorServer.addListener(LogCollectorClient.convert(mtarget)
+                    , new RealtimeLoggerCollectorAppender.LoggerCollectorAppenderListener() {
 
-            @Override
-            public void process(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget, LoggingEvent e) {
-                System.out.println("server side kk:" + e.getMessage());
-            }
+                        @Override
+                        public void process(RealtimeLoggerCollectorAppender.LoggingEventMeta mtarget, LoggingEvent e) {
+                            System.out.println("server side kk:" + e.getMessage());
+                        }
 
-            @Override
-            public void readLogTailer(RealtimeLoggerCollectorAppender.LoggingEventMeta meta, File logFile) {
-            }
+                        @Override
+                        public void readLogTailer(RealtimeLoggerCollectorAppender.LoggingEventMeta meta, File logFile) {
+                        }
 
-            @Override
-            public boolean isClosed() {
-                return clientClosed.get();
-            }
-        });
-        assertTrue("countdown shall be execute", countdown.await(2, TimeUnit.MINUTES));
-        // 需要再写几个日志
-        Thread.sleep(2000l);
-        RealtimeLoggerCollectorAppender.LogTypeListeners logListeners = RealtimeLoggerCollectorAppender.appenderListener.getLogTypeListeners(targetToken);
-        assertEquals(1, logListeners.getListenerSize());
-        eventHook.validateExpect();
-        System.out.println("rpc test over");
-    // synchronized (this) {
-    // this.wait();
-    // }
+                        @Override
+                        public boolean isClosed() {
+                            return clientClosed.get();
+                        }
+                    });
+            assertTrue("countdown shall be execute", countdown.await(20, TimeUnit.SECONDS));
+            // 需要再写几个日志
+            Thread.sleep(2000l);
+            RealtimeLoggerCollectorAppender.LogTypeListeners logListeners = RealtimeLoggerCollectorAppender.appenderListener.getLogTypeListeners(targetToken);
+            assertNotNull("logListeners can not be null", logListeners);
+            assertEquals(1, logListeners.getListenerSize());
+            eventHook.validateExpect();
+            System.out.println("rpc test over");
+        } finally {
+            svc.close();
+        }
     }
 
     private StatusRpcClient.AssembleSvcCompsite getRpcClient() {
         return StatusRpcClient.connect2RemoteIncrStatusServer("localhost:" + exportPort);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        ex[0] = null;
-        FullBuildStatCollectorServer.registerMonitorEventHook = new RegisterMonitorEventHook();
-    }
 
     private void startRpcServer() {
         // grpc启动服务端
-        Runnable runnable = () -> {
-            try {
-                IncrStatusServer incrStatusServer = new IncrStatusServer(exportPort);
-                incrStatusServer.addService(IncrStatusUmbilicalProtocolImpl.getInstance());
-                incrStatusServer.addService(FullBuildStatCollectorServer.getInstance());
-                incrStatusServer.start();
-                incrStatusServer.blockUntilShutdown();
-            } catch (Exception e) {
-                ex[0] = e;
-            }
-        };
-        Thread t = new Thread(runnable);
-        t.start();
+        //       Runnable runnable = () -> {
+        try {
+            incrStatusServer = new IncrStatusServer(exportPort);
+            incrStatusServer.addService(IncrStatusUmbilicalProtocolImpl.getInstance());
+            incrStatusServer.addService(FullBuildStatCollectorServer.getInstance());
+            incrStatusServer.start();
+            //       incrStatusServer.blockUntilShutdown();
+        } catch (Exception e) {
+            e.printStackTrace();
+            ex[0] = e;
+        }
     }
+
+    ;
+//        Thread t = new Thread(runnable);
+//        t.start();
 }
+

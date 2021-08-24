@@ -19,10 +19,10 @@ done ;
 
 #for tis-scala-compiler-dependencies
 rm -f /opt/data/tis/libs/tis-scala-compiler-dependencies/*
-cd /Users/mozhenghua/j2ee_solution/project/tis-saturn3/tis-scala-compiler-dependencies
+cd /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-scala-compiler-dependencies
 mvn dependency:copy-dependencies
 mkdir -p /opt/data/tis/libs/tis-scala-compiler-dependencies
-ln -s /Users/mozhenghua/j2ee_solution/project/tis-saturn3/tis-scala-compiler-dependencies/target/dependency/* /opt/data/tis/libs/tis-scala-compiler-dependencies
+ln -s /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-scala-compiler-dependencies/target/dependency/* /opt/data/tis/libs/tis-scala-compiler-dependencies
 
 
 #/Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency

@@ -43,10 +43,7 @@ public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasy
   //private static List<Object> mocks = Lists.newArrayList();
   protected RunContext runContext;
 
-  static {
-    CenterResource.setNotFetchFromCenterRepository();
-    HttpUtils.addMockGlobalParametersConfig();
-  }
+
 
   protected void setCollection(String collection) {
     request.addHeader("appname", collection);
@@ -58,6 +55,9 @@ public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasy
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
+    CenterResource.setNotFetchFromCenterRepository();
+    HttpUtils.addMockGlobalParametersConfig();
     System.out.println("==============execute setUp");
     this.clearMocks();
     EnvironmentBindService.cleanCacheService();

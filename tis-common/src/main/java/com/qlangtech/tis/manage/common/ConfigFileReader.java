@@ -223,7 +223,6 @@ public class ConfigFileReader {
                 IIndexMetaData meta = SolrFieldsParser.parse(() -> content, schemaPlugin, true);
                 ParseResult parseResult = meta.getSchemaParseResult();
 
-
                 for (SolrFieldsParser.SolrType ftype : parseResult.getFieldTypes()) {
                     if (ftype.plugin && (ftFactory = schemaPlugin.findFieldTypeFactory(ftype.getPluginName())) == null) {
                         parseResult.errlist.add("fieldType:" + ftype.getSType().getName() + " relevant fieldType plugin has not find plugin in plugin define collection");

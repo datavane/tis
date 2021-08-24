@@ -51,8 +51,7 @@ import java.util.concurrent.*;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年4月7日
  */
-public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmbilicalProtocol
-        IncrStatusGrpc.IncrStatusImplBase {
+public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusImplBase {
 
     private final HashMap<String, ConcurrentHashMap<String, TableMultiDataIndexStatus>> // 
             updateCounterStatus = new HashMap<>();
@@ -77,7 +76,6 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
 
     private static final int TABLE_COUNT_GAP = 5;
 
-    // private static final String TABLE_CONSUME_COUNT = "tableConsumeCount";
     // 定时任务，打印日志
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -87,7 +85,8 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
 
     private static final JsonFormat.Printer jsonPrint = JsonFormat.printer();
 
-    private static final ThreadLocal<SimpleDateFormat> formatYyyyMMddHHmmss = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+    private static final ThreadLocal<SimpleDateFormat> formatYyyyMMddHHmmss
+            = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 
     @Override
     public void ping(Empty request, StreamObserver<com.qlangtech.tis.grpc.PingResult> responseObserver) {
@@ -184,7 +183,8 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
 
     public void reportBuildIndexStatErr(int taskid, String shardName) {
         execHook.reportBuildIndexStatErr(taskid, shardName);
-        com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.Builder builder = com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.newBuilder();
+        com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.Builder builder
+                = com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.newBuilder();
         builder.setTaskid(taskid);
         builder.setSharedName(shardName);
         builder.setFaild(true);
@@ -204,7 +204,8 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
             returnEmpty(responseObserver);
             return;
         }
-        log.info("taskid:" + taskid + ",tablename:" + tableDumpStatus.getTableName() + ",read:" + tableDumpStatus.getReadRows() + ",all:" + tableDumpStatus.getAllRows());
+        log.info("taskid:" + taskid + ",tablename:" + tableDumpStatus.getTableName() + ",read:"
+                + tableDumpStatus.getReadRows() + ",all:" + tableDumpStatus.getAllRows());
         DumpPhaseStatus dumpPhase = phaseStatusSet.getDumpPhase();
         TableDumpStatus dumpStatus = phaseStatusSet.getDumpPhase().getTable(tableDumpStatus.getTableName());
         // }
@@ -231,7 +232,8 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
     }
 
     @Override
-    public void reportBuildIndexStatus(com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus buildStatus, StreamObserver<Empty> responseObserver) {
+    public void reportBuildIndexStatus(com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus buildStatus
+            , StreamObserver<Empty> responseObserver) {
         Integer taskid = buildStatus.getTaskid();
         if (taskid == null) {
             throw new IllegalArgumentException("taskid can not be null");
@@ -259,73 +261,7 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
         returnEmpty(responseObserver);
     }
 
-    // @Override
-    // public void nodeLaunchReport(LaunchReportInfo launchReportInfo) {
-    // synchronized (indexTopicInfo) {
-    // for (Map.Entry<String, TopicInfo> /* collection */
-    // entry : launchReportInfo.getCollectionFocusTopicInfo().entrySet()) {
-    // this.indexTopicInfo.put(entry.getKey(), entry.getValue());
-    // log.info("collection:" + entry.getKey() + " topicfocuse:" + JSON.toJSONString(entry.getValue(), true));
-    // }
-    // }
-    // }
-    // 接收到客户端传送过来的dump任务报告
-    // @Override
-    // public void reportDumpTableStatus(TableDumpStatus tableDumpStatus) {
-    // Integer taskid = tableDumpStatus.getTaskid();
-    // if (taskid == null || taskid < 1) {
-    // throw new IllegalArgumentException("taskid illegal:" + taskid);
-    // }
-    // PhaseStatusCollection phaseStatusSet = TrackableExecuteInterceptor.taskPhaseReference.get(taskid);
-    // if (phaseStatusSet == null) {
-    // return;
-    // }
-    // log.info("taskid:" + taskid + ",tablename:" + tableDumpStatus.getName() + ",read:" + tableDumpStatus.getReadRows() + ",all:" + tableDumpStatus.getAll());
-    // TableDumpStatus dumpStatus = phaseStatusSet.getDumpPhase().getTable(tableDumpStatus.getName());
-    // if (!dumpStatus.isFaild()) {
-    // dumpStatus.setFaild(tableDumpStatus.isFaild());
-    // }
-    // if (tableDumpStatus.isComplete()) {
-    // // 成功
-    // dumpStatus.setComplete(true);
-    // }
-    // if (tableDumpStatus.isFaild()) {
-    // // 失败了
-    // dumpStatus.setFaild(true);
-    // }
-    // dumpStatus.setReadRows(tableDumpStatus.getReadRows());
-    // dumpStatus.setAllRows(tableDumpStatus.getAllRows());
-    // if (dumpStatus.isWaiting()) {
-    // dumpStatus.setWaiting(tableDumpStatus.isWaiting());
-    // }
-    // }
-    // build任务进度报告
-    // @Override
-    // public void reportBuildIndexStatus(BuildSharedPhaseStatus buildStatus) {
-    // Integer taskid = buildStatus.getTaskid();
-    // if (taskid == null) {
-    // throw new IllegalArgumentException("taskid can not be null");
-    // }
-    // PhaseStatusCollection phaseStatusSet = TrackableExecuteInterceptor.taskPhaseReference.get(taskid);
-    // if (phaseStatusSet == null) {
-    // log.warn("taskid:" + taskid + " relevent phaseStatusSet is null");
-    // return;
-    // }
-    // log.info("taskid:" + taskid + ",shared:" + buildStatus.getSharedName() + ",process:" + buildStatus.getProcessed() + ",all:" + buildStatus.getAll() + ",percent:" + buildStatus.getPercent() + "%");
-    // BuildPhaseStatus status = phaseStatusSet.getBuildPhase();
-    // BuildSharedPhaseStatus sharedBuildStatus = status.getBuildSharedPhaseStatus(buildStatus.getSharedName());
-    // if (!sharedBuildStatus.isFaild()) {
-    // sharedBuildStatus.setFaild(buildStatus.isFaild());
-    // }
-    // if (!sharedBuildStatus.isComplete()) {
-    // sharedBuildStatus.setComplete(buildStatus.isComplete());
-    // }
-    // if (sharedBuildStatus.isWaiting()) {
-    // sharedBuildStatus.setWaiting(buildStatus.isWaiting());
-    // }
-    // sharedBuildStatus.setAllBuildSize(buildStatus.getAllBuildSize());
-    // sharedBuildStatus.setBuildReaded(buildStatus.getBuildReaded());
-    // }
+
     public IndexJobRunningStatus getIndexJobRunningStatus(String collection) {
         return new IndexJobRunningStatus(this.isIncrGoingOn(collection), this.isIncrProcessPaused(collection));
     }
@@ -400,7 +336,6 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
         }
     }
 
-    // = new TopicInfo();
     private static final com.qlangtech.tis.grpc.TopicInfo NULL_TOPIC_INFO;
 
     static {
@@ -417,47 +352,11 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
         return updateCounterStatus.get(collection);
     }
 
-    // TableSingleDataIndexStatus getIndexUpdateCounterStatus(String collection) {
-    // return updateCounterStatus.get(collection);
-    // // return updateCounterStatus.get(collection);
-    // }
+
     void removeIndexUpdateCounterStatus(String collection) {
         this.updateCounterStatus.remove(collection);
     }
 
-    /**
-     */
-    // @Override
-    // public MasterJob reportStatus(UpdateCounterMap updateCounter) {
-    // String from = updateCounter.getFrom();
-    // long updateTime = updateCounter.getUpdateTime();
-    // for (Map.Entry<String, TableSingleDataIndexStatus> entry : updateCounter.getData().entrySet()) {
-    // String indexName = entry.getKey();
-    // TableSingleDataIndexStatus updateCounterFromClient = entry.getValue();
-    // String uuid = updateCounterFromClient.getUUID();
-    // ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus = updateCounterStatus.get(indexName);
-    // if (indexStatus == null) {
-    // synchronized (updateCounterStatus) {
-    // indexStatus = updateCounterStatus.computeIfAbsent(indexName, k -> new ConcurrentHashMap<>());
-    // }
-    // }
-    // TableMultiDataIndexStatus tableMultiDataIndexStatus = indexStatus.get(uuid);
-    // if (tableMultiDataIndexStatus == null) {
-    // tableMultiDataIndexStatus = indexStatus.computeIfAbsent(uuid, k -> new TableMultiDataIndexStatus());
-    // }
-    // tableMultiDataIndexStatus.setBufferQueueRemainingCapacity(updateCounterFromClient.getBufferQueueRemainingCapacity());
-    // tableMultiDataIndexStatus.setConsumeErrorCount(updateCounterFromClient.getConsumeErrorCount());
-    // tableMultiDataIndexStatus.setIgnoreRowsCount(updateCounterFromClient.getIgnoreRowsCount());
-    // tableMultiDataIndexStatus.setUUID(updateCounterFromClient.getUUID());
-    // tableMultiDataIndexStatus.setFromAddress(from);
-    // tableMultiDataIndexStatus.setUpdateTime(updateTime);
-    // tableMultiDataIndexStatus.setTis30sAvgRT(updateCounterFromClient.getTis30sAvgRT());
-    // for (Map.Entry<String, Long> tabUpdate : entry.getValue().getTableConsumeData().entrySet()) {
-    // tableMultiDataIndexStatus.put(tabUpdate.getKey(), new ConsumeDataKeeper(tabUpdate.getValue(), updateTime));
-    // }
-    // }
-    // return pollJob(updateCounter);
-    // }
     private boolean startLogging = false;
 
     public void startLogging() {
@@ -508,7 +407,8 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
         String dateString = formatYyyyMMddHHmmss.get().format(new Date());
         Map<String, YarnStateStatistics> yarnStateMap = getYarnStateMap(indexStatus, currentTimeInSec);
         YarnStateStatistics yarnState = getMapCount(yarnStateMap);
-        statisLog.info(dateString + ", tbTPS:" + yarnState.getTbTPS() + ", tisTPS:" + yarnState.getSorlTPS() + "\r\n" + "detail:" + getYarnStateString(yarnStateMap) + "tableCount:" + getTableUpdateCount(indexStatus));
+        statisLog.info(dateString + ", tbTPS:" + yarnState.getTbTPS() + ", tisTPS:" + yarnState.getSorlTPS() + "\r\n"
+                + "detail:" + getYarnStateString(yarnStateMap) + "tableCount:" + getTableUpdateCount(indexStatus));
     }
 
     private Map<String, YarnStateStatistics> getYarnStateMap(ConcurrentHashMap<String, /* uuid */
@@ -579,19 +479,17 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
         for (YarnStateStatistics yarnStateStatistics : yarnStateMap.values()) {
             yarnState.setTbTPS(yarnState.getTbTPS() + yarnStateStatistics.getTbTPS());
             yarnState.setSorlTPS(yarnState.getSorlTPS() + yarnStateStatistics.getSorlTPS());
-            // yarnState.setQueueRC(yarnState.getQueueRC() +
-            // yarnStateStatistics.getQueueRC());
-            // yarnState.setTis30sAvgRT(yarnState.getTis30sAvgRT() +
-            // yarnStateStatistics.getTis30sAvgRT());
         }
-        // yarnState.setTis30sAvgRT(yarnState.getTis30sAvgRT() / yarnStateMap.size());
         return yarnState;
     }
 
     private static String getYarnStateString(Map<String, YarnStateStatistics> yarnStateMap) {
         StringBuilder sb = new StringBuilder("\r\n");
         for (YarnStateStatistics yarnStateStatistics : yarnStateMap.values()) {
-            String state = String.format("{'host':'%s'," + (yarnStateStatistics.isPaused() ? " paused ," : StringUtils.EMPTY) + "'tbTPS':%d, 'solrTPS':%d, 'solr_30s_avg_rt':%dms, 'queueRC':%d}\r\n", yarnStateStatistics.getFrom(), yarnStateStatistics.getTbTPS(), yarnStateStatistics.getSorlTPS(), yarnStateStatistics.getTis30sAvgRT(), yarnStateStatistics.getQueueRC());
+            String state = String.format("{'host':'%s'," + (yarnStateStatistics.isPaused() ? " paused ," : StringUtils.EMPTY)
+                    + "'tbTPS':%d, 'solrTPS':%d, 'solr_30s_avg_rt':%dms, 'queueRC':%d}\r\n", yarnStateStatistics.getFrom()
+                    , yarnStateStatistics.getTbTPS(), yarnStateStatistics.getSorlTPS()
+                    , yarnStateStatistics.getTis30sAvgRT(), yarnStateStatistics.getQueueRC());
             sb.append(state);
         }
         return sb.toString();
@@ -617,42 +515,12 @@ public class IncrStatusUmbilicalProtocolImpl extends // implements IncrStatusUmb
         }
         TableSingleDataIndexStatus singleDataIndexStatus = upateCounter.getDataMap().get(job.getIndexName());
         if (singleDataIndexStatus != null && StringUtils.equals(singleDataIndexStatus.getUuid(), job.getUuid()) && jobQueue.remove(job)) {
-            // if (upateCounter.containsIndex(job.getIndexName(), job.getUUID()) && jobQueue.remove(job)) {
             return job;
         } else {
             return null;
         }
     }
 
-    // @Override
-    // public long getProtocolVersion(String protocol, long clientVersion) throws IOException {
-    // return IncrStatusUmbilicalProtocol.versionID;
-    // }
-    // 
-    // @Override
-    // public ProtocolSignature getProtocolSignature(String protocol, long clientVersion, int clientMethodsHash) throws IOException {
-    // return ProtocolSignature.getProtocolSignature(this, protocol, clientVersion, clientMethodsHash);
-    // }
-    // public static void main(String[] args) {
-    // IncrStatusUmbilicalProtocolImpl incrStatusUmbilicalProtocolServer = new IncrStatusUmbilicalProtocolImpl();
-    // // getConfig();
-    // Configuration conf = getConfig();
-    // try {
-    // Server server = new RPC.Builder(conf).setProtocol(IncrStatusUmbilicalProtocol.class).setInstance(incrStatusUmbilicalProtocolServer).setBindAddress("0.0.0.0").setPort(1234).setNumHandlers(2).setVerbose(false).build();
-    // server.start();
-    // InetSocketAddress address = server.getListenerAddress();
-    // // NetUtils.createSocketAddrForHost(null,
-    // // server.getListenerAddress().getPort());
-    // System.out.println(address.getHostName());
-    // System.out.println(address.getAddress().getHostName());
-    // } catch (IOException e) {
-    // throw new YarnRuntimeException(e);
-    // }
-    // }
-    // 
-    // public static Configuration getConfig() {
-    // return new Configuration();
-    // }
     public static void setCollectionName(String collectionName) {
         if (StringUtils.isBlank(collectionName)) {
             throw new IllegalStateException("app name can not be blank");

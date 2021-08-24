@@ -36,13 +36,13 @@ public class TestAll extends TestCase {
     TestSuite suite = new TestSuite();
     suite.addTestSuite(TestPluginItems.class);
     suite.addTestSuite(TestIncrTagHeatBeatMonitor.class);
-    suite.addTestSuite(TestTISK8sDelegate.class);
+   // suite.addTestSuite(TestTISK8sDelegate.class);
     suite.addTestSuite(TestCoreAction.class);
 
     suite.addTestSuite(TestSysInitializeAction.class);
     suite.addTestSuite(TestSchemaResult.class);
     suite.addTestSuite(TestSchemaAction.class);
-    suite.addTestSuite(TestCollectionAction.class);
+    //suite.addTestSuite(TestCollectionAction.class);
     suite.addTestSuite(TestPluginAction.class);
 
     return suite;

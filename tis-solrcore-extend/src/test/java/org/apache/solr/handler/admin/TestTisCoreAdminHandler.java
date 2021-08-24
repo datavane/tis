@@ -20,6 +20,7 @@ import org.apache.solr.common.params.CommonAdminParams;
 import org.apache.solr.common.params.CoreAdminParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.core.CoreContainer;
+import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
 import org.easymock.EasyMock;
@@ -39,13 +40,15 @@ public class TestTisCoreAdminHandler extends TISTestCase {
 
     public void testhandleSwapindexfileAction() throws Exception {
 
-//        /admin/cores?action=CREATEALIAS&execaction="
-//                + ICoreAdminAction.ACTION_SWAP_INDEX_FILE + "&core=" + replica.getStr(CORE_NAME_PROP)
-//                + "&property.hdfs_timestamp=" + timestamp + "&property.hdfs_user=admin&" + CommonAdminParams.ASYNC + "=" + requestId);
+
         String coreName = "search4totalpay_shard1_replica_n1";
         final String taskid = "task_1";
         CoreContainer coreContainer = this.mock("coreContainer", CoreContainer.class);
         EasyMock.expect(coreContainer.getAllCoreNames()).andReturn(Collections.singleton(coreName)).anyTimes();
+
+        SolrCore solrCore = mock("solrCore", SolrCore.class);
+
+        EasyMock.expect(coreContainer.getCore(coreName)).andReturn(solrCore).anyTimes();
         AtomicBoolean execHandleSwapindexfileActionComplete = new AtomicBoolean();
         CountDownLatch countDown = new CountDownLatch(1);
         TisCoreAdminHandler coreAdminHandler = new TisCoreAdminHandler(coreContainer) {

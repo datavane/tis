@@ -24,18 +24,18 @@ import java.text.MessageFormat;
  */
 public abstract class TISBaseCriteria extends BasicCriteria {
 
-  private static final MessageFormat DB_DERBY_PAGINATION_FORMAT = new MessageFormat(" OFFSET {0} ROWS FETCH NEXT {1} ROWS ONLY");
-  private static final MessageFormat DB_MYSQL_PAGINATION_FORMAT = new MessageFormat(" limit {0},{1}");
+    private static final MessageFormat DB_DERBY_PAGINATION_FORMAT = new MessageFormat(" OFFSET {0} ROWS FETCH NEXT {1} ROWS ONLY");
+    private static final MessageFormat DB_MYSQL_PAGINATION_FORMAT = new MessageFormat(" limit {0},{1}");
 
-  public final String getPaginationScript() {
+    public final String getPaginationScript() {
 
-    Config.TisDbConfig dbCfg = Config.getDbCfg();
-    if (Config.DB_TYPE_DERBY.equals(dbCfg.dbtype)) {
-      return DB_DERBY_PAGINATION_FORMAT.format(new Object[]{this.getSkip(), this.getPageSize()});
-    } else if (Config.DB_TYPE_MYSQL.equals(dbCfg.dbtype)) {
-      return DB_MYSQL_PAGINATION_FORMAT.format(new Object[]{this.getSkip(), this.getPageSize()});
-    } else {
-      throw new IllegalStateException("illegal dbtype:" + dbCfg.dbtype);
+        Config.TisDbConfig dbCfg = Config.getDbCfg();
+        if (Config.DB_TYPE_DERBY.equals(dbCfg.dbtype)) {
+            return DB_DERBY_PAGINATION_FORMAT.format(new Object[]{this.getSkip(), this.getPageSize()});
+        } else if (Config.DB_TYPE_MYSQL.equals(dbCfg.dbtype)) {
+            return DB_MYSQL_PAGINATION_FORMAT.format(new Object[]{this.getSkip(), this.getPageSize()});
+        } else {
+            throw new IllegalStateException("illegal dbtype:" + dbCfg.dbtype);
+        }
     }
-  }
 }

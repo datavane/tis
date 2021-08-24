@@ -20,6 +20,7 @@ import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.cloud.MockZKUtils;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.MockZooKeeperGetter;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -87,6 +88,9 @@ public class TestCoreAction extends BasicActionTestCase {
     TableMeta tableMeta = new TableMeta(totalpayinfo.getTableName(), "entity_id");
     ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
     MockZooKeeperGetter.mockCoordinator = zkCoordinator;
+
+    HttpUtils.addMockApply(-1, "tis-assemble/trigger", "assemble.trigger.result.success.json", TestCoreAction.class);
+
 //    this.createCoordinatorMock(false, (zk) -> {
 //      TestCollectionAction.createAssembleLogCollectPathMock(zk);
 //    });
@@ -102,7 +106,7 @@ public class TestCoreAction extends BasicActionTestCase {
    */
   public void testTriggerFullbuildTaskByWithoutDefinePrimaryTable() throws Exception {
     TableMeta tableMeta = new TableMeta(totalpayinfo.getTableName(), null);
-
+    HttpUtils.addMockApply(-1, "tis-assemble/trigger", "assemble.trigger.result.faild.json", TestCoreAction.class);
     ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
     MockZooKeeperGetter.mockCoordinator = zkCoordinator;
 
@@ -120,6 +124,8 @@ public class TestCoreAction extends BasicActionTestCase {
    * 执行索引全量构建过程中，测试ERRule没有定义主表的<b>shareKey</b>，会导致final表的分区函数无法正常创建，需要主动抛出一个异常
    */
   public void testTriggerFullbuildTaskByWithoutDefinePrimaryTableShareKey() throws Exception {
+
+    HttpUtils.addMockApply(-1, "tis-assemble/trigger", "assemble.trigger.result.faild.json", TestCoreAction.class);
 
     ITISCoordinator zkCoordinator = MockZKUtils.createZkMock();
     MockZooKeeperGetter.mockCoordinator = zkCoordinator;
@@ -166,9 +172,9 @@ public class TestCoreAction extends BasicActionTestCase {
       TabExtraMeta extraMeta = new TabExtraMeta();
       extraMeta.setSharedKey(totalpayMeta.getSharedKey());
       PrimaryTableMeta tabMeta = new PrimaryTableMeta(totalpayMeta.getTabName(), extraMeta);
-      EasyMock.expect(erRules.getPrimaryTabs()).andReturn(Lists.newArrayList(tabMeta)).times(1);
+      EasyMock.expect(erRules.getPrimaryTabs()).andReturn(Lists.newArrayList(tabMeta)).anyTimes();
     } else {
-      EasyMock.expect(erRules.getPrimaryTabs()).andReturn(Collections.emptyList()).times(1);
+      EasyMock.expect(erRules.getPrimaryTabs()).andReturn(Collections.emptyList()).anyTimes();
     }
 
     MockERRulesGetter.erRules = erRules;

@@ -1,29 +1,62 @@
 {
-  "extensionPoint": "com.qlangtech.tis.datax.impl.DataxReader",
-  "descriptors": {
-    "com.qlangtech.tis.plugin.datax.DataxMySQLReader": {
-      "impl": "com.qlangtech.tis.plugin.datax.DataxMySQLReader",
-      "displayName": "MySQL",
-      "extendPoint": "com.qlangtech.tis.datax.impl.DataxReader",
-      "veriflable": false,
-      "subFormMeta": {
-        "fieldName": "selectedTabs",
-        "behaviorMeta": {
-          "clickBtnLabel": "设置",
-          "onClickFillData": {
-            "cols": {
-              "method": "getTableMetadata",
-              "params": [
+  "caption":"DataX Reader",
+  "cardinality":"n",
+  "descriptors":{
+    "com.qlangtech.tis.plugin.datax.DataxMySQLReader":{
+      "attrs":[
+        {
+          "describable":false,
+          "key":"name",
+          "ord":0,
+          "pk":true,
+          "required":true,
+          "type":1
+        },
+        {
+          "describable":false,
+          "key":"where",
+          "ord":1,
+          "pk":false,
+          "required":false,
+          "type":1
+        },
+        {
+          "describable":false,
+          "key":"cols",
+          "ord":2,
+          "pk":false,
+          "required":true,
+          "type":8
+        }
+      ],
+      "displayName":"MySQL",
+      "extendPoint":"com.qlangtech.tis.datax.impl.DataxReader",
+      "extractProps":{
+        "rdbms":true
+      },
+      "impl":"com.qlangtech.tis.plugin.datax.DataxMySQLReader",
+      "subForm":true,
+      "subFormMeta":{
+        "behaviorMeta":{
+          "clickBtnLabel":"设置",
+          "onClickFillData":{
+            "cols":{
+              "method":"getTableMetadata",
+              "params":[
                 "id"
               ]
             }
           }
         },
-        "idList": [
+        "fieldName":"selectedTabs",
+        "idList":[
           "customer_order_relation",
+          "customer_order_relation1",
           "discount_detail",
+          "dsname_yuqing_zj2_bak",
           "globalcodeorder",
           "instance_asset",
+          "instancedetail",
           "order_bill",
           "order_promotion",
           "order_refund",
@@ -41,6 +74,8 @@
           "servicebillinfo",
           "simplecodeorder",
           "specialfee",
+          "t1",
+          "tab_5cols",
           "takeout_order_extra",
           "totalpayinfo",
           "waiting_pay",
@@ -49,63 +84,27 @@
           "waitingorderdetail"
         ]
       },
-      "subForm": true,
-      "attrs": [
-        {
-          "ord": 0,
-          "describable": false,
-          "pk": true,
-          "type": 1,
-          "key": "name",
-          "required": true
-        },
-        {
-          "ord": 1,
-          "eprops": {
-            "help": "筛选条件，MysqlReader根据指定的column、table、where条件拼接SQL，并根据这个SQL进行数据抽取。在实际业务场景中，往往会选择当天的数据进行同步，可以将where条件指定为gmt_create > $bizdate 。注意：不可以将where条件指定为limit 10，limit不是SQL的合法where子句。\n where条件可以有效地进行业务增量同步。如果不填写where语句，包括不提供where的key或者value，DataX均视作同步全量数据。",
-            "placeholder": "1=1"
-          },
-          "describable": false,
-          "pk": false,
-          "type": 1,
-          "key": "where",
-          "required": false
-        },
-        {
-          "ord": 2,
-          "eprops": {
-            "help": "需要同步的数据列",
-            "label": "同步列",
-            "enum": []
-          },
-          "describable": false,
-          "pk": false,
-          "type": 8,
-          "key": "cols",
-          "required": true
-        }
-      ]
+      "veriflable":false
     }
   },
-  "caption": "DataX Reader",
-  "items": [
+  "extensionPoint":"com.qlangtech.tis.datax.impl.DataxReader",
+  "items":[
     {
-      "impl": "com.qlangtech.tis.plugin.datax.DataxMySQLReader",
-      "vals": {
-        "customer_order_relation": {
-          "name": "customer_order_relation",
-          "where": "1=999",
-          "cols": [
+      "displayName":"MySQL",
+      "impl":"com.qlangtech.tis.plugin.datax.DataxMySQLReader",
+      "vals":{
+        "customer_order_relation":{
+          "cols":[
             "customerregister_id",
             "waitingorder_id",
             "kind",
             "create_time",
             "last_ver"
-          ]
+          ],
+          "name":"customer_order_relation",
+          "where":"1=999"
         }
-      },
-      "displayName": "MySQL"
+      }
     }
-  ],
-  "cardinality": "n"
+  ]
 }

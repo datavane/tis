@@ -55,14 +55,9 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         if (!(plugin instanceof IFacadeDataSource)) {
             throw new IllegalStateException("plugin:" + plugin.identityValue() + " is not instanceOf IFacadeDataSource");
         }
-        //try {
-        // 进行一次connection的校验
+
         plugin.getTablesInDB();
         return ((IFacadeDataSource) plugin).createFacadeDataSource();
-//        } catch (Exception e) {
-//            throw new RuntimeException(e)
-//        }
-
     }
 
     public <DS extends DataSourceFactory> DS getDataSource() {

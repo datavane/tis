@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.order.dump.task.ITestDumpCommon;
 import com.qlangtech.tis.test.TISEasyMock;
-import com.qlangtech.tis.test.TISTestCase;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -28,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,9 @@ public class TestTopologyDir extends TestCase implements ITestDumpCommon, TISEas
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        System.clearProperty(Config.KEY_DATA_DIR);
         Config.setTestDataDir();
+        CenterResource.setFetchFromCenterRepository(false);
     }
 
     public void testSynchronizeSubRemoteRes() throws Exception {
@@ -116,7 +118,7 @@ public class TestTopologyDir extends TestCase implements ITestDumpCommon, TISEas
                         + TOPOLOGY_EMPLOYEES, false, true)
                 , new HttpUtils.IClasspathRes() {
                     @Override
-                    public InputStream getResourceAsStream() {
+                    public InputStream getResourceAsStream(URL url) {
                         return new ByteArrayInputStream(new byte[]{});
                     }
 
@@ -137,7 +139,7 @@ public class TestTopologyDir extends TestCase implements ITestDumpCommon, TISEas
                 , new HttpUtils.MockMatchKey("cfg_repo%2Fdf%2F" + TOPOLOGY_EMPLOYEES + "%2F" + resName, false, true)
                 , new HttpUtils.IClasspathRes() {
                     @Override
-                    public InputStream getResourceAsStream() {
+                    public InputStream getResourceAsStream(URL url) {
                         InputStream input = TestTopologyDir.class.getResourceAsStream(TOPOLOGY_EMPLOYEES + "/" + resName);
                         Objects.requireNonNull(input, "input can not be null");
                         return input;

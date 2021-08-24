@@ -23,7 +23,10 @@ import junit.framework.TestCase;
  * @date 2021-03-05 11:54
  */
 public abstract class TISTestCase extends TestCase implements TISEasyMock {
-    static {
+
+    @Override
+    protected void setUp() throws Exception {
+        HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
     }

@@ -77,7 +77,7 @@
       "vals": {
         "dbName": {
           "updateModel": true,
-          "_primaryVal": "order3",
+          "_primaryVal": "order1",
           "has_set_primaryVal": false,
           "key": "dbName",
           "pk": false,

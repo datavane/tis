@@ -247,7 +247,6 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
         }
         String target = targetAppenderName.toString();
         RealtimeLoggerCollectorAppender.addListener(target, evtMeta, listener);
-        // RealtimeLoggerCollectorAppender.addListener(mtarget, listener);
         return target;
     }
 

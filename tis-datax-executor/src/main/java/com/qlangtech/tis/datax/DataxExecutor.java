@@ -70,7 +70,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-20 12:38
  */
-public final class DataxExecutor {
+public class DataxExecutor {
     //public static final Field jarLoaderCenterField;
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
@@ -320,9 +320,13 @@ public final class DataxExecutor {
         logger.info("\n" + filterJobConfiguration(configuration) + "\n");
         logger.debug(configuration.toJSON());
         ConfigurationValidate.doValidate(configuration);
+        startEngine(configuration);
+
+    }
+
+    protected void startEngine(Configuration configuration) {
         Engine engine = new Engine();
         engine.start(configuration);
-
     }
 
     /**

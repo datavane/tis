@@ -35,7 +35,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
     public void testDataXProcessTrigger() throws Exception {
         IndexSwapTaskflowLauncher taskflowLauncher = new IndexSwapTaskflowLauncher();
-        taskflowLauncher.afterPropertiesSet();
+       // taskflowLauncher.afterPropertiesSet();
         DefaultChainContext chainContext = createRangeChainContext(FullbuildPhase.FullDump, FullbuildPhase.FullDump);
         ExecuteResult executeResult = taskflowLauncher.startWork(chainContext);
         assertTrue(executeResult.isSuccess());

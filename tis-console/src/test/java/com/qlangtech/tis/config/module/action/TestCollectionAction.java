@@ -82,14 +82,14 @@ public class TestCollectionAction extends BasicActionTestCase {
     AbstractTisCloudSolrClient.initHashcodeRouter();
 
     // stub create collection
-    HttpUtils.addMockApply(CoreAction.CREATE_COLLECTION_PATH, () -> {
+    HttpUtils.addMockApply(CoreAction.CREATE_COLLECTION_PATH, (url) -> {
       return TestCollectionAction.class.getResourceAsStream("s4employees_create_success.json");
     });
 
     HttpUtils.addMockApply(0, "/solr/" + COLLECTION_NAME + "/admin/file/?file=schema.xml", "s4employee_schema.xml", TestCollectionAction.class);
 
     // stub trigger collection indexbuild
-    HttpUtils.addMockApply(CoreAction.TRIGGER_FULL_BUILD_COLLECTION_PATH, () -> {
+    HttpUtils.addMockApply(CoreAction.TRIGGER_FULL_BUILD_COLLECTION_PATH, (url) -> {
       return TestCollectionAction.class.getResourceAsStream("s4employees_trigger_index_build_success.json");
     });
 
@@ -284,12 +284,10 @@ public class TestCollectionAction extends BasicActionTestCase {
     JSONArray returnFields = new JSONArray();
     returnFields.add(FIELD_EMPLOYEES_FIRST_NAME);
     returnFields.add(FIELD_EMPLOYEES_LAST_NAME);
-    content.put(CollectionAction.KEY_QUERY_FIELDS, returnFields);//FIELD_EMPLOYEES_FIRST_NAME + "," + FIELD_EMPLOYEES_LAST_NAME);
+    content.put(CollectionAction.KEY_QUERY_FIELDS, returnFields);
 
-    // content.put(CollectionAction.KEY_QUERY_QUERY_FIELDS, FIELD_EMPLOYEES_FIRST_NAME + " " + FIELD_EMPLOYEES_LAST_NAME);
     content.put(CollectionAction.KEY_QUERY_LIMIT, rowsLimit);
     content.put(CollectionAction.KEY_QUERY_ROWS_OFFSET, 2);
-    //  content.put(CollectionAction.KEY_QUERY_ORDER_BY, );
 
     request.setContent(content.toJSONString().getBytes(TisUTF8.get()));
     ActionProxy proxy = getActionProxy();

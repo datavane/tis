@@ -29,12 +29,10 @@ import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
-import com.qlangtech.tis.manage.common.CenterResource;
-import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStubUtils;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
@@ -52,23 +50,23 @@ public class TestPluginItems extends TestCase {
   static final String dataXName = "kk";
   static final UploadPluginMeta subFieldPluginMeta = UploadPluginMeta.parse("dataxReader:require,subFormFieldName_selectedTabs,targetDescriptorName_MySQL,dataxName_" + dataXName);
 
-  static {
-    CenterResource.setNotFetchFromCenterRepository();
-    HttpUtils.addMockGlobalParametersConfig();
-  }
+  KeyedPluginStore<DataxReader> readerStore;
 
-  KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataXName);
 
   @Override
   public void setUp() throws Exception {
+
+    PluginStubUtils.setDataDir(Config.DEFAULT_DATA_DIR);
+    CenterResource.setNotFetchFromCenterRepository();
+    HttpUtils.addMockGlobalParametersConfig();
     List<Option> opts = Lists.newArrayList();
     opts.add(new Option("orderdb", "orderdb"));
     OfflineDatasourceAction.existDbs = opts;
     DataxAction.deps = Collections.emptyList();
-
+    this.readerStore = DataxReader.getPluginStore(null, dataXName);
     File targetFile = readerStore.getTargetFile();
     File parentDir = targetFile.getParentFile();
-    FileUtils.forceDelete(parentDir);
+    FileUtils.deleteQuietly(parentDir);
   }
 
   public void testDataXItemsSave() throws Exception {
@@ -88,7 +86,7 @@ public class TestPluginItems extends TestCase {
       @Override
       public Boolean visit(RootFormProperties props) {
         Map<String, PropertyType> propertiesType = props.propertiesType;
-        validatePropertyValue(propertiesType, "dbName", "order3", reader);
+        validatePropertyValue(propertiesType, "dbName", "order1", reader);
         validatePropertyValue(propertiesType, "splitPk", true, reader);
 
 //        validatePropertyValue(propertiesType, "template"
@@ -171,8 +169,8 @@ public class TestPluginItems extends TestCase {
 
     JSONArray jsonArray = IOUtils.loadResourceFromClasspath(TestPluginItems.class
       , "datax_reader_mysql_post_subfield_form.json", true, (input) -> {
-      return JSON.parseArray(org.apache.commons.io.IOUtils.toString(input, TisUTF8.get()));
-    });
+        return JSON.parseArray(org.apache.commons.io.IOUtils.toString(input, TisUTF8.get()));
+      });
 
     JSONArray itemsArray = jsonArray.getJSONArray(0);
     // Optional.empty();

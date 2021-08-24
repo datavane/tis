@@ -70,6 +70,12 @@ public class SingleTableAppSource implements ISolrAppSource, IStreamIncrGenerate
 //        return visitor.visit(this);
 //    }
 
+
+    @Override
+    public <T> T accept(IAppSourceVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     @Override
     public boolean isExcludeFacadeDAOSupport() {
         return true;

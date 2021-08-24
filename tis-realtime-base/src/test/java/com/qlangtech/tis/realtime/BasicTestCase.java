@@ -65,40 +65,10 @@ public abstract class BasicTestCase extends TestCase {
     static {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
-        HttpUtils.addMockApply(1, COLLECTION_search4totalpay + "/0/daily/schema.xml", "schema-xstream.xml", AbstractTestS4totalpayIncr.class);
+        HttpUtils.addMockApply(-1, COLLECTION_search4totalpay + "/0/daily/schema.xml", "schema-xstream.xml", AbstractTestS4totalpayIncr.class);
         //http://192.168.28.200:8080/tjs/download/appconfig/search4test2/0/daily/schema.xml?snapshotid=-1
-        HttpUtils.addMockApply(2, "search4test2/0/daily/schema.xml", "schema-xstream.xml", TestS4employee.class);
-        // HttpUtils.mockConnMaker = new MockConnectionMaker() {
-        // @Override
-        // public MockHttpURLConnection create(URL url, List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method, byte[] content) {
-        // //http://127.0.0.1:8080/tjs/config/config.ajax?action=global_parameters_config_action&event_submit_do_get_all=y&runtime=daily
-        // if (url.toString().indexOf("global_parameters_config_action") > -1) {
-        // 
-        // return new MockHttpURLConnection(TestS4totalpayIncr.class.getResourceAsStream("global_params.json"));
-        // 
-        // }
-        // 
-        // if (url.toString().indexOf("schema.xml") > -1) {
-        // 
-        // //                    try () {
-        // //                        parseResult = solrFieldsParser.parseSchema(reader, false /* shallValidate */);
-        // //                    }
-        // 
-        // return new MockHttpURLConnection(TestS4totalpayIncr.class.getResourceAsStream("schema-xstream.xml"));
-        // 
-        // }
-        // 
-        // return null;
-        // }
-        // };
-        // 本地就是远程仓库，不需要再同步了
+        HttpUtils.addMockApply(-1, "search4test2/0/daily/schema.xml", "schema-xstream.xml", TestS4employee.class);
 
-        System.out.println("mockConnMaker set===================================================================");
-//        System.setProperty("notdownloadjar", "true");
-//        if (!TisIncrLauncher.notDownload) {
-//            // System.setProperty("data.dir", "/tmp/tis");
-//            Config.setDataDir("/tmp/tis");
-//        }
     }
 
     // public static final String menuId = "999320135eb8b638015ebd85b1c39999";

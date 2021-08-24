@@ -79,7 +79,7 @@
 -------------------------------------------------------
  T E S T S
 -------------------------------------------------------
-Running TestAll
+Running TestAll_bak
 Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.175 sec
 
 Results :
@@ -156,7 +156,7 @@ Tests run: 0, Failures: 0, Errors: 0, Skipped: 0
 -------------------------------------------------------
  T E S T S
 -------------------------------------------------------
-Running TestAll
+Running TestAll_bak
 15:29:59.644 [main] INFO  c.q.tis.manage.common.CenterResource - notFetchFromCenterRepository:false
 15:29:59.651 [main] WARN  c.q.tis.manage.common.CenterResource - remote file not exist:http://192.168.28.200:8080/tjs/config/stream_script_repo.action?path=cfg_repo%2Ftis_plugin_config%2Fcom.qlangtech.tis.plugin.incr.IncrStreamFactory.xml,local:
 Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.162 sec
@@ -197,7 +197,7 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 -------------------------------------------------------
  T E S T S
 -------------------------------------------------------
-Running TestAll
+Running TestAll_bak
 Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 sec
 There are no tests to run.
 
@@ -253,14 +253,14 @@ Caused by: java.lang.reflect.InvocationTargetException
 	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.apache.maven.surefire.booter.ProviderFactory$ClassLoaderProxy.invoke(ProviderFactory.java:103)
 	... 4 more
-Caused by: org.apache.maven.surefire.util.NestedRuntimeException: When finding method run; nested exception is java.lang.NoSuchMethodException: TestAll.run(junit.framework.TestResult)
+Caused by: org.apache.maven.surefire.util.NestedRuntimeException: When finding method run; nested exception is java.lang.NoSuchMethodException: TestAll_bak.run(junit.framework.TestResult)
 	at org.apache.maven.surefire.common.junit3.JUnit3Reflector.getMethod(JUnit3Reflector.java:114)
 	at org.apache.maven.surefire.common.junit3.JUnit3Reflector.getRunMethod(JUnit3Reflector.java:210)
 	at org.apache.maven.surefire.junit.JUnitTestSet.<init>(JUnitTestSet.java:70)
 	at org.apache.maven.surefire.junit.JUnit3Provider.createTestSet(JUnit3Provider.java:94)
 	at org.apache.maven.surefire.junit.JUnit3Provider.invoke(JUnit3Provider.java:84)
 	... 9 more
-Caused by: java.lang.NoSuchMethodException: TestAll.run(junit.framework.TestResult)
+Caused by: java.lang.NoSuchMethodException: TestAll_bak.run(junit.framework.TestResult)
 	at java.lang.Class.getMethod(Class.java:1786)
 	at org.apache.maven.surefire.common.junit3.JUnit3Reflector.getMethod(JUnit3Reflector.java:110)
 	... 13 more

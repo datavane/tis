@@ -14,14 +14,11 @@
  */
 package com.qlangtech.tis.plugin;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.config.yarn.IYarnConfig;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
@@ -34,8 +31,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
+import java.net.URL;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -49,13 +45,16 @@ public class TestComponentMeta extends TestCase {
         super.setUp();
         CenterResource.setFetchFromCenterRepository(false);
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();//.clearStubs();
+
         final String paramsConfig = "com.qlangtech.tis.config.ParamsConfig.xml";
-        HttpUtils.addMockApply(paramsConfig, new LatestUpdateTimestampClasspathRes() {
+        HttpUtils.addMockApply(paramsConfig, new HttpUtils.LatestUpdateTimestampClasspathRes() {
             @Override
-            public InputStream getResourceAsStream() {
+            public InputStream getResourceAsStream(URL url) {
                 return TestComponentMeta.class.getResourceAsStream(paramsConfig);
             }
         });
+
+        HttpUtils.addMockGlobalParametersConfig();
 
         stubTpi("tis-datax-common-plugin.tpi");
         stubTpi("tis-hive-flat-table-builder-plugin.tpi");
@@ -63,25 +62,25 @@ public class TestComponentMeta extends TestCase {
         // stubTpi("tis-hive-flat-table-builder-plugin");
 
         String tableDumpFactory = "com.qlangtech.tis.offline.TableDumpFactory.xml";
-        HttpUtils.addMockApply(tableDumpFactory, new LatestUpdateTimestampClasspathRes() {
+        HttpUtils.addMockApply(tableDumpFactory, new HttpUtils.LatestUpdateTimestampClasspathRes() {
             @Override
-            public InputStream getResourceAsStream() {
+            public InputStream getResourceAsStream(URL url) {
                 return TestComponentMeta.class.getResourceAsStream(tableDumpFactory);
             }
         });
 
         String indexBuilderTriggerFactory = "com.qlangtech.tis.offline.IndexBuilderTriggerFactory.xml";
-        HttpUtils.addMockApply(indexBuilderTriggerFactory, new LatestUpdateTimestampClasspathRes() {
+        HttpUtils.addMockApply(indexBuilderTriggerFactory, new HttpUtils.LatestUpdateTimestampClasspathRes() {
             @Override
-            public InputStream getResourceAsStream() {
+            public InputStream getResourceAsStream(URL url) {
                 return TestComponentMeta.class.getResourceAsStream(indexBuilderTriggerFactory);
             }
         });
 
         String flatTableBuilder = "com.qlangtech.tis.offline.FlatTableBuilder.xml";
-        HttpUtils.addMockApply(flatTableBuilder, new LatestUpdateTimestampClasspathRes() {
+        HttpUtils.addMockApply(flatTableBuilder, new HttpUtils.LatestUpdateTimestampClasspathRes() {
             @Override
-            public InputStream getResourceAsStream() {
+            public InputStream getResourceAsStream(URL url) {
                 return TestComponentMeta.class.getResourceAsStream(flatTableBuilder);
             }
         });
@@ -95,9 +94,9 @@ public class TestComponentMeta extends TestCase {
     }
 
     private static void stubTpi(String tpiFileName) {
-        HttpUtils.addMockApply(tpiFileName, new LatestUpdateTimestampClasspathRes() {
+        HttpUtils.addMockApply(tpiFileName, new HttpUtils.LatestUpdateTimestampClasspathRes() {
             @Override
-            public InputStream getResourceAsStream() {
+            public InputStream getResourceAsStream(URL url) {
                 String pluginFilePath = "/opt/data/tis/libs/plugins/" + tpiFileName;
                 try {
                     return FileUtils.openInputStream(new File(pluginFilePath));
@@ -139,10 +138,4 @@ public class TestComponentMeta extends TestCase {
         assertEquals("yarn1", yarn1.identityValue());
     }
 
-    protected static abstract class LatestUpdateTimestampClasspathRes implements HttpUtils.IClasspathRes {
-        @Override
-        public Map<String, List<String>> headerFields() {
-            return ImmutableMap.of(ConfigFileContext.KEY_HEAD_LAST_UPDATE, Lists.newArrayList(String.valueOf(System.currentTimeMillis())));
-        }
-    }
 }

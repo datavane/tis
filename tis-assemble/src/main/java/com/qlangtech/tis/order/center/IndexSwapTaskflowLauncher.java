@@ -16,22 +16,23 @@ package com.qlangtech.tis.order.center;
 
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.exec.*;
+import com.qlangtech.tis.exec.AbstractActionInvocation;
+import com.qlangtech.tis.exec.ActionInvocation;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
+import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
-import com.qlangtech.tis.exec.impl.DummyIndexMetaData;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.flume.FlumeApplication;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.*;
-import com.qlangtech.tis.manage.common.*;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.SendSMSUtils;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.realtime.yarn.rpc.impl.MasterListenerStatus;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
 import com.qlangtech.tis.rpc.server.IncrStatusServer;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.trigger.zk.AbstractWatcher;
@@ -59,8 +60,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
     private static final Logger logger = LoggerFactory.getLogger(IndexSwapTaskflowLauncher.class);
 
-    // private static FileSystem fileSystem;
     public static final String KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER = "IndexSwapTaskflowLauncher";
+    private TisZkClient zkClient;
+    private ZkStateReader zkStateReader;
 
 
     public static IndexSwapTaskflowLauncher getIndexSwapTaskflowLauncher(ServletContext context) {
@@ -75,13 +77,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     public void contextDestroyed(ServletContextEvent sce) {
     }
 
-    // private static final String indexName = "search4totalpay";
-    // private JettyTISRunner jetty;
-    // private HdfsRealTimeTerminatorBean totalpayBean;
-    // private IRemoteIncrControl remoteIncrControl;
-    private TisZkClient zkClient;
 
-    ZkStateReader zkStateReader;
 
     public void setZkClient(TisZkClient zkClient) {
         this.zkClient = zkClient;
@@ -102,13 +98,11 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         AbstractTisCloudSolrClient.initHashcodeRouter();
         // 构建各阶段持久化
         BasicPhaseStatus.statusWriter = new BasicPhaseStatus.IFlush2Local() {
-
             @Override
             public void write(File localFile, BasicPhaseStatus status) throws Exception {
                 XmlFile xmlFile = new XmlFile(localFile);
                 xmlFile.write(status, Collections.emptySet());
             }
-
             @Override
             public BasicPhaseStatus loadPhase(File localFile) throws Exception {
                 XmlFile xmlFile = new XmlFile(localFile);
@@ -267,8 +261,6 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         }
         return execResult;
     }
-
-
 
 
     // ///daemon/////////////////===========================================

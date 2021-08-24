@@ -16,10 +16,12 @@ package com.qlangtech.tis.sql.parser;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.er.ERRules;
@@ -31,14 +33,12 @@ import com.qlangtech.tis.sql.parser.supplyGoods.TestSupplyGoodsParse;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import junit.framework.Assert;
 import junit.framework.TestCase;
-import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import java.io.File;
 import java.io.StringWriter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,16 +49,16 @@ import java.util.Optional;
  */
 public class TestSqlTaskNodeMeta extends TestCase {
 
-    static {
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
         CenterResource.setNotFetchFromCenterRepository();
+        System.clearProperty(Config.KEY_DATA_DIR);
+        SqlTaskNode.parent = new File(Config.getMetaCfgDir(), SqlTaskNode.NAME_DATAFLOW_DIR);
     }
 
-    private final File parent = new File("./src/main/resources/test");
+    private final File parent = new File("./src/main/resources/totalpay");
 
-
-    public void test(){
-
-    }
 
     public void testValidateSql() {
 
@@ -91,10 +91,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         dependencyNodes.add("commodity_goods");
         err = SqlTaskNodeMeta.validateSql("    SELECT g.id,g.entity_id,g.commodity_id,g.goods_id\n" +
                 "     FROM commodity_goods g", dependencyNodes);
-
         assertFalse(err.isPresent());
-
-        //assertEquals("commodity_goods can not find tab in[]", err.get().summary());
     }
 
 
@@ -119,10 +116,15 @@ public class TestSqlTaskNodeMeta extends TestCase {
         ITemplateContext tplContext = EasyMock.createMock("templateContext", ITemplateContext.class);
         IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
         EasyMock.expect(tplContext.getExecContext()).andReturn(joinTaskContext);
+        EasyMock.expect(joinTaskContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange()).times(2);
+        EasyMock.expect(joinTaskContext.getIndexShardCount()).andReturn(1).times(1);
         Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
         assertTrue(erRule.isPresent());
         EasyMock.replay(tplContext, joinTaskContext);
-        ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql("supply_goods", new TabPartitions(dumpPartition), erRule.get(), tplContext, true);
+
+        ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
+                "supply_goods", new TabPartitions(dumpPartition), erRule.get(), tplContext, true);
+
         assertNotNull(rewriteSql);
         assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.sqlContent);
         System.out.println(rewriteSql.sqlContent);
@@ -156,76 +158,82 @@ public class TestSqlTaskNodeMeta extends TestCase {
         }
     }
 
-    public void testSerializeAndDeserialize() throws Exception {
-        File testDir = new File("./src/test/resources/test");
-        String topologyName = "totalpay";
-        final File dataflowDir = new File(testDir, "dataflow/" + topologyName);
-        FileUtils.forceMkdir(dataflowDir);
-        System.setProperty("data.dir", testDir.getAbsolutePath());
-        // File dir = new File(System.getProperty("data.dir", testDir.getAbsolutePath()));
-        // 
-        // System.out.println(dir.getAbsolutePath());
-        SqlDataFlowTopology topology = new SqlDataFlowTopology();
-        List<DependencyNode> ns = Lists.newArrayList();
-        DependencyNode dep1 = new DependencyNode();
-        dep1.setDbid("123");
-        dep1.setTabid("765");
-        dep1.setDbName("order");
-        dep1.setExtraSql("select * from USER u  \ninner join Profile p on (u.userid = p.userid)");
-        dep1.setId("43");
-        dep1.setName("orderinfo");
-        dep1.setType(NodeType.DUMP.getType());
-        ns.add(dep1);
-        // topology.addDumpTab(ns);
-        DependencyNode dep2 = new DependencyNode();
-        dep2.setDbid("124");
-        dep2.setTabid("883");
-        dep2.setDbName("order");
-        dep2.setExtraSql("SELECT * FROM UUUSER u  \nINNER JOIN Profile p ON (u.userid = p.userid)");
-        dep2.setId("433");
-        dep2.setName("totalpay");
-        dep2.setType(NodeType.DUMP.getType());
-        ns.add(dep2);
-        topology.addDumpTab(ns);
-        SqlTaskNodeMeta processMeta = new SqlTaskNodeMeta();
-        processMeta.setExportName("test_baisui");
-        processMeta.setId("12312hgj1h1232134j");
-        Position pos = new Position();
-        pos.setX(123);
-        pos.setY(321);
-        processMeta.setPosition(pos);
-        processMeta.setSql("select a,b,c from baisui_table where 1=1");
-        processMeta.setType(NodeType.JOINER_SQL.name());
-        DependencyNode dependency = new DependencyNode();
-        dependency.setId("22334467");
-        dependency.setName("baisui_xx");
-        processMeta.setDependencies(Collections.singletonList(dependency));
-        topology.addNodeMeta(processMeta);
-        SqlTaskNodeMeta.persistence(topology, dataflowDir);
-        // 反序列化
-        SqlDataFlowTopology restore = SqlTaskNodeMeta.getSqlDataFlowTopology(topologyName);
-        Assert.assertNotNull(restore);
-        List<DependencyNode> dumpNodes = restore.getDumpNodes();
-        Assert.assertEquals(2, dumpNodes.size());
-        for (DependencyNode dump : dumpNodes) {
-            if (dump.getId().equals(dep1.getId())) {
-                assertDependencyNodeEqual(dep1, dump);
-            } else if (dump.getId().equals(dep2.getId())) {
-                assertDependencyNodeEqual(dep2, dump);
-            } else {
-                throw new IllegalStateException("node:" + dump.getId() + " is illegal");
-            }
-        }
-        List<SqlTaskNodeMeta> metas = restore.getNodeMetas();
-        Assert.assertEquals(1, metas.size());
-        SqlTaskNodeMeta m = metas.get(0);
-        List<DependencyNode> single = m.getDependencies();
-        Assert.assertEquals(1, single.size());
-        DependencyNode s = single.get(0);
-        Assert.assertEquals(dependency.getId(), s.getId());
-        Assert.assertEquals(dependency.getName(), s.getName());
-        // FileUtils.forceDelete(dataflowDir);
-    }
+//    public void testSerializeAndDeserialize() throws Exception {
+//        File testDir = new File("./src/test/resources/test");
+//        String topologyName = "totalpay";
+//        final File dataflowDir = new File(testDir, "dataflow/" + topologyName);
+//        FileUtils.forceMkdir(dataflowDir);
+//
+//        Config.setDataDir(testDir.getAbsolutePath());
+//        SqlTaskNode.parent = new File(Config.getMetaCfgDir(), SqlTaskNode.NAME_DATAFLOW_DIR);
+//
+//        SqlDataFlowTopology topology = new SqlDataFlowTopology();
+//        SqlTaskNodeMeta.TopologyProfile tprofile = new SqlTaskNodeMeta.TopologyProfile();
+//        tprofile.setTimestamp(20210820112059l);
+//        tprofile.setDataflowId(1);
+//        tprofile.setName(topologyName);
+//        topology.setProfile(tprofile);
+//
+//        List<DependencyNode> ns = Lists.newArrayList();
+//        DependencyNode dep1 = new DependencyNode();
+//        dep1.setDbid("123");
+//        dep1.setTabid("765");
+//        dep1.setDbName("order");
+//        dep1.setExtraSql("select * from USER u  \ninner join Profile p on (u.userid = p.userid)");
+//        dep1.setId("43");
+//        dep1.setName("orderinfo");
+//        dep1.setType(NodeType.DUMP.getType());
+//        ns.add(dep1);
+//        // topology.addDumpTab(ns);
+//        DependencyNode dep2 = new DependencyNode();
+//        dep2.setDbid("124");
+//        dep2.setTabid("883");
+//        dep2.setDbName("order");
+//        dep2.setExtraSql("SELECT * FROM UUUSER u  \nINNER JOIN Profile p ON (u.userid = p.userid)");
+//        dep2.setId("433");
+//        dep2.setName("totalpay");
+//        dep2.setType(NodeType.DUMP.getType());
+//        ns.add(dep2);
+//        topology.addDumpTab(ns);
+//        SqlTaskNodeMeta processMeta = new SqlTaskNodeMeta();
+//        processMeta.setExportName("test_baisui");
+//        processMeta.setId("12312hgj1h1232134j");
+//        Position pos = new Position();
+//        pos.setX(123);
+//        pos.setY(321);
+//        processMeta.setPosition(pos);
+//        processMeta.setSql("select a,b,c from baisui_table where 1=1");
+//        processMeta.setType(NodeType.JOINER_SQL.name());
+//        DependencyNode dependency = new DependencyNode();
+//        dependency.setId("22334467");
+//        dependency.setName("baisui_xx");
+//        processMeta.setDependencies(Collections.singletonList(dependency));
+//        topology.addNodeMeta(processMeta);
+//        SqlTaskNodeMeta.persistence(topology, dataflowDir);
+//        // 反序列化
+//        SqlDataFlowTopology restore = SqlTaskNodeMeta.getSqlDataFlowTopology(topologyName);
+//        Assert.assertNotNull(restore);
+//        List<DependencyNode> dumpNodes = restore.getDumpNodes();
+//        Assert.assertEquals(2, dumpNodes.size());
+//        for (DependencyNode dump : dumpNodes) {
+//            if (dump.getId().equals(dep1.getId())) {
+//                assertDependencyNodeEqual(dep1, dump);
+//            } else if (dump.getId().equals(dep2.getId())) {
+//                assertDependencyNodeEqual(dep2, dump);
+//            } else {
+//                throw new IllegalStateException("node:" + dump.getId() + " is illegal");
+//            }
+//        }
+//        List<SqlTaskNodeMeta> metas = restore.getNodeMetas();
+//        Assert.assertEquals(1, metas.size());
+//        SqlTaskNodeMeta m = metas.get(0);
+//        List<DependencyNode> single = m.getDependencies();
+//        Assert.assertEquals(1, single.size());
+//        DependencyNode s = single.get(0);
+//        Assert.assertEquals(dependency.getId(), s.getId());
+//        Assert.assertEquals(dependency.getName(), s.getName());
+//        // FileUtils.forceDelete(dataflowDir);
+//    }
 
     private void assertDependencyNodeEqual(DependencyNode expect, DependencyNode actual) {
         assertEquals(expect.getDbid(), actual.getDbid());
@@ -251,15 +259,11 @@ public class TestSqlTaskNodeMeta extends TestCase {
         Assert.assertNotNull(sqlContent);
         List<DependencyNode> required = sqlNodeMeta.getDependencies();
         Assert.assertEquals(2, required.size());
-        Assert.assertEquals(300, sqlNodeMeta.getPosition().getX());
-        Assert.assertEquals(200, sqlNodeMeta.getPosition().getY());
+        Assert.assertEquals(1059, sqlNodeMeta.getPosition().getX());
+        Assert.assertEquals(264, sqlNodeMeta.getPosition().getY());
         Assert.assertEquals(NodeType.JOINER_SQL, sqlNodeMeta.getNodeType());
-        Assert.assertEquals("14", sqlNodeMeta.getId());
-        // for (DependencyNode n : sqlNodeMeta.getDependencies()) {
-        // System.out.println("--------------------------->" + n.getName());
-        // }
-        //
-        // Assert.assertEquals(1, sqlNodeMeta.getDependencies().size());
+        Assert.assertEquals("6e7b9c50-0fba-8a19-f029-d973e5a833c7", sqlNodeMeta.getId());
+
     }
 
     File tmp_group_specialfee = new File(parent, "tmp_group_specialfee.yaml");

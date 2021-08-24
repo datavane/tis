@@ -1,8 +1,4 @@
 <sdomain>
-    <application/>
-    <coreProp/>
-    <datasource/>
-    <jarFile/>
     <solrSchema>
         <urId>27</urId>
         <resourceType>schema.xml</resourceType>

@@ -51,11 +51,11 @@
         <module>tis-plugin</module>
         <module>tis-solrcore-extend</module>
         <module>tis-index-builder</module>
+        <module>tis-dag</module>
         <module>tis-realtime-base</module>
         <module>tis-sql-parser</module>
         <module>tis-common-dao</module>
         <module>tis-collection-info-collect</module>
-        <module>tis-dag</module>
         <module>tis-console</module>
         <module>solr-webapp</module>
         <module>tis-scala-compiler</module>
@@ -748,7 +748,7 @@
                 <version>2.8</version>
                 <configuration>
                     <!--
-                    <test>TestAll</test>
+                    <test>TestAll_bak</test>
 -->
                     <includes>
                         <include>**/TestAll.java</include>
