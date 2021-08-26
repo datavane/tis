@@ -30,7 +30,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 /**
- * @author 百岁（baisui@taobao.com）
  * @date 2012-7-2
  */
 public class JobMetaDataDAO extends JdbcDaoSupport implements IJobMetaDataDAO {

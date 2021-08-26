@@ -21,6 +21,7 @@ import com.qlangtech.tis.test.TISEasyMock;
 import junit.framework.TestCase;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 
 import java.io.File;
@@ -56,8 +57,8 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
   public void testSystemDBInitializWithDerby() throws Exception {
     File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
     FileUtils.deleteQuietly(initialSuccessToken);
-
-    String[] args = new String[]{"/opt/misc/tis-ansible/tis_console_derby.sql", Config.DB_TYPE_DERBY};
+    final String tis_ansible_home = StringUtils.defaultIfEmpty(System.getenv("tis_ansible_home"), "/opt/misc/tis-ansible");
+    String[] args = new String[]{tis_ansible_home + "/tis_console_derby.sql", Config.DB_TYPE_DERBY};
     Config config = this.mock("config", Config.class);
 
 

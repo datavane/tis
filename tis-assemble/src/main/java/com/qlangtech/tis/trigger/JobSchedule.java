@@ -20,8 +20,6 @@ import java.io.Serializable;
 
 /**
  * 任务执行计划
- * 
- * @author 百岁（baisui@taobao.com）
  * @date 2012-6-19
  */
 public class JobSchedule implements Serializable {

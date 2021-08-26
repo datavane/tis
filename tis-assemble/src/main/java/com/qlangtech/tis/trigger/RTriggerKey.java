@@ -19,7 +19,6 @@ package com.qlangtech.tis.trigger;
 import java.io.Serializable;
 
 /**
- * @author °ÙËê£¨baisui@taobao.com£©
  * @date 2012-7-30
  */
 public class RTriggerKey implements Serializable {

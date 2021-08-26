@@ -20,7 +20,6 @@ package com.qlangtech.tis.trigger.biz.dal.dao;
 
 
 /**
- * @author 百岁（baisui@taobao.com）
  * @date 2012-7-2
  */
 public abstract class JobConstant {

@@ -14,15 +14,8 @@
  *
  */
 
-/**
- * 
- */
 package com.qlangtech.tis.trigger;
 
-/**
- * @author 百岁（baisui@taobao.com）
- * @date 2014年12月11日下午7:35:53
- */
 public interface ITriggerContext {
 	public String getParam(String key);
 }

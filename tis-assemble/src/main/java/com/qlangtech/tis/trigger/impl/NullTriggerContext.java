@@ -20,10 +20,6 @@ package com.qlangtech.tis.trigger.impl;
 
 import com.qlangtech.tis.trigger.ITriggerContext;
 
-/**
- * @author 百岁（baisui@taobao.com）
- * @date 2014年12月12日下午3:49:48
- */
 public class NullTriggerContext implements ITriggerContext {
 
     @Override

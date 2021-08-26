@@ -14,13 +14,9 @@
  *
  */
 
-/**
- * 
- */
 package com.qlangtech.tis.trigger;
 
 /**
- * @author 百岁（baisui@taobao.com）
  * @date 2014年10月31日下午6:59:30
  */
 public class SourceType {

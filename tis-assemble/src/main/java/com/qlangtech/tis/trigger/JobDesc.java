@@ -23,7 +23,6 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @author °ÙËê£¨baisui@taobao.com£©
  * @date 2012-7-30
  */
 public class JobDesc implements Serializable {

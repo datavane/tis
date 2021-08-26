@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
- * @author °ÙËê£¨baisui@taobao.com£©
  * @date 2012-6-25
  */
 public final class QuartzTriggerJob implements Job {

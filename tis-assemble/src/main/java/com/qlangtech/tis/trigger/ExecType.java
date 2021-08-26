@@ -18,7 +18,6 @@ package com.qlangtech.tis.trigger;
 /**
  * 每次触发的执行操作类型
  *
- * @author 百岁（baisui@taobao.com）
  * @date 2014年11月4日下午1:21:13
  */
 public enum ExecType {

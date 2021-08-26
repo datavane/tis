@@ -24,7 +24,6 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 /**
- * @author °ÙËê£¨baisui@taobao.com£©
  * @date 2012-7-30
  */
 public interface TriggerJobConsole extends Remote {

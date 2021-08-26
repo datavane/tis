@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author 百岁（baisui@taobao.com）
  * @date 2012-7-31
  */
 public class AppTrigger {
