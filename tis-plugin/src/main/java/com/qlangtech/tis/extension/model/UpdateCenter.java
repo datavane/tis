@@ -140,6 +140,7 @@ public class UpdateCenter implements Saveable {
      */
     @NonNull
     public static UpdateCenter createUpdateCenter(@CheckForNull UpdateCenterConfiguration config) {
+
         return new UpdateCenter();
     }
 
@@ -477,6 +478,15 @@ public class UpdateCenter implements Saveable {
         public void postValidate(DownloadJob job, File src) throws IOException {
         }
 
+        private static MessageDigest getDigest(String algorithm) {
+            try {
+                return MessageDigest.getInstance(algorithm);
+            } catch (NoSuchAlgorithmException e) {
+                LOGGER.info("Failed to instantiate message digest algorithm, may only have weak or no verification of downloaded file", algorithm);
+            }
+            return null;
+        }
+
         /**
          * Download a plugin or core upgrade in preparation for installing it
          * into its final location. Implementations will normally download the
@@ -491,96 +501,116 @@ public class UpdateCenter implements Saveable {
          * @see DownloadJob
          */
         public File download(DownloadJob job, URL src) throws IOException {
-            MessageDigest sha1 = null;
-            MessageDigest sha256 = null;
-            MessageDigest sha512 = null;
-            try {
-                // Java spec says SHA-1 and SHA-256 exist, and SHA-512 might not, so one try/catch block should be fine
-                sha1 = MessageDigest.getInstance("SHA-1");
-                sha256 = MessageDigest.getInstance("SHA-256");
-                sha512 = MessageDigest.getInstance("SHA-512");
-            } catch (NoSuchAlgorithmException nsa) {
-                LOGGER.info("Failed to instantiate message digest algorithm, may only have weak or no verification of downloaded file", nsa);
-            }
 
-            URLConnection con = null;
-            try {
-                con = connect(job, src);
-                Objects.requireNonNull(con, "con can not be null");
-                //JENKINS-34174 - set timeout for downloads, may hang indefinitely
-                // particularly noticeable during 2.0 install when downloading
-                // many plugins
-                con.setReadTimeout(PLUGIN_DOWNLOAD_READ_TIMEOUT);
+            // Java spec says SHA-1 and SHA-256 exist, and SHA-512 might not, so one try/catch block should be fine
+            final MessageDigest sha1 = getDigest("SHA-1");
+            final MessageDigest sha256 = getDigest("SHA-256");
+            final MessageDigest sha512 = getDigest("SHA-512");
 
-                int total = con.getContentLength();
-                byte[] buf = new byte[8192];
-                int len;
+            File dst = job.getDestination();
+            File tmp = new File(dst.getPath() + ".tmp");
+            // URLConnection con = null;
+            //  try {
 
-                File dst = job.getDestination();
-                File tmp = new File(dst.getPath() + ".tmp");
+            int total = HttpUtils.get(src, new ConfigFileContext.StreamProcess<Integer>() {
+                @Override
+                public Integer p(HttpURLConnection con, InputStream stream) throws IOException {
 
-                LOGGER.info("Downloading " + job.getName());
-                Thread t = Thread.currentThread();
-                String oldName = t.getName();
-                t.setName(oldName + ": " + src);
-                try (OutputStream _out = Files.newOutputStream(tmp.toPath());
-                     OutputStream out =
-                             sha1 != null ? new DigestOutputStream(
-                                     sha256 != null ? new DigestOutputStream(
-                                             sha512 != null ? new DigestOutputStream(_out, sha512) : _out, sha256) : _out, sha1) : _out;
-                     InputStream in = con.getInputStream();
-                     CountingInputStream cin = new CountingInputStream(in)) {
-                    while ((len = cin.read(buf)) >= 0) {
-                        out.write(buf, 0, len);
-                        job.status = job.new Installing(total == -1 ? -1 : cin.getCount() * 100 / total);
+                    int total = con.getContentLength();
+                    byte[] buf = new byte[8192];
+                    int len;
+
+
+                    LOGGER.info("Downloading " + job.getName());
+                    try {
+                        Thread t = Thread.currentThread();
+                        String oldName = t.getName();
+                        t.setName(oldName + ": " + src);
+                        try (OutputStream _out = Files.newOutputStream(tmp.toPath());
+                             OutputStream out =
+                                     sha1 != null ? new DigestOutputStream(
+                                             sha256 != null ? new DigestOutputStream(
+                                                     sha512 != null ? new DigestOutputStream(_out, sha512) : _out, sha256) : _out, sha1) : _out;
+                             InputStream in = con.getInputStream();
+                             CountingInputStream cin = new CountingInputStream(in)) {
+                            while ((len = cin.read(buf)) >= 0) {
+                                out.write(buf, 0, len);
+                                job.status = job.new Installing(total == -1 ? -1 : cin.getCount() * 100 / total);
+                            }
+                        } catch (IOException | InvalidPathException e) {
+                            throw new IOException("Failed to load " + src + " to " + tmp, e);
+                        } finally {
+                            t.setName(oldName);
+                        }
+                        return total;
+                    } catch (IOException e) {
+                        // assist troubleshooting in case of e.g. "too many redirects" by printing actual URL
+                        String extraMessage = "";
+                        if (con != null && con.getURL() != null && !src.toString().equals(con.getURL().toString())) {
+                            // Two URLs are considered equal if different hosts resolve to same IP. Prefer to log in case of string inequality,
+                            // because who knows how the server responds to different host name in the request header?
+                            // Also, since it involved name resolution, it'd be an expensive operation.
+                            extraMessage = " (redirected to: " + con.getURL() + ")";
+                        }
+                        throw new RuntimeException("Failed to download from " + src + extraMessage, e);
                     }
-                } catch (IOException | InvalidPathException e) {
-                    throw new IOException("Failed to load " + src + " to " + tmp, e);
-                } finally {
-                    t.setName(oldName);
                 }
 
-                if (total != -1 && total != tmp.length()) {
-                    // don't know exactly how this happens, but report like
-                    // http://www.ashlux.com/wordpress/2009/08/14/hudson-and-the-sonar-plugin-fail-maveninstallation-nosuchmethoderror/
-                    // indicates that this kind of inconsistency can happen. So let's be defensive
-                    throw new IOException("Inconsistent file length: expected " + total + " but only got " + tmp.length());
+                @Override
+                public Integer p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                    throw new UnsupportedOperationException();
                 }
+            });
 
-                if (sha1 != null) {
-                    byte[] digest = sha1.digest();
-                    job.computedSHA1 = Base64.getEncoder().encodeToString(digest);
-                }
-                if (sha256 != null) {
-                    byte[] digest = sha256.digest();
-                    job.computedSHA256 = Base64.getEncoder().encodeToString(digest);
-                }
-                if (sha512 != null) {
-                    byte[] digest = sha512.digest();
-                    job.computedSHA512 = Base64.getEncoder().encodeToString(digest);
-                }
-                return tmp;
-            } catch (IOException e) {
-                // assist troubleshooting in case of e.g. "too many redirects" by printing actual URL
-                String extraMessage = "";
-                if (con != null && con.getURL() != null && !src.toString().equals(con.getURL().toString())) {
-                    // Two URLs are considered equal if different hosts resolve to same IP. Prefer to log in case of string inequality,
-                    // because who knows how the server responds to different host name in the request header?
-                    // Also, since it involved name resolution, it'd be an expensive operation.
-                    extraMessage = " (redirected to: " + con.getURL() + ")";
-                }
-                throw new IOException("Failed to download from " + src + extraMessage, e);
+//                con = connect(job, src);
+//                Objects.requireNonNull(con, "con can not be null");
+//                //JENKINS-34174 - set timeout for downloads, may hang indefinitely
+//                // particularly noticeable during 2.0 install when downloading
+//                // many plugins
+//                con.setReadTimeout(PLUGIN_DOWNLOAD_READ_TIMEOUT);
+
+
+            if (total != -1 && total != tmp.length()) {
+                // don't know exactly how this happens, but report like
+                // http://www.ashlux.com/wordpress/2009/08/14/hudson-and-the-sonar-plugin-fail-maveninstallation-nosuchmethoderror/
+                // indicates that this kind of inconsistency can happen. So let's be defensive
+                throw new IOException("Inconsistent file length: expected " + total + " but only got " + tmp.length());
             }
+
+            if (sha1 != null) {
+                byte[] digest = sha1.digest();
+                job.computedSHA1 = Base64.getEncoder().encodeToString(digest);
+            }
+            if (sha256 != null) {
+                byte[] digest = sha256.digest();
+                job.computedSHA256 = Base64.getEncoder().encodeToString(digest);
+            }
+            if (sha512 != null) {
+                byte[] digest = sha512.digest();
+                job.computedSHA512 = Base64.getEncoder().encodeToString(digest);
+            }
+            return tmp;
+//            } catch (IOException e) {
+//                // assist troubleshooting in case of e.g. "too many redirects" by printing actual URL
+//                String extraMessage = "";
+//                if (con != null && con.getURL() != null && !src.toString().equals(con.getURL().toString())) {
+//                    // Two URLs are considered equal if different hosts resolve to same IP. Prefer to log in case of string inequality,
+//                    // because who knows how the server responds to different host name in the request header?
+//                    // Also, since it involved name resolution, it'd be an expensive operation.
+//                    extraMessage = " (redirected to: " + con.getURL() + ")";
+//                }
+//                throw new IOException("Failed to download from " + src + extraMessage, e);
+//            }
         }
 
-        /**
-         * Connects to the given URL for downloading the binary. Useful for tweaking
-         * how the connection gets established.
-         */
-        protected URLConnection connect(DownloadJob job, URL src) throws IOException {
-            //return ProxyConfiguration.open(src);
-            return src.openConnection();
-        }
+//        /**
+//         * Connects to the given URL for downloading the binary. Useful for tweaking
+//         * how the connection gets established.
+//         */
+//        protected URLConnection connect(DownloadJob job, URL src) throws IOException {
+//            //return ProxyConfiguration.open(src);
+//            return src.openConnection();
+//        }
 
         /**
          * Called after a plugin has been downloaded to move it into its final

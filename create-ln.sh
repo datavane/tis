@@ -1,15 +1,8 @@
+# https://blog.csdn.net/qq_38425719/article/details/102515854
+# relevant java code in CreateSoftLink.java
 rm -f /opt/data/tis/libs/plugins/*.jpi
 rm -f /opt/data/tis/libs/plugins/*.tpi
 
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-hdfs-plugin/target/tis-hdfs-plugin.tpi /opt/data/tis/libs/plugins/tis-hdfs-plugin.tpi
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-hive-flat-table-builder-plugin/target/tis-hive-flat-table-builder-plugin.tpi /opt/data/tis/libs/plugins/tis-hive-flat-table-builder-plugin.tpi
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-k8s-plugin/target/tis-k8s-plugin.tpi /opt/data/tis/libs/plugins/tis-k8s-plugin.tpi
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-asyncmsg-rocketmq-plugin/target/tis-asyncmsg-rocketmq-plugin.tpi  /opt/data/tis/libs/plugins/tis-asyncmsg-rocketmq-plugin.tpi
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-ds-mysql-plugin/target/tis-ds-mysql-plugin.tpi  /opt/data/tis/libs/plugins/tis-ds-mysql-plugin.tpi
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-ds-tidb-plugin/target/tis-ds-tidb-plugin.tpi  /opt/data/tis/libs/plugins/tis-ds-tidb-plugin.tpi
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-kafka-plugin/target/tis-kafka-plugin.tpi  /opt/data/tis/libs/plugins/tis-kafka-plugin.tpi
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-solr-plugin/target/tis-solr-plugin.tpi  /opt/data/tis/libs/plugins/tis-solr-plugin.tpi
-#ln -s /Users/mozhenghua/j2ee_solution/project/plugins/tis-local-dump-build/target/tis-local-dump-build.tpi  /opt/data/tis/libs/plugins/tis-local-dump-build.tpi
 
 for f in `find /Users/mozhenghua/j2ee_solution/project/plugins  -name '*.tpi' -print`
 do
@@ -19,10 +12,10 @@ done ;
 
 #for tis-scala-compiler-dependencies
 rm -f /opt/data/tis/libs/tis-scala-compiler-dependencies/*
-cd /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-scala-compiler-dependencies
+cd ./tis-scala-compiler-dependencies
 mvn dependency:copy-dependencies
 mkdir -p /opt/data/tis/libs/tis-scala-compiler-dependencies
-ln -s /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-scala-compiler-dependencies/target/dependency/* /opt/data/tis/libs/tis-scala-compiler-dependencies
+ln -s ./tis-scala-compiler-dependencies/target/dependency/* /opt/data/tis/libs/tis-scala-compiler-dependencies
 
 
 #/Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency

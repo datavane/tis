@@ -494,6 +494,13 @@ public class UpdateSite {
             }
         }
 
+        @Override
+        public String toString() {
+            return "{" +
+                    "title='" + title + '\'' +
+                    '}';
+        }
+
         public Future<UpdateCenter.UpdateCenterJob> deploy() {
             return deploy(false);
         }

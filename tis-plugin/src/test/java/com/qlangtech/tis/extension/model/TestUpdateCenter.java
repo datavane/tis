@@ -15,8 +15,10 @@
 
 package com.qlangtech.tis.extension.model;
 
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -24,11 +26,17 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.util.TestHeteroList;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -41,6 +49,20 @@ public class TestUpdateCenter extends TestCase {
     @Override
     protected void setUp() throws Exception {
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
+
+        HttpUtils.addMockApply(PluginManager.PACAKGE_TPI_EXTENSION, new HttpUtils.IClasspathRes() {
+            @Override
+            public InputStream getResourceAsStream(URL url) {
+                ///opt/data/tis/libs/plugins/
+                try {
+                    File tpi = new File("/opt/data/tis/libs/plugins/", StringUtils.substringAfterLast(url.getPath(), "/"));
+                    return FileUtils.openInputStream(tpi);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
         HttpUtils.addMockGlobalParametersConfig();
         CenterResource.setNotFetchFromCenterRepository();
         //http://mirror.qlangtech.com/update-site/default.json
@@ -62,6 +84,20 @@ public class TestUpdateCenter extends TestCase {
         updateCenter.updateAllSites();
 
         assertTrue("verfiyResHasFetch", cacheMockRes.verfiyResHasFetch());
+
+
+        UpdateSite.Plugin dsMysqlPlugin = updateCenter.getPlugin("tis-ds-mysql-plugin");
+        assertNotNull(dsMysqlPlugin);
+
+        Set<String> dsMysqlPluginNeededDependenciesSet = Sets.newHashSet("tis-datax-common-plugin", "tis-datax-common-rdbms-plugin");
+        List<UpdateSite.Plugin> dsMysqlPluginNeededDependencies = dsMysqlPlugin.getNeededDependencies();
+        assertEquals(2, dsMysqlPluginNeededDependencies.size());
+        for (UpdateSite.Plugin p : dsMysqlPluginNeededDependencies) {
+            assertTrue(p.getDisplayName() + " shall exist in "
+                            + dsMysqlPluginNeededDependenciesSet.stream().collect(Collectors.joining(","))
+                    , dsMysqlPluginNeededDependenciesSet.contains(p.title));
+        }
+
 
         List<Descriptor<DataSourceFactory>> descriptorList = TIS.get().getDescriptorList(DataSourceFactory.class);
         Optional<Descriptor<DataSourceFactory>> first = descriptorList.stream().filter((r) -> mysqlV5Ds.equals(r.getDisplayName())).findFirst();

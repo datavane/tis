@@ -123,7 +123,7 @@ public class ConfigFileContext {
                         IOUtils.closeQuietly(errStream);
                     }
                 }
-                return process.p(conn.getResponseCode(), reader, conn.getHeaderFields());
+                return process.p(conn, reader);
             } catch (Exception e) {
                 if (++retryCount >= maxRetry) {
                     throw new RuntimeException("maxRetry:" + maxRetry + ",url:" + url.toString(), e);
@@ -187,6 +187,10 @@ public class ConfigFileContext {
             List<Header> tmpList = Lists.newArrayList(HEADER_TEXT_HTML);
             tmpList.add(new Header(HEADER_KEY_GET_FILE_META, String.valueOf(true)));
             HEADER_GET_META = Collections.unmodifiableList(tmpList);
+        }
+
+        public T p(HttpURLConnection conn, InputStream stream) throws IOException {
+            return p(conn.getResponseCode(), stream, conn.getHeaderFields());
         }
 
         /**

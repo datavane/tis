@@ -313,11 +313,43 @@
       "version": "2.3.0",
       "wiki": "https://plugins.jenkins.io/tis-datax-sqlserver-plugin"
     },
+    "tis-datax-common-rdbms-plugin": {
+      "buildDate": 1627372871000,
+      "dependencies": [
+        {
+          "name": "tis-datax-common-plugin",
+          "optional": false,
+          "version": "2.3.0"
+        }
+      ],
+      "developers": [],
+      "excerpt": "",
+      "gav": "com.qlangtech.tis:tis-datax-common-rdbms-plugin:2.3.0",
+      "labels": [],
+      "minimumJavaVersion": "1.8",
+      "name": "tis-datax-common-rdbms-plugin",
+      "popularity": 0,
+      "releaseTimestamp": "2021-07-27 16:01:11",
+      "requiredCore": "1.398",
+      "scm": "https://github.com/qlangtech/plugins/tree/master/tis-ds-mysql-plugin",
+      "sha1": "",
+      "sha256": "",
+      "size": 1939847,
+      "title": "tis-datax-common-rdbms-plugin",
+      "url": "http://mirror.qlangtech.com/2.3.0/tis-plugin/tis-datax-common-rdbms-plugin.tpi",
+      "version": "2.3.0",
+      "wiki": "https://plugins.jenkins.io/tis-datax-common-rdbms-plugin"
+    },
     "tis-ds-mysql-plugin": {
       "buildDate": 1627372871000,
       "dependencies": [
         {
           "name": "tis-datax-common-plugin",
+          "optional": false,
+          "version": "2.3.0"
+        },
+        {
+          "name": "tis-datax-common-rdbms-plugin",
           "optional": false,
           "version": "2.3.0"
         }

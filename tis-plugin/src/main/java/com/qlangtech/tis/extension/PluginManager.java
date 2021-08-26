@@ -57,7 +57,8 @@ import static com.qlangtech.tis.extension.init.InitMilestone.*;
  */
 public class PluginManager {
 
-    public static final String PACAKGE_TPI_EXTENSION = ".tpi";
+    public static final String PACAKGE_TPI_EXTENSION_NAME = "tpi";
+    public static final String PACAKGE_TPI_EXTENSION = "." + PACAKGE_TPI_EXTENSION_NAME;
 
     private static final Logger logger = LoggerFactory.getLogger(PluginManager.class);
 
@@ -90,7 +91,12 @@ public class PluginManager {
     /**
      * All discovered plugins.
      */
-    protected final List<PluginWrapper> plugins = new ArrayList<PluginWrapper>();
+    protected final List<PluginWrapper> plugins = new ArrayList<PluginWrapper>() {
+        @Override
+        public boolean add(PluginWrapper pluginWrapper) {
+            return super.add(pluginWrapper);
+        }
+    };
 
     /**
      * All active plugins, topologically sorted so that when X depends on Y, Y appears in the list before X does.
@@ -575,7 +581,7 @@ public class PluginManager {
      */
     public PluginWrapper getPlugin(String shortName) {
         for (PluginWrapper p : getPlugins()) {
-            if (p.getShortName().equals(shortName)){
+            if (p.getShortName().equals(shortName)) {
                 return p;
             }
         }
