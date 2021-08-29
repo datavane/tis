@@ -53,12 +53,14 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             //exec(msg);
             CommandLine cmdLine = new CommandLine("java");
             cmdLine.addArgument("-D" + Config.KEY_DATA_DIR + "=" + Config.getDataDir().getAbsolutePath());
-            cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
+            cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=" + this.useRuntimePropEnvProps());
             cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + System.getProperty(Config.KEY_LOG_DIR));
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
-            if (this.getExtraJavaSystemPrams() != null) {
-                cmdLine.addArgument(this.getExtraJavaSystemPrams());
+
+            for (String sysParam : this.getExtraJavaSystemPrams()) {
+                cmdLine.addArgument(sysParam);
             }
+
             cmdLine.addArgument("-classpath");
             cmdLine.addArgument(getClasspath());
             cmdLine.addArgument(getMainClassName());
@@ -94,10 +96,15 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
         }
     }
 
+
     protected abstract String getClasspath();
 
-    protected String getExtraJavaSystemPrams() {
-        return null;
+    protected boolean useRuntimePropEnvProps() {
+        return true;
+    }
+
+    protected String[] getExtraJavaSystemPrams() {
+        return new String[0];
     }
 
     /**
