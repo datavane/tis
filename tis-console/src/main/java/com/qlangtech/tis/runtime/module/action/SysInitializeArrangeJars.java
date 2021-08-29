@@ -17,6 +17,7 @@ package com.qlangtech.tis.runtime.module.action;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.TisSubModule;
 import com.qlangtech.tis.util.Memoizer;
 import org.apache.commons.io.FileUtils;
 
@@ -52,9 +53,9 @@ public class SysInitializeArrangeJars {
 
   private static final List<SubProj> subDirs
     = Lists.newArrayList( //
-    new SubProj("tis-assemble", commons_) //
-    , new SubProj("solr", commons_)
-    , new SubProj("tjs", commons_)
+    new SubProj(TisSubModule.TIS_ASSEMBLE, commons_) //
+    , new SubProj(TisSubModule.SOLR, commons_)
+    , new SubProj(TisSubModule.TIS_CONSOLE, commons_)
     //  , new SubProj("tis-collect", commons_)
   );
 
@@ -85,7 +86,7 @@ public class SysInitializeArrangeJars {
     for (SubProj sbDir : subDirs) {
       subModuleLibDir = new File(uberDir, sbDir.getName() + "/lib");
       if (!subModuleLibDir.getParentFile().exists()) {
-       // throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
+        // throw new IllegalStateException("sub lib dir:" + subModuleLibDir.getAbsolutePath() + " is not exist");
         continue;
       }
       for (String jarFileName : subModuleLibDir.list()) {
@@ -141,8 +142,8 @@ public class SysInitializeArrangeJars {
     // 需要保留的jar包
     private final List<Pattern> retainJars = Lists.newArrayList();
 
-    public SubProj(String name, String value, String... retainJar) {
-      super(name, value);
+    public SubProj(TisSubModule name, String value, String... retainJar) {
+      super(name.moduleName, value);
       retainJars.add(Pattern.compile(value));
       for (String jar : retainJar) {
         retainJars.add(Pattern.compile(jar));

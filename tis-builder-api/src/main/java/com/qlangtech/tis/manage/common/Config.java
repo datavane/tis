@@ -116,6 +116,14 @@ public class Config {
         return getDataDir(true);
     }
 
+    public static File getTisHome() {
+        File tisHome = new File(System.getenv("TIS_HOME"));
+        if (!tisHome.exists() || !tisHome.isDirectory()) {
+            throw new IllegalStateException("tisHomeDir:" + tisHome.getAbsolutePath() + " is not illegal");
+        }
+        return tisHome;
+    }
+
     public static File getDataDir(boolean valiate) {
         File dir = new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
         if (valiate && !(dir.isDirectory() && dir.exists())) {

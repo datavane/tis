@@ -226,9 +226,7 @@ public class DataxExecutor {
      */
     public void startWork(String dataxName, Integer jobId, String jobName, IDataxProcessor dataxProcessor
             , final JarLoader uberClassLoader) throws IOException, Exception {
-        // TaskConfig config = TaskConfig.getInstance();
-
-        // DataxProcessor dataxProcessor = DataxProcessor.load(null, dataxName);
+        Objects.requireNonNull(dataxProcessor, "dataXOricessor can not be null");
         KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
         KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
         File jobPath = new File(dataxProcessor.getDataxCfgDir(null), jobName);

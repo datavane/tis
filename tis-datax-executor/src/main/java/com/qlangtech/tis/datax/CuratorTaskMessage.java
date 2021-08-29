@@ -24,8 +24,6 @@ public class CuratorTaskMessage {
 
     private Integer jobId;
 
-    //private String jobPath;
-
     private String jobName;
 
 
@@ -37,9 +35,6 @@ public class CuratorTaskMessage {
         return jobId;
     }
 
-//    public String getJobPath() {
-//        return jobPath;
-//    }
 
     public String getJobName() {
         return jobName;

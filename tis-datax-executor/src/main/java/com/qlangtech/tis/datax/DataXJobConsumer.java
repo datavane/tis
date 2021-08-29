@@ -18,10 +18,7 @@ package com.qlangtech.tis.datax;
 import com.qlangtech.tis.cloud.AdapterTisCoordinator;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.TISCollectionUtils;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.solrj.util.ZkUtils;
-import org.apache.commons.exec.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -29,19 +26,15 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.queue.DistributedQueue;
 import org.apache.curator.framework.recipes.queue.QueueBuilder;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
-import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * DataX 执行器
@@ -49,9 +42,8 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-06 14:57
  **/
-public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
+public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
     private static final Logger logger = LoggerFactory.getLogger(DataXJobConsumer.class);
-    //private final DataxExecutor dataxExecutor;
     private final CuratorFramework curatorClient;
     private final ITISCoordinator coordinator;
 
@@ -69,12 +61,8 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
             throw new IllegalArgumentException("args length can not small than 2");
         }
 
-//        List<String> children = zkClient.getChildren("/", null, true);
-//        Objects.requireNonNull(children);
-
-        String zkQueuePath = args[1]; //System.getProperty(DataxUtils.DATAX_QUEUE_ZK_PATH);
-        String zkAddress = args[0]; //System.getProperty(DataxUtils.DATAX_ZK_ADDRESS);
-
+        String zkQueuePath = args[1];
+        String zkAddress = args[0];
 
         DataXJobConsumer dataXJobConsume = getDataXJobConsumer(zkQueuePath, zkAddress);
 
@@ -103,20 +91,7 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3);
         CuratorFrameworkFactory.Builder curatorBuilder = CuratorFrameworkFactory.builder();
         curatorBuilder.retryPolicy(retryPolicy);
-        CuratorFramework curatorClient = curatorBuilder
-//                .zookeeperFactory(new DefaultZookeeperFactory() {
-//                    @Override
-//                    public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher, boolean canBeReadOnly) throws Exception {
-//                        if (StringUtils.equals(connectString, Config.getZKHost())) {
-//                            logger.info("use the TIS system zookeeper instance,system zkHost:{},plugin zkHost:{}", Config.getZKHost(), connectString);
-//                            return zkClient.getZK().getSolrZooKeeper();
-//                        } else {
-//                            logger.info("create TIS new zookeeper instance with ,system zkHost:{},plugin zkHost:{}", Config.getZKHost(), connectString);
-//                            return super.newZooKeeper(connectString, sessionTimeout, watcher, canBeReadOnly);
-//                        }
-//                    }
-//                })
-                .connectString(zkAddress).build();
+        CuratorFramework curatorClient = curatorBuilder.connectString(zkAddress).build();
         curatorClient.start();
         return curatorClient;
     }
@@ -181,73 +156,20 @@ public class DataXJobConsumer implements QueueConsumer<CuratorTaskMessage> {
         }
     }
 
-    @Override
-    public void consumeMessage(CuratorTaskMessage msg) throws Exception {
-        //MDC.put();
-
-        Integer jobId = msg.getJobId();
-//        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
-        String jobName = msg.getJobName();
-        String dataxName = msg.getDataXName();
-        //String jobPath = msg.getJobPath();
-        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
-        MDC.put(TISCollectionUtils.KEY_COLLECTION, dataxName);
-        logger.info("process DataX job, dataXName:{},jobid:{},jobName:{}", dataxName, jobId, jobName);
-
-        synchronized (DataXJobConsumer.class) {
-            //exec(msg);
-            CommandLine cmdLine = new CommandLine("java");
-            cmdLine.addArgument("-D" + Config.KEY_DATA_DIR + "=" + Config.getDataDir().getAbsolutePath());
-            cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
-            cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + System.getProperty(Config.KEY_LOG_DIR));
-            cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
-            cmdLine.addArgument("-classpath");
-            cmdLine.addArgument("./lib/*:./tis-datax-executor.jar:./conf/");
-            cmdLine.addArgument(DataxExecutor.class.getName());
-            cmdLine.addArgument(String.valueOf(jobId));
-            cmdLine.addArgument(jobName);
-            cmdLine.addArgument(dataxName);
-            //  cmdLine.addArgument(jobPath, true);
-            cmdLine.addArgument(ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH));
-
-            DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-
-            ExecuteWatchdog watchdog = new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT);
-            DefaultExecutor executor = new DefaultExecutor();
-            executor.setWorkingDirectory(new File("/opt/tis/tis-datax-executor"));
-
-            executor.setStreamHandler(new PumpStreamHandler(System.out));
-            executor.setExitValue(0);
-            executor.setWatchdog(watchdog);
-
-            logger.info("command:{}", Arrays.stream(cmdLine.toStrings()).collect(Collectors.joining(" ")));
-            executor.execute(cmdLine, resultHandler);
-
-            // 等待5个小时
-            resultHandler.waitFor(5 * 60 * 60 * 1000);
-
-            if (resultHandler.hasResult() && resultHandler.getExitValue() != 0) {
-                // it was killed on purpose by the watchdog
-                if (resultHandler.getException() != null) {
-//                resultHandler.getException().printStackTrace();
-                    logger.error("dataX:" + dataxName, resultHandler.getException());
-//            }
-                }
-            }
-
-
-//            System.out.println("exitCode:" + resultHandler.getExitValue());
-//            if (resultHandler.getException() != null) {
-//                resultHandler.getException().printStackTrace();
-//            }
-
-
-        }
+    protected String getIncrStateCollectAddress() {
+        return ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH);
     }
 
-
-    @Override
-    public void stateChanged(CuratorFramework curatorFramework, ConnectionState connectionState) {
-        logger.warn("curator stateChanged to new Status:" + connectionState);
+    protected String getMainClassName() {
+        return DataxExecutor.class.getName();
     }
+
+    protected File getWorkingDirectory() {
+        return new File("/opt/tis/tis-datax-executor");
+    }
+
+    protected String getClasspath() {
+        return "./lib/*:./tis-datax-executor.jar:./conf/";
+    }
+
 }
