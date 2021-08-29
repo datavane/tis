@@ -33,7 +33,6 @@ import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.manage.IAppSource;
@@ -71,7 +70,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2021-04-20 12:38
  */
 public class DataxExecutor {
-    //public static final Field jarLoaderCenterField;
+    private static final boolean flumeAppendEnable = getFlumeAppenderEnable();
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
         TIS.permitInitialize = false;
@@ -104,15 +103,6 @@ public class DataxExecutor {
             TIS.permitInitialize = true;
         }
     }
-
-//    static {
-//        try {
-//            jarLoaderCenterField = LoadUtil.class.getDeclaredField("jarLoaderCenter");
-//            jarLoaderCenterField.setAccessible(true);
-//        } catch (NoSuchFieldException e) {
-//            throw new RuntimeException("can not get field 'jarLoaderCenter' of LoadUtil", e);
-//        }
-//    }
 
     /**
      * 入口开始执行
@@ -152,7 +142,9 @@ public class DataxExecutor {
             @Override
             public void run() {
                 statusRpc.close();
-                TisFlumeLogstashV1Appender.instance.stop();
+                if (flumeAppendEnable) {
+                    com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender.instance.stop();
+                }
             }
         });
         try {
@@ -405,5 +397,14 @@ public class DataxExecutor {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static boolean getFlumeAppenderEnable() {
+        try {
+            Class.forName("com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender");
+            return true;
+        } catch (ClassNotFoundException e) {
+        }
+        return false;
     }
 }

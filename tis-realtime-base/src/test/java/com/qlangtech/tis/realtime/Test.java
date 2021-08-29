@@ -36,6 +36,8 @@ public class Test extends TestCase {
 
     public void test() throws Exception {
 
+        System.out.println( Test.class.getResource("logback.xml"));
+
         Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("/org/apache/solr/util/DOMUtil.class");
         while (resources.hasMoreElements()) {
             System.out.println(resources.nextElement());
