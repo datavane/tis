@@ -73,6 +73,11 @@ public class DataxExecutor {
     private static final boolean flumeAppendEnable = getFlumeAppenderEnable();
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
+
+        if (CenterResource.notFetchFromCenterRepository()) {
+            return;
+        }
+
         TIS.permitInitialize = false;
         try {
             if (StringUtils.isBlank(dataxName)) {
@@ -170,6 +175,7 @@ public class DataxExecutor {
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         try {
             logger.info("process DataX job, dataXName:{},jobid:{},jobName:{}", dataxName, jobId, jobName);
+
             DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
 
             final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
