@@ -401,7 +401,7 @@ public class DataxExecutor {
 
     private static boolean getFlumeAppenderEnable() {
         try {
-            Class.forName("com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender");
+            Class.forName("com.gilt.logback.flume.FlumeLogstashV1Appender");
             return true;
         } catch (ClassNotFoundException e) {
         }
