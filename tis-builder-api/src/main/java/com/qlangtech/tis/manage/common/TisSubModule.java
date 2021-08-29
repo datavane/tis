@@ -22,7 +22,7 @@ package com.qlangtech.tis.manage.common;
  * @create: 2021-08-29 16:29
  **/
 public enum TisSubModule {
-
+    WEB_START("web-start"),
     TIS_ASSEMBLE("tis-assemble"),
     SOLR("solr"),
     TIS_CONSOLE("tjs"),
