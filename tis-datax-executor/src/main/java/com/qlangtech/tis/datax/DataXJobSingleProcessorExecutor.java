@@ -56,6 +56,9 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
             cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + System.getProperty(Config.KEY_LOG_DIR));
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
+            if (this.getExtraJavaSystemPrams() != null) {
+                cmdLine.addArgument(this.getExtraJavaSystemPrams());
+            }
             cmdLine.addArgument("-classpath");
             cmdLine.addArgument(getClasspath());
             cmdLine.addArgument(getMainClassName());
@@ -92,6 +95,10 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
     }
 
     protected abstract String getClasspath();
+
+    protected String getExtraJavaSystemPrams() {
+        return null;
+    }
 
     /**
      * @return
