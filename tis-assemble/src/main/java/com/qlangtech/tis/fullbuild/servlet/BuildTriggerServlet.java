@@ -1,34 +1,34 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.qlangtech.tis.exec.AbstractActionInvocation;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 数据中心準備好數據之後，直接觸發全量構建
@@ -153,7 +153,8 @@ public class BuildTriggerServlet extends TisServlet {
         return true;
     }
 
-    protected HttpExecContext createHttpExecContext(ServletRequest req) {
+    @Override
+    protected HttpExecContext createHttpExecContext(HttpServletRequest req) {
         final Map<String, String> params = new HashMap<String, String>();
         params.put(IFullBuildContext.KEY_APP_NAME, req.getParameter(KEY_INDEX_NAME));
         params.put(AbstractActionInvocation.COMMAND_KEY_DIRECTBUILD, Boolean.TRUE.toString());
@@ -163,7 +164,7 @@ public class BuildTriggerServlet extends TisServlet {
         if ((hdfsSplitChar = req.getParameter(ImportDataProcessInfo.KEY_DELIMITER)) != null) {
             params.put(ImportDataProcessInfo.KEY_DELIMITER, hdfsSplitChar);
         }
-        HttpExecContext execContext = new HttpExecContext(req, params);
+        HttpExecContext execContext = new HttpExecContext(req, params, false);
         return execContext;
     }
 }
