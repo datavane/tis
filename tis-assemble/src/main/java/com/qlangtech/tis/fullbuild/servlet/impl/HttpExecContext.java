@@ -1,28 +1,29 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.fullbuild.servlet.impl;
 
+import com.qlangtech.tis.exec.ExecutePhaseRange;
+import com.qlangtech.tis.order.center.IParamContext;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletRequest;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.ServletRequest;
-
-import com.qlangtech.tis.exec.ExecutePhaseRange;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.qlangtech.tis.order.center.IParamContext;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -72,7 +73,11 @@ public class HttpExecContext implements IParamContext {
 
     @Override
     public int getInt(String key) {
-        return Integer.parseInt(this.getString(key));
+        String val = this.getString(key);
+        if (StringUtils.isEmpty(val)) {
+            throw new IllegalArgumentException("key:" + key + " relevant val in request.params can not be find");
+        }
+        return Integer.parseInt(val);
     }
 
     @Override

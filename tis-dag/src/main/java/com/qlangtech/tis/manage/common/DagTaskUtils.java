@@ -62,8 +62,6 @@ public class DagTaskUtils {
         String url = WORKFLOW_CONFIG_URL_FORMAT
                 .format(new Object[]{"fullbuild_workflow_action", "do_task_complete", StringUtils.EMPTY, /* advance_query_result */
                         StringUtils.EMPTY});
-
-
         //
         List<HttpUtils.PostParam> params = Lists.newArrayList(//
                 new HttpUtils.PostParam("execresult", String.valueOf(execResult.getValue())), //

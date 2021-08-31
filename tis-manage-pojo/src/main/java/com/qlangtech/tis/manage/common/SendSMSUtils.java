@@ -118,7 +118,7 @@ public class SendSMSUtils {
             // URL("http://msg.2dfire.com/sm-soa/sm/send_ms?source_name=tis&tos="
             // + URLEncoder.encode(sms.toString(), UTF8) + "&type=1&content=" +
             // URLEncoder.encode(content, UTF8));
-            url = new URL("http://sm.2dfire-inc.com/sm-soa/sm/send_note");
+            url = new URL("http://sm.qlangtech.com/sm-soa/sm/send_note");
             logger.info("sms url:" + url);
             StringBuffer buffer = new StringBuffer();
             Map<String, String> paramString = new HashMap<>();

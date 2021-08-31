@@ -42,7 +42,14 @@ public interface IRemoteJobTrigger {
     /**
      * 触发任务
      */
-    public void submitJob();
+    void submitJob();
 
-    public RunningStatus getRunningStatus();
+    /**
+     * 终止任务
+     */
+    default void cancel() {
+        throw new UnsupportedOperationException();
+    }
+
+    RunningStatus getRunningStatus();
 }

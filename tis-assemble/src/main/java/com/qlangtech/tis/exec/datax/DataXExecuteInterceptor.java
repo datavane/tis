@@ -76,28 +76,40 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         }
         boolean faild = false;
         boolean allComplete = false;
-        waitting:
-        while (!allComplete) {
+        try {
+            waiting:
+            while (!allComplete) {
 
-            try {
-                faild = false;
-                for (IRemoteJobTrigger t : triggers) {
-                    runningStatus = t.getRunningStatus();
-                    if (runningStatus.isComplete() && !runningStatus.isSuccess()) {
-                        // faild
-                        faild = true;
-                        allComplete = true;
-                        break waitting;
-                    }
+                try {
+                    faild = false;
+                    for (IRemoteJobTrigger t : triggers) {
+                        runningStatus = t.getRunningStatus();
+                        if (runningStatus.isComplete() && !runningStatus.isSuccess()) {
+                            // faild
+                            faild = true;
+                            allComplete = true;
+                            break waiting;
+                        }
 
-                    if (!runningStatus.isComplete()) {
-                        continue waitting;
+                        if (!runningStatus.isComplete()) {
+                            continue waiting;
+                        }
                     }
+                    allComplete = true;
+                } finally {
+                    Thread.sleep(2000);
                 }
-                allComplete = true;
-            } finally {
-                Thread.sleep(2000);
             }
+        } catch (InterruptedException e) {
+            logger.warn("DataX Name:{},taskid:{} has been canceled", execChainContext.getIndexName(), execChainContext.getTaskId());
+            // this job has been cancel, trigger from TisServlet.doDelete()
+            for (IRemoteJobTrigger t : triggers) {
+                try {
+                    t.cancel();
+                } catch (Throwable ex) {
+                }
+            }
+            throw e;
         }
 
         ExecuteResult result = new ExecuteResult(!faild);

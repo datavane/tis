@@ -51,10 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -89,7 +86,7 @@ public class TisServlet extends HttpServlet {
         log.info("synchronize Plugins FromRemoteRepository success");
     }
 
-    private static final ExecutorService executeService = Executors.newCachedThreadPool(new ThreadFactory() {
+    static final ExecutorService executeService = Executors.newCachedThreadPool(new ThreadFactory() {
 
         int index = 0;
 
@@ -132,7 +129,38 @@ public class TisServlet extends HttpServlet {
         return true;
     }
 
-    protected final void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    /**
+     * 执行任务终止
+     *
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpExecContext execContext = createHttpExecContext(req);
+        int taskId = execContext.getInt(IExecChainContext.KEY_TASK_ID);
+        ExecuteLock targetExecLock = null;
+        for (ExecuteLock execLock : idles.values()) {
+            if (execLock.paramContext.taskid == taskId) {
+                targetExecLock = execLock;
+            }
+        }
+        Objects.requireNonNull(targetExecLock, "taskId:" + taskId + " relevant ExecuteLock can not be found");
+
+        for (Future<?> f : targetExecLock.futureQueue) {
+            f.cancel(true);
+        }
+
+        targetExecLock.unlock();
+        targetExecLock.futureQueue.clear();
+
+        writeResult(true, null, resp, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(taskId)));
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         final HttpExecContext execContext = createHttpExecContext(req);
         final MDCParamContext mdcContext = this.getMDCParam(execContext, res);
         try {
@@ -145,7 +173,6 @@ public class TisServlet extends HttpServlet {
             final ExecuteLock lock = mdcContext.getExecLock();
             // getLog().info("start to execute index swap work flow");
             final CountDownLatch countDown = new CountDownLatch(1);
-            // final Future<?> future =
             lock.futureQueue.add(executeService.submit(() -> {
                 // MDC.put("app", indexName);
                 getLog().info("index swap start to work");
@@ -172,11 +199,10 @@ public class TisServlet extends HttpServlet {
                                         chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
                                     }
 
-
-                                    //   chainContext.setTopology(SqlTaskNodeMeta.getSqlDataFlowTopology(chainContext.getWorkflowName()));
                                     countDown.countDown();
-                                    // 开始执行内部任务
-
+                                    /************************************************************
+                                     * 开始执行内部任务
+                                     ************************************************************/
                                     ExecResult execResult = startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD;
 
                                     DagTaskUtils.createTaskComplete(newTaskId, chainContext, execResult);
@@ -239,21 +265,10 @@ public class TisServlet extends HttpServlet {
         }
     }
 
-    // private MDCParamContext getMDCParam(final HttpExecContext execContext) {
-    // MDCParamContext result = new MDCParamContext();
-    // final String indexName =
-    // execContext.getString(IFullBuildContext.KEY_APP_NAME);
-    // if (StringUtils.isNotEmpty(indexName)) {
-    // MDC.put("app", indexName);
-    // return new FullPhraseMDCParamContext(indexName);
-    // return result;
-    // }
-    // 
-    // Long wfid = execContext.getLong(IFullBuildContext.KEY_WORKFLOW_ID);
-    // MDC.put(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfid));
-    // result.setWorkflowId(wfid);
-    // return result;
-    // }
+//    protected final void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+//        super.service(req, res);
+//    }
+
     private MDCParamContext getMDCParam(final HttpExecContext execContext, HttpServletResponse res) {
         final String indexName = execContext.getString(IFullBuildContext.KEY_APP_NAME);
         if (StringUtils.isNotEmpty(indexName)) {
@@ -269,11 +284,9 @@ public class TisServlet extends HttpServlet {
 
     private abstract class MDCParamContext implements IRebindableMDC {
 
-        protected static final String MDC_KEY_TASK_ID = IParamContext.KEY_TASK_ID;
-
         protected final HttpServletResponse res;
 
-        private Integer taskid;
+        Integer taskid;
 
         public MDCParamContext(HttpServletResponse res) {
             super();
@@ -290,7 +303,7 @@ public class TisServlet extends HttpServlet {
                 synchronized (TisServlet.this) {
                     lock = idles.get(getExecLockKey());
                     if (lock == null) {
-                        lock = new ExecuteLock(getExecLockKey());
+                        lock = new ExecuteLock(getExecLockKey(), this);
                         idles.put(getExecLockKey(), lock);
                     }
                 }
@@ -450,7 +463,7 @@ public class TisServlet extends HttpServlet {
 
     protected class ExecuteLock {
 
-        private final Queue<Future<?>> futureQueue = new ConcurrentLinkedQueue<Future<?>>();
+        private final Queue<Future<?>> futureQueue = new ConcurrentLinkedQueue<>();
 
         // private final ReentrantLock lock;
         private final AtomicBoolean lock = new AtomicBoolean(false);
@@ -462,12 +475,14 @@ public class TisServlet extends HttpServlet {
         private static final long EXPIR_TIME = 1000 * 60 * 60 * 9;
 
         private final String taskOwnerUniqueName;
+        final MDCParamContext paramContext;
 
-        public ExecuteLock(String indexName) {
+        public ExecuteLock(String indexName, MDCParamContext paramContext) {
             this.taskOwnerUniqueName = indexName;
             // 这个lock 的问题是必须要由拥有这个lock的owner thread 来释放锁，不然的话就会抛异常
             // this.lock = new ReentrantLock();
             this.startTimestamp = new AtomicLong(System.currentTimeMillis());
+            this.paramContext = paramContext;
         }
 
         public String getTaskOwnerUniqueName() {

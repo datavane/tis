@@ -28,6 +28,7 @@ import org.slf4j.MDC;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +41,10 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
     private static final Logger logger = LoggerFactory.getLogger(DataXJobSingleProcessorExecutor.class);
     public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
+
+    // 记录当前正在执行的任务<taskid,ExecuteWatchdog>
+    public final ConcurrentHashMap<Integer, ExecuteWatchdog> runningTask = new ConcurrentHashMap<>();
+
     @Override
     public void consumeMessage(CuratorTaskMessage msg) throws Exception {
         //MDC.put();
@@ -85,15 +90,20 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             logger.info("command:{}", command);
             executor.execute(cmdLine, resultHandler);
 
-            // 等待5个小时
-            resultHandler.waitFor(5 * 60 * 60 * 1000);
+            runningTask.computeIfAbsent(jobId, (id) -> executor.getWatchdog());
+            try {
+                // 等待5个小时
+                resultHandler.waitFor(5 * 60 * 60 * 1000);
 
-            if (resultHandler.hasResult() && resultHandler.getExitValue() != 0) {
-                // it was killed on purpose by the watchdog
-                if (resultHandler.getException() != null) {
-                    // logger.error("dataX:" + dataxName, resultHandler.getException());
-                    throw new RuntimeException(command, resultHandler.getException());
+                if (resultHandler.hasResult() && resultHandler.getExitValue() != 0) {
+                    // it was killed on purpose by the watchdog
+                    if (resultHandler.getException() != null) {
+                        // logger.error("dataX:" + dataxName, resultHandler.getException());
+                        throw new RuntimeException(command, resultHandler.getException());
+                    }
                 }
+            } finally {
+                runningTask.remove(jobId);
             }
         }
     }
