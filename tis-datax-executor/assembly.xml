@@ -35,7 +35,7 @@
             <outputDirectory>/</outputDirectory>
         </fileSet>
 
-        <!-- resources -->
+        <!-- resources
         <fileSet>
             <directory>${basedir}/${project.build.directory}/classes</directory>
             <includes>
@@ -45,7 +45,8 @@
             </includes>
             <outputDirectory>/conf</outputDirectory>
         </fileSet>
-        <!-- 环境变量文件 -->
+        -->
+        <!-- 环境变量文件
         <fileSet>
             <directory>${basedir}/${project.build.directory}/classes</directory>
             <includes>
@@ -53,9 +54,7 @@
             </includes>
             <outputDirectory>/</outputDirectory>
         </fileSet>
-
-
-
+        -->
     </fileSets>
     <dependencySets>
         <dependencySet>

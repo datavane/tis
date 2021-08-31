@@ -44,17 +44,17 @@
             <artifactId>datax-core</artifactId>
             <version>${alibaba.datax.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba.datax</groupId>-->
-<!--            <artifactId>plugin-unstructured-storage-util</artifactId>-->
-<!--            <version>${alibaba.datax.version}</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.apache.hadoop</groupId>-->
-<!--                    <artifactId>hadoop-common</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.alibaba.datax</groupId>-->
+        <!--            <artifactId>plugin-unstructured-storage-util</artifactId>-->
+        <!--            <version>${alibaba.datax.version}</version>-->
+        <!--            <exclusions>-->
+        <!--                <exclusion>-->
+        <!--                    <groupId>org.apache.hadoop</groupId>-->
+        <!--                    <artifactId>hadoop-common</artifactId>-->
+        <!--                </exclusion>-->
+        <!--            </exclusions>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-hadoop-rpc</artifactId>
@@ -114,6 +114,10 @@
                             <class-path>conf/</class-path>
                         </manifestEntries>
                     </archive>
+                    <excludes combine.self="override" />
+<!--                    <includes>-->
+<!--                        <include>logback-datax.xml</include>-->
+<!--                    </includes>-->
                 </configuration>
             </plugin>
         </plugins>
