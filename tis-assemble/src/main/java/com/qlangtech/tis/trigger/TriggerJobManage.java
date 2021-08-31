@@ -13,9 +13,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- *
- */
 package com.qlangtech.tis.trigger;
 
 import com.qlangtech.tis.ISolrZKClientGetter;
@@ -456,18 +453,6 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
                                 crontab.setOldCron();
                                 log.debug("the trigger key:" + triggerKey
                                         + " update now, with new crontab:" + crontab.getCrontab());
-
-                                // 如果job被停止
-                                // if (jobschedule.isPaused()) {
-                                //
-                                // scheduler.deleteJob(trigger.getJobKey());
-                                //
-                                // // scheduler.rescheduleJob(
-                                // // triggerKey,
-                                // // createTrigger(triggerKey.getName(),
-                                // // jobschedule));
-                                // continue;
-                                // }
 
                                 // 判断两次的crontab是否相同？
                                 if (StringUtils.equals(trigger.getCronExpression(),

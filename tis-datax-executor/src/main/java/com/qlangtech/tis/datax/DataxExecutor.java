@@ -70,7 +70,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2021-04-20 12:38
  */
 public class DataxExecutor {
-    private static final boolean flumeAppendEnable = getFlumeAppenderEnable();
+    //  private static final boolean flumeAppendEnable = getFlumeAppenderEnable();
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
 
@@ -141,15 +141,14 @@ public class DataxExecutor {
         }
 
 
-        //Fibonacci.test();
         StatusRpcClient.AssembleSvcCompsite statusRpc = StatusRpcClient.connect2RemoteIncrStatusServer(incrStateCollectAddress);
         Runtime.getRuntime().addShutdownHook(new Thread("dataX ShutdownHook") {
             @Override
             public void run() {
                 statusRpc.close();
-                if (flumeAppendEnable) {
-                    com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender.instance.stop();
-                }
+                // if (flumeAppendEnable) {
+                com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender.instance.stop();
+                // }
             }
         });
         try {
