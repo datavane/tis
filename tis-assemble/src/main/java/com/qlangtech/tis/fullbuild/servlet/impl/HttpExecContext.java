@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class HttpExecContext implements IParamContext {
     }
 
     @SuppressWarnings("all")
-    public HttpExecContext(ServletRequest request, Map<String, String> params) {
+    public HttpExecContext(HttpServletRequest request, Map<String, String> params, boolean parseHeaders) {
         super();
         this.params = params;
         String key = null;
@@ -52,11 +52,19 @@ public class HttpExecContext implements IParamContext {
                 params.put(key, request.getParameter(key));
             }
         }
+        if (parseHeaders) {
+            String headKeyName = null;
+            Enumeration headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                headKeyName = (String) headerNames.nextElement();
+                params.put(headKeyName, request.getHeader(headKeyName));
+            }
+        }
     }
 
     @SuppressWarnings("all")
-    public HttpExecContext(ServletRequest request) {
-        this(request, new HashMap<String, String>());
+    public HttpExecContext(HttpServletRequest request) {
+        this(request, new HashMap<String, String>(), false);
     }
 
     @Override

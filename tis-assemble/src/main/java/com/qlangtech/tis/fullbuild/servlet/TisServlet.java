@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
@@ -43,7 +44,6 @@ import org.slf4j.MDC;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -139,7 +139,7 @@ public class TisServlet extends HttpServlet {
      */
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpExecContext execContext = createHttpExecContext(req);
+        HttpExecContext execContext = new HttpExecContext(req, Maps.newHashMap(), true);
         int taskId = execContext.getInt(IExecChainContext.KEY_TASK_ID);
         ExecuteLock targetExecLock = null;
         for (ExecuteLock execLock : idles.values()) {
@@ -147,7 +147,7 @@ public class TisServlet extends HttpServlet {
                 targetExecLock = execLock;
             }
         }
-        Objects.requireNonNull(targetExecLock, "taskId:" + taskId + " relevant ExecuteLock can not be found");
+        Objects.requireNonNull(targetExecLock, "taskId:'" + taskId + "' relevant ExecuteLock can not be found");
 
         for (Future<?> f : targetExecLock.futureQueue) {
             f.cancel(true);
@@ -457,7 +457,7 @@ public class TisServlet extends HttpServlet {
         return indexSwapTaskflowLauncher.startWork(chainContext);
     }
 
-    protected HttpExecContext createHttpExecContext(ServletRequest req) {
+    protected HttpExecContext createHttpExecContext(HttpServletRequest req) {
         return new HttpExecContext(req);
     }
 

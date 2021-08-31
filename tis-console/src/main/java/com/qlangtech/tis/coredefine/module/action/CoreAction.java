@@ -31,6 +31,7 @@ import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.InstanceDirDesc;
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.IAppSource;
@@ -123,6 +124,19 @@ public class CoreAction extends BasicModule {
   private static final Pattern placehold_pattern = Pattern.compile("\\$\\{(.+)\\}");
 
   public static final String CREATE_CORE_SELECT_COREINFO = "selectCoreinfo";
+
+
+  /**
+   * 终止正在执行的任务
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.APP_UPDATE)
+  public void doCancelTask(Context context) throws Exception {
+    List<ConfigFileContext.Header> headers = Lists.newArrayList();
+    headers.add(new ConfigFileContext.Header(IExecChainContext.KEY_TASK_ID, String.valueOf(this.getInt(IExecChainContext.KEY_TASK_ID))));
+    this.setBizResult(context, CoreAction.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers));
+  }
 
   /**
    * 重新启动增量执行进程
@@ -529,11 +543,22 @@ public class CoreAction extends BasicModule {
 
   public static TriggerBuildResult triggerBuild(
     BasicModule module, final Context context, List<PostParam> appendParams) throws MalformedURLException {
+    return triggerBuild(module, context, ConfigFileContext.HTTPMethod.POST, appendParams, Collections.emptyList());
+  }
+
+
+  public static TriggerBuildResult triggerBuild(
+    BasicModule module, final Context context, ConfigFileContext.HTTPMethod httpMethod, List<PostParam> appendParams
+    , List<ConfigFileContext.Header> headers) throws MalformedURLException {
     final String assembleNodeAddress = getAssembleNodeAddress(module.getSolrZkClient());
 
     TriggerBuildResult triggerResult
-      = HttpUtils.post(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH)
+      = HttpUtils.process(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH)
       , appendParams, new PostFormStreamProcess<TriggerBuildResult>() {
+        @Override
+        public List<ConfigFileContext.Header> getHeaders() {
+          return headers;
+        }
 
         @Override
         public ContentType getContentType() {
@@ -567,7 +592,7 @@ public class CoreAction extends BasicModule {
             throw new RuntimeException(e);
           }
         }
-      });
+      }, httpMethod);
     return triggerResult;
   }
 
