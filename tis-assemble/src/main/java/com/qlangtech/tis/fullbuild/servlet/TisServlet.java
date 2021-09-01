@@ -34,6 +34,7 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -174,6 +175,7 @@ public class TisServlet extends HttpServlet {
 
             DefaultChainContext chainContext = new DefaultChainContext(execContext);
             chainContext.setMdcParamContext(mdcContext);
+            chainContext.setAppSourcePipelineController(IncrStatusUmbilicalProtocolImpl.getInstance());
             final Integer newTaskId = createNewTask(chainContext);
 
             lock.addTaskFuture(newTaskId, executeService.submit(() -> {

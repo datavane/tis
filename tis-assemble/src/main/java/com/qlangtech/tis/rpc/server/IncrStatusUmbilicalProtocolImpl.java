@@ -27,6 +27,7 @@ import com.qlangtech.tis.grpc.Empty;
 import com.qlangtech.tis.grpc.IncrStatusGrpc;
 import com.qlangtech.tis.grpc.MasterJob;
 import com.qlangtech.tis.grpc.TableSingleDataIndexStatus;
+import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.realtime.transfer.IIncreaseCounter;
 import com.qlangtech.tis.realtime.transfer.TableMultiDataIndexStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.ConsumeDataKeeper;
@@ -51,9 +52,9 @@ import java.util.concurrent.*;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年4月7日
  */
-public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusImplBase {
+public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusImplBase implements IAppSourcePipelineController {
 
-    private final HashMap<String, ConcurrentHashMap<String, TableMultiDataIndexStatus>> // 
+    private final HashMap<String /**indexName*/, ConcurrentHashMap<String /**uuid代表监听信息的节点*/, TableMultiDataIndexStatus>> //
             updateCounterStatus = new HashMap<>();
 
     // 存储各个索引執行以来的topic及tags
@@ -301,11 +302,21 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         return true;
     }
 
-    public boolean resumeConsume(String indexName) {
+    @Override
+    public void stop(String appName) {
+        this.pauseConsume(appName);
+    }
+
+    @Override
+    public void resume(String appName) {
+        this.resumeConsume(appName);
+    }
+
+    private boolean resumeConsume(String indexName) {
         return addJob(indexName, false);
     }
 
-    public boolean pauseConsume(String indexName) {
+    private boolean pauseConsume(String indexName) {
         return addJob(indexName, true);
     }
 
@@ -487,7 +498,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         StringBuilder sb = new StringBuilder("\r\n");
         for (YarnStateStatistics yarnStateStatistics : yarnStateMap.values()) {
             String state = String.format("{'host':'%s'," + (yarnStateStatistics.isPaused() ? " paused ," : StringUtils.EMPTY)
-                    + "'tbTPS':%d, 'solrTPS':%d, 'solr_30s_avg_rt':%dms, 'queueRC':%d}\r\n", yarnStateStatistics.getFrom()
+                            + "'tbTPS':%d, 'solrTPS':%d, 'solr_30s_avg_rt':%dms, 'queueRC':%d}\r\n", yarnStateStatistics.getFrom()
                     , yarnStateStatistics.getTbTPS(), yarnStateStatistics.getSorlTPS()
                     , yarnStateStatistics.getTis30sAvgRT(), yarnStateStatistics.getQueueRC());
             sb.append(state);
@@ -508,6 +519,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
                 return null;
             }
             if (Math.abs(nowTime - job.getCreateTime()) > JOB_EXPIRE_TIME) {
+                // 长时间没有下发直接抛弃掉了
                 jobQueue.poll();
             } else {
                 break;

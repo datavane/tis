@@ -40,10 +40,15 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
+import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.realtime.transfer.TableSingleDataIndexStatus;
+import com.qlangtech.tis.realtime.utils.NetUtils;
+import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
+import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.cli.BasicParser;
@@ -61,16 +66,19 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 执行DataX任务入口
+ *
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-20 12:38
  */
 public class DataxExecutor {
     //  private static final boolean flumeAppendEnable = getFlumeAppenderEnable();
+    private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
 
@@ -115,14 +123,14 @@ public class DataxExecutor {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        if (args.length != 4) {
-            throw new IllegalArgumentException("args length must be 4");
+        if (args.length != 5) {
+            throw new IllegalArgumentException("args length must be 5");
         }
         Integer jobId = Integer.parseInt(args[0]);
         String jobName = args[1];
         String dataXName = args[2];
-        //String jobPath = args[3];
         String incrStateCollectAddress = args[3];
+        DataXJobSubmit.InstanceType execMode = DataXJobSubmit.InstanceType.parse(args[4]);
 
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(TISCollectionUtils.KEY_COLLECTION, dataXName);
@@ -133,13 +141,9 @@ public class DataxExecutor {
         if (StringUtils.isEmpty(dataXName)) {
             throw new IllegalArgumentException("arg 'dataXName' can not be null");
         }
-//        if (StringUtils.isEmpty(jobPath)) {
-//            throw new IllegalArgumentException("arg 'jobPath' can not be null");
-//        }
         if (StringUtils.isEmpty(incrStateCollectAddress)) {
             throw new IllegalArgumentException("arg 'incrStateCollectAddress' can not be null");
         }
-
 
         StatusRpcClient.AssembleSvcCompsite statusRpc = StatusRpcClient.connect2RemoteIncrStatusServer(incrStateCollectAddress);
         Runtime.getRuntime().addShutdownHook(new Thread("dataX ShutdownHook") {
@@ -151,10 +155,21 @@ public class DataxExecutor {
                 // }
             }
         });
+
+        DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
+
+        if (execMode == DataXJobSubmit.InstanceType.DISTRIBUTE) {
+            // 如果是分布式执行状态，需要通过RPC的方式来监听监工是否执行了客户端终止操作
+            Object thread = monitorDistributeCommand(jobId, jobName, dataXName, statusRpc, dataxExecutor);
+            Objects.requireNonNull(thread);
+        }
+
         try {
-            DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
+            dataxExecutor.reportDataXJobStatus(false, false, jobId, jobName);
             dataxExecutor.exec(jobId, jobName, dataXName);
+            dataxExecutor.reportDataXJobStatus(false, jobId, jobName);
         } catch (Throwable e) {
+            dataxExecutor.reportDataXJobStatus(true, jobId, jobName);
             logger.error(e.getMessage(), e);
             try {
                 //确保日志向远端写入了
@@ -166,6 +181,38 @@ public class DataxExecutor {
         }
         logger.info("dataX:" + dataXName + ",taskid:" + jobId + " finished");
         System.exit(0);
+    }
+
+    private static Thread monitorDistributeCommand(Integer jobId, String jobName, String dataXName
+            , StatusRpcClient.AssembleSvcCompsite statusRpc, DataxExecutor dataxExecutor) {
+        Thread overseerListener = new Thread() {
+            @Override
+            public void run() {
+                UpdateCounterMap status = new UpdateCounterMap();
+                status.setFrom(NetUtils.getHost());
+                logger.info("start to listen the dataX job taskId:{},jobName:{},dataXName:{} overseer cancel", jobId, jobName, dataXName);
+                TableSingleDataIndexStatus dataXStatus = new TableSingleDataIndexStatus();
+                dataXStatus.setUUID(String.valueOf(UUID.randomUUID()));
+                status.addTableCounter(IAppSourcePipelineController.DATAX_FULL_PIPELINE + dataXName, dataXStatus);
+
+                while (true) {
+                    status.setUpdateTime(System.currentTimeMillis());
+                    MasterJob masterJob = statusRpc.reportStatus(status);
+                    if (masterJob != null && masterJob.isStop()) {
+                        dataxExecutor.reportDataXJobStatus(true, jobId, jobName);
+                        System.exit(2);
+                    }
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+            }
+        };
+        overseerListener.setUncaughtExceptionHandler((thread, e) -> logger.error("jobId:" + jobId + ",jobName:" + jobName, e));
+        overseerListener.start();
+        return overseerListener;
     }
 
 
@@ -198,7 +245,6 @@ public class DataxExecutor {
     }
 
 
-    private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
     private static final MessageFormat FormatKeyPluginReader = new MessageFormat("plugin.reader.{0}");
     private static final MessageFormat FormatKeyPluginWriter = new MessageFormat("plugin.writer.{0}");
 
@@ -223,11 +269,13 @@ public class DataxExecutor {
      */
     public void startWork(String dataxName, Integer jobId, String jobName, IDataxProcessor dataxProcessor
             , final JarLoader uberClassLoader) throws IOException, Exception {
-        Objects.requireNonNull(dataxProcessor, "dataXOricessor can not be null");
-        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
-        KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
-        File jobPath = new File(dataxProcessor.getDataxCfgDir(null), jobName);
-        String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath.getAbsolutePath()};
+        try {
+
+            Objects.requireNonNull(dataxProcessor, "dataXOricessor can not be null");
+            KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
+            KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
+            File jobPath = new File(dataxProcessor.getDataxCfgDir(null), jobName);
+            String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath.getAbsolutePath()};
 //        TIS.permitInitialize = false;
 //        try {
 //            List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
@@ -239,7 +287,7 @@ public class DataxExecutor {
 //            TIS.permitInitialize = true;
 //        }
 
-        try {
+
             DataxReader reader = readerStore.getPlugin();
             Objects.requireNonNull(reader, "dataxName:" + dataxName + " relevant reader can not be null");
             DataxWriter writer = writerStore.getPlugin();
@@ -251,18 +299,16 @@ public class DataxExecutor {
 
             initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), uberClassLoader);
 
-            try {
-                entry(args);
-                this.reportDataXJobStatus(false, jobId, jobName);
-            } catch (Throwable e) {
-                this.reportDataXJobStatus(true, jobId, jobName);
-                throw new Exception(e);
-            } finally {
-                cleanPerfTrace();
-            }
+
+            entry(args);
+            this.reportDataXJobStatus(false, jobId, jobName);
+        } catch (Throwable e) {
+            this.reportDataXJobStatus(true, jobId, jobName);
+            throw new Exception(e);
         } finally {
-            //  TIS.cleanTIS();
+            cleanPerfTrace();
         }
+
     }
 
     public static void initializeClassLoader(Set<String> pluginKeys, JarLoader classLoader) throws IllegalAccessException {
@@ -277,10 +323,15 @@ public class DataxExecutor {
     }
 
     private void reportDataXJobStatus(boolean faild, Integer taskId, String jobName) {
+        reportDataXJobStatus(faild, false, taskId, jobName);
+    }
+
+    private void reportDataXJobStatus(boolean faild, boolean waiting, Integer taskId, String jobName) {
         StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
         DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
         dumpStatus.setFaild(faild);
         dumpStatus.setComplete(true);
+        dumpStatus.setWaiting(waiting);
         svc.reportDumpTableStatus(dumpStatus);
     }
 

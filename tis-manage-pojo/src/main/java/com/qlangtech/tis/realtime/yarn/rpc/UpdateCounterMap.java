@@ -24,9 +24,7 @@ import java.util.HashMap;
  */
 public class UpdateCounterMap {
 
-    private HashMap<String, TableSingleDataIndexStatus> /**
-     * indexname
-     */
+    private HashMap<String /** indexname*/, TableSingleDataIndexStatus>
     data = new HashMap<>();
 
     // 增量转发节点执行增量的数量

@@ -47,7 +47,21 @@ public abstract class DataXJobSubmit {
     }
 
     public enum InstanceType {
-        DISTRIBUTE, LOCAL
+        DISTRIBUTE("distribute"), LOCAL("local");
+        public final String literia;
+
+        public static InstanceType parse(String val) {
+            for (InstanceType t : InstanceType.values()) {
+                if (t.literia.equals(val)) {
+                    return t;
+                }
+            }
+            throw new IllegalArgumentException("value:" + val + " is not illegal");
+        }
+
+        private InstanceType(String val) {
+            this.literia = val;
+        }
     }
 
 

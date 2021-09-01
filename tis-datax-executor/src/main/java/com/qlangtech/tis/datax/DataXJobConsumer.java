@@ -156,6 +156,11 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
         }
     }
 
+    @Override
+    protected DataXJobSubmit.InstanceType getExecMode() {
+        return DataXJobSubmit.InstanceType.DISTRIBUTE;
+    }
+
     protected String getIncrStateCollectAddress() {
         return ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH);
     }

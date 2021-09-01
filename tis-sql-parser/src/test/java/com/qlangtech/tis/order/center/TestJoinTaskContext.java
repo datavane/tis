@@ -41,6 +41,11 @@ public class TestJoinTaskContext implements IJoinTaskContext {
 //    }
 
     @Override
+    public IAppSourcePipelineController getPipelineController() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public ExecutePhaseRange getExecutePhaseRange() {
         return this.execPhaseRange;
     }

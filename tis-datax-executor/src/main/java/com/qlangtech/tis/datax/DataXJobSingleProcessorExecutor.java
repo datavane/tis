@@ -76,6 +76,8 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             cmdLine.addArgument(dataxName);
             //  cmdLine.addArgument(jobPath, true);
             cmdLine.addArgument(getIncrStateCollectAddress());
+            // 执行模式
+            cmdLine.addArgument(getExecMode().literia);
 
             DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
 
@@ -108,6 +110,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
         }
     }
 
+    protected abstract DataXJobSubmit.InstanceType getExecMode();
 
     protected abstract String getClasspath();
 

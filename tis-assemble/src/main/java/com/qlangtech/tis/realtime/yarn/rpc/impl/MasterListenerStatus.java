@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,6 +20,7 @@ import com.qlangtech.tis.realtime.transfer.TableSingleDataIndexStatus;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -50,27 +51,6 @@ public class MasterListenerStatus implements IOnsListenerStatus {
     @Override
     public long getSolrConsumeIncrease() {
         return 0;
-    // TableSingleDataIndexStatus indexStatus = incrStatusUmbilicalProtocol
-    // .getIndexUpdateCounterStatus(collectionName);
-    // 
-    // if (indexStatus == null) {
-    // return 0l;
-    // }
-    // IncrCounter incr =
-    // indexStatus.get(IIncreaseCounter.SOLR_CONSUME_COUNT);
-    // if (incr == null) {
-    // return 0l;
-    // }
-    // 
-    // if (incr.isExpire()) {
-    // logger.info(IIncreaseCounter.SOLR_CONSUME_COUNT + " is expire last:"
-    // + incr.getLasterTimeStamp() + ",syscurrent:" +
-    // System.currentTimeMillis());
-    // incrStatusUmbilicalProtocol.removeIndexUpdateCounterStatus(collectionName);
-    // return 0l;
-    // }
-    // 
-    // return incr.getValue();
     }
 
     @Override
@@ -85,32 +65,6 @@ public class MasterListenerStatus implements IOnsListenerStatus {
     @Override
     public String getTableUpdateCount() {
         return "0";
-    // try {
-    // final TableSingleDataIndexStatus indexStatus =
-    // incrStatusUmbilicalProtocol
-    // .getIndexUpdateCounterStatus(this.getCollectionName());
-    // if (indexStatus == null) {
-    // return "{}";
-    // }
-    // IncrCounter incrCounter = null;
-    // JSONArray array = new JSONArray();
-    // JSONObject json = null;
-    // 
-    // for (Map.Entry<String /* table name */, IncrCounter // table
-    // > etry : indexStatus.entrySet()) {
-    // incrCounter = etry.getValue();
-    // if (incrCounter.isExpire()) {
-    // continue;
-    // }
-    // json = new JSONObject();
-    // json.put(etry.getKey(), incrCounter.getValue());
-    // array.put(json);
-    // }
-    // 
-    // return array.toString(1);
-    // } catch (JSONException e) {
-    // throw new RuntimeException(e);
-    // }
     }
 
     @Override
@@ -148,12 +102,12 @@ public class MasterListenerStatus implements IOnsListenerStatus {
 
     protected int getCounter(GetterStrategy getterStrategy) {
         return 0;
-    // TableSingleDataIndexStatus indexStatus = incrStatusUmbilicalProtocol
-    // .getIndexUpdateCounterStatus(collectionName);
-    // if (indexStatus == null) {
-    // return 0;
-    // }
-    // return getterStrategy.getInt(indexStatus);
+        // TableSingleDataIndexStatus indexStatus = incrStatusUmbilicalProtocol
+        // .getIndexUpdateCounterStatus(collectionName);
+        // if (indexStatus == null) {
+        // return 0;
+        // }
+        // return getterStrategy.getInt(indexStatus);
     }
 
     private static interface GetterStrategy {
@@ -169,42 +123,42 @@ public class MasterListenerStatus implements IOnsListenerStatus {
     @Override
     public long getIgnoreRowsCount() {
         return 0;
-    // TableSingleDataIndexStatus indexStatus = incrStatusUmbilicalProtocol
-    // .getIndexUpdateCounterStatus(collectionName);
-    // if (indexStatus == null) {
-    // return 0;
-    // }
-    // return indexStatus.getIgnoreRowsCount();
+        // TableSingleDataIndexStatus indexStatus = incrStatusUmbilicalProtocol
+        // .getIndexUpdateCounterStatus(collectionName);
+        // if (indexStatus == null) {
+        // return 0;
+        // }
+        // return indexStatus.getIgnoreRowsCount();
     }
 
     @Override
     public void resumeConsume() {
-        incrStatusUmbilicalProtocol.resumeConsume(this.getCollectionName());
+        incrStatusUmbilicalProtocol.resume(this.getCollectionName());
     }
 
     @Override
     public void pauseConsume() {
-        incrStatusUmbilicalProtocol.pauseConsume(this.getCollectionName());
+        incrStatusUmbilicalProtocol.stop(this.getCollectionName());
     }
 
     @Override
     public Set<Entry<String, IIncreaseCounter>> getUpdateStatic() {
         return null;
-    // TableSingleDataIndexStatus indexStatus = incrStatusUmbilicalProtocol
-    // .getIndexUpdateCounterStatus(collectionName);
-    // 
-    // if (indexStatus == null) {
-    // return Collections.emptySet();
-    // }
-    // 
-    // Map<String, IIncreaseCounter> result = new HashMap<String,
-    // IIncreaseCounter>();
-    // 
-    // for (Map.Entry<String, IncrCounter> entry : indexStatus.entrySet()) {
-    // result.put(entry.getKey(), entry.getValue());
-    // }
-    // 
-    // return result.entrySet();
+        // TableSingleDataIndexStatus indexStatus = incrStatusUmbilicalProtocol
+        // .getIndexUpdateCounterStatus(collectionName);
+        //
+        // if (indexStatus == null) {
+        // return Collections.emptySet();
+        // }
+        //
+        // Map<String, IIncreaseCounter> result = new HashMap<String,
+        // IIncreaseCounter>();
+        //
+        // for (Map.Entry<String, IncrCounter> entry : indexStatus.entrySet()) {
+        // result.put(entry.getKey(), entry.getValue());
+        // }
+        //
+        // return result.entrySet();
     }
 
     @Override

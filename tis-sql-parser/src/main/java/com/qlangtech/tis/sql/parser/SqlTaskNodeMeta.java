@@ -30,6 +30,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
@@ -932,6 +933,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
         @Override
         public void setAttribute(String key, Object v) {
 
+        }
+
+        @Override
+        public IAppSourcePipelineController getPipelineController() {
+            throw new UnsupportedOperationException();
         }
 
         @Override

@@ -30,6 +30,7 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
+import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import org.apache.commons.lang.StringUtils;
@@ -67,6 +68,7 @@ public class DefaultChainContext implements IExecChainContext {
     private IRebindableMDC mdcParamContext;
 
     private IndexBuilderTriggerFactory indexBuilderTriggerFactory;
+    private IAppSourcePipelineController appSourcePipelineController;
 
     public final List<AsynSubJob> asynSubJobs = Lists.newCopyOnWriteArrayList();
 
@@ -276,5 +278,15 @@ public class DefaultChainContext implements IExecChainContext {
     public TableDumpFactory getTableDumpFactory() {
         Objects.requireNonNull(this.fs2Table, "tableDumpFactory can not be null");
         return fs2Table;
+    }
+
+    @Override
+    public IAppSourcePipelineController getPipelineController() {
+        Objects.requireNonNull(this.appSourcePipelineController, "appSourcePipelineController can not be null");
+        return this.appSourcePipelineController;
+    }
+
+    public void setAppSourcePipelineController(IAppSourcePipelineController appSourcePipelineController) {
+        this.appSourcePipelineController = appSourcePipelineController;
     }
 }

@@ -12,34 +12,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.qlangtech.tis.order.center;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public interface IJoinTaskContext extends IParamContext {
-
-    public String getIndexName();
-
-    public boolean hasIndexName();
-
-    public int getTaskId();
+ * 可以控制DataX执行器，数据增量同步管道等的停止
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-09-01 15:51
+ **/
+public interface IAppSourcePipelineController {
+    String DATAX_FULL_PIPELINE = "dataX_full_pipeline_";
 
     /**
-     * 目标索引的组数
+     * dataX全量会直接把进程关闭，作用于增量管道只是停止不继续消费数据（进程不会kill掉），客户可以调用
+     * resume() 方法继续运行
      *
-     * @return
+     * @param appName
      */
-    public int getIndexShardCount();
+    public void stop(String appName);
 
-    public <T> T getAttribute(String key);
-
-    public void setAttribute(String key, Object v);
-
-    /**
-     * dataX 管道、incr增量管道控制器
-     * @return
-     */
-    public IAppSourcePipelineController getPipelineController();
+    public void resume(String appName);
 }

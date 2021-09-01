@@ -62,9 +62,9 @@ public class IncrControlServlet extends javax.servlet.http.HttpServlet {
         if (jobTpe == JobType.IndexJobRunning) {
             boolean stop = Boolean.parseBoolean(req.getParameter("stop"));
             if (stop) {
-                incrStatusUmbilicalProtocol.pauseConsume(collection);
+                incrStatusUmbilicalProtocol.stop(collection);
             } else {
-                incrStatusUmbilicalProtocol.resumeConsume(collection);
+                incrStatusUmbilicalProtocol.resume(collection);
             }
             logger.info("collection:" + collection + " stop:" + stop);
             wirteXml2Client(resp, true, "success execute");
