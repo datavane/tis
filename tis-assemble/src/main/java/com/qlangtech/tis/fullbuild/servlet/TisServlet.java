@@ -50,11 +50,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 触发全量索引构建任务<br>
@@ -106,7 +104,7 @@ public class TisServlet extends HttpServlet {
     });
 
     // private static final AtomicBoolean idle = new AtomicBoolean(true);
-    private static final Map<String, ExecuteLock> idles = new HashMap<String, ExecuteLock>();
+    static final Map<String, ExecuteLock> idles = new HashMap<String, ExecuteLock>();
 
     // public TisServlet() {
     // super();
@@ -141,21 +139,21 @@ public class TisServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpExecContext execContext = new HttpExecContext(req, Maps.newHashMap(), true);
         int taskId = execContext.getInt(IExecChainContext.KEY_TASK_ID);
-        ExecuteLock targetExecLock = null;
-        for (ExecuteLock execLock : idles.values()) {
-            if (execLock.paramContext.taskid == taskId) {
-                targetExecLock = execLock;
+        Map.Entry<String, ExecuteLock> targetExecLock = null;
+        synchronized (this) {
+            for (Map.Entry<String, ExecuteLock> execLock : idles.entrySet()) {
+                if (execLock.getValue().matchTask(taskId)) {
+                    targetExecLock = execLock;
+                }
             }
+            if (targetExecLock == null) {
+                writeResult(false, "任务已经失效，无法终止", resp);
+                return;
+            }
+
+            targetExecLock.getValue().cancelAllFuture();
+            targetExecLock.getValue().clearLockFutureQueue();
         }
-        Objects.requireNonNull(targetExecLock, "taskId:'" + taskId + "' relevant ExecuteLock can not be found");
-
-        for (Future<?> f : targetExecLock.futureQueue) {
-            f.cancel(true);
-        }
-
-        targetExecLock.unlock();
-        targetExecLock.futureQueue.clear();
-
         writeResult(true, null, resp, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(taskId)));
     }
 
@@ -173,16 +171,19 @@ public class TisServlet extends HttpServlet {
             final ExecuteLock lock = mdcContext.getExecLock();
             // getLog().info("start to execute index swap work flow");
             final CountDownLatch countDown = new CountDownLatch(1);
-            lock.futureQueue.add(executeService.submit(() -> {
+
+            DefaultChainContext chainContext = new DefaultChainContext(execContext);
+            chainContext.setMdcParamContext(mdcContext);
+            final Integer newTaskId = createNewTask(chainContext);
+
+            lock.addTaskFuture(newTaskId, executeService.submit(() -> {
                 // MDC.put("app", indexName);
                 getLog().info("index swap start to work");
                 try {
                     while (true) {
                         try {
                             if (lock.lock()) {
-                                DefaultChainContext chainContext = new DefaultChainContext(execContext);
-                                chainContext.setMdcParamContext(mdcContext);
-                                final Integer newTaskId = createNewTask(chainContext);
+
                                 try {
                                     String msg = "trigger task" + mdcContext.getExecLockKey() + " successful";
                                     getLog().info(msg);
@@ -211,15 +212,13 @@ public class TisServlet extends HttpServlet {
                                     getLog().error(e.getMessage(), e);
                                     throw new RuntimeException(e);
                                 } finally {
-                                    lock.unlock();
-                                    lock.futureQueue.clear();
+                                    lock.clearLockFutureQueue();
                                 }
                             } else {
                                 if (lock.isExpire()) {
                                     getLog().warn("this lock has expire,this lock will cancel");
                                     // 执行已經超時
-                                    lock.futureQueue.clear();
-                                    lock.unlock();
+                                    lock.clearLockFutureQueue();
                                     // while (lock.futureQueue.size() >= 1)
                                     // {
                                     // lock.futureQueue.poll().cancel(true);
@@ -300,10 +299,10 @@ public class TisServlet extends HttpServlet {
         public final ExecuteLock getExecLock() {
             ExecuteLock lock = idles.get(getExecLockKey());
             if (lock == null) {
-                synchronized (TisServlet.this) {
+                synchronized (TisServlet.class) {
                     lock = idles.get(getExecLockKey());
                     if (lock == null) {
-                        lock = new ExecuteLock(getExecLockKey(), this);
+                        lock = new ExecuteLock(getExecLockKey());
                         idles.put(getExecLockKey(), lock);
                     }
                 }
@@ -459,70 +458,6 @@ public class TisServlet extends HttpServlet {
 
     protected HttpExecContext createHttpExecContext(HttpServletRequest req) {
         return new HttpExecContext(req);
-    }
-
-    protected class ExecuteLock {
-
-        private final Queue<Future<?>> futureQueue = new ConcurrentLinkedQueue<>();
-
-        // private final ReentrantLock lock;
-        private final AtomicBoolean lock = new AtomicBoolean(false);
-
-        // 开始时间，需要用它判断是否超时
-        private AtomicLong startTimestamp;
-
-        // 超时时间为9个小时
-        private static final long EXPIR_TIME = 1000 * 60 * 60 * 9;
-
-        private final String taskOwnerUniqueName;
-        final MDCParamContext paramContext;
-
-        public ExecuteLock(String indexName, MDCParamContext paramContext) {
-            this.taskOwnerUniqueName = indexName;
-            // 这个lock 的问题是必须要由拥有这个lock的owner thread 来释放锁，不然的话就会抛异常
-            // this.lock = new ReentrantLock();
-            this.startTimestamp = new AtomicLong(System.currentTimeMillis());
-            this.paramContext = paramContext;
-        }
-
-        public String getTaskOwnerUniqueName() {
-            return taskOwnerUniqueName;
-        }
-
-        boolean isExpire() {
-            long start = startTimestamp.get();
-            long now = System.currentTimeMillis();
-            // 没有完成
-            // 查看是否超时
-            boolean expire = ((start + EXPIR_TIME) < now);
-            if (expire) {
-                SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-                log.info("time:" + format.format(new Date(start)) + "is expire");
-            }
-            return expire;
-        }
-
-        /**
-         * 尝试加锁
-         *
-         * @return
-         */
-        public boolean lock() {
-            if (this.lock.compareAndSet(false, true)) {
-                this.startTimestamp.getAndSet(System.currentTimeMillis());
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        /**
-         * 释放锁
-         */
-        public void unlock() {
-            // this.lock.unlock();
-            this.lock.lazySet(false);
-        }
     }
 
     protected void writeResult(boolean success, String msg, ServletResponse res, KV... kvs) throws ServletException {
