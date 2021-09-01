@@ -22,6 +22,7 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.tis.hadoop.rpc.RpcServiceReference;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -29,7 +30,16 @@ import java.util.Optional;
  **/
 public abstract class DataXJobSubmit {
 
+    public static Callable<DataXJobSubmit> mockGetter;
+
     public static Optional<DataXJobSubmit> getDataXJobSubmit(DataXJobSubmit.InstanceType expectDataXJobSumit) {
+        try {
+            if (mockGetter != null) {
+                return Optional.ofNullable(mockGetter.call());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         ExtensionList<DataXJobSubmit> jobSumits = TIS.get().getExtensionList(DataXJobSubmit.class);
         Optional<DataXJobSubmit> jobSubmit = jobSumits.stream()
                 .filter((jsubmit) -> (expectDataXJobSumit) == jsubmit.getType()).findFirst();
@@ -52,5 +62,6 @@ public abstract class DataXJobSubmit {
      */
     public abstract IRemoteJobTrigger createDataXJob(IJoinTaskContext taskContext
             , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName);
+
 
 }

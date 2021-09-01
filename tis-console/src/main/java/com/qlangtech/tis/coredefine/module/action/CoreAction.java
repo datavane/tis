@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
@@ -128,6 +129,7 @@ public class CoreAction extends BasicModule {
 
   /**
    * 终止正在执行的任务
+   *
    * @param context
    * @throws Exception
    */
@@ -135,7 +137,21 @@ public class CoreAction extends BasicModule {
   public void doCancelTask(Context context) throws Exception {
     List<ConfigFileContext.Header> headers = Lists.newArrayList();
     headers.add(new ConfigFileContext.Header(IExecChainContext.KEY_TASK_ID, String.valueOf(this.getInt(IExecChainContext.KEY_TASK_ID))));
-    this.setBizResult(context, CoreAction.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers));
+    TriggerBuildResult triggerResult = CoreAction.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers);
+    if (!triggerResult.success) {
+      return;
+    }
+
+    WorkFlowBuildHistory record = new WorkFlowBuildHistory();
+    record.setState((byte) ExecResult.CANCEL.getValue());
+
+    WorkFlowBuildHistoryCriteria criteria = new WorkFlowBuildHistoryCriteria();
+    criteria.createCriteria().andIdEqualTo(triggerResult.getTaskid());
+
+    this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().updateByExampleSelective(record, criteria);
+    this.addActionMessage(context, "已经成功终止当前任务");
+    this.setBizResult(context, new ExtendWorkFlowBuildHistory(
+      this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(triggerResult.getTaskid())));
   }
 
   /**

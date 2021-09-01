@@ -95,14 +95,14 @@ public class ExtendWorkFlowBuildHistory {
     switch (result) {
       case DOING:
       case ASYN_DOING:
-        return "fa fa-cog fa-spin";
+        return "loading";
       case SUCCESS:
-        return "fa fa-check";
+        return "check";
       case FAILD:
-        return "fa fa-times";
+        return "close";
       case CANCEL:
         // 取消了
-        return "fa fa-cancel";
+        return "stop";
       default:
         throw new IllegalStateException("result:" + result + " status is illegal");
     }
