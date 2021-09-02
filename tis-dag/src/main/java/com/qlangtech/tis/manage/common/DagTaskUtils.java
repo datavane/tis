@@ -98,7 +98,7 @@ public class DagTaskUtils {
      * @return
      */
     public static Optional<WorkFlowBuildHistory> getLatestWFSuccessTaskId(String appName) {
-        if (StringUtils.isNotBlank(appName)) {
+        if (StringUtils.isBlank(appName)) {
             throw new IllegalArgumentException("param appName can not be empty");
         }
         String url = WORKFLOW_CONFIG_URL_POST_FORMAT
