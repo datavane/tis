@@ -18,6 +18,8 @@ package com.qlangtech.tis.datax;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.tis.hadoop.rpc.RpcServiceReference;
 
@@ -66,6 +68,22 @@ public abstract class DataXJobSubmit {
 
 
     public abstract InstanceType getType();
+
+
+    protected CuratorDataXTaskMessage getDataXJobDTO(IJoinTaskContext taskContext, String dataXfileName) {
+        CuratorDataXTaskMessage msg = new CuratorDataXTaskMessage();
+        msg.setDataXName(taskContext.getIndexName());
+        msg.setJobId(taskContext.getTaskId());
+        msg.setJobName(dataXfileName);
+        PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest(taskContext.getIndexName());
+        DumpPhaseStatus.TableDumpStatus dataXJob = null;
+        if (preTaskStatus != null && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXfileName)) != null) {
+            msg.setAllRowsApproximately(dataXJob.getAllRows());
+        } else {
+            msg.setAllRowsApproximately(1000000);
+        }
+        return msg;
+    }
 
     /**
      * 创建dataX任务

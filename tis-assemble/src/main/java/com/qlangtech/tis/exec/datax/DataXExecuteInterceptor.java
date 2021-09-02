@@ -131,7 +131,11 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         if (!jobSubmit.isPresent()) {
             throw new IllegalStateException("can not find expect jobSubmit by type:" + expectDataXJobSumit);
         }
-
+        if (expectDataXJobSumit == DataXJobSubmit.InstanceType.DISTRIBUTE) {
+            IncrStatusUmbilicalProtocolImpl statCollect = IncrStatusUmbilicalProtocolImpl.getInstance();
+            // 将指标纬度统计向注册到内存中，下一步可提供给DataX终止功能使用
+            statCollect.getAppSubExecNodeMetrixStatus(execChainContext.getIndexName(), fileName);
+        }
         return jobSubmit.get().createDataXJob(execChainContext, statusRpc, appSource, fileName);
     }
 

@@ -127,8 +127,8 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
         return coordinator;
     }
 
-    public static DistributedQueue<CuratorTaskMessage> createQueue(CuratorFramework curatorClient, String zkQueuePath
-            , QueueConsumer<CuratorTaskMessage> consumer) {
+    public static DistributedQueue<CuratorDataXTaskMessage> createQueue(CuratorFramework curatorClient, String zkQueuePath
+            , QueueConsumer<CuratorDataXTaskMessage> consumer) {
         try {
             if (StringUtils.isEmpty(zkQueuePath)) {
                 throw new IllegalArgumentException("param zkQueuePath can not be null");
@@ -145,10 +145,10 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
 
             ZkUtils.guaranteeExist(curatorClient.getZookeeperClient().getZooKeeper(), zkQueuePath);
 
-            QueueBuilder<CuratorTaskMessage> builder = QueueBuilder.builder(curatorClient, consumer, new MessageSerializer(), zkQueuePath);
+            QueueBuilder<CuratorDataXTaskMessage> builder = QueueBuilder.builder(curatorClient, consumer, new MessageSerializer(), zkQueuePath);
             // .maxItems(4);
 
-            DistributedQueue<CuratorTaskMessage> queue = builder.buildQueue();
+            DistributedQueue<CuratorDataXTaskMessage> queue = builder.buildQueue();
             queue.start();
             return queue;
         } catch (Exception e) {

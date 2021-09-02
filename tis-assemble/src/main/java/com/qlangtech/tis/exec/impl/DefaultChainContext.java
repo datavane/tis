@@ -24,23 +24,25 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatusCollection;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
 import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.sql.parser.TabPartitions;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.ZkStateReader;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -288,5 +290,17 @@ public class DefaultChainContext implements IExecChainContext {
 
     public void setAppSourcePipelineController(IAppSourcePipelineController appSourcePipelineController) {
         this.appSourcePipelineController = appSourcePipelineController;
+    }
+
+    @Override
+    public <T extends IPhaseStatusCollection> T loadPhaseStatusFromLatest(String appName) {
+        Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
+        if (!latestWFSuccessTask.isPresent()) {
+            return null;
+        }
+        WorkFlowBuildHistory h = latestWFSuccessTask.get();
+        PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(h.getId());
+        Objects.requireNonNull(phaseStatusCollection, "phaseStatusCollection can not be null,relevant pre build taskId:" + h.getId());
+        return (T)phaseStatusCollection;
     }
 }

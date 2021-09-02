@@ -25,7 +25,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年6月17日
  */
-public class PhaseStatusCollection {
+public class PhaseStatusCollection implements IPhaseStatusCollection {
 
     private DumpPhaseStatus dumpPhase;
 

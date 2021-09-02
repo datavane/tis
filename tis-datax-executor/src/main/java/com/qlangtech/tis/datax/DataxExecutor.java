@@ -19,7 +19,12 @@ import com.alibaba.datax.common.exception.DataXException;
 import com.alibaba.datax.common.statistics.PerfTrace;
 import com.alibaba.datax.common.statistics.VMInfo;
 import com.alibaba.datax.common.util.Configuration;
+import com.alibaba.datax.core.AbstractContainer;
 import com.alibaba.datax.core.Engine;
+import com.alibaba.datax.core.job.JobContainer;
+import com.alibaba.datax.core.statistics.communication.Communication;
+import com.alibaba.datax.core.statistics.communication.CommunicationTool;
+import com.alibaba.datax.core.statistics.container.communicator.job.StandAloneJobContainerCommunicator;
 import com.alibaba.datax.core.util.ConfigParser;
 import com.alibaba.datax.core.util.ConfigurationValidate;
 import com.alibaba.datax.core.util.FrameworkErrorCode;
@@ -66,7 +71,6 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -121,7 +125,7 @@ public class DataxExecutor {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        if (args.length != 5) {
+        if (args.length != 6) {
             throw new IllegalArgumentException("args length must be 5");
         }
         Integer jobId = Integer.parseInt(args[0]);
@@ -129,6 +133,8 @@ public class DataxExecutor {
         String dataXName = args[2];
         String incrStateCollectAddress = args[3];
         DataXJobSubmit.InstanceType execMode = DataXJobSubmit.InstanceType.parse(args[4]);
+
+        final int allRows = Integer.parseInt(args[5]);
 
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(TISCollectionUtils.KEY_COLLECTION, dataXName);
@@ -154,7 +160,7 @@ public class DataxExecutor {
             }
         });
 
-        DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)));
+        DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)), execMode, allRows);
 
         if (execMode == DataXJobSubmit.InstanceType.DISTRIBUTE) {
             // 如果是分布式执行状态，需要通过RPC的方式来监听监工是否执行了客户端终止操作
@@ -223,21 +229,17 @@ public class DataxExecutor {
             DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
 
             final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
-//            {
-//                @Override
-//                protected Class<?> findClass(String name) throws ClassNotFoundException {
-//                    return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-//                }
-//            };
             DataxProcessor dataxProcessor = DataxProcessor.load(null, dataxName);
             this.startWork(dataxName, jobId, jobName, dataxProcessor, uberClassLoader);
             success = true;
         } finally {
             TIS.clean();
-            try {
-                DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
-            } catch (Throwable e) {
-                logger.warn("notify exec result faild,jobId:" + jobId + ",jobName:" + jobName, e);
+            if (execMode == DataXJobSubmit.InstanceType.DISTRIBUTE) {
+                try {
+                    DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
+                } catch (Throwable e) {
+                    logger.warn("notify exec result faild,jobId:" + jobId + ",jobName:" + jobName, e);
+                }
             }
         }
     }
@@ -252,9 +254,14 @@ public class DataxExecutor {
 
     private final RpcServiceReference statusRpc;
     //private final JarLoader uberClassLoader;
+    private DataXJobSubmit.InstanceType execMode;
+    private final int allRowsApproximately;
+    private final long[] allReadApproximately = new long[1];
 
-    public DataxExecutor(RpcServiceReference statusRpc) {
+    public DataxExecutor(RpcServiceReference statusRpc, DataXJobSubmit.InstanceType execMode, int allRows) {
         this.statusRpc = statusRpc;
+        this.execMode = execMode;
+        this.allRowsApproximately = allRows;
     }
 
 
@@ -274,16 +281,6 @@ public class DataxExecutor {
             KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
             File jobPath = new File(dataxProcessor.getDataxCfgDir(null), jobName);
             String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath.getAbsolutePath()};
-//        TIS.permitInitialize = false;
-//        try {
-//            List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
-//            keyedPluginStores.add(readerStore = DataxReader.getPluginStore(dataxName));
-//            keyedPluginStores.add(writerStore = DataxWriter.getPluginStore(dataxName));
-//            ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
-//            dataxComponentMeta.synchronizePluginsFromRemoteRepository();
-//        } finally {
-//            TIS.permitInitialize = true;
-//        }
 
 
             DataxReader reader = readerStore.getPlugin();
@@ -298,10 +295,9 @@ public class DataxExecutor {
             initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), uberClassLoader);
 
 
-            entry(args);
-           // this.reportDataXJobStatus(false, jobId, jobName);
+            entry(args, jobName);
+
         } catch (Throwable e) {
-           // this.reportDataXJobStatus(true, jobId, jobName);
             throw new Exception(e);
         } finally {
             cleanPerfTrace();
@@ -330,11 +326,13 @@ public class DataxExecutor {
         dumpStatus.setFaild(faild);
         dumpStatus.setComplete(complete);
         dumpStatus.setWaiting(waiting);
+        dumpStatus.setReadRows((int) allReadApproximately[0]);
+        dumpStatus.setAllRows(this.allRowsApproximately);
         svc.reportDumpTableStatus(dumpStatus);
     }
 
 
-    public void entry(String[] args) throws Throwable {
+    public void entry(String[] args, String jobName) throws Throwable {
         Options options = new Options();
         options.addOption("job", true, "Job config.");
         options.addOption("jobid", true, "Job unique id.");
@@ -346,9 +344,9 @@ public class DataxExecutor {
         String RUNTIME_MODE = cl.getOptionValue("mode");
         Configuration configuration = parse(jobPath);
         Objects.requireNonNull(configuration, "configuration can not be null");
-        long jobId = 0;
+        int jobId = 0;
         if (!"-1".equalsIgnoreCase(jobIdString)) {
-            jobId = Long.parseLong(jobIdString);
+            jobId = Integer.parseInt(jobIdString);
         }
 
         boolean isStandAloneMode = "standalone".equalsIgnoreCase(RUNTIME_MODE);
@@ -364,13 +362,47 @@ public class DataxExecutor {
         logger.info("\n" + filterJobConfiguration(configuration) + "\n");
         logger.debug(configuration.toJSON());
         ConfigurationValidate.doValidate(configuration);
-        startEngine(configuration);
+        startEngine(configuration, jobId, jobName);
 
     }
 
-    protected void startEngine(Configuration configuration) {
-        Engine engine = new Engine();
-        engine.start(configuration);
+    protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
+        Engine engine = new Engine() {
+            @Override
+            protected JobContainer createJobContainer(Configuration allConf) {
+                return new TISDataXJobContainer(allConf, jobId, jobName, allRowsApproximately);
+            }
+        };
+        AbstractContainer dataXContainer = engine.start(configuration);
+        setAllReadApproximately(dataXContainer.getContainerCommunicator().collect());
+    }
+
+    private class TISDataXJobContainer extends JobContainer {
+        private final Integer jobId;
+        private final String jobName;
+        private final Integer allRows;
+
+        public TISDataXJobContainer(Configuration configuration, Integer jobId, String jobName, Integer allRows) {
+            super(configuration);
+            this.jobId = jobId;
+            this.jobName = jobName;
+            this.allRows = allRows;
+        }
+
+        @Override
+        protected StandAloneJobContainerCommunicator createContainerCommunicator(Configuration configuration) {
+            return new StandAloneJobContainerCommunicator(configuration) {
+                @Override
+                public void report(Communication communication) {
+                    super.report(communication);
+                    setAllReadApproximately(communication);
+                    reportDataXJobStatus(false, false, false, jobId, jobName);
+                }
+            };
+        }
+    }
+    private void setAllReadApproximately(Communication communication) {
+        allReadApproximately[0] = communication.getLongCounter(CommunicationTool.TOTAL_READ_RECORDS);
     }
 
     /**
@@ -451,14 +483,5 @@ public class DataxExecutor {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static boolean getFlumeAppenderEnable() {
-        try {
-            Class.forName("com.gilt.logback.flume.FlumeLogstashV1Appender");
-            return true;
-        } catch (ClassNotFoundException e) {
-        }
-        return false;
     }
 }

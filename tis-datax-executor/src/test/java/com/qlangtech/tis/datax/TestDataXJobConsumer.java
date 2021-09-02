@@ -47,7 +47,7 @@ public class TestDataXJobConsumer extends TestCase {
 
         // dataXName:ttt,jobid:866,jobName:customer_order_relation_0.json,jobPath:/opt/data/tis/cfg_repo/tis_plugin_config/ap/ttt/dataxCfg/customer_order_relation_0.json
 
-        CuratorTaskMessage msg = new CuratorTaskMessage();
+        CuratorDataXTaskMessage msg = new CuratorDataXTaskMessage();
         msg.setDataXName("ttt");
        // msg.setJobPath("/opt/data/tis/cfg_repo/tis_plugin_config/ap/ttt/dataxCfg/customer_order_relation_0.json");
         msg.setJobName("customer_order_relation_0.json");

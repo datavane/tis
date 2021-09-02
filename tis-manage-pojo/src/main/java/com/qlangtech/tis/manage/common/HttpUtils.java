@@ -235,10 +235,6 @@ public class HttpUtils {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        URL url = new URL("http://build-task-soa_daily_10-1-7-71:8090/druid/indexer/v1/action");
-        url.openStream();
-    }
 
     public static class MockMatchKey {
         private final String matchTxt;

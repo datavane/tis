@@ -24,10 +24,12 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -87,6 +89,28 @@ public class DagTaskUtils {
                 .format(new Object[]{"fullbuild_workflow_action", "do_create_new_task"});
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
         return result.getBizresult().getTaskid();
+    }
+
+    /**
+     * 取得最近一次workflow成功执行的taskid
+     *
+     * @param appName
+     * @return
+     */
+    public static Optional<WorkFlowBuildHistory> getLatestWFSuccessTaskId(String appName) {
+        if (StringUtils.isNotBlank(appName)) {
+            throw new IllegalArgumentException("param appName can not be empty");
+        }
+        String url = WORKFLOW_CONFIG_URL_POST_FORMAT
+                .format(new Object[]{"fullbuild_workflow_action", "do_get_latest_success_workflow"});
+        List<HttpUtils.PostParam> params = Lists.newArrayList();
+        params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appName));
+
+        AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class);
+        if (!result.isSuccess()) {
+            return Optional.empty();
+        }
+        return Optional.of(result.getBizresult());
     }
 
     public static class NewTaskParam {

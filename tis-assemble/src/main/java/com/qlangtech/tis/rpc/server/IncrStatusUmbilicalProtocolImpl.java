@@ -108,16 +108,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             String indexName = entry.getKey();
             com.qlangtech.tis.grpc.TableSingleDataIndexStatus updateCounterFromClient = entry.getValue();
             String uuid = updateCounterFromClient.getUuid();
-            ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus = updateCounterStatus.get(indexName);
-            if (indexStatus == null) {
-                synchronized (updateCounterStatus) {
-                    indexStatus = updateCounterStatus.computeIfAbsent(indexName, k -> new ConcurrentHashMap<>());
-                }
-            }
-            TableMultiDataIndexStatus tableMultiDataIndexStatus = indexStatus.get(uuid);
-            if (tableMultiDataIndexStatus == null) {
-                tableMultiDataIndexStatus = indexStatus.computeIfAbsent(uuid, k -> new TableMultiDataIndexStatus());
-            }
+            TableMultiDataIndexStatus tableMultiDataIndexStatus = getAppSubExecNodeMetrixStatus(indexName, uuid);
             tableMultiDataIndexStatus.setBufferQueueRemainingCapacity(updateCounterFromClient.getBufferQueueRemainingCapacity());
             tableMultiDataIndexStatus.setConsumeErrorCount(updateCounterFromClient.getConsumeErrorCount());
             tableMultiDataIndexStatus.setIgnoreRowsCount(updateCounterFromClient.getIgnoreRowsCount());
@@ -138,6 +129,20 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             responseObserver.onNext(MasterJob.newBuilder().setJobType(MasterJob.JobType.None).build());
         }
         responseObserver.onCompleted();
+    }
+
+    public TableMultiDataIndexStatus getAppSubExecNodeMetrixStatus(String indexName, String subExecNodeId) {
+        ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus = updateCounterStatus.get(indexName);
+        if (indexStatus == null) {
+            synchronized (updateCounterStatus) {
+                indexStatus = updateCounterStatus.computeIfAbsent(indexName, k -> new ConcurrentHashMap<>());
+            }
+        }
+        TableMultiDataIndexStatus tableMultiDataIndexStatus = indexStatus.get(subExecNodeId);
+        if (tableMultiDataIndexStatus == null) {
+            tableMultiDataIndexStatus = indexStatus.computeIfAbsent(subExecNodeId, k -> new TableMultiDataIndexStatus());
+        }
+        return tableMultiDataIndexStatus;
     }
 
     @Override
@@ -597,5 +602,10 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             }
         }
         return updateCountMap;
+    }
+
+    @Override
+    public void registerAppSubExecNodeMetrixStatus(String appName, String subExecNodeId) {
+        this.getAppSubExecNodeMetrixStatus(appName, subExecNodeId);
     }
 }

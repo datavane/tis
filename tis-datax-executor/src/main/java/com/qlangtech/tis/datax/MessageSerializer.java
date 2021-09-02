@@ -23,15 +23,15 @@ import org.apache.curator.framework.recipes.queue.QueueSerializer;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-06 15:33
  **/
-public class MessageSerializer implements QueueSerializer<CuratorTaskMessage> {
+public class MessageSerializer implements QueueSerializer<CuratorDataXTaskMessage> {
 
     @Override
-    public byte[] serialize(CuratorTaskMessage item) {
+    public byte[] serialize(CuratorDataXTaskMessage item) {
         return JSON.toJSONString(item, false).getBytes(TisUTF8.get());
     }
 
     @Override
-    public CuratorTaskMessage deserialize(byte[] bytes) {
-        return JSON.parseObject(new String(bytes), CuratorTaskMessage.class);
+    public CuratorDataXTaskMessage deserialize(byte[] bytes) {
+        return JSON.parseObject(new String(bytes), CuratorDataXTaskMessage.class);
     }
 }

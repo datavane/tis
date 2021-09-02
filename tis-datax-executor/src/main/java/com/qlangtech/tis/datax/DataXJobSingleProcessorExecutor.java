@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-08-29 10:19
  **/
-public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<CuratorTaskMessage> {
+public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<CuratorDataXTaskMessage> {
     private static final Logger logger = LoggerFactory.getLogger(DataXJobSingleProcessorExecutor.class);
     public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
@@ -46,14 +46,15 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
     public final ConcurrentHashMap<Integer, ExecuteWatchdog> runningTask = new ConcurrentHashMap<>();
 
     @Override
-    public void consumeMessage(CuratorTaskMessage msg) throws Exception {
+    public void consumeMessage(CuratorDataXTaskMessage msg) throws Exception {
         //MDC.put();
         Integer jobId = msg.getJobId();
         String jobName = msg.getJobName();
         String dataxName = msg.getDataXName();
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(TISCollectionUtils.KEY_COLLECTION, dataxName);
-        logger.info("process DataX job, dataXName:{},jobid:{},jobName:{}", dataxName, jobId, jobName);
+        Integer allRowsApproximately = msg.getAllRowsApproximately();
+        logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},allrows:{}", dataxName, jobId, jobName, allRowsApproximately);
 
         synchronized (DataXJobConsumer.class) {
             //exec(msg);
@@ -78,6 +79,8 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             cmdLine.addArgument(getIncrStateCollectAddress());
             // 执行模式
             cmdLine.addArgument(getExecMode().literia);
+            // 估计 总记录数目
+            cmdLine.addArgument(String.valueOf(allRowsApproximately));
 
             DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
 

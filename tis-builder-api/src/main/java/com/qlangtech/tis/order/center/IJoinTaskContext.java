@@ -14,6 +14,8 @@
  */
 package com.qlangtech.tis.order.center;
 
+import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatusCollection;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
@@ -39,7 +41,20 @@ public interface IJoinTaskContext extends IParamContext {
 
     /**
      * dataX 管道、incr增量管道控制器
+     *
      * @return
      */
     public IAppSourcePipelineController getPipelineController();
+
+    /**
+     * 取得最近一次成功执行的状态，例如，dataX 执行任务是为了取到本次执行任务的总记录数可以在执行中计算进步百分比
+     *
+     * @param appName
+     * @param <T>
+     * @return 可以为空
+     */
+    default <T extends IPhaseStatusCollection> T loadPhaseStatusFromLatest(String appName) {
+        throw new UnsupportedOperationException();
+    }
+
 }

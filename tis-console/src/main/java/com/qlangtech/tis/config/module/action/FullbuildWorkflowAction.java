@@ -104,6 +104,33 @@ public class FullbuildWorkflowAction extends BasicModule {
   }
 
   /**
+   * 取得最近一次成功执行的workflowhistory
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doGetLatestSuccessWorkflow(Context context) {
+    String appName = this.getString(IFullBuildContext.KEY_APP_NAME);
+    if (StringUtils.isEmpty(appName)) {
+      throw new IllegalArgumentException("param appName can not be null");
+    }
+
+    WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
+    historyCriteria.setOrderByClause("id desc");
+    historyCriteria.createCriteria().andAppNameEqualTo(appName).andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
+
+    List<WorkFlowBuildHistory> histories
+      = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);
+
+    for (WorkFlowBuildHistory buildHistory : histories) {
+      this.setBizResult(context, buildHistory);
+      return;
+    }
+
+    this.addErrorMessage(context, "can not find build history by appname:" + appName);
+  }
+
+  /**
    * 执行阶段结束
    *
    * @param context

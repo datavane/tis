@@ -33,4 +33,6 @@ public interface IAppSourcePipelineController {
     public void stop(String appName);
 
     public void resume(String appName);
+
+    public void registerAppSubExecNodeMetrixStatus(String appName, String subExecNodeId);
 }
