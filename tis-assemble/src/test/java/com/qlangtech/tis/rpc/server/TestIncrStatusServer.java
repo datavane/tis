@@ -110,7 +110,7 @@ public class TestIncrStatusServer extends BaseTestCase {
         assertTrue(runningStatus.isIncrGoingOn());
         assertFalse(runningStatus.isIncrProcessPaused());
         // 暂停
-        assertTrue("pauseConsume shall success", instance.pauseConsume(collectionName));
+        assertTrue("pauseConsume shall success", instance.stop(collectionName));
         incrProcessReport(runnable);
         assertTrue("shall has receive", hasReceiveIncrPausedCommand.get());
         runningStatus = instance.getIndexJobRunningStatus(collectionName);
@@ -154,13 +154,13 @@ public class TestIncrStatusServer extends BaseTestCase {
             assertNull(masterJob);
             IncrStatusUmbilicalProtocolImpl instance = IncrStatusUmbilicalProtocolImpl.getInstance();
 
-            assertTrue(collectionName + " execute pauseConsume shall success", instance.pauseConsume(collectionName));
+            assertTrue(collectionName + " execute pauseConsume shall success", instance.stop(collectionName));
             this.sleep(1000);
             masterJob = svc.reportStatus(updateCt);
             assertNotNull(masterJob);
             assertTrue("the processing of incr shall be stop", masterJob.isStop());
 
-            assertTrue(collectionName + " execute resumeConsume shall success", instance.resumeConsume(collectionName));
+            assertTrue(collectionName + " execute resumeConsume shall success", instance.resume(collectionName););
             this.sleep(1000);
             masterJob = svc.reportStatus(updateCt);
             assertNotNull(masterJob);

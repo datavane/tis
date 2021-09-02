@@ -308,13 +308,13 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
     }
 
     @Override
-    public void stop(String appName) {
-        this.pauseConsume(appName);
+    public boolean stop(String appName) {
+        return this.pauseConsume(appName);
     }
 
     @Override
-    public void resume(String appName) {
-        this.resumeConsume(appName);
+    public boolean resume(String appName) {
+        return this.resumeConsume(appName);
     }
 
     private boolean resumeConsume(String indexName) {

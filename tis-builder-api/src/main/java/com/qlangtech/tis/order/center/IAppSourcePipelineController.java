@@ -30,9 +30,9 @@ public interface IAppSourcePipelineController {
      *
      * @param appName
      */
-    public void stop(String appName);
+    public boolean stop(String appName);
 
-    public void resume(String appName);
+    public boolean resume(String appName);
 
     public void registerAppSubExecNodeMetrixStatus(String appName, String subExecNodeId);
 }
