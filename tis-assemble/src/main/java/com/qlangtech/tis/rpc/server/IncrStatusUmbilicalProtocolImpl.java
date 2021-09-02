@@ -325,6 +325,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             log.error(indexName + " doesn't not exist in assemble node");
             return false;
         }
+        StringBuffer logContent = new StringBuffer("add job to worker by " + indexName + ",stop:" + isPaused + " nodes:");
         for (String uuid : updateCounterStatus.get(indexName).keySet()) {
             com.qlangtech.tis.grpc.MasterJob.Builder masterBuilder = com.qlangtech.tis.grpc.MasterJob.newBuilder();
             masterBuilder.setJobTypeValue(JobType.IndexJobRunning.getValue());
@@ -335,7 +336,9 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             // MasterJob job = new MasterJob(JobType.IndexJobRunning, indexName, uuid);
             // job.setStop(isPaused);
             this.sendJob2Worker(masterBuilder.build());
+            logContent.append(uuid).append(",");
         }
+        log.info(logContent.toString());
         return true;
     }
 

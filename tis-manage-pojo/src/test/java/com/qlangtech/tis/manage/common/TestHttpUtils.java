@@ -13,29 +13,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.qlangtech.tis.fullbuild.indexbuild.impl;
+package com.qlangtech.tis.manage.common;
 
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
+import junit.framework.TestCase;
 
 /**
- * 异步任务
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-06-02 18:03
+ * @create: 2021-09-02 09:13
  **/
-public abstract class AsynRemoteJobTrigger implements IRemoteJobTrigger {
-    private final String jobName;
+public class TestHttpUtils extends TestCase {
 
-    public AsynRemoteJobTrigger(String jobName) {
-        this.jobName = jobName;
-    }
-
-    @Override
-    public final boolean isAsyn() {
-        return true;
-    }
-
-    @Override
-    public String getAsynJobName() {
-        return jobName;
-    }
 }

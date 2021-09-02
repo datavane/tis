@@ -72,12 +72,10 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * 执行DataX任务入口
  *
- *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-20 12:38
  */
 public class DataxExecutor {
-    //  private static final boolean flumeAppendEnable = getFlumeAppenderEnable();
     private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
@@ -165,7 +163,7 @@ public class DataxExecutor {
         }
 
         try {
-            dataxExecutor.reportDataXJobStatus(false, false, jobId, jobName);
+            dataxExecutor.reportDataXJobStatus(false, false, false, jobId, jobName);
             dataxExecutor.exec(jobId, jobName, dataXName);
             dataxExecutor.reportDataXJobStatus(false, jobId, jobName);
         } catch (Throwable e) {
@@ -192,7 +190,7 @@ public class DataxExecutor {
                 status.setFrom(NetUtils.getHost());
                 logger.info("start to listen the dataX job taskId:{},jobName:{},dataXName:{} overseer cancel", jobId, jobName, dataXName);
                 TableSingleDataIndexStatus dataXStatus = new TableSingleDataIndexStatus();
-                dataXStatus.setUUID(String.valueOf(UUID.randomUUID()));
+                dataXStatus.setUUID(jobName);
                 status.addTableCounter(IAppSourcePipelineController.DATAX_FULL_PIPELINE + dataXName, dataXStatus);
 
                 while (true) {
@@ -203,7 +201,7 @@ public class DataxExecutor {
                         System.exit(2);
                     }
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(800);
                     } catch (InterruptedException e) {
                         return;
                     }
@@ -301,9 +299,9 @@ public class DataxExecutor {
 
 
             entry(args);
-            this.reportDataXJobStatus(false, jobId, jobName);
+           // this.reportDataXJobStatus(false, jobId, jobName);
         } catch (Throwable e) {
-            this.reportDataXJobStatus(true, jobId, jobName);
+           // this.reportDataXJobStatus(true, jobId, jobName);
             throw new Exception(e);
         } finally {
             cleanPerfTrace();
@@ -323,14 +321,14 @@ public class DataxExecutor {
     }
 
     private void reportDataXJobStatus(boolean faild, Integer taskId, String jobName) {
-        reportDataXJobStatus(faild, false, taskId, jobName);
+        reportDataXJobStatus(faild, true, false, taskId, jobName);
     }
 
-    private void reportDataXJobStatus(boolean faild, boolean waiting, Integer taskId, String jobName) {
+    private void reportDataXJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, String jobName) {
         StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
         DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
         dumpStatus.setFaild(faild);
-        dumpStatus.setComplete(true);
+        dumpStatus.setComplete(complete);
         dumpStatus.setWaiting(waiting);
         svc.reportDumpTableStatus(dumpStatus);
     }
