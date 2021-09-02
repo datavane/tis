@@ -209,6 +209,10 @@ public class TisServlet extends HttpServlet {
                                     ExecResult execResult = startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD;
 
                                     DagTaskUtils.createTaskComplete(newTaskId, chainContext, execResult);
+                                } catch (InterruptedException e) {
+                                    // 说明当前任务被 终止了
+                                    log.info("taskid:{} has been canceled", newTaskId);
+                                    return;
                                 } catch (Throwable e) {
                                     DagTaskUtils.createTaskComplete(newTaskId, chainContext, ExecResult.FAILD);
                                     getLog().error(e.getMessage(), e);

@@ -51,9 +51,9 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
 
     public void testDataxJobMysql2Hdfs() throws Exception {
 
-        executor = new DataxExecutor(statusRpc){
+        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
             @Override
-            protected void startEngine(Configuration configuration) {
+            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
                 //  make skip the ex
             }
         };
@@ -87,9 +87,9 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
     }
 
     public void testDataxJobMysql2Hive() throws Exception {
-        executor = new DataxExecutor(statusRpc){
+        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
             @Override
-            protected void startEngine(Configuration configuration) {
+            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
                 //  make skip the ex
             }
         };
@@ -108,9 +108,9 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
     }
 
     public void testDataxJobLaunch() throws Exception {
-        executor = new DataxExecutor(statusRpc){
+        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
             @Override
-            protected void startEngine(Configuration configuration) {
+            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
                 //  make skip the ex
             }
         };

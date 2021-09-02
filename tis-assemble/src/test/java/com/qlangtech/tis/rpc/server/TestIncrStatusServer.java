@@ -117,7 +117,7 @@ public class TestIncrStatusServer extends BaseTestCase {
         assertTrue(runningStatus.isIncrGoingOn());
         assertTrue(runningStatus.isIncrProcessPaused());
         // 开启
-        assertTrue("resumeConsume shall success", instance.resumeConsume(collectionName));
+        assertTrue("resumeConsume shall success", instance.resume(collectionName));
         incrProcessReport(runnable);
         assertTrue("shall has receive", hasReceiveIncrResumeCommand.get());
         runningStatus = instance.getIndexJobRunningStatus(collectionName);
@@ -160,7 +160,7 @@ public class TestIncrStatusServer extends BaseTestCase {
             assertNotNull(masterJob);
             assertTrue("the processing of incr shall be stop", masterJob.isStop());
 
-            assertTrue(collectionName + " execute resumeConsume shall success", instance.resume(collectionName););
+            assertTrue(collectionName + " execute resumeConsume shall success", instance.resume(collectionName));
             this.sleep(1000);
             masterJob = svc.reportStatus(updateCt);
             assertNotNull(masterJob);
