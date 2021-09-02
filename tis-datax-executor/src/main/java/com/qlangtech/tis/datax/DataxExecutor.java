@@ -370,7 +370,7 @@ public class DataxExecutor {
         Engine engine = new Engine() {
             @Override
             protected JobContainer createJobContainer(Configuration allConf) {
-                return new TISDataXJobContainer(allConf, jobId, jobName, allRowsApproximately);
+                return new TISDataXJobContainer(allConf, jobId, jobName);
             }
         };
         AbstractContainer dataXContainer = engine.start(configuration);
@@ -380,13 +380,12 @@ public class DataxExecutor {
     private class TISDataXJobContainer extends JobContainer {
         private final Integer jobId;
         private final String jobName;
-        private final Integer allRows;
+        // private final Integer allRows;
 
-        public TISDataXJobContainer(Configuration configuration, Integer jobId, String jobName, Integer allRows) {
+        public TISDataXJobContainer(Configuration configuration, Integer jobId, String jobName) {
             super(configuration);
             this.jobId = jobId;
             this.jobName = jobName;
-            this.allRows = allRows;
         }
 
         @Override
@@ -401,6 +400,7 @@ public class DataxExecutor {
             };
         }
     }
+
     private void setAllReadApproximately(Communication communication) {
         allReadApproximately[0] = communication.getLongCounter(CommunicationTool.TOTAL_READ_RECORDS);
     }
