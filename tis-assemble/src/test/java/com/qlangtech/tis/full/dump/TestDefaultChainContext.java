@@ -18,7 +18,10 @@ package com.qlangtech.tis.full.dump;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.test.TISEasyMock;
 import junit.framework.TestCase;
 
@@ -28,11 +31,19 @@ import junit.framework.TestCase;
  **/
 public class TestDefaultChainContext extends TestCase implements TISEasyMock {
 
-    private static final String dataXname = "dataXName";
+    // private static final String dataXname = "dataXName";
+
+    private static final String dataXname = "mysql_elastic";
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        Config.setDataDir("./src/test/resources/com/qlangtech/tis/full/dump");
+        HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
+        // HttpUtils.addMockApply(-1,)
+        HttpUtils.addMockApply(0, "do_get_latest_success_workflow", "getLatestWFSuccessTaskId_false.json", TestDefaultChainContext.class);
+        HttpUtils.addMockApply(1, "do_get_latest_success_workflow", "getLatestWFSuccessTaskId_success.json", TestDefaultChainContext.class);
+        String s = IndexSwapTaskflowLauncher.KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER;
     }
 
     public void testLoadPhaseStatusFromLatest() {
@@ -40,9 +51,18 @@ public class TestDefaultChainContext extends TestCase implements TISEasyMock {
         DefaultChainContext chainContext = new DefaultChainContext(paramContext);
 
         PhaseStatusCollection statusCollection = chainContext.loadPhaseStatusFromLatest(dataXname);
-        assertNotNull(statusCollection);
+        assertNull(statusCollection);
 
+// ./src/test/resources/com/qlangtech/tis/full/dump/cfg_repo/df-logs/66/dump
+        statusCollection = chainContext.loadPhaseStatusFromLatest(dataXname);
+        assertNotNull(statusCollection);
         DumpPhaseStatus dumpPhase = statusCollection.getDumpPhase();
         assertNotNull(dumpPhase);
+        assertEquals(62, dumpPhase.getTaskId());
+        String dataXFileName = "instancedetail_0.json";
+        DumpPhaseStatus.TableDumpStatus dataXExecStatus = dumpPhase.getTable(dataXFileName);
+        assertNotNull(dataXFileName + " relevant dataX instance can be null", dataXExecStatus);
+        assertEquals(524525, dataXExecStatus.getReadRows());
+        assertEquals(1000001, dataXExecStatus.getAllRows());
     }
 }

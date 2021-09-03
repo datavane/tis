@@ -205,10 +205,9 @@ public class HttpUtils {
                 if (clazz == Void.class) {
                     return r;
                 }
-                if (!result.containsKey(IAjaxResult.KEY_BIZRESULT)) {
-                    return null;
+                if (result.containsKey(IAjaxResult.KEY_BIZRESULT)) {
+                    r.setBizresult(result.getObject(IAjaxResult.KEY_BIZRESULT, clazz));
                 }
-                r.setBizresult(result.getObject(IAjaxResult.KEY_BIZRESULT, clazz));
                 return r;
             }
         });

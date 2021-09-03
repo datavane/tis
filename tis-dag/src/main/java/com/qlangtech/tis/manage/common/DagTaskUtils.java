@@ -106,7 +106,7 @@ public class DagTaskUtils {
         List<HttpUtils.PostParam> params = Lists.newArrayList();
         params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appName));
 
-        AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class);
+        AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class, false);
         if (!result.isSuccess()) {
             return Optional.empty();
         }

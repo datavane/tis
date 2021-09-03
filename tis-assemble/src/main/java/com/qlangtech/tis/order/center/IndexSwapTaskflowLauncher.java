@@ -64,6 +64,21 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     private TisZkClient zkClient;
     private ZkStateReader zkStateReader;
 
+    static {
+        BasicPhaseStatus.statusWriter = new BasicPhaseStatus.IFlush2Local() {
+            @Override
+            public void write(File localFile, BasicPhaseStatus status) throws Exception {
+                XmlFile xmlFile = new XmlFile(localFile);
+                xmlFile.write(status, Collections.emptySet());
+            }
+            @Override
+            public BasicPhaseStatus loadPhase(File localFile) throws Exception {
+                XmlFile xmlFile = new XmlFile(localFile);
+                return (BasicPhaseStatus) xmlFile.read();
+            }
+        };
+    }
+
 
     public static IndexSwapTaskflowLauncher getIndexSwapTaskflowLauncher(ServletContext context) {
         IndexSwapTaskflowLauncher result = (IndexSwapTaskflowLauncher) context.getAttribute(KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER);
@@ -76,7 +91,6 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
     }
-
 
 
     public void setZkClient(TisZkClient zkClient) {
@@ -97,18 +111,6 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     public void contextInitialized(ServletContextEvent sce) {
         AbstractTisCloudSolrClient.initHashcodeRouter();
         // 构建各阶段持久化
-        BasicPhaseStatus.statusWriter = new BasicPhaseStatus.IFlush2Local() {
-            @Override
-            public void write(File localFile, BasicPhaseStatus status) throws Exception {
-                XmlFile xmlFile = new XmlFile(localFile);
-                xmlFile.write(status, Collections.emptySet());
-            }
-            @Override
-            public BasicPhaseStatus loadPhase(File localFile) throws Exception {
-                XmlFile xmlFile = new XmlFile(localFile);
-                return (BasicPhaseStatus) xmlFile.read();
-            }
-        };
         try {
             this.afterPropertiesSet();
             this.incrChannels = initIncrTransferStateCollect();
@@ -118,6 +120,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
             throw new RuntimeException(e);
         }
     }
+
 
     // @Override
     public void afterPropertiesSet() throws Exception {
