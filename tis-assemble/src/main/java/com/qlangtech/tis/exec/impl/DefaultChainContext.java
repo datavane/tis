@@ -24,7 +24,6 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
 import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
@@ -300,7 +299,9 @@ public class DefaultChainContext implements IExecChainContext {
         }
         WorkFlowBuildHistory h = latestWFSuccessTask.get();
         PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(h.getId());
-        Objects.requireNonNull(phaseStatusCollection, "phaseStatusCollection can not be null,relevant pre build taskId:" + h.getId());
+        if (phaseStatusCollection == null) {
+            return null;
+        }
         return phaseStatusCollection;
     }
 }
