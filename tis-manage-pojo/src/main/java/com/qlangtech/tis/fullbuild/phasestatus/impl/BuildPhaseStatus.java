@@ -83,9 +83,9 @@ public class BuildPhaseStatus extends BasicPhaseStatus<BuildSharedPhaseStatus> {
         return nBuildStatus;
     }
 
-    protected boolean writeStatus2Local() {
-        return super.writeStatus2Local();
-    }
+//     boolean writeStatus2Local() {
+//        return super.writeStatus2Local();
+//    }
 
     @Override
     protected Collection<BuildSharedPhaseStatus> getChildStatusNode() {

@@ -23,7 +23,9 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
+import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
@@ -154,6 +156,11 @@ public class TisServlet extends HttpServlet {
 
             targetExecLock.getValue().cancelAllFuture();
             targetExecLock.getValue().clearLockFutureQueue();
+            PhaseStatusCollection phaseStatusCollection = TrackableExecuteInterceptor.taskPhaseReference.get(taskId);
+            if (phaseStatusCollection != null) {
+                // 这样会将当前状态写入本地磁盘
+                phaseStatusCollection.flushStatus2Local();
+            }
         }
         writeResult(true, null, resp, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(taskId)));
     }

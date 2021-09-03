@@ -125,7 +125,7 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
      *
      * @return
      */
-    protected boolean writeStatus2Local() {
+    public boolean writeStatus2Local() {
         if (!this.hasFlush2Local) {
             if (statusWriter != null) {
                 synchronized (this) {

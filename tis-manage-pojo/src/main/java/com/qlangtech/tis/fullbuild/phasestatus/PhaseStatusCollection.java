@@ -46,6 +46,21 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
                 && (!executePhaseRange.contains(FullbuildPhase.IndexBackFlow) || indexBackFlowPhaseStatus.isComplete());
     }
 
+    public void flushStatus2Local() {
+        if (executePhaseRange.contains(FullbuildPhase.FullDump)) {
+            dumpPhase.writeStatus2Local();
+        }
+        if (executePhaseRange.contains(FullbuildPhase.JOIN)) {
+            joinPhase.writeStatus2Local();
+        }
+        if (executePhaseRange.contains(FullbuildPhase.BUILD)) {
+            buildPhase.writeStatus2Local();
+        }
+        if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow)) {
+            indexBackFlowPhaseStatus.writeStatus2Local();
+        }
+    }
+
     private Integer taskid;
 
     public PhaseStatusCollection(Integer taskid, ExecutePhaseRange executePhaseRange) {
