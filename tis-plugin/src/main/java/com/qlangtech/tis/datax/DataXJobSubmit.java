@@ -77,7 +77,10 @@ public abstract class DataXJobSubmit {
         msg.setJobName(dataXfileName);
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest(taskContext.getIndexName());
         DumpPhaseStatus.TableDumpStatus dataXJob = null;
-        if (preTaskStatus != null && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXfileName)) != null) {
+        if (preTaskStatus != null
+                && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXfileName)) != null
+                && dataXJob.getAllRows() > 0
+        ) {
             msg.setAllRowsApproximately(dataXJob.getAllRows());
         } else {
             msg.setAllRowsApproximately(1000000);

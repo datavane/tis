@@ -15,6 +15,7 @@
 
 import com.qlangtech.tis.exec.TestActionInvocation;
 import com.qlangtech.tis.exec.datax.TestDataXExecuteInterceptor;
+import com.qlangtech.tis.full.dump.TestDefaultChainContext;
 import com.qlangtech.tis.fullbuild.servlet.TestTisServlet;
 import com.qlangtech.tis.fullbuild.taskflow.TestReactor;
 import com.qlangtech.tis.log.TestRealtimeLoggerCollectorAppender;
@@ -37,6 +38,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestDefaultChainContext.class);
         suite.addTestSuite(TestTisServlet.class);
         suite.addTestSuite(TestActionInvocation.class);
         suite.addTestSuite(TestReactor.class);

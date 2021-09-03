@@ -14,12 +14,6 @@
  */
 package com.qlangtech.tis.test;
 
-import com.qlangtech.tis.manage.common.Config;
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-04 12:41
@@ -34,7 +28,7 @@ public interface TISEasyMock {
         EasyMockUtil.verifyAll();
     }
 
-    default <T> T mock(String name, Class<?> toMock) {
+    default <T> T mock(String name, Class<T> toMock) {
         return EasyMockUtil.mock(name, toMock);
     }
 

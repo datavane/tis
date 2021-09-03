@@ -293,7 +293,7 @@ public class DefaultChainContext implements IExecChainContext {
     }
 
     @Override
-    public <T extends IPhaseStatusCollection> T loadPhaseStatusFromLatest(String appName) {
+    public PhaseStatusCollection loadPhaseStatusFromLatest(String appName) {
         Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
         if (!latestWFSuccessTask.isPresent()) {
             return null;
@@ -301,6 +301,6 @@ public class DefaultChainContext implements IExecChainContext {
         WorkFlowBuildHistory h = latestWFSuccessTask.get();
         PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(h.getId());
         Objects.requireNonNull(phaseStatusCollection, "phaseStatusCollection can not be null,relevant pre build taskId:" + h.getId());
-        return (T)phaseStatusCollection;
+        return phaseStatusCollection;
     }
 }
