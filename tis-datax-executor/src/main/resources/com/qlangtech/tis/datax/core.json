@@ -40,7 +40,8 @@
     },
     "container": {
       "job": {
-        "reportInterval": 10000
+        "reportInterval": 10000,
+        "sleepInterval": 4000
       },
       "taskGroup": {
         "channel": 5
