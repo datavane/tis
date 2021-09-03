@@ -81,7 +81,7 @@ public abstract class DataXJobSubmit {
                 && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXfileName)) != null
                 && dataXJob.getAllRows() > 0
         ) {
-            msg.setAllRowsApproximately(dataXJob.getAllRows());
+            msg.setAllRowsApproximately(dataXJob.getReadRows());
         } else {
             msg.setAllRowsApproximately(1000000);
         }
