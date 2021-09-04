@@ -50,6 +50,11 @@ public class TisFlumeLogstashV1Appender extends FlumeLogstashV1Appender {
         if (Config.isTestMock()) {
             return;
         }
+        final Map<String, String> mdc = eventObject.getMDCPropertyMap();
+        String taskId = mdc.get(IParamContext.KEY_TASK_ID);
+        if (taskId == null) {
+            return;
+        }
         super.append(eventObject);
     }
 

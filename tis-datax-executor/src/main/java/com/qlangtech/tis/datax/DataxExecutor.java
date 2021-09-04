@@ -80,6 +80,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2021-04-20 12:38
  */
 public class DataxExecutor {
+    public static int DATAX_THREAD_PROCESSING_CANCAL_EXITCODE = 943;
     private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
 
     public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
@@ -205,7 +206,7 @@ public class DataxExecutor {
                     if (masterJob != null && masterJob.isStop()) {
                         logger.info("datax job:{},taskid:{} has received an CANCEL signal", jobName, jobId);
                         dataxExecutor.reportDataXJobStatus(true, jobId, jobName);
-                        System.exit(2);
+                        System.exit(DATAX_THREAD_PROCESSING_CANCAL_EXITCODE);
                     }
                     try {
                         Thread.sleep(1000);

@@ -21,6 +21,8 @@ package com.qlangtech.tis.datax;
  * @create: 2021-05-06 15:01
  **/
 public class CuratorDataXTaskMessage {
+    public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
+    public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
     private String dataXName;
 
     private Integer jobId;

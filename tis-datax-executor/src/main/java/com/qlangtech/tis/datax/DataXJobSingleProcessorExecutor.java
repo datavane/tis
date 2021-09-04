@@ -39,8 +39,6 @@ import java.util.stream.Collectors;
  **/
 public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<CuratorDataXTaskMessage> {
     private static final Logger logger = LoggerFactory.getLogger(DataXJobSingleProcessorExecutor.class);
-    public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
-    public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
 
     // 记录当前正在执行的任务<taskid,ExecuteWatchdog>
     public final ConcurrentHashMap<Integer, ExecuteWatchdog> runningTask = new ConcurrentHashMap<>();
@@ -63,7 +61,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=" + this.useRuntimePropEnvProps());
             cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + System.getProperty(Config.KEY_LOG_DIR));
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
-            cmdLine.addArgument("-D" + SYSTEM_KEY_LOGBACK_PATH_KEY + "=" + SYSTEM_KEY_LOGBACK_PATH_VALUE);
+            cmdLine.addArgument("-D" + CuratorDataXTaskMessage.SYSTEM_KEY_LOGBACK_PATH_KEY + "=" + CuratorDataXTaskMessage.SYSTEM_KEY_LOGBACK_PATH_VALUE);
 
             for (String sysParam : this.getExtraJavaSystemPrams()) {
                 cmdLine.addArgument(sysParam);
@@ -100,7 +98,9 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
                 // 等待5个小时
                 resultHandler.waitFor(5 * 60 * 60 * 1000);
 
-                if (resultHandler.hasResult() && resultHandler.getExitValue() != 0) {
+                if (resultHandler.hasResult()
+                        && resultHandler.getExitValue() != 0
+                        && resultHandler.getExitValue() != DataxExecutor.DATAX_THREAD_PROCESSING_CANCAL_EXITCODE) {
                     // it was killed on purpose by the watchdog
                     if (resultHandler.getException() != null) {
                         // logger.error("dataX:" + dataxName, resultHandler.getException());
