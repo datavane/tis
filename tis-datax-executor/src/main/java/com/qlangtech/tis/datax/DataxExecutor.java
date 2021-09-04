@@ -203,11 +203,12 @@ public class DataxExecutor {
                     status.setUpdateTime(System.currentTimeMillis());
                     MasterJob masterJob = statusRpc.reportStatus(status);
                     if (masterJob != null && masterJob.isStop()) {
+                        logger.info("datax job:{},taskid:{} has received an CANCEL signal", jobName, jobId);
                         dataxExecutor.reportDataXJobStatus(true, jobId, jobName);
                         System.exit(2);
                     }
                     try {
-                        Thread.sleep(800);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         return;
                     }

@@ -72,7 +72,7 @@ import java.util.concurrent.*;
  */
 public class TisServlet extends HttpServlet {
 
-    private static final Logger log = LoggerFactory.getLogger(TisServlet.class);
+    private static final Logger logger = LoggerFactory.getLogger(TisServlet.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -84,7 +84,7 @@ public class TisServlet extends HttpServlet {
         this.indexSwapTaskflowLauncher = IndexSwapTaskflowLauncher.getIndexSwapTaskflowLauncher(config.getServletContext());
         ComponentMeta assembleComponent = TIS.getAssembleComponent();
         assembleComponent.synchronizePluginsFromRemoteRepository();
-        log.info("synchronize Plugins FromRemoteRepository success");
+        logger.info("synchronize Plugins FromRemoteRepository success");
     }
 
     static final ExecutorService executeService = Executors.newCachedThreadPool(new ThreadFactory() {
@@ -99,7 +99,7 @@ public class TisServlet extends HttpServlet {
 
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
-                    log.error(e.getMessage(), e);
+                    logger.error(e.getMessage(), e);
                 }
             });
             return t;
@@ -142,26 +142,38 @@ public class TisServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpExecContext execContext = new HttpExecContext(req, Maps.newHashMap(), true);
         int taskId = execContext.getInt(IExecChainContext.KEY_TASK_ID);
-        Map.Entry<String, ExecuteLock> targetExecLock = null;
-        synchronized (this) {
-            for (Map.Entry<String, ExecuteLock> execLock : idles.entrySet()) {
-                if (execLock.getValue().matchTask(taskId)) {
-                    targetExecLock = execLock;
+        // 当前是否是异步任务
+        final boolean asynJob = execContext.getBoolean(IExecChainContext.KEY_ASYN_JOB_NAME);
+        String appName = execContext.getString(IFullBuildContext.KEY_APP_NAME);
+        logger.info("receive a processing job CANCEL signal,taskId:{},asynJob:{},appName:{}", taskId, asynJob, appName);
+        if (asynJob) {
+            IncrStatusUmbilicalProtocolImpl incrController = IncrStatusUmbilicalProtocolImpl.getInstance();
+            // 给远程进程服下毒丸，让其终止
+            incrController.stop(appName);
+        } else {
+            Map.Entry<String, ExecuteLock> targetExecLock = null;
+            synchronized (this) {
+                for (Map.Entry<String, ExecuteLock> execLock : idles.entrySet()) {
+                    if (execLock.getValue().matchTask(taskId)) {
+                        targetExecLock = execLock;
+                    }
                 }
-            }
-            if (targetExecLock == null) {
-                writeResult(false, "任务已经失效，无法终止", resp);
-                return;
-            }
+                if (targetExecLock == null) {
+                    writeResult(false, "任务已经失效，无法终止", resp);
+                    return;
+                }
 
-            targetExecLock.getValue().cancelAllFuture();
-            targetExecLock.getValue().clearLockFutureQueue();
-            PhaseStatusCollection phaseStatusCollection = TrackableExecuteInterceptor.taskPhaseReference.get(taskId);
-            if (phaseStatusCollection != null) {
-                // 这样会将当前状态写入本地磁盘
-                phaseStatusCollection.flushStatus2Local();
+                targetExecLock.getValue().cancelAllFuture();
+                targetExecLock.getValue().clearLockFutureQueue();
             }
         }
+
+        PhaseStatusCollection phaseStatusCollection = TrackableExecuteInterceptor.taskPhaseReference.get(taskId);
+        if (phaseStatusCollection != null) {
+            // 这样会将当前状态写入本地磁盘
+            phaseStatusCollection.flushStatus2Local();
+        }
+
         writeResult(true, null, resp, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(taskId)));
     }
 
@@ -218,7 +230,7 @@ public class TisServlet extends HttpServlet {
                                     DagTaskUtils.createTaskComplete(newTaskId, chainContext, execResult);
                                 } catch (InterruptedException e) {
                                     // 说明当前任务被 终止了
-                                    log.info("taskid:{} has been canceled", newTaskId);
+                                    logger.info("taskid:{} has been canceled", newTaskId);
                                     return;
                                 } catch (Throwable e) {
                                     DagTaskUtils.createTaskComplete(newTaskId, chainContext, ExecResult.FAILD);
@@ -456,13 +468,13 @@ public class TisServlet extends HttpServlet {
 
         newTaskParam.setTriggerType(TriggerType.MANUAL);
         Integer taskid = DagTaskUtils.createNewTask(newTaskParam);
-        log.info("create new taskid:" + taskid);
+        logger.info("create new taskid:" + taskid);
         chainContext.setAttribute(IParamContext.KEY_TASK_ID, taskid);
         return taskid;
     }
 
     protected Logger getLog() {
-        return log;
+        return logger;
     }
 
     protected ExecuteResult startWork(final DefaultChainContext chainContext) throws Exception {

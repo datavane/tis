@@ -49,6 +49,7 @@ import com.qlangtech.tis.manage.servlet.QueryCloudSolrClient;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
 import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
@@ -135,8 +136,21 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.APP_UPDATE)
   public void doCancelTask(Context context) throws Exception {
+    Integer taskId = this.getInt(IExecChainContext.KEY_TASK_ID);
+
+    IWorkFlowBuildHistoryDAO workFlowBuildDAO = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
+    WorkFlowBuildHistory buildHistory = workFlowBuildDAO.loadFromWriteDB(taskId);
+    ExecResult processState = ExecResult.parse(buildHistory.getState());
+    if (!processState.isProcessing()) {
+      this.addErrorMessage(context, "当前任务状态为已终止，不能执行终止操作");
+      return;
+    }
+
     List<ConfigFileContext.Header> headers = Lists.newArrayList();
-    headers.add(new ConfigFileContext.Header(IExecChainContext.KEY_TASK_ID, String.valueOf(this.getInt(IExecChainContext.KEY_TASK_ID))));
+    headers.add(new ConfigFileContext.Header(IExecChainContext.KEY_TASK_ID, String.valueOf(taskId)));
+    headers.add(new ConfigFileContext.Header(IParamContext.KEY_ASYN_JOB_NAME, String.valueOf(processState == ExecResult.ASYN_DOING)));
+    headers.add(new ConfigFileContext.Header(IFullBuildContext.KEY_APP_NAME, IAppSourcePipelineController.DATAX_FULL_PIPELINE + buildHistory.getAppName()));
+
     TriggerBuildResult triggerResult = CoreAction.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers);
     if (!triggerResult.success) {
       return;
@@ -148,7 +162,7 @@ public class CoreAction extends BasicModule {
     WorkFlowBuildHistoryCriteria criteria = new WorkFlowBuildHistoryCriteria();
     criteria.createCriteria().andIdEqualTo(triggerResult.getTaskid());
 
-    this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().updateByExampleSelective(record, criteria);
+    workFlowBuildDAO.updateByExampleSelective(record, criteria);
     this.addActionMessage(context, "已经成功终止当前任务");
     this.setBizResult(context, new ExtendWorkFlowBuildHistory(
       this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(triggerResult.getTaskid())));

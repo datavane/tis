@@ -35,6 +35,15 @@ public enum ExecResult {
         throw new IllegalStateException("vale:" + value + " is illegal");
     }
 
+    /**
+     * 任务是否正在执行中
+     *
+     * @return
+     */
+    public boolean isProcessing() {
+        return this == DOING || this == ASYN_DOING;
+    }
+
     private ExecResult(int value, String literal) {
         this.value = value;
         this.literal = literal;
