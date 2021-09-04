@@ -105,6 +105,10 @@ public class PluginManager {
 
     protected final List<FailedPlugin> failedPlugins = new ArrayList<FailedPlugin>();
 
+    public String getFaildPluginsDesc() {
+        return failedPlugins.stream().map((f) -> "plugin:" + f.name + ",cause:" + ExceptionUtils.getMessage(f.cause)).collect(Collectors.joining(","));
+    }
+
     public PluginManager(File rootDir) {
         try {
             if (!rootDir.exists()) {

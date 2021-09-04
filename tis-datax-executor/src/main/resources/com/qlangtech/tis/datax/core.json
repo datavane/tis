@@ -41,7 +41,7 @@
     "container": {
       "job": {
         "reportInterval": 10000,
-        "sleepInterval": 4000
+        "sleepInterval": 3000
       },
       "taskGroup": {
         "channel": 5

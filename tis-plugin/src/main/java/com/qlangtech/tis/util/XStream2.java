@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
+import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.thoughtworks.xstream.XStream;
@@ -32,9 +33,13 @@ import com.thoughtworks.xstream.io.xml.XppDriver;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -170,13 +175,33 @@ public class XStream2 extends XStream {
             return result;
         }
 
+        private List<PluginMeta> getMetaDependencies() {
+            File f = getPluginPackageFile();
+            if (!f.exists()) {
+                throw new IllegalStateException("file:" + f.getPath() + " is not exist");
+            }
+            try (JarFile tpiFIle = new JarFile(getPluginPackageFile(), false)) {
+                Manifest mfst = tpiFIle.getManifest();
+                ClassicPluginStrategy.DependencyMeta dpts = ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
+                return dpts.dependencies.stream().map((d) -> new PluginMeta(d.shortName, d.version)).collect(Collectors.toList());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         /**
          * 将远端插件拷贝到本地
          */
         public boolean copyFromRemote() {
             final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + TIS.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
             final File local = getPluginPackageFile();
-            return CenterResource.copyFromRemote2Local(url, local, false);
+            boolean updated = CenterResource.copyFromRemote2Local(url, local, false);
+            if (updated) {
+                for (XStream2.PluginMeta d : this.getMetaDependencies()) {
+                    d.copyFromRemote();
+                }
+            }
+            return updated;
         }
     }
 }

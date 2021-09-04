@@ -14,49 +14,40 @@
  */
 package com.qlangtech.tis.datax;
 
-import com.alibaba.datax.common.util.Configuration;
 import com.alibaba.datax.core.util.container.JarLoader;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.plugin.PluginStubUtils;
-import com.qlangtech.tis.test.TISTestCase;
-import com.tis.hadoop.rpc.ITISRpcService;
-import com.tis.hadoop.rpc.RpcServiceReference;
-import com.tis.hadoop.rpc.StatusRpcClient;
 import org.easymock.EasyMock;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-20 14:12
  */
-public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
-    private static DataxExecutor executor;
-    private RpcServiceReference statusRpc;
+public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        System.clearProperty(Config.DEFAULT_DATA_DIR);
-        Config.setDataDir(Config.DEFAULT_DATA_DIR);
-        PluginStubUtils.setTISField();
-        AtomicReference<ITISRpcService> ref = new AtomicReference<>();
-        ref.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
-        statusRpc = new RpcServiceReference(ref);
-    }
+
+//    @Override
+//    protected void setUp() throws Exception {
+//        super.setUp();
+//        System.clearProperty(Config.DEFAULT_DATA_DIR);
+//        Config.setDataDir(Config.DEFAULT_DATA_DIR);
+//        PluginStubUtils.setTISField();
+//        AtomicReference<ITISRpcService> ref = new AtomicReference<>();
+//        ref.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
+//        statusRpc = new RpcServiceReference(ref);
+//    }
 
     public void testDataxJobMysql2Hdfs() throws Exception {
 
-        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
-            @Override
-            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
-                //  make skip the ex
-            }
-        };
+//        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
+//            @Override
+//            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
+//                //  make skip the ex
+//            }
+//        };
 
         IDataxProcessor dataxProcessor = EasyMock.createMock("dataxProcessor", IDataxProcessor.class);
 
@@ -87,12 +78,12 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
     }
 
     public void testDataxJobMysql2Hive() throws Exception {
-        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
-            @Override
-            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
-                //  make skip the ex
-            }
-        };
+//        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
+//            @Override
+//            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
+//                //  make skip the ex
+//            }
+//        };
         String dataxNameMysql2hive = "mysql2hive";
         final String jobName = "datax_cfg.json";
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hive + "/dataxCfg");
@@ -108,12 +99,12 @@ public class TestDataxExecutor extends TISTestCase implements IExecutorContext {
     }
 
     public void testDataxJobLaunch() throws Exception {
-        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
-            @Override
-            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
-                //  make skip the ex
-            }
-        };
+//        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
+//            @Override
+//            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
+//                //  make skip the ex
+//            }
+//        };
         final String jobName = "customer_order_relation_1.json";
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitestTestcase/dataxCfg");
 

@@ -26,6 +26,7 @@ import java.util.List;
 public interface PluginStrategy {
 
     String FILE_NAME_timestamp2 = ".timestamp2";
+    String KEY_MANIFEST_DEPENDENCIES = "Plugin-Dependencies";
 
     <T> List<ExtensionComponent<T>> findComponents(Class<T> extensionType, TIS tis);
 

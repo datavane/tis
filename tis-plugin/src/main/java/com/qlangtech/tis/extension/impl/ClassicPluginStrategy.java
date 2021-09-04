@@ -178,20 +178,10 @@ public class ClassicPluginStrategy implements PluginStrategy {
             LOGGER.info("Plugin " + archive.getName() + " is disabled");
         }
         // compute dependencies
-        List<PluginWrapper.Dependency> dependencies = new ArrayList<PluginWrapper.Dependency>();
-        List<PluginWrapper.Dependency> optionalDependencies = new ArrayList<PluginWrapper.Dependency>();
-        String v = atts.getValue("Plugin-Dependencies");
-        if (v != null) {
-            for (String s : v.split(",")) {
-                PluginWrapper.Dependency d = new PluginWrapper.Dependency(s);
-                if (d.optional) {
-                    optionalDependencies.add(d);
-                } else {
-                    dependencies.add(d);
-                }
-            }
-        }
-        fix(atts, optionalDependencies);
+//        List<PluginWrapper.Dependency> dependencies = new ArrayList<PluginWrapper.Dependency>();
+//        List<PluginWrapper.Dependency> optionalDependencies = new ArrayList<PluginWrapper.Dependency>();
+        DependencyMeta dependencyMeta = getDependencyMeta(atts);
+        fix(atts, dependencyMeta.optionalDependencies);
         // Register global classpath mask. This is useful for hiding JavaEE APIs that you might see from the container,
         // such as database plugin for JPA support. The Mask-Classes attribute is insufficient because those classes
         // also need to be masked by all the other plugins that depend on the database plugin.
@@ -199,9 +189,31 @@ public class ClassicPluginStrategy implements PluginStrategy {
         if (masked != null) {
             for (String pkg : masked.trim().split("[ \t\r\n]+")) coreClassLoader.add(pkg);
         }
-        ClassLoader dependencyLoader = new DependencyClassLoader(coreClassLoader, archive, Util.join(dependencies, optionalDependencies));
+        ClassLoader dependencyLoader = new DependencyClassLoader(coreClassLoader, archive, Util.join(dependencyMeta.dependencies, dependencyMeta.optionalDependencies));
         dependencyLoader = getBaseClassLoader(atts, dependencyLoader);
-        return new PluginWrapper(pluginManager, archive, manifest, baseResourceURL, createClassLoader(paths, dependencyLoader, atts), disableFile, dependencies, optionalDependencies);
+        return new PluginWrapper(pluginManager, archive, manifest, baseResourceURL, createClassLoader(paths, dependencyLoader, atts)
+                , disableFile, dependencyMeta.dependencies, dependencyMeta.optionalDependencies);
+    }
+
+    public static DependencyMeta getDependencyMeta(Attributes atts) {
+        DependencyMeta dependencyMeta = new DependencyMeta();
+        String v = atts.getValue(KEY_MANIFEST_DEPENDENCIES);
+        if (v != null) {
+            for (String s : v.split(",")) {
+                PluginWrapper.Dependency d = new PluginWrapper.Dependency(s);
+                if (d.optional) {
+                    dependencyMeta.optionalDependencies.add(d);
+                } else {
+                    dependencyMeta.dependencies.add(d);
+                }
+            }
+        }
+        return dependencyMeta;
+    }
+
+    public static class DependencyMeta {
+        public List<PluginWrapper.Dependency> dependencies = new ArrayList<PluginWrapper.Dependency>();
+        List<PluginWrapper.Dependency> optionalDependencies = new ArrayList<PluginWrapper.Dependency>();
     }
 
     private static void fix(Attributes atts, List<PluginWrapper.Dependency> optionalDependencies) {
@@ -256,7 +268,6 @@ public class ClassicPluginStrategy implements PluginStrategy {
 
     public void initializeComponents(PluginWrapper plugin) {
     }
-
 
 
     public <T> List<ExtensionComponent<T>> findComponents(final Class<T> type, TIS tis) {

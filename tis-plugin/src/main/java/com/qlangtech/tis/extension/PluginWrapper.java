@@ -219,8 +219,9 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
 
         public Dependency(String s) {
             int idx = s.indexOf(':');
-            if (idx == -1)
+            if (idx == -1) {
                 throw new IllegalArgumentException("Illegal dependency specifier " + s);
+            }
             this.shortName = s.substring(0, idx);
             this.version = s.substring(idx + 1);
             boolean isOptional = false;

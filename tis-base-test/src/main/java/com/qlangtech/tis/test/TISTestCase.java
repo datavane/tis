@@ -27,7 +27,13 @@ public abstract class TISTestCase extends TestCase implements TISEasyMock {
     @Override
     protected void setUp() throws Exception {
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
-        CenterResource.setNotFetchFromCenterRepository();
+        if (isNotFetchFromCenterRepository()) {
+            CenterResource.setNotFetchFromCenterRepository();
+        }
         HttpUtils.addMockGlobalParametersConfig();
+    }
+
+    protected boolean isNotFetchFromCenterRepository() {
+        return true;
     }
 }
