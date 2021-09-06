@@ -103,7 +103,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      * 为了驱动加载不出问题，需要每个实现类中拷贝一份这个代码，default implements:
      * <pre>
      *     @Override
-     *     protected Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
+     *     public Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
      *         return DriverManager.getConnection(jdbcUrl, StringUtils.trimToNull(username), StringUtils.trimToNull(password));
      *     }
      * </pre>
@@ -111,7 +111,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      * @param jdbcUrl
      * @return
      */
-    protected Connection getConnection(String jdbcUrl) throws SQLException {
+    public Connection getConnection(String jdbcUrl) throws SQLException {
         throw new UnsupportedOperationException("jdbcUrl:" + jdbcUrl);
     }
 //        // 密码可以为空
@@ -167,6 +167,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T> {
         private static final Logger logger = LoggerFactory.getLogger(BaseDataSourceFactoryDescriptor.class);
+
         @Override
         public final String getDisplayName() {
             return this.getDataSourceName();

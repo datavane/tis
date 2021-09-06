@@ -49,6 +49,7 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 - 基于Ansible的打包工具 [https://github.com/qlangtech/tis-ansible](https://github.com/qlangtech/tis-ansible)
 - TIS 插件 [https://github.com/qlangtech/plugins](https://github.com/qlangtech/plugins)
 - TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
+- DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
  
 ## 许可协议
 
