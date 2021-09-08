@@ -227,7 +227,7 @@ public class DataXCfgGenerator {
                     if (createDDL != null) {
                         String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
                         createDDLFiles.add(sqlFileName);
-                        FileUtils.write(new File(createDDLDir, sqlFileName), createDDL.toString(), TisUTF8.get());
+                        dataxProcessor.saveCreateTableDDL(this.pluginCtx, createDDL, sqlFileName, false);
                     }
                 }
             }
@@ -246,6 +246,8 @@ public class DataXCfgGenerator {
         cfgs.genTime = current;
         return cfgs;
     }
+
+
 
     private static class GenerateCfgs {
         private List<String> dataxFiles = Collections.emptyList();

@@ -17,6 +17,7 @@ package com.qlangtech.tis.datax;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,6 +46,16 @@ public interface IDataxProcessor {
      * @return
      */
     public File getDataxCreateDDLDir(IPluginContext pluginContext);
+
+    /**
+     * 更新自动建表的脚本内容
+     *
+     * @param pluginCtx
+     * @param createDDL
+     * @param sqlFileName
+     * @param overWrite
+     */
+    public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName, boolean overWrite) throws IOException;
 
     public File getDataXWorkDir(IPluginContext pluginContext);
 

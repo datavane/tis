@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.sql.parser.DBNode;
@@ -39,6 +40,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -129,6 +131,18 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
             return Collections.emptyMap();
         }
         return this.tableMaps.stream().collect(Collectors.toMap((m) -> m.getFrom(), (m) -> m));
+    }
+
+    public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName, boolean overWrite) throws IOException {
+        if (StringUtils.isEmpty(sqlFileName)) {
+            throw new IllegalArgumentException("param sqlFileName can not be empty");
+        }
+        File createDDLDir = this.getDataxCreateDDLDir(pluginCtx);
+        File f = new File(createDDLDir, sqlFileName);
+        // 判断文件是否已经存在，如果已经存在的话就不需要生成了
+        if (overWrite || !f.exists()) {
+            FileUtils.write(f, createDDL.toString(), TisUTF8.get());
+        }
     }
 
     @Override

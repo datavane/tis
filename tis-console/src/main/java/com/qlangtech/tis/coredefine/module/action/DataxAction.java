@@ -90,6 +90,25 @@ public class DataxAction extends BasicModule {
   }
 
 
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doSaveTableCreateDdl(Context context) throws Exception {
+    JSONObject post = this.parseJsonPost();
+    String dataXName = post.getString(DataxUtils.DATAX_NAME);
+    String createTableDDL = post.getString("content");
+    if (StringUtils.isEmpty(createTableDDL)) {
+      throw new IllegalArgumentException("create table ddl can not be null");
+    }
+    if (StringUtils.isEmpty(dataXName)) {
+      throw new IllegalArgumentException("param dataXName can not be null");
+    }
+
+    DataxProcessor dataxProcessor = IAppSource.load(this, dataXName);
+    String createFileName = post.getString("fileName");
+    dataxProcessor.saveCreateTableDDL(this, new StringBuffer(createTableDDL), createFileName, true);
+    this.addActionMessage(context, "已经成功更新建表DDL脚本 " + createFileName);
+  }
+
+
   /**
    * @param context
    */
