@@ -324,13 +324,15 @@ public class DataxExecutor {
 
     private void reportDataXJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, String jobName) {
         StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
-        DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
-        dumpStatus.setFaild(faild);
-        dumpStatus.setComplete(complete);
-        dumpStatus.setWaiting(waiting);
-        dumpStatus.setReadRows((int) allReadApproximately[0]);
-        dumpStatus.setAllRows(this.allRowsApproximately);
-        svc.reportDumpTableStatus(dumpStatus);
+        svc.reportDumpJobStatus(faild, complete, waiting, taskId, jobName, (int) allReadApproximately[0], this.allRowsApproximately);
+//
+//        DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
+//        dumpStatus.setFaild(faild);
+//        dumpStatus.setComplete(complete);
+//        dumpStatus.setWaiting(waiting);
+//        dumpStatus.setReadRows((int) allReadApproximately[0]);
+//        dumpStatus.setAllRows(this.allRowsApproximately);
+//        svc.reportDumpTableStatus(dumpStatus);
     }
 
 

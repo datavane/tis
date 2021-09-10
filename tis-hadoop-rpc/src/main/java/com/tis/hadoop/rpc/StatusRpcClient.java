@@ -17,6 +17,7 @@ package com.tis.hadoop.rpc;
 import com.google.common.collect.Iterators;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.*;
 import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
@@ -106,7 +107,7 @@ public class StatusRpcClient {
         });
     }
 
-    private  AssembleSvcCompsite connect2RemoteIncrStatusServer(String incrStateCollectAddress, AssembleSvcCompsiteCallback rpcCallback) {
+    private AssembleSvcCompsite connect2RemoteIncrStatusServer(String incrStateCollectAddress, AssembleSvcCompsiteCallback rpcCallback) {
         InetSocketAddress address;
         Matcher matcher = ADDRESS_PATTERN.matcher(incrStateCollectAddress);
         if (matcher.matches()) {
@@ -221,6 +222,17 @@ public class StatusRpcClient {
         public final ILogReporter statReportSvc;
 
         public abstract void close();
+
+        public void reportDumpJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, String jobName, int readRows, int allRows) {
+            StatusRpcClient.AssembleSvcCompsite svc = this;
+            DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
+            dumpStatus.setFaild(faild);
+            dumpStatus.setComplete(complete);
+            dumpStatus.setWaiting(waiting);
+            dumpStatus.setReadRows(readRows);
+            dumpStatus.setAllRows(allRows);
+            svc.reportDumpTableStatus(dumpStatus);
+        }
 
         public AssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc, ILogReporter statReportSvc) {
             Objects.requireNonNull(statReceiveSvc, "param statReceiveSvc can not be null");

@@ -31,6 +31,7 @@ import com.qlangtech.tis.realtime.yarn.rpc.impl.AdapterStatusUmbilicalProtocol;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
+import com.tis.hadoop.rpc.StatusRpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,12 +66,14 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
         for (String fileName : cfgFileNames) {
             jobTrigger = createDataXJob(execChainContext, statusRpc, appSource, fileName);
-
             triggers.add(jobTrigger);
+
+            StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
+            // 将任务注册，可供页面展示
+            svc.reportDumpJobStatus(false, false, true, execChainContext.getTaskId(), fileName, 0, 0);
         }
 
-        logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
-                , cfgFileNames.stream().collect(Collectors.joining(",")));
+        logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType(), cfgFileNames.stream().collect(Collectors.joining(",")));
         for (IRemoteJobTrigger t : triggers) {
             t.submitJob();
         }
