@@ -130,6 +130,12 @@ public class FullbuildWorkflowAction extends BasicModule {
     this.addErrorMessage(context, "can not find build history by appname:" + appName);
   }
 
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doGetWf(Context context) {
+    Integer taskId = this.getInt(IParamContext.KEY_TASK_ID);
+    this.setBizResult(context, this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(taskId));
+  }
+
   /**
    * 执行阶段结束
    *

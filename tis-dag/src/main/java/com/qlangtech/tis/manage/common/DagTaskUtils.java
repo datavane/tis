@@ -113,6 +113,25 @@ public class DagTaskUtils {
         return Optional.of(result.getBizresult());
     }
 
+    /**
+     * 取得当前工作流 执行状态
+     *
+     * @param taskId
+     * @return
+     */
+    public static WorkFlowBuildHistory getWFStatus(Integer taskId) {
+        if (taskId == null || taskId < 1) {
+            throw new IllegalArgumentException("param taskId can not be empty");
+        }
+        String url = WORKFLOW_CONFIG_URL_POST_FORMAT
+                .format(new Object[]{"fullbuild_workflow_action", "do_get_wf"});
+        List<HttpUtils.PostParam> params = Lists.newArrayList();
+        params.add(new HttpUtils.PostParam(IParamContext.KEY_TASK_ID, taskId));
+
+        AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class, true);
+        return result.getBizresult();
+    }
+
     public static class NewTaskParam {
 
         private Integer workflowid;

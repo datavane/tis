@@ -15,9 +15,12 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.exec.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
@@ -53,6 +56,12 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
         MDC.put(TISCollectionUtils.KEY_COLLECTION, dataxName);
         Integer allRowsApproximately = msg.getAllRowsApproximately();
         logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},allrows:{}", dataxName, jobId, jobName, allRowsApproximately);
+
+        // 查看当前任务是否正在进行中，如果已经终止则要退出
+        if (!isCurrentJobProcessing(jobId)) {
+            logger.warn("current job id:{} jobName:{}, dataxName:{} is not processing skipping!!", jobId, jobName, dataxName);
+            return;
+        }
 
         synchronized (DataXJobConsumer.class) {
             //exec(msg);
@@ -111,6 +120,10 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
                 runningTask.remove(jobId);
             }
         }
+    }
+
+    protected boolean isCurrentJobProcessing(Integer jobId) {
+        return true;
     }
 
     protected abstract DataXJobSubmit.InstanceType getExecMode();

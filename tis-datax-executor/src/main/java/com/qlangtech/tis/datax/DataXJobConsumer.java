@@ -15,10 +15,13 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.cloud.AdapterTisCoordinator;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.solrj.util.ZkUtils;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -53,6 +56,13 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
         this.coordinator = coordinator;
     }
 
+
+    @Override
+    protected boolean isCurrentJobProcessing(Integer jobId) {
+        WorkFlowBuildHistory wfStatus = DagTaskUtils.getWFStatus(jobId);
+        ExecResult execStat = ExecResult.parse(wfStatus.getState());
+        return execStat.isProcessing();
+    }
 
     public static void main(String[] args) throws Exception {
         FileUtils.forceMkdir(Config.getDataDir(false));
