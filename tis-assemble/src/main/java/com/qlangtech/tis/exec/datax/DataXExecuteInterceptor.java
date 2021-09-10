@@ -70,7 +70,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
             StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
             // 将任务注册，可供页面展示
-            svc.reportDumpJobStatus(false, false, true, execChainContext.getTaskId(), fileName, 0, 0);
+            svc.reportDumpJobStatus(false, false, false, execChainContext.getTaskId(), fileName, 0, 0);
         }
 
         logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType(), cfgFileNames.stream().collect(Collectors.joining(",")));
