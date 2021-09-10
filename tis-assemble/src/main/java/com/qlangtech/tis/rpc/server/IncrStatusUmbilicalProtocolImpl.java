@@ -165,16 +165,16 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
 
     public void reportDumpTableStatusError(Integer taskid, String fullTableName) {
         execHook.reportDumpTableStatusError(taskid, fullTableName);
-        reportDumpTableStatus(taskid, true, fullTableName);
+        reportDumpTableStatus(taskid, true, false, true, fullTableName);
     }
 
-    public void reportDumpTableStatus(Integer taskid, boolean faild, String fullTableName) {
+    public void reportDumpTableStatus(Integer taskid, boolean complete, boolean waiting, boolean faild, String fullTableName) {
         com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.Builder builder = com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.newBuilder();
         builder.setTaskid(taskid);
         builder.setTableName(fullTableName);
         builder.setFaild(faild);
-        builder.setComplete(true);
-        builder.setWaiting(false);
+        builder.setComplete(complete);
+        builder.setWaiting(waiting);
         this.reportDumpTableStatus(builder.build(), new StatusRpcClient.NoopStreamObserver<>());
     }
 

@@ -14,27 +14,16 @@
  */
 package com.qlangtech.tis.exec.impl;
 
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.ajax.AjaxResult;
-import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.exec.*;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
-import com.qlangtech.tis.order.center.IParamContext;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
