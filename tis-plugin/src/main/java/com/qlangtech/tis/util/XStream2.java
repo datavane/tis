@@ -209,6 +209,9 @@ public class XStream2 extends XStream {
 
         public void install() {
             try {
+                if (!TIS.permitInitialize) {
+                    return;
+                }
                 logger.info("dyanc install:{} to classloader ", this.toString());
                 PluginManager pluginManager = TIS.get().getPluginManager();
                 List<PluginWrapper> plugins = Lists.newArrayList(
