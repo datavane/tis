@@ -31,6 +31,8 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.xml.XppDriver;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
  */
 public class XStream2 extends XStream {
 
+    private static final Logger logger = LoggerFactory.getLogger(XStream2.class);
     private final XppDriver xppDruver;
 
     public XStream2(XppDriver xppDruver) {
@@ -202,6 +205,18 @@ public class XStream2 extends XStream {
                 }
             }
             return updated;
+        }
+
+        public void install() {
+            try {
+                logger.info("dyanc install:{} to classloader ", this.toString());
+                PluginManager pluginManager = TIS.get().getPluginManager();
+                List<PluginWrapper> plugins = Lists.newArrayList(
+                        pluginManager.getPluginStrategy().createPluginWrapper(getPluginPackageFile()));
+                pluginManager.start(plugins, true);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

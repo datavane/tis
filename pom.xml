@@ -14,7 +14,7 @@
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis-solr-parent</artifactId>
     <!--https://maven.apache.org/maven-ci-friendly.html-->
-    <version>2.3.0</version>
+    <version>3.0.0</version>
     <packaging>pom</packaging>
     <name>tis-solr-parent</name>
     <url>http://maven.apache.org</url>

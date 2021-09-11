@@ -44,9 +44,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.*;
@@ -200,9 +198,11 @@ public class PluginManager {
         //}
     }
 
-
     public void start(List<PluginWrapper> plugins) throws Exception {
-        // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
+        this.start(plugins, false);
+    }
+
+    public void start(List<PluginWrapper> plugins, boolean waitComplete) throws Exception {
         Map<String, PluginWrapper> pluginsByName = plugins.stream().collect(Collectors.toMap(PluginWrapper::getShortName, p -> p));
 
         // recalculate dependencies of plugins optionally depending the newly deployed ones.
@@ -245,8 +245,17 @@ public class PluginManager {
                 return !loaders.contains(e.getDeclaringClass().getClassLoader()) || super.filter(e);
             }
         }.discoverTasks(r));
-        new InitReactorRunner().run(r);
 
+        final CountDownLatch countDown = new CountDownLatch(waitComplete ? 1 : 0);
+        new InitReactorRunner() {
+            @Override
+            protected void onInitMilestoneAttained(InitMilestone milestone) {
+                if (milestone == COMPLETED) {
+                    countDown.countDown();
+                }
+            }
+        }.run(r);
+        countDown.await(10, TimeUnit.SECONDS);
     }
 
 

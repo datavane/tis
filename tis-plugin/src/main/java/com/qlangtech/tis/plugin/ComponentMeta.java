@@ -116,6 +116,7 @@ public class ComponentMeta {
             if (m.copyFromRemote()) {
                 // 本地包已经被更新
                 updateTpiPkgs.add(m);
+                m.install();
             }
         }
         logger.info("download plugin from remote repository:"

@@ -15,12 +15,9 @@
 
 package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.exec.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
