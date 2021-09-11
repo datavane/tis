@@ -15,13 +15,8 @@
 
 package com.qlangtech.tis.util;
 
-/**
- * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-05-11 10:15
- **/
 
 import com.qlangtech.tis.TIS;
-
 import org.jvnet.hudson.reactor.*;
 
 import java.io.IOException;
@@ -31,6 +26,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.logging.Logger;
+/**
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-05-11 10:15
+ **/
 
 /**
  * @author Kohsuke Kawaguchi
@@ -132,14 +131,7 @@ abstract class TaskMethodFinder<T extends Annotation> extends TaskBuilder {
     private Object lookUp(Class<?> type) {
         TIS j = TIS.get();
         assert j != null : "This method is only invoked after the Jenkins singleton instance has been set";
-        //  if (type == Jenkins.class || type == Hudson.class) {
         return j;
-        // }
-//        Injector i = j.getInjector();
-//        if (i != null) {
-//            return i.getInstance(type);
-//        }
-//        throw new IllegalArgumentException("Unable to inject " + type);
     }
 
     /**

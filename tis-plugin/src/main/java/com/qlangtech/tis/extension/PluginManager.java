@@ -44,7 +44,9 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.*;
@@ -168,8 +170,9 @@ public class PluginManager {
         // so existing plugins can't be depending on this newly deployed one.
 
         plugins.add(p);
-        if (p.isActive())
+        if (p.isActive()) {
             activePlugins.add(p);
+        }
         synchronized (((UberClassLoader) uberClassLoader).loaded) {
             ((UberClassLoader) uberClassLoader).loaded.clear();
         }
@@ -198,11 +201,8 @@ public class PluginManager {
         //}
     }
 
-    public void start(List<PluginWrapper> plugins) throws Exception {
-        this.start(plugins, false);
-    }
 
-    public void start(List<PluginWrapper> plugins, boolean waitComplete) throws Exception {
+    public void start(List<PluginWrapper> plugins) throws Exception {
         Map<String, PluginWrapper> pluginsByName = plugins.stream().collect(Collectors.toMap(PluginWrapper::getShortName, p -> p));
 
         // recalculate dependencies of plugins optionally depending the newly deployed ones.
@@ -246,16 +246,7 @@ public class PluginManager {
             }
         }.discoverTasks(r));
 
-        final CountDownLatch countDown = new CountDownLatch(waitComplete ? 1 : 0);
-        new InitReactorRunner() {
-            @Override
-            protected void onInitMilestoneAttained(InitMilestone milestone) {
-                if (milestone == COMPLETED) {
-                    countDown.countDown();
-                }
-            }
-        }.run(r);
-        countDown.await(10, TimeUnit.SECONDS);
+        new InitReactorRunner().run(r);
     }
 
 

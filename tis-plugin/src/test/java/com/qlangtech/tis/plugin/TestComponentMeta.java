@@ -17,6 +17,7 @@ package com.qlangtech.tis.plugin;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.config.yarn.IYarnConfig;
+import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -25,6 +26,8 @@ import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.TestHeteroList;
+import com.qlangtech.tis.util.XStream2;
+import edu.emory.mathcs.backport.java.util.Collections;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
@@ -32,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Set;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -56,6 +60,7 @@ public class TestComponentMeta extends TestCase {
 
         HttpUtils.addMockGlobalParametersConfig();
 
+        stubTpi("tis-ds-mysql-v5-plugin.tpi");
         stubTpi("tis-datax-common-plugin.tpi");
         stubTpi("tis-hive-flat-table-builder-plugin.tpi");
         stubTpi("tis-k8s-plugin.tpi");
@@ -105,6 +110,38 @@ public class TestComponentMeta extends TestCase {
                 }
             }
         });
+    }
+
+    /**
+     * 通过 执行 synchronizePluginsPackageFromRemote 可以动态加载类
+     */
+    public void testSynchronizePluginsPackageFromRemote() {
+        // 加载完成之后，本地class 要能够加载出来
+        PluginManager pluginManager = TIS.get().getPluginManager();
+        String MySQLV5DataSourceFactory = "com.qlangtech.tis.plugin.ds.mysql.MySQLV5DataSourceFactory";
+        try {
+            pluginManager.uberClassLoader.loadClass(MySQLV5DataSourceFactory);
+            fail("shall not find class");
+        } catch (ClassNotFoundException e) {
+
+        }
+        ComponentMeta componentMeta = new ComponentMeta(Collections.emptyList()) {
+            public Set<XStream2.PluginMeta> loadPluginMeta() {
+                XStream2.PluginMeta pluginMeta = new XStream2.PluginMeta("tis-ds-mysql-v5-plugin", "2.3.0");
+                return Collections.singleton(pluginMeta);
+            }
+        };
+
+
+        componentMeta.synchronizePluginsPackageFromRemote();
+
+
+        try {
+            assertNotNull(pluginManager.uberClassLoader.loadClass(MySQLV5DataSourceFactory));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     /**

@@ -192,34 +192,42 @@ public class XStream2 extends XStream {
             }
         }
 
+        public boolean copyFromRemote() {
+            return copyFromRemote(Lists.newArrayList());
+        }
+
         /**
          * 将远端插件拷贝到本地
          */
-        public boolean copyFromRemote() {
+        public boolean copyFromRemote(List<File> pluginFileCollector) {
             final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + TIS.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
             final File local = getPluginPackageFile();
             boolean updated = CenterResource.copyFromRemote2Local(url, local, false);
             if (updated) {
                 for (XStream2.PluginMeta d : this.getMetaDependencies()) {
-                    d.copyFromRemote();
+                    d.copyFromRemote(pluginFileCollector);
                 }
+                pluginFileCollector.add(local);
             }
             return updated;
         }
 
-        public void install() {
-            try {
-                if (!TIS.permitInitialize) {
-                    return;
-                }
-                logger.info("dyanc install:{} to classloader ", this.toString());
-                PluginManager pluginManager = TIS.get().getPluginManager();
-                List<PluginWrapper> plugins = Lists.newArrayList(
-                        pluginManager.getPluginStrategy().createPluginWrapper(getPluginPackageFile()));
-                pluginManager.start(plugins, true);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
+//        public void install() {
+//            try {
+//                if (!TIS.permitInitialize) {
+//                    return;
+//                }
+//                logger.info("dyanc install:{} to classloader ", this.toString());
+//                PluginManager pluginManager = TIS.get().getPluginManager();
+//                File pluginFile = getPluginPackageFile();
+//                List<PluginWrapper> plugins = Lists.newArrayList(
+//                        pluginManager.getPluginStrategy().createPluginWrapper(pluginFile));
+//
+//                pluginManager.dynamicLoad(pluginFile, false, null);
+//                pluginManager.start(plugins);
+//            } catch (Throwable e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
     }
 }

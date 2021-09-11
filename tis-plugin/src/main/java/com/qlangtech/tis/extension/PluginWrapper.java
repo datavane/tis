@@ -547,8 +547,9 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         }
         // add the optional dependencies that exists
         for (Dependency d : optionalDependencies) {
-            if (parent.getPlugin(d.shortName) != null)
+            if (parent.getPlugin(d.shortName) != null){
                 dependencies.add(d);
+            }
         }
     }
 

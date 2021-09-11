@@ -112,12 +112,21 @@ public class ComponentMeta {
     public List<XStream2.PluginMeta> synchronizePluginsPackageFromRemote() {
         List<XStream2.PluginMeta> updateTpiPkgs = Lists.newArrayList();
         Set<XStream2.PluginMeta> pluginMetas = loadPluginMeta();
-        for (XStream2.PluginMeta m : pluginMetas) {
-            if (m.copyFromRemote()) {
-                // 本地包已经被更新
-                updateTpiPkgs.add(m);
-                m.install();
+        try {
+            for (XStream2.PluginMeta m : pluginMetas) {
+                List<File> pluginFileCollector = Lists.newArrayList();
+                if (m.copyFromRemote(pluginFileCollector)) {
+                    // 本地包已经被更新
+                    updateTpiPkgs.add(m);
+                    if (TIS.permitInitialize) {
+                        for (File f : pluginFileCollector) {
+                            TIS.get().getPluginManager().dynamicLoad(f, true, null);
+                        }
+                    }
+                }
             }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
         logger.info("download plugin from remote repository:"
                 + updateTpiPkgs.stream().map((m) -> m.toString()).collect(Collectors.joining(",")));
