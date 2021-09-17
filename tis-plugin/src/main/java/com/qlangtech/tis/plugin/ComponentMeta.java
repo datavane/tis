@@ -120,6 +120,7 @@ public class ComponentMeta {
                     updateTpiPkgs.add(m);
                     if (TIS.permitInitialize) {
                         for (File f : pluginFileCollector) {
+                            // 动态安装插件
                             TIS.get().getPluginManager().dynamicLoad(f, true, null);
                         }
                     }

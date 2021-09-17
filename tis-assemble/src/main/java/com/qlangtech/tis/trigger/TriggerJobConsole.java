@@ -36,7 +36,7 @@ public interface TriggerJobConsole extends Remote {
 	public boolean isServing(String coreName) throws RemoteException;
 
 	/**
-	 * Í£Ö¹Ö´ĞĞ
+	 * åœæ­¢æ‰§è¡Œ
 	 * 
 	 * @param
 	 * @throws RemoteException
@@ -44,7 +44,7 @@ public interface TriggerJobConsole extends Remote {
 	public void pause(String coreName) throws RemoteException;
 
 	/**
-	 * coreÊÇ·ñÊÇÈÎÎñÖÕÖ¹×´Ì¬
+	 * coreæ˜¯å¦æ˜¯ä»»åŠ¡ç»ˆæ­¢çŠ¶æ€
 	 * 
 	 * @param coreName
 	 * @return
@@ -53,7 +53,7 @@ public interface TriggerJobConsole extends Remote {
 	public boolean isPause(String coreName) throws RemoteException;
 
 	/**
-	 * ÖØĞÂÆô¶¯
+	 * é‡æ–°å¯åŠ¨
 	 * 
 	 * @param coreName
 	 * @throws RemoteException

@@ -54,12 +54,6 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-/**
- * È«Á¿ÈÎÎñ´¥·¢¹ÜÀíÆ÷
- *
- * @author °ÙËê baisui@2dfire.com
- * @date 2015Äê10ÔÂ29ÈÕ ÏÂÎç12:53:49
- */
 public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(TriggerJobManage.class);
     public static final int JETTY_TRIGGER_SERVER_PORT = 8080;
@@ -125,7 +119,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     /**
-     * ´´½¨Ò»¸ö´¥·¢Æ÷
+     * åˆ›å»ºä¸€ä¸ªè§¦å‘å™¨
      *
      * @param triggerIndexName
      * @param schedule
@@ -144,7 +138,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     private static final String TRIGGER_JOB_KEY_PREFIX = "trigger_";
 
     /**
-     * Ìí¼ÓÒ»¸öjobÁ¬½Ó¹ÜµÀ
+     * æ·»åŠ ä¸€ä¸ªjobè¿æ¥ç®¡é“
      *
      * @param
      * @param
@@ -194,7 +188,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     /**
-     * È¡µÃ×î½üÒ»´ÎµÄÖ´ĞĞÊ±¼äµÄtimestamp
+     * å–å¾—æœ€è¿‘ä¸€æ¬¡çš„æ‰§è¡Œæ—¶é—´çš„timestamp
      *
      * @return
      */
@@ -219,7 +213,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     private final int COLLECT_STATE_INTERVAL = 1;
 
     /**
-     * ÅĞ¶ÏÖ®Ç°ÊÇ·ñÓĞÈÎºÎÈÎÎñÕıÔÚÖ´ĞĞ,Á½·ÖÖÓËøÊ§Ğ§
+     * åˆ¤æ–­ä¹‹å‰æ˜¯å¦æœ‰ä»»ä½•ä»»åŠ¡æ­£åœ¨æ‰§è¡Œ,ä¸¤åˆ†é’Ÿé”å¤±æ•ˆ
      *
      * @return
      */
@@ -228,7 +222,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     /**
-     * È¡µÃÈÎÎñÖ´ĞĞĞÅÏ¢
+     * å–å¾—ä»»åŠ¡æ‰§è¡Œä¿¡æ¯
      *
      * @param indexName
      * @return
@@ -244,14 +238,14 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 
         if (!isTest() && hasAnyDumpTaskExecuting(config.getAppName())) {
             addFeedbackInfo(config, InfoType.ERROR, "indexname:" + config.getAppName()
-                    + " task center has same task is executing¡£");
+                    + " task center has same task is executingã€‚");
             return null;
         }
 
         if (!isTest() && !hasGrantCollectLock(config.getAppName())) {
             addFeedbackInfo(config, InfoType.ERROR,
-                    "indexname:" + config.getAppName() + " has not get the execute task¡£");
-            // ÊÇ·ñÄÃµ½Ö´ĞĞËø
+                    "indexname:" + config.getAppName() + " has not get the execute taskã€‚");
+            // æ˜¯å¦æ‹¿åˆ°æ‰§è¡Œé”
             return null;
         }
 
@@ -271,7 +265,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     /**
-     * Ö´ĞĞÈ«Á¿ÈÎÎñ
+     * æ‰§è¡Œå…¨é‡ä»»åŠ¡
      *
      * @param indexName
      * @param execType
@@ -327,7 +321,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
             return null;
         }
 
-        LockResult lock = getNodeInfo(zk, true/* hasChild */, ipLockPath, false, "È«Á¿Dump½Úµã");
+        LockResult lock = getNodeInfo(zk, true/* hasChild */, ipLockPath, false, "å…¨é‡DumpèŠ‚ç‚¹");
 
         if (lock.childValus.isEmpty()) {
             return null;
@@ -356,7 +350,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 
     static {
         NULL_LOCK = new LockResult(false);
-        NULL_LOCK.setContent("²»´æÔÚ¡£¡£");
+        NULL_LOCK.setContent("ä¸å­˜åœ¨ã€‚ã€‚");
     }
 
     public static LockResult getNodeInfo(TisZkClient zk, boolean haChild, String path,
@@ -399,7 +393,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     /*
-     * ´ÓÅäÖÃÖĞĞÄÍ¬²½crontabµÄ¶¨Òå
+     * ä»é…ç½®ä¸­å¿ƒåŒæ­¥crontabçš„å®šä¹‰
      */
     protected void shnchronizeCrontabConfig() {
 
@@ -414,7 +408,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 
                 while (true) {
 
-                    // ¶ş·ÖÖÓÍ¬²½Ò»´Î
+                    // äºŒåˆ†é’ŸåŒæ­¥ä¸€æ¬¡
                     try {
                         // final long timestamp = System.currentTimeMillis();
 
@@ -433,8 +427,8 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
                             final Crontab crontab = crontabList.get(triggerGroup);
 
                             if (triggerKeySet == null || triggerKeySet.size() < 1) {
-                                // ËµÃ÷Ö®Ç°Ã»ÓĞÃ»ÓĞµÄ£¬¶¨Ê±ÈÎÎñÊÇĞÂ¼ÓµÄ
-                                // Ìí¼Ó¶¨Ê±ÈÎÎñµ½±¾µØscheduler
+                                // è¯´æ˜ä¹‹å‰æ²¡æœ‰æ²¡æœ‰çš„ï¼Œå®šæ—¶ä»»åŠ¡æ˜¯æ–°åŠ çš„
+                                // æ·»åŠ å®šæ—¶ä»»åŠ¡åˆ°æœ¬åœ°scheduler
                                 // createNewFullDumpTrigger(new JobSchedule(tab
                                 // .getServiceName(), tab.getCrontab()));
                                 continue;
@@ -445,7 +439,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
                             for (TriggerKey triggerKey : triggerKeySet) {
                                 CronTrigger trigger = (CronTrigger) scheduler.getTrigger(triggerKey);
                                 if (crontab == null) {
-                                    // ËµÃ÷Õâ¸ötabÒÑ¾­±»É¾³ıµôÁË
+                                    // è¯´æ˜è¿™ä¸ªtabå·²ç»è¢«åˆ é™¤æ‰äº†
                                     scheduler.deleteJob(trigger.getJobKey());
                                     continue;
                                 }
@@ -454,7 +448,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
                                 log.debug("the trigger key:" + triggerKey
                                         + " update now, with new crontab:" + crontab.getCrontab());
 
-                                // ÅĞ¶ÏÁ½´ÎµÄcrontabÊÇ·ñÏàÍ¬£¿
+                                // åˆ¤æ–­ä¸¤æ¬¡çš„crontabæ˜¯å¦ç›¸åŒï¼Ÿ
                                 if (StringUtils.equals(trigger.getCronExpression(),
                                         crontab.getCrontab())) {
 
@@ -488,12 +482,12 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 
                             log.info("create new trigger:" + cronTab.getServiceName() + ",crontab:"
                                     + cronTab.getCrontab());
-                            // ´´½¨¶¨Ê±ÈÎÎñ
+                            // åˆ›å»ºå®šæ—¶ä»»åŠ¡
                             createNewFullDumpTrigger(new JobSchedule(cronTab.getServiceName(),
                                     cronTab.getJobId(), cronTab.getCrontab()));
 
                         }
-                        // Á½·ÖÖÓÍ¬²½Ò»´Î
+                        // ä¸¤åˆ†é’ŸåŒæ­¥ä¸€æ¬¡
                         Thread.sleep(1000 * 120);
                     } catch (Throwable e) {
                         log.error(e.getMessage(), e);
@@ -513,7 +507,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     /**
-     * È¡µÃË÷Òı¶¨Ê±ÈÎÎñµÄÊ±¼äÅäÖÃ
+     * å–å¾—ç´¢å¼•å®šæ—¶ä»»åŠ¡çš„æ—¶é—´é…ç½®
      *
      * @param
      * @return
@@ -543,13 +537,13 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 
     /**
      * @param indexName
-     *            Ë÷ÒıÃû³Æ
+     *            ç´¢å¼•åç§°
      * @return
      * @throws SessionExpiredException
      */
     private boolean hasGrantCollectLock(String indexName) throws SessionExpiredException {
 
-        // Ë¯Ò»¸öËæ»úÊı
+        // ç¡ä¸€ä¸ªéšæœºæ•°
         try {
             Thread.sleep((long) (Math.random() * 1000));
         } catch (InterruptedException e1) {
@@ -560,10 +554,10 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
             String COLLECT_STATE_PATH = "/terminator-lock/jst_full_dump_trigger_lock/" + indexName;
             TisZkClient zokeeper = this.getZookeeper();
 
-            // ÅĞ¶ÏÊÇ·ñÒªÖ´ĞĞÊÕ¼¯Á÷³Ì
+            // åˆ¤æ–­æ˜¯å¦è¦æ‰§è¡Œæ”¶é›†æµç¨‹
             final Date now = new Date();
             if (!zokeeper.exists(COLLECT_STATE_PATH, false)) {
-                // µ±Ç°½ÚµãÎª¿Õ£¬´´½¨½ÚµãÁ¢¼´·µ»Ø
+                // å½“å‰èŠ‚ç‚¹ä¸ºç©ºï¼Œåˆ›å»ºèŠ‚ç‚¹ç«‹å³è¿”å›
                 zokeeper.create(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), CreateMode.EPHEMERAL, true);
                 log.info("create new lock path:" + COLLECT_STATE_PATH);
                 return true;
@@ -576,7 +570,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
 
             if ((lastExecuteTimeStamp + (COLLECT_STATE_INTERVAL * 30 * 1000)) <= now.getTime()) {
 
-                // È¡µÃËø£¬½«ÏÖÔÚµÄÊ±¼äĞ´»ØËø
+                // å–å¾—é”ï¼Œå°†ç°åœ¨çš„æ—¶é—´å†™å›é”
                 zokeeper.setData(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), stat.getVersion(),
                         true);
 
@@ -587,7 +581,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
             return false;
 
         } catch (SessionExpiredException e) {
-            // zookeeper¿Í»§¶Ë»á»°³¬Ê±
+            // zookeeperå®¢æˆ·ç«¯ä¼šè¯è¶…æ—¶
             throw e;
         } catch (KeeperException e) {
             log.warn("zookeeper error", e);
@@ -706,14 +700,14 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     /**
-     * ÉèÖÃ
+     * è®¾ç½®
      *
      * @param coreName
      * @param isStop
      * @return
      */
     private List<Long> setAppState(String coreName, boolean isStop) {
-        // Êı¾İ¿â³Ö¾Ã²ãÉèÖÃ
+        // æ•°æ®åº“æŒä¹…å±‚è®¾ç½®
         final AppTrigger trigger = this.getJobMetaDataDAO().queryJob(coreName);
         final List<Long> jobs = trigger.getJobsId();
 
@@ -730,7 +724,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
         TriggerJob record = new TriggerJob();
         record.setIsStop(isStop ? JobConstant.STOPED : JobConstant.STOPED_NOT);
 
-        // ¸üĞÂ´¥·¢Æ÷±í
+        // æ›´æ–°è§¦å‘å™¨è¡¨
         this.triggerBizDAO.getTriggerJobDAO().updateByExampleSelective(record, tcriteria);
 
         return jobs;
@@ -748,16 +742,16 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
         return tcriteria;
     }
 
-    // ÖØĞÂÆô¶¯¶¨Ê±ÈÎÎñ
+    // é‡æ–°å¯åŠ¨å®šæ—¶ä»»åŠ¡
     @Override
     public void resume(String coreName) {
-        // Æô¶¯
+        // å¯åŠ¨
         switchFullDumpSwitch(coreName, false);
     }
 
     @Override
     public void pause(String coreName) {
-        // Í£Ö¹
+        // åœæ­¢
         switchFullDumpSwitch(coreName, true);
     }
 
@@ -774,7 +768,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
-        // ½«scheduleerÖĞµÄÈÎÎñÖ±½ÓÉ¾³ı
+        // å°†scheduleerä¸­çš„ä»»åŠ¡ç›´æ¥åˆ é™¤
     }
 
     @Override
@@ -792,13 +786,13 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
         }
 
         if (trigger.getJobsId().size() < 1) {
-            // ¸ÃÓ¦ÓÃ»¹Ã»ÓĞ¶¨Òådump job Ëã×÷ÊÇÍ£Ö¹×´Ì¬
+            // è¯¥åº”ç”¨è¿˜æ²¡æœ‰å®šä¹‰dump job ç®—ä½œæ˜¯åœæ­¢çŠ¶æ€
             return true;
         }
 
         if (this.triggerBizDAO.getTriggerJobDAO()
                 .countByExample(createTriggerJobCriteria(trigger.getJobsId(), true)) > 0) {
-            // ÓĞdump£¬ÎŞÂÛÊÇÔöÁ¿»¹ÊÇÈ«Á¿ÓĞÃ»ÓĞÍ£Ö¹µÄ
+            // æœ‰dumpï¼Œæ— è®ºæ˜¯å¢é‡è¿˜æ˜¯å…¨é‡æœ‰æ²¡æœ‰åœæ­¢çš„
             return false;
         }
 

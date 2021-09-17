@@ -39,7 +39,7 @@ import com.qlangtech.tis.trigger.zk.AbstractWatcher;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
-import org.apache.solr.cloud.ZkController;
+//import org.apache.solr.cloud.ZkController;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
@@ -62,7 +62,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
     public static final String KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER = "IndexSwapTaskflowLauncher";
     private TisZkClient zkClient;
-    private ZkStateReader zkStateReader;
+    //private ZkStateReader zkStateReader;
 
     static {
         BasicPhaseStatus.statusWriter = new BasicPhaseStatus.IFlush2Local() {
@@ -97,9 +97,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         this.zkClient = zkClient;
     }
 
-    public void setZkStateReader(ZkStateReader zkStateReader) {
-        this.zkStateReader = zkStateReader;
-    }
+//    public void setZkStateReader(ZkStateReader zkStateReader) {
+//        this.zkStateReader = zkStateReader;
+//    }
 
     private Collection<IOnsListenerStatus> incrChannels;
 
@@ -130,10 +130,10 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
             throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
         }
         // 当初始集群初始化的时候assemble先与solr启动时不执行createClusterZkNodes会出错
-        ZkController.createClusterZkNodes(this.zkClient.getZK());
-        ZkStateReader zkStateReader = new ZkStateReader(zkClient.getZK());
-        zkStateReader.createClusterStateWatchersAndUpdate();
-        this.setZkStateReader(zkStateReader);
+       // ZkController.createClusterZkNodes(this.zkClient.getZK());
+       // ZkStateReader zkStateReader = new ZkStateReader(zkClient.getZK());
+       // zkStateReader.createClusterStateWatchersAndUpdate();
+       // this.setZkStateReader(zkStateReader);
     }
 
     private IncrStatusServer incrStatusServer;
@@ -252,7 +252,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         ExecutePhaseRange range = chainContext.getExecutePhaseRange();
         logger.info("start component:" + range.getStart() + ",end component:" + range.getEnd());
         chainContext.setZkClient(zkClient);
-        chainContext.setZkStateReader(zkStateReader);
+       // chainContext.setZkStateReader(zkStateReader);
 //        Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
 //        Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
 //        chainContext.setIndexMetaData(createIndexMetaData(chainContext));

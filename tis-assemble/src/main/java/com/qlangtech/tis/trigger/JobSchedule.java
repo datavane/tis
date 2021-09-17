@@ -19,19 +19,19 @@ package com.qlangtech.tis.trigger;
 import java.io.Serializable;
 
 /**
- * 任务执行计划
+ * 浠诲姟鎵ц璁″垝
  * @date 2012-6-19
  */
 public class JobSchedule implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private final Long jobid;
-	// 执行任务
+	// 鎵ц浠诲姟
 	private final String crobexp;
 	private final String indexName;
 
 	/**
-	 * 是否是暂停状态？
+	 * 鏄惁鏄殏鍋滅姸鎬侊紵
 	 */
 	private final boolean paused;
 

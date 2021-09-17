@@ -50,7 +50,7 @@ public final class QuartzTriggerJob implements Job {
         // conn.trigger(//context.getTrigger(),
         // schedule.getJobid());
 
-        // Ö´ĞĞÈ«Á¿ÈÎÎñ¿ªÊ¼
+        // æ‰§è¡Œå…¨é‡ä»»åŠ¡å¼€å§‹
         try {
             triggerJobServer.triggerFullDump(schedule.getIndexName(), ExecType.FULLBUILD, new NullTriggerContext());
         } catch (Exception e) {

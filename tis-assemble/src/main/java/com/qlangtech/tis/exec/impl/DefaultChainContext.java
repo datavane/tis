@@ -53,8 +53,6 @@ public class DefaultChainContext implements IExecChainContext {
 
     private TisZkClient zkClient;
 
-    private ZkStateReader zkStateReader;
-
     private ITISFileSystem indexBuildFileSystem;
 
     private final IParamContext httpExecContext;
@@ -190,10 +188,6 @@ public class DefaultChainContext implements IExecChainContext {
         return (T) appSource;
     }
 
-    public ZkStateReader getZkStateReader() {
-        return zkStateReader;
-    }
-
     private final Map<String, Object> attribute = new HashMap<>();
 
     public void setAttribute(String key, Object v) {
@@ -205,9 +199,9 @@ public class DefaultChainContext implements IExecChainContext {
         return (T) this.attribute.get(key);
     }
 
-    public void setZkStateReader(ZkStateReader zkStateReader) {
-        this.zkStateReader = zkStateReader;
-    }
+//    public void setZkStateReader(ZkStateReader zkStateReader) {
+//        this.zkStateReader = zkStateReader;
+//    }
 
     @Override
     public TisZkClient getZkClient() {

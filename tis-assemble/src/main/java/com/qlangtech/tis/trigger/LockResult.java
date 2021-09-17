@@ -26,16 +26,16 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * @author °ÙËê£¨baisui@2dfire.com£©
+ * @author ç™¾å²ï¼ˆbaisui@2dfire.comï¼‰
  *
- * @date 2016Äê4ÔÂ26ÈÕ
+ * @date 2016å¹´4æœˆ26æ—¥
  */
 public class LockResult {
 	private String zkAddress;
 	private String path;
 	private String content;
 	public Stat stat;
-	// ½ÚµãÃèÊöĞÅÏ¢
+	// èŠ‚ç‚¹æè¿°ä¿¡æ¯
 	private String desc;
 
 	public final List<String> childValus = new ArrayList<String>();

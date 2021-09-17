@@ -149,11 +149,11 @@ public abstract class IndexBuildInterceptor extends TrackableExecuteInterceptor 
             logger.error("completionService.poll(7, TimeUnit.HOURS) is null");
             return false;
         }
-        DocCollection collection = ZkStateReader.getCollectionLive(execContext.getZkStateReader(), execContext.getIndexName());
-        if (collection == null) {
-            throw new IllegalStateException("indexName:" + execContext.getIndexName() + " collection can not be null in solr cluster");
-        }
-        final IndexBackflowManager indexBackflowManager = new IndexBackflowManager(collection, execContext, this);
+//        DocCollection collection = ZkStateReader.getCollectionLive(execContext.getZkStateReader(), execContext.getIndexName());
+//        if (collection == null) {
+//            throw new IllegalStateException("indexName:" + execContext.getIndexName() + " collection can not be null in solr cluster");
+//        }
+        final IndexBackflowManager indexBackflowManager = new IndexBackflowManager(null, execContext, this);
         execContext.setAttribute(KEY_INDEX_BACK_FLOW_QUEUE, indexBackflowManager);
         // 当有多个分组,為了實現同步執行索引回流，这里需要再启动一个线程
         if ((groupSize - 1) > 0) {

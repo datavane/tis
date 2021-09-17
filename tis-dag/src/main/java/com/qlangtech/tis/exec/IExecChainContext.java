@@ -20,7 +20,6 @@ import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import org.apache.solr.common.cloud.ZkStateReader;
 
 import java.util.List;
 
@@ -48,7 +47,6 @@ public interface IExecChainContext extends IJoinTaskContext {
 
     TisZkClient getZkClient();
 
-    ZkStateReader getZkStateReader();
 
     String getPartitionTimestamp();
 

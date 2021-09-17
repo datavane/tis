@@ -78,8 +78,8 @@ public class IndexBackFlowInterceptor extends TrackableExecuteInterceptor {
                 indexBackFlowQueue = IndexBuildInterceptor.getIndeBackFlowQueue(context);
             } else {
                 // 直接开始回流
-                DocCollection collection = context.getZkStateReader().getClusterState().getCollection(context.getIndexName());
-                IndexBackflowManager indexBackFlowQueueTmp = new IndexBackflowManager(collection, context, this);
+               // DocCollection collection = context.getZkStateReader().getClusterState().getCollection(context.getIndexName());
+                IndexBackflowManager indexBackFlowQueueTmp = new IndexBackflowManager(null, context, this);
                 ImportDataProcessInfo state = new ImportDataProcessInfo(taskid, context.getIndexBuildFileSystem(), context.getZkClient());
                 state.setTimepoint(context.getPartitionTimestamp());
                 indexBackFlowQueueTmp.vistAllReplica((replic) -> {
