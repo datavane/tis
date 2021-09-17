@@ -34,6 +34,7 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import com.qlangtech.tis.offline.DataxUtils;
 
 /**
  * @author: baisui 百岁
@@ -142,7 +143,6 @@ public class DataXCfgGenerator {
 
         boolean unStructedReader = dataxProcessor.isReaderUnStructed(this.pluginCtx);
 
-
         IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
         IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
@@ -248,7 +248,6 @@ public class DataXCfgGenerator {
     }
 
 
-
     private static class GenerateCfgs {
         private List<String> dataxFiles = Collections.emptyList();
         private List<String> createDDLFiles = Collections.emptyList();
@@ -311,6 +310,7 @@ public class DataXCfgGenerator {
 //        }
 
         try {
+
             VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap));
             writerContent = new StringWriter();
             velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
@@ -353,6 +353,7 @@ public class DataXCfgGenerator {
 
     private VelocityContext createContext(IDataxContext reader, IDataxContext writer) {
         VelocityContext velocityContext = new VelocityContext();
+        velocityContext.put(DataxUtils.DATAX_NAME, this.dataxName);
         velocityContext.put("reader", reader);
         velocityContext.put("writer", writer);
         velocityContext.put("cfg", this.globalCfg);

@@ -39,11 +39,11 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.IOUtils;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -420,6 +420,14 @@ public class DataxExecutor {
         writerCfg.set("class", this.writerMeta.getImplClass());
         configuration.set(getPluginReaderKey(), readerCfg);
         configuration.set(getPluginWriterKey(), writerCfg);
+
+        final String dataXKey = "job.content[0]." + DataxUtils.DATAX_NAME;
+        final String dataxName = configuration.getString(dataXKey);
+        if (StringUtils.isEmpty(dataxName)) {
+            throw new IllegalStateException("param " + dataXKey + " can not be null");
+        }
+        configuration.set("job.content[0].reader.parameter." + DataxUtils.DATAX_NAME, dataxName);
+        configuration.set("job.content[0].writer.parameter." + DataxUtils.DATAX_NAME, dataxName);
 
         String readerPluginName = configuration.getString("job.content[0].reader.name");
         String writerPluginName = configuration.getString("job.content[0].writer.name");
