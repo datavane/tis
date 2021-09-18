@@ -54,7 +54,7 @@ public class DagTaskUtils {
         params.add(new HttpUtils.PostParam(IParamContext.KEY_ASYN_JOB_NAME, subTaskName));
         params.add(new HttpUtils.PostParam(IParamContext.KEY_ASYN_JOB_SUCCESS, success));
 
-        HttpUtils.soapRemote(url, params, CreateNewTaskResult.class);
+        HttpUtils.soapRemote(url, params, CreateNewTaskResult.class, false);
     }
 
     public static void createTaskComplete(int taskid, IExecChainContext chainContext, ExecResult execResult) {

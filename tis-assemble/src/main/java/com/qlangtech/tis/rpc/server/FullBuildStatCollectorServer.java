@@ -100,7 +100,7 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
 
             @Override
             public void readLogTailer(RealtimeLoggerCollectorAppender.LoggingEventMeta meta, File logFile) {
-                Utils.readLastNLine(logFile, 200, (line) -> {
+                Utils.readLastNLine(logFile, 300, (line) -> {
                     if (line == null) {
                         return;
                     }
