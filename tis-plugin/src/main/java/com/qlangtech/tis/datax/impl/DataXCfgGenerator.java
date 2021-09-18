@@ -19,8 +19,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
@@ -34,7 +36,6 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import com.qlangtech.tis.offline.DataxUtils;
 
 /**
  * @author: baisui 百岁
@@ -163,7 +164,7 @@ public class DataXCfgGenerator {
         IDataxReaderContext readerContext = null;
         File configFile = null;
         List<String> subTaskName = Lists.newArrayList();
-        List<String> createDDLFiles = Lists.newArrayList();
+        Set<String> createDDLFiles = Sets.newHashSet();
         Optional<IDataxProcessor.TableMap> tableMapper = null;
         //StringBuffer createDDL = new StringBuffer();
 
@@ -221,11 +222,12 @@ public class DataXCfgGenerator {
                     }
                 }
                 // 创建ddl
-                if (writerDescriptor.isSupportTabCreate()) {
-                    IDataxProcessor.TableMap mapper = tableMapper.get();
+
+                IDataxProcessor.TableMap mapper = tableMapper.get();
+                String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
+                if (!createDDLFiles.contains(sqlFileName) && writerDescriptor.isSupportTabCreate()) {
                     StringBuffer createDDL = writer.generateCreateDDL(mapper);
                     if (createDDL != null) {
-                        String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
                         createDDLFiles.add(sqlFileName);
                         dataxProcessor.saveCreateTableDDL(this.pluginCtx, createDDL, sqlFileName, false);
                     }
@@ -241,7 +243,7 @@ public class DataXCfgGenerator {
 
         long current = System.currentTimeMillis();
         FileUtils.write(new File(parentDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
-        cfgs.createDDLFiles = createDDLFiles;
+        cfgs.createDDLFiles = Lists.newArrayList(createDDLFiles);
         cfgs.dataxFiles = subTaskName;
         cfgs.genTime = current;
         return cfgs;

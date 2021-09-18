@@ -55,6 +55,7 @@ public abstract class BasicDataXExecutorTestCase extends TISTestCase implements 
             @Override
             protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
                 //  make skip the ex
+                assertNotNull(configuration);
             }
         };
     }

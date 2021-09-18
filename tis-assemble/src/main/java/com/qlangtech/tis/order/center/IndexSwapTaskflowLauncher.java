@@ -16,6 +16,7 @@ package com.qlangtech.tis.order.center;
 
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.AbstractActionInvocation;
 import com.qlangtech.tis.exec.ActionInvocation;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
@@ -39,10 +40,9 @@ import com.qlangtech.tis.trigger.zk.AbstractWatcher;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
-//import org.apache.solr.cloud.ZkController;
-import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +51,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.io.File;
 import java.util.*;
+
+//import org.apache.solr.cloud.ZkController;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -71,6 +73,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
                 XmlFile xmlFile = new XmlFile(localFile);
                 xmlFile.write(status, Collections.emptySet());
             }
+
             @Override
             public BasicPhaseStatus loadPhase(File localFile) throws Exception {
                 XmlFile xmlFile = new XmlFile(localFile);
@@ -97,6 +100,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         this.zkClient = zkClient;
     }
 
+    public ITISCoordinator getZkClient() {
+        return zkClient;
+    }
 //    public void setZkStateReader(ZkStateReader zkStateReader) {
 //        this.zkStateReader = zkStateReader;
 //    }
@@ -130,10 +136,10 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
             throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
         }
         // 当初始集群初始化的时候assemble先与solr启动时不执行createClusterZkNodes会出错
-       // ZkController.createClusterZkNodes(this.zkClient.getZK());
-       // ZkStateReader zkStateReader = new ZkStateReader(zkClient.getZK());
-       // zkStateReader.createClusterStateWatchersAndUpdate();
-       // this.setZkStateReader(zkStateReader);
+        // ZkController.createClusterZkNodes(this.zkClient.getZK());
+        // ZkStateReader zkStateReader = new ZkStateReader(zkClient.getZK());
+        // zkStateReader.createClusterStateWatchersAndUpdate();
+        // this.setZkStateReader(zkStateReader);
     }
 
     private IncrStatusServer incrStatusServer;
@@ -252,7 +258,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         ExecutePhaseRange range = chainContext.getExecutePhaseRange();
         logger.info("start component:" + range.getStart() + ",end component:" + range.getEnd());
         chainContext.setZkClient(zkClient);
-       // chainContext.setZkStateReader(zkStateReader);
+        // chainContext.setZkStateReader(zkStateReader);
 //        Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
 //        Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
 //        chainContext.setIndexMetaData(createIndexMetaData(chainContext));
