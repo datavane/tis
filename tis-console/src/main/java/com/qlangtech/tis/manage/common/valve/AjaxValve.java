@@ -15,7 +15,6 @@
 package com.qlangtech.tis.manage.common.valve;
 
 import com.alibaba.citrus.turbine.Context;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.qlangtech.tis.manage.common.IAjaxResult;
 import com.qlangtech.tis.manage.common.MockContext;
@@ -50,6 +49,10 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
 
   public static final String EXEC_NULL = "exec_null";
 
+  /**
+   * 不需要在客户端显示成功信息
+   */
+  // public static final String KEY_NOT_SHOW_BIZ_MSG = "not_show_biz_msg";
   @Override
   protected void doExecute(String finalLocation, ActionInvocation invocation) throws Exception {
     HttpServletRequest request = ServletActionContext.getRequest();
@@ -59,15 +62,20 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     if (EXEC_NULL.equals(resultHandler)) {
       return;
     }
+
     // Thread.sleep(5000);
-    this.writeExecuteResult(response);
+    this.writeExecuteResult(request, response);
   }
 
   @SuppressWarnings("unchecked")
-  private void writeExecuteResult(HttpServletResponse response) throws IOException {
+  private void writeExecuteResult(HttpServletRequest request, HttpServletResponse response) throws IOException {
     ActionExecResult actionExecResult = MockContext.getActionExecResult();
     List<String> errorMsgList = actionExecResult.errorMsgList;
-    List<String> msgList = actionExecResult.getMsgList();
+
+    List<String> msgList = //Boolean.parseBoolean(request.getParameter(KEY_NOT_SHOW_BIZ_MSG))
+      //? Collections.emptyList() :
+      actionExecResult.getMsgList();
+
     List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList = actionExecResult.getPluginErrorList();
     Object bizResult = actionExecResult.getBizResult();
     Boolean errorPageShow = actionExecResult.getErrorPageShow();
@@ -131,7 +139,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
         result.append(((JSONArray) extendVal).toString(1));
       } else {
         //com.alibaba.fastjson.JSON.toJSONString(extendVal, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat)
-        result.append( JsonUtil.toString(extendVal) );
+        result.append(JsonUtil.toString(extendVal));
       }
     }
     if (pluginErrorList != null) {
