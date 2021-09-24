@@ -21,7 +21,7 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
-import com.qlangtech.tis.exec.IIndexMetaData;
+//import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
@@ -60,7 +60,7 @@ public class DefaultChainContext implements IExecChainContext {
     // 执行阶段跨度
     private ExecutePhaseRange executePhaseRange;
 
-    private IIndexMetaData indexMetaData;
+    //private IIndexMetaData indexMetaData;
 
     private TableDumpFactory fs2Table;
 
@@ -127,14 +127,14 @@ public class DefaultChainContext implements IExecChainContext {
         this.fs2Table = factory;
     }
 
-    @Override
-    public IIndexMetaData getIndexMetaData() {
-        return this.indexMetaData;
-    }
+//    @Override
+//    public IIndexMetaData getIndexMetaData() {
+//        return this.indexMetaData;
+//    }
 
-    public void setIndexMetaData(IIndexMetaData indexMetaData) {
-        this.indexMetaData = indexMetaData;
-    }
+    //public void setIndexMetaData(IIndexMetaData indexMetaData) {
+     //   this.indexMetaData = indexMetaData;
+    //}
 
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {

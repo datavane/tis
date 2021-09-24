@@ -77,7 +77,7 @@ public class TisIncrLauncher {
         final long timestamp = Long.parseLong(argsList.get(1));
         final TisIncrLauncher incrLauncher = new TisIncrLauncher(collection, timestamp);
         incrLauncher.downloadDependencyJarsAndPlugins();
-        AbstractTisCloudSolrClient.initHashcodeRouter();
+        //AbstractTisCloudSolrClient.initHashcodeRouter();
         // 启动增量任务
         incrLauncher.launchIncrChannel();
     }

@@ -24,13 +24,8 @@ import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
-import com.qlangtech.tis.manage.common.ConfigFileReader;
-import com.qlangtech.tis.manage.common.HttpConfigFileReader;
-import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.impl.SingleTableAppSource;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang3.NotImplementedException;
@@ -64,19 +59,19 @@ public class AbstractActionInvocation implements ActionInvocation {
 
     public static final IExecuteInterceptor[] dataXBuild = new IExecuteInterceptor[]{new DataXExecuteInterceptor()};
 
-    private static IIndexMetaData createIndexMetaData(DefaultChainContext chainContext) {
-        if (!chainContext.hasIndexName()) {
-            return new DummyIndexMetaData();
-        }
-        try {
-            SnapshotDomain domain = HttpConfigFileReader.getResource(chainContext.getIndexName(), RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA);
-            return SolrFieldsParser.parse(() -> {
-                return ConfigFileReader.FILE_SCHEMA.getContent(domain);
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    private static IIndexMetaData createIndexMetaData(DefaultChainContext chainContext) {
+//        if (!chainContext.hasIndexName()) {
+//            return new DummyIndexMetaData();
+//        }
+//        try {
+//            SnapshotDomain domain = HttpConfigFileReader.getResource(chainContext.getIndexName(), RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA);
+//            return SolrFieldsParser.parse(() -> {
+//                return ConfigFileReader.FILE_SCHEMA.getContent(domain);
+//            });
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     /**
      * 创建执行链
@@ -99,15 +94,17 @@ public class AbstractActionInvocation implements ActionInvocation {
                 public IExecuteInterceptor[] visit(SingleTableAppSource single) {
                     return visitSolrAppSource(single);
                 }
+
                 @Override
                 public IExecuteInterceptor[] visit(DataFlowAppSource dataflow) {
                     return visitSolrAppSource(dataflow);
                 }
+
                 private IExecuteInterceptor[] visitSolrAppSource(ISolrAppSource appSource) {
 
                     Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
                     Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
-                    chainContext.setIndexMetaData(createIndexMetaData(chainContext));
+                    // chainContext.setIndexMetaData(createIndexMetaData(chainContext));
 
                     EntityName targetEntity = appSource.getTargetEntity();
                     chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);

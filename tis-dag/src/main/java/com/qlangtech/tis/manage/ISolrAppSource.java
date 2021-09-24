@@ -16,7 +16,7 @@ package com.qlangtech.tis.manage;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
@@ -92,7 +92,7 @@ public interface ISolrAppSource extends IBasicAppSource, IStreamIncrGenerateStra
 
     interface ISingleTableDumpFactory {
         DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
-                , TisZkClient zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus);
+                , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus);
     }
 }
 

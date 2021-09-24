@@ -21,8 +21,8 @@ import scala.collection.JavaConverters._
 
 object BasicRuleDrivenPojoConsumer {
 
-  private val log: Logger =
-    LoggerFactory.getLogger(classOf[BasicRuleDrivenPojoConsumer])
+//  private val log: Logger =
+//    LoggerFactory.getLogger(classOf[BasicRuleDrivenPojoConsumer])
 
   // 6秒时间
   val Time_Window_15000: Long = 6000
@@ -49,8 +49,8 @@ object BasicRuleDrivenPojoConsumer {
 }
 
 
-abstract class BasicRuleDrivenPojoConsumer(
-                                            onsListener: BasicRMListener,
+abstract class BasicRuleDrivenPojoConsumer[T](
+                                            onsListener: BasicRMListener[T],
                                             private val tabColumnMetaMap: Map[String, AliasList])
   extends BasicPojoConsumer(onsListener) {
 

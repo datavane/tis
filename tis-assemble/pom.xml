@@ -22,6 +22,19 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-solrconfig-parser</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-common-dao</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
@@ -180,10 +193,10 @@
             </exclusions>
         </dependency>
 -->
-<!--        <dependency>-->
-<!--            <groupId>com.qlangtech.tis</groupId>-->
-<!--            <artifactId>tis-solr-core</artifactId>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.qlangtech.tis</groupId>-->
+        <!--            <artifactId>tis-solr-core</artifactId>-->
+        <!--        </dependency>-->
         <!--
       <dependency>
           <groupId>com.qlangtech.tis</groupId>
@@ -241,11 +254,11 @@
             <version>1.6.4</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.qlangtech.tis</groupId>-->
-<!--            <artifactId>tis-solrj-client</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.qlangtech.tis</groupId>-->
+        <!--            <artifactId>tis-solrj-client</artifactId>-->
+        <!--            <version>${project.version}</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>mysql</groupId>

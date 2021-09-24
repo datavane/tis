@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
  * @date 2015年12月25日 下午4:32:17
  */
 @SuppressWarnings("all")
-public abstract class BasicRMListener extends AbstractConsumerHandle
+public abstract class BasicRMListener<T> extends AbstractConsumerHandle<T>
         implements InitializingBean, IOnsListenerStatus, ITableProcessGetter, ITableFocuseGetter {
 
     public static final String KEY_COLLECTION = "app";
@@ -207,12 +207,12 @@ public abstract class BasicRMListener extends AbstractConsumerHandle
      * @param event
      */
     @Override
-    public boolean consume(AsyncMsg msg) {
+    public void consume(AsyncMsg<T> msg) {
         MDC.put(KEY_COLLECTION, this.getCollectionName());
         long now = System.currentTimeMillis();
         if (drain) {
             // 排干库存数据
-            return true;
+          //  return true;
         }
         this.rateLimiter.acquire();
         DTO dto = null;
@@ -223,10 +223,10 @@ public abstract class BasicRMListener extends AbstractConsumerHandle
             if (!getTableFocuse().contains(dto.getOrginTableName())) {
                 ingorRowsCount.incrementAndGet();
                 log.warn("table:" + dto.getOrginTableName() + " is not focus");
-                return true;
+              //  return true;
             }
             if (DTO.EventType.DELETE == dto.getEvent()) {
-                return true;
+              //  return true;
             }
             ITable table = getTable(dto);
             IPk pk = getPk(table);
@@ -246,20 +246,21 @@ public abstract class BasicRMListener extends AbstractConsumerHandle
         } finally {
             MDC.remove(KEY_COLLECTION);
         }
-        return true;
+      //  return true;
     }
 
     protected DTO parseDTO(AsyncMsg msg) {
-        try {
+      //  try {
             // (com.alibaba.fastjson.JSONObject)
             // com.alibaba.fastjson.JSONObject content = msg.getContent();
             // TypeUtils.castToJavaBean(content, DTO.class);
-            DTO dto = msg.getContent();
+           // DTO dto = msg.getContent();
             // dto.setRowContent(content);
-            return dto;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+           // return dto;
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+        return null;
     }
 
     protected AtomicBoolean pauseFlag = new AtomicBoolean(false);

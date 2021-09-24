@@ -14,7 +14,7 @@
  */
 package com.qlangtech.tis.exec;
 
-import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
@@ -45,12 +45,12 @@ public interface IExecChainContext extends IJoinTaskContext {
 
     <T extends IBasicAppSource> T getAppSource();
 
-    TisZkClient getZkClient();
+    ITISCoordinator getZkClient();
 
 
     String getPartitionTimestamp();
 
-    IIndexMetaData getIndexMetaData();
+   // IIndexMetaData getIndexMetaData();
 
     /**
      * 全量構建流程ID

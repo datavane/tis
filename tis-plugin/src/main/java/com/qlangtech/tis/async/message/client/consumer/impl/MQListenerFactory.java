@@ -32,8 +32,4 @@ public abstract class MQListenerFactory implements IMQListenerFactory, IMQConsum
     public Descriptor<MQListenerFactory> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }
-    // public static DescriptorExtensionList<AbstractMQListenerFactory, Descriptor<AbstractMQListenerFactory>> all() {
-    // return TIS.get()
-    // .<AbstractMQListenerFactory, Descriptor<AbstractMQListenerFactory>>getDescriptorList(AbstractMQListenerFactory.class);
-    // }
 }

@@ -48,33 +48,5 @@ public class TisWorkflowParserServlet extends HttpServlet {
         } catch (Exception e) {
             throw new ServletException(e);
         }
-    // try {
-    // InputStream joinStream = this.getClass().getResourceAsStream("join.xml");
-    // int taskid = 123;
-    // JoinPhaseStatus joinPhaseStatus = new JoinPhaseStatus(taskid);
-    // WorkflowTaskConfigParser parser = new WorkflowTaskConfigParser(new
-    // HiveTaskFactory(), (execContext) -> {
-    // try {
-    // return IOUtils.toString(joinStream, "utf8");
-    // } catch (IOException e) {
-    // throw new RuntimeException(e);
-    // }
-    // }, joinPhaseStatus);
-    // 
-    // DefaultChainContext ccontext = new DefaultChainContext(new
-    // MockParamContext());
-    // ccontext.setFileSystem(TISHdfsUtils.getFileSystem());
-    // // ${context.date}
-    // ccontext.setPs("20171117142045");
-    // 
-    // Map<DumpTable, Partition> pts = Maps.newHashMap();
-    // pts.put(DumpTable.create("", ""), () -> "pt");
-    // ExecChainContextUtils.setDependencyTablesPartitions(ccontext, pts);
-    // TemplateContext tplContext = new TemplateContext(ccontext);
-    // parser.startJoinSubTables(tplContext);
-    // } catch (Exception e) {
-    // 
-    // e.printStackTrace();
-    // }
     }
 }

@@ -27,18 +27,13 @@ import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
-import com.qlangtech.tis.manage.common.ConfigFileReader;
-import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.order.center.IndexBackflowManager;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
-import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +43,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.*;
+
+//import com.qlangtech.tis.manage.common.ConfigFileReader;
+//import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 
 /**
  * 索引buid执行器
@@ -95,10 +93,10 @@ public abstract class IndexBuildInterceptor extends TrackableExecuteInterceptor 
         if (groupSize < 1) {
             return ExecuteResult.createFaild().setMessage(" build source ps:" + ps.getPt() + " is null");
         }
-        SnapshotDomain domain = HttpConfigFileReader.getResource(execContext.getIndexName(), 0
-                , RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
+//        SnapshotDomain domain = HttpConfigFileReader.getResource(execContext.getIndexName(), 0
+//                , RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
         try {
-            if (!triggerIndexBuildJob(execContext.getIndexName(), pathCreator, ps, groupSize, execContext, domain)) {
+            if (!triggerIndexBuildJob(execContext.getIndexName(), pathCreator, ps, groupSize, execContext, null)) {
                 String msg = "index build faild,ps:" + ps.getPt() + ",groupsize:" + groupSize;
                 logger.info(msg);
                 return ExecuteResult.createFaild().setMessage(msg);
@@ -124,8 +122,8 @@ public abstract class IndexBuildInterceptor extends TrackableExecuteInterceptor 
         final ImportDataProcessInfo processInfo
                 = new ImportDataProcessInfo(execContext.getTaskId(), execContext.getIndexBuildFileSystem(), execContext.getZkClient());
         processInfo.setBuildSourcePathCreator(pathCreator);
-        IIndexMetaData indexMetaData = execContext.getIndexMetaData();
-        IIndexMetaData idexMeta = execContext.getIndexMetaData();
+        IIndexMetaData indexMetaData = null; //execContext.getIndexMetaData();
+        IIndexMetaData idexMeta = null;// execContext.getIndexMetaData();
         String indexBuilder = idexMeta.getSchemaParseResult().getIndexBuilder();
         if (indexBuilder != null) {
             processInfo.setIndexBuilder(indexBuilder);

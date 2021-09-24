@@ -24,7 +24,7 @@ import java.io.Serializable;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface AsyncMsg extends Serializable {
+public interface AsyncMsg<T> extends Serializable {
 
     /**
      * Topic
@@ -45,7 +45,7 @@ public interface AsyncMsg extends Serializable {
      *
      * @return
      */
-    DTO getContent() throws IOException;
+    T getContent() throws IOException;
 
     /**
      * MsgID

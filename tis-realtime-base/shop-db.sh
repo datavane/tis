@@ -1,1 +1,0 @@
-mysql -P3306 -A -hcommon101.my.2dfire-daily.com -uorder -porder@552208 shop

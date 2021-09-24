@@ -1,6 +1,11 @@
                               TIS Release Notes
 
 This file lists TIS's raw release notes with details of every change to TIS.
+==================  3.1.0 ==================
+New Features
+---------------------
+* add incr synchronize channel for dataX reader(mysql,postgreSQL so on)
+
 ==================  3.0.0 ==================
 
 New Features

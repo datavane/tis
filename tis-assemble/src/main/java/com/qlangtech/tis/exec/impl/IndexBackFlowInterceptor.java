@@ -14,8 +14,8 @@
  */
 package com.qlangtech.tis.exec.impl;
 
-import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.jmx.IRemoteIncrControl;
@@ -23,9 +23,6 @@ import com.qlangtech.tis.fullbuild.jmx.impl.DefaultRemoteIncrControl;
 import com.qlangtech.tis.order.center.IndexBackflowManager;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
 import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
-import com.tis.zookeeper.ZkPathUtils;
-import org.apache.solr.common.cloud.DocCollection;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -55,6 +52,7 @@ public class IndexBackFlowInterceptor extends TrackableExecuteInterceptor {
     private IRemoteIncrControl remoteIncrControl;
 
     /**
+     *
      */
     public IndexBackFlowInterceptor() {
         super();
@@ -63,7 +61,7 @@ public class IndexBackFlowInterceptor extends TrackableExecuteInterceptor {
 
     @Override
     protected ExecuteResult execute(IExecChainContext context) throws Exception {
-        TisZkClient zookeeper = context.getZkClient();
+        ITISCoordinator zookeeper = context.getZkClient();
         // 在回流索引的時候需要写一个标记位到zk中,这样监控在发起抱紧之前判断是否在回流索引,如回流索引的话直接退出了
         final String zkBackIndexSignalPath = createZkSignalToken(context, zookeeper);
         // ▼▼▼▼ 索引回流
@@ -78,7 +76,7 @@ public class IndexBackFlowInterceptor extends TrackableExecuteInterceptor {
                 indexBackFlowQueue = IndexBuildInterceptor.getIndeBackFlowQueue(context);
             } else {
                 // 直接开始回流
-               // DocCollection collection = context.getZkStateReader().getClusterState().getCollection(context.getIndexName());
+                // DocCollection collection = context.getZkStateReader().getClusterState().getCollection(context.getIndexName());
                 IndexBackflowManager indexBackFlowQueueTmp = new IndexBackflowManager(null, context, this);
                 ImportDataProcessInfo state = new ImportDataProcessInfo(taskid, context.getIndexBuildFileSystem(), context.getZkClient());
                 state.setTimepoint(context.getPartitionTimestamp());
@@ -104,26 +102,28 @@ public class IndexBackFlowInterceptor extends TrackableExecuteInterceptor {
         return ExecuteResult.SUCCESS;
     }
 
-    protected String createZkSignalToken(IExecChainContext context, TisZkClient zookeeper) throws KeeperException, InterruptedException {
-        final String zkBackIndexSignalPath = ZkPathUtils.getIndexBackflowSignalPath(context.getIndexName());
-        if (!zookeeper.exists(zkBackIndexSignalPath, true)) {
-            zookeeper.create(zkBackIndexSignalPath, "".getBytes(), CreateMode.PERSISTENT, true);
-        }
-        zookeeper.create(zkBackIndexSignalPath + "/" + ZkPathUtils.INDEX_BACKFLOW_SIGNAL_PATH_SEQNODE_NAME, String.valueOf(System.currentTimeMillis()).getBytes(), CreateMode.EPHEMERAL_SEQUENTIAL, true);
-        return zkBackIndexSignalPath;
+    protected String createZkSignalToken(IExecChainContext context, ITISCoordinator zookeeper) throws KeeperException, InterruptedException {
+//        final String zkBackIndexSignalPath = ZkPathUtils.getIndexBackflowSignalPath(context.getIndexName());
+//        if (!zookeeper.exists(zkBackIndexSignalPath, true)) {
+//            zookeeper.create(zkBackIndexSignalPath, "".getBytes(), CreateMode.PERSISTENT, true);
+//        }
+//        zookeeper.create(zkBackIndexSignalPath + "/" + ZkPathUtils.INDEX_BACKFLOW_SIGNAL_PATH_SEQNODE_NAME, String.valueOf(System.currentTimeMillis()).getBytes(), CreateMode.EPHEMERAL_SEQUENTIAL, true);
+//        return zkBackIndexSignalPath;
+        throw new UnsupportedOperationException("useless");
     }
 
-    private void removeZkSignal(TisZkClient zookeeper, final String zkBackIndexSignalPath) throws KeeperException, InterruptedException {
-        try {
-            List<String> children = zookeeper.getChildren(zkBackIndexSignalPath, null, true);
-            Stat stat = new Stat();
-            for (String c : children) {
-                zookeeper.getData(zkBackIndexSignalPath + "/" + c, null, stat, true);
-                zookeeper.delete(zkBackIndexSignalPath + "/" + c, stat.getVersion(), true);
-            }
-        } catch (Throwable e) {
-            logger.error(zkBackIndexSignalPath, e);
-        }
+    private void removeZkSignal(ITISCoordinator zookeeper, final String zkBackIndexSignalPath) throws KeeperException, InterruptedException {
+//        try {
+//            List<String> children = zookeeper.getChildren(zkBackIndexSignalPath, null, true);
+//            Stat stat = new Stat();
+//            for (String c : children) {
+//                zookeeper.getData(zkBackIndexSignalPath + "/" + c, null, stat, true);
+//                zookeeper.delete(zkBackIndexSignalPath + "/" + c, stat.getVersion(), true);
+//            }
+//        } catch (Throwable e) {
+//            logger.error(zkBackIndexSignalPath, e);
+//        }
+        throw new UnsupportedOperationException();
     }
 
     /**

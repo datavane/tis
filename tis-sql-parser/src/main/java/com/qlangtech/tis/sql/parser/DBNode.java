@@ -1,16 +1,17 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
  * <p>
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *   This program is free software: you can use, redistribute, and/or modify
+ *   it under the terms of the GNU Affero General Public License, version 3
+ *   or later ("AGPL"), as published by the Free Software Foundation.
  * <p>
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
+ *  This program is distributed in the hope that it will be useful, but WITHOUT
+ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ *   FITNESS FOR A PARTICULAR PURPOSE.
  * <p>
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package com.qlangtech.tis.sql.parser;
 
@@ -81,14 +82,6 @@ public class DBNode {
     public static void registerDependencyDbsFacadeConfig(String collection, long timestamp, DefaultListableBeanFactory factory) {
         try {
 
-            //  DataSourceFactoryPluginStore dsFactoryPluginStore = null;
-            // String datasourceName = null;
-            // = TIS.getDataBasePluginStore(null, new PostedDSProp("", DbScope.FACADE));
-
-
-            //                Map<String, DBConfig> dbConfigsMap
-//                        = dbs.stream().collect(Collectors.toMap((db) -> db.getDbName()
-//                        , (db) -> GitUtils.$().getDbLinkMetaData(db.getDbName(), DbScope.FACADE)));
             Map<String, DataSourceFactoryPluginStore> dbConfigsMap = null;
 
             try (InputStream input = FileUtils.openInputStream(StreamContextConstant.getDbDependencyConfigMetaFile(collection, timestamp))) {
@@ -110,19 +103,7 @@ public class DBNode {
         }
     }
 
-//    @Override
-//    protected void createDefinition(final String dbDefinitionId, String driverClassName, String jdbcUrl, String userName, String password) {
-//        BeanDefinitionBuilder define = BeanDefinitionBuilder.genericBeanDefinition(TISDataSource.class);
-//        define.setLazyInit(true);
-//        define.addPropertyValue("driverClassName", driverClassName);
-//        define.addPropertyValue("url", jdbcUrl);
-//        define.addPropertyValue("username", userName);
-//        define.addPropertyValue("password", password);
-//        define.addPropertyValue("validationQuery", "select 1");
-//        define.setDestroyMethodName("close");
-//        logger.info("create dbbean:" + dbDefinitionId + dbSuffix + ",jdbc url:" + jdbcUrl);
-//        factory.registerBeanDefinition(dbDefinitionId + dbSuffix, define.getBeanDefinition());
-//    }
+
 
     public static List<DBNode> load(InputStream inputstrea) throws Exception {
         try (InputStreamReader reader = new InputStreamReader(inputstrea, TisUTF8.get()) {

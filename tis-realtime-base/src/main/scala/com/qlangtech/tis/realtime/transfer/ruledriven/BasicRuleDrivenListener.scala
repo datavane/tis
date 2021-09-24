@@ -26,7 +26,7 @@ object BasicRuleDrivenListener {
  *
 
  */
-abstract class BasicRuleDrivenListener extends BasicRMListener() {
+abstract class BasicRuleDrivenListener[T] extends BasicRMListener[T]() {
 
   /**
    *  子类中在设置 <br>

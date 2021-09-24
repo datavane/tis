@@ -16,9 +16,9 @@ package com.qlangtech.tis.fullbuild.workflow;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.WorkflowDumpAndJoinInterceptor;
@@ -87,7 +87,7 @@ public class SingleTableDump extends DataflowTask {
         return FullbuildPhase.FullDump;
     }
 
-    private final TisZkClient zkClient;
+    private final ITISCoordinator zkClient;
 
     private static final String TABLE_DUMP_ZK_PREFIX = "/tis/table_dump/";
 
@@ -103,7 +103,7 @@ public class SingleTableDump extends DataflowTask {
      * @param execChainContext
      * @param dumpPhaseStatus
      */
-    public SingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt, TisZkClient zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
+    public SingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt, ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
         super(dump.getId());
         // DumpTable.create(dump.getDbName(), dump.getName());
         this.dumpTable = dump.parseEntityName();

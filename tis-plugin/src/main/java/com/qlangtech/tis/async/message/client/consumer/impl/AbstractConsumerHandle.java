@@ -22,7 +22,7 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public abstract class AbstractConsumerHandle implements IConsumerHandle {
+public abstract class AbstractConsumerHandle<T> implements IConsumerHandle<T> {
 
     public abstract String getName();
 

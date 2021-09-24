@@ -40,12 +40,12 @@
 			<artifactId>presto-parser</artifactId>
 			<version>0.206</version>
 		</dependency>
-		<!---->
+		<!--
 		<dependency>
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-realtime-base</artifactId>
 		</dependency>
-
+-->
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
@@ -55,10 +55,25 @@
 			<groupId>com.qlangtech.tis</groupId>
 			<artifactId>tis-builder-api</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-plugin</artifactId>
+		</dependency>
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-base-test</artifactId>
         </dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.qlangtech.tis</groupId>
+			<artifactId>tis-ibatis</artifactId>
+		</dependency>
 
 
     </dependencies>

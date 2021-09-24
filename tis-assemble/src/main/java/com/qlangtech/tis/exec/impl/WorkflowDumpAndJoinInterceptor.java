@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
@@ -64,7 +65,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new ISolrAppSource.ISingleTableDumpFactory() {
                     @Override
                     public DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
-                            , TisZkClient zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
+                            , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
                         return new SingleTableDump(dump, hasValidTableDump, /* isHasValidTableDump */
                                 pt, zkClient, execChainContext, dumpPhaseStatus);
 
