@@ -40,7 +40,18 @@ public class TisZkClient implements ITISCoordinator {
 
     @Override
     public void create(String path, byte[] data, boolean persistent, boolean sequential) {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
+        CreateMode createMode = null;
+        if (persistent) {
+            createMode = sequential ? CreateMode.PERSISTENT_SEQUENTIAL : CreateMode.PERSISTENT;
+        } else {
+            createMode = sequential ? CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.EPHEMERAL;
+        }
+        try {
+            zkclient.create(path, data, createMode, true);
+        } catch (Exception e) {
+            throw new RuntimeException("path:" + path, e);
+        }
     }
 
     @Override
