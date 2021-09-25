@@ -123,6 +123,16 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
             }
 
             @Override
+            public boolean exists(String path, boolean watch) {
+                try {
+                    Stat exists = zooKeeper.exists(path, false);
+                    return exists != null;
+                } catch (Exception e) {
+                    throw new RuntimeException("path:" + path, e);
+                }
+            }
+
+            @Override
             public void create(String path, byte[] data, boolean persistent, boolean sequential) {
 
                 CreateMode createMode = null;
