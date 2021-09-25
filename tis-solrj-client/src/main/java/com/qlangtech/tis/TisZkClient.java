@@ -39,6 +39,11 @@ public class TisZkClient implements ITISCoordinator {
     }
 
     @Override
+    public void create(String path, byte[] data, boolean persistent, boolean sequential) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean shallConnect2RemoteIncrStatusServer() {
         return true;
     }
@@ -186,7 +191,8 @@ public class TisZkClient implements ITISCoordinator {
         zkclient.makePath(path, data, createMode, watcher, retryOnConnLoss);
     }
 
-    public void makePath(String path, byte[] data, CreateMode createMode, Watcher watcher, boolean failOnExists, boolean retryOnConnLoss) throws KeeperException, InterruptedException {
+    public void makePath(String path, byte[] data, CreateMode createMode
+            , Watcher watcher, boolean failOnExists, boolean retryOnConnLoss) throws KeeperException, InterruptedException {
         zkclient.makePath(path, data, createMode, watcher, failOnExists, retryOnConnLoss);
     }
 
@@ -214,9 +220,6 @@ public class TisZkClient implements ITISCoordinator {
         zkclient.printLayoutToStdOut();
     }
 
-    // public void close() {
-    // //zkclient.close();
-    // }
     public boolean isClosed() {
         return zkclient.isClosed();
     }

@@ -16,6 +16,8 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TisZkClient;
+import com.qlangtech.tis.cloud.AdapterTisCoordinator;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
@@ -31,9 +33,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.ZkCmdExecutor;
 import org.apache.solr.common.cloud.ZkStateReader;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -301,13 +302,16 @@ public class SysInitializeAction   //extends BasicModule
       zk.getChildren("/", false);
       buildLog.append("create zkServer ").append(zkServer);
       createPath = zkSubDir + "/tis";
-      ZkUtils.guaranteeExist(zk, createPath);
+
+      ITISCoordinator coordinator = getCoordinator(zk);
+
+      ZkUtils.guaranteeExist(coordinator, createPath);
       buildLog.append(",path1:").append(createPath);
       createPath = zkSubDir + "/tis-lock/dumpindex";
-      ZkUtils.guaranteeExist(zk, createPath);
+      ZkUtils.guaranteeExist(coordinator, createPath);
       buildLog.append(",path2:").append(createPath);
       createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
-      ZkUtils.guaranteeExist(zk, createPath);
+      ZkUtils.guaranteeExist(coordinator, createPath);
       buildLog.append(",path3:").append(createPath);
       logger.info(buildLog.toString());
     } catch (Throwable e) {
@@ -329,6 +333,46 @@ public class SysInitializeAction   //extends BasicModule
       }
     }
     return true;
+  }
+
+  private static ITISCoordinator getCoordinator(ZooKeeper zooKeeper) throws Exception {
+    ITISCoordinator coordinator = null;
+    coordinator = new AdapterTisCoordinator() {
+      @Override
+      public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
+        try {
+          return zooKeeper.getChildren(zkPath, watcher);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      @Override
+      public void create(String path, byte[] data, boolean persistent, boolean sequential) {
+
+        CreateMode createMode = null;
+        if (persistent) {
+          createMode = sequential ? CreateMode.PERSISTENT_SEQUENTIAL : CreateMode.PERSISTENT;
+        } else {
+          createMode = sequential ? CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.EPHEMERAL;
+        }
+        try {
+          zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode);
+        } catch (Exception e) {
+          throw new RuntimeException("path:" + path, e);
+        }
+      }
+
+      @Override
+      public byte[] getData(String zkPath, Watcher o, Stat stat, boolean b) {
+        try {
+          return zooKeeper.getData(zkPath, o, stat);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    };
+    return coordinator;
   }
 
   /**

@@ -44,6 +44,11 @@ public class MockCoordinator implements ITISCoordinator {
     }
 
     @Override
+    public void create(String path, byte[] data, boolean persistent, boolean sequential) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean exists(String s, boolean b) {
         return false;
     }

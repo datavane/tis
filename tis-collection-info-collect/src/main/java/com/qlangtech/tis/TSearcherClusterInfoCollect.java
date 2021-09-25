@@ -465,36 +465,37 @@ public class TSearcherClusterInfoCollect implements // Daemon
      * @return
      */
     private boolean hasGrantCollectLock() throws SessionExpiredException {
-        try {
-            // 判断是否要执行收集流程
-            final Date now = new Date();
-            SolrZkClient zookeeper = getZookeeper();
-            if (!zookeeper.exists(COLLECT_STATE_PATH, true)) {
-                // 当前节点为空，创建节点立即返回
-                ZkUtils.guaranteeExist(zookeeper.getSolrZooKeeper(), COLLECT_STATE_PATH);
-                zookeeper.create(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), CreateMode.EPHEMERAL, true);
-                log.info("create new lock path:" + COLLECT_STATE_PATH);
-                return true;
-            }
-            final Stat stat = new Stat();
-            final byte[] content = zookeeper.getData(COLLECT_STATE_PATH, null, stat, true);
-            final long lastExecuteTimeStamp = parseLatestExecuteTimeStamp(content);
-            if ((lastExecuteTimeStamp + (COLLECT_STATE_INTERVAL * 1000)) <= now.getTime()) {
-                // 取得锁，将现在的时间写回锁
-                zookeeper.setData(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), stat.getVersion(), true);
-                log.info("update the lock path:" + COLLECT_STATE_PATH);
-                return true;
-            }
-            return false;
-        } catch (SessionExpiredException e) {
-            // zookeeper客户端会话超时
-            throw e;
-        } catch (KeeperException e) {
-            log.warn("zookeeper error", e);
-            return false;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        throw new UnsupportedOperationException();
+//        try {
+//            // 判断是否要执行收集流程
+//            final Date now = new Date();
+//            SolrZkClient zookeeper = getZookeeper();
+//            if (!zookeeper.exists(COLLECT_STATE_PATH, true)) {
+//                // 当前节点为空，创建节点立即返回
+//                ZkUtils.guaranteeExist( zookeeper, COLLECT_STATE_PATH);
+//                zookeeper.create(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), CreateMode.EPHEMERAL, true);
+//                log.info("create new lock path:" + COLLECT_STATE_PATH);
+//                return true;
+//            }
+//            final Stat stat = new Stat();
+//            final byte[] content = zookeeper.getData(COLLECT_STATE_PATH, null, stat, true);
+//            final long lastExecuteTimeStamp = parseLatestExecuteTimeStamp(content);
+//            if ((lastExecuteTimeStamp + (COLLECT_STATE_INTERVAL * 1000)) <= now.getTime()) {
+//                // 取得锁，将现在的时间写回锁
+//                zookeeper.setData(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), stat.getVersion(), true);
+//                log.info("update the lock path:" + COLLECT_STATE_PATH);
+//                return true;
+//            }
+//            return false;
+//        } catch (SessionExpiredException e) {
+//            // zookeeper客户端会话超时
+//            throw e;
+//        } catch (KeeperException e) {
+//            log.warn("zookeeper error", e);
+//            return false;
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     // /**

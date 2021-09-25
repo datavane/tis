@@ -14,15 +14,12 @@
  */
 package com.qlangtech.tis.solrj.util;
 
-import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.SolrException;
-import org.apache.solr.common.cloud.SolrZkClient;
-import org.apache.solr.common.cloud.ZooKeeperException;
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,22 +71,22 @@ public class ZkUtils {
         throw new IllegalStateException("zkpath:" + zkPath + " have not find child node");
     }
 
-    public static String getFirstChildValue(final TisZkClient zookeeper, final String zkPath, final Watcher watcher, boolean onReconnect) {
-        try {
-            List<String> children = zookeeper.getChildren(zkPath, watcher, true);
-            if (onReconnect && watcher != null) {
-                zookeeper.addOnReconnect(() -> {
-                    getFirstChildValue(zookeeper, zkPath, watcher, false);
-                });
-            }
-            for (String c : children) {
-                return new String(zookeeper.getData(zkPath + PATH_SPLIT + c, null, new Stat(), true), "utf8");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        throw new IllegalStateException("zkpath:" + zkPath + " have not find child node");
-    }
+//    public static String getFirstChildValue(final TisZkClient zookeeper, final String zkPath, final Watcher watcher, boolean onReconnect) {
+//        try {
+//            List<String> children = zookeeper.getChildren(zkPath, watcher, true);
+//            if (onReconnect && watcher != null) {
+//                zookeeper.addOnReconnect(() -> {
+//                    getFirstChildValue(zookeeper, zkPath, watcher, false);
+//                });
+//            }
+//            for (String c : children) {
+//                return new String(zookeeper.getData(zkPath + PATH_SPLIT + c, null, new Stat(), true), "utf8");
+//            }
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//        throw new IllegalStateException("zkpath:" + zkPath + " have not find child node");
+//    }
 
     /**
      * 将本地ip地址(端口)以临时节点的方式注册的ZK上
@@ -100,12 +97,12 @@ public class ZkUtils {
      * @throws KeeperException
      * @throws InterruptedException
      */
-    public static String registerAddress2ZK(final TisZkClient zookeeper, final String zkPath, final int port) throws KeeperException, InterruptedException {
+    public static String registerAddress2ZK(final ITISCoordinator zookeeper, final String zkPath, final int port) throws KeeperException, InterruptedException {
 
         String ip = NetUtils.getHost();
-        registerMyIp(zkPath, ip, port, zookeeper.getZK());
+        registerMyIp(zkPath, ip, port, zookeeper);
         zookeeper.addOnReconnect(() -> {
-            registerMyIp(zkPath, ip, port, zookeeper.getZK());
+            registerMyIp(zkPath, ip, port, zookeeper);
         });
         return ip;
     }
@@ -122,25 +119,27 @@ public class ZkUtils {
      * @throws KeeperException
      * @throws InterruptedException
      */
-    public static void registerTemporaryContent(final TisZkClient zookeeper, final String zkPath, final String content) throws KeeperException, InterruptedException {
-        registerContent(zkPath, content, zookeeper.getZK());
+    public static void registerTemporaryContent(final ITISCoordinator zookeeper, final String zkPath, final String content) throws KeeperException, InterruptedException {
+        registerContent(zkPath, content, zookeeper);
         zookeeper.addOnReconnect(() -> {
-            registerContent(zkPath, content, zookeeper.getZK());
+            registerContent(zkPath, content, zookeeper);
         });
     }
 
-    private static void registerContent(final String zkpath, String content, SolrZkClient zookeeper) {
+    private static void registerContent(final String zkpath, String content, ITISCoordinator zookeeper) {
         try {
             String[] pathname = StringUtils.split(zkpath, PATH_SPLIT);
             if (pathname.length > 1) {
                 StringBuffer path = new StringBuffer();
                 guaranteeExist(// 
-                        zookeeper.getSolrZooKeeper(), path, Arrays.copyOfRange(pathname, 0, pathname.length - 1), 0, StringUtils.EMPTY.getBytes());
+                        zookeeper, path, Arrays.copyOfRange(pathname, 0, pathname.length - 1), 0, StringUtils.EMPTY.getBytes());
             }
-            zookeeper.create(zkpath, content.getBytes(TisUTF8.get()), CreateMode.EPHEMERAL_SEQUENTIAL, true);
+            // CreateMode.EPHEMERAL_SEQUENTIAL
+            zookeeper.create(zkpath, content.getBytes(TisUTF8.get()), false, true);
         } catch (Exception e) {
             logger.error(e.getMessage() + "\n zkpath:" + zkpath, e);
-            throw new ZooKeeperException(SolrException.ErrorCode.SERVER_ERROR, e.getMessage() + "\n zkpath:" + zkpath, e);
+            //  throw new ZooKeeperException(SolrException.ErrorCode.SERVER_ERROR, e.getMessage() + "\n zkpath:" + zkpath, e);
+            throw new RuntimeException(e.getMessage() + "\n zkpath:" + zkpath, e);
         }
     }
 
@@ -149,7 +148,7 @@ public class ZkUtils {
      * @throws KeeperException
      * @throws InterruptedException
      */
-    private static String registerMyIp(final String parentNodepath, String ip, int port, SolrZkClient zookeeper) {
+    private static String registerMyIp(final String parentNodepath, String ip, int port, ITISCoordinator zookeeper) {
         try {
             if ("127.0.0.1".equals(ip)) {
                 throw new IllegalStateException("ip can not be 127.0.0.1");
@@ -170,24 +169,25 @@ public class ZkUtils {
      * @param zookeeper
      * @param parentNodepath
      */
-    public static void guaranteeExist(ZooKeeper zookeeper, String parentNodepath, byte[] data) throws Exception {
+    public static void guaranteeExist(ITISCoordinator zookeeper, String parentNodepath, byte[] data) throws Exception {
         String[] pathname = StringUtils.split(parentNodepath, PATH_SPLIT);
         StringBuffer path = new StringBuffer();
         guaranteeExist(zookeeper, path, pathname, 0, data);
     }
 
-    public static void guaranteeExist(ZooKeeper zookeeper, String parentNodepath) throws Exception {
+    public static void guaranteeExist(ITISCoordinator zookeeper, String parentNodepath) throws Exception {
 
         guaranteeExist(zookeeper, parentNodepath, StringUtils.EMPTY.getBytes());
     }
 
-    private static void guaranteeExist(ZooKeeper zookeeper, StringBuffer path, String[] paths, int deepth, byte[] data) throws Exception {
+    private static void guaranteeExist(ITISCoordinator zookeeper, StringBuffer path, String[] paths, int deepth, byte[] data) throws Exception {
         if (deepth >= paths.length) {
             return;
         }
         path.append(PATH_SPLIT).append(paths[deepth]);
-        if (zookeeper.exists(path.toString(), false) == null) {
-            zookeeper.create(path.toString(), data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        if (!zookeeper.exists(path.toString(), false)) {
+            // zookeeper.create(path.toString(), data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            zookeeper.create(path.toString(), data, true, false);
         }
         guaranteeExist(zookeeper, path, paths, ++deepth, data);
     }
@@ -204,13 +204,13 @@ public class ZkUtils {
         }
     }
 
-    protected static void processNode(TisZkClient fromZk, TisZkClient toZk, String zkpath) throws KeeperException, InterruptedException, Exception {
+    protected static void processNode(ITISCoordinator fromZk, ITISCoordinator toZk, String zkpath) throws Exception {
         List<String> child = fromZk.getChildren(zkpath, null, true);
         Stat state = new Stat();
         byte[] content = null;
         String childPath = null;
         // 将节点拷贝
-        guaranteeExist(toZk.getZK().getSolrZooKeeper(), zkpath);
+        guaranteeExist(fromZk, zkpath);
         for (String c : child) {
             if (StringUtils.endsWith(zkpath, PATH_SPLIT)) {
                 childPath = zkpath + c;
@@ -221,8 +221,9 @@ public class ZkUtils {
             // 持久节点
             if (state.getEphemeralOwner() < 1) {
                 try {
-                    toZk.create(childPath, content, CreateMode.PERSISTENT, true);
-                    System.out.println("create node:" + childPath);
+                    // toZk.create(childPath, content, CreateMode.PERSISTENT, true);
+                    toZk.create(childPath, content, true, false);
+                    // System.out.println("create node:" + childPath);
                 } catch (Exception e) {
                     throw new RuntimeException("childPath create error:" + childPath, e);
                 }

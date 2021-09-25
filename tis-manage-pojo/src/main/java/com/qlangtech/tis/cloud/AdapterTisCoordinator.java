@@ -41,6 +41,11 @@ public class AdapterTisCoordinator implements ITISCoordinator {
     }
 
     @Override
+    public void create(String path, byte[] data, boolean persistent, boolean sequential) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public byte[] getData(String s, Watcher o, Stat stat, boolean b) {
         return new byte[0];
     }

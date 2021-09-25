@@ -30,7 +30,9 @@ import org.apache.curator.framework.recipes.queue.DistributedQueue;
 import org.apache.curator.framework.recipes.queue.QueueBuilder;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -109,7 +111,7 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
     private static ITISCoordinator getCoordinator(String zkAddress, CuratorFramework curatorClient) throws Exception {
         ITISCoordinator coordinator = null;
 
-        ZooKeeper zooKeeper = curatorClient.getZookeeperClient().getZooKeeper();
+        final ZooKeeper zooKeeper = curatorClient.getZookeeperClient().getZooKeeper();
         coordinator = new AdapterTisCoordinator() {
             @Override
             public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
@@ -117,6 +119,22 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
                     return zooKeeper.getChildren(zkPath, watcher);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
+                }
+            }
+
+            @Override
+            public void create(String path, byte[] data, boolean persistent, boolean sequential) {
+
+                CreateMode createMode = null;
+                if (persistent) {
+                    createMode = sequential ? CreateMode.PERSISTENT_SEQUENTIAL : CreateMode.PERSISTENT;
+                } else {
+                    createMode = sequential ? CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.EPHEMERAL;
+                }
+                try {
+                    zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode);
+                } catch (Exception e) {
+                    throw new RuntimeException("path:" + path, e);
                 }
             }
 
@@ -153,7 +171,10 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
                 Thread.sleep(5000);
             }
 
-            ZkUtils.guaranteeExist(curatorClient.getZookeeperClient().getZooKeeper(), zkQueuePath);
+            ITISCoordinator coordinator = getCoordinator(null, curatorClient);
+
+
+            ZkUtils.guaranteeExist(coordinator, zkQueuePath);
 
             QueueBuilder<CuratorDataXTaskMessage> builder = QueueBuilder.builder(curatorClient, consumer, new MessageSerializer(), zkQueuePath);
             // .maxItems(4);

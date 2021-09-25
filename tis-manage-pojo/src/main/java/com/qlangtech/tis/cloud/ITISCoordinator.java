@@ -40,6 +40,8 @@ public interface ITISCoordinator extends ICoordinator {
 
     byte[] getData(String s, Watcher o, Stat stat, boolean b);
 
+    void create(String path, byte[] data, boolean persistent, boolean sequential);
+
     boolean exists(String path, boolean watch);
 
     public interface IOnReconnect {
