@@ -18,6 +18,7 @@ package com.qlangtech.tis.coredefine.module.action.impl;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.coredefine.module.action.RcDeployment;
+import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 
@@ -27,12 +28,12 @@ import com.qlangtech.tis.trigger.jst.ILogListener;
  **/
 public class AdapterRCController implements IRCController {
     @Override
-    public void deploy(String collection, ReplicasSpec incrSpec, long timestamp) throws Exception {
+    public void deploy(TargetResName collection, ReplicasSpec incrSpec, long timestamp) throws Exception {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void removeInstance(String collection) throws Exception {
+    public void removeInstance(TargetResName collection) throws Exception {
         throw new UnsupportedOperationException();
     }
 
@@ -43,17 +44,17 @@ public class AdapterRCController implements IRCController {
 
 
     @Override
-    public void relaunch(String collection, String... targetPod) {
+    public void relaunch(TargetResName collection, String... targetPod) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RcDeployment getRCDeployment(String collection) {
+    public RcDeployment getRCDeployment(TargetResName collection) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public WatchPodLog listPodAndWatchLog(String collection, String podName, ILogListener listener) {
+    public WatchPodLog listPodAndWatchLog(TargetResName collection, String podName, ILogListener listener) {
         throw new UnsupportedOperationException();
     }
 }

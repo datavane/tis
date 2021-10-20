@@ -16,7 +16,6 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.base.Joiner;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.sql.parser.ColName;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
@@ -70,7 +69,7 @@ public class ColumnMetaData extends Option {
      * @param type column类型 java.sql.Types
      */
     public ColumnMetaData(int index, String key, int type, boolean pk) {
-        super(key,key);
+        super(key, key);
         this.pk = pk;
         this.key = key;
         this.type = type;
@@ -101,4 +100,15 @@ public class ColumnMetaData extends Option {
         return this.pk;
     }
 
+
+    @Override
+    public String toString() {
+        return "ColumnMetaData{" +
+                "key='" + key + '\'' +
+                ", type=" + type +
+                ", index=" + index +
+                ", schemaFieldType=" + schemaFieldType +
+                ", pk=" + pk +
+                '}';
+    }
 }

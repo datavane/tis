@@ -47,7 +47,9 @@ public class TISK8sDelegate {
 
       @Override
       public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
-        if (event.heteroEnum == HeteroEnum.PARAMS_CONFIG || event.heteroEnum == HeteroEnum.INCR_K8S_CONFIG) {
+        if (event.heteroEnum == HeteroEnum.PARAMS_CONFIG
+          //  || event.heteroEnum == HeteroEnum.INCR_K8S_CONFIG
+        ) {
           colIncrLogMap.values().forEach((r) -> {
             r.close();
           });
@@ -67,7 +69,7 @@ public class TISK8sDelegate {
     return delegate;
   }
 
-  private final String indexName;
+  private final TargetResName indexName;
 
 
   private final IRCController incrSync;
@@ -82,11 +84,11 @@ public class TISK8sDelegate {
     if (StringUtils.isEmpty(indexName)) {
       throw new IllegalArgumentException("param indexName can not be null");
     }
-    if (DataXJobWorker.K8S_INSTANCE_NAME.equals(indexName)) {
+    if (DataXJobWorker.K8S_INSTANCE_NAME.getName().equals(indexName)) {
       DataXJobWorker dataxWorker = DataXJobWorker.getDataxJobWorker();
       this.incrSync = new AdapterRCController() {
         @Override
-        public WatchPodLog listPodAndWatchLog(String collection, String podName, ILogListener listener) {
+        public WatchPodLog listPodAndWatchLog(TargetResName collection, String podName, ILogListener listener) {
           return dataxWorker.listPodAndWatchLog(podName, listener);
         }
       };
@@ -99,7 +101,8 @@ public class TISK8sDelegate {
       this.incrSync = k8sConfig.getIncrSync();
     }
 
-    this.indexName = StringUtils.replace(indexName, "_", "-");
+    // 因为K8S中名称不能有下划线所以在这里要替换一下
+    this.indexName = new TargetResName(indexName);// StringUtils.replace(indexName, "_", "-");
   }
 
   public static void main(String[] args) throws Exception {
@@ -154,7 +157,7 @@ public class TISK8sDelegate {
       if (this.incrSync.getRCDeployment(this.indexName) == null) {
         this.cleanResource();
       }
-      throw new RuntimeException(this.indexName, e);
+      throw new RuntimeException(this.indexName.getName(), e);
     }
   }
 

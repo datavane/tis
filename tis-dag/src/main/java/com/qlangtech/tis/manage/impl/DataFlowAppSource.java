@@ -109,7 +109,7 @@ public class DataFlowAppSource implements ISolrAppSource {
         try {
             SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataflowName);
 
-            TableTupleCreator finalTableNode = topology.parseFinalSqlTaskNode();// this.parseFinalSqlTaskNode();
+            TableTupleCreator finalTableNode = topology.parseFinalSqlTaskNode();
             ERRules erR = getErRules();
             TaskNodeTraversesCreatorVisitor visitor = new TaskNodeTraversesCreatorVisitor(erR);
             finalTableNode.accept(visitor);

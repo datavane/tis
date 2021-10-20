@@ -15,7 +15,6 @@
 package com.qlangtech.tis.compiler.java;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.plugin.ds.DBConfig;
 import com.qlangtech.tis.plugin.ds.IDbMeta;
@@ -32,7 +31,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.jar.JarEntry;
@@ -129,8 +127,8 @@ public class JavaCompilerProcess {
             logger.info("javac options:{}", options.stream().collect(Collectors.joining(" ")));
             List<String> classes = Lists.newArrayList();
             // 在其他实例都已经准备完毕后, 构建编译任务, 其他实例的构建见如下
-            // 
-            CompilationTask compileTask = // 
+            //
+            CompilationTask compileTask = //
                     compiler.getTask(//
                             new OutputStreamWriter(System.err), //
                             manager, //
@@ -190,12 +188,12 @@ public class JavaCompilerProcess {
                 for (FileObjectsContext fileObjects : fileObjectsArry) {
                     // 添加xml配置文件
                     for (ResourcesFile res : fileObjects.resources) {
-                        JarEntry entry = new JarEntry(res.zipPath.getFullPath());
+                        JarEntry entry = new JarEntry(res.getZipPath().getFullPath());
                         if (!savedEntryPaths.add(entry.getName())) {
                             continue;
                         }
                         entry.setTime(System.currentTimeMillis());
-                        byte[] data = FileUtils.readFileToByteArray(res.file);
+                        byte[] data = FileUtils.readFileToByteArray(res.getFile());
                         entry.setSize(data.length);
                         CRC32 crc = new CRC32();
                         crc.update(data);
@@ -252,7 +250,7 @@ public class JavaCompilerProcess {
                 className = StringUtils.substringBefore(child.getName(), ".");
                 // zipPath = new ZipPath(childPath.stream().collect(Collectors.joining("/")), className, //
                 // isJavaSourceCode ? JavaFileObject.Kind.SOURCE : JavaFileObject.Kind.OTHER);// + ".class";
-                zipPath = new // 
+                zipPath = new //
                         ZipPath(//
                         zp, // + ".class";
                         className, isJavaSourceCode ? JavaFileObject.Kind.SOURCE : JavaFileObject.Kind.OTHER);
@@ -296,7 +294,7 @@ public class JavaCompilerProcess {
         }
     }
 
-    private static final SourceGetterStrategy // 
+    private static final SourceGetterStrategy //
             JAVA_GETTER = new SourceGetterStrategy(true, "java", ".java");
 
     public static void traversingFiles(Stack<String> childPath, File parent, FileObjectsContext result, IProcessFile fileProcess) {
@@ -326,81 +324,4 @@ public class JavaCompilerProcess {
         public void process(String zipPath, File child);
     }
 
-    public static class FileObjectsContext {
-
-        public Map<String, IOutputEntry> /* class name */
-                classMap = Maps.newHashMap();
-
-        Set<String> dirSet = Sets.newHashSet();
-
-        public List<ResourcesFile> resources = Lists.newArrayList();
-    }
-
-    public static class ZipPath {
-
-        private final String parentPath;
-
-        private final String entryName;
-
-        private final JavaFileObject.Kind sourceKind;
-
-        public ZipPath(String parentPath, String entryName, JavaFileObject.Kind sourceKind) {
-            super();
-            this.parentPath = parentPath;
-            this.entryName = entryName;
-            this.sourceKind = sourceKind;
-        }
-
-        public String getFullSourcePath() {
-            // + JavaFileObject.Kind.CLASS.extension;
-            StringBuffer result = new StringBuffer(getFullPath());
-            if (sourceKind == JavaFileObject.Kind.CLASS) {
-                result.append(JavaFileObject.Kind.CLASS.extension);
-            } else if (sourceKind == JavaFileObject.Kind.SOURCE) {
-                result.append(JavaFileObject.Kind.SOURCE.extension);
-            } else if (sourceKind == JavaFileObject.Kind.OTHER) {
-                result.append(".scala");
-            } else {
-                throw new IllegalStateException("source kind:" + this.sourceKind + " is illegal");
-            }
-            return result.toString();
-        }
-
-        public String getFullClassPath() {
-            return getFullPath() + JavaFileObject.Kind.CLASS.extension;
-        }
-
-        // 
-        // public String getFullJavaPath() {
-        // return getFullPath() + JavaFileObject.Kind.SOURCE.extension;
-        // }
-        // 
-        // public String getFullScalaPath() {
-        // return getFullPath() + ".scala";
-        // }
-        public String getFullPath() {
-            return parentPath + "/" + this.entryName;
-        }
-
-        public String getParentPath() {
-            return this.parentPath;
-        }
-
-        public String getEntryName() {
-            return this.entryName;
-        }
-    }
-
-    public static class ResourcesFile {
-
-        private final ZipPath zipPath;
-
-        private final File file;
-
-        public ResourcesFile(ZipPath zipPath, File file) {
-            super();
-            this.zipPath = zipPath;
-            this.file = file;
-        }
-    }
 }

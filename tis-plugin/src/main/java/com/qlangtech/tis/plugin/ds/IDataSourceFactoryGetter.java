@@ -24,4 +24,5 @@ package com.qlangtech.tis.plugin.ds;
 public interface IDataSourceFactoryGetter {
 
     DataSourceFactory getDataSourceFactory();
+
 }

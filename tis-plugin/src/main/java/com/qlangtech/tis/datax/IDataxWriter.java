@@ -43,12 +43,11 @@ public interface IDataxWriter extends IDataXPluginMeta {
      */
     IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap);
 
+
     /**
      * 生成创建table的脚本
-     *
-     *
      */
-    default StringBuffer generateCreateDDL( IDataxProcessor.TableMap tableMapper) {
+    default StringBuffer generateCreateDDL(IDataxProcessor.TableMap tableMapper) {
         throw new UnsupportedOperationException();
     }
 }

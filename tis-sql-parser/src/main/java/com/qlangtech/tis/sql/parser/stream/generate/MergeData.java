@@ -42,7 +42,7 @@ public class MergeData {
     private final boolean excludeFacadeDAOSupport;
     private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
 
-    private final Map<EntityName, StreamComponentCodeGenerator.MapDataMethodCreator> mapDataMethodCreatorMap;
+    private final Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap;
 
     private final FunctionVisitor.FuncFormat aliasListBuilder;
 
@@ -71,7 +71,7 @@ public class MergeData {
 //        }
 //        return matcher.replaceFirst("S4$2");
         // return StringUtils.capitalize(collection);
-        return String.valueOf( UnderlineUtils.removeUnderline(collection) );
+        return StringUtils.capitalize(UnderlineUtils.removeUnderline(collection).toString());
     }
 
     /**
@@ -82,7 +82,7 @@ public class MergeData {
      * @param facadeContextList       索引主表集合，当索引为两个表union起来的时候Set中就存在多个实体
      */
     public MergeData(
-            String collection, Map<EntityName, StreamComponentCodeGenerator.MapDataMethodCreator> mapDataMethodCreatorMap
+            String collection, Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap
             , FunctionVisitor.FuncFormat aliasListBuilder, Map<IEntityNameGetter, List<IValChain>> tabTriggers
             , List<FacadeContext> facadeContextList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy, boolean excludeFacadeDAOSupport) {
         super();
@@ -253,7 +253,7 @@ public class MergeData {
         return this.aliasListBuilder.toString();
     }
 
-    public Collection<StreamComponentCodeGenerator.MapDataMethodCreator> getMapDataMethodCreatorList() {
+    public Collection<MapDataMethodCreator> getMapDataMethodCreatorList() {
         return this.mapDataMethodCreatorMap.values();
     }
 

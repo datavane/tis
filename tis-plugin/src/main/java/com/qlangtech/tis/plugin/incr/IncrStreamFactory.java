@@ -26,7 +26,11 @@ import com.qlangtech.tis.plugin.IdentityName;
  */
 public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IdentityName {
 
+   // public static final String FLINK_STREM = "flink_Stream";
+
     public abstract IRCController getIncrSync();
+
+    public CompileAndPackage getCompileAndPackageManager();
 
     @Override
     public final Descriptor<IncrStreamFactory> getDescriptor() {

@@ -21,10 +21,7 @@ package com.qlangtech.tis.extension;
 import net.java.sezpoz.Indexable;
 import org.apache.commons.lang.StringUtils;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /*
  * @author 百岁（baisui@qlangtech.com）
@@ -32,6 +29,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.SOURCE)
+@Documented
 @Indexable()
 public @interface TISExtension {
     String name() default StringUtils.EMPTY;

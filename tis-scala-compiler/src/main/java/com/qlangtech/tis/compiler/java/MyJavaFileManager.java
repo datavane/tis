@@ -14,7 +14,6 @@
  */
 package com.qlangtech.tis.compiler.java;
 
-import com.qlangtech.tis.compiler.java.JavaCompilerProcess.ZipPath;
 import org.apache.commons.lang3.StringUtils;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
@@ -60,7 +59,7 @@ public class MyJavaFileManager extends ForwardingJavaFileManager<JavaFileManager
     // o = new MyJavaFileObject(JavaCompilerProcess.mainClass);
     // fileObjects.put(qualifiedClassName, o);
     // }
-    // 
+    //
     // System.out.println(qualifiedClassName);
     // return o;
     }
@@ -68,8 +67,8 @@ public class MyJavaFileManager extends ForwardingJavaFileManager<JavaFileManager
     public static NestClassFileObject getNestClassFileObject(String qualifiedClassName, Map<String, IOutputEntry> fileObjects) {
         String pathParent = StringUtils.substringBeforeLast(qualifiedClassName, ".");
         String className = StringUtils.substringAfterLast(qualifiedClassName, ".");
-        ZipPath zipPath = new // 
-        ZipPath(// 
+        ZipPath zipPath = new //
+        ZipPath(//
         StringUtils.replace(pathParent, ".", "/"), className, JavaFileObject.Kind.CLASS);
         NestClassFileObject fileObj = new NestClassFileObject(zipPath);
         fileObjects.put(qualifiedClassName, fileObj);

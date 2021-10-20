@@ -1,22 +1,22 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.qlangtech.tis.async.message.client.consumer;
 
-import com.qlangtech.tis.realtime.transfer.DTO;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * 异步Notify消息
@@ -24,7 +24,14 @@ import java.io.Serializable;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface AsyncMsg<T> extends Serializable {
+public interface AsyncMsg<SOURCE> extends Serializable {
+
+    /**
+     * 关注的表
+     *
+     * @return
+     */
+    Set<String> getFocusTabs();
 
     /**
      * Topic
@@ -45,7 +52,7 @@ public interface AsyncMsg<T> extends Serializable {
      *
      * @return
      */
-    T getContent() throws IOException;
+    SOURCE getSource() throws IOException;
 
     /**
      * MsgID
@@ -59,7 +66,7 @@ public interface AsyncMsg<T> extends Serializable {
      *
      * @return
      */
-   // String getKey();
+    // String getKey();
 
 //    /**
 //     * 重试次数

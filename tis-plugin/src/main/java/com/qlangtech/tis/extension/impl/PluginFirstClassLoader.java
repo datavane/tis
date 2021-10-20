@@ -91,7 +91,7 @@ public class PluginFirstClassLoader extends AntClassLoader implements Closeable 
     }
 
     @Override
-    protected Enumeration findResources(String name) throws IOException {
+    protected Enumeration<URL> findResources(String name) throws IOException {
         Enumeration enu = super.findResources(name);
         return enu;
     }

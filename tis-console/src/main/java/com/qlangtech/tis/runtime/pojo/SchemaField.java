@@ -40,6 +40,18 @@ public class SchemaField implements ISchemaField {
 
   private boolean multiValue;
 
+  private boolean sharedKey;
+  private boolean uniqueKey;
+
+  @Override
+  public boolean isSharedKey() {
+    return this.sharedKey;
+  }
+
+  @Override
+  public boolean isUniqueKey() {
+    return this.uniqueKey;
+  }
 
   @Override
   public boolean isMultiValue() {
@@ -132,5 +144,13 @@ public class SchemaField implements ISchemaField {
   @Override
   public void serialVisualType2Json(JSONObject f) {
     throw new UnsupportedOperationException();
+  }
+
+  public void setSharedKey(boolean sharedKey) {
+    this.sharedKey = sharedKey;
+  }
+
+  public void setUniqueKey(boolean uniqueKey) {
+    this.uniqueKey = uniqueKey;
   }
 }

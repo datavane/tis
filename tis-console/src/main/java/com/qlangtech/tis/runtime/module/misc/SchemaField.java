@@ -27,6 +27,12 @@ public class SchemaField implements ISchemaField {
   // 字段编号（頁面操作會話過程中不可變）
   private int id;
 
+  // 是否是主键
+  private boolean uniqueKey;
+
+  // 是否是分组键
+  private boolean sharedKey;
+
   private String name;
 
   private String fieldtype;
@@ -64,11 +70,6 @@ public class SchemaField implements ISchemaField {
     return this.multiValue;
   }
 
-  // 是否是主键
-  private boolean uniqueKey;
-
-  // 是否是分组键
-  private boolean sharedKey;
 
   @Override
   public boolean isDynamic() {
@@ -80,6 +81,7 @@ public class SchemaField implements ISchemaField {
     return this.fieldtype;
   }
 
+  @Override
   public boolean isSharedKey() {
     return sharedKey;
   }
@@ -88,6 +90,7 @@ public class SchemaField implements ISchemaField {
     this.sharedKey = sharedKey;
   }
 
+  @Override
   public boolean isUniqueKey() {
     return uniqueKey;
   }

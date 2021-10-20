@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.VersionNumber;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
@@ -245,7 +246,7 @@ public class TIS {
      * @return
      */
     public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
-        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key("collection", collection, key));
+        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(IFullBuildContext.NAME_APP_DIR, collection, key));
         if (pluginStore == null) {
             // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
             return getPluginStore(key);

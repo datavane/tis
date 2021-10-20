@@ -15,13 +15,15 @@
 package com.qlangtech.tis.compiler.streamcode;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.compiler.java.FileObjectsContext;
 import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
+import com.qlangtech.tis.compiler.java.ResourcesFile;
+import com.qlangtech.tis.compiler.java.ZipPath;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
-import com.qlangtech.tis.sql.parser.stream.generate.StreamComponentCodeGenerator;
+import com.qlangtech.tis.sql.parser.stream.generate.StreamComponentCodeGeneratorFlink;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,9 +45,9 @@ public class IndexStreamCodeGenerator {
     private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
     public final long incrScriptTimestamp;
 
-    public List<FacadeContext> facadeList;
+    private List<FacadeContext> facadeList;
 
-    private StreamComponentCodeGenerator streamCodeGenerator;
+    private StreamComponentCodeGeneratorFlink streamCodeGenerator;
 
     private File streamScriptRootDir;
 
@@ -84,10 +86,10 @@ public class IndexStreamCodeGenerator {
 
     private void initialize() throws Exception {
         // FullbuildWorkflowAction.getDataflowTopology(CoreAction.this, this.workFlow);
-       // this.dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.workflowName);
-      //  this.dbTables = getDependencyTables(dfTopology);
+        // this.dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.workflowName);
+        //  this.dbTables = getDependencyTables(dfTopology);
         facadeList = Lists.newArrayList();
-        streamCodeGenerator = new StreamComponentCodeGenerator(
+        streamCodeGenerator = new StreamComponentCodeGeneratorFlink(
                 this.collection, incrScriptTimestamp, facadeList, this.streamIncrGenerateStrategy, excludeFacadeDAOSupport);
         this.streamScriptRootDir = StreamContextConstant.getStreamScriptRootDir(this.collection, incrScriptTimestamp);
     }
@@ -96,7 +98,7 @@ public class IndexStreamCodeGenerator {
 //            dbTables;
 
     public Map<DBNode, List<String>> getDbTables() {
-        return this.streamIncrGenerateStrategy.getDependencyTables( this.dbTableNamesGetter);
+        return this.streamIncrGenerateStrategy.getDependencyTables(this.dbTableNamesGetter);
     }
 
     public boolean isIncrScriptDirCreated() {
@@ -124,16 +126,16 @@ public class IndexStreamCodeGenerator {
         this.streamCodeGenerator.generateConfigFiles();
     }
 
-    public JavaCompilerProcess.FileObjectsContext getSpringXmlConfigsObjectsContext() {
-        JavaCompilerProcess.FileObjectsContext xmlConfigs = new JavaCompilerProcess.FileObjectsContext();
+    public FileObjectsContext getSpringXmlConfigsObjectsContext() {
+        FileObjectsContext xmlConfigs = new FileObjectsContext();
         Stack<String> childPath = new Stack<>();
         File parent = streamCodeGenerator.getSpringConfigFilesDir();
         if (!parent.exists()) {
             throw new IllegalStateException("file:" + parent.getAbsolutePath() + " is not exist");
         }
         JavaCompilerProcess.traversingFiles(childPath, parent, xmlConfigs, (zp, child) -> {
-            JavaCompilerProcess.ZipPath zipPath = new JavaCompilerProcess.ZipPath(zp, child.getName(), JavaFileObject.Kind.OTHER);
-            JavaCompilerProcess.ResourcesFile res = new JavaCompilerProcess.ResourcesFile(zipPath, child);
+            ZipPath zipPath = new ZipPath(zp, child.getName(), JavaFileObject.Kind.OTHER);
+            ResourcesFile res = new ResourcesFile(zipPath, child);
             xmlConfigs.resources.add(res);
         });
         return xmlConfigs;
@@ -153,7 +155,7 @@ public class IndexStreamCodeGenerator {
         return FileUtils.readFileToString(incrScript, TisUTF8.getName());
     }
 
-    public StreamComponentCodeGenerator getStreamCodeGenerator() {
+    public StreamComponentCodeGeneratorFlink getStreamCodeGenerator() {
         return this.streamCodeGenerator;
     }
 
@@ -164,10 +166,10 @@ public class IndexStreamCodeGenerator {
         // this.streamCodeGenerator.generateConfigFiles(this.mqConfigMetas);
     }
 
-   // public void saveDbDependencyMetaConfig() throws Exception {
+    // public void saveDbDependencyMetaConfig() throws Exception {
 //        streamIncrGenerateStrategy.getDependencyTables(this.dbTableNamesGetter);
 //        this.dbTables.keySet();
-   // }
+    // }
 
     // public File getMqConfigMetaFile() {
     // return new File(this.streamScriptRootDir, "meta/mq_config.yaml");

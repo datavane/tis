@@ -194,7 +194,7 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
         return "show tables";
     }
 
-    protected DBConfig getDbConfig() {
+    public final DBConfig getDbConfig() {
         final DBConfig dbConfig = new DBConfig(this);
         dbConfig.setName(this.dbName);
         dbConfig.setDbEnum(DBConfigParser.parseDBEnum(dbName, this.nodeDesc));

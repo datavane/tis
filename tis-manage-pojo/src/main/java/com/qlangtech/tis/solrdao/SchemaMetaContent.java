@@ -72,8 +72,8 @@ public class SchemaMetaContent {
             // 1 开始
             f.put("index", id);
             // f.put("uniqueKey", id++);
-            f.put("sharedKey", StringUtils.equals(field.getName(), sharedKey));
-            f.put("uniqueKey", StringUtils.equals(field.getName(), pk));
+            f.put("sharedKey", field.isSharedKey());
+            f.put("uniqueKey", field.isUniqueKey());
             f.put("name", field.getName());
             // f.put("inputDisabled", field.inputDisabled);
             // f.put("rangequery", false);

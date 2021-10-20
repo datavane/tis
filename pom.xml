@@ -19,6 +19,7 @@
     <name>tis-solr-parent</name>
     <url>http://maven.apache.org</url>
     <properties>
+        <flink.version>1.13.1</flink.version>
         <alibaba.datax.version>0.0.1-SNAPSHOT</alibaba.datax.version>
         <tisasm.oss.put.skip>true</tisasm.oss.put.skip>
         <timestamp>${maven.build.timestamp}</timestamp>
@@ -30,8 +31,8 @@
         <jetty.version>9.4.27.v20200227</jetty.version>
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
 
-        <scala.version>2.13.0</scala.version>
-        <scala.binary.version>2.13</scala.binary.version>
+        <scala.version>2.11.0</scala.version>
+        <scala.binary.version>2.11</scala.binary.version>
         <tisasm-maven-plugin.version>1.0.4</tisasm-maven-plugin.version>
     </properties>
 
@@ -58,11 +59,12 @@
         <module>tis-collection-info-collect</module>
         <module>tis-console</module>
         <module>solr-webapp</module>
-        <module>tis-scala-compiler</module>
-<!--        <module>tis-scala-compiler-dependencies</module>-->
+        <!--   <module>tis-scala-compiler</module>
+         <module>tis-scala-compiler-dependencies</module>-->
 
         <module>maven-tpi-plugin</module>
         <module>tis-datax-executor</module>
+
 
 
     </modules>
@@ -502,14 +504,14 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>jcl-over-slf4j</artifactId>
-                <version>1.7.7</version>
+                <version>1.7.32</version>
                 <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.7.7</version>
+                <version>1.7.32</version>
                 <!--
                 <scope>provided</scope>
               -->

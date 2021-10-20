@@ -20,6 +20,7 @@ import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.RcDeployment;
 import com.qlangtech.tis.coredefine.module.action.RcHpaStatus;
+import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -38,7 +39,7 @@ import java.util.Objects;
  **/
 public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
-    public static final String K8S_INSTANCE_NAME = "datax-worker";
+    public static final TargetResName K8S_INSTANCE_NAME = new TargetResName("datax-worker");
 
     public static DataXJobWorker getDataxJobWorker() {
         PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);

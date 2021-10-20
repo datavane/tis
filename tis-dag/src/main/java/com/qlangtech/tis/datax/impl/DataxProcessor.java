@@ -17,11 +17,13 @@ package com.qlangtech.tis.datax.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.ISelectedTab;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;
@@ -35,6 +37,7 @@ import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRules;
 import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
 import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
@@ -286,7 +289,16 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
 
     @Override
     public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
-        return Collections.emptyMap();
+
+        Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
+        IDataxReader reader = this.getReader(null);
+        Objects.requireNonNull(reader, "dataXReader can not be null");
+        List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
+        for (ISelectedTab tab : selectedTabs) {
+            tabColsMapper.put(() -> EntityName.parse(tab.getName()), Collections.emptyList());
+        }
+
+        return tabColsMapper;
     }
 
     @Override

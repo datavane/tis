@@ -178,7 +178,7 @@ public class CoreAction extends BasicModule {
     PluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
     IRCController incrSync = incrStream.getIncrSync();
-    incrSync.relaunch(this.getCollectionName());
+    incrSync.relaunch(new TargetResName(this.getCollectionName()));
   }
 
   /**
@@ -291,21 +291,29 @@ public class CoreAction extends BasicModule {
 
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
     List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
-    PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
+    //PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
 
-    if (validateGlobalIncrStreamFactory && store.getPlugin() == null) {
-      throw new IllegalStateException("global IncrStreamFactory config can not be null");
-    }
+//    if (validateGlobalIncrStreamFactory && store.getPlugin() == null) {
+//      throw new IllegalStateException("global IncrStreamFactory config can not be null");
+//    }
 
-    if (store.getPlugin() != null) {
-      // 已经定义了全局插件
-      PluginStore<IncrStreamFactory> collectionBindIncrStreamFactoryStore = getIncrStreamFactoryStore(module);
-      if (collectionBindIncrStreamFactoryStore.getPlugin() == null) {
-        // 需要将全局插件属性拷贝到collection绑定的插件属性上来
-        collectionBindIncrStreamFactoryStore.copyFrom(module, store);
-      }
+    //if (store.getPlugin() != null) {
+    // 已经定义了全局插件
+    PluginStore<IncrStreamFactory> collectionBindIncrStreamFactoryStore = getIncrStreamFactoryStore(module);
+    if (collectionBindIncrStreamFactoryStore.getPlugin() == null) {
+      // 需要将全局插件属性拷贝到collection绑定的插件属性上来
+//      Descriptor flinkStreamDesc = TIS.get().getDescriptor(IncrStreamFactory.FLINK_STREM);
+//      if (flinkStreamDesc == null) {
+//        throw new IllegalStateException(
+//          "can not find findStream Factory in plugin repository, Descriptor ID:" + IncrStreamFactory.FLINK_STREM);
+//      }
+//
+//      collectionBindIncrStreamFactoryStore.setPlugins(module, Optional.of(context)
+//        , Collections.singletonList(flinkStreamDesc.newInstance(module, Collections.emptyMap(), Optional.empty())));
+      throw new IllegalStateException("collectionName:" + module.getCollectionName() + " relevant plugin can not be null "+ IncrStreamFactory.class.getName());
     }
+    //}
     // 这里永远是false应该
     incrStatus.setK8sPluginInitialized(false);
     // 判断是否已经成功创建，如果已经创建了，就退出
@@ -337,17 +345,11 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT)
   public void doCompileAndPackage(Context context) throws Exception {
 
-    // final WorkFlow wf = this.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(this.getAppDomain().getApp().getWorkFlowId());
-
     IBasicAppSource appSource = IAppSource.load(null, this.getCollectionName());
 
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(this, indexStreamCodeGenerator);
-
-    // SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
-
-    //   boolean excludeFacadeDAOSupport = wfTopology.isSingleDumpTableDependency();
 
     if (appSource.isExcludeFacadeDAOSupport()) {
       daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap());
@@ -360,16 +362,17 @@ public class CoreAction extends BasicModule {
 
   /**
    * 部署实例
+   * https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/resource-providers/standalone/kubernetes/
    *
    * @param context
    * @throws Exception
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doDeployIncrSyncChannal(Context context) throws Exception {
-    IncrUtils.IncrSpecResult applySpec = IncrUtils.parseIncrSpec(context, this.parseJsonPost(), this);
-    if (!applySpec.isSuccess()) {
-      return;
-    }
+    // IncrUtils.IncrSpecResult applySpec = IncrUtils.parseIncrSpec(context, this.parseJsonPost(), this);
+    // if (!applySpec.isSuccess()) {
+    //   return;
+    // }
     // 编译并且打包
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
 
@@ -377,7 +380,7 @@ public class CoreAction extends BasicModule {
     // https://github.com/kubernetes-client/java
     TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
     // 通过k8s发布
-    k8sClient.deploy(applySpec.getSpec(), indexStreamCodeGenerator.getIncrScriptTimestamp());
+    k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     this.setBizResult(context, incrStatus);
   }

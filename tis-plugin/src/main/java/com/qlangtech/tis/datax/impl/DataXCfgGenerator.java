@@ -214,7 +214,7 @@ public class DataXCfgGenerator {
                 throw new IllegalStateException("unexpect status");
             }
 
-            if (tableMapper.isPresent()) {
+            if (tableMapper.isPresent() && writerDescriptor.isSupportTabCreate()) {
                 for (ISelectedTab.ColMeta colMeta : tableMapper.get().getSourceCols()) {
                     if (colMeta.getType() == null) {
                         throw new IllegalStateException("reader context:" + readerContext.getSourceEntityName()
@@ -225,7 +225,7 @@ public class DataXCfgGenerator {
 
                 IDataxProcessor.TableMap mapper = tableMapper.get();
                 String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
-                if (!createDDLFiles.contains(sqlFileName) && writerDescriptor.isSupportTabCreate()) {
+                if (!createDDLFiles.contains(sqlFileName)) {
                     StringBuffer createDDL = writer.generateCreateDDL(mapper);
                     if (createDDL != null) {
                         createDDLFiles.add(sqlFileName);

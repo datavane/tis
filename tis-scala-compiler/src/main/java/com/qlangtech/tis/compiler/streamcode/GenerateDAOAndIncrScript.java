@@ -19,9 +19,9 @@ import com.google.common.collect.Lists;
 import com.koubei.abator.KoubeiIbatorRunner;
 import com.koubei.abator.KoubeiProgressCallback;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.compiler.java.FileObjectsContext;
 import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
 import com.qlangtech.tis.compiler.java.MyJavaFileManager;
-import com.qlangtech.tis.compiler.java.MyJavaFileObject;
 import com.qlangtech.tis.compiler.java.NestClassFileObject;
 import com.qlangtech.tis.coredefine.module.action.IbatorProperties;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
@@ -33,6 +33,7 @@ import com.qlangtech.tis.plugin.ds.FacadeDataSource;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
+import com.qlangtech.tis.sql.parser.IDBNodeMeta;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -41,7 +42,6 @@ import org.apache.ibatis.ibator.config.IbatorContext;
 import scala.tools.ScalaCompilerSupport;
 import scala.tools.scala_maven_executions.LogProcessorUtils;
 
-import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,7 +80,8 @@ public class GenerateDAOAndIncrScript {
     public void generateIncrScript(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<DBNode, List<String>> dbNameMap) {
         try {
             //final Map<DBNode, List<String>> dbNameMap = Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables());
-            File sourceRoot = StreamContextConstant.getStreamScriptRootDir(indexStreamCodeGenerator.collection, indexStreamCodeGenerator.incrScriptTimestamp);
+            File sourceRoot = StreamContextConstant.getStreamScriptRootDir(
+                    indexStreamCodeGenerator.collection, indexStreamCodeGenerator.incrScriptTimestamp);
             if (!indexStreamCodeGenerator.isIncrScriptDirCreated() || // 检查Faild Token文件是否存在
                     ScalaCompilerSupport.incrStreamCodeCompileFaild(sourceRoot)) {
                 /**
@@ -103,54 +104,8 @@ public class GenerateDAOAndIncrScript {
             incrStatus.setIncrScriptMainFileContent(indexStreamCodeGenerator.readIncrScriptMainFileContent());
             // TODO 真实生产环境中需要 和 代码build阶段分成两步
             if (compilerAndPackage) {
-                /**
-                 * *********************************************************************************
-                 * 编译增量脚本
-                 * ***********************************************************************************
-                 */
-                if (this.streamScriptCompile(sourceRoot, dbNameMap.keySet())) {
-                    this.msgHandler.addErrorMessage(context, "增量脚本编译失败");
-                    this.msgHandler.addFieldError(context, "incr_script_compile_error", "error");
-                    return;
-                }
-                /**
-                 * *********************************************************************************
-                 * 对scala代码进行 打包
-                 * ***********************************************************************************
-                 */
-                JavaCompilerProcess.SourceGetterStrategy getterStrategy
-                        = new JavaCompilerProcess.SourceGetterStrategy(false, "/src/main/scala", ".scala") {
-
-                    @Override
-                    public JavaFileObject.Kind getSourceKind() {
-                        // 没有scala的类型，暂且用other替换一下
-                        return JavaFileObject.Kind.OTHER;
-                    }
-
-                    @Override
-                    public MyJavaFileObject processMyJavaFileObject(MyJavaFileObject fileObj) {
-                        try {
-                            try (InputStream input = FileUtils.openInputStream(fileObj.getSourceFile())) {
-                                IOUtils.copy(input, fileObj.openOutputStream());
-                            }
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        return fileObj;
-                    }
-                };
-                //
-                JavaCompilerProcess.FileObjectsContext fileObjects = JavaCompilerProcess.getFileObjects(sourceRoot, getterStrategy);
-                final JavaCompilerProcess.FileObjectsContext compiledCodeContext = new JavaCompilerProcess.FileObjectsContext();
-                File streamScriptClassesDir = new File(sourceRoot, "classes");
-                appendClassFile(streamScriptClassesDir, compiledCodeContext, null);
-                // 取得spring配置文件相关resourece
-                JavaCompilerProcess.FileObjectsContext xmlConfigs = indexStreamCodeGenerator.getSpringXmlConfigsObjectsContext();
-                // 将stream code打包
-                // indexStreamCodeGenerator.getAppDomain().getAppName() + "-incr.jar"
-                JavaCompilerProcess.packageJar(// indexStreamCodeGenerator.getAppDomain().getAppName() + "-incr.jar"
-                        sourceRoot, StreamContextConstant.getIncrStreamJarName(indexStreamCodeGenerator.collection)
-                        , fileObjects, compiledCodeContext, xmlConfigs);
+                CompileAndPackage packager = new CompileAndPackage();
+                packager.process(context, this.msgHandler, indexStreamCodeGenerator.collection, dbNameMap, sourceRoot, indexStreamCodeGenerator.getSpringXmlConfigsObjectsContext());
             }
         } catch (Exception e) {
             // 将原始文件删除干净
@@ -162,6 +117,56 @@ public class GenerateDAOAndIncrScript {
             throw new RuntimeException(e);
         }
     }
+
+//    private void compileAndPackage(Context context, IControlMsgHandler msgHandler, Map<DBNode, List<String>> dbNameMap, File sourceRoot) throws Exception {
+//        /**
+//         * *********************************************************************************
+//         * 编译增量脚本
+//         * ***********************************************************************************
+//         */
+//        if (this.streamScriptCompile(sourceRoot, dbNameMap.keySet())) {
+//            msgHandler.addErrorMessage(context, "增量脚本编译失败");
+//            msgHandler.addFieldError(context, "incr_script_compile_error", "error");
+//            return;
+//        }
+//        /**
+//         * *********************************************************************************
+//         * 对scala代码进行 打包
+//         * ***********************************************************************************
+//         */
+//        JavaCompilerProcess.SourceGetterStrategy getterStrategy
+//                = new JavaCompilerProcess.SourceGetterStrategy(false, "/src/main/scala", ".scala") {
+//
+//            @Override
+//            public JavaFileObject.Kind getSourceKind() {
+//                // 没有scala的类型，暂且用other替换一下
+//                return JavaFileObject.Kind.OTHER;
+//            }
+//
+//            @Override
+//            public MyJavaFileObject processMyJavaFileObject(MyJavaFileObject fileObj) {
+//                try {
+//                    try (InputStream input = FileUtils.openInputStream(fileObj.getSourceFile())) {
+//                        IOUtils.copy(input, fileObj.openOutputStream());
+//                    }
+//                } catch (IOException e) {
+//                    throw new RuntimeException(e);
+//                }
+//                return fileObj;
+//            }
+//        };
+//        //
+//        JavaCompilerProcess.FileObjectsContext fileObjects = JavaCompilerProcess.getFileObjects(sourceRoot, getterStrategy);
+//        final JavaCompilerProcess.FileObjectsContext compiledCodeContext = new JavaCompilerProcess.FileObjectsContext();
+//        File streamScriptClassesDir = new File(sourceRoot, "classes");
+//        appendClassFile(streamScriptClassesDir, compiledCodeContext, null);
+//        // 取得spring配置文件相关resourece
+//        JavaCompilerProcess.FileObjectsContext xmlConfigs = indexStreamCodeGenerator.getSpringXmlConfigsObjectsContext();
+//
+//        JavaCompilerProcess.packageJar(
+//                sourceRoot, StreamContextConstant.getIncrStreamJarName(indexStreamCodeGenerator.collection)
+//                , fileObjects, compiledCodeContext, xmlConfigs);
+//    }
 
     private void generateDAOScript(Context context, Map<Integer, Long> dependencyDbs) throws Exception {
         final Map<DBNode, List<String>> dbNameMap = Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables());
@@ -244,7 +249,7 @@ public class GenerateDAOAndIncrScript {
             fc.setFacadeInstanceName(r.getFacadeInstanceName());
             fc.setFullFacadeClassName(r.getFacadeFullClassName());
             fc.setFacadeInterfaceName(r.getFacadeInterface());
-            indexStreamCodeGenerator.facadeList.add(fc);
+            indexStreamCodeGenerator.getFacadeList().add(fc);
         });
         //return dbNameMap;
     }
@@ -252,11 +257,11 @@ public class GenerateDAOAndIncrScript {
     private DataSourceFactoryPluginStore getFacadePluginStore(Map.Entry<DBNode, List<String>> entry) {
         DataSourceFactoryPluginStore dbPluginStore;
         dbPluginStore
-                = TIS.getDataBasePluginStore( new PostedDSProp(entry.getKey().getDbName(), DbScope.FACADE));
+                = TIS.getDataBasePluginStore(new PostedDSProp(entry.getKey().getDbName(), DbScope.FACADE));
         return dbPluginStore;
     }
 
-    private void appendClassFile(File parent, JavaCompilerProcess.FileObjectsContext fileObjects, final StringBuffer qualifiedClassName) throws IOException {
+    private void appendClassFile(File parent, FileObjectsContext fileObjects, final StringBuffer qualifiedClassName) throws IOException {
         String[] children = parent.list();
         File childFile = null;
         for (String child : children) {
@@ -271,7 +276,7 @@ public class GenerateDAOAndIncrScript {
                 appendClassFile(childFile, fileObjects, newQualifiedClassName);
             } else {
                 final String className = StringUtils.substringBeforeLast(child, ".");
-                // 
+                //
                 NestClassFileObject fileObj = MyJavaFileManager.getNestClassFileObject(
                         ((new StringBuffer(qualifiedClassName)).append(".").append(className)).toString(), fileObjects.classMap);
                 try (InputStream input = FileUtils.openInputStream(childFile)) {
@@ -289,6 +294,6 @@ public class GenerateDAOAndIncrScript {
                 System.err.println(line);
             }
         };
-        return ScalaCompilerSupport.streamScriptCompile(sourceRoot, DBNode.appendDBDependenciesClasspath(dependencyDBNodes), loggerListener);
+        return ScalaCompilerSupport.streamScriptCompile(sourceRoot, IDBNodeMeta.appendDBDependenciesClasspath(dependencyDBNodes), loggerListener);
     }
 }

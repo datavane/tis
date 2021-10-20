@@ -240,7 +240,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
       if (monitorTarget.testLogType(LogType.DATAX_WORKER_POD_LOG)) {
         PayloadMonitorTarget mtarget = (PayloadMonitorTarget) monitorTarget;
         final String podName = mtarget.getPayLoad();
-        TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(DataXJobWorker.K8S_INSTANCE_NAME);
+        TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(DataXJobWorker.K8S_INSTANCE_NAME.getName());
         k8sDelegate.listPodsAndWatchLog(podName, this);
         return;
       } else if (monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE)) {

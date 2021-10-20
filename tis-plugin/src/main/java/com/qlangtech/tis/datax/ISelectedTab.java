@@ -41,18 +41,21 @@ public interface ISelectedTab {
     public class ColMeta {
         private String name;
         private DataXReaderColType type;
-        private boolean pk = false;
+        private Boolean pk = false;
 
         /**
          * 是否是主键，有时下游writer表例如clickhouse如果选择自动建表脚本，则需要知道表中的主键信息
          *
          * @return
          */
-        public boolean isPk() {
+        public Boolean isPk() {
             return this.pk;
         }
 
-        public void setPk(boolean pk) {
+        public void setPk(Boolean pk) {
+            if (pk == null) {
+                return;
+            }
             this.pk = pk;
         }
 

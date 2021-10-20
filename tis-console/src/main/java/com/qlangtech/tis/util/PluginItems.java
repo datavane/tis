@@ -17,6 +17,7 @@ package com.qlangtech.tis.util;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
@@ -52,7 +53,7 @@ import java.util.stream.Collectors;
  */
 public class PluginItems {
 
-  private final HeteroEnum heteroEnum;
+  private final IPluginEnum heteroEnum;
   private final UploadPluginMeta pluginMeta;
   private final IPluginContext pluginContext;
 
@@ -166,7 +167,7 @@ public class PluginItems {
         }
       }
 
-      Objects.requireNonNull(store, "plugin type:" + heteroEnum.name() + " can not find relevant Store");
+      Objects.requireNonNull(store, "plugin type:" + heteroEnum.getIdentity() + " can not find relevant Store");
 
     } else if (this.pluginContext.isDataSourceAware()) {
 
@@ -209,7 +210,7 @@ public class PluginItems {
       if (subFormFilter.isPresent()) {
         IPropertyType.SubFormFilter filter = subFormFilter.get();
         Optional<Descriptor> firstDesc = heteroEnum.descriptors().stream()
-          .filter((des) -> filter.match(des)).map((des) -> (Descriptor) des).findFirst();
+          .filter((des) -> filter.match((Descriptor) des)).map((des) -> (Descriptor) des).findFirst();
         if (!firstDesc.isPresent()) {
           throw new IllegalStateException("can not find relevant descriptor:" + filter.uploadPluginMeta.toString());
         }
@@ -223,7 +224,7 @@ public class PluginItems {
           public IPluginStoreSave<?> visit(SuFormProperties props) {
             // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
             // IPluginContext pluginContext, String appname, SuFormProperties subfieldForm, Class<TT> clazz
-            Class<Describable> clazz = (Class<Describable>) heteroEnum.extensionPoint;
+            Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
             DataxReader.SubFieldFormAppKey<Describable> key
               = new DataxReader.SubFieldFormAppKey<>(pluginContext, dataxName, props, clazz);
             return KeyedPluginStore.getPluginStore(key);
@@ -232,9 +233,9 @@ public class PluginItems {
       }
 
     } else if (this.pluginContext.isCollectionAware()) {
-      store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.extensionPoint);
+      store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.getExtensionPoint());
     } else {
-      store = TIS.getPluginStore(heteroEnum.extensionPoint);
+      store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
     }
     //dlist
     if (!store.setPlugins(pluginContext, Optional.of(context), convert(dlist))) {
@@ -271,11 +272,11 @@ public class PluginItems {
 
     public final IPluginContext collectionName;
 
-    public final HeteroEnum heteroEnum;
+    public final IPluginEnum heteroEnum;
 
     public final List<Describable> dlist;
 
-    public PluginItemsSaveEvent(IPluginContext collectionName, HeteroEnum heteroEnum, List<Describable> dlist) {
+    public PluginItemsSaveEvent(IPluginContext collectionName, IPluginEnum heteroEnum, List<Describable> dlist) {
       this.collectionName = collectionName;
       this.heteroEnum = heteroEnum;
       this.dlist = dlist;

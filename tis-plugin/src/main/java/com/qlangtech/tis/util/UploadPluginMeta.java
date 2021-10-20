@@ -15,6 +15,7 @@
 package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -163,7 +164,7 @@ public class UploadPluginMeta {
         }
     }
 
-    public HeteroEnum getHeteroEnum() {
+    public IPluginEnum getHeteroEnum() {
         return HeteroEnum.of(this.getName());
     }
 
@@ -211,10 +212,10 @@ public class UploadPluginMeta {
     }
 
     public <T extends Describable<T>> HeteroList<T> getHeteroList(IPluginContext pluginContext) {
-        HeteroEnum hEnum = getHeteroEnum();
+        IPluginEnum hEnum = getHeteroEnum();
         HeteroList<T> hList = new HeteroList<>(this);
-        hList.setCaption(hEnum.caption);
-        hList.setExtensionPoint(hEnum.extensionPoint);
+        hList.setCaption(hEnum.getCaption());
+        hList.setExtensionPoint(hEnum.getExtensionPoint());
         List<T> items = hEnum.getPlugins(pluginContext, this);
         hList.setItems(items);
 
@@ -229,7 +230,7 @@ public class UploadPluginMeta {
         }
         hList.setDescriptors(descriptors);
 
-        hList.setSelectable(hEnum.selectable);
+        hList.setSelectable(hEnum.getSelectable());
         return hList;
     }
 }

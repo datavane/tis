@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.util;
 
+import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
@@ -22,6 +23,8 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.*;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -36,11 +39,12 @@ import com.qlangtech.tis.plugin.solr.config.TISTransformerFactory;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+//import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 
 /**
  * 表明一种插件的类型
@@ -48,87 +52,106 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public enum HeteroEnum {
+public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
-    FLAT_TABLE_BUILDER(// 
+    @TISExtension
+    public final static HeteroEnum<FlatTableBuilder> FLAT_TABLE_BUILDER = new HeteroEnum(//
             FlatTableBuilder.class, //
-            "flat_table_builder", "宽表构建", Selectable.Single),
+            "flat_table_builder", "宽表构建", Selectable.Single);
     // ////////////////////////////////////////////////////////
-    INDEX_BUILD_CONTAINER(// 
+    @TISExtension
+    public static final HeteroEnum<IndexBuilderTriggerFactory> INDEX_BUILD_CONTAINER = new HeteroEnum<IndexBuilderTriggerFactory>(//
             IndexBuilderTriggerFactory.class, //
             "index_build_container", // },
-            "索引构建容器", Selectable.Single),
+            "索引构建容器", Selectable.Single);
     // ////////////////////////////////////////////////////////
-    DS_DUMP(// 
+    @TISExtension
+    public static final HeteroEnum<TableDumpFactory> DS_DUMP = new HeteroEnum<TableDumpFactory>(//
             TableDumpFactory.class, //
             "ds_dump", // },
-            "数据导出", Selectable.Single),
+            "数据导出", Selectable.Single);
     // ////////////////////////////////////////////////////////
-    FS(// 
+    @TISExtension
+    public static final HeteroEnum<FileSystemFactory> FS = new HeteroEnum<FileSystemFactory>(//
             FileSystemFactory.class, //
-            "fs", "存储"),
+            "fs", "存储");
     // ////////////////////////////////////////////////////////
-    MQ(// 
+    @TISExtension
+    public static final HeteroEnum<MQListenerFactory> MQ = new HeteroEnum<MQListenerFactory>(//
             MQListenerFactory.class, //
-            "mq", "MQ消息监听"),
+            "mq", "MQ消息监听");
     // ////////////////////////////////////////////////////////
-    PARAMS_CONFIG(// 
+    @TISExtension
+    public static final HeteroEnum<ParamsConfig> PARAMS_CONFIG = new HeteroEnum<ParamsConfig>(//
             ParamsConfig.class, //
             "params-cfg", // },//
-            "基础配置", Selectable.Multi),
+            "基础配置", Selectable.Multi);
     // ////////////////////////////////////////////////////////
-    K8S_IMAGES(//
+    @TISExtension
+    public static final HeteroEnum<K8sImage> K8S_IMAGES = new HeteroEnum<K8sImage>(//
             K8sImage.class, //
             "k8s-images", // },//
-            "K8S-Images", Selectable.Multi)
-    // ////////////////////////////////////////////////////////
-    ,
-    DATAX_WORKER(//
-            DataXJobWorker.class, //
-            "datax-worker", // },//
-            "DataX Worker", Selectable.Single),
+            "K8S-Images", Selectable.Multi);
     // ////////////////////////////////////////////////////////
 
-    INCR_K8S_CONFIG(//
+    @TISExtension
+    public static final HeteroEnum<DataXJobWorker> DATAX_WORKER = new HeteroEnum<DataXJobWorker>(//
+            DataXJobWorker.class, //
+            "datax-worker", // },//
+            "DataX Worker", Selectable.Single);
+    // ////////////////////////////////////////////////////////
+
+    @TISExtension
+    public static final HeteroEnum<IncrStreamFactory> INCR_STREAM_CONFIG
+            = new HeteroEnum<>(//
             IncrStreamFactory.class, //
             "incr-config", // },
-            "增量配置", Selectable.Single),
-    DATASOURCE(//
+            "增量引擎配置", Selectable.Single);
+
+    @TISExtension
+    public static final HeteroEnum<DataSourceFactory> DATASOURCE = new HeteroEnum<DataSourceFactory>(//
             DataSourceFactory.class, //
             "datasource", //
             "数据源", //
-            Selectable.Single),
-    SOLR_FIELD_TYPE(//
+            Selectable.Single);
+    //    @TISExtension
+    public static final HeteroEnum<FieldTypeFactory> SOLR_FIELD_TYPE = new HeteroEnum<FieldTypeFactory>(//
             FieldTypeFactory.class, //
             "field-type", //
             "字段类型", //
-            Selectable.Multi),
-    SOLR_QP(//
+            Selectable.Multi);
+    @TISExtension
+    public static final HeteroEnum<QueryParserFactory> SOLR_QP = new HeteroEnum<QueryParserFactory>(//
             QueryParserFactory.class, //
             "qp", //
             "QueryParser", //
-            Selectable.Multi),
-    SOLR_SEARCH_COMPONENT(//
+            Selectable.Multi);
+    @TISExtension
+    public static final HeteroEnum<SearchComponentFactory> SOLR_SEARCH_COMPONENT = new HeteroEnum<SearchComponentFactory>(//
             SearchComponentFactory.class, //
             "searchComponent", //
             "SearchComponent", //
-            Selectable.Multi),
-    SOLR_TRANSFORMER(//
+            Selectable.Multi);
+    @TISExtension
+    public static final HeteroEnum<TISTransformerFactory> SOLR_TRANSFORMER = new HeteroEnum<TISTransformerFactory>(//
             TISTransformerFactory.class, //
             "transformer", //
             "Transformer", //
-            Selectable.Multi),
-    DATAX_READER(//
+            Selectable.Multi);
+    @TISExtension
+    public static final HeteroEnum<DataxReader> DATAX_READER = new HeteroEnum<DataxReader>(//
             DataxReader.class, //
             "dataxReader", //
             "DataX Reader", //
-            Selectable.Multi),
-    DATAX_WRITER(//
+            Selectable.Multi);
+    @TISExtension
+    public static final HeteroEnum<DataxWriter> DATAX_WRITER = new HeteroEnum<DataxWriter>(//
             DataxWriter.class, //
             "dataxWriter", //
             "DataX Writer", //
-            Selectable.Multi),
-    APP_SOURCE(//
+            Selectable.Multi);
+    @TISExtension
+    public static final HeteroEnum<IAppSource> APP_SOURCE = new HeteroEnum<IAppSource>(//
             IAppSource.class, //
             "appSource", //
             "App Source", //
@@ -144,7 +167,7 @@ public enum HeteroEnum {
     // private final IItemGetter itemGetter;
     public final Selectable selectable;
 
-    <T extends Describable<T>> HeteroEnum(
+    public HeteroEnum(
             Class<T> extensionPoint,
             String identity, String caption, Selectable selectable) {
         this.extensionPoint = extensionPoint;
@@ -164,10 +187,9 @@ public enum HeteroEnum {
         return IdentityName.class.isAssignableFrom(this.extensionPoint);
     }
 
-    <// , IDescriptorsGetter descriptorsGetter//, ISaveable saveable
-            T extends Describable<T>> HeteroEnum(// , IDescriptorsGetter descriptorsGetter//, ISaveable saveable
-                                                 Class<T> extensionPoint, // , IDescriptorsGetter descriptorsGetter//, ISaveable saveable
-                                                 String identity, String caption) {
+
+    HeteroEnum(
+            Class<T> extensionPoint, String identity, String caption) {
         this(extensionPoint, identity, caption, Selectable.Multi);
     }
 
@@ -219,6 +241,7 @@ public enum HeteroEnum {
         return store.getPlugins();
     }
 
+    @Override
     public PluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         PluginStore store = null;
         if (this == HeteroEnum.APP_SOURCE) {
@@ -253,13 +276,37 @@ public enum HeteroEnum {
         return pluginStore.allDescriptor();
     }
 
-    public static HeteroEnum of(String identity) {
-        for (HeteroEnum he : HeteroEnum.values()) {
-            if (StringUtils.equals(he.identity, identity)) {
+    public static <T extends Describable<T>> IPluginEnum<T> of(String identity) {
+
+        ExtensionList<IPluginEnum> pluginEnums = TIS.get().getExtensionList(IPluginEnum.class);
+
+        for (IPluginEnum he : pluginEnums) {
+            if (StringUtils.equals(he.getIdentity(), identity)) {
                 return he;
             }
         }
         throw new IllegalStateException("identity:" + identity + " is illegal,exist:"
-                + Arrays.stream(HeteroEnum.values()).map((h) -> "'" + h.identity + "'").collect(Collectors.joining(",")));
+                + pluginEnums.stream().map((h) -> "'" + h.getIdentity() + "'").collect(Collectors.joining(",")));
+    }
+
+
+    @Override
+    public Class getExtensionPoint() {
+        return this.extensionPoint;
+    }
+
+    @Override
+    public String getIdentity() {
+        return this.identity;
+    }
+
+    @Override
+    public String getCaption() {
+        return this.caption;
+    }
+
+    @Override
+    public Selectable getSelectable() {
+        return this.selectable;
     }
 }

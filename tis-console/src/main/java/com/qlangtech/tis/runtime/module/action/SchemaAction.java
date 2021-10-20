@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
 import com.qlangtech.tis.datax.ISelectedTab;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -100,18 +101,29 @@ public class SchemaAction extends BasicModule {
    */
   public void doGetEsTplFields(Context context) throws Exception {
     String dataxName = this.getString(DataxUtils.DATAX_NAME);
-    DataxProcessor process = DataxProcessor.load(this, dataxName);
+
+    StepType stepType = StepType.parse(this.getString("stepType"));
+    //DataxProcessor process = DataxProcessor.load(this, dataxName);
     //  IDataxProcessor.TableMap tabMapper = null;
     //  ESField field = null;
 
     ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, dataxName);
     DataxReader dataxReader = DataxReader.load(this, dataxName);
     // ESField field = null;
-    for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
-      // ESSchema parseResult = new ESSchema();
-      SchemaMetaContent tplSchema = typeTransfer.initSchemaMetaContent(tab);
-      this.setBizResult(context, tplSchema.toJSON());
-      return;
+    if (stepType.update) {
+      DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
+
+      for (Map.Entry<String, IDataxProcessor.TableAlias> e : dataxProcessor.getTabAlias().entrySet()) {
+        writerStructFields(context, e.getValue(), typeTransfer);
+        return;
+      }
+    } else {
+      for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
+        // ESSchema parseResult = new ESSchema();
+        SchemaMetaContent tplSchema = typeTransfer.initSchemaMetaContent(tab);
+        this.setBizResult(context, tplSchema.toJSON());
+        return;
+      }
     }
 
     throw new IllegalStateException("have not find any tab in DataXReader");
@@ -237,6 +249,30 @@ public class SchemaAction extends BasicModule {
 //    }
     schema.put("inputDisabled", disabledInputs);
     this.setBizResult(context, schema);
+  }
+
+  private enum StepType {
+    CreateDatax("createDatax", false), UpdateDataxWriter("UpdateDataxWriter", true), UpdateDataxReader("UpdateDataxReader", true);
+    private String literia;
+    private final boolean update;
+
+    StepType(String literia, boolean update) {
+      this.literia = literia;
+      this.update = update;
+    }
+
+    static StepType parse(String val) {
+
+      for (StepType t : StepType.values()) {
+        if (t.literia.equals(val)) {
+          return t;
+        }
+      }
+
+      throw new IllegalStateException("val is illegal:" + val);
+    }
+
+
   }
 
   /**
@@ -402,9 +438,26 @@ public class SchemaAction extends BasicModule {
 
     ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, body.getString(DataxUtils.DATAX_NAME));
 
-    final String content = body.getString("content");
+    //  final String content = body.getString("content");
     //byte[] schemaContent = body.getString("content").getBytes(TisUTF8.get());
     //JSONArray fields = JSON.parseArray(content);
+    writerStructFields(context, body, typeTransfer);
+  }
+
+  private void writerStructFields(Context context, IDataxProcessor.TableAlias tableAlias, ISearchEngineTypeTransfer typeTransfer) {
+
+    SchemaMetaContent schemaContent = new SchemaMetaContent();
+    //schemaContent.content = content.getBytes(TisUTF8.get());
+    schemaContent.parseResult = typeTransfer.projectionFromExpertModel(tableAlias, (content) -> {
+      schemaContent.content = content;
+    });
+    // this.getStructSchema(context, ISchemaPluginContext.NULL, schemaContent);
+
+    this.setBizResult(context, schemaContent.toJSON());
+  }
+
+  private void writerStructFields(Context context, JSONObject body, ISearchEngineTypeTransfer typeTransfer) {
+    final String content = body.getString("content");
     SchemaMetaContent schemaContent = new SchemaMetaContent();
     schemaContent.content = content.getBytes(TisUTF8.get());
     schemaContent.parseResult = typeTransfer.projectionFromExpertModel(body);

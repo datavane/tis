@@ -25,6 +25,8 @@ public interface ISchemaField {
     String KEY_FIELD_TYPE = "fieldtype";
 
     String KEY_NAME = "name";
+    String KEY_PK = "pk";
+    String KEY_SHARE_KEY = "shareKey";
     String KEY_TYPE = "type";
     String KEY_ANALYZER = "analyzer";
     String KEY_INDEX = "index";
@@ -34,6 +36,10 @@ public interface ISchemaField {
 
 
     String getName();
+
+    public boolean isSharedKey();
+
+    public boolean isUniqueKey();
 
     /**
      * 字段类型名称，不是全路径

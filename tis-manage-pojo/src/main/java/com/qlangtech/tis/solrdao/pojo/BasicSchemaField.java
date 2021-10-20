@@ -40,6 +40,26 @@ public abstract class BasicSchemaField implements ISchemaField {
 
     private boolean docValue;
 
+    private boolean sharedKey;
+    private boolean uniqueKey;
+
+    @Override
+    public boolean isSharedKey() {
+        return this.sharedKey;
+    }
+
+    @Override
+    public boolean isUniqueKey() {
+        return this.uniqueKey;
+    }
+
+    public void setSharedKey(boolean sharedKey) {
+        this.sharedKey = sharedKey;
+    }
+
+    public void setUniqueKey(boolean uniqueKey) {
+        this.uniqueKey = uniqueKey;
+    }
 
     public boolean isDocValue() {
         return docValue;

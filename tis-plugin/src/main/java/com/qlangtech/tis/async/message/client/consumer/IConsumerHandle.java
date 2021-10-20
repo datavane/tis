@@ -14,23 +14,29 @@
  */
 package com.qlangtech.tis.async.message.client.consumer;
 
+import com.qlangtech.tis.datax.IDataxProcessor;
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IConsumerHandle<T> {
+public interface IConsumerHandle<SOURCE> {
 
     /**
+     * DTO
      * tag
      *
      * @return
      */
-    String getSubExpression();
+    default String getSubExpression() {
+        return StringUtils.EMPTY;
+    }
 
     /**
      * 处理消息Handle，业务逻辑在此处理
      *
      * @param asyncMsg
      */
-    void consume(AsyncMsg<T> asyncMsg);
+    void consume(AsyncMsg<SOURCE> asyncMsg, IDataxProcessor dataXProcessor) throws Exception;
 }

@@ -20,6 +20,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
+import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -71,7 +72,7 @@ public class PluginAction extends BasicModule {
       // 通知Assemble节点更新pluginStore的缓存
       @Override
       public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
-        final String extendPoint = event.heteroEnum.extensionPoint.getName();
+        final String extendPoint = event.heteroEnum.getExtensionPoint().getName();
         // @see "com.qlangtech.tis.fullbuild.servlet.TaskStatusServlet"
         notifyPluginUpdate2AssembleNode(DescriptorsJSON.KEY_EXTEND_POINT + "=" + extendPoint, "pluginStore");
       }
@@ -301,7 +302,7 @@ public class PluginAction extends BasicModule {
     if (StringUtils.isEmpty(displayName)) {
       throw new IllegalArgumentException("request param 'impl' can not be null");
     }
-    HeteroEnum hetero = HeteroEnum.of(this.getString("hetero"));
+    IPluginEnum hetero = HeteroEnum.of(this.getString("hetero"));
     List<Descriptor<Describable>> descriptors = hetero.descriptors();
     for (Descriptor desc : descriptors) {
       if (StringUtils.equals(desc.getDisplayName(), displayName)) {
@@ -327,7 +328,7 @@ public class PluginAction extends BasicModule {
     Map<String, String> execContext = Maps.newHashMap();
     execContext.put("id", this.getString("id"));
 
-    HeteroEnum heteroEnum = null;
+    IPluginEnum heteroEnum = null;
     for (UploadPluginMeta meta : pluginsMeta) {
       heteroEnum = meta.getHeteroEnum();
       plugins = heteroEnum.getPlugins(this, meta);
@@ -453,12 +454,12 @@ public class PluginAction extends BasicModule {
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
     Descriptor.PluginValidateResult validateResult = null;
-    HeteroEnum hEnum = pluginMeta.getHeteroEnum();
+    IPluginEnum hEnum = pluginMeta.getHeteroEnum();
     //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
     PluginItems pluginItems = new PluginItems(module, pluginMeta);
     List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(module, itemsArray, subFormFilter);
     if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
-      module.addErrorMessage(context, "请设置'" + hEnum.caption + "'表单内容");
+      module.addErrorMessage(context, "请设置'" + hEnum.getCaption() + "'表单内容");
     }
 
 
@@ -487,7 +488,7 @@ public class PluginAction extends BasicModule {
 
     Descriptor.PluginValidateResult previous = null;
     if (!parseResult.faild && hEnum.isIdentityUnique()
-      && hEnum.selectable == Selectable.Multi
+      && hEnum.getSelectable() == Selectable.Multi
       && (items.size() > 1 || pluginMeta.isAppend())) {
 
       if (pluginMeta.isAppend()) {

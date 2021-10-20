@@ -42,8 +42,8 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class DBNode {
-
+public class DBNode implements IDBNodeMeta {
+    // getDaoDir(), db.getDbName()
     private static final Logger logger = LoggerFactory.getLogger(DBNode.class);
 
     private final String dbName;
@@ -130,7 +130,8 @@ public class DBNode {
         this.dbName = dbName;
         this.dbId = dbId;
     }
-
+   // getDaoDir(), db.getDbName()
+    @Override
     public File getDaoDir() {
         return StreamContextConstant.getDAORootDir(this.getDbName(), this.getTimestampVer());
         // if (this.daoDir == null || !this.daoDir.exists()) {
@@ -151,6 +152,7 @@ public class DBNode {
         return this;
     }
 
+    @Override
     public String getDbName() {
         return dbName;
     }
@@ -179,15 +181,4 @@ public class DBNode {
         return this.dbId;
     }
 
-    public static Set<String> appendDBDependenciesClasspath(Set<DBNode> dependencyDBNodes) {
-        Set<String> classpathElements = Sets.newHashSet();
-        for (DBNode db : dependencyDBNodes) {
-            File jarFile = new File(db.getDaoDir(), db.getDbName() + "-dao.jar");
-            if (!jarFile.exists()) {
-                throw new IllegalStateException("jarfile:" + jarFile.getAbsolutePath() + " is not exist");
-            }
-            classpathElements.add(jarFile.getAbsolutePath());
-        }
-        return classpathElements;
-    }
 }

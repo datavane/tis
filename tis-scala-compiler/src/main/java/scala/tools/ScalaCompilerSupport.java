@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,6 +25,7 @@ import scala.tools.scala_maven_executions.JavaMainCallerByFork;
 import scala.tools.scala_maven_executions.LogProcessorUtils;
 import scala.tools.scala_maven_executions.MainHelper;
 import scala.tools.util.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -118,7 +119,7 @@ public class ScalaCompilerSupport {
      * compiler additional arguments
      */
     // @Parameter
-    protected String[] args = new String[] { "-usejavacp", "-nobootcp", "-encoding", "utf8" };
+    protected String[] args = new String[]{"-usejavacp", "-nobootcp", "-encoding", "utf8"};
 
     // protected String[] args = new String[]{"-help"};
     /**
@@ -214,6 +215,7 @@ public class ScalaCompilerSupport {
     // break;
     // }
     // }
+
     /**
      * Retrieves the list of *all* root source directories. We need to pass all
      * .java and .scala files into the scala compiler
@@ -258,8 +260,9 @@ public class ScalaCompilerSupport {
         getLog().info(String.format("Compiling %d source files to %s at %d", files.size(), outputDir.getAbsolutePath(), t1));
         JavaMainCaller jcmd = getScalaCommand();
         jcmd.redirectToLog();
-        if (!classpathElements.isEmpty())
+        if (!classpathElements.isEmpty()) {
             jcmd.addJvmArgs("-classpath", MainHelper.toMultiPath(classpathElements));
+        }
         jcmd.addArgs("-d", outputDir.getAbsolutePath());
         // jcmd.addArgs("-sourcepath", sourceDir.getAbsolutePath());
         for (File f : files) {
@@ -350,7 +353,7 @@ public class ScalaCompilerSupport {
     private String getToolClasspath() throws Exception {
         Set<String> classpath = getStreamScriptCompilerClasspath();
         // }
-        return MainHelper.toMultiPath(classpath.toArray(new String[] {}));
+        return MainHelper.toMultiPath(classpath.toArray(new String[]{}));
     }
 
     /**
@@ -374,7 +377,7 @@ public class ScalaCompilerSupport {
         logger.info("classpath:" + dependencies.getAbsolutePath() + ",childjar count:" + classpath.size());
         // return classpath;
         return Sets.newHashSet(dependencies.getAbsolutePath() + "/*");
-    // return Collections.singleton();
+        // return Collections.singleton();
     }
 
     /**
@@ -457,7 +460,7 @@ public class ScalaCompilerSupport {
         for (File dir : sourceRootDirs) {
             // String[] tmpFiles = MainHelper.findFiles(dir, includes.toArray(new String[]{}),
             // excludes.toArray(new String[]{}));
-            Collection<File> tmpFiles = org.apache.commons.io.FileUtils.listFiles(dir, new String[] { "java", "scala" }, true);
+            Collection<File> tmpFiles = org.apache.commons.io.FileUtils.listFiles(dir, new String[]{"java", "scala"}, true);
             for (File tmpLocalFile : tmpFiles) {
                 File tmpAbsFile = FileUtils.fileOf(tmpLocalFile, useCanonicalPath);
                 sourceFiles.add(tmpAbsFile);
@@ -484,7 +487,7 @@ public class ScalaCompilerSupport {
     // }
     // builder.append("]");
     // getLog().debug(builder.toString());
-    // 
+    //
     // builder = new StringBuilder("excludes = [");
     // for (String exclude : excludes) {
     // builder.append(exclude).append(",");
@@ -538,21 +541,21 @@ public class ScalaCompilerSupport {
         }
     }
 
-    // 
+    //
     // Incremental compilation
-    // 
+    //
     // private int incrementalCompile(List<String> classpathElements, List<File> sourceRootDirs, File outputDir,
     // File cacheFile, boolean compileInLoop) throws Exception {
     // List<File> sources = findSourceWithFilters(sourceRootDirs);
     // if (sources.isEmpty()) {
     // return -1;
     // }
-    // 
+    //
     // // TODO - Do we really need this duplicated here?
     // if (!outputDir.exists()) {
     // outputDir.mkdirs();
     // }
-    // 
+    //
     // if (incremental == null) {
     // File libraryJar = getLibraryJar();
     // List<File> extraJars = getCompilerDependencies();
@@ -569,11 +572,11 @@ public class ScalaCompilerSupport {
     // cacheFile, //
     // compileOrder);
     // }
-    // 
+    //
     // classpathElements.remove(outputDir.getAbsolutePath());
     // List<String> scalacOptions = getScalaOptions();
     // List<String> javacOptions = getJavacOptions();
-    // 
+    //
     // try {
     // incremental.compile(classpathElements, sources, outputDir, scalacOptions, javacOptions);
     // } catch (xsbti.CompileFailed e) {
@@ -583,7 +586,7 @@ public class ScalaCompilerSupport {
     // throw e;
     // }
     // }
-    // 
+    //
     // return 1;
     // }
     // @Parameter(property = "scala.organization", defaultValue = "org.scala-lang")

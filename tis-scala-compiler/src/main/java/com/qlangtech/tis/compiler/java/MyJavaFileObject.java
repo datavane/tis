@@ -14,7 +14,6 @@
  */
 package com.qlangtech.tis.compiler.java;
 
-import com.qlangtech.tis.compiler.java.JavaCompilerProcess.ZipPath;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import javax.tools.JavaFileObject;

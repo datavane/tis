@@ -14,7 +14,6 @@
  */
 package com.qlangtech.tis.compiler.java;
 
-import com.qlangtech.tis.compiler.java.JavaCompilerProcess.ZipPath;
 import javax.tools.JavaFileObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

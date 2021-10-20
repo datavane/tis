@@ -34,7 +34,7 @@ public interface IRCController {
      * @param timestamp
      * @throws Exception
      */
-    void deploy(String collection, ReplicasSpec incrSpec, long timestamp) throws Exception;
+    void deploy(TargetResName collection, ReplicasSpec incrSpec, long timestamp) throws Exception;
 
     /**
      * 删除 增量实例
@@ -42,14 +42,14 @@ public interface IRCController {
      * @param collection
      * @throws Exception
      */
-    void removeInstance(String collection) throws Exception;
+    void removeInstance(TargetResName collection) throws Exception;
 
     /**
      * 重启增量节点
      *
      * @param collection
      */
-    void relaunch(String collection, String... targetPod);
+    void relaunch(TargetResName collection, String... targetPod);
 
     /**
      * 取得增量实例
@@ -57,7 +57,7 @@ public interface IRCController {
      * @param collection
      * @return
      */
-    RcDeployment getRCDeployment(String collection);
+    RcDeployment getRCDeployment(TargetResName collection);
 
     /**
      * 开始增量监听
@@ -65,5 +65,5 @@ public interface IRCController {
      * @param collection
      * @param listener
      */
-    WatchPodLog listPodAndWatchLog(String collection, String podName, ILogListener listener);
+    WatchPodLog listPodAndWatchLog(TargetResName collection, String podName, ILogListener listener);
 }

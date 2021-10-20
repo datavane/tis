@@ -23,6 +23,8 @@ import com.qlangtech.tis.solrdao.SchemaMetaContent;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.function.Consumer;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-06-13 18:00
@@ -39,7 +41,7 @@ public interface ISearchEngineTypeTransfer {
     }
 
     static JSONObject getOriginExpertSchema(String schemaXmlContent) {
-      return JSON.parseObject(StringUtils.defaultIfEmpty(schemaXmlContent, "{\"column\":[]}"));
+        return JSON.parseObject(StringUtils.defaultIfEmpty(schemaXmlContent, "{\"column\":[]}"));
     }
 
 
@@ -52,6 +54,8 @@ public interface ISearchEngineTypeTransfer {
      * @return
      */
     public SchemaMetaContent initSchemaMetaContent(ISelectedTab tab);
+
+    public ISchema projectionFromExpertModel(IDataxProcessor.TableAlias tableAlias, Consumer<byte[]> schemaContentConsumer);
 
     public ISchema projectionFromExpertModel(JSONObject body);
 

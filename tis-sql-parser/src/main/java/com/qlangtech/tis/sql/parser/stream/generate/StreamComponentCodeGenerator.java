@@ -1,7 +1,6 @@
 package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -23,6 +22,8 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.OutputStreamWriter;
@@ -43,13 +44,11 @@ import java.util.stream.Collectors;
  */
 public class StreamComponentCodeGenerator extends StreamCodeContext {
 
+    private static final Logger logger = LoggerFactory.getLogger(StreamComponentCodeGenerator.class);
+
     private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
     private final boolean excludeFacadeDAOSupport;
-
-
     private final List<FacadeContext> daoFacadeList;
-    // private final Optional<ERRules> erRules;
-    // private static final Logger logger = LoggerFactory.getLogger(StreamComponentCodeGenerator.class);
 
     public StreamComponentCodeGenerator(String collectionName, long timestamp,
                                         List<FacadeContext> daoFacadeList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy) {
@@ -84,7 +83,6 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
             } else {
 
                 rr.startLine("putMediaResult(\"" + propGetter.getOutputColName().getAliasName() + "\", //");
-                // rr.startLine("() ->");
                 propGetter.getGroovyScript(rr, false);
                 rr.startLine(")");
                 return;
@@ -92,24 +90,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
             // 既要是最后一个Func节点 且 要是多源节点
             if (propGetter.shallCallableProcess()) {
-                // 返回callable的结构
-                // rr.methodBody(false, "new Callable<Object>()", (kk) -> {
-                // kk.methodBody("public Object call() throws Exception", (bb)
-                // -> {
-                // bb.appendLine("return ");
-                // propGetter.getGroovyScript(bb);
-                // bb.append(";");
-                // });
-                // });
-
-                // rr.methodBody(false, "new Callable<Object>()", (kk) -> {
-                // kk.methodBody("public Object call() throws Exception", (bb)
-                // -> {
-                // bb.appendLine("return ");
                 propGetter.getGroovyScript(rr, false);
-                // bb.append(";");
-                // });
-                // });
             } else {
 
                 if (propGetter.isLastFunctInChain() && !propGetter.isGroupByFunction()
@@ -120,15 +101,6 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                         throw new IllegalStateException("NextGroupByPropGetter can not be null");
                     }
 
-                    // rr.methodBody("for(Map.Entry<GroupKey, GroupValues> entry
-                    // : "
-                    // +
-                    // nextGroup.getFunctionDataTuple().getGroupBy().get().getGroupAggrgationName()
-                    // + ".entrySet())", (r) -> {
-                    // r.append("return ");
-                    // propGetter.getGroovyScript(r);
-                    // r.append(";");
-                    // });
                     rr.startLine("var result:Any = null");
                     rr.startLine("breakable {");
                     rr.methodBody("for((k:GroupKey, v:GroupValues) <- "
@@ -145,7 +117,6 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                 }
 
             }
-            // rr.append(";");
         } finally {
             rr.startLine("//===================================");
         }
@@ -163,17 +134,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
         try {
             Map<IEntityNameGetter, List<IValChain>> tabTriggers = this.streamIncrGenerateStrategy.getTabTriggerLinker();
             IERRules erR = streamIncrGenerateStrategy.getERRule();
-            // TableTupleCreator finalTableNode = this.parseFinalSqlTaskNode();
-//            if (!erRules.isPresent()) {
-//                throw new IllegalStateException(" relevant erRule can not be null");
-//            }
-//            ERRules erR = erRules.get();
 
-
-//            TaskNodeTraversesCreatorVisitor visitor = new TaskNodeTraversesCreatorVisitor(erR);
-//            finalTableNode.accept(visitor);
-
-            // Map<IEntityNameGetter, List<IValChain>> tabTriggers = visitor.getTabTriggerLinker();
             PropGetter last = null;
             PropGetter first = null;
             Optional<TableRelation> firstParent = null;
@@ -252,10 +213,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                     traversesAllNodeOut.println("last:" + (last == null ? "null" : last.getIdentityName()));
                     traversesAllNodeOut.println("first:" + (first == null ? "null" : first.getIdentityName()));
                     traversesAllNodeOut.println(Joiner.on("\n-->").join(tupleLink.mapChainValve((r/* PropGetter */) -> {
-                        // FunctionVisitor.FuncFormat rr = new
-                        // FunctionVisitor.FuncFormat();
-                        // r.getGroovyScript(rr);
-                        return r.getIdentityName();// + "\n" + rr;
+                        return r.getIdentityName();
                     }).iterator()));
 
                     traversesAllNodeOut.println("-------------------------------");
@@ -343,10 +301,6 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
 
                                                         generateCreateGroupResultScript(rr, propGetter, groups);
 
-                                                        // if (propGetter.isLastFunctInChain()) {
-                                                        // rr.startLine("return null");
-                                                        // }
-
                                                     } else {
                                                         // 不需要反查维表执行函数
                                                         // 测试
@@ -366,9 +320,6 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                                                         generateCreateGroupResultScript(rr, propGetter, groups);
 
                                                         preGroupAggrgationName.set(groups.getGroupsLiteria());
-                                                        // if (propGetter.isLastFunctInChain()) {
-                                                        // rr.startLine("return null;");
-                                                        // }
                                                     } else {
 
                                                         generateFunctionCallScript(rr, propGetter);
@@ -381,28 +332,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                                 }).append(")/*end .t()*/");
 
                     }
-
-                    // aliasListBuffer.append(" // \n");
                 }
-
-
-                //>>>>>>>>>>>>>如果外键不在上面的处理列中，就在列处理中添加上，不然在getPk中会出现空指针异常
-//                firstParent = erRules.get().getFirstParent(entityName.getTabName());
-//                if (firstParent.isPresent()) {
-//                    TableRelation relation = firstParent.get();
-//                    for (JoinerKey jk : relation.getJoinerKeys()) {
-//                        if (!relevantCols.contains(jk.getChildKey())) {
-//                            if (!firstAdd) {
-//                                aliasListBuffer.appendLine(",");
-//                            } else {
-//                                firstAdd = false;
-//                                aliasListBuffer.returnLine();
-//                            }
-//                            aliasListBuffer.append("(\"")
-//                                    .append(jk.getChildKey()).append("\").notCopy() // FK to " + relation.getParent().parseEntityName());
-//                        }
-//                    }
-//                }
 
                 for (String linkKey : linkCols) {
                     if (!relevantCols.contains(linkKey)) {
@@ -442,15 +372,13 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                 traversesAllNodeOut.println("======================================>>>>>>>>>");
 
                 //>>>>>>>>>>>>>
-                // List<TableRelation> allParent = erR.getAllParent(entityName);
                 for (TableRelation r : allParent) {
-                    //addParentTabRef(EntityName parentName, List<JoinerKey> joinerKeys)
+
                     aliasListBuffer.append(entityName.getJavaEntityName())
                             .append("Builder.addParentTabRef(").append(r.getParent().parseEntityName().createNewLiteriaToken())
                             .append(",").append(JoinerKey.createListNewLiteria(r.getJoinerKeys())).append(")").returnLine();
                 }
 
-                // List<TableRelation> allChild = erR.getChildTabReference(entityName);
                 for (TableRelation r : allChild) {
                     aliasListBuffer.append(entityName.getJavaEntityName())
                             .append("Builder.addChildTabRef(").append(r.getChild().parseEntityName().createNewLiteriaToken())
@@ -459,7 +387,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                 //<<<<<<<<<<<<<<
 
                 if (!this.excludeFacadeDAOSupport) {
-                    // create setGetterRowsFromOuterPersistence
+
                     aliasListBuffer.append(entityName.getJavaEntityName())
                             .append("Builder.setGetterRowsFromOuterPersistence(/*gencode5*/")
                             .methodBody(" (rowTabName, rvals, pk ) =>", (f) -> {
@@ -527,8 +455,9 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
                     tabTriggers, this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
             mergeGenerate(mergeData);
         } finally {
-            // traversesAllNodeOut.close();
-            IOUtils.closeQuietly(traversesAllNodeOut);
+            IOUtils.closeQuietly(traversesAllNodeOut, (ex) -> {
+                logger.error(ex.getMessage(), ex);
+            });
         }
 
     }
@@ -565,186 +494,6 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
      */
     public File getSpringConfigFilesDir() {
         return new File(StreamContextConstant.getStreamScriptRootDir(this.collectionName, this.timestamp), "scriptconfig");
-    }
-
-    public static class MapDataMethodCreator {
-        // 需要聚合的表
-        private final EntityName entityName;
-        private final TisGroupBy groups;
-        private final Set<String> relefantCols;
-        private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
-
-        public MapDataMethodCreator(EntityName entityName, TisGroupBy groups, IStreamIncrGenerateStrategy streamIncrGenerateStrategy, Set<String> relefantCols) {
-            super();
-            this.entityName = entityName;
-            this.groups = groups;
-//            this.erRules = erRules;
-            this.relefantCols = relefantCols;
-            this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
-        }
-
-//        public final String capitalizeEntityName() {
-//            return StringUtils.capitalize(entityName.getTabName());
-//        }
-
-        // 实体复数
-//        public String entities() {
-//            return this.entityName.getTabName() + "s";
-//        }
-
-        public String getMapDataMethodName() {
-            return "map" + this.entityName.capitalizeEntityName() + "Data";
-        }
-
-
-        /**
-         * @return
-         */
-        public String getGenerateMapDataMethodBody() {
-            IERRules erRule = streamIncrGenerateStrategy.getERRule();
-            FunctionVisitor.FuncFormat funcFormat = new FunctionVisitor.FuncFormat();
-
-            funcFormat.appendLine("val " + this.entityName.entities()
-                    + "ThreadLocal : ThreadLocal[Map[GroupKey, GroupValues]]  = addThreadLocalVal()");
-
-            funcFormat.returnLine();
-
-            // funcFormat.methodBody( //
-            // "private Map<GroupKey, GroupValues> " + getMapDataMethodName() +
-            // "(IRowValueGetter "
-            // + this.entityName.getTabName() + ")",
-            funcFormat.methodBody( //
-                    "private def " + getMapDataMethodName() + "( " + this.entityName.getJavaEntityName()
-                            + " : IRowValueGetter) : scala.collection.mutable.Map[GroupKey, GroupValues] =",
-                    (r) -> {
-                        r.startLine("var result :scala.collection.mutable.Map[GroupKey, GroupValues] = " + this.entityName.entities()
-                                + "ThreadLocal.get()");
-
-                        //r.startLine("var " + this.entityName.entities() + ": List[" + ROW_MAP_CLASS_NAME + "]  = null");
-
-                        r.startLine(this.entityName.buildDefineRowMapListLiteria());
-
-                        r.methodBody("if (result != null)", (m) -> {
-                            m.appendLine(" return result");
-                        });
-                        if (groups.getGroups().size() < 1) {
-                            throw new IllegalStateException("groups.getGroups().size() can not small than 1");
-                        }
-                        TableRelation parentRel = null;
-
-                        Optional<PrimaryTableMeta> ptab = erRule.isPrimaryTable(this.entityName.getTabName());
-                        if (ptab.isPresent()) {
-                            // 如果聚合表本身就是主表的话，那它只需要查询自己就行了
-                            PrimaryTableMeta p = ptab.get();
-                            parentRel = new TableRelation();
-//                            parentRel.setParent(null);
-//                            parentRel.setChild(null);
-                            parentRel.setCardinality(TabCardinality.ONE_N.getToken());
-                            // List<JoinerKey> joinerKeys = Lists.newArrayList();
-                            parentRel.setJoinerKeys(p.getPrimaryKeyNames().stream().map((rr) -> new JoinerKey(rr.getName(), rr.getName())).collect(Collectors.toList()));
-                        } else {
-                            Optional<TableRelation> firstParentRel = erRule.getFirstParent(this.entityName.getTabName());
-                            if (!firstParentRel.isPresent()) {
-                                throw new IllegalStateException("first parent table can not be null ,child table:" + this.entityName);
-                            }
-                            parentRel = firstParentRel.get();
-                        }
-
-                        if (!parentRel.isCardinalityEqual(TabCardinality.ONE_N)) {
-                            throw new IllegalStateException("rel" + parentRel + " execute aggreate mush be an rel cardinality:" + TabCardinality.ONE_N);
-                        }
-
-                        List<TisGroupBy.TisColumn> linkKeys = Lists.newArrayList();
-
-                        try {
-                            TisGroupBy.TisColumn col = null;
-                            for (LinkKeys linkKey : parentRel.getCurrentTableRelation(true).getTailerKeys()) {
-                                col = new TisGroupBy.TisColumn(linkKey.getHeadLinkKey());
-                                linkKeys.add(col);
-                                r.appendLine("val " + col.getJavaVarName() + ":String = " + entityName.getJavaEntityName()
-                                        + ".getColumn(\"" + col.getColname() + "\")");
-                            }
-                        } catch (Exception e) {
-                            throw new RuntimeException(parentRel.toString(), e);
-                        }
-
-
-                        r.appendLine(this.entityName.buildDefineCriteriaEqualLiteria());
-
-                        r.startLine(this.entityName.buildCreateCriteriaLiteria());
-
-
-                        for (TisGroupBy.TisColumn g : linkKeys) {
-                            r.append(g.buildPropCriteriaEqualLiteria());
-                        }
-
-
-                        // 外键查询键也要出现在select列中
-                        final Set<String> selCols = Sets.newHashSet();
-                        selCols.addAll(this.relefantCols);
-                        this.groups.getGroups().stream().forEach((e) -> {
-                            selCols.add(e.getColname());
-                        });
-
-                        r.startLine(this.entityName.buildAddSelectorColsLiteria(selCols));
-
-                        r.startLine(this.entityName.buildExecuteQueryDAOLiteria());
-
-                        r.startLine("result = scala.collection.mutable.Map[GroupKey, GroupValues]()");
-
-                        r.startLine("var vals : Option[GroupValues] = null");
-                        r.startLine("var groupKey: GroupKey = null");
-
-                        r.buildRowMapTraverseLiteria(this.entityName, (m) -> {
-
-                            m.startLine("groupKey = GroupKey.createCacheKey(") //
-                                    .append(groups.getGroups().stream()
-                                            .map((rr) -> "\"" + rr.getColname() + "\",r.getColumn(\"" + (rr.getColname()) + "\")").collect(Collectors.joining(",")));
-                            m.append(")").returnLine();
-
-                            m.appendLine("vals = result.get(groupKey)");
-                            m.appendLine("if (vals.isEmpty) {");
-
-                            m.appendLine("  result +=(groupKey.clone() -> new GroupValues(r)) ");
-                            m.appendLine("}else{");
-                            m.appendLine(" vals.get.addVal(r)");
-                            m.appendLine("}");
-
-                        });
-
-
-//                        r.methodBody("for ( ( r:" + ROW_MAP_CLASS_NAME + ") <- " + this.entityName.entities() + ".asScala)",
-//                                (m) -> {
-//
-//                                    m.startLine("groupKey = GroupKey.createCacheKey(")
-//                                            .append(Joiner.on(",")
-//                                                    .join(groups.getGroups().stream()
-//                                                            .map((rr) -> "r.getColumn(\"" + (rr.getColname()) + "\")")
-//                                                            .iterator()));
-//                                    m.append(")").returnLine();
-//
-//                                    m.appendLine("vals = result.get(groupKey)");
-//                                    m.appendLine("if (vals.isEmpty) {");
-//                                    // m.appendLine(" vals = new
-//                                    // GroupValues();");
-//                                    // m.appendLine("
-//                                    // result.put(groupKey.clone(),
-//                                    // vals);");
-//                                    m.appendLine("  result +=(groupKey.clone() -> new GroupValues(r)) ");
-//                                    m.appendLine("}else{");
-//                                    m.appendLine(" vals.get.addVal(r)");
-//                                    m.appendLine("}");
-//
-//                                });
-
-                        r.appendLine(this.entityName.entities() + "ThreadLocal.set(result);");
-                        r.appendLine("return result;");
-
-                    });
-
-            return funcFormat.toString();
-        }
-
     }
 
     private final Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap = Maps.newHashMap();

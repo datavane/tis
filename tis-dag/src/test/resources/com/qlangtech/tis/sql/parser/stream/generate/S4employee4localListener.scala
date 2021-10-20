@@ -83,7 +83,7 @@ shardIdVal
 
 protected override def processColsMeta(builder: BuilderList): Unit = {
 val employeesBuilder:AliasList.Builder = builder.add("employees").setPrimaryTableOfIndex()
-employeesBuilder.add( // 
+employeesBuilder.add( //
 ("processTime").processTimeVer()
 ,("gender")
 ,("emp_no").PK()

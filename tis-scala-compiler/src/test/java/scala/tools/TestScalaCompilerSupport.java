@@ -18,6 +18,7 @@ import com.qlangtech.tis.sql.parser.DBNode;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
+import com.qlangtech.tis.sql.parser.IDBNodeMeta;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import scala.tools.scala_maven_executions.LogProcessorUtils;
@@ -55,7 +56,7 @@ public class TestScalaCompilerSupport extends TestCase {
     }
 
     private boolean streamScriptCompile(File sourceRoot, Set<DBNode> dependencyDBNodes, LogProcessorUtils.LoggerListener loggerListener) throws Exception {
-        Set<String> dbDependenciesClasspath = DBNode.appendDBDependenciesClasspath(dependencyDBNodes);
+        Set<String> dbDependenciesClasspath = IDBNodeMeta.appendDBDependenciesClasspath(dependencyDBNodes);
         return ScalaCompilerSupport.streamScriptCompile(sourceRoot, dbDependenciesClasspath, loggerListener);
     }
 }
