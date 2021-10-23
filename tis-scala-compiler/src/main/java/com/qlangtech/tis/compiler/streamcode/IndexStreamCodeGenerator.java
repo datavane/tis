@@ -16,7 +16,6 @@ package com.qlangtech.tis.compiler.streamcode;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.compiler.java.FileObjectsContext;
-import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
 import com.qlangtech.tis.compiler.java.ResourcesFile;
 import com.qlangtech.tis.compiler.java.ZipPath;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -133,7 +132,7 @@ public class IndexStreamCodeGenerator {
         if (!parent.exists()) {
             throw new IllegalStateException("file:" + parent.getAbsolutePath() + " is not exist");
         }
-        JavaCompilerProcess.traversingFiles(childPath, parent, xmlConfigs, (zp, child) -> {
+        FileObjectsContext.traversingFiles(childPath, parent, xmlConfigs, (zp, child) -> {
             ZipPath zipPath = new ZipPath(zp, child.getName(), JavaFileObject.Kind.OTHER);
             ResourcesFile res = new ResourcesFile(zipPath, child);
             xmlConfigs.resources.add(res);

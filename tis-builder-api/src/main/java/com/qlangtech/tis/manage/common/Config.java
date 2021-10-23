@@ -234,16 +234,27 @@ public class Config {
 
     public static TestCfgStream openTestCfgStream() throws IOException {
         String propertiesFile = "tis-web-config/config.properties";
-        File f = new File("../" + propertiesFile);
-        TestCfgStream cfgStream = new TestCfgStream(f);
-        if (!f.exists()) {
-            f = new File(propertiesFile);
-            cfgStream = new TestCfgStream(f);
-            if (!f.exists()) {
-                return cfgStream;
+        File f = new File("../../" + propertiesFile);
+        if (f.exists()) {
+            return new TestCfgStream(f);
+        } else {
+            f = new File("../" + propertiesFile);
+            if (f.exists()) {
+                return new TestCfgStream(f);
+            } else {
+                f = new File(propertiesFile);
+                return new TestCfgStream(f);
             }
         }
-        return cfgStream.setPropsStream(FileUtils.openInputStream(f));
+//        TestCfgStream cfgStream = new TestCfgStream(f);
+//        if (!f.exists()) {
+//            f = new File(propertiesFile);
+//            cfgStream = new TestCfgStream(f);
+//            if (!f.exists()) {
+//                return cfgStream;
+//            }
+//        }
+        //return cfgStream.setPropsStream(FileUtils.openInputStream(f));
     }
 
     public static class TestCfgStream {
@@ -271,9 +282,16 @@ public class Config {
 
         public TestCfgStream(File propsFile) {
             this.propsFile = propsFile;
+            try {
+                if (propsFile.exists()) {
+                    this.setPropsStream(FileUtils.openInputStream(propsFile));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
-        public TestCfgStream setPropsStream(InputStream propsStream) {
+        private TestCfgStream setPropsStream(InputStream propsStream) {
             this.propsStream = propsStream;
             return this;
         }

@@ -106,12 +106,12 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
     TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
     MockWebSocketMessagePush wsMessagePush = new MockWebSocketMessagePush();
     MockMQConsumerStatus mqConsumerStatus = new MockMQConsumerStatus();
-    IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(
-      this.collectionName, wsMessagePush, transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, mqConsumerStatus, zookeeper);
+//    IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(
+//      this.collectionName, wsMessagePush, transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, mqConsumerStatus, zookeeper);
 
     EasyMock.replay(zookeeper, coordinator);
 
-    incrTagHeatBeatMonitor.build();
+    //incrTagHeatBeatMonitor.build();
     assertEquals(6, wsMessagePush.count);
 
     EasyMock.verify(zookeeper, coordinator);

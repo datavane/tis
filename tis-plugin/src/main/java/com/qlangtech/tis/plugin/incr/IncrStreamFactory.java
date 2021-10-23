@@ -15,6 +15,7 @@
 package com.qlangtech.tis.plugin.incr;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.compiler.incr.ICompileAndPackage;
 import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -26,11 +27,16 @@ import com.qlangtech.tis.plugin.IdentityName;
  */
 public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IdentityName {
 
-   // public static final String FLINK_STREM = "flink_Stream";
+    // public static final String FLINK_STREM = "flink_Stream";
 
     public abstract IRCController getIncrSync();
 
-    public CompileAndPackage getCompileAndPackageManager();
+    /**
+     * 取得增量执行单元，脚本编译器
+     *
+     * @return
+     */
+    public abstract ICompileAndPackage getCompileAndPackageManager();
 
     @Override
     public final Descriptor<IncrStreamFactory> getDescriptor() {

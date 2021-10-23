@@ -35,13 +35,13 @@ import java.util.Map;
  */
 public enum JobType {
 
-    IndexJobRunning(1, "JobRunning"),
-    // 
-    QueryIndexJobRunningStatus(2, "QueryIncrStatus"),
-    // incr process tags的状态
-    Collection_TopicTags_status(3, "collection_topic_tags_status"),
-    // 取得增量监听的tags
-    ACTION_getTopicTags(4, "get_topic_tags");
+    IndexJobRunning(1, "JobRunning");
+//    //
+//    QueryIndexJobRunningStatus(2, "QueryIncrStatus"),
+//    // incr process tags的状态
+//    Collection_TopicTags_status(3, "collection_topic_tags_status"),
+//    // 取得增量监听的tags
+//    ACTION_getTopicTags(4, "get_topic_tags");
 
     public int getValue() {
         return value;
@@ -105,7 +105,7 @@ public enum JobType {
         params.add(new HttpUtils.PostParam("collection", collectionName));
         params.add(new HttpUtils.PostParam("action", this.getName()));
         params.addAll(extraParams);
-        return // 
+        return //
                 HttpUtils.post(//
                         applyUrl, //
                         params, new PostFormStreamProcess<RemoteCallResult>() {

@@ -54,8 +54,7 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
-import com.qlangtech.tis.realtime.yarn.rpc.IndexJobRunningStatus;
-import com.qlangtech.tis.realtime.yarn.rpc.JobType;
+//import com.qlangtech.tis.realtime.yarn.rpc.JobType;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.ClusterStateCollectAction;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
@@ -209,14 +208,14 @@ public class CoreAction extends BasicModule {
     RcDeployment rcConfig = k8s.getRcConfig(getRcConfigInCache);
     incrStatus.setK8sReplicationControllerCreated(rcConfig != null);
     if (rcConfig != null) {
-      incrStatus.setRcDeployment(rcConfig);
-      JobType.RemoteCallResult<IndexJobRunningStatus> callResult
-        = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
-        getAssembleNodeAddress(module.getSolrZkClient()),
-        module.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
-      if (callResult.success) {
-        incrStatus.setIncrProcess(callResult.biz);
-      }
+//      incrStatus.setRcDeployment(rcConfig);
+//      JobType.RemoteCallResult<IndexJobRunningStatus> callResult
+//        = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
+//        getAssembleNodeAddress(module.getSolrZkClient()),
+//        module.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
+//      if (callResult.success) {
+      incrStatus.setIncrProcess(null);
+      //}
     }
     return incrStatus;
   }
@@ -311,7 +310,7 @@ public class CoreAction extends BasicModule {
 //
 //      collectionBindIncrStreamFactoryStore.setPlugins(module, Optional.of(context)
 //        , Collections.singletonList(flinkStreamDesc.newInstance(module, Collections.emptyMap(), Optional.empty())));
-      throw new IllegalStateException("collectionName:" + module.getCollectionName() + " relevant plugin can not be null "+ IncrStreamFactory.class.getName());
+      throw new IllegalStateException("collectionName:" + module.getCollectionName() + " relevant plugin can not be null " + IncrStreamFactory.class.getName());
     }
     //}
     // 这里永远是false应该
@@ -926,25 +925,25 @@ public class CoreAction extends BasicModule {
     k8sDelegate.removeIncrProcess();
   }
 
-  /**
-   * 控制增量任务暂停继续，當增量任務需要重啟或者過載的情况下需要重启增量执行节点，需要先将管道中的数据全部排空
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
-  public void doIncrResumePause(Context context) throws Exception {
-    boolean pause = this.getBoolean("pause");
-    final String collection = this.getAppDomain().getAppName();
-
-    JobType.RemoteCallResult<?> callResult = JobType.IndexJobRunning.assembIncrControl(
-      getAssembleNodeAddress(this.getSolrZkClient()), collection, Lists.newArrayList(new PostParam("stop", pause)), null);
-    if (!callResult.success) {
-      this.addErrorMessage(context, callResult.msg);
-      return;
-    }
-    this.addActionMessage(context, collection + ":增量任务状态变为:" + (pause ? "暂停" : "启动"));
-  }
+//  /**
+//   * 控制增量任务暂停继续，當增量任務需要重啟或者過載的情况下需要重启增量执行节点，需要先将管道中的数据全部排空
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
+//  public void doIncrResumePause(Context context) throws Exception {
+//    boolean pause = this.getBoolean("pause");
+//    final String collection = this.getAppDomain().getAppName();
+//
+//    JobType.RemoteCallResult<?> callResult = JobType.IndexJobRunning.assembIncrControl(
+//      getAssembleNodeAddress(this.getSolrZkClient()), collection, Lists.newArrayList(new PostParam("stop", pause)), null);
+//    if (!callResult.success) {
+//      this.addErrorMessage(context, callResult.msg);
+//      return;
+//    }
+//    this.addActionMessage(context, collection + ":增量任务状态变为:" + (pause ? "暂停" : "启动"));
+//  }
 
   //
 

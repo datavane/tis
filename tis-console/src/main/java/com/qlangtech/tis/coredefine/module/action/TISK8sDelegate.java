@@ -48,7 +48,7 @@ public class TISK8sDelegate {
       @Override
       public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
         if (event.heteroEnum == HeteroEnum.PARAMS_CONFIG
-          //  || event.heteroEnum == HeteroEnum.INCR_K8S_CONFIG
+          || event.heteroEnum == HeteroEnum.INCR_STREAM_CONFIG
         ) {
           colIncrLogMap.values().forEach((r) -> {
             r.close();

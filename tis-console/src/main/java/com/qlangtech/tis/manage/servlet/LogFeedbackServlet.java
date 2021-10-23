@@ -270,24 +270,24 @@ public class LogFeedbackServlet extends WebSocketServlet {
             throw new RuntimeException("taskid:" + taskid, e);
           }
         });
-      } else if (monitorTarget.testLogType(LogType.MQ_TAGS_STATUS)) {
-        PluginStore<MQListenerFactory> mqListenerFactory = TIS.getPluginStore(this.collectionName, MQListenerFactory.class);
-        MQListenerFactory plugin = mqListenerFactory.getPlugin();
-        // 增量节点处理
-        final Map<String, TopicTagStatus> /* this.tag */
-          transferTagStatus = new HashMap<>();
-        final Map<String, TopicTagStatus> /* this.tag */
-          binlogTopicTagStatus = new HashMap<>();
-        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName);
-        // 如果size为0，则说明远程工作节点没有正常执行
-        if (focusTags.size() > 0) {
-          TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
-          executorService.execute(() -> {
-            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName, this
-              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, plugin.createConsumerStatus(), zkGetter);
-            incrTagHeatBeatMonitor.build();
-          });
-        }
+      //} else if (monitorTarget.testLogType(LogType.MQ_TAGS_STATUS)) {
+//        PluginStore<MQListenerFactory> mqListenerFactory = TIS.getPluginStore(this.collectionName, MQListenerFactory.class);
+//        MQListenerFactory plugin = mqListenerFactory.getPlugin();
+//        // 增量节点处理
+//        final Map<String, TopicTagStatus> /* this.tag */
+//          transferTagStatus = new HashMap<>();
+//        final Map<String, TopicTagStatus> /* this.tag */
+//          binlogTopicTagStatus = new HashMap<>();
+//        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName);
+//        // 如果size为0，则说明远程工作节点没有正常执行
+//        if (focusTags.size() > 0) {
+//          TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
+//          executorService.execute(() -> {
+//            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName, this
+//              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, plugin.createConsumerStatus(), zkGetter);
+//            incrTagHeatBeatMonitor.build();
+//          });
+//        }
       } else {
         throw new IllegalStateException("monitor type:" + monitorTarget + " is illegal");
       }
@@ -412,18 +412,18 @@ public class LogFeedbackServlet extends WebSocketServlet {
     }
   }
 
-  public static List<TopicTagIncrStatus.FocusTags> getFocusTags(ITISCoordinator zookeeper, String collectionName) throws MalformedURLException {
-    //
-    JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(
-      CoreAction.getAssembleNodeAddress(zookeeper),
-      collectionName, Collections.emptyList(), TopicInfo.class);
-    if (topicInfo.biz.getTopicWithTags().size() < 1) {
-      // 返回为空的话可以证明没有正常启动
-      return Collections.emptyList();
-    }
-    TopicInfo topicTags = topicInfo.biz;
-    return topicTags.getTopicWithTags().entrySet().stream().map((entry) -> new TopicTagIncrStatus.FocusTags(entry.getKey(), entry.getValue())).collect(Collectors.toList());
-  }
+//  public static List<TopicTagIncrStatus.FocusTags> getFocusTags(ITISCoordinator zookeeper, String collectionName) throws MalformedURLException {
+//    //
+//    JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(
+//      CoreAction.getAssembleNodeAddress(zookeeper),
+//      collectionName, Collections.emptyList(), TopicInfo.class);
+//    if (topicInfo.biz.getTopicWithTags().size() < 1) {
+//      // 返回为空的话可以证明没有正常启动
+//      return Collections.emptyList();
+//    }
+//    TopicInfo topicTags = topicInfo.biz;
+//    return topicTags.getTopicWithTags().entrySet().stream().map((entry) -> new TopicTagIncrStatus.FocusTags(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+//  }
 
   static class TagCountMap extends HashMap<String, /* tag */
     Integer> {

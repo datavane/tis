@@ -19,36 +19,32 @@ import com.google.common.collect.Lists;
 import com.koubei.abator.KoubeiIbatorRunner;
 import com.koubei.abator.KoubeiProgressCallback;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.compiler.java.FileObjectsContext;
+import com.qlangtech.tis.compiler.java.IOutputEntry;
 import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
-import com.qlangtech.tis.compiler.java.MyJavaFileManager;
-import com.qlangtech.tis.compiler.java.NestClassFileObject;
 import com.qlangtech.tis.coredefine.module.action.IbatorProperties;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.FacadeDataSource;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.IDBNodeMeta;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.ibator.config.IbatorContext;
-import scala.tools.ScalaCompilerSupport;
-import scala.tools.scala_maven_executions.LogProcessorUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -77,13 +73,27 @@ public class GenerateDAOAndIncrScript {
         generateIncrScript(context, incrStatus, compilerAndPackage, Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables()));
     }
 
+    public static boolean incrStreamCodeCompileFaild(File sourceRootDir) {
+        File compileFaildToken = new File(sourceRootDir, IOutputEntry.KEY_COMPILE_FAILD_FILE);
+        boolean exist = compileFaildToken.exists();
+        try {
+            if (exist) {
+                // 如果不存在需要将之前的文件夹清空一下
+                org.apache.commons.io.FileUtils.deleteDirectory(sourceRootDir);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return exist;
+    }
+
     public void generateIncrScript(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<DBNode, List<String>> dbNameMap) {
         try {
             //final Map<DBNode, List<String>> dbNameMap = Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables());
             File sourceRoot = StreamContextConstant.getStreamScriptRootDir(
                     indexStreamCodeGenerator.collection, indexStreamCodeGenerator.incrScriptTimestamp);
             if (!indexStreamCodeGenerator.isIncrScriptDirCreated() || // 检查Faild Token文件是否存在
-                    ScalaCompilerSupport.incrStreamCodeCompileFaild(sourceRoot)) {
+                    incrStreamCodeCompileFaild(sourceRoot)) {
                 /**
                  * *********************************************************************************
                  * 自动生成scala代码
@@ -104,8 +114,15 @@ public class GenerateDAOAndIncrScript {
             incrStatus.setIncrScriptMainFileContent(indexStreamCodeGenerator.readIncrScriptMainFileContent());
             // TODO 真实生产环境中需要 和 代码build阶段分成两步
             if (compilerAndPackage) {
-                CompileAndPackage packager = new CompileAndPackage();
-                packager.process(context, this.msgHandler, indexStreamCodeGenerator.collection, dbNameMap, sourceRoot, indexStreamCodeGenerator.getSpringXmlConfigsObjectsContext());
+
+                PluginStore pluginStore = HeteroEnum.INCR_STREAM_CONFIG.getPluginStore(
+                        IPluginContext.namedContext(this.indexStreamCodeGenerator.collection), null);
+                IncrStreamFactory streamFactory = (IncrStreamFactory) pluginStore.getPlugin();
+                Objects.requireNonNull(streamFactory, "relevant streamFactory can not be null,collection:" + this.indexStreamCodeGenerator.collection);
+//                CompileAndPackage packager = new CompileAndPackage();
+                streamFactory.getCompileAndPackageManager().process(context, this.msgHandler, indexStreamCodeGenerator.collection
+                        , dbNameMap.entrySet().stream().collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()))
+                        , sourceRoot, indexStreamCodeGenerator.getSpringXmlConfigsObjectsContext());
             }
         } catch (Exception e) {
             // 将原始文件删除干净
@@ -261,39 +278,39 @@ public class GenerateDAOAndIncrScript {
         return dbPluginStore;
     }
 
-    private void appendClassFile(File parent, FileObjectsContext fileObjects, final StringBuffer qualifiedClassName) throws IOException {
-        String[] children = parent.list();
-        File childFile = null;
-        for (String child : children) {
-            childFile = new File(parent, child);
-            if (childFile.isDirectory()) {
-                StringBuffer newQualifiedClassName = null;
-                if (qualifiedClassName == null) {
-                    newQualifiedClassName = new StringBuffer(child);
-                } else {
-                    newQualifiedClassName = (new StringBuffer(qualifiedClassName)).append(".").append(child);
-                }
-                appendClassFile(childFile, fileObjects, newQualifiedClassName);
-            } else {
-                final String className = StringUtils.substringBeforeLast(child, ".");
-                //
-                NestClassFileObject fileObj = MyJavaFileManager.getNestClassFileObject(
-                        ((new StringBuffer(qualifiedClassName)).append(".").append(className)).toString(), fileObjects.classMap);
-                try (InputStream input = FileUtils.openInputStream(childFile)) {
-                    IOUtils.copy(input, fileObj.openOutputStream());
-                }
-            }
-        }
-    }
-
-    private boolean streamScriptCompile(File sourceRoot, Set<DBNode> dependencyDBNodes) throws Exception {
-        LogProcessorUtils.LoggerListener loggerListener = new LogProcessorUtils.LoggerListener() {
-
-            @Override
-            public void receiveLog(LogProcessorUtils.Level level, String line) {
-                System.err.println(line);
-            }
-        };
-        return ScalaCompilerSupport.streamScriptCompile(sourceRoot, IDBNodeMeta.appendDBDependenciesClasspath(dependencyDBNodes), loggerListener);
-    }
+//    private void appendClassFile(File parent, FileObjectsContext fileObjects, final StringBuffer qualifiedClassName) throws IOException {
+//        String[] children = parent.list();
+//        File childFile = null;
+//        for (String child : children) {
+//            childFile = new File(parent, child);
+//            if (childFile.isDirectory()) {
+//                StringBuffer newQualifiedClassName = null;
+//                if (qualifiedClassName == null) {
+//                    newQualifiedClassName = new StringBuffer(child);
+//                } else {
+//                    newQualifiedClassName = (new StringBuffer(qualifiedClassName)).append(".").append(child);
+//                }
+//                appendClassFile(childFile, fileObjects, newQualifiedClassName);
+//            } else {
+//                final String className = StringUtils.substringBeforeLast(child, ".");
+//                //
+//                NestClassFileObject fileObj = MyJavaFileManager.getNestClassFileObject(
+//                        ((new StringBuffer(qualifiedClassName)).append(".").append(className)).toString(), fileObjects.classMap);
+//                try (InputStream input = FileUtils.openInputStream(childFile)) {
+//                    IOUtils.copy(input, fileObj.openOutputStream());
+//                }
+//            }
+//        }
+//    }
+//
+//    private boolean streamScriptCompile(File sourceRoot, Set<DBNode> dependencyDBNodes) throws Exception {
+//        LogProcessorUtils.LoggerListener loggerListener = new LogProcessorUtils.LoggerListener() {
+//
+//            @Override
+//            public void receiveLog(LogProcessorUtils.Level level, String line) {
+//                System.err.println(line);
+//            }
+//        };
+//        return ScalaCompilerSupport.streamScriptCompile(sourceRoot, IDBNodeMeta.appendDBDependenciesClasspath(dependencyDBNodes), loggerListener);
+//    }
 }

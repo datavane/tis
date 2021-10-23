@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.IPluginContext;
@@ -86,7 +87,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             conn = getConnection(jdbcUrl);
             p.vist(conn);
         } catch (Exception e) {
-            throw new IllegalStateException("jdbcUrl:" + jdbcUrl, e);
+            throw new TisException(e.getMessage() + ",jdbcUrl:" + jdbcUrl, e);
         } finally {
             if (conn != null) {
                 try {

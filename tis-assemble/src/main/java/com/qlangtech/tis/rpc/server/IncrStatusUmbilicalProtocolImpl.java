@@ -32,7 +32,7 @@ import com.qlangtech.tis.realtime.transfer.IIncreaseCounter;
 import com.qlangtech.tis.realtime.transfer.TableMultiDataIndexStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.ConsumeDataKeeper;
 import com.qlangtech.tis.realtime.yarn.rpc.IndexJobRunningStatus;
-import com.qlangtech.tis.realtime.yarn.rpc.JobType;
+
 import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
 import com.qlangtech.tis.realtime.yarn.rpc.impl.YarnStateStatistics;
 import com.tis.hadoop.rpc.StatusRpcClient;
@@ -333,7 +333,8 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         StringBuffer logContent = new StringBuffer("add job to worker by " + indexName + ",stop:" + isPaused + " nodes:");
         for (String uuid : updateCounterStatus.get(indexName).keySet()) {
             com.qlangtech.tis.grpc.MasterJob.Builder masterBuilder = com.qlangtech.tis.grpc.MasterJob.newBuilder();
-            masterBuilder.setJobTypeValue(JobType.IndexJobRunning.getValue());
+            //masterBuilder.setJobTypeValue(JobType.IndexJobRunning.getValue());
+            masterBuilder.setJobTypeValue(1);
             masterBuilder.setIndexName(indexName);
             masterBuilder.setUuid(uuid);
             masterBuilder.setStop(isPaused);

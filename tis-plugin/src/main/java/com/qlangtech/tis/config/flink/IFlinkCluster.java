@@ -1,24 +1,30 @@
 /**
  * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- *
+ * <p>
  * This program is free software: you can use, redistribute, and/or modify
  * it under the terms of the GNU Affero General Public License, version 3
  * or later ("AGPL"), as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package scala.tools.scala_maven_executions;
+
+package com.qlangtech.tis.config.flink;
+
+import com.qlangtech.tis.plugin.IdentityName;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public interface SpawnMonitor {
+ * FlinkCluster Configuration
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-10-23 12:21
+ **/
+public interface IFlinkCluster extends IdentityName {
+    JobManagerAddress getJobManagerAddress();
 
-    boolean isRunning() throws Exception;
+    String getClusterId();
 }

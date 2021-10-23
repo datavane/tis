@@ -194,7 +194,8 @@ public class LogCollectorClient implements ILogReporter {
     public static LogType convert(com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState.LogType logtype) {
         switch (logtype) {
             case MQ_TAGS_STATUS:
-                return LogType.MQ_TAGS_STATUS;
+              //  return LogType.MQ_TAGS_STATUS;
+             throw new UnsupportedOperationException("logtype :"+ logtype);
             case INCR_SEND:
                 return LogType.INCR_SEND;
             case INCR_DEPLOY_STATUS_CHANGE:
@@ -212,7 +213,7 @@ public class LogCollectorClient implements ILogReporter {
 
     static {
         ImmutableMap.Builder logTypeMapBuilder = ImmutableMap.builder();
-        logTypeMapBuilder.put(LogType.MQ_TAGS_STATUS.typeKind, PExecuteState.LogType.MQ_TAGS_STATUS);
+       // logTypeMapBuilder.put(LogType.MQ_TAGS_STATUS.typeKind, PExecuteState.LogType.MQ_TAGS_STATUS);
         logTypeMapBuilder.put(LogType.INCR_SEND.typeKind, PExecuteState.LogType.INCR_SEND);
         logTypeMapBuilder.put(LogType.INCR_DEPLOY_STATUS_CHANGE.typeKind, PExecuteState.LogType.INCR_DEPLOY_STATUS_CHANGE);
         logTypeMapBuilder.put(LogType.FULL.typeKind, PExecuteState.LogType.FULL);

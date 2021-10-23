@@ -13,28 +13,34 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 package com.qlangtech.tis.compiler.java;
 
 import javax.tools.JavaFileObject;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.jar.JarOutputStream;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2019年10月10日
- */
-public interface IOutputEntry {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-10-21 09:42
+ **/
+public class SourceGetterStrategy {
 
-    String KEY_COMPILE_FAILD_FILE = "compile_faild";
+    public final boolean getResource;
 
-    public ByteArrayOutputStream getOutputStream() throws IOException;
+    public final String childSourceDir;
 
-    public ZipPath getZipPath();
+    public final String sourceCodeExtendsion;
 
-    public JavaFileObject getFileObject();
+    public SourceGetterStrategy(boolean getResource, String childSourceDir, String sourceCodeExtendsion) {
+        this.getResource = getResource;
+        this.childSourceDir = childSourceDir;
+        this.sourceCodeExtendsion = sourceCodeExtendsion;
+    }
 
-    public void processSource(JarOutputStream jaroutput) throws Exception;
+    public MyJavaFileObject processMyJavaFileObject(MyJavaFileObject fileObj) {
+        return fileObj;
+    }
 
-    public boolean containCompiledClass();
+    public JavaFileObject.Kind getSourceKind() {
+        return JavaFileObject.Kind.SOURCE;
+    }
 }

@@ -76,7 +76,7 @@ public class MasterJob {
     // WritableUtils.writeString(out, uuid);
     // out.writeLong(createTime);
     // }
-    // 
+    //
     // @Override
     // public void readFields(DataInput in) throws IOException {
     // this.jobType = JobType.parseJobType(in.readInt());
