@@ -13,15 +13,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.qlangtech.tis.config.flink;
+package com.qlangtech.tis.coredefine.module.action;
 
-import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
+import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 
 /**
- * FlinkCluster Configuration
- *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-10-23 12:21
+ * @create: 2021-10-25 12:26
  **/
-public interface IFlinkCluster extends IdentityName, IFlinkClusterConfig {
+public interface IDeploymentDetail {
+    void accept(IDeploymentDetailVisitor visitor);
+
+    public interface IDeploymentDetailVisitor {
+        void visit(RcDeployment rcDeployment);
+
+        void visit(FlinkJobDeploymentDetails details);
+    }
 }

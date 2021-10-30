@@ -90,6 +90,7 @@ public class DataxAction extends BasicModule {
   }
 
 
+
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveTableCreateDdl(Context context) throws Exception {
     JSONObject post = this.parseJsonPost();

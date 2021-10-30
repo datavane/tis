@@ -15,13 +15,14 @@
 
 package com.qlangtech.tis.config.flink;
 
-import com.qlangtech.tis.plugin.IdentityName;
-
 /**
  * FlinkCluster Configuration
  *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-10-23 12:21
  **/
-public interface IFlinkCluster extends IdentityName, IFlinkClusterConfig {
+public interface IFlinkClusterConfig {
+    JobManagerAddress getJobManagerAddress();
+
+    String getClusterId();
 }

@@ -15,6 +15,7 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
+import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 
@@ -57,7 +58,7 @@ public interface IRCController {
      * @param collection
      * @return
      */
-    RcDeployment getRCDeployment(TargetResName collection);
+    IDeploymentDetail getRCDeployment(TargetResName collection);
 
     /**
      * 开始增量监听

@@ -15,13 +15,18 @@
 
 package com.qlangtech.tis.plugin.incr;
 
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.Selectable;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -60,5 +65,14 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory> {
 
 
     public static abstract class BaseSinkFunctionDescriptor extends Descriptor<TISSinkFactory> {
+        @Override
+        public Map<String, Object> getExtractProps() {
+            Map<String, Object> vals = Maps.newHashMap();
+            IDataXPluginMeta.EndType targetType = this.getTargetType();
+            vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
+            return vals;
+        }
+
+        protected abstract IDataXPluginMeta.EndType getTargetType();
     }
 }

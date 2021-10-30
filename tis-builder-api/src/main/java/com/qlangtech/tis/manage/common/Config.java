@@ -22,16 +22,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public class Config {
+
+    private static final String bundlePath = "tis-web-config/config";
+    private static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
+    private static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
 
     public static final String S4TOTALPAY = "search4totalpay";
 
@@ -98,6 +100,24 @@ public class Config {
     }
 
     /**
+     * 在向分布式环境中传递任务时候要把A节点上的环境配置变量传输到B节点上去
+     *
+     * @param consumer
+     */
+    public void visitKeyValPair(Consumer<Map.Entry<String, String>> consumer) {
+        Map<String, String> pairs = new HashMap<>();
+        pairs.put(KEY_ZK_HOST, this.zkHost);
+        pairs.put(KEY_ASSEMBLE_HOST, this.assembleHost);
+        pairs.put(KEY_TIS_HOST, this.tisHost);
+        pairs.put(KEY_RUNTIME, this.runtime);
+        pairs.put(KEY_TIS_DATASOURCE_TYPE, dbCfg.dbtype);
+        pairs.put(KEY_TIS_DATASOURCE_DBNAME, dbCfg.dbname);
+        for (Map.Entry<String, String> e : pairs.entrySet()) {
+            consumer.accept(e);
+        }
+    }
+
+    /**
      * 本地基础配置目录
      *
      * @return
@@ -138,15 +158,13 @@ public class Config {
 
     private final String runtime;
 
-    private static final String bundlePath = "tis-web-config/config";
 
     // 组装节点
     private final String assembleHost;
 
     private final TisDbConfig dbCfg;
 
-    private static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
-    private static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
+
 
     private static final Set<String> localDftValsKeys;
 
@@ -307,7 +325,7 @@ public class Config {
                         if (localDftValsKeys.contains(key)) {
                             return "defaultVal";
                         }
-                        return System.getenv(key);
+                        return StringUtils.defaultIfEmpty(System.getenv(key), System.getProperty(key));
                     }
                 };
             } else {

@@ -27,13 +27,18 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
 import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
 import com.qlangtech.tis.coredefine.biz.FCoreRequest;
+import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
+import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.InstanceDirDesc;
 import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.IIndexMetaData;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
@@ -54,7 +59,6 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
-//import com.qlangtech.tis.realtime.yarn.rpc.JobType;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.ClusterStateCollectAction;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
@@ -68,6 +72,7 @@ import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -97,6 +102,8 @@ import java.util.stream.Collectors;
 
 import static org.apache.solr.common.cloud.ZkStateReader.BASE_URL_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.CORE_NAME_PROP;
+
+//import com.qlangtech.tis.realtime.yarn.rpc.JobType;
 
 /**
  * core 应用定义
@@ -193,6 +200,7 @@ public class CoreAction extends BasicModule {
 
   public static IndexIncrStatus getIndexIncrStatus(BasicModule module, boolean getRcConfigInCache) throws Exception {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
+    doGetDataXReaderWriterDesc(module.getCollectionName(), incrStatus);
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     PluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
     if (store.getPlugin() == null) {
@@ -205,10 +213,21 @@ public class CoreAction extends BasicModule {
       = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
     TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
-    RcDeployment rcConfig = k8s.getRcConfig(getRcConfigInCache);
+    IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
     incrStatus.setK8sReplicationControllerCreated(rcConfig != null);
     if (rcConfig != null) {
-//      incrStatus.setRcDeployment(rcConfig);
+      rcConfig.accept(new IDeploymentDetail.IDeploymentDetailVisitor() {
+        @Override
+        public void visit(RcDeployment rcDeployment) {
+          incrStatus.setRcDeployment(rcDeployment);
+        }
+
+        @Override
+        public void visit(FlinkJobDeploymentDetails details) {
+          incrStatus.setFlinkJobDetail(details);
+        }
+      });
+
 //      JobType.RemoteCallResult<IndexJobRunningStatus> callResult
 //        = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
 //        getAssembleNodeAddress(module.getSolrZkClient()),
@@ -292,7 +311,7 @@ public class CoreAction extends BasicModule {
     List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
     //PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
-
+    doGetDataXReaderWriterDesc(module.getCollectionName(), incrStatus);
 //    if (validateGlobalIncrStreamFactory && store.getPlugin() == null) {
 //      throw new IllegalStateException("global IncrStreamFactory config can not be null");
 //    }
@@ -335,6 +354,23 @@ public class CoreAction extends BasicModule {
     return incrStatus;
   }
 
+
+  private static void doGetDataXReaderWriterDesc(String appName, IndexIncrStatus incrStatus) throws Exception {
+    DataxProcessor dataxProcessor = DataxProcessor.load(null, appName);
+    DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null);
+    incrStatus.setWriterDesc(createDescVals(writer.getDescriptor()));
+
+    DataxReader reader = (DataxReader) dataxProcessor.getReader(null);
+    incrStatus.setReaderDesc(createDescVals(reader.getDescriptor()));
+  }
+
+  private static HashMap<String, Object> createDescVals(Descriptor writerDesc) {
+    HashMap<String, Object> newExtraProps = Maps.newHashMap(writerDesc.getExtractProps());
+    newExtraProps
+      .put(DescriptorsJSON.KEY_EXTEND_POINT, writerDesc.getT().getName());
+    return newExtraProps;
+  }
+
   /**
    * 编译打包
    *
@@ -368,6 +404,11 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doDeployIncrSyncChannal(Context context) throws Exception {
+    // 先进行打包编译
+    this.doCompileAndPackage(context);
+    if (context.hasErrors()) {
+      return;
+    }
     // IncrUtils.IncrSpecResult applySpec = IncrUtils.parseIncrSpec(context, this.parseJsonPost(), this);
     // if (!applySpec.isSuccess()) {
     //   return;

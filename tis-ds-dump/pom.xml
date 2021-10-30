@@ -4,8 +4,8 @@
 
 	<parent>
 		<groupId>com.qlangtech.tis</groupId>
-		<artifactId>tis-solr-parent</artifactId>
-		<version>3.0.0</version>
+		<artifactId>tis</artifactId>
+		<version>3.1.0</version>
 	</parent>
 
 	<groupId>com.qlangtech.tis</groupId>
@@ -53,11 +53,11 @@
 -->
 		</plugins>
 	</build>
-	<!-- <profiles> <profile> <id>dev</id> <properties> <env>test</env> </properties> 
-		<activation> <activeByDefault>true</activeByDefault> </activation> </profile> 
-		<profile> <id>daily</id> <properties> <env>test</env> </properties> </profile> 
-		<profile> <id>pre</id> <properties> <env>online</env> </properties> </profile> 
-		<profile> <id>publish</id> <properties> <env>online</env> </properties> </profile> 
+	<!-- <profiles> <profile> <id>dev</id> <properties> <env>test</env> </properties>
+		<activation> <activeByDefault>true</activeByDefault> </activation> </profile>
+		<profile> <id>daily</id> <properties> <env>test</env> </properties> </profile>
+		<profile> <id>pre</id> <properties> <env>online</env> </properties> </profile>
+		<profile> <id>publish</id> <properties> <env>online</env> </properties> </profile>
 		</profiles> -->
 
 	<dependencies>

@@ -12,9 +12,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.qlangtech.tis.coredefine.module.action;
+package com.qlangtech.tis.coredefine.module.action.impl;
 
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
+import com.qlangtech.tis.coredefine.module.action.IDeploymentDetail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-09-02 12:32
  */
-public class RcDeployment extends ReplicasSpec {
+public class RcDeployment extends ReplicasSpec implements IDeploymentDetail {
 
     // 创建时间
     private long creationTimestamp;
@@ -79,6 +80,11 @@ public class RcDeployment extends ReplicasSpec {
 
     public void setCreationTimestamp(long creationTimestamp) {
         this.creationTimestamp = creationTimestamp;
+    }
+
+    @Override
+    public void accept(IDeploymentDetailVisitor visitor) {
+        visitor.visit(this);
     }
 
     public static class ReplicationControllerStatus {

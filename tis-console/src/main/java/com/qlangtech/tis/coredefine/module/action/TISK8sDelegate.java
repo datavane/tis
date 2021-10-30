@@ -18,6 +18,8 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.impl.AdapterRCController;
+import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
+import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
@@ -73,8 +75,9 @@ public class TISK8sDelegate {
 
 
   private final IRCController incrSync;
+  //private RcDeployment incrDeployment;
+  private IDeploymentDetail incrDeployment;
 
-  private RcDeployment incrDeployment;
 
   private long latestIncrDeploymentFetchtime;
 
@@ -129,7 +132,7 @@ public class TISK8sDelegate {
     return getRcConfig(canGetCache) != null;
   }
 
-  public RcDeployment getRcConfig(boolean canGetCache) {
+  public IDeploymentDetail getRcConfig(boolean canGetCache) {
     long current = System.currentTimeMillis();
     // 40秒缓存
     if (!canGetCache || this.incrDeployment == null || (current > (latestIncrDeploymentFetchtime + 40000))) {
@@ -138,9 +141,21 @@ public class TISK8sDelegate {
       if (this.incrDeployment == null) {
         return null;
       }
-      this.watchPodLogMap.entrySet().removeIf((entry) -> {
-        return !incrDeployment.getPods().stream().filter((p) -> StringUtils.equals(p.getName(), entry.getKey())).findFirst().isPresent();
+      this.incrDeployment.accept(new IDeploymentDetail.IDeploymentDetailVisitor() {
+        @Override
+        public void visit(RcDeployment rcDeployment) {
+          watchPodLogMap.entrySet().removeIf((entry) -> {
+            return !rcDeployment.getPods().stream().filter((p) -> StringUtils.equals(p.getName(), entry.getKey())).findFirst().isPresent();
+          });
+        }
+
+        @Override
+        public void visit(FlinkJobDeploymentDetails details) {
+          // throw new UnsupportedOperationException();
+        }
       });
+
+
     }
     return incrDeployment;
   }

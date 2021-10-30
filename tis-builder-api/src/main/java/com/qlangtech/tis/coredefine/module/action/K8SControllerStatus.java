@@ -15,6 +15,8 @@
 
 package com.qlangtech.tis.coredefine.module.action;
 
+import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-06 10:59
@@ -22,7 +24,16 @@ package com.qlangtech.tis.coredefine.module.action;
 public class K8SControllerStatus {
     // k8s的RC是否已经创建
     private boolean k8sReplicationControllerCreated;
-    private RcDeployment rcDeployment;
+    private IDeploymentDetail rcDeployment;
+    private FlinkJobDeploymentDetails flinJobDetail;
+
+    public FlinkJobDeploymentDetails getFlinkJobDetail() {
+        return flinJobDetail;
+    }
+
+    public void setFlinkJobDetail(FlinkJobDeploymentDetails flinJobDetail) {
+        this.flinJobDetail = flinJobDetail;
+    }
 
     // private MqConfigMeta mqConfig;
     public boolean isK8sReplicationControllerCreated() {
@@ -33,11 +44,11 @@ public class K8SControllerStatus {
         this.k8sReplicationControllerCreated = k8sReplicationControllerCreated;
     }
 
-    public RcDeployment getRcDeployment() {
+    public IDeploymentDetail getRcDeployment() {
         return rcDeployment;
     }
 
-    public void setRcDeployment(RcDeployment rcDeployment) {
+    public void setRcDeployment(IDeploymentDetail rcDeployment) {
         this.rcDeployment = rcDeployment;
     }
 }

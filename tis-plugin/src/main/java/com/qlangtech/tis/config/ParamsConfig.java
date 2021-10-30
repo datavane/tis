@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.config;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -59,6 +60,7 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     }
 
     @Override
+    @JSONField(serialize = false)
     public final Descriptor<ParamsConfig> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }

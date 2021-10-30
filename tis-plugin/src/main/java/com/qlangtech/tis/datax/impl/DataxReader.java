@@ -15,6 +15,7 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -179,7 +180,19 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = new HashMap<>();
             eprops.put("rdbms", this.isRdbms());
+            if (this.getEndType() != null) {
+                eprops.put("endType", this.getEndType().getVal());
+            }
             return eprops;
+        }
+
+        /**
+         * 如果返回null则说明不支持增量同步功能
+         *
+         * @return
+         */
+        protected IDataXPluginMeta.EndType getEndType() {
+            return null;
         }
 
 

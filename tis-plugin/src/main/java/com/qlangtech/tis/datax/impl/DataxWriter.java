@@ -15,6 +15,7 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -102,7 +103,19 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             eprops.put("supportMultiTable", this.isSupportMultiTable());
             eprops.put("rdbms", this.isRdbms());
             eprops.put("createDDL", this.isSupportTabCreate());
+            if (this.getEndType() != null) {
+                eprops.put("endType", this.getEndType().getVal());
+            }
             return eprops;
+        }
+
+        /**
+         * 如果返回null则说明不支持增量同步功能
+         *
+         * @return
+         */
+        protected IDataXPluginMeta.EndType getEndType() {
+            return null;
         }
 
         /**

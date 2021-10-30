@@ -10,16 +10,15 @@
         <version>1.1.0</version>
     </parent>
 
-
     <groupId>com.qlangtech.tis</groupId>
-    <artifactId>tis-solr-parent</artifactId>
+    <artifactId>tis</artifactId>
     <!--https://maven.apache.org/maven-ci-friendly.html-->
-    <version>3.0.0</version>
+    <version>3.1.0</version>
     <packaging>pom</packaging>
-    <name>tis-solr-parent</name>
+    <name>tis</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <flink.version>1.13.1</flink.version>
+        <flink.version>tis-1.13.1</flink.version>
         <alibaba.datax.version>0.0.1-SNAPSHOT</alibaba.datax.version>
         <tisasm.oss.put.skip>true</tisasm.oss.put.skip>
         <timestamp>${maven.build.timestamp}</timestamp>

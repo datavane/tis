@@ -79,7 +79,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     @TISExtension
     public static final HeteroEnum<MQListenerFactory> MQ = new HeteroEnum<MQListenerFactory>(//
             MQListenerFactory.class, //
-            "mq", "MQ消息监听");
+            "mq", "Source Factory");
     // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<ParamsConfig> PARAMS_CONFIG = new HeteroEnum<ParamsConfig>(//

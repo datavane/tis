@@ -28,6 +28,24 @@ import java.io.InputStream;
  **/
 public interface IDataXPluginMeta {
 
+
+    String END_TARGET_TYPE = "targetType";
+    /**
+     * 端类型
+     */
+    public enum EndType {
+        MySQL("mysql"), Postgres("pg"), ElasticSearch("es");
+        private final String val;
+
+        EndType(String val) {
+            this.val = val;
+        }
+
+        public String getVal() {
+            return this.val;
+        }
+    }
+
     default DataXMeta getDataxMeta() {
         Class<?> clazz = this.getOwnerClass();
         return IOUtils.loadResourceFromClasspath(clazz, clazz.getSimpleName() + "_plugin.json", true

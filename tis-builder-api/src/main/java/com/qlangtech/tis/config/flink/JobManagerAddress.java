@@ -37,4 +37,8 @@ public class JobManagerAddress {
         this.host = host;
         this.port = port;
     }
+
+    public String getURL() {
+        return "http://" + this.host + ":" + this.port;
+    }
 }
