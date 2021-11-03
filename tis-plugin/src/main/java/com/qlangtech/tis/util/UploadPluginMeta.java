@@ -215,6 +215,7 @@ public class UploadPluginMeta {
         IPluginEnum hEnum = getHeteroEnum();
         HeteroList<T> hList = new HeteroList<>(this);
         hList.setCaption(hEnum.getCaption());
+        hList.setIdentityId(hEnum.getIdentity());
         hList.setExtensionPoint(hEnum.getExtensionPoint());
         List<T> items = hEnum.getPlugins(pluginContext, this);
         hList.setItems(items);

@@ -36,6 +36,7 @@ public class HeteroList<T extends Describable<T>> {
     private List<T> items = new ArrayList<>();
 
     private String caption;
+    private String identityId;
 
     private Class<?> extensionPoint;
 
@@ -68,6 +69,10 @@ public class HeteroList<T extends Describable<T>> {
         this.extensionPoint = extensionPoint;
     }
 
+    public void setIdentityId(String identity) {
+        this.identityId = identity;
+    }
+
     public void setDescriptors(List<Descriptor<T>> descriptors) {
         this.descriptors = descriptors;
     }
@@ -95,6 +100,7 @@ public class HeteroList<T extends Describable<T>> {
     public JSONObject toJSON() throws Exception {
         JSONObject o = new JSONObject();
         o.put("caption", this.getCaption());
+        o.put("identityId", this.identityId);
         o.put("cardinality", this.getSelectable().identity);
         o.put("extensionPoint", this.extensionPoint.getName());
 
@@ -112,4 +118,6 @@ public class HeteroList<T extends Describable<T>> {
 
         return o;
     }
+
+
 }

@@ -30,11 +30,12 @@ public interface IDataXPluginMeta {
 
 
     String END_TARGET_TYPE = "targetType";
+
     /**
      * 端类型
      */
     public enum EndType {
-        MySQL("mysql"), Postgres("pg"), ElasticSearch("es");
+        MySQL("mysql"), Postgres("pg"), ElasticSearch("es"), MongoDB("mongo");
         private final String val;
 
         EndType(String val) {
