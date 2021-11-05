@@ -15,17 +15,22 @@
 
 package com.qlangtech.tis.datax.job;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
-import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.coredefine.module.action.RcHpaStatus;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 
 import java.util.List;
@@ -39,7 +44,14 @@ import java.util.Objects;
  **/
 public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
+    public static final String KEY_FIELD_NAME = "k8sImage";
+
     public static final TargetResName K8S_INSTANCE_NAME = new TargetResName("datax-worker");
+    public static final TargetResName K8S_FLINK_CLUSTER_NAME = new TargetResName("flink-cluster");
+
+
+    @FormField(ordinal = 0, type = FormFieldType.SELECTABLE, validate = {Validator.require})
+    public String k8sImage;
 
     public static DataXJobWorker getDataxJobWorker() {
         PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
@@ -94,7 +106,11 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public abstract String getZkQueuePath();
 
-    protected abstract K8sImage getK8SImage();
+    protected final K8sImage getK8SImage() {
+        K8sImage k8sImage = TIS.getPluginStore(K8sImage.class).find(this.k8sImage);
+        Objects.requireNonNull(k8sImage, "k8sImage:" + this.k8sImage + " can not be null");
+        return k8sImage;
+    }
 
     private ReplicasSpec replicasSpec;
 
@@ -142,6 +158,24 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     @Override
     public Descriptor<DataXJobWorker> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
+    }
+
+
+    protected static class BasicDescriptor extends Descriptor<DataXJobWorker> {
+
+        public BasicDescriptor() {
+            super();
+            this.registerSelectOptions(KEY_FIELD_NAME, () -> {
+                PluginStore<K8sImage> images = TIS.getPluginStore(K8sImage.class);
+                return images.getPlugins();
+            });
+        }
+
+        @Override
+        protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+
+            return true;
+        }
     }
 
 

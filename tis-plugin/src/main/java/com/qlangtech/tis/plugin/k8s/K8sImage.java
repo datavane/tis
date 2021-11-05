@@ -47,8 +47,12 @@ public abstract class K8sImage implements Describable<K8sImage>, IdentityName {
      * @return
      */
     public <T> T createApiClient() {
-        ParamsConfig cfg = (ParamsConfig) ParamsConfig.getItem(this.getK8SName(), IK8sContext.class);
+        ParamsConfig cfg = (ParamsConfig) getK8SCfg();
         return cfg.createConfigInstance();
+    }
+
+    public IK8sContext getK8SCfg() {
+        return ParamsConfig.getItem(this.getK8SName(), IK8sContext.class);
     }
 
     @Override
