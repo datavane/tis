@@ -90,7 +90,6 @@ public class DataxAction extends BasicModule {
   }
 
 
-
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveTableCreateDdl(Context context) throws Exception {
     JSONObject post = this.parseJsonPost();
@@ -206,11 +205,11 @@ public class DataxAction extends BasicModule {
     } catch (InterruptedException e) {
 
     }
-    this.doGetDataxWorkerMeta(context);
+    this.doGetJobWorkerMeta(context);
     AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
     DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
     if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
-      throw new IllegalStateException("DataX Controller launch faild please contract administer");
+      throw new IllegalStateException("Job Controller launch faild please contract administer");
     }
     this.addActionMessage(context, "已经成功启动DataX执行器");
   }
@@ -222,14 +221,30 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doRemoveDataxWorker(Context context) {
-    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
-    if (!dataxJobWorker.inService()) {
+
+    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
+
+//    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+//    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
+    if (!jobWorker.inService()) {
       throw new IllegalStateException("dataxJobWorker is not in serivce ,can not remove");
     }
-    dataxJobWorker.remove();
+    jobWorker.remove();
     this.addActionMessage(context, "DataX Worker 已经被删除");
   }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doWorkerDesc(Context context) {
+    final TargetResName targetName = getK8SJobWorkerTargetName();
+
+    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(targetName);
+    if (jobWorker != null && jobWorker.inService()) {
+      throw new IllegalStateException("dataX worker is on duty");
+    }
+
+    this.setBizResult(context, new PluginDescMeta(DataXJobWorker.getDesc(targetName)));
+  }
+
 
   /**
    * 取得K8S dataX worker
@@ -237,27 +252,38 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
-  public void doGetDataxWorkerMeta(Context context) {
-    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
+  public void doGetJobWorkerMeta(Context context) {
+
+    // PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+    final TargetResName targetName = getK8SJobWorkerTargetName();
+
+    Optional<DataXJobWorker> firstWorker
+      = Optional.ofNullable(DataXJobWorker.getJobWorker((targetName))); //dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(targetName, p.getDescriptor())).findFirst();
+
     DataXJobWorkerStatus jobWorkerStatus = new DataXJobWorkerStatus();
-    if (dataxJobWorker == null) {
+    if (!firstWorker.isPresent()) {
       jobWorkerStatus.setK8sReplicationControllerCreated(false);
       this.setBizResult(context, jobWorkerStatus);
       return;
     }
-
+    DataXJobWorker jobWorker = firstWorker.get();
     boolean disableRcdeployment = this.getBoolean("disableRcdeployment");
-    jobWorkerStatus.setK8sReplicationControllerCreated(dataxJobWorker.inService());
+    jobWorkerStatus.setK8sReplicationControllerCreated(jobWorker.inService());
     if (jobWorkerStatus.isK8sReplicationControllerCreated() && !disableRcdeployment) {
-      jobWorkerStatus.setRcDeployment(dataxJobWorker.getRCDeployment());
+      jobWorkerStatus.setRcDeployment(jobWorker.getRCDeployment());
     }
     this.setBizResult(context, jobWorkerStatus);
   }
 
+  private TargetResName getK8SJobWorkerTargetName() {
+    final String targetName = this.getString("targetName");
+    DataXJobWorker.validateTargetName(targetName);
+    return new TargetResName(targetName);
+  }
+
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetDataxWorkerHpa(Context context) {
-    DataXJobWorker jobWorker = DataXJobWorker.getDataxJobWorker();
+    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
     if (jobWorker.getHpa() != null) {
       RcHpaStatus hpaStatus = jobWorker.getHpaStatus();
       this.setBizResult(context, hpaStatus);
@@ -266,7 +292,7 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doRelaunchPodProcess(Context context) throws Exception {
-    DataXJobWorker jobWorker = DataXJobWorker.getDataxJobWorker();
+    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
     String podName = this.getString("podName");
     jobWorker.relaunch(podName);
 //    PluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
@@ -317,14 +343,6 @@ public class DataxAction extends BasicModule {
     jobWorkerStore.setPlugins(this, Optional.empty(), dlist, true);
   }
 
-  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
-  public void doDataxWorkerDesc(Context context) {
-    List<Descriptor<DataXJobWorker>> descriptors = HeteroEnum.DATAX_WORKER.descriptors();
-    if (DataXJobWorker.isDataXWorkerServiceOnDuty()) {
-      throw new IllegalStateException("dataX worker is on duty");
-    }
-    this.setBizResult(context, new PluginDescMeta(descriptors));
-  }
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetSupportedReaderWriterTypes(Context context) {

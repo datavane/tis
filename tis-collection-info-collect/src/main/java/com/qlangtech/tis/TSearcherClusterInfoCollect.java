@@ -84,14 +84,14 @@ public class TSearcherClusterInfoCollect implements // Daemon
             throw new IllegalStateException("clusterSnapshotDAO can not be null");
         }
         // log.info("zk address:" + configFetcher.getZkAddress());
-        start();
+       // start();
         log.info("initialization has complete successful");
     }
 
     // public static IJobMetaDataDAO getJobMetaDataDAO() {
     // return staticFacade.getJobMetaDataDAO();
     // }
-    // 
+    //
     // public static ITriggerJobDAO getTriggerJobDAO() {
     // return staticFacade.getTriggerJobDAO();
     // }

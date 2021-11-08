@@ -87,8 +87,10 @@ public class TISK8sDelegate {
     if (StringUtils.isEmpty(indexName)) {
       throw new IllegalArgumentException("param indexName can not be null");
     }
-    if (DataXJobWorker.K8S_INSTANCE_NAME.getName().equals(indexName)) {
-      DataXJobWorker dataxWorker = DataXJobWorker.getDataxJobWorker();
+    if (DataXJobWorker.K8S_DATAX_INSTANCE_NAME.getName().equals(indexName)
+      || DataXJobWorker.K8S_FLINK_CLUSTER_NAME.getName().equals(indexName)
+    ) {
+      DataXJobWorker dataxWorker = DataXJobWorker.getJobWorker(new TargetResName(indexName));
       this.incrSync = new AdapterRCController() {
         @Override
         public WatchPodLog listPodAndWatchLog(TargetResName collection, String podName, ILogListener listener) {

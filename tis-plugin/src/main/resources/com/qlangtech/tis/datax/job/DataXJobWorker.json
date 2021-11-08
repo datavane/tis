@@ -1,0 +1,15 @@
+{
+  "k8sImage": {
+    "creator": {
+      "routerLink": "/base/basecfg/global",
+      "label": "配置",
+      "plugin": [
+        {
+          "hetero": "k8s-images",
+          "extraParam": "append_true",
+          "descName": "image"
+        }
+      ]
+    }
+  }
+}

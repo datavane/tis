@@ -16,6 +16,7 @@
 package com.qlangtech.tis.datax.job;
 
 import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
@@ -24,6 +25,8 @@ import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -32,9 +35,14 @@ import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.jst.ILogListener;
+import com.qlangtech.tis.util.HeteroEnum;
+import org.apache.commons.io.FileUtils;
 
-import java.util.List;
-import java.util.Objects;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * DataX 任务执行容器
@@ -42,22 +50,82 @@ import java.util.Objects;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-04-23 17:49
  **/
-public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
+public abstract class DataXJobWorker implements Describable<DataXJobWorker>, IdentityName {
 
     public static final String KEY_FIELD_NAME = "k8sImage";
 
-    public static final TargetResName K8S_INSTANCE_NAME = new TargetResName("datax-worker");
+    public static final String KEY_WORKER_TYPE = "workerType";
+
+    public static final TargetResName K8S_DATAX_INSTANCE_NAME = new TargetResName("datax-worker");
     public static final TargetResName K8S_FLINK_CLUSTER_NAME = new TargetResName("flink-cluster");
 
+    public static void validateTargetName(String targetName) {
+        if (K8S_DATAX_INSTANCE_NAME.getName().equals(targetName)
+                || K8S_FLINK_CLUSTER_NAME.getName().equals(targetName)) {
+            return;
+        }
+        throw new IllegalArgumentException("targetName:" + targetName + " is illegal");
+    }
 
-    @FormField(ordinal = 0, type = FormFieldType.SELECTABLE, validate = {Validator.require})
+    @FormField(ordinal = 1, type = FormFieldType.SELECTABLE, validate = {Validator.require})
     public String k8sImage;
 
-    public static DataXJobWorker getDataxJobWorker() {
+//    public static DataXJobWorker getDataxJobWorker() {
+//        return getJobWorker(K8S_DATAX_INSTANCE_NAME);
+//    }
+
+    public static DataXJobWorker getFlinkClusterWorker() {
+        return getJobWorker(K8S_FLINK_CLUSTER_NAME);
+    }
+
+    public static DataXJobWorker getJobWorker(TargetResName resName) {
         PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-        DataXJobWorker jobWorker = dataxJobWorkerStore.getPlugin();
-        Objects.requireNonNull(jobWorker, "jobWorker can not be null");
-        return jobWorker;
+        Optional<DataXJobWorker> firstWorker
+                = dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(resName, p.getDescriptor())).findFirst();
+        if (firstWorker.isPresent()) {
+            return firstWorker.get();
+        }
+        return null;
+    }
+
+    public static List<Descriptor<DataXJobWorker>> getDesc(TargetResName resName) {
+        return HeteroEnum.DATAX_WORKER.descriptors().stream()
+                .map((d) -> (Descriptor<DataXJobWorker>) d)
+                .filter((desc) -> {
+                    return isJobWorkerMatch(resName, desc);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private static boolean isJobWorkerMatch(TargetResName targetName, Descriptor<DataXJobWorker> desc) {
+        return targetName.getName().equals(desc.getExtractProps().get(DataXJobWorker.KEY_WORKER_TYPE));
+    }
+
+    /**
+     * 服务是否已经启动
+     *
+     * @return
+     */
+    public boolean inService() {
+        File launchToken = this.getServerLaunchTokenFile();
+        return launchToken.exists();
+    }
+
+    protected void writeLaunchToken() throws IOException {
+        File launchToken = this.getServerLaunchTokenFile();
+        SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        FileUtils.write(launchToken, timeFormat.format(new Date()), TisUTF8.get());
+    }
+
+    protected void deleteLaunchToken() {
+        File launchToken = this.getServerLaunchTokenFile();
+        FileUtils.deleteQuietly(launchToken);
+    }
+
+    protected File getServerLaunchTokenFile() {
+        PluginStore<DataXJobWorker> workerStore = TIS.getPluginStore(DataXJobWorker.class);
+        File target = workerStore.getTargetFile();
+        return new File(target.getParentFile(), (((BasicDescriptor) this.getDescriptor()).getWorkerType().getName() + ".launch_token"));
     }
 
     /**
@@ -86,16 +154,16 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
      */
     public abstract WatchPodLog listPodAndWatchLog(String podName, ILogListener listener);
 
-    /**
-     * dataXWorker service 是否是启动状态
-     *
-     * @return
-     */
-    public static boolean isDataXWorkerServiceOnDuty() {
-        PluginStore<DataXJobWorker> jobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-        List<DataXJobWorker> services = jobWorkerStore.getPlugins();
-        return services.size() > 0 && jobWorkerStore.getPlugin().inService();
-    }
+//    /**
+//     * dataXWorker service 是否是启动状态
+//     *
+//     * @return
+//     */
+//    public static boolean isDataXWorkerServiceOnDuty() {
+//        PluginStore<DataXJobWorker> jobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+//        List<DataXJobWorker> services = jobWorkerStore.getPlugins();
+//        return services.size() > 0 && jobWorkerStore.getPlugin().inService();
+//    }
 
     /**
      * 通过Curator来实现分布式任务overseer-worker模式
@@ -137,12 +205,6 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         this.replicasSpec = replicasSpec;
     }
 
-    /**
-     * 服务是否已经启动
-     *
-     * @return
-     */
-    public abstract boolean inService();
 
     /**
      * 将控制器删除掉
@@ -161,7 +223,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
 
-    protected static class BasicDescriptor extends Descriptor<DataXJobWorker> {
+    protected static abstract class BasicDescriptor extends Descriptor<DataXJobWorker> {
 
         public BasicDescriptor() {
             super();
@@ -170,6 +232,15 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
                 return images.getPlugins();
             });
         }
+
+        @Override
+        public Map<String, Object> getExtractProps() {
+            Map<String, Object> extractProps = Maps.newHashMap();
+            extractProps.put(KEY_WORKER_TYPE, getWorkerType().getName());
+            return extractProps;
+        }
+
+        protected abstract TargetResName getWorkerType();
 
         @Override
         protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {

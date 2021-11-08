@@ -18,12 +18,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
-import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TISK8sDelegate;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
@@ -31,10 +27,7 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
-import com.qlangtech.tis.realtime.yarn.rpc.JobType;
-import com.qlangtech.tis.realtime.yarn.rpc.TopicInfo;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
@@ -58,7 +51,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -240,7 +232,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
       if (monitorTarget.testLogType(LogType.DATAX_WORKER_POD_LOG)) {
         PayloadMonitorTarget mtarget = (PayloadMonitorTarget) monitorTarget;
         final String podName = mtarget.getPayLoad();
-        TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(DataXJobWorker.K8S_INSTANCE_NAME.getName());
+        TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(mtarget.getCollection());
         k8sDelegate.listPodsAndWatchLog(podName, this);
         return;
       } else if (monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE)) {
