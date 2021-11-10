@@ -154,7 +154,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
             if (finalValidate) {
                 JSONObject creatorJ = (JSONObject) creator;
-                Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
+               // Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
                 Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
                 JSONObject pmeta = null;
                 JSONArray plugins = creatorJ.getJSONArray("plugin");

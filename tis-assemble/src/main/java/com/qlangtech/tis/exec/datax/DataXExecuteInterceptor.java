@@ -143,7 +143,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     }
 
     protected DataXJobSubmit.InstanceType getDataXTriggerType() {
-        boolean dataXWorkerServiceOnDuty = DataXJobWorker.isDataXWorkerServiceOnDuty();
+        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
+        boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();//.isDataXWorkerServiceOnDuty();
         return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
     }
 

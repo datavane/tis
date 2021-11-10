@@ -206,10 +206,10 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
      *
      * @param pluginContext
      * @param pluginMeta
-     * @param <T>
+     * @param
      * @return
      */
-    public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+    public List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         PluginStore store = getPluginStore(pluginContext, pluginMeta);
         if (store == null) {
             return Collections.emptyList();
@@ -238,7 +238,14 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 //            store = TIS.getPluginStore(this.extensionPoint);
 //        }
         //Objects.requireNonNull(store, "plugin store can not be null");
-        return store.getPlugins();
+        List<T> plugins = store.getPlugins();
+        if (StringUtils.isNotEmpty(pluginMeta.getTargetPluginDesc())) {
+            return plugins.stream()
+                    .filter((p) -> StringUtils.equals(p.getDescriptor().getDisplayName(), pluginMeta.getTargetPluginDesc()))
+                    .collect(Collectors.toList());
+        }
+
+        return plugins;
     }
 
     @Override

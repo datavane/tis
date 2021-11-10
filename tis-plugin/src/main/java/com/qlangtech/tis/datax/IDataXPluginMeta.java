@@ -35,13 +35,11 @@ public interface IDataXPluginMeta {
      * 端类型
      */
     public enum EndType {
-        MySQL("mysql"), Postgres("pg"), ElasticSearch("es"), MongoDB("mongo");
+        MySQL("mysql"), Postgres("pg"), ElasticSearch("es"), MongoDB("mongo"), Doris("doris");
         private final String val;
-
         EndType(String val) {
             this.val = val;
         }
-
         public String getVal() {
             return this.val;
         }

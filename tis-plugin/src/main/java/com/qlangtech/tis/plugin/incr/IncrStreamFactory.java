@@ -25,7 +25,7 @@ import com.qlangtech.tis.plugin.IdentityName;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IdentityName {
+public abstract class IncrStreamFactory implements Describable<IncrStreamFactory> {
 
     // public static final String FLINK_STREM = "flink_Stream";
 

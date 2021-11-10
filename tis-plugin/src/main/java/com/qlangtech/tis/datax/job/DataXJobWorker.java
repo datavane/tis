@@ -26,7 +26,6 @@ import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -50,7 +49,7 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-04-23 17:49
  **/
-public abstract class DataXJobWorker implements Describable<DataXJobWorker>, IdentityName {
+public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public static final String KEY_FIELD_NAME = "k8sImage";
 
@@ -70,6 +69,12 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker>, Ide
     @FormField(ordinal = 1, type = FormFieldType.SELECTABLE, validate = {Validator.require})
     public String k8sImage;
 
+//    @Override
+//    public final String identityValue() {
+//        return ((BasicDescriptor) this.getDescriptor()).getWorkerType().getName();
+//    }
+
+
 //    public static DataXJobWorker getDataxJobWorker() {
 //        return getJobWorker(K8S_DATAX_INSTANCE_NAME);
 //    }
@@ -79,13 +84,23 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker>, Ide
     }
 
     public static DataXJobWorker getJobWorker(TargetResName resName) {
-        PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-        Optional<DataXJobWorker> firstWorker
-                = dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(resName, p.getDescriptor())).findFirst();
-        if (firstWorker.isPresent()) {
-            return firstWorker.get();
-        }
-        return null;
+        PluginStore<DataXJobWorker> dataxJobWorkerStore = getJobWorkerStore(resName);
+//        Optional<DataXJobWorker> firstWorker
+//                = dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(resName, p.getDescriptor())).findFirst();
+//        if (firstWorker.isPresent()) {
+//            return firstWorker.get();
+//        }
+//        return null;
+        return dataxJobWorkerStore.getPlugin();
+    }
+
+    public static PluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName) {
+        return TIS.getPluginStore("jobworker", resName.getName(), DataXJobWorker.class);
+    }
+
+    public static void setJobWorker(TargetResName resName, DataXJobWorker worker) {
+        PluginStore<DataXJobWorker> store = getJobWorkerStore(resName);
+        store.setPlugins(null, Optional.empty(), Collections.singletonList(PluginStore.getDescribablesWithMeta(store, worker)));
     }
 
     public static List<Descriptor<DataXJobWorker>> getDesc(TargetResName resName) {
@@ -123,9 +138,10 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker>, Ide
     }
 
     protected File getServerLaunchTokenFile() {
-        PluginStore<DataXJobWorker> workerStore = TIS.getPluginStore(DataXJobWorker.class);
+        TargetResName workerType = ((BasicDescriptor) this.getDescriptor()).getWorkerType();
+        PluginStore<DataXJobWorker> workerStore = getJobWorkerStore(workerType);
         File target = workerStore.getTargetFile();
-        return new File(target.getParentFile(), (((BasicDescriptor) this.getDescriptor()).getWorkerType().getName() + ".launch_token"));
+        return new File(target.getParentFile(), (workerType.getName() + ".launch_token"));
     }
 
     /**

@@ -38,4 +38,11 @@ public class TargetResName {
     public String getK8SResName() {
         return StringUtils.replace(name, "_", "-");
     }
+
+    @Override
+    public String toString() {
+        return "TargetResName{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }

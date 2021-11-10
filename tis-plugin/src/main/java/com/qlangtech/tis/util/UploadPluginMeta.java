@@ -54,6 +54,10 @@ public class UploadPluginMeta {
 
     //纯添加类型，更新之前需要将之前的类型plugin先load出来再更新
     public static final String KEY_APPEND = "append";
+
+    // 服务端对目标插件的Desc进行过滤
+    public static final String KEY_TARGET_PLUGIN_DESC = "targetItemDesc";
+
     // 禁止向context中写入biz状态
     public static final String KEY_DISABLE_BIZ_SET = "disableBizStore";
 
@@ -76,6 +80,10 @@ public class UploadPluginMeta {
      */
     public boolean isAppend() {
         return this.getBoolean(KEY_APPEND);
+    }
+
+    public String getTargetPluginDesc() {
+        return this.getExtraParam(KEY_TARGET_PLUGIN_DESC);
     }
 
     public boolean isDisableBizSet() {
@@ -221,6 +229,11 @@ public class UploadPluginMeta {
         hList.setItems(items);
 
         List<Descriptor<T>> descriptors = hEnum.descriptors();
+        if (StringUtils.isNotEmpty(this.getTargetPluginDesc())) {
+            descriptors = descriptors.stream()
+                    .filter((desc) -> this.getTargetPluginDesc().equals(desc.getDisplayName()))
+                    .collect(Collectors.toList());
+        }
         String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
         boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
         if (justGetItemRelevant) {

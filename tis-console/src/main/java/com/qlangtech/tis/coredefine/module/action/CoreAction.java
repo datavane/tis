@@ -329,7 +329,7 @@ public class CoreAction extends BasicModule {
 //
 //      collectionBindIncrStreamFactoryStore.setPlugins(module, Optional.of(context)
 //        , Collections.singletonList(flinkStreamDesc.newInstance(module, Collections.emptyMap(), Optional.empty())));
-      throw new IllegalStateException("collectionName:" + module.getCollectionName() + " relevant plugin can not be null " + IncrStreamFactory.class.getName());
+      //  throw new IllegalStateException("collectionName:" + module.getCollectionName() + " relevant plugin can not be null " + IncrStreamFactory.class.getName());
     }
     //}
     // 这里永远是false应该
@@ -366,8 +366,8 @@ public class CoreAction extends BasicModule {
 
   private static HashMap<String, Object> createDescVals(Descriptor writerDesc) {
     HashMap<String, Object> newExtraProps = Maps.newHashMap(writerDesc.getExtractProps());
-    newExtraProps
-      .put(DescriptorsJSON.KEY_EXTEND_POINT, writerDesc.getT().getName());
+    newExtraProps.put(DescriptorsJSON.KEY_IMPL, writerDesc.getId());
+    newExtraProps.put(DescriptorsJSON.KEY_EXTEND_POINT, writerDesc.getT().getName());
     return newExtraProps;
   }
 

@@ -19,8 +19,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -232,6 +234,11 @@ public class PluginItems {
         });
       }
 
+    } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
+      if (!this.pluginContext.isCollectionAware()) {
+        throw new IllegalStateException("must be collection aware");
+      }
+      store = DataXJobWorker.getJobWorkerStore(new TargetResName(this.pluginContext.getCollectionName()));
     } else if (this.pluginContext.isCollectionAware()) {
       store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.getExtensionPoint());
     } else {

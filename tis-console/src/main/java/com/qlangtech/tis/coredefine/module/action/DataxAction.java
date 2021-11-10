@@ -43,7 +43,6 @@ import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
@@ -192,8 +191,11 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doLaunchDataxWorker(Context context) {
-    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
+
+    DataXJobWorker dataxJobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
+    if (dataxJobWorker == null) {
+      throw new IllegalStateException("dataxJobWorker can not be null,relevant target type:" + this.getK8SJobWorkerTargetName());
+    }
 
     if (dataxJobWorker.inService()) {
       throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
@@ -251,12 +253,20 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
+
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doGetDataxWorkerMeta(Context context) {
+    getJobWoker(context, DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
+  }
+
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetJobWorkerMeta(Context context) {
-
     // PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
     final TargetResName targetName = getK8SJobWorkerTargetName();
+    getJobWoker(context, targetName);
+  }
 
+  private void getJobWoker(Context context, TargetResName targetName) {
     Optional<DataXJobWorker> firstWorker
       = Optional.ofNullable(DataXJobWorker.getJobWorker((targetName))); //dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(targetName, p.getDescriptor())).findFirst();
 
@@ -329,18 +339,39 @@ public class DataxAction extends BasicModule {
     if (!incrSpecResult.isSuccess()) {
       return;
     }
-    PluginStore<DataXJobWorker> jobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-    Descriptor.ParseDescribable<DataXJobWorker> describablesWithMeta
-      = PluginStore.getDescribablesWithMeta(jobWorkerStore, jobWorkerStore.getPlugin());
-    DataXJobWorker dataxJobWorker = describablesWithMeta.instance;
-    Objects.requireNonNull(dataxJobWorker, "dataxJobWorker can not be null");
-    dataxJobWorker.setReplicasSpec(incrSpecResult.getSpec());
+
+    TargetResName resName = this.getK8SJobWorkerTargetName();
+    DataXJobWorker worker = DataXJobWorker.getJobWorker(resName);
+    // PluginStore<DataXJobWorker> jobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+    // List<DataXJobWorker> jobWorkers = jobWorkerStore.getPlugins();
+    // List<Descriptor.ParseDescribable<DataXJobWorker>> dlist = Lists.newArrayList();
+    // boolean setted = false;
+    // for (DataXJobWorker worker : jobWorkers) {
+    //if (StringUtils.equals(resName.getName(), worker.identityValue())) {
+    worker.setReplicasSpec(incrSpecResult.getSpec());
     if (incrSpecResult.hpa != null) {
-      dataxJobWorker.setHpa(incrSpecResult.hpa);
+      worker.setHpa(incrSpecResult.hpa);
     }
-    //IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update
-    List<Descriptor.ParseDescribable<DataXJobWorker>> dlist = Collections.singletonList(describablesWithMeta);
-    jobWorkerStore.setPlugins(this, Optional.empty(), dlist, true);
+    DataXJobWorker.setJobWorker(resName, worker);
+    //   setted = true;
+    //}
+    // dlist.add(PluginStore.getDescribablesWithMeta(jobWorkerStore, worker));
+    // }
+//    if (!setted) {
+//      throw new IllegalStateException("has not setted");
+//    }
+
+    // jobWorkerStore.setPlugins(this, Optional.empty(), dlist, true);
+
+
+//    Descriptor.ParseDescribable<DataXJobWorker> describablesWithMeta
+//      = PluginStore.getDescribablesWithMeta(jobWorkerStore, DataXJobWorker.getJobWorker());
+//    DataXJobWorker dataxJobWorker = describablesWithMeta.instance;
+//    Objects.requireNonNull(dataxJobWorker, "dataxJobWorker can not be null");
+//
+//    //IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update
+//    List<Descriptor.ParseDescribable<DataXJobWorker>> dlist = Collections.singletonList(describablesWithMeta);
+//    jobWorkerStore.setPlugins(this, Optional.empty(), dlist, true);
   }
 
 

@@ -236,6 +236,16 @@ public class TIS {
         }
     }
 
+    public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
+//        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(IFullBuildContext.NAME_APP_DIR, collection, key));
+//        if (pluginStore == null) {
+//            // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
+//            return getPluginStore(key);
+//        } else {
+//            return pluginStore;
+//        }
+        return getPluginStore(IFullBuildContext.NAME_APP_DIR, collection, key);
+    }
 
     /**
      * Get the index relevant plugin configuration
@@ -245,8 +255,8 @@ public class TIS {
      * @param <T>
      * @return
      */
-    public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
-        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(IFullBuildContext.NAME_APP_DIR, collection, key));
+    public static <T extends Describable> PluginStore<T> getPluginStore(String groupName, String collection, Class<T> key) {
+        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(groupName, collection, key));
         if (pluginStore == null) {
             // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
             return getPluginStore(key);

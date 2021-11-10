@@ -39,6 +39,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public static final String KEY_DISPLAY_NAME = "displayName";
     public static final String KEY_EXTEND_POINT = "extendPoint";
+    public static final String KEY_IMPL = "impl";
 
     private final List<Descriptor<T>> descriptors;
 
@@ -124,7 +125,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
             });
             des.put(KEY_DISPLAY_NAME, d.getDisplayName());
             des.put(KEY_EXTEND_POINT, d.getT().getName());
-            des.put("impl", d.getId());
+            des.put(KEY_IMPL, d.getId());
             des.put("veriflable", d.overWriteValidateMethod);
             if (IdentityName.class.isAssignableFrom(d.clazz)) {
                 des.put("pkField", d.getIdentityField().displayName);
