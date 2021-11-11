@@ -18,6 +18,7 @@ import com.google.common.base.Joiner;
 import com.qlangtech.tis.manage.common.Option;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.sql.Types;
 import java.util.List;
 
 /**
@@ -53,8 +54,9 @@ public class ColumnMetaData extends Option {
     }
 
     private final String key;
-    //java.sql.Types
-    private final int type;
+
+    private final DataType type;
+
 
     private final int index;
     private ReservedFieldType schemaFieldType;
@@ -68,7 +70,7 @@ public class ColumnMetaData extends Option {
      * @param key  column名字
      * @param type column类型 java.sql.Types
      */
-    public ColumnMetaData(int index, String key, int type, boolean pk) {
+    public ColumnMetaData(int index, String key, DataType type, boolean pk) {
         super(key, key);
         this.pk = pk;
         this.key = key;
@@ -92,7 +94,7 @@ public class ColumnMetaData extends Option {
         return key;
     }
 
-    public int getType() {
+    public DataType getType() {
         return type;
     }
 
@@ -110,5 +112,135 @@ public class ColumnMetaData extends Option {
                 ", schemaFieldType=" + schemaFieldType +
                 ", pk=" + pk +
                 '}';
+    }
+
+    public static class DataType {
+        public final int type;
+        public final int columnSize;
+
+        public DataType(int type) {
+            this(type, -1);
+        }
+
+        public ISelectedTab.DataXReaderColType collapse() {
+            switch (this.type) {
+                case Types.INTEGER:
+                case Types.TINYINT:
+                case Types.SMALLINT:
+                case Types.BIGINT:
+                    return ISelectedTab.DataXReaderColType.Long;
+                case Types.FLOAT:
+                case Types.DOUBLE:
+                case Types.DECIMAL:
+                    return ISelectedTab.DataXReaderColType.Double;
+                case Types.DATE:
+                case Types.TIME:
+                case Types.TIMESTAMP:
+                    return ISelectedTab.DataXReaderColType.Date;
+                case Types.BIT:
+                case Types.BOOLEAN:
+                    return ISelectedTab.DataXReaderColType.Boolean;
+                case Types.BLOB:
+                case Types.BINARY:
+                case Types.LONGVARBINARY:
+                case Types.VARBINARY:
+                    return ISelectedTab.DataXReaderColType.Bytes;
+                default:
+                    return ISelectedTab.DataXReaderColType.STRING;
+            }
+        }
+
+        public <T> T accept(TypeVisitor<T> visitor) {
+            switch (this.type) {
+                case Types.INTEGER:
+                    return visitor.intType(this);
+                case Types.TINYINT:
+                    return visitor.tinyIntType(this);
+                case Types.SMALLINT:
+                    return visitor.smallIntType(this);
+                case Types.BIGINT:
+                    return visitor.longType(this);
+                case Types.FLOAT:
+                    return visitor.floatType(this);
+                case Types.DOUBLE:
+                    return visitor.doubleType(this);
+                case Types.DECIMAL:
+                    return visitor.decimalType(this);
+                case Types.DATE:
+                    return visitor.dateType(this);
+                case Types.TIME:
+                    return visitor.timeType(this);
+                case Types.TIMESTAMP:
+                    return visitor.timestampType(this);
+                case Types.BIT:
+                case Types.BOOLEAN:
+                    return visitor.bitType(this);
+                case Types.BLOB:
+                case Types.BINARY:
+                case Types.LONGVARBINARY:
+                case Types.VARBINARY:
+                    return visitor.blobType(this);
+                default:
+                    return visitor.varcharType(this);// "VARCHAR(" + type.columnSize + ")";
+            }
+        }
+
+
+        /**
+         * @param type       java.sql.Types
+         * @param columnSize
+         */
+        public DataType(int type, int columnSize) {
+            this.type = type;
+            this.columnSize = columnSize;
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "type=" + type +
+                    ", columnSize=" + columnSize +
+                    '}';
+        }
+    }
+
+    public interface TypeVisitor<T> {
+        default T intType(DataType type) {
+            return longType(type);
+        }
+
+        T longType(DataType type);
+
+        default T floatType(DataType type) {
+            return doubleType(type);
+        }
+
+        T doubleType(DataType type);
+
+        default T decimalType(DataType type) {
+            return doubleType(type);
+        }
+
+        T dateType(DataType type);
+
+        default T timeType(DataType type) {
+            return timestampType(type);
+        }
+
+        T timestampType(DataType type);
+
+        T bitType(DataType type);
+
+        T blobType(DataType type);
+
+        T varcharType(DataType type);
+
+        default T tinyIntType(DataType dataType) {
+            return intType(dataType);
+        }
+
+        default T smallIntType(DataType dataType) {
+            return intType(dataType);
+        }
     }
 }

@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;

@@ -22,6 +22,7 @@ import com.qlangtech.tis.plugin.ds.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -106,7 +107,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
                 ColumnMetaData cm = null;
                 for (int i = 0; i < titles.length; i++) {
                     //int index, String key, int type, boolean pk
-                    cm = new ColumnMetaData(i, StringUtils.trimToEmpty(titles[i]), Types.VARCHAR, false);
+                    cm = new ColumnMetaData(i, StringUtils.trimToEmpty(titles[i]), new ColumnMetaData.DataType(Types.VARCHAR), false);
                     this.colsMeta.add(cm);
                 }
             }

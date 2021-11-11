@@ -26,7 +26,7 @@ import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
-import com.qlangtech.tis.datax.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;

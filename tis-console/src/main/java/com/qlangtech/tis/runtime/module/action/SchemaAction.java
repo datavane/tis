@@ -24,7 +24,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
-import com.qlangtech.tis.datax.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;

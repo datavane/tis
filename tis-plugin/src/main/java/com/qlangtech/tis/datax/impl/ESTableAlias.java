@@ -20,8 +20,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 
 import java.util.List;
 
@@ -45,8 +46,9 @@ public class ESTableAlias extends IDataxProcessor.TableMap {
         for (int i = 0; i < cols.size(); i++) {
             col = cols.getJSONObject(i);
             colMeta = new ISelectedTab.ColMeta() {
+
                 @Override
-                public ISelectedTab.DataXReaderColType getType() {
+                public ColumnMetaData.DataType getType() {
                     //return super.getType();
                     throw new UnsupportedOperationException();
                 }

@@ -637,7 +637,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             List<ColName> colNames = task.parse(false).getColsRefs().getColRefMap().keySet();
             AtomicInteger index = new AtomicInteger();
             return colNames.stream().map((c) -> {
-                return new ColumnMetaData(index.getAndIncrement(), c.getAliasName(), Types.VARCHAR, false);
+                return new ColumnMetaData(index.getAndIncrement(), c.getAliasName(), new ColumnMetaData.DataType(Types.VARCHAR) , false);
             }).collect(Collectors.toList());
         }
 

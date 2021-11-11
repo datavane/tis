@@ -27,10 +27,7 @@ import com.qlangtech.tis.util.IPluginContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 /**
@@ -138,7 +135,41 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 }
                 int i = 0;
                 String colName = null;
+
+//                ResultSetMetaData metaData = columns1.getMetaData();
+//                System.out.println("getColumnCount:" + metaData.getColumnCount());
+//                for (int ii = 1; ii <= metaData.getColumnCount(); ii++) {
+//                    System.out.println(metaData.getColumnName(ii));
+//                }
+
+                /** for mysql:
+                 * TABLE_CAT
+                 * TABLE_SCHEM
+                 * TABLE_NAME
+                 * COLUMN_NAME
+                 * DATA_TYPE
+                 * TYPE_NAME
+                 * COLUMN_SIZE
+                 * BUFFER_LENGTH
+                 * DECIMAL_DIGITS
+                 * NUM_PREC_RADIX
+                 * NULLABLE
+                 * REMARKS
+                 * COLUMN_DEF
+                 * SQL_DATA_TYPE
+                 * SQL_DATETIME_SUB
+                 * CHAR_OCTET_LENGTH
+                 * ORDINAL_POSITION
+                 * IS_NULLABLE
+                 * SCOPE_CATALOG
+                 * SCOPE_SCHEMA
+                 * SCOPE_TABLE
+                 * SOURCE_DATA_TYPE
+                 * IS_AUTOINCREMENT
+                 * IS_GENERATEDCOLUMN
+                 * */
                 while (columns1.next()) {
+
                     columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME"))
                             , getDataType(columns1), pkCols.contains(colName)));
                 }
@@ -151,8 +182,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return columns;
     }
 
-    protected int getDataType(ResultSet cols) throws SQLException {
-        return cols.getInt("DATA_TYPE");
+    protected ColumnMetaData.DataType getDataType(ResultSet cols) throws SQLException {
+        return new ColumnMetaData.DataType(cols.getInt("DATA_TYPE"), cols.getInt("COLUMN_SIZE"));
     }
 
     protected void closeResultSet(ResultSet rs) {

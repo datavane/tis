@@ -23,7 +23,7 @@ import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
-import com.qlangtech.tis.datax.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;

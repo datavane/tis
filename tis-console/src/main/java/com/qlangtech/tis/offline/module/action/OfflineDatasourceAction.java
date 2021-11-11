@@ -255,7 +255,7 @@ public class OfflineDatasourceAction extends BasicModule {
     ColumnMetaData colMeta = null;
     for (int i = 0; i < cols.size(); i++) {
       col = cols.getJSONObject(i);
-      colMeta = new ColumnMetaData(i, col.getString("key"), col.getIntValue("type"), col.getBoolean("pk"));
+      colMeta = new ColumnMetaData(i, col.getString("key"), new ColumnMetaData.DataType(col.getIntValue("type")), col.getBoolean("pk"));
       // tab.addColumnMeta(colMeta);
     }
     if (updateMode) {

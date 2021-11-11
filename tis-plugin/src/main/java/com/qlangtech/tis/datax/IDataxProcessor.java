@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.io.File;

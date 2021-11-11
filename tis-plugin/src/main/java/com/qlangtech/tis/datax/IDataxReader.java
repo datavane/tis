@@ -15,6 +15,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 import java.util.Iterator;
 import java.util.List;

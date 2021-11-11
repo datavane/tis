@@ -62,39 +62,39 @@ public class SqlTaskNode {
     // private static final Map<String /* tableName */, List<TableTupleCreator>> dumpNodes;
     // static {
     // try {
-    // 
+    //
     // List<TableTupleCreator> tables = null;
     // Map<String /* tableName */, List<TableTupleCreator>> builder = Maps.newHashMap();
-    // 
+    //
     // File f = new File(
     // "D:\\j2ee_solution\\eclipse-java-oxygen-mars-develop\\workspace\\tis-mars\\tis-sql-parser\\src\\main\\resources\\dump_tabs\\dump_tabs.txt");
     // LineIterator lineIt = FileUtils.lineIterator(f, "utf8");
     // String line = null;
     // TableTupleCreator tupleCreator = null;
-    // 
+    //
     // EntityName entityName = null;
     // while (lineIt.hasNext()) {
     // line = lineIt.nextLine();
-    // 
+    //
     // entityName = EntityName.parse(line);
-    // 
+    //
     // tupleCreator = new TableTupleCreator(line, NodeType.DUMP);
-    // 
+    //
     // tables = builder.get(entityName.getTabName());
     // if (tables == null) {
     // tables = Lists.newArrayList();
     // builder.put(entityName.getTabName(), tables);
     // }
-    // 
+    //
     // tupleCreator.setRealEntityName(entityName);
     // tables.add(tupleCreator);
-    // 
+    //
     // }
     // dumpNodes = Collections.unmodifiableMap(builder);// builder.build();
     // } catch (IOException e) {
     // throw new RuntimeException(e);
     // }
-    // 
+    //
     // }
     public static List<ColumnMetaData> reflectTableCols(String sql) {
         if (StringUtils.isEmpty(sql)) {
@@ -110,7 +110,7 @@ public class SqlTaskNode {
                 entry : colsRef.getColRefMap().entrySet()) {
             // int index, String key, int type, boolean pk
             result.add(new ColumnMetaData(index++, StringUtils.lowerCase(entry.getKey().getName())
-                    , -1
+                    , new ColumnMetaData.DataType(-1)
                     , /**  * 暂时无法取到类型，先用-1占一下位置    */
                     false));
         }
@@ -280,9 +280,9 @@ public class SqlTaskNode {
 
     // public static List<SqlTaskNode> parseTaskNodes(SqlDataFlowTopology topology) throws Exception {
     // List<SqlTaskNode> allNodes = null;
-    // 
+    //
     // final DefaultDumpNodeMapContext dumpNodsContext = new DefaultDumpNodeMapContext(topology.createDumpNodesMap());
-    // 
+    //
     // allNodes = topology.getNodeMetas().stream().map((m) -> {
     // SqlTaskNode node = new SqlTaskNode(EntityName.parse(m.getExportName()), m.getNodeType(), dumpNodsContext);
     // node.setContent(m.getSql());
@@ -304,21 +304,21 @@ public class SqlTaskNode {
     // for (String r : requires) {
     // taskNode.addRequired(r);
     // }
-    // 
+    //
     // return taskNode;
     // }
     // 打印自己並且遍歷子節點
     // public void visit(TaskNodeTraversesCreatorVisitor taskNodeVisitor) {
-    // 
+    //
     // for (Map.Entry<ColName /* colName */, IDataTupleCreator> centry :
     // this.getColsRefs().colRefMap.entrySet()) {
-    // 
+    //
     // // PropGetter peek = taskNodeVisitor.propStack.isEmpty() ? null :
     // // taskNodeVisitor.propStack.peek();
-    // 
+    //
     // // if (peek == null || StringUtils.equals(peek.getOutput().getName(),
     // // centry.getKey().getAliasName())) {
-    // 
+    //
     // taskNodeVisitor.pushPropGetter(centry.getKey(), this.getExportName(),
     // centry.getValue());
     // // } else {
@@ -333,27 +333,27 @@ public class SqlTaskNode {
     // // break;
     // // }
     // }
-    // 
+    //
     // }
     // private static void visitColsRefs(TaskNodeTraversesCreatorVisitor
     // taskNodeVisitor, SqlTaskNode taskNode) {
-    // 
+    //
     // }
     // public static SqlTaskNode findTerminatorTaskNode(List<SqlTaskNode> taskNodes) {
     // SqlTaskNode terminatorNode = null;
     // aa:
     // for (SqlTaskNode taskNode : taskNodes) {
-    // 
+    //
     // if (taskNode.getRequired().isEmpty()) {
     // continue;
     // }
-    // 
+    //
     // for (SqlTaskNode t : taskNodes) {
-    // 
+    //
     // if (t.getRequired().stream().filter((e) -> {
     // // return (StringUtils.equals(taskNode.getExportName().getTabName(),
     // // e.getKey()));
-    // 
+    //
     // return taskNode.getExportName().equals(e.getKey());// (StringUtils.equals(.getTabName(),
     // // e.getKey()));
     // }).count() > 0) {
@@ -361,11 +361,11 @@ public class SqlTaskNode {
     // continue aa;
     // }
     // }
-    // 
+    //
     // terminatorNode = taskNode;
     // break;
     // }
-    // 
+    //
     // if (terminatorNode == null) {
     // throw new IllegalStateException("can not find terminator task node");
     // }

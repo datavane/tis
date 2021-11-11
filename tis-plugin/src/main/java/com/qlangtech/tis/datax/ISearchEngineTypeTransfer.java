@@ -18,6 +18,7 @@ package com.qlangtech.tis.datax;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.solrdao.ISchema;
 import com.qlangtech.tis.solrdao.SchemaMetaContent;
 import com.qlangtech.tis.util.IPluginContext;
