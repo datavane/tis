@@ -17,10 +17,11 @@ package com.qlangtech.tis.plugin.ds;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -39,6 +40,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2020/04/13
  */
 public class DBConfig implements IDbMeta {
+
+    private static final Logger logger = LoggerFactory.getLogger(DBConfig.class);
 
     private String dbType;
 
@@ -145,7 +148,13 @@ public class DBConfig implements IDbMeta {
      * 遍历所有的jdbc URL
      */
     public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess, boolean facade, IMessageHandler msgHandler, Context context) {
-        final ExecutorService fixedThreadPool = Executors.newFixedThreadPool(40);
+        final ExecutorService fixedThreadPool = Executors.newCachedThreadPool((runnable) -> {
+            Thread t = new Thread(runnable);
+            t.setUncaughtExceptionHandler((tt, e) -> {
+                logger.error(e.getMessage(), e);
+            });
+            return t;
+        });
         int dbCount = 0;
         for (Map.Entry<String, List<String>> entry : this.getDbEnum().entrySet()) {
             dbCount += entry.getValue().size();

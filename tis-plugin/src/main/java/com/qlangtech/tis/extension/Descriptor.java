@@ -374,18 +374,23 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 if (extraProps.isPresent()
                                         && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
                                     String dftVal = fieldExtraProps.getDftVal();
+                                    String help = fieldExtraProps.getHelpContent();
 
                                     if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
                                         r.remove(f.getName());
                                         continue;
                                         //return null;
                                     }
+                                    JSONObject props = fieldExtraProps.getProps();
+                                    if (StringUtils.isNotEmpty(help) && StringUtils.startsWith(help, IMessageHandler.TSEARCH_PACKAGE)) {
+                                        props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellEvaluate.eval(help));
+                                    }
 
                                     if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
 
                                         UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
                                         boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
-                                        JSONObject props = fieldExtraProps.getProps();
+
                                         Callable<String> valGetter = () -> (String) GroovyShellEvaluate.eval(meta.getName());
                                         props.put(PluginExtraProps.KEY_DFTVAL_PROP, unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call());
                                     }

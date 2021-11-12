@@ -209,7 +209,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     }
 
     public static class Props {
-        private static final String KEY_HELP = "help";
+        public static final String KEY_HELP = "help";
         private static final String KEY_ASYNC_HELP = "asyncHelp";
         private final JSONObject props;
         private String asynHelp;
