@@ -111,11 +111,14 @@
             <artifactId>tiger-types</artifactId>
             <version>2.2</version>
         </dependency>
+
         <dependency>
-            <groupId>net.java.sezpoz</groupId>
-            <artifactId>sezpoz</artifactId>
-            <version>1.13</version>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-plugin-sezpoz</artifactId>
+            <version>${project.version}</version>
         </dependency>
+
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

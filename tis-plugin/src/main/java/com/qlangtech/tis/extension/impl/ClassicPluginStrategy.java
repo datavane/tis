@@ -572,7 +572,8 @@ public class ClassicPluginStrategy implements PluginStrategy {
                         }
                 }
             }
-            throw new ClassNotFoundException(name);
+
+            throw new ClassNotFoundException("by " + this._for.getName() + ",for:" + name);
         }
 
         @Override

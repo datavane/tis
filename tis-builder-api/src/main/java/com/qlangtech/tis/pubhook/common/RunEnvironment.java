@@ -19,6 +19,7 @@ import com.qlangtech.tis.manage.common.Config;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -27,13 +28,13 @@ import java.util.List;
 public enum RunEnvironment {
 
     // ///////////
-    DAILY("daily", (short) 0, "日常环境", Config.getConfigRepositoryHost(), ""),
+    DAILY("daily", (short) 0, "日常环境", () -> Config.getConfigRepositoryHost()),
     // //////////////////////
-    ONLINE(// 
+    ONLINE(//
             "online", //
             (short) 2, // /
             "线上环境", // /
-            null, "http://xxxxx.com");
+            null);
 
 
     public static final String KEY_RUNTIME = "runtime";
@@ -65,25 +66,24 @@ public enum RunEnvironment {
 
     private final String describe;
 
-    private final String innerRepositoryURL;
+    private final Callable<String> innerRepositoryURL;
 
-    private final String publicRepositoryURL;
 
-    private RunEnvironment(String keyName, Short id, String describe, String innerRepositoryURL, String publicRepositoryURL) {
+    private RunEnvironment(String keyName, Short id, String describe, Callable<String> innerRepositoryURL) {
         this.id = id;
         this.keyName = keyName;
         this.describe = describe;
         this.innerRepositoryURL = innerRepositoryURL;
-        this.publicRepositoryURL = publicRepositoryURL;
     }
 
     public String getInnerRepositoryURL() {
-        return innerRepositoryURL;
+        try {
+            return innerRepositoryURL.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public String getPublicRepositoryURL() {
-        return this.publicRepositoryURL;
-    }
 
     public Short getId() {
         return id;

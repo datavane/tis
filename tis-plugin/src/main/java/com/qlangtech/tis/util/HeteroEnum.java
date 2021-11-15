@@ -239,7 +239,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 //        }
         //Objects.requireNonNull(store, "plugin store can not be null");
         List<T> plugins = store.getPlugins();
-        if (StringUtils.isNotEmpty(pluginMeta.getTargetPluginDesc())) {
+        if (pluginMeta != null && StringUtils.isNotEmpty(pluginMeta.getTargetPluginDesc())) {
             return plugins.stream()
                     .filter((p) -> StringUtils.equals(p.getDescriptor().getDisplayName(), pluginMeta.getTargetPluginDesc()))
                     .collect(Collectors.toList());

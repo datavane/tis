@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--~
+  ~ Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+  ~ <p>
+  ~   This program is free software: you can use, redistribute, and/or modify
+  ~   it under the terms of the GNU Affero General Public License, version 3
+  ~   or later ("AGPL"), as published by the Free Software Foundation.
+  ~ <p>
+  ~  This program is distributed in the hope that it will be useful, but WITHOUT
+  ~  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  ~   FITNESS FOR A PARTICULAR PURPOSE.
+  ~ <p>
+  ~  You should have received a copy of the GNU Affero General Public License
+  ~  along with this program. If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>tis</artifactId>
+        <groupId>com.qlangtech.tis</groupId>
+        <version>3.1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.qlangtech.tis</groupId>
+    <artifactId>tis-plugin-sezpoz</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.java.sezpoz</groupId>
+            <artifactId>sezpoz</artifactId>
+            <version>1.13</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgument>-proc:none</compilerArgument>
+                </configuration>
+            </plugin>
+        </plugins>
+
+    </build>
+
+
+</project>

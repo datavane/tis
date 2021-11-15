@@ -15,9 +15,16 @@
 
 package com.qlangtech.tis.extension;
 
+import net.java.sezpoz.Indexable;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import java.util.Set;
 
 /**
@@ -26,13 +33,30 @@ import java.util.Set;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-11-12 09:24
  **/
+@SupportedAnnotationTypes("*")
+@SupportedOptions("sezpoz.quiet")
 public class TISExtendsionInterceptor extends AbstractProcessor {
+    public TISExtendsionInterceptor() {
+    }
+
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-//        if (roundEnv.processingOver()) {
-//            // TODO we should not write until processingOver
-//            return false;
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
+        if (env.processingOver()) {
+            // TODO we should not write until processingOver
+            return false;
+        }
+//        for (Element indexable : env.getElementsAnnotatedWith(Indexable.class)) {
+//            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING
+//                    , "element:" + indexable.getSimpleName() + "," + indexable.getSimpleName());
 //        }
+//        this.processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "kkkkkk---------------------------------");
+//
+//        for (TypeElement te : annotations) {
+//            for (Element e : env.getElementsAnnotatedWith(te)) {
+//                this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "print:" + e.toString());
+//            }
+//        }
+
 //        for (Element indexable : roundEnv.getElementsAnnotatedWith(Indexable.class)) {
 //            String error = verifyIndexable(indexable);
 //            if (error != null) {
@@ -52,5 +76,9 @@ public class TISExtendsionInterceptor extends AbstractProcessor {
         return false;
     }
 
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
+    }
 
 }
