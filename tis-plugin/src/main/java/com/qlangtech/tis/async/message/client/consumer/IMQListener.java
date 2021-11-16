@@ -14,6 +14,7 @@
  */
 package com.qlangtech.tis.async.message.client.consumer;
 
+import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -35,5 +36,5 @@ public interface IMQListener {
     /**
      * Listener启动
      */
-    void start(IDataxReader rdbmsReader, List<ISelectedTab> tabs, IDataxProcessor dataXProcessor) throws MQConsumeException;
+    void start(TargetResName dataxName, IDataxReader rdbmsReader, List<ISelectedTab> tabs, IDataxProcessor dataXProcessor) throws MQConsumeException;
 }

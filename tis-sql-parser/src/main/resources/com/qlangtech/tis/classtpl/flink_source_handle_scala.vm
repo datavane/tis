@@ -4,14 +4,15 @@ import java.util
 import com.qlangtech.tis.realtime.transfer.DTO
 import org.apache.flink.streaming.api.datastream.DataStream
 import org.apache.flink.streaming.api.functions.sink.{PrintSinkFunction, SinkFunction}
-import com.qlangtech.tis.realtime.BasicFlinkSourceHandle
+import com.qlangtech.tis.realtime.{BasicFlinkSourceHandle, SinkFuncs}
 
 class ${config.javaName}SourceHandle extends BasicFlinkSourceHandle {
-    override protected def processTableStream(streamMap: util.Map[String, DataStream[DTO]], sinkFunction: SinkFunction[DTO]): Unit = {
+    override protected def processTableStream(streamMap: util.Map[String, DataStream[DTO]], sinkFunction: SinkFuncs): Unit = {
 
 #foreach($i in $config.dumpTables  )
+##    ${i.tabName}Stream.addSink(sinkFunction)
     val ${i.tabName}Stream = streamMap.get("${i.tabName}")
-    ${i.tabName}Stream.addSink(sinkFunction)
+    sinkFunction.add2Sink("${i.tabName}" , ${i.tabName}Stream)
 #end
 
     }

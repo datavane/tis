@@ -26,7 +26,6 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.Selectable;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -42,12 +41,12 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory> {
             Selectable.Single);
 
     /**
-     * SinkFunction<DTO>
+     * Map< IDataxProcessor.TableAlias, <SinkFunction<DTO> >
      *
      * @param dataxProcessor
      * @return
      */
-    public abstract <SinkFunc> SinkFunc createSinkFunction(IDataxProcessor dataxProcessor);
+    public abstract <SinkFunc> Map<IDataxProcessor.TableAlias, SinkFunc> createSinkFunction(IDataxProcessor dataxProcessor);
 
     @Override
     public final Descriptor<TISSinkFactory> getDescriptor() {

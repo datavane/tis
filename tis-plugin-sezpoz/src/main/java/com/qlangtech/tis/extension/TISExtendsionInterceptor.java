@@ -15,7 +15,7 @@
 
 package com.qlangtech.tis.extension;
 
-import net.java.sezpoz.Indexable;
+import net.java.sezpoz.impl.Indexer;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -24,8 +24,16 @@ import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
-import java.util.Set;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleTypeVisitor8;
+import javax.lang.model.util.Types;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
 
 /**
  * 通过编译时期拦截扩展插件接口，将一些插件的元信息写入到 class compiler output目录当中去
@@ -36,24 +44,45 @@ import java.util.Set;
 @SupportedAnnotationTypes("*")
 @SupportedOptions("sezpoz.quiet")
 public class TISExtendsionInterceptor extends AbstractProcessor {
+    public static final String FILE_EXTENDPOINTS = "extendpoints.txt";
+
     public TISExtendsionInterceptor() {
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
         if (env.processingOver()) {
-            // TODO we should not write until processingOver
+            // TODO we should not write until processingOver`
             return false;
         }
-//        for (Element indexable : env.getElementsAnnotatedWith(Indexable.class)) {
-//            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING
-//                    , "element:" + indexable.getSimpleName() + "," + indexable.getSimpleName());
+
+        Map<String, List<String>> extensionPoints = new HashMap<>();
+        for (Element indexable : env.getElementsAnnotatedWith(TISExtension.class)) {
+            Element enclose = indexable.getEnclosingElement();
+            visitParent(extensionPoints, enclose, enclose.asType());
+        }
+
+        try {
+            FileObject out = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT,
+                    "", Indexer.METAINF_ANNOTATIONS + FILE_EXTENDPOINTS
+            );
+            try (OutputStream o = out.openOutputStream()) {
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+//        for (Map.Entry<String, List<String>> entry : extensionPoints.entrySet()) {
+//            System.out.println(entry.getKey() + "->" + entry.getValue().stream().collect(Collectors.joining(",")));
 //        }
-//        this.processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "kkkkkk---------------------------------");
-//
+
+
 //        for (TypeElement te : annotations) {
+//            //Element enclosingElement = te.getEnclosingElement();
+//            System.out.println("enclosingElement:" + te);
 //            for (Element e : env.getElementsAnnotatedWith(te)) {
-//                this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "print:" + e.toString());
+//                System.out.println("=====print:" + e.toString());
 //            }
 //        }
 
@@ -74,6 +103,58 @@ public class TISExtendsionInterceptor extends AbstractProcessor {
 //        scan(annotations, originatingElementsByAnn, roundEnv, output);
 //        write(output, originatingElementsByAnn);
         return false;
+    }
+
+    private void visitParent(Map<String, List<String>> extensionPoints, final Element impl, TypeMirror childtm) {
+        if (childtm.getKind() != TypeKind.DECLARED) {
+            return;
+        }
+        Types typeUtils = this.processingEnv.getTypeUtils();
+        String extendPoint = childtm.toString();
+        TypeVisitor typeVisitor = null;
+        List<? extends TypeMirror> typeMirrors = typeUtils.directSupertypes(childtm);
+        List<String> impls = null;
+        for (TypeMirror tm : typeMirrors) {
+//com.qlangtech.tis.extension.Describable<com.qlangtech.tis.plugin.ds.DataSourceFactory>,
+            typeVisitor = new TypeVisitor();
+            tm.accept(typeVisitor, null);
+            if (typeVisitor.extendPointMatch) {
+                impls = extensionPoints.get(extendPoint);
+                if (impls == null) {
+                    impls = new ArrayList<>();
+                    extensionPoints.put(extendPoint, impls);
+                }
+                impls.add(String.valueOf(impl));
+                return;
+            }
+            visitParent(extensionPoints, impl, tm);
+        }
+    }
+
+    private static class TypeVisitor extends SimpleTypeVisitor8<Void, Void> {
+        private boolean extendPointMatch;
+        String extendPoint;
+
+        public TypeVisitor() {
+        }
+
+        @Override
+        public Void visitDeclared(DeclaredType t, Void aVoid) {
+            extendPointMatch = t.asElement().getSimpleName().contentEquals("Describable");
+//            if (extendPointMatch) {
+//                System.out.println(t + "----------->extendPointMatch:" + extendPointMatch + "t.getTypeArguments() size:" + t.getTypeArguments().size());
+//            }
+
+            if (extendPointMatch) {
+                for (TypeMirror p : t.getTypeArguments()) {
+                    extendPoint = String.valueOf(p);
+
+                }
+            }
+
+            return null;
+        }
+
     }
 
     @Override

@@ -83,7 +83,7 @@ public interface IDataxProcessor {
     /**
      * 表映射
      *
-     * @return
+     * @return key: fromTabName
      */
     public Map<String, TableAlias> getTabAlias();
 

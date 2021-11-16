@@ -27,7 +27,7 @@ import java.util.Set;
 public interface AsyncMsg<SOURCE> extends Serializable {
 
     /**
-     * 关注的表
+     * 关注的表,原始表表名
      *
      * @return
      */
