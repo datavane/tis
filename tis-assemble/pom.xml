@@ -53,9 +53,14 @@
         </dependency>
 
         <!--TODO： 可以的话需要将tis-datax-executor 去除掉，因为加入了datax的依赖，而现在为了方便先加入吧为了启动本地datax执行，届时可以考虑放到plugin或者单独起一个VM来执行-->
+<!--        <dependency>-->
+<!--            <groupId>com.qlangtech.tis</groupId>-->
+<!--            <artifactId>tis-datax-executor</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-datax-executor</artifactId>
+            <artifactId>tis-dag</artifactId>
             <version>${project.version}</version>
         </dependency>
 

@@ -152,11 +152,13 @@ public class PluginAction extends BasicModule {
    * @param context
    */
   public void doGetInstalledPlugins(Context context) {
+    Optional<String> extendpoint = getExtendpointParam();
     PluginManager pluginManager = TIS.get().getPluginManager();
     JSONArray response = new JSONArray();
     JSONObject pluginInfo = null;
     UpdateSite.Plugin info = null;
     for (PluginWrapper plugin : pluginManager.getPlugins()) {
+
       pluginInfo = new JSONObject();
       pluginInfo.put("installed", true);
       info = plugin.getInfo();
@@ -165,6 +167,17 @@ public class PluginAction extends BasicModule {
         pluginInfo.put("releaseTimestamp", info.releaseTimestamp);
         pluginInfo.put("excerpt", info.excerpt);
       }
+
+      if (extendpoint.isPresent()) {
+        if (info == null) {
+          continue;
+        }
+        if (!info.extendPoints.containsKey(extendpoint.get())) {
+          continue;
+        }
+        pluginInfo.put("extendPoints", info.extendPoints);
+      }
+
       pluginInfo.put("name", plugin.getShortName());
       pluginInfo.put("version", plugin.getVersion());
       pluginInfo.put("title", plugin.getDisplayName());
@@ -274,15 +287,21 @@ public class PluginAction extends BasicModule {
    */
   public void doGetAvailablePlugins(Context context) {
 
-    Optional<String> extendpoint = Optional.ofNullable(this.getString("extendpoint"));
+    Optional<String> extendpoint = getExtendpointParam();
     Pager pager = this.createPager();
     pager.setTotalCount(Integer.MAX_VALUE);
     List<UpdateSite.Plugin> availables = TIS.get().getUpdateCenter().getAvailables();
-    if(extendpoint.isPresent()){
-
+    if (extendpoint.isPresent()) {
+      availables = availables.stream().filter((plugin) -> {
+        return plugin.extendPoints.containsKey(plugin);
+      }).collect(Collectors.toList());
     }
 
     this.setBizResult(context, new PaginationResult(pager, availables));
+  }
+
+  private Optional<String> getExtendpointParam() {
+    return Optional.ofNullable(this.getString("extendpoint"));
   }
 
   /**

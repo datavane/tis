@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
@@ -427,6 +428,8 @@ public class UpdateSite {
          */
         public final Double popularity;
 
+        public final Map<String, List<String>> extendPoints;
+
         /**
          * The latest existing version of this plugin. May be different from the version being offered by the
          * update site, which will result in a notice on the UI.
@@ -445,6 +448,16 @@ public class UpdateSite {
             this.latest = get(o, "latest");
             this.requiredCore = Util.intern(get(o, "requiredCore"));
             this.releaseTimestamp = o.getLongValue("buildDate");
+
+            JSONObject extendPoints = o.getJSONObject("extendPoints");
+            this.extendPoints = Maps.newHashMap();
+            if (extendPoints != null) {
+                extendPoints.forEach((key, val) -> {
+                    String extendpoint = key;
+                    JSONArray impls = (JSONArray) val;
+                    this.extendPoints.put(extendpoint, impls.toJavaList(String.class));
+                });
+            }
             // final String releaseTimestamp = get(o, "releaseTimestamp");
 //            Date date = null;
 //            if (releaseTimestamp != null) {
