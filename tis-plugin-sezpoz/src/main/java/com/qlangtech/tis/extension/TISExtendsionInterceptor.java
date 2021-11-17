@@ -32,7 +32,7 @@ import javax.lang.model.util.Types;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 /**
@@ -56,18 +56,21 @@ public class TISExtendsionInterceptor extends AbstractProcessor {
             return false;
         }
 
-        Map<String, List<String>> extensionPoints = new HashMap<>();
+        final Map<String, List<String>> extensionPoints = new HashMap<>();
         for (Element indexable : env.getElementsAnnotatedWith(TISExtension.class)) {
             Element enclose = indexable.getEnclosingElement();
             visitParent(extensionPoints, enclose, enclose.asType());
         }
 
+        if (extensionPoints.isEmpty()) {
+            return false;
+        }
         try {
             FileObject out = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT,
                     "", Indexer.METAINF_ANNOTATIONS + FILE_EXTENDPOINTS
             );
-            try (OutputStream o = out.openOutputStream()) {
-
+            try (ObjectOutputStream o = new ObjectOutputStream(out.openOutputStream())) {
+                o.writeObject(extensionPoints);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

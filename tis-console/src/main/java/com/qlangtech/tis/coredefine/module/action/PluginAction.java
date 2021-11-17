@@ -274,9 +274,15 @@ public class PluginAction extends BasicModule {
    */
   public void doGetAvailablePlugins(Context context) {
 
+    Optional<String> extendpoint = Optional.ofNullable(this.getString("extendpoint"));
     Pager pager = this.createPager();
     pager.setTotalCount(Integer.MAX_VALUE);
-    this.setBizResult(context, new PaginationResult(pager, TIS.get().getUpdateCenter().getAvailables()));
+    List<UpdateSite.Plugin> availables = TIS.get().getUpdateCenter().getAvailables();
+    if(extendpoint.isPresent()){
+
+    }
+
+    this.setBizResult(context, new PaginationResult(pager, availables));
   }
 
   /**
