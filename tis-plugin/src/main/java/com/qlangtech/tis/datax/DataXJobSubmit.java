@@ -16,7 +16,9 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
@@ -30,9 +32,16 @@ import java.util.concurrent.Callable;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-04-27 17:03
  **/
+@TISExtensible
 public abstract class DataXJobSubmit {
 
     public static Callable<DataXJobSubmit> mockGetter;
+
+    public static DataXJobSubmit.InstanceType getDataXTriggerType() {
+        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
+        boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();//.isDataXWorkerServiceOnDuty();
+        return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
+    }
 
     public static Optional<DataXJobSubmit> getDataXJobSubmit(DataXJobSubmit.InstanceType expectDataXJobSumit) {
         try {

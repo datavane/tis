@@ -24,9 +24,9 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
@@ -45,6 +45,7 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -79,6 +80,14 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
+
+    DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
+    Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(triggerType);
+    if (!dataXJobSubmit.isPresent()) {
+      this.setBizResult(context, Collections.singletonMap("installLocal", true));
+      this.addErrorMessage(context, "还没有安装本地触发类型的执行器:" + triggerType + ",请先安装");
+      return;
+    }
 
     List<HttpUtils.PostParam> params = Lists.newArrayList();
     params.add(new HttpUtils.PostParam(CoreAction.KEY_APPNAME, this.getCollectionName()));

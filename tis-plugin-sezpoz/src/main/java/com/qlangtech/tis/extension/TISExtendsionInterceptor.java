@@ -23,6 +23,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -59,7 +60,15 @@ public class TISExtendsionInterceptor extends AbstractProcessor {
         final Map<String, List<String>> extensionPoints = new HashMap<>();
         for (Element indexable : env.getElementsAnnotatedWith(TISExtension.class)) {
             Element enclose = indexable.getEnclosingElement();
-            visitParent(extensionPoints, enclose, enclose.asType());
+            // System.out.println("--------------enclose:" + enclose + ",type:" + enclose.getKind());
+            if (enclose.getKind() == ElementKind.PACKAGE) {
+                // 类似LocalDataXJobSubmit 这样的直接是扩展类的也写入索引文件
+                visitParent(extensionPoints, indexable, indexable.asType());
+            } else {
+                visitParent(extensionPoints, enclose, enclose.asType());
+            }
+
+
         }
 
         if (extensionPoints.isEmpty()) {
@@ -113,19 +122,19 @@ public class TISExtendsionInterceptor extends AbstractProcessor {
             return;
         }
         Types typeUtils = this.processingEnv.getTypeUtils();
-        String extendPoint = childtm.toString();
+        //String extendPoint = childtm.toString();
         TypeVisitor typeVisitor = null;
         List<? extends TypeMirror> typeMirrors = typeUtils.directSupertypes(childtm);
         List<String> impls = null;
         for (TypeMirror tm : typeMirrors) {
 //com.qlangtech.tis.extension.Describable<com.qlangtech.tis.plugin.ds.DataSourceFactory>,
-            typeVisitor = new TypeVisitor();
+            typeVisitor = new TypeVisitor(childtm);
             tm.accept(typeVisitor, null);
             if (typeVisitor.extendPointMatch) {
-                impls = extensionPoints.get(extendPoint);
+                impls = extensionPoints.get(typeVisitor.extendPoint);
                 if (impls == null) {
                     impls = new ArrayList<>();
-                    extensionPoints.put(extendPoint, impls);
+                    extensionPoints.put(typeVisitor.extendPoint, impls);
                 }
                 impls.add(String.valueOf(impl));
                 return;
@@ -138,12 +147,24 @@ public class TISExtendsionInterceptor extends AbstractProcessor {
         private boolean extendPointMatch;
         String extendPoint;
 
-        public TypeVisitor() {
+        final TypeMirror childtm;
+
+        public TypeVisitor(TypeMirror childtm) {
+            this.childtm = childtm;
         }
 
         @Override
         public Void visitDeclared(DeclaredType t, Void aVoid) {
             extendPointMatch = t.asElement().getSimpleName().contentEquals("Describable");
+            if (!extendPointMatch) {
+                TISExtensible extensible = t.asElement().getAnnotation(TISExtensible.class);
+                extendPointMatch = extensible != null;
+                if (extendPointMatch) {
+                    extendPoint = t.toString();
+                }
+            } else {
+                extendPoint = childtm.toString();
+            }
 //            if (extendPointMatch) {
 //                System.out.println(t + "----------->extendPointMatch:" + extendPointMatch + "t.getTypeArguments() size:" + t.getTypeArguments().size());
 //            }
