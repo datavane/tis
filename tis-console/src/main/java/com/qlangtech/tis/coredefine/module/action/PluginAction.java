@@ -293,7 +293,7 @@ public class PluginAction extends BasicModule {
     List<UpdateSite.Plugin> availables = TIS.get().getUpdateCenter().getAvailables();
     if (extendpoint.isPresent()) {
       availables = availables.stream().filter((plugin) -> {
-        return plugin.extendPoints.containsKey(plugin);
+        return plugin.extendPoints.containsKey(extendpoint.get());
       }).collect(Collectors.toList());
     }
 
