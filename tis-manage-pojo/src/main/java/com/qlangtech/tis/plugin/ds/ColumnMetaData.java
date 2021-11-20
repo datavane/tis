@@ -122,7 +122,7 @@ public class ColumnMetaData extends Option {
             this(type, -1);
         }
 
-        public ISelectedTab.DataXReaderColType collapse() {
+        public ISelectedTab.DataXReaderColType getCollapse() {
             switch (this.type) {
                 case Types.INTEGER:
                 case Types.TINYINT:

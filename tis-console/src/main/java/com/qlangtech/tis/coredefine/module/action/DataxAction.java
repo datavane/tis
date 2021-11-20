@@ -747,9 +747,7 @@ public class DataxAction extends BasicModule {
     Optional<IDataxProcessor.TableAlias> findMapper = tabAlias.values().stream().findFirst();
     IDataxProcessor.TableMap tabMapper = null;
     for (ISelectedTab selectedTab : processMeta.getReader().getSelectedTabs()) {
-      // List<ISelectedTab.ColMeta> cols = selectedTab.getCols();
 
-      // IDataxProcessor.TableAlias tableAlias = tabAlias.get(selectedTab.getName());
       if (findMapper.isPresent()) {
         if (!(findMapper.get() instanceof IDataxProcessor.TableMap)) {
           throw new IllegalStateException("tableAlias must be type of " + IDataxProcessor.TableMap.class.getName());
