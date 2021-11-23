@@ -36,7 +36,7 @@ import java.util.*;
  * @author: baisui 百岁
  * @create: 2020-11-24 10:40
  **/
-public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName, DataSourceMeta {
+public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName, DataSourceMeta ,Wrapper {
 
     public static final String DS_TYPE_MYSQL = "MySQL";
 
@@ -95,6 +95,22 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         }
     }
 
+    /**
+     * 例子请查看：MangoDBDataSourceFactory包装了createMongoClient：MongoClient
+     * @param iface
+     * @param <T>
+     * @return
+     * @throws SQLException
+     */
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * 获取jdbc Connection

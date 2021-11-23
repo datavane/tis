@@ -19,7 +19,7 @@
     <url>http://maven.apache.org</url>
     <properties>
         <flink.version>tis-1.13.1</flink.version>
-        <alibaba.datax.version>0.0.1-SNAPSHOT</alibaba.datax.version>
+        <alibaba.datax.version>${project.version}</alibaba.datax.version>
         <tisasm.oss.put.skip>true</tisasm.oss.put.skip>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss</maven.build.timestamp.format>

@@ -756,6 +756,8 @@ public class DataxAction extends BasicModule {
       } else {
         tabMapper = new IDataxProcessor.TableMap();
         tabMapper.setSourceCols(selectedTab.getCols());
+        tabMapper.setFrom(selectedTab.getName());
+        tabMapper.setTo(selectedTab.getName());
       }
 
       this.setBizResult(context, tabMapper);
@@ -810,6 +812,13 @@ public class DataxAction extends BasicModule {
           tableMapper.setTo(val);
         }
       },
+      "writerFromTabName"
+      , new Validator.FieldValidators(Validator.require, Validator.db_col_name) {
+        @Override
+        public void setFieldVal(String val) {
+          tableMapper.setFrom(val);
+        }
+      },
       keyColsMeta //
       , new Validator.FieldValidators(Validator.require) {
         @Override
@@ -848,7 +857,10 @@ public class DataxAction extends BasicModule {
             }
             colMeta = new ISelectedTab.ColMeta();
             colMeta.setName(targetColName);
-            colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
+
+            ColumnMetaData.DataType dataType = targetCol.getObject("type", ColumnMetaData.DataType.class);
+            // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
+            colMeta.setType(dataType);
             writerCols.add(colMeta);
           }
 
