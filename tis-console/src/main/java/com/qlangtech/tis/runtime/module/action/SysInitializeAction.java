@@ -289,6 +289,7 @@ public class SysInitializeAction   //extends BasicModule
 
     final String zkServer = matcher.group(1);
     String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
+    logger.info("zkServer:{},zkSubDir:{}", zkServer, zkSubDir);
 
     if (StringUtils.endsWith(zkSubDir, "/")) {
       zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
@@ -304,7 +305,7 @@ public class SysInitializeAction   //extends BasicModule
       createPath = zkSubDir + "/tis";
 
       ITISCoordinator coordinator = getCoordinator(zk);
-
+      logger.info("guaranteeExist:{}", createPath);
       ZkUtils.guaranteeExist(coordinator, createPath);
       buildLog.append(",path1:").append(createPath);
       createPath = zkSubDir + "/tis-lock/dumpindex";
