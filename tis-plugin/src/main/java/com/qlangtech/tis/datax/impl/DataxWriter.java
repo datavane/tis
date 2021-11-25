@@ -82,7 +82,8 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
 
     @Override
     public final Descriptor<DataxWriter> getDescriptor() {
-        Descriptor<DataxWriter> descriptor = TIS.get().getDescriptor(this.getClass());
+
+        Descriptor<DataxWriter> descriptor = TIS.get().getDescriptor((Class<Describable>) this.getOwnerClass());
         Class<BaseDataxWriterDescriptor> expectClazz = getExpectDescClass();
         if (!(expectClazz.isAssignableFrom(descriptor.getClass()))) {
             throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of " + expectClazz.getName());

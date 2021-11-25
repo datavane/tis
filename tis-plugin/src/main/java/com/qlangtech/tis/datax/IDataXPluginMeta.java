@@ -35,7 +35,8 @@ public interface IDataXPluginMeta {
      * 端类型
      */
     public enum EndType {
-        MySQL("mysql"), Postgres("pg"), Oracle("oracle"), ElasticSearch("es"), MongoDB("mongo"), StarRocks("starRocks");
+        MySQL("mysql"), Postgres("pg"), Oracle("oracle") //
+        , ElasticSearch("es"), MongoDB("mongo"), StarRocks("starRocks"), Clickhouse("clickhouse");
         private final String val;
 
         EndType(String val) {
