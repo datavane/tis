@@ -349,6 +349,15 @@ public class SysInitializeAction   //extends BasicModule
       }
 
       @Override
+      public boolean exists(String path, boolean watch) {
+        try {
+          return zooKeeper.exists(path, watch) != null;
+        } catch (Exception e) {
+          throw new RuntimeException(path, e);
+        }
+      }
+
+      @Override
       public void create(String path, byte[] data, boolean persistent, boolean sequential) {
 
         CreateMode createMode = null;
