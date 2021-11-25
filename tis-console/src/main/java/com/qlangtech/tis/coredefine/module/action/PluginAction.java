@@ -42,6 +42,7 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
@@ -152,7 +153,7 @@ public class PluginAction extends BasicModule {
    * @param context
    */
   public void doGetInstalledPlugins(Context context) {
-    Optional<String> extendpoint = getExtendpointParam();
+    List<String> extendpoint = getExtendpointParam();
     PluginManager pluginManager = TIS.get().getPluginManager();
     JSONArray response = new JSONArray();
     JSONObject pluginInfo = null;
@@ -168,11 +169,12 @@ public class PluginAction extends BasicModule {
         pluginInfo.put("excerpt", info.excerpt);
       }
 
-      if (extendpoint.isPresent()) {
+      if (CollectionUtils.isNotEmpty(extendpoint)) {
         if (info == null) {
           continue;
         }
-        if (!info.extendPoints.containsKey(extendpoint.get())) {
+
+        if (!CollectionUtils.containsAny(info.extendPoints.keySet(), extendpoint)) {
           continue;
         }
         pluginInfo.put("extendPoints", info.extendPoints);
@@ -287,21 +289,23 @@ public class PluginAction extends BasicModule {
    */
   public void doGetAvailablePlugins(Context context) {
 
-    Optional<String> extendpoint = getExtendpointParam();
+    List<String> extendpoint = getExtendpointParam();
     Pager pager = this.createPager();
     pager.setTotalCount(Integer.MAX_VALUE);
     List<UpdateSite.Plugin> availables = TIS.get().getUpdateCenter().getAvailables();
-    if (extendpoint.isPresent()) {
+    if (CollectionUtils.isNotEmpty(extendpoint)) {
       availables = availables.stream().filter((plugin) -> {
-        return plugin.extendPoints.containsKey(extendpoint.get());
+        return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
+        // return plugin.extendPoints.containsKey(extendpoint.get());
       }).collect(Collectors.toList());
     }
 
     this.setBizResult(context, new PaginationResult(pager, availables));
   }
 
-  private Optional<String> getExtendpointParam() {
-    return Optional.ofNullable(this.getString("extendpoint"));
+  private List<String> getExtendpointParam() {
+    return Arrays.asList(this.getStringArray("extendpoint"));
+//    return Optional.ofNullable(this.getString("extendpoint"));
   }
 
   /**
@@ -337,6 +341,24 @@ public class PluginAction extends BasicModule {
     }
 
     throw new IllegalStateException("displayName:" + displayName + " relevant Descriptor can not be null");
+  }
+
+  /**
+   * @param context
+   */
+  public void doGetDescsByExtendpoint(Context context) throws Exception {
+    List<String> extendpoints = this.getExtendpointParam();
+    if (CollectionUtils.isEmpty(extendpoints)) {
+      throw new IllegalArgumentException("extendpoints can not be null");
+    }
+
+    for (String extend : extendpoints) {
+      this.setBizResult(context
+        , new DescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
+      return;
+    }
+
+    throw new IllegalArgumentException("extendpoints can not be null");
   }
 
   /**
