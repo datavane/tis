@@ -327,7 +327,8 @@ public class PluginAction extends BasicModule {
    * @param context
    */
   public void doGetDescriptor(Context context) {
-    String displayName = this.getString("name");
+    this.errorsPageShow(context);
+    final String displayName = this.getString("name");
     if (StringUtils.isEmpty(displayName)) {
       throw new IllegalArgumentException("request param 'impl' can not be null");
     }
@@ -340,7 +341,10 @@ public class PluginAction extends BasicModule {
       }
     }
 
-    throw new IllegalStateException("displayName:" + displayName + " relevant Descriptor can not be null");
+    // throw new IllegalStateException("displayName:" + displayName + " relevant Descriptor can not be null");
+    this.setBizResult(context, Collections.singletonMap("notFoundExtension", hetero.getExtensionPoint().getName()));
+    this.addErrorMessage(context, "displayName:" + displayName + " relevant Descriptor can not be null");
+
   }
 
   /**

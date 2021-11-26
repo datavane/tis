@@ -154,8 +154,10 @@ public class UpdateSite {
     }
 
     public FormValidation updateDirectlyNow(boolean signatureCheck) throws IOException {
+        String siteCfgUrl = getUrl() + "?id=" + URLEncoder.encode(getId(), "UTF-8") + "&version=" + URLEncoder.encode(TIS.VERSION, "UTF-8");
+        LOGGER.info("siteCfgUrl:{}", siteCfgUrl);
         return updateData(HttpUtils.get( //
-                new URL(getUrl() + "?id=" + URLEncoder.encode(getId(), "UTF-8") + "&version=" + URLEncoder.encode(TIS.VERSION, "UTF-8"))//
+                new URL(siteCfgUrl)//
                 , new ConfigFileContext.StreamProcess<String>() {
                     @Override
                     public String p(int status, InputStream stream, Map<String, List<String>> headerFields) {

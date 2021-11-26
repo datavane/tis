@@ -18,6 +18,7 @@
 
     <properties>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>javax.inject</groupId>
@@ -192,10 +193,10 @@
         </dependency>
 
 
-
     </dependencies>
 
     <build>
+
         <plugins>
 
         </plugins>

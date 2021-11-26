@@ -13,26 +13,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.qlangtech.tis;
+package com.qlangtech.tis.utils;
 
-import com.qlangtech.tis.utils.TestTisMetaProps;
-import com.qlangtech.tis.utils.TestUtils;
-import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-09-18 17:32
+ * @create: 2021-11-25 20:38
  **/
+public class TestTisMetaProps extends TestCase {
 
+    public void testGetInstance() {
+        TisMetaProps i = TisMetaProps.getInstance();
+        //  i.getVersion();
+        assertNotNull(i.getVersion());
 
-public class TestAll extends TestCase {
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(TestUtils.class);
-        suite.addTestSuite(TestTisMetaProps.class);
-        return suite;
+        Pattern versionPattern = Pattern.compile("\\d+\\.\\d+\\.\\d+");
+        Matcher matcher = versionPattern.matcher(i.getVersion());
+        assertTrue(i.getVersion(), matcher.matches());
     }
 }

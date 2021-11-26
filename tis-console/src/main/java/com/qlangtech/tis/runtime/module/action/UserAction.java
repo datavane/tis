@@ -18,16 +18,19 @@ import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.manage.PermissionConstant;
-import com.qlangtech.tis.manage.biz.dal.pojo.*;
+import com.qlangtech.tis.manage.biz.dal.pojo.Department;
+import com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria;
+import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelation;
+import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.utils.TisMetaProps;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -39,7 +42,7 @@ import java.util.*;
 public class UserAction extends BasicModule {
 
   private static final long serialVersionUID = 1L;
-  private static Properties tisMetaProps;
+  // private static Properties tisMetaProps;
 
   /**
    * @param context
@@ -49,13 +52,13 @@ public class UserAction extends BasicModule {
     sysInfo.put("usr", UserUtils.getUser(this.getRequest(), this.getDaoContext()));
     sysInfo.put("sysInitialized", SysInitializeAction.isSysInitialized());
 
-    if (tisMetaProps == null) {
-      try (InputStream reader = UserAction.class.getResourceAsStream("/tis-meta")) {
-        tisMetaProps = new Properties();
-        tisMetaProps.load(reader);
-      }
-    }
-    sysInfo.put("tisMeta", tisMetaProps);
+//    if (tisMetaProps == null) {
+//      try (InputStream reader = UserAction.class.getResourceAsStream("/tis-meta")) {
+//        tisMetaProps = new Properties();
+//        tisMetaProps.load(reader);
+//      }
+//    }
+    sysInfo.put("tisMeta", TisMetaProps.getInstance().tisMetaProps);
     this.setBizResult(context, sysInfo);
   }
 

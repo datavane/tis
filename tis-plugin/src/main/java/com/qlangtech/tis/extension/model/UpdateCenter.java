@@ -29,6 +29,7 @@ import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.exec.AtmostOneThreadExecutor;
 import com.qlangtech.tis.util.exec.DaemonThreadFactory;
 import com.qlangtech.tis.util.exec.NamingThreadFactory;
+import com.qlangtech.tis.utils.TisMetaProps;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.io.IOUtils;
@@ -118,7 +119,7 @@ public class UpdateCenter implements Saveable {
 //            LOGGER.info("Using a custom update center defined by the system property: {}", ucOverride);
 //            UPDATE_CENTER_URL = ucOverride;
 //        } else {
-        UPDATE_CENTER_URL = "http://mirror.qlangtech.com/update-site/";
+        UPDATE_CENTER_URL = "http://mirror.qlangtech.com/" + TisMetaProps.getInstance().getVersion() + "/update-site/";
         //}
     }
 
