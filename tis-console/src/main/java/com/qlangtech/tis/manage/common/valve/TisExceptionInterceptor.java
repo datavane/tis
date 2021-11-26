@@ -101,17 +101,20 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
         List<String> errors = new ArrayList<String>();
         errors.add("服务端发生异常，请联系系统管理员");
 
-        final Throwable[] throwables = ExceptionUtils.getThrowables(e);
-        boolean findTisException = false;
-        for (Throwable ex : throwables) {
-          if (TisException.class.isAssignableFrom(ex.getClass())) {
-            errors.add(ex.getMessage());
-            findTisException = true;
-            break;
-          }
-        }
-        if (!findTisException) {
+        TisException tisExcept = TisException.find(e);
+//        final Throwable[] throwables = ExceptionUtils.getThrowables(e);
+//        boolean findTisException = false;
+//        for (Throwable ex : throwables) {
+//          if (TisException.class.isAssignableFrom(ex.getClass())) {
+//            errors.add(ex.getMessage());
+//            findTisException = true;
+//            break;
+//          }
+//        }
+        if (tisExcept == null) {
           errors.add(ExceptionUtils.getRootCauseMessage(e));
+        } else {
+          errors.add(tisExcept.getMessage());
         }
 //        execResult = MockContext.getActionExecResult();
 //        execResult.addErrorMsg(errors);

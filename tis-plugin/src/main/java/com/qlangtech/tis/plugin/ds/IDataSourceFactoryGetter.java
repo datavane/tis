@@ -25,4 +25,11 @@ public interface IDataSourceFactoryGetter {
 
     DataSourceFactory getDataSourceFactory();
 
+    /**
+     * 批量导出数据，单次导出记录条数供游标遍历
+     *
+     * @return
+     */
+    Integer getRowFetchSize();
+
 }

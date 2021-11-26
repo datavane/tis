@@ -36,7 +36,7 @@ import java.util.*;
  * @author: baisui 百岁
  * @create: 2020-11-24 10:40
  **/
-public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName, DataSourceMeta ,Wrapper {
+public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName, DataSourceMeta, Wrapper {
 
     public static final String DS_TYPE_MYSQL = "MySQL";
 
@@ -97,6 +97,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     /**
      * 例子请查看：MangoDBDataSourceFactory包装了createMongoClient：MongoClient
+     *
      * @param iface
      * @param <T>
      * @return
@@ -268,7 +269,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
-                msgHandler.addErrorMessage(context, e.getMessage());
+                TisException tisExcept = TisException.find(e);
+                msgHandler.addErrorMessage(context, tisExcept != null ? tisExcept.getMessage() : e.getMessage());
                 return false;
             }
             return true;
