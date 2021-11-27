@@ -239,10 +239,21 @@ public class PluginItems {
         throw new IllegalStateException("must be collection aware");
       }
       store = DataXJobWorker.getJobWorkerStore(new TargetResName(this.pluginContext.getCollectionName()));
-    } else if (this.pluginContext.isCollectionAware()) {
-      store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.getExtensionPoint());
+//    } else if (this.pluginContext.isCollectionAware()) {
+//      store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.getExtensionPoint());
     } else {
-      store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
+      if (heteroEnum.isAppNameAware()) {
+        if (!this.pluginContext.isCollectionAware()) {
+          throw new IllegalStateException(heteroEnum.getExtensionPoint().getName() + " must be collection aware");
+        }
+        store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.getExtensionPoint());
+      } else {
+        store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
+      }
+//      if (heteroEnum.isAppNameAware()) {
+//        throw new IllegalStateException(heteroEnum.getExtensionPoint().getName() + " must be app name aware");
+//      }
+
     }
     //dlist
     if (!store.setPlugins(pluginContext, Optional.of(context), convert(dlist))) {

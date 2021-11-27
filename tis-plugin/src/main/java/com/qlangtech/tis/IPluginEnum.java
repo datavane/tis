@@ -45,4 +45,6 @@ public interface IPluginEnum<T extends Describable<T>> {
     public <T extends Describable<T>> List<Descriptor<T>> descriptors();
 
     public boolean isIdentityUnique();
+
+    public boolean isAppNameAware();
 }

@@ -79,26 +79,26 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     @TISExtension
     public static final HeteroEnum<MQListenerFactory> MQ = new HeteroEnum<MQListenerFactory>(//
             MQListenerFactory.class, //
-            "mq", "Source Factory");
+            "mq", "Source Factory", Selectable.Multi, true);
     // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<ParamsConfig> PARAMS_CONFIG = new HeteroEnum<ParamsConfig>(//
             ParamsConfig.class, //
             "params-cfg", // },//
-            "基础配置", Selectable.Multi);
+            "基础配置", Selectable.Multi, false);
     // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<K8sImage> K8S_IMAGES = new HeteroEnum<K8sImage>(//
             K8sImage.class, //
             "k8s-images", // },//
-            "K8S-Images", Selectable.Multi);
+            "K8S-Images", Selectable.Multi, false);
     // ////////////////////////////////////////////////////////
 
     @TISExtension
     public static final HeteroEnum<DataXJobWorker> DATAX_WORKER = new HeteroEnum<DataXJobWorker>(//
             DataXJobWorker.class, //
             "datax-worker", // },//
-            "DataX Worker", Selectable.Single);
+            "DataX Worker", Selectable.Single, true);
     // ////////////////////////////////////////////////////////
 
     @TISExtension
@@ -106,7 +106,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             = new HeteroEnum<>(//
             IncrStreamFactory.class, //
             "incr-config", // },
-            "增量引擎配置", Selectable.Single);
+            "增量引擎配置", Selectable.Single, true);
 
     @TISExtension
     public static final HeteroEnum<DataSourceFactory> DATASOURCE = new HeteroEnum<DataSourceFactory>(//
@@ -143,19 +143,19 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             DataxReader.class, //
             "dataxReader", //
             "DataX Reader", //
-            Selectable.Multi);
+            Selectable.Multi, true);
     @TISExtension
     public static final HeteroEnum<DataxWriter> DATAX_WRITER = new HeteroEnum<DataxWriter>(//
             DataxWriter.class, //
             "dataxWriter", //
             "DataX Writer", //
-            Selectable.Multi);
+            Selectable.Multi, true);
     @TISExtension
     public static final HeteroEnum<IAppSource> APP_SOURCE = new HeteroEnum<IAppSource>(//
             IAppSource.class, //
             "appSource", //
             "App Source", //
-            Selectable.Multi);
+            Selectable.Multi, true);
 
     public final String caption;
 
@@ -166,16 +166,29 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     // public final IDescriptorsGetter descriptorsGetter;
     // private final IItemGetter itemGetter;
     public final Selectable selectable;
+    private final boolean appNameAware;
 
     public HeteroEnum(
             Class<T> extensionPoint,
             String identity, String caption, Selectable selectable) {
+        this(extensionPoint, identity, caption, selectable, false);
+    }
+
+    @Override
+    public boolean isAppNameAware() {
+        return this.appNameAware;
+    }
+
+    public HeteroEnum(
+            Class<T> extensionPoint,
+            String identity, String caption, Selectable selectable, boolean appNameAware) {
         this.extensionPoint = extensionPoint;
         this.caption = caption;
         // this.descriptorsGetter = descriptorsGetter;
         // this.itemGetter = itemGetter;
         this.identity = identity;
         this.selectable = selectable;
+        this.appNameAware = appNameAware;
     }
 
     /**
@@ -263,8 +276,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                 throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
             }
             store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
-        } else if (pluginContext.isCollectionAware()) {
-            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
+//        } else if (pluginContext.isCollectionAware()) {
+
         } else if (pluginContext.isDataSourceAware()) {
             PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
             if (StringUtils.isEmpty(dsProp.getDbname())) {
@@ -272,7 +285,14 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             }
             store = TIS.getDataBasePluginStore(dsProp);
         } else {
-            store = TIS.getPluginStore(this.extensionPoint);
+            if (this.isAppNameAware()) {
+                if(!pluginContext.isCollectionAware()){
+                    throw new IllegalStateException(this.getExtensionPoint().getName() + " must be collection aware");
+                }
+                store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
+            } else {
+                store = TIS.getPluginStore(this.extensionPoint);
+            }
         }
         Objects.requireNonNull(store, "plugin store can not be null");
         return store;
