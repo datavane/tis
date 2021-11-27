@@ -38,7 +38,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory> {
             TISSinkFactory.class, //
             "sinkFactory", //
             "Incr Sink Factory", //
-            Selectable.Single);
+            Selectable.Single, true);
 
     /**
      * Map< IDataxProcessor.TableAlias, <SinkFunction<DTO> >

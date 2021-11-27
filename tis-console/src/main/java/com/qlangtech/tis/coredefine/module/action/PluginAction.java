@@ -153,12 +153,14 @@ public class PluginAction extends BasicModule {
    * @param context
    */
   public void doGetInstalledPlugins(Context context) {
+
     List<String> extendpoint = getExtendpointParam();
     PluginManager pluginManager = TIS.get().getPluginManager();
     JSONArray response = new JSONArray();
     JSONObject pluginInfo = null;
     UpdateSite.Plugin info = null;
     for (PluginWrapper plugin : pluginManager.getPlugins()) {
+
 
       pluginInfo = new JSONObject();
       pluginInfo.put("installed", true);
@@ -178,6 +180,10 @@ public class PluginAction extends BasicModule {
           continue;
         }
         pluginInfo.put("extendPoints", info.extendPoints);
+      }
+
+      if (filterPlugin(plugin)) {
+        continue;
       }
 
       pluginInfo.put("name", plugin.getShortName());
@@ -204,6 +210,28 @@ public class PluginAction extends BasicModule {
       response.add(pluginInfo);
     }
     this.setBizResult(context, response);
+  }
+
+  private boolean filterPlugin(PluginWrapper plugin) {
+    return filterPlugin(plugin.getDisplayName(), (plugin.getInfo() != null ? plugin.getInfo().excerpt : null));
+  }
+
+  private boolean filterPlugin(String title, String excerpt) {
+    // UpdateSite.Plugin info = plugin.getInfo();
+    Optional<String> query = getQueryPluginParam();
+    if (query.isPresent()) {
+      String searchQ = query.get();
+      if (!(StringUtils.indexOfIgnoreCase(title, searchQ) > -1
+        || (StringUtils.isNotBlank(excerpt) && StringUtils.indexOfIgnoreCase(excerpt, searchQ) > -1))
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private Optional<String> getQueryPluginParam() {
+    return Optional.ofNullable(StringUtils.trimToNull(this.getString("query")));
   }
 
   /**
@@ -297,6 +325,12 @@ public class PluginAction extends BasicModule {
       availables = availables.stream().filter((plugin) -> {
         return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
         // return plugin.extendPoints.containsKey(extendpoint.get());
+      }).collect(Collectors.toList());
+    }
+
+    if (getQueryPluginParam().isPresent()) {
+      availables = availables.stream().filter((plugin) -> {
+        return !filterPlugin(plugin.title, plugin.excerpt);
       }).collect(Collectors.toList());
     }
 
