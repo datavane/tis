@@ -53,7 +53,7 @@
         <module>tis-solrcore-extend</module>
         <module>tis-index-builder</module>
         <module>tis-dag</module>
-<!--        <module>tis-realtime-base</module>-->
+        <!--        <module>tis-realtime-base</module>-->
         <module>tis-sql-parser</module>
         <module>tis-common-dao</module>
         <module>tis-collection-info-collect</module>
@@ -64,7 +64,6 @@
 
         <module>maven-tpi-plugin</module>
         <module>tis-datax-executor</module>
-
 
 
     </modules>
@@ -575,7 +574,7 @@
                                 </exclusion>
                             </exclusions>
                         </dependency>
- -->
+        -->
 
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>
@@ -650,8 +649,6 @@
             </dependency>
 
 
-
-
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
@@ -720,11 +717,11 @@
             </dependency>
 
 
-<!--            <dependency>-->
-<!--                <groupId>com.qlangtech.tis</groupId>-->
-<!--                <artifactId>tis-realtime-base</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>com.qlangtech.tis</groupId>-->
+            <!--                <artifactId>tis-realtime-base</artifactId>-->
+            <!--                <version>${project.version}</version>-->
+            <!--            </dependency>-->
 
             <dependency>
                 <groupId>org.yaml</groupId>
@@ -745,7 +742,7 @@
                 <configuration>
                     <!--
                     <test>TestAll_bak</test>
--->
+        -->
                     <includes>
                         <include>**/TestAll.java</include>
                     </includes>
@@ -866,4 +863,50 @@
         </pluginManagement>
 
     </build>
+
+    <repositories>
+        <repository>
+            <id>rdc-releases</id>
+            <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>rdc-snapshots</id>
+            <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>rdc-releases</id>
+            <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>rdc-snapshots</id>
+            <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
