@@ -885,6 +885,16 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>jenkins-release</id>
+            <url>https://repo.jenkins-ci.org/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -903,6 +913,16 @@
             <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
             <releases>
                 <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>jenkins-plugin-release</id>
+            <url>https://repo.jenkins-ci.org/releases/</url>
+            <releases>
+                <enabled>true</enabled>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
