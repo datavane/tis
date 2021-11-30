@@ -8,13 +8,11 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-
     <modelVersion>4.0.0</modelVersion>
     <artifactId>tis-plugin</artifactId>
     <packaging>jar</packaging>
     <name>tis-plugin</name>
     <url>http://maven.apache.org</url>
-
 
     <properties>
     </properties>
@@ -26,13 +24,6 @@
             <version>1</version>
         </dependency>
 
-        <!--        <dependency>-->
-        <!--            <groupId>org.commonmark</groupId>-->
-        <!--            <artifactId>commonmark</artifactId>-->
-        <!--            <version>0.17.1</version>-->
-        <!--        </dependency>-->
-
-        <!-- -->
         <dependency>
             <groupId>org.apache.velocity</groupId>
             <artifactId>velocity</artifactId>
@@ -196,9 +187,13 @@
     </dependencies>
 
     <build>
-
-        <plugins>
-
-        </plugins>
+        <plugins></plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
 </project>

@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.qlangtech.tis</groupId>
         <artifactId>tis-parent</artifactId>
-        <version>1.1.0</version>
+        <version>1.3.0</version>
     </parent>
 
     <groupId>com.qlangtech.tis</groupId>
@@ -885,16 +885,6 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>jenkins-release</id>
-            <url>https://repo.jenkins-ci.org/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -918,15 +908,6 @@
                 <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
-        <pluginRepository>
-            <id>jenkins-plugin-release</id>
-            <url>https://repo.jenkins-ci.org/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>
+
     </pluginRepositories>
 </project>
