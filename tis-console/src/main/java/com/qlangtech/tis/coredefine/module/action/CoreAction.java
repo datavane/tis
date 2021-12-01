@@ -277,19 +277,9 @@ public class CoreAction extends BasicModule {
     BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
 
     IStreamIncrGenerateStrategy appSource = IAppSource.load(null, module.getCollectionName());
-    //Integer workFlowId = module.getAppDomain().getApp().getWorkFlowId();
-    //WorkFlow wf = module.loadDF(workFlowId);
-    //SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wf.getName());
 
-//    if (topology.isSingleTableModel()) {
-//      Optional<ERRules> erRule = ERRules.getErRule(topology.getName());
-//      if (!erRule.isPresent()) {
-//        ERRules.createDefaultErRule(topology);
-//      }
-//    }
-
-
-    return generateDAOAndIncrScript(module, context, validateGlobalIncrStreamFactory, compilerAndPackage, appSource.isExcludeFacadeDAOSupport());
+    return generateDAOAndIncrScript(module, context
+      , validateGlobalIncrStreamFactory, compilerAndPackage, appSource.isExcludeFacadeDAOSupport());
   }
 
   /**

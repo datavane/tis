@@ -35,6 +35,7 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
@@ -617,6 +618,12 @@ public class DataxAction extends BasicModule {
       }
       throw new IllegalStateException("oldWorkDir update is illegal:" + oldWorkDir.getAbsolutePath(), e);
     }
+    // 更新一下时间戳，workflow 会重新创建流程
+    Application dataXApp = new Application();
+    dataXApp.setUpdateTime(new Date());
+    ApplicationCriteria appCriteria = new ApplicationCriteria();
+    appCriteria.createCriteria().andProjectNameEqualTo(dataxName);
+    this.getApplicationDAO().updateByExampleSelective(dataXApp, appCriteria);
     this.addActionMessage(context, "已经成功更新");
   }
 
