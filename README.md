@@ -18,7 +18,12 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 ## 架构
 
  ![tis](docs/tis-synoptic.png)
- 
+
+## 支持的读写组件
+|Reader|Writer|
+|--|--|
+|![tis](docs/logo/cassandra.svg)|![tis](docs/logo/mysql.svg)|
+
 ## 功能一瞥 
 
 - 视频示例
@@ -27,6 +32,7 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
     * [MySQL导入ElasticSearch](https://www.bilibili.com/video/BV1G64y1B7wm?share_source=copy_web)
     * [MySQL导入Hive](https://www.bilibili.com/video/BV1Vb4y1z7DN?share_source=copy_web)
     * [MySQL导入Clickhouse](https://www.bilibili.com/video/BV1x64y1B7V8/)
+
 
 
 选择Reader/Writer插件类型
