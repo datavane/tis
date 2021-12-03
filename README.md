@@ -4,11 +4,12 @@
 ![tis](docs/tis-logo.png)
 ## TIS介绍
 
-TIS快速为您构建企业级数仓库服务，**基于DataX，提供简单易用的 操作界面，降低用户使用DataX的学习成本，缩短任务配置时间，避免配置过程中出错，使数据抽取变得简单、易用** [详细介绍](http://tis.pub/docs/enhance-extra/) 
+TIS快速为您构建企业级实时数仓库服务，**基于批(DataX)流(Flink-CDC)一体数据中台，提供简单易用的操作界面，降低用户实施各端（MySQL、PostgreSQL、Oracle、ElasticSearch、ClickHouse、Doris等）
+之间数据同步的实施门槛，缩短任务配置时间，避免配置过程中出错，使数据同步变得简单、有趣且容易上手** [详细介绍](http://tis.pub/docs/enhance-extra/) 
 <!--
 TIS平台是一套为企业级用户提供大数据多维、实时、查询的搜索中台产品。用户可以在TIS上自助快速构建搜索服务，它大大降低了搜索技术的门槛 [详细说明](http://tis.pub/docs/) 
--->
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
+ -->
  
 ## 安装说明
 
