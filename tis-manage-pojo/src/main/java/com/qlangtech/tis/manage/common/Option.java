@@ -20,25 +20,29 @@ package com.qlangtech.tis.manage.common;
  */
 public class Option {
 
-  private final String name;
+    private final String name;
 
-  private final String value;
+    private final String value;
 
-  /**
-   * @param name  label
-   * @param value
-   */
-  public Option(String name, String value) {
-    super();
-    this.name = name;
-    this.value = value;
-  }
+    /**
+     * @param name  label
+     * @param value
+     */
+    public Option(String name, String value) {
+        super();
+        this.name = name;
+        this.value = value;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public Option(String val) {
+        this(val, val);
+    }
 
-  public String getValue() {
-    return value;
-  }
+    public String getName() {
+        return name;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }

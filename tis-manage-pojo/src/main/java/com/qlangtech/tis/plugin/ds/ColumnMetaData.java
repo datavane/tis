@@ -18,6 +18,7 @@ import com.google.common.base.Joiner;
 import com.qlangtech.tis.manage.common.Option;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.io.Serializable;
 import java.sql.Types;
 import java.util.List;
 
@@ -114,7 +115,7 @@ public class ColumnMetaData extends Option {
                 '}';
     }
 
-    public static class DataType {
+    public static class DataType implements Serializable {
         public final int type;
         public final int columnSize;
 
