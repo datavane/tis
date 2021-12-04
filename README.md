@@ -22,7 +22,7 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 ## 支持的读写组件
 |Reader|Writer|
 |--|--|
-|<img src="docs/logo/cassandra.svg" width="30" />  ![tis](docs/logo/ftp.svg)![tis](docs/logo/hdfs.svg)![tis](docs/logo/mongodb.svg)![tis](docs/logo/mysql.svg)![tis](docs/logo/oracle.svg)![tis](docs/logo/oss.svg)![tis](docs/logo/postgresql.svg)![tis](docs/logo/sqlserver.svg)![tis](docs/logo/tidb.svg)|![tis](docs/logo/mysql.svg)|
+|<img src="docs/logo/cassandra.svg" width="30" /><img src="docs/logo/ftp.svg" width="30" />  <img src="docs/logo/hdfs.svg" width="30" /> <img src="docs/logo/mongodb.svg" width="30" />  <img src="docs/logo/mysql.svg" width="30" /> <img src="docs/logo/oracle.svg" width="30" />  <img src="docs/logo/oss.svg" width="30" />  <img src="docs/logo/postgresql.svg" width="30" /> <img src="docs/logo/sqlserer.svg" width="30" /> <img src="docs/logo/tidb.svg" width="30" /> | <img src="docs/logo/mysql.svg" width="30" /> |
 
 ## 功能一瞥 
 
