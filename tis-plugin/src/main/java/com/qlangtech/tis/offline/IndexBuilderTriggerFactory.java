@@ -26,6 +26,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IIndexBuildJobFactory;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.IndexBuildSourcePathCreator;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 
@@ -40,7 +41,7 @@ import java.util.Objects;
 public abstract class IndexBuilderTriggerFactory implements Describable<IndexBuilderTriggerFactory>, IIndexBuildJobFactory, IdentityName {
 
     public static IndexBuilderTriggerFactory get() {
-        PluginStore<IndexBuilderTriggerFactory> pluginStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
+        IPluginStore<IndexBuilderTriggerFactory> pluginStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
         IndexBuilderTriggerFactory indexBuilderTriggerFactory = pluginStore.getPlugin();
         Objects.requireNonNull(indexBuilderTriggerFactory, "indexBuilderTriggerFactory can not be null");
         return indexBuilderTriggerFactory;

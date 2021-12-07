@@ -35,6 +35,7 @@ import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import com.qlangtech.tis.plugin.ComponentMeta;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -123,13 +124,13 @@ public abstract class NodeMaster {
                 final String tabDumpFactory = commandLine.getOptionValue(ITableDumpConstant.DUMP_TABLE_DUMP_FACTORY_NAME);
                 DataSourceFactoryPluginStore dbPlugin = getDataSourceFactoryPluginStore(commandLine);
 
-                PluginStore<TableDumpFactory> tableDumpFactoryStore = TIS.getPluginStore(TableDumpFactory.class);
+                IPluginStore<TableDumpFactory> tableDumpFactoryStore = TIS.getPluginStore(TableDumpFactory.class);
                 TableDumpFactory factory = tableDumpFactoryStore.find(tabDumpFactory);
                 TableDumpNodeMaster master = new TableDumpNodeMaster(factory, dbPlugin.getPlugin());
                 master.run(commandLine, zkClient, statusRpc);
             } else if (IndexBuildParam.JOB_TYPE_INDEX_BUILD.equals(jobType)) {
                 final String builderTriggerFactory = commandLine.getOptionValue(IndexBuildParam.INDEXING_BUILDER_TRIGGER_FACTORY);
-                PluginStore<IndexBuilderTriggerFactory> builderTriggerFactoryStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
+                IPluginStore<IndexBuilderTriggerFactory> builderTriggerFactoryStore = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
                 IndexBuilderTriggerFactory factory = builderTriggerFactoryStore.find(builderTriggerFactory);
                 IndexBuilderTask.setMdcAppName(commandLine.getOptionValue(IndexBuildParam.INDEXING_SERVICE_NAME));
                 NodeMaster master = new IndexBuildNodeMaster(factory);

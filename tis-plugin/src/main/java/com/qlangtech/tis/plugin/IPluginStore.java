@@ -15,25 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.qlangtech.tis.plugin;
 
-import java.io.File;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+
+import java.util.List;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @create: 2020-04-24 16:14
- */
-public interface IRepositoryResource {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-12-07 18:28
+ **/
+public interface IPluginStore<T extends Describable> extends IRepositoryResource, IPluginStoreSave<T> {
 
-    /**
-     * 拷贝配置文件到本地
-     */
-    void copyConfigFromRemote();
+    public T getPlugin();
 
-    /**
-     * 目标文件
-     *
-     * @return
-     */
-    File getTargetFile();
+    public List<T> getPlugins();
+
+    public void cleanPlugins();
+
+    public List<Descriptor<T>> allDescriptor();
+
+
+    public default T find(String name) {
+        return find(name, true);
+    }
+
+    public T find(String name, boolean throwNotFoundErr);
 }

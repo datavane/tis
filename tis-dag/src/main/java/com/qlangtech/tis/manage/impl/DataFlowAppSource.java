@@ -39,6 +39,7 @@ import com.qlangtech.tis.manage.ISolrAppSource;
 
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.FlatTableBuilder;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -180,7 +181,7 @@ public class DataFlowAppSource implements ISolrAppSource {
             final ExecuteResult[] faildResult = new ExecuteResult[1];
             TemplateContext tplContext = new TemplateContext(execChainContext);
             JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
-            PluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
+            IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
             Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
             // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
             final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();

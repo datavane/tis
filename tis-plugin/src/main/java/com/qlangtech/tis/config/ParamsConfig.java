@@ -21,6 +21,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 public abstract class ParamsConfig implements Describable<ParamsConfig>, IdentityName {
 
     public static List<ParamsConfig> getItems() {
-        PluginStore pluginStore = TIS.getPluginStore(ParamsConfig.class);
+        IPluginStore pluginStore = TIS.getPluginStore(ParamsConfig.class);
         return pluginStore.getPlugins();
     }
 

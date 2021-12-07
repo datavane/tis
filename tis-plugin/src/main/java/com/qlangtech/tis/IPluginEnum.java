@@ -20,6 +20,7 @@ package com.qlangtech.tis;
 
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
@@ -43,7 +44,7 @@ public interface IPluginEnum<T extends Describable<T>> {
 
     public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta);
 
-    public PluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta);
+    public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta);
 
     public <T extends Describable<T>> List<Descriptor<T>> descriptors();
 

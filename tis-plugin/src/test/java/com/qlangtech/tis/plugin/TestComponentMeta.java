@@ -158,10 +158,10 @@ public class TestComponentMeta extends TestCase {
         IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
         assertNotNull("builderFactory can not be null", builderFactory);
 
-        PluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
+        IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
         assertNotNull("flatTableBuilder can not be null", pluginStore.getPlugin());
 
-        PluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
+        IPluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
         assertNotNull("tableDumpFactory can not be null", tableDumpFactory.getPlugin());
     }
 

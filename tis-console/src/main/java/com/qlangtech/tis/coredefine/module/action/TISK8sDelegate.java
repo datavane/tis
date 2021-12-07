@@ -24,6 +24,7 @@ import com.qlangtech.tis.coredefine.module.action.impl.AdapterRCController;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
@@ -101,7 +102,7 @@ public class TISK8sDelegate {
         }
       };
     } else {
-      PluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
+      IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
       IncrStreamFactory k8sConfig = store.getPlugin();
       if (k8sConfig == null) {
         throw new IllegalStateException("key" + indexName + " have not set k8s plugin");

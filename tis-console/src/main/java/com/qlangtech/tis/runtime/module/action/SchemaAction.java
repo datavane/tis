@@ -27,6 +27,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -587,7 +588,7 @@ public class SchemaAction extends BasicModule {
    * @return
    */
   public static ISchemaPluginContext createSchemaPlugin(String collection) {
-    PluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
+    IPluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
     Objects.requireNonNull(fieldTypePluginStore, "fieldTypePluginStore can not be null");
     final List<FieldTypeFactory> plugins = fieldTypePluginStore.getPlugins();
 

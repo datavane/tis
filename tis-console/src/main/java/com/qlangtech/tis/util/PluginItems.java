@@ -38,10 +38,7 @@ import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
-import com.qlangtech.tis.plugin.IPluginStoreSave;
-import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -138,7 +135,7 @@ public class PluginItems {
     List<Describable> describableList = Lists.newArrayList();
 
     if (this.pluginMeta.isAppend()) {
-      PluginStore pluginStore = heteroEnum.getPluginStore(this.pluginContext, this.pluginMeta);
+      IPluginStore pluginStore = heteroEnum.getPluginStore(this.pluginContext, this.pluginMeta);
       if (pluginStore != null) {
         List<Describable> plugins = pluginStore.getPlugins();
         boolean firstSkip = false;

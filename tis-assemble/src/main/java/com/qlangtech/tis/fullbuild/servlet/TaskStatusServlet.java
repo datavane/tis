@@ -24,6 +24,7 @@ import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import org.apache.commons.io.IOUtils;
@@ -54,7 +55,7 @@ public class TaskStatusServlet extends HttpServlet {
         String extendPoint = null;
         try {
             if (StringUtils.isNotEmpty(extendPoint = req.getParameter(DescriptorsJSON.KEY_EXTEND_POINT))) {
-                PluginStore<Describable> pluginStore = TIS.getPluginStore((Class<Describable>) Class.forName(extendPoint));
+                IPluginStore<Describable> pluginStore = TIS.getPluginStore((Class<Describable>) Class.forName(extendPoint));
                 pluginStore.cleanPlugins();
                 logger.info("key of '{}' pluginStore has been clean", extendPoint);
                 return;

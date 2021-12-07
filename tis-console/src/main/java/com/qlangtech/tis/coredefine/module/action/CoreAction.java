@@ -59,6 +59,7 @@ import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -184,7 +185,7 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doRelaunchIncrProcess(Context context) throws Exception {
-    PluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
+    IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
     IRCController incrSync = incrStream.getIncrSync();
     incrSync.relaunch(new TargetResName(this.getCollectionName()));
@@ -205,7 +206,7 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     doGetDataXReaderWriterDesc(module.getCollectionName(), incrStatus);
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
-    PluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
+    IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
     if (store.getPlugin() == null) {
       incrStatus.setK8sPluginInitialized(false);
       return incrStatus;
@@ -242,12 +243,12 @@ public class CoreAction extends BasicModule {
     return incrStatus;
   }
 
-  public static PluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module) {
+  public static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module) {
     return getIncrStreamFactoryStore(module, false);
   }
 
-  private static PluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module, boolean validateNull) {
-    PluginStore<IncrStreamFactory> store = TIS.getPluginStore(module.getCollectionName(), IncrStreamFactory.class);
+  private static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module, boolean validateNull) {
+    IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(module.getCollectionName(), IncrStreamFactory.class);
     if (validateNull && store.getPlugin() == null) {
       throw new IllegalStateException("collection:" + module.getCollectionName() + " relevant IncrStreamFactory store can not be null");
     }
@@ -311,7 +312,7 @@ public class CoreAction extends BasicModule {
 
     //if (store.getPlugin() != null) {
     // 已经定义了全局插件
-    PluginStore<IncrStreamFactory> collectionBindIncrStreamFactoryStore = getIncrStreamFactoryStore(module);
+    IPluginStore<IncrStreamFactory> collectionBindIncrStreamFactoryStore = getIncrStreamFactoryStore(module);
     if (collectionBindIncrStreamFactoryStore.getPlugin() == null) {
       // 需要将全局插件属性拷贝到collection绑定的插件属性上来
 //      Descriptor flinkStreamDesc = TIS.get().getDescriptor(IncrStreamFactory.FLINK_STREM);

@@ -19,6 +19,7 @@ package com.qlangtech.tis.solrextend.cloud;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.IdentityDescribale;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.solr.schema.CharFilterFactoryFactory;
@@ -122,7 +123,7 @@ public class TISPluginClassLoader implements SolrClassLoader, PackageListeners.L
 
     private <T> T findAndCreatePlugin(PluginInfo.ClassName cName, Class<? extends IdentityDescribale> expectedType) {
 
-        PluginStore<? extends IdentityDescribale> fieldTypeStore = TIS.getPluginStore(collectionName, expectedType);
+        IPluginStore<? extends IdentityDescribale> fieldTypeStore = TIS.getPluginStore(collectionName, expectedType);
         for (IdentityDescribale ftFactory : fieldTypeStore.getPlugins()) {
             if (cName.className.equals(ftFactory.identityValue())) {
                 return (T) ftFactory.createInstance();

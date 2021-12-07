@@ -44,6 +44,7 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
@@ -156,7 +157,7 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doSelectDbChange(Context context) throws Exception {
     Integer dbid = this.getInt("dbid");
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
-    PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
+    IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
 
     List<String> tabs = dbPlugin.getPlugin().getTablesInDB();
     // 通过DB的连接信息找到找到db下所有表信息
@@ -1189,7 +1190,7 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
 
-    PluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
+    IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
 
     List<ColumnMetaData> cols = dbPlugin.getPlugin().getTableMetadata(table);// offlineManager.getTableMetadata(db.getName(), table);
     if (cols.size() < 1) {

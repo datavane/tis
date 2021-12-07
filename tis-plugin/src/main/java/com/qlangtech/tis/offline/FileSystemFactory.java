@@ -22,6 +22,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.fs.ITISFileSystemFactory;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 
@@ -32,7 +33,7 @@ import com.qlangtech.tis.plugin.PluginStore;
 public abstract class FileSystemFactory implements Describable<FileSystemFactory>, ITISFileSystemFactory, IdentityName {
 
     public static FileSystemFactory getFsFactory(String fsName) {
-        PluginStore<FileSystemFactory> pluginStore = TIS.getPluginStore(FileSystemFactory.class);
+        IPluginStore<FileSystemFactory> pluginStore = TIS.getPluginStore(FileSystemFactory.class);
         return pluginStore.find(fsName);
     }
 

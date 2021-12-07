@@ -38,6 +38,7 @@ import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.ComponentMeta;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -218,7 +219,7 @@ public class TisServlet extends HttpServlet {
                                     // chainContext.setIndexBuildFileSystem(builderFactory.getFsFactory());
                                     chainContext.setIndexBuilderTriggerFactory(builderFactory);
 
-                                    PluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
+                                    IPluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
                                     if (tableDumpFactory.getPlugin() != null) {
                                         //  Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
                                         chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());

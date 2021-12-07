@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin;
 
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class PluginStore<T extends Describable> implements IRepositoryResource, IPluginStoreSave<T> {
+public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
     private final transient Class<T> pluginClass;
 
@@ -91,19 +91,22 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
      *
      * @return
      */
+    @Override
     public File getTargetFile() {
         return this.file.getFile();
     }
-
+    @Override
     public List<T> getPlugins() {
         this.load();
         return plugins;
     }
 
+    @Override
     public T find(String name) {
         return find(name, true);
     }
 
+    @Override
     public T find(String name, boolean throwNotFoundErr) {
         List<T> plugins = this.getPlugins();
         if (!IdentityName.class.isAssignableFrom(this.pluginClass)) {
@@ -157,7 +160,7 @@ public class PluginStore<T extends Describable> implements IRepositoryResource, 
         this.setPlugins(pluginContext, Optional.empty(), dlist);
     }
 
-    public static <TT extends Describable> Descriptor.ParseDescribable<TT> getDescribablesWithMeta(PluginStore<TT> other, TT plugin) {
+    public static <TT extends Describable> Descriptor.ParseDescribable<TT> getDescribablesWithMeta(IPluginStore<TT> other, TT plugin) {
         Descriptor.ParseDescribable<TT> parseDescribable = new Descriptor.ParseDescribable<>(plugin);
         ComponentMeta cmetas = new ComponentMeta(other);
         parseDescribable.extraPluginMetas.addAll(cmetas.loadPluginMeta());

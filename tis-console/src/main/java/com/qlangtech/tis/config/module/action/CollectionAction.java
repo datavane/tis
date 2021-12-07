@@ -39,6 +39,7 @@ import com.qlangtech.tis.manage.servlet.ServerJoinGroup;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
@@ -434,7 +435,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //    }
 //    topologyDir.delete();
 
-    PluginStore<IncrStreamFactory> store = CoreAction.getIncrStreamFactoryStore(this);
+    IPluginStore<IncrStreamFactory> store = CoreAction.getIncrStreamFactoryStore(this);
     try {
       if (store.getPlugin() != null) {
         // 删除增量实例

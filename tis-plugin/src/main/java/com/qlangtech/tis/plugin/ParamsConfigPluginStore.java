@@ -15,25 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.qlangtech.tis.plugin;
 
-import java.io.File;
+import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.extension.Descriptor;
+
+import java.util.List;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @create: 2020-04-24 16:14
- */
-public interface IRepositoryResource {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-12-07 17:48
+ **/
+public class ParamsConfigPluginStore extends PluginStore<ParamsConfig> {
+    private static final String CONTEXT_PARAMS_CFG = "params-cfg";
 
-    /**
-     * 拷贝配置文件到本地
-     */
-    void copyConfigFromRemote();
+    public ParamsConfigPluginStore() {
+        super(ParamsConfig.class, Descriptor.getConfigFile(CONTEXT_PARAMS_CFG));
+    }
 
-    /**
-     * 目标文件
-     *
-     * @return
-     */
-    File getTargetFile();
+
+    @Override
+    public List<ParamsConfig> getPlugins() {
+
+//        this.getTargetFile()
+//
+//        return TIS.getPluginStore(CONTEXT_PARAMS_CFG, resName.getName(), ParamsConfig.class);
+        // return super.getPlugins();
+        return null;
+    }
 }

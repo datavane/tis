@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.coredefine.module.action;
 
@@ -130,19 +130,7 @@ public class PluginAction extends BasicModule {
    */
   public void doGetUpdateCenterStatus(Context context) {
     UpdateCenter updateCenter = TIS.get().getUpdateCenter();
-//    List<JSONObject> jobStats = Lists.newArrayList();
-//    JSONObject stat = null;
-//    for (UpdateCenter.UpdateCenterJob job : updateCenter.getJobs()) {
-//      stat = new JSONObject();
-//      stat.put("id", job.id);
-//      if (job instanceof UpdateCenter.InstallationJob) {
-//        UpdateCenter.InstallationJob installJob = (UpdateCenter.InstallationJob) job;
-//        stat.put("name", installJob.getDisplayName());
-//      }
-//      jobStats.add(stat);
-//    }
     List<UpdateCenter.UpdateCenterJob> jobs = updateCenter.getJobs();
-
     Collections.sort(jobs, (a, b) -> {
       // 保证最新的安装job排列在最上面
       return b.id - a.id;
@@ -163,7 +151,6 @@ public class PluginAction extends BasicModule {
     JSONObject pluginInfo = null;
     UpdateSite.Plugin info = null;
     for (PluginWrapper plugin : pluginManager.getPlugins()) {
-
 
       pluginInfo = new JSONObject();
       pluginInfo.put("installed", true);
@@ -220,21 +207,30 @@ public class PluginAction extends BasicModule {
   }
 
   private boolean filterPlugin(String title, String excerpt) {
-    // UpdateSite.Plugin info = plugin.getInfo();
-    Optional<String> query = getQueryPluginParam();
-    if (query.isPresent()) {
-      String searchQ = query.get();
-      if (!(StringUtils.indexOfIgnoreCase(title, searchQ) > -1
+
+    List<String> queries = getQueryPluginParam();
+    if (CollectionUtils.isEmpty(queries)) {
+      return false;
+    }
+    boolean collect = false;
+    for (String searchQ : queries) {
+      if ((StringUtils.indexOfIgnoreCase(title, searchQ) > -1
         || (StringUtils.isNotBlank(excerpt) && StringUtils.indexOfIgnoreCase(excerpt, searchQ) > -1))
       ) {
-        return true;
+        collect = true;
+        break;
       }
     }
-    return false;
+    // 收集
+    return !collect;
   }
 
-  private Optional<String> getQueryPluginParam() {
-    return Optional.ofNullable(StringUtils.trimToNull(this.getString("query")));
+  private List<String> getQueryPluginParam() {
+    String[] queries = StringUtils.split(this.getString("query"), " ");
+    if (queries == null) {
+      return Collections.emptyList();
+    }
+    return Lists.newArrayList(queries);
   }
 
   /**
@@ -331,7 +327,7 @@ public class PluginAction extends BasicModule {
       }).collect(Collectors.toList());
     }
 
-    if (getQueryPluginParam().isPresent()) {
+    if (CollectionUtils.isNotEmpty(this.getQueryPluginParam())) {
       availables = availables.stream().filter((plugin) -> {
         return !filterPlugin(plugin.title, plugin.excerpt);
       }).collect(Collectors.toList());
@@ -410,8 +406,6 @@ public class PluginAction extends BasicModule {
    */
   public void doSubformDetailedClick(Context context) throws Exception {
     List<UploadPluginMeta> pluginsMeta = getPluginMeta();
-    //String targetMethod = this.getString("targetMethod");
-    // String[] params = StringUtils.split(this.getString("params"), ",");
     List<Describable> plugins = null;
     Map<String, String> execContext = Maps.newHashMap();
     execContext.put("id", this.getString("id"));

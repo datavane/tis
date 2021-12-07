@@ -22,6 +22,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -63,7 +64,7 @@ public class TestSchemaResult extends TestCase {
 
     assertEquals(FieldTypeFactory.class, HeteroEnum.SOLR_FIELD_TYPE.extensionPoint);
 
-    PluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
+    IPluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
     assertNotNull(fieldTypePluginStore);
     final String testFieldTypeName = "test";
 
@@ -111,7 +112,7 @@ public class TestSchemaResult extends TestCase {
 
     final String collection = "search4totalpay";
 
-    PluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
+    IPluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
     assertNotNull(fieldTypePluginStore);
     final String testFieldTypeName = "test";
 

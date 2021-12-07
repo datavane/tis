@@ -32,6 +32,7 @@ import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -429,7 +430,7 @@ public class OfflineManager {
 
     PostedDSProp dbProp = new PostedDSProp(db.getName(), DbScope.DETAILED);
 
-    PluginStore<DataSourceFactory> dbStore = TIS.getDataBasePluginStore(dbProp);
+    IPluginStore<DataSourceFactory> dbStore = TIS.getDataBasePluginStore(dbProp);
 
     DataSourceFactory dsPlugin = dbStore.getPlugin();
     dbSuit.setDetailed(dsPlugin);

@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis;
 
@@ -36,10 +36,7 @@ import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 import com.qlangtech.tis.offline.TableDumpFactory;
-import com.qlangtech.tis.plugin.ComponentMeta;
-import com.qlangtech.tis.plugin.IRepositoryResource;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DSKey;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
@@ -101,7 +98,7 @@ public class TIS {
     /**
      * All {@link DescriptorExtensionList} keyed by their {@link DescriptorExtensionList}.
      */
-    private static final transient Memoizer<Class<? extends Describable>, PluginStore> globalPluginStore = new Memoizer<Class<? extends Describable>, PluginStore>() {
+    private static final transient Memoizer<Class<? extends Describable>, IPluginStore> globalPluginStore = new Memoizer<Class<? extends Describable>, IPluginStore>() {
 
         public PluginStore compute(Class<? extends Describable> key) {
             return new PluginStore(key);
@@ -239,7 +236,7 @@ public class TIS {
         }
     }
 
-    public static <T extends Describable> PluginStore<T> getPluginStore(String collection, Class<T> key) {
+    public static <T extends Describable> IPluginStore<T> getPluginStore(String collection, Class<T> key) {
 //        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(IFullBuildContext.NAME_APP_DIR, collection, key));
 //        if (pluginStore == null) {
 //            // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
@@ -258,8 +255,8 @@ public class TIS {
      * @param <T>
      * @return
      */
-    public static <T extends Describable> PluginStore<T> getPluginStore(String groupName, String collection, Class<T> key) {
-        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(groupName, collection, key));
+    public static <T extends Describable> IPluginStore<T> getPluginStore(String groupName, String collection, Class<T> key) {
+        IPluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(groupName, collection, key));
         if (pluginStore == null) {
             // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
             return getPluginStore(key);
@@ -268,7 +265,7 @@ public class TIS {
         }
     }
 
-    public static <T extends Describable> PluginStore<T> getPluginStore(Class<T> key) {
+    public static <T extends Describable> IPluginStore<T> getPluginStore(Class<T> key) {
         return globalPluginStore.get(key);
     }
 

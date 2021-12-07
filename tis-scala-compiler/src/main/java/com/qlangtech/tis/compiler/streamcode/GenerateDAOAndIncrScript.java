@@ -29,6 +29,7 @@ import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.FacadeDataSource;
@@ -118,7 +119,7 @@ public class GenerateDAOAndIncrScript {
             // TODO 真实生产环境中需要 和 代码build阶段分成两步
             if (compilerAndPackage) {
 
-                PluginStore pluginStore = HeteroEnum.INCR_STREAM_CONFIG.getPluginStore(
+                IPluginStore pluginStore = HeteroEnum.INCR_STREAM_CONFIG.getPluginStore(
                         IPluginContext.namedContext(this.indexStreamCodeGenerator.collection), null);
                 IncrStreamFactory streamFactory = (IncrStreamFactory) pluginStore.getPlugin();
                 Objects.requireNonNull(streamFactory, "relevant streamFactory can not be null,collection:" + this.indexStreamCodeGenerator.collection);

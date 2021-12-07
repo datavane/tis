@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.util;
 
@@ -30,7 +30,9 @@ import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.*;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -187,8 +189,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             String identity, String caption, Selectable selectable, boolean appNameAware) {
         this.extensionPoint = extensionPoint;
         this.caption = caption;
-        // this.descriptorsGetter = descriptorsGetter;
-        // this.itemGetter = itemGetter;
         this.identity = identity;
         this.selectable = selectable;
         this.appNameAware = appNameAware;
@@ -213,7 +213,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         if (this.selectable != Selectable.Single) {
             throw new IllegalStateException(this.extensionPoint + " selectable is:" + this.selectable);
         }
-        PluginStore store = TIS.getPluginStore(this.extensionPoint);
+        IPluginStore store = TIS.getPluginStore(this.extensionPoint);
         return (T) store.getPlugin();
     }
 
@@ -226,7 +226,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
      * @return
      */
     public List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-        PluginStore store = getPluginStore(pluginContext, pluginMeta);
+        IPluginStore store = getPluginStore(pluginContext, pluginMeta);
         if (store == null) {
             return Collections.emptyList();
         }
@@ -265,8 +265,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     }
 
     @Override
-    public PluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-        PluginStore store = null;
+    public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+        IPluginStore store = null;
         if (this == HeteroEnum.APP_SOURCE) {
             final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
             if (StringUtils.isEmpty(dataxName)) {
@@ -279,8 +279,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                 throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
             }
             store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
-//        } else if (pluginContext.isCollectionAware()) {
-
+        } else if (this == PARAMS_CONFIG) {
+            return new ParamsConfigPluginStore();
         } else if (pluginContext.isDataSourceAware()) {
             PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
             if (StringUtils.isEmpty(dsProp.getDbname())) {
@@ -289,7 +289,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             store = TIS.getDataBasePluginStore(dsProp);
         } else {
             if (this.isAppNameAware()) {
-                if(!pluginContext.isCollectionAware()){
+                if (!pluginContext.isCollectionAware()) {
                     throw new IllegalStateException(this.getExtensionPoint().getName() + " must be collection aware");
                 }
                 store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
@@ -302,7 +302,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     }
 
     public <T extends Describable<T>> List<Descriptor<T>> descriptors() {
-        PluginStore pluginStore = TIS.getPluginStore(this.extensionPoint);
+        IPluginStore pluginStore = TIS.getPluginStore(this.extensionPoint);
         return pluginStore.allDescriptor();
     }
 
