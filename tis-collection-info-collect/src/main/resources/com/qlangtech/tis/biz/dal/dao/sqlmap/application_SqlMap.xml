@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--~
+  ~   Licensed to the Apache Software Foundation (ASF) under one
+  ~   or more contributor license agreements.  See the NOTICE file
+  ~   distributed with this work for additional information
+  ~   regarding copyright ownership.  The ASF licenses this file
+  ~   to you under the Apache License, Version 2.0 (the
+  ~   "License"); you may not use this file except in compliance
+  ~   with the License.  You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  -->
+
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
 <sqlMap namespace="application">
 	<resultMap id="ibatorgenerated_BaseResultMap"
@@ -14,7 +32,7 @@
 		<result column="dpt_id" property="dptId" jdbcType="INTEGER" />
 		<result column="dpt_name" property="dptName" jdbcType="VARCHAR" />
 
-		
+
 	</resultMap>
 	<sql id="ibatorgenerated_Example_Where_Clause">
 		<!-- WARNING - if you hava any question please contact to baisui(baisui@qlangtech.com) -->
@@ -132,7 +150,7 @@
 				dpt_name
 			</isNotNull>
 
-		
+
 			)
 		</dynamic>
 		values
@@ -165,7 +183,7 @@
 			<isNotNull prepend="," property="dptName">
 				#dptName:VARCHAR#
 			</isNotNull>
-			
+
 			)
 		</dynamic>
 	</insert>
@@ -210,7 +228,7 @@
 				dpt_name = #record.dptName:VARCHAR#
 			</isNotNull>
 
-			
+
 		</dynamic>
 		<isParameterPresent>
 			<include refid="application.ibatorgenerated_Example_Where_Clause" />

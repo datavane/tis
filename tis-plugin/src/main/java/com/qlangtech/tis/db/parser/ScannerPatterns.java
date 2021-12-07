@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- * <p>
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
- * <p>
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- * <p>
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.db.parser;
 
@@ -27,40 +30,40 @@ public class ScannerPatterns {
     public static final String HOST_KEY = "host";
 
     public enum TokenTypes {
-        // 
+        //
         TT_HOST_DESC("^" + HOST_KEY, true),
-        // 
+        //
         TT_PASSWORD("^password", true),
-        // 
+        //
         TT_USERNAME("^username", true),
-        // 
+        //
         TT_PORT("^port", true),
-        // 
+        //
         TT_MYSQL("^mysql", true),
-        // 
+        //
         TT_LEFT("^\\{", true),
-        // 
+        //
         TT_RIGHT("^\\}", true),
-        // 
+        //
         TT_DBDESC_SPLIT("^,", true),
-        // 
+        //
         TT_RANGE_LEFT("^\\[", true),
-        // 
+        //
         TT_RANGE_RIGHT("^\\]", true),
-        // 
+        //
         TT_RANGE_MINUS("^-", true),
         // http://www.regular-expressions.info/ip.html
-        TT_IP(// 
+        TT_IP(//
                 "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])", true),
-        // 
+        //
         TT_RANGE_NUMBER("^\\d+", true),
-        // 
+        //
         TT_WHITESPACE("^(\\s)+", false),
-        TT_HOST(// 
+        TT_HOST(//
                 "^([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9])(\\.([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9]))+", true),
-        // 
+        //
         TT_COLON("^:", true),
-        // 
+        //
         TT_IDENTIFIER("^(\\S+)[\\r|\\n]?", true, 1),
         TT_EOF("^EOF", false);
 

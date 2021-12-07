@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.sql.parser.visitor;
 
@@ -365,13 +368,13 @@ public class StreamTransformVisitor extends TISStackableAstVisitor<NodeProcessRe
                         faild(express);
                     // process(express, context);
                     // IDataTupleCreator tupleCreator = new IDataTupleCreator() {
-                    // 
+                    //
                     // @Override
                     // public Object getVal(String name) {
                     // return null;
                     // }
                     // };
-                    // 
+                    //
                     // ValueOperator.createGatherValueOperator(new
                     // ColName(single.getAlias().get().getValue()),
                     // express, params);
@@ -415,7 +418,7 @@ public class StreamTransformVisitor extends TISStackableAstVisitor<NodeProcessRe
 
     public static void faild(Node node) {
         // NodeLocation loc = node.getLocation().get();
-        // 
+        //
         // throw new IllegalStateException(node + ",type:" + node.getClass() + ",[line:"
         // + loc.getLineNumber() + ",col:"
         // + loc.getColumnNumber() + "]");
@@ -424,7 +427,7 @@ public class StreamTransformVisitor extends TISStackableAstVisitor<NodeProcessRe
 
     public static void faild(String msg, Node node) {
         // NodeLocation loc = node.getLocation().get();
-        // 
+        //
         // throw new IllegalStateException(node + ",type:" + node.getClass() + ",[line:"
         // + loc.getLineNumber() + ",col:"
         // + loc.getColumnNumber() + "]");
@@ -434,9 +437,9 @@ public class StreamTransformVisitor extends TISStackableAstVisitor<NodeProcessRe
     // @Override
     // protected NodeProcessResult<?> visitSelectItem(SelectItem node,
     // StackableAstVisitorContext<Integer> context) {
-    // 
+    //
     // System.out.println(node);
-    // 
+    //
     // return null;
     // // return super.visitSelectItem(node, context);
     // }
@@ -445,7 +448,7 @@ public class StreamTransformVisitor extends TISStackableAstVisitor<NodeProcessRe
         // return visitQueryBody(node, context);
         // Select select = ;
         // this.visitSelect(, context);
-        // 
+        //
         NodeProcessResult<ColRef> selectresult = (NodeProcessResult<ColRef>) this.process(body.getSelect(), context);
         if (selectresult == null || selectresult.getResult() == null || selectresult.getResult().getColRefMap().size() < 1) {
             throw new IllegalStateException("selectresult can not be null");

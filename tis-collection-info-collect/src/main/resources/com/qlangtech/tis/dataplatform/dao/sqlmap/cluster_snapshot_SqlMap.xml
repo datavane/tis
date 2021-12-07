@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--~
+  ~   Licensed to the Apache Software Foundation (ASF) under one
+  ~   or more contributor license agreements.  See the NOTICE file
+  ~   distributed with this work for additional information
+  ~   regarding copyright ownership.  The ASF licenses this file
+  ~   to you under the Apache License, Version 2.0 (the
+  ~   "License"); you may not use this file except in compliance
+  ~   with the License.  You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  -->
+
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
 <sqlMap namespace="cluster_snapshot">
 	<resultMap id="ibatorgenerated_BaseResultMap"
@@ -43,41 +61,41 @@
 			</isEqual>
 		</iterate>
 	</sql>
-<!-- 
+<!--
 	<insert id="ibatorgenerated_pre_day_all_request_count"
 		parameterClass="java.util.Date">
-			<![CDATA[	
-	  INSERT INTO cluster_snapshot_pre_day(app_id,data_type,incr_number,gmt_create) 						
+			<![CDATA[
+	  INSERT INTO cluster_snapshot_pre_day(app_id,data_type,incr_number,gmt_create)
 	   SELECT app_id,data_type,sum(incr_number) as incr_number,@start_time as gmt_create
 		 FROM
 		   cluster_snapshot,(select @start_time:= date_sub( date(#value:TIMESTAMP#),interval 1 day )) as a
-		WHERE 
+		WHERE
 		       gmt_create > @start_time
 		   AND gmt_create <= date(#value:TIMESTAMP#)
 	 GROUP BY app_id,data_type
-	 
+
 	]]>
 	</insert>
- -->	
+ -->
 	<insert id="ibatorgenerated_pre_day_all_request_count"
 		parameterClass="java.util.Date">
-			<![CDATA[	
-	  INSERT INTO cluster_snapshot_pre_day(app_id,data_type,incr_number,gmt_create) 	
+			<![CDATA[
+	  INSERT INTO cluster_snapshot_pre_day(app_id,data_type,incr_number,gmt_create)
 SELECT c.app_id,c.data_type,sum(c.incr_number) as incr_number,date(c.gmt_create) as gmt_create
   FROM cluster_snapshot c
        left  join(
           SELECT app_id,data_type,date( max(gmt_create)) as last_update
 	  FROM cluster_snapshot_pre_day
           GROUP BY app_id,data_type
-       ) as per on (c.app_id=per.app_id 
+       ) as per on (c.app_id=per.app_id
                     AND c.data_type=per.data_type  )
- where ((per.app_id is not null  AND date(c.gmt_create) > (per.last_update)) 
+ where ((per.app_id is not null  AND date(c.gmt_create) > (per.last_update))
          OR (per.app_id is null)) AND (c.gmt_create)<date(CURRENT_TIMESTAMP)
  GROUP BY c.app_id,c.data_type,date(c.gmt_create)
 	]]>
 	</insert>
-	
-		
+
+
 
 	<insert id="batchInsert" parameterClass="java.util.List">
 		INSERT INTO cluster_snapshot

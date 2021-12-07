@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
@@ -21,7 +24,7 @@ package com.qlangtech.tis.manage.common;
 abstract class JarFileManager {
     // private final AppDomainInfo domainInfo;
     // final File saveFile;
-    // 
+    //
     // private JarFileManager(Application application, Long currentTimestamp) {
     // super();
     // // this.domainInfo = domainInfo;
@@ -29,11 +32,11 @@ abstract class JarFileManager {
     // .getLocalRepository(), application.getDptId(), application
     // .getAppId()), String.valueOf(currentTimestamp) + ".jar");
     // }
-    // 
+    //
     // public File getSaveFile() {
     // return this.saveFile;
     // }
-    // 
+    //
     // /**
     // * @param validateCode
     // * 校验码 ，防止文件被读之前已经被人篡改过了
@@ -46,7 +49,7 @@ abstract class JarFileManager {
     // throw new IllegalStateException("file:"
     // + saveFile.getAbsolutePath() + " is not exist can not read");
     // }
-    // 
+    //
     // try {
     // if (!StringUtils.equalsIgnoreCase(md5file(this.saveFile),
     // validateCode)) {
@@ -56,19 +59,19 @@ abstract class JarFileManager {
     // } catch (IOException e) {
     // throw new RuntimeException(e);
     // }
-    // 
+    //
     // return new FileInputStream(this.saveFile);
     // }
-    // 
+    //
     // public long getFileSize() {
     // if (!saveFile.exists()) {
     // throw new IllegalStateException("file:"
     // + saveFile.getAbsolutePath() + " is not exist can not read");
     // }
-    // 
+    //
     // return saveFile.length();
     // }
-    // 
+    //
     // /**
     // *保存文件
     // *
@@ -76,7 +79,7 @@ abstract class JarFileManager {
     // * @return validate code
     // */
     // public String save(InputStream reader) throws IOException {
-    // 
+    //
     // if (!saveFile.exists() && !saveFile.createNewFile()) {
     // throw new IllegalStateException("file:"
     // + saveFile.getAbsolutePath() + " can not be null");
@@ -84,7 +87,7 @@ abstract class JarFileManager {
     // // 将流保存到预定目录
     // return saveFile(reader, saveFile);
     // }
-    // 
+    //
     // /**
     // * @param saveFile
     // * @return
@@ -96,9 +99,9 @@ abstract class JarFileManager {
     // // 保存的文件的签名
     // return md5file(new FileInputStream(saveFile));
     // }
-    // 
+    //
     // private static String md5file(InputStream reader) throws IOException {
-    // 
+    //
     // try {
     // // 保存的文件的签名
     // return ConfigFileReader.md5file(IOUtils.toByteArray(reader));
@@ -109,13 +112,13 @@ abstract class JarFileManager {
     // }
     // }
     // }
-    // 
+    //
     // public static String saveFile(final InputStream reader, final File
     // saveFile)
     // throws FileNotFoundException, IOException {
     // OutputStream writer = null;
     // try {
-    // 
+    //
     // writer = new FileOutputStream(saveFile);
     // IOUtils.copy(reader, writer);
     // } finally {
@@ -123,13 +126,13 @@ abstract class JarFileManager {
     // writer.close();
     // } catch (Throwable e) {
     // }
-    // 
+    //
     // try {
     // reader.close();
     // } catch (Throwable e) {
     // }
     // }
-    // 
+    //
     // return md5file(saveFile);
     // }
 }

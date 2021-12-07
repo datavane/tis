@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.solrj.extend;
 
@@ -33,9 +36,9 @@ public class TestParser extends TestCase {
     // InputStream input = FileUtils
     // .openInputStream(new File(
     // "D:\\j2ee_solution\\eclipse-standard-kepler-SR2-win32-x86_64\\workspace\\terminator-trigger-center\\tis-solrj-client\\r010003.query"));
-    // 
+    //
     // String content = IOUtils.toString(input);
-    // 
+    //
     // String[] params = StringUtils.split(content, "&");
     // String[] p = null;
     // for (String pair : params) {
@@ -44,9 +47,9 @@ public class TestParser extends TestCase {
     // System.out.print("=");
     // System.out.println(URLDecoder.decode(p[1]));
     // }
-    // 
+    //
     // input.close();
-    // 
+    //
     // }
     public void testInstanceCount() throws Exception {
         InputStream input = FileUtils.openInputStream(new File("D:\\j2ee_solution\\eclipse-standard-kepler-SR2-win32-x86_64\\workspace\\terminator-trigger-center\\tis-solrj-client\\json.txt"));
@@ -72,9 +75,9 @@ public class TestParser extends TestCase {
     // int instanceCount = 0;
     // for (int i = 0; i < array.length(); i++) {
     // o = (JSONObject) array.get(i);
-    // 
+    //
     // }
-    // 
-    // 
+    //
+    //
     }
 }

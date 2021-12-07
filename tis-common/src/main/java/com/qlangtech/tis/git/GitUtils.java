@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- * <p>
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
- * <p>
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- * <p>
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.git;
 
@@ -41,13 +44,12 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.*;
 
-//import com.qlangtech.tis.db.parser.domain.DBConfig;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class GitUtils //implements com.qlangtech.tis.db.IDBConfigAccess
+public class GitUtils
 {
 
     private static final ConfigFileContext.Header PRIVATE_TOKEN = new ConfigFileContext.Header("PRIVATE-TOKEN", "XqxWfcskmh9TskxGpEac");
@@ -230,26 +232,6 @@ public class GitUtils //implements com.qlangtech.tis.db.IDBConfigAccess
         this.createFile(getDBConfigPath(dbName, DbScope.DETAILED), GitBranchInfo.$(GitBranch.MASTER), db.createDBConfigDesc(), commitLog, DATASOURCE_PROJECT_ID, true);
     }
 
-//    /**
-//     * @param path
-//     * @param branch
-//     * @param dependencyTabs 逻辑表名稱
-//     * @param rule
-//     * @param commitLog
-//     */
-//    public void createWorkflowFile(String path, String branch, Set<String> dependencyTabs, JoinRule rule, String commitLog) {
-//        Assert.assertNotNull(path);
-//        Assert.assertNotNull(branch);
-//        Assert.assertTrue(!dependencyTabs.isEmpty());
-//        Assert.assertNotNull(rule);
-//        Assert.assertNotNull(commitLog);
-//        // 创建一个新的 和workflow同名的分支
-//        this.createWorkflowBarnch(branch);
-//        JSONObject profile = new JSONObject();
-//        profile.put("tables", dependencyTabs);
-//        this.createFile(path + "/profile", GitBranchInfo.$(branch), profile.toString(1), commitLog, WORKFLOW_GIT_PROJECT_ID, true);
-//        this.createFile(path + "/" + WF_FILE_NAME, GitBranchInfo.$(branch), rule.getContent(), commitLog, WORKFLOW_GIT_PROJECT_ID, true);
-//    }
 
     /**
      * 从git中取得workflow对象模型
@@ -356,7 +338,7 @@ public class GitUtils //implements com.qlangtech.tis.db.IDBConfigAccess
     // params.add(new PostParam("content",
     // Base64.getEncoder().encodeToString(content.getBytes(Charset.forName("utf8")))));
     // params.add(new PostParam("commit_message", commitLog));
-    // 
+    //
     // String result = HttpUtils.put(urlString, params, new
     // GitPostStreamProcess<String>() {
     // @Override

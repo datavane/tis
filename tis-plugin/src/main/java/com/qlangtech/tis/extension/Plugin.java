@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- * <p>
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
- * <p>
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- * <p>
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.extension;
 
@@ -110,22 +113,22 @@ public abstract class Plugin implements Saveable {
      */
     // public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
     // String path = req.getRestOfPath();
-    // 
+    //
     // if (path.startsWith("/META-INF/") || path.startsWith("/WEB-INF/")) {
     // throw HttpResponses.notFound();
     // }
-    // 
+    //
     // if(path.length()==0)
     // path = "/";
-    // 
+    //
     // // Stapler routes requests like the "/static/.../foo/bar/zot" to be treated like "/foo/bar/zot"
     // // and this is used to serve long expiration header, by using Jenkins.VERSION_HASH as "..."
     // // to create unique URLs. Recognize that and set a long expiration header.
     // String requestPath = req.getRequestURI().substring(req.getContextPath().length());
     // boolean staticLink = requestPath.startsWith("/static/");
-    // 
+    //
     // long expires = staticLink ? TimeUnit2.DAYS.toMillis(365) : -1;
-    // 
+    //
     // // use serveLocalizedFile to support automatic locale selection
     // try {
     // rsp.serveLocalizedFile(req, wrapper.baseResourceURL.toURI().resolve(new URI(null, '.' + path, null)).toURL(), expires);
@@ -133,9 +136,9 @@ public abstract class Plugin implements Saveable {
     // throw new IOException(x);
     // }
     // }
-    // 
+    //
     // Convenience methods for those plugins that persist configuration
-    // 
+    //
 
     /**
      * Loads serializable fields of this instance from the persisted storage.

@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 // */
 package com.qlangtech.tis.fullbuild.indexbuild;
@@ -34,45 +37,45 @@ public enum LuceneVersion {
         return "search4template";
     }
 }
-// 
+//
 // import java.text.ParseException;
 // import java.util.Locale;
-// 
+//
 // /* *
 // * @author 百岁（baisui@qlangtech.com）
 // * @date 2020/04/13
 // */
 // public enum LuceneVersion {
-// 
+//
 // //
 // LUCENE_6("lucene6", "search4template6", Version.LUCENE_6_0_0),
 // LUCENE_5("lucene5.3", "search4template", Version.LUCENE_5_3_0);
-// 
+//
 // private final String templateIndexName;
-// 
+//
 // private final String key;
-// 
+//
 // private final Version version;
-// 
+//
 // // org.apache.lucene.util.Version
 // private LuceneVersion(String key, String templateIndexName, Version version) {
 // this.key = key;
 // this.templateIndexName = templateIndexName;
 // this.version = version;
 // }
-// 
+//
 // public String getTemplateIndexName() {
 // return templateIndexName;
 // }
-// 
+//
 // public Version getVersion() {
 // return this.version;
 // }
-// 
+//
 // public String getKey() {
 // return this.key;
 // }
-// 
+//
 // public static LuceneVersion parse(String key) {
 // if (LUCENE_6.key.equalsIgnoreCase(key)) {
 // return LuceneVersion.LUCENE_6;
@@ -82,7 +85,7 @@ public enum LuceneVersion {
 // }
 // throw new IllegalStateException("key:" + key + " is not illegal");
 // }
-// 
+//
 // public static LuceneVersion parseByVersionNumber(String version) {
 // try {
 // Version targetVer = Version.parse(version);
@@ -96,9 +99,9 @@ public enum LuceneVersion {
 // }
 // throw new IllegalStateException("target version:" + version + " is not illegal");
 // }
-// 
+//
 // public static final class Version {
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.0 release.
 // *
@@ -106,7 +109,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_0_0 = new Version(5, 0, 0);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.1.0 release.
 // *
@@ -114,7 +117,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_1_0 = new Version(5, 1, 0);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.2.0 release.
 // *
@@ -122,7 +125,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_2_0 = new Version(5, 2, 0);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.2.1 release.
 // *
@@ -130,7 +133,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_2_1 = new Version(5, 2, 1);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.3.0 release.
 // *
@@ -138,7 +141,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_3_0 = new Version(5, 3, 0);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.3.1 release.
 // *
@@ -146,7 +149,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_3_1 = new Version(5, 3, 1);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.3.2 release.
 // *
@@ -154,7 +157,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_3_2 = new Version(5, 3, 2);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.4.0 release.
 // *
@@ -162,7 +165,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_4_0 = new Version(5, 4, 0);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.4.1 release.
 // *
@@ -170,7 +173,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_4_1 = new Version(5, 4, 1);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 5.5.0 release.
 // *
@@ -178,7 +181,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_5_5_0 = new Version(5, 5, 0);
-// 
+//
 // /**
 // * Match settings and bugs in Lucene's 6.0 release.
 // * <p>
@@ -186,7 +189,7 @@ public enum LuceneVersion {
 // * fixes, etc, for Lucene.
 // */
 // public static final Version LUCENE_6_0_0 = new Version(6, 0, 0);
-// 
+//
 // // To add a new version:
 // // * Only add above this comment
 // // * If the new version is the newest, change LATEST below and deprecate the previous LATEST
@@ -206,7 +209,7 @@ public enum LuceneVersion {
 // * in your application.
 // */
 // public static final Version LATEST = LUCENE_6_0_0;
-// 
+//
 // /**
 // * Constant for backwards compatibility.
 // *
@@ -214,7 +217,7 @@ public enum LuceneVersion {
 // */
 // @Deprecated
 // public static final Version LUCENE_CURRENT = LATEST;
-// 
+//
 // /**
 // * Parse a version number of the form {@code "major.minor.bugfix.prerelease"}.
 // * <p>
@@ -287,7 +290,7 @@ public enum LuceneVersion {
 // throw pe;
 // }
 // }
-// 
+//
 // /**
 // * Parse the given version number as a constant or dot based version.
 // * <p>This method allows to use {@code "LUCENE_X_Y"} constant names,
@@ -313,7 +316,7 @@ public enum LuceneVersion {
 // }
 // }
 // }
-// 
+//
 // /**
 // * Returns a new version based on raw numbers
 // *
@@ -322,36 +325,36 @@ public enum LuceneVersion {
 // public static Version fromBits(int major, int minor, int bugfix) {
 // return new Version(major, minor, bugfix);
 // }
-// 
+//
 // /**
 // * Major version, the difference between stable and trunk
 // */
 // public final int major;
-// 
+//
 // /**
 // * Minor version, incremented within the stable branch
 // */
 // public final int minor;
-// 
+//
 // /**
 // * Bugfix number, incremented on release branches
 // */
 // public final int bugfix;
-// 
+//
 // /**
 // * Prerelease version, currently 0 (alpha), 1 (beta), or 2 (final)
 // */
 // public final int prerelease;
-// 
+//
 // // stores the version pieces, with most significant pieces in high bits
 // // ie:  | 1 byte | 1 byte | 1 byte |   2 bits   |
 // // major   minor    bugfix   prerelease
 // private final int encodedValue;
-// 
+//
 // private Version(int major, int minor, int bugfix) {
 // this(major, minor, bugfix, 0);
 // }
-// 
+//
 // private Version(int major, int minor, int bugfix, int prerelease) {
 // this.major = major;
 // this.minor = minor;
@@ -376,14 +379,14 @@ public enum LuceneVersion {
 // encodedValue = major << 18 | minor << 10 | bugfix << 2 | prerelease;
 // assert encodedIsValid();
 // }
-// 
+//
 // /**
 // * Returns true if this version is the same or after the version from the argument.
 // */
 // public boolean onOrAfter(Version other) {
 // return encodedValue >= other.encodedValue;
 // }
-// 
+//
 // @Override
 // public String toString() {
 // if (prerelease == 0) {
@@ -391,12 +394,12 @@ public enum LuceneVersion {
 // }
 // return "" + major + "." + minor + "." + bugfix + "." + prerelease;
 // }
-// 
+//
 // @Override
 // public boolean equals(Object o) {
 // return o != null && o instanceof Version && ((Version) o).encodedValue == encodedValue;
 // }
-// 
+//
 // // Used only by assert:
 // private boolean encodedIsValid() {
 // assert major == ((encodedValue >>> 18) & 0xFF);
@@ -405,20 +408,20 @@ public enum LuceneVersion {
 // assert prerelease == (encodedValue & 0x03);
 // return true;
 // }
-// 
+//
 // @Override
 // public int hashCode() {
 // return encodedValue;
 // }
 // }
-// 
+//
 // static final class StrictStringTokenizer {
-// 
+//
 // public StrictStringTokenizer(String s, char delimiter) {
 // this.s = s;
 // this.delimiter = delimiter;
 // }
-// 
+//
 // public final String nextToken() {
 // if (pos < 0) {
 // throw new IllegalStateException("no more tokens");
@@ -434,15 +437,15 @@ public enum LuceneVersion {
 // }
 // return s1;
 // }
-// 
+//
 // public final boolean hasMoreTokens() {
 // return pos >= 0;
 // }
-// 
+//
 // private final String s;
-// 
+//
 // private final char delimiter;
-// 
+//
 // private int pos;
 // }
 // }

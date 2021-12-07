@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
@@ -126,18 +129,18 @@ public class HttpConfigFileReader extends ConfigFileReader {
     // // 百岁添加 20121200113 从后台repository中取得 配置为呢间信息，以及jar包
     // public PublishInfo getPublishInfo(String ipaddress,
     // RunEnvironment environment) throws MalformedURLException {
-    // 
+    //
     // // if (coreName == null) {
     // // throw new IllegalArgumentException("coreCofig can not be null");
     // // }
     // if (ipaddress == null) {
     // throw new IllegalArgumentException("ipaddress can not be null");
     // }
-    // 
+    //
     // final URL applyUrl = new URL(this.getAppDomainDir()
     // + "/download/getconfigbycorename/" + environment.getKeyName()
     // + "/" + ipaddress + "/" + this.application.getProjectName());
-    // 
+    //
     // return ConfigFileContext.processContent(applyUrl,
     // new StreamProcess<PublishInfo>() {
     // @Override
@@ -147,7 +150,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
     // .fromXML(stream));
     // }
     // });
-    // 
+    //
     // }
     public static SnapshotDomain getResource(String appName, RunEnvironment runtime, PropteryGetter... fileGetter) throws RepositoryException {
         return getResource(appName, -1, /* targetSnapshotid */
@@ -251,7 +254,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
      */
     // public static TestDoamin getTestDoaminFromRemote(Integer packid,
     // String terminatorRepository) throws MalformedURLException {
-    // 
+    //
     // return ConfigFileContext.processContent(new URL(terminatorRepository
     // + "/download/testdomain?pid=" + packid),
     // new StreamProcess<TestDoamin>() {
@@ -261,7 +264,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
     // return (TestDoamin) xstream.fromXML(stream);
     // }
     // });
-    // 
+    //
     // }
     // /**
     // * 检查远端传过来的文件没有被篡改过
@@ -270,9 +273,9 @@ public class HttpConfigFileReader extends ConfigFileReader {
     // */
     // private static PublishInfo checkFileHasNotDistort(final PublishInfo pub)
     // {
-    // 
+    //
     // List<PropteryGetter> propContent = ConfigFileReader.getConfigList();
-    // 
+    //
     // for (PropteryGetter getter : propContent) {
     // if (!StringUtils.equals(getter.getMd5CodeValue(pub.getSnapshot()),
     // ConfigFileReader.md5file(getter.getContent(pub
@@ -281,7 +284,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
     // + " file have been distort");
     // }
     // }
-    // 
+    //
     // // final Map<PropteryGetter, byte[]> propContent = new
     // // HashMap<PropteryGetter, byte[]>();
     // // // 将文件写到本地目录中
@@ -298,14 +301,14 @@ public class HttpConfigFileReader extends ConfigFileReader {
     // //
     // // propContent
     // // .put(ConfigFileReader.FILE_SOLOR, pub.getSolrConfigContent());
-    // 
+    //
     // return pub;
     // }
     public static void main(String[] arg) throws Exception {
     // Application app = new Application();
     // app.setBizId(1);
     // app.setAppId(1);
-    // 
+    //
     // Snapshot snapshot = new Snapshot();
     // // snapshot.setApplicationStamp(1325231504997L);
     // snapshot.setPid(56);
@@ -314,9 +317,9 @@ public class HttpConfigFileReader extends ConfigFileReader {
     // HttpConfigFileReader reader = new HttpConfigFileReader(snapshot,
     // new URL("http://localhost"), new File("/tmpp"), app);
     // InputStream input = reader.read(ConfigFileReader.FILE_APPLICATION);
-    // 
+    //
     // System.out.println(IOUtils.toString(input));
-    // 
+    //
     // input.close();
     // System.out
     // .println("======================================================");
@@ -328,7 +331,7 @@ public class HttpConfigFileReader extends ConfigFileReader {
     // // ConfigFileReader.FILE_SOLOR);
     // for (int i = 0; i < 1000; i++) {
     // System.out.println(i);
-    // 
+    //
     // fetchResource(RunEnvironment.DAILY);
     // // fetchResource(RunEnvironment.READY);
     // // fetchResource(RunEnvironment.ONLINE);
@@ -337,23 +340,23 @@ public class HttpConfigFileReader extends ConfigFileReader {
     }
     // private static void fetchResource(RunEnvironment runtime)
     // throws TerminatorRepositoryException {
-    // 
+    //
     // // SnapshotDomain domain = HttpConfigFileReader.getResource(
     // // "http://l.admin.taobao.org", "search4bbs", 0, runtime,
     // // ConfigFileReader.FILE_SOLOR);
-    // 
+    //
     // SnapshotDomain domain = HttpConfigFileReader.getResource(
     // "http://daily.terminator.admin.taobao.org", "search4bbs", 0,
     // runtime, ConfigFileReader.FILE_SOLOR);
-    // 
+    //
     // // 取得schema 配置文件
     // UploadResource resource = domain.getSolrConfig();
-    // 
+    //
     // Assert.assertNotNull(resource);
-    // 
+    //
     // // content是byte数组类型，编码使用utf8编码
     // Assert.assertNotNull(resource.getContent());
-    // 
+    //
     // System.out.println(new String(resource.getContent()));
     // }
 }

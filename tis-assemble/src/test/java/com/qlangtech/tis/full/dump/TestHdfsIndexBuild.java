@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.full.dump;
 
@@ -39,7 +42,7 @@ public class TestHdfsIndexBuild extends TestCase {
 
     private static final char splitChar = '\u0001';
 
-    // 
+    //
     // public void testReadFile() throws Exception {
     // LineIterator it = FileUtils
     // .lineIterator(new File("D:\\Downloads\\000002_0.txt"), "utf8");
@@ -55,15 +58,15 @@ public class TestHdfsIndexBuild extends TestCase {
     // while (it.hasNext()) {
     // int count = 0;
     // line = it.next();
-    // 
+    //
     // // count = line.split(String.valueOf(splitChar)).length;
     // // System.out.println(line);
-    // 
+    //
     // for (char c : line.toCharArray()) {
-    // 
+    //
     // if (c == splitChar) {
     // count++;
-    // 
+    //
     // System.out.println("index:" + (index++) + ","
     // + new String(temp, 0, tempCount));
     // tempCount = 0;
@@ -71,10 +74,10 @@ public class TestHdfsIndexBuild extends TestCase {
     // temp[tempCount++] = c;
     // }
     // }
-    // 
+    //
     // System.out.println("index:" + (index++) + ","
     // + new String(temp, 0, tempCount));
-    // 
+    //
     // // line = StringUtils.split(, "");
     // // System.out.println(count + ","
     // // + StringUtils.substringBefore(line, "" + splitChar)
@@ -83,7 +86,7 @@ public class TestHdfsIndexBuild extends TestCase {
     // // if (i++ > 20) {
     // return;
     // // }
-    // 
+    //
     // }
     // }
     public void testTriggerTotalpayIndexBuild() throws Exception {
@@ -109,7 +112,7 @@ public class TestHdfsIndexBuild extends TestCase {
         System.out.println("success");
     }
     // public void testIndexBuild() throws Exception {
-    // 
+    //
     // String cols =
     // "waitinginstance_id,waitingorder_id,kind,kindmenu_id,kindmenu_name,name,menu_id,make_id,makename,make_price,make_pricemode,spec_detail_name,spec_detail_id,spec_pricemode,spec_detail_price,num,account_num,unit,account_unit,original_price,price,member_price,fee,is_ratio,taste,ratio,ratio_fee,is_backauth,parent_id,price_mode,child_id,service_feemode,service_fee,instance_status,entity_id,is_valid,create_time,op_time,customerregister_id,order_kind,order_status";
     // String hdfspath =
@@ -122,9 +125,9 @@ public class TestHdfsIndexBuild extends TestCase {
     // + "&dumpstart=" + dumpstart + "&params_sign="
     // + DigestUtils.md5Hex((indexName + cols + hdfspath + dumpstart)
     // .getBytes(Charset.forName("utf8"))));
-    // 
+    //
     // System.out.println("url:" + url);
-    // 
+    //
     // HttpUtils.processContent(url, new StreamProcess<Void>() {
     // @Override
     // public Void p(int status, InputStream stream, String md5) {
@@ -135,9 +138,9 @@ public class TestHdfsIndexBuild extends TestCase {
     // }
     // return null;
     // }
-    // 
+    //
     // });
-    // 
+    //
     // System.out.println("success");
     // }
 }

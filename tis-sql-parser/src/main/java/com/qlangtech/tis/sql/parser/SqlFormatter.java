@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- * <p>
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
- * <p>
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- * <p>
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.sql.parser;
 
@@ -341,7 +344,7 @@ public final class SqlFormatter {
             // ▲▲ end 20190829
             if (node.getGroupBy().isPresent()) {
                 append(indent, "GROUP BY " + (node.getGroupBy().get().isDistinct() ? " DISTINCT " : "") + formatGroupBy(node.getGroupBy().get().getGroupingElements()));
-                // 
+                //
                 // .append('\n');
                 builder.append(',').append(appendPtPmod);
             }
@@ -594,32 +597,32 @@ public final class SqlFormatter {
         // @Override
         // protected Void visitShowSchemas(ShowSchemas node, Integer context) {
         // builder.append("SHOW SCHEMAS");
-        // 
+        //
         // if (node.getCatalog().isPresent()) {
         // builder.append(" FROM ").append(node.getCatalog().get());
         // }
-        // 
+        //
         // node.getLikePattern().ifPresent((value) -> builder.append(" LIKE
         // ").append(formatStringLiteral(value)));
-        // 
+        //
         // node.getEscape().ifPresent((value) -> builder.append(" ESCAPE
         // ").append(formatStringLiteral(value)));
-        // 
+        //
         // return null;
         // }
         // @Override
         // protected Void visitShowTables(ShowTables node, Integer context) {
         // builder.append("SHOW TABLES");
-        // 
+        //
         // node.getSchema().ifPresent(value -> builder.append(" FROM
         // ").append(formatName(value)));
-        // 
+        //
         // node.getLikePattern().ifPresent(value -> builder.append(" LIKE
         // ").append(formatStringLiteral(value)));
-        // 
+        //
         // node.getEscape().ifPresent(value -> builder.append(" ESCAPE
         // ").append(formatStringLiteral(value)));
-        // 
+        //
         // return null;
         // }
         // @Override
@@ -629,7 +632,7 @@ public final class SqlFormatter {
         // } else if (node.getType() == ShowCreate.Type.VIEW) {
         // builder.append("SHOW CREATE VIEW ").append(formatName(node.getName()));
         // }
-        // 
+        //
         // return null;
         // }
         @Override
@@ -781,8 +784,8 @@ public final class SqlFormatter {
         }
         // @Override
         // protected Void visitSingleColumn(SingleColumn node, Integer indent) {
-        // 
-        // 
+        //
+        //
         // if (node.getAlias().isPresent()) {
         // Identifier alias = node.getAlias().get();
         // EntityName e = aliasTableMap.get(alias.getValue());
@@ -795,23 +798,23 @@ public final class SqlFormatter {
         // return entry.getKey().equals(e);
         // }
         // }).findFirst();
-        // 
+        //
         // if (find.isPresent()) {
         // Map.Entry<EntityName, SqlTaskNodeMeta.TabExtraMeta> tabExtraMeta = find.get();
         // SqlTaskNodeMeta.TabExtraMeta extraMeta = tabExtraMeta.getValue();
-        // 
+        //
         // Map<String /**colKey*/, SqlTaskNodeMeta.ColumnTransfer> columnTransferMap = extraMeta.fetchColTransfersMap();
-        // 
-        // 
+        //
+        //
         // }
         // }
-        // 
+        //
         // builder.append(formatExpression(node.getExpression(), parameters));
         // if (node.getAlias().isPresent()) {
         // Identifier alias = node.getAlias().get();
         // builder.append(' ').append(formatExpression(alias, parameters));
         // }
-        // 
+        //
         // return null;
         // //return super.visitSingleColumn(node, indent);
         // }

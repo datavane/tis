@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
@@ -22,7 +25,7 @@ public class JettyTISRunner {
     // Server server;
     // FilterHolder dispatchFilter;
     // String context;
-    // 
+    //
     // /**
     // * A main class that starts jetty+solr This is useful for debugging
     // */
@@ -35,18 +38,18 @@ public class JettyTISRunner {
     // ex.printStackTrace();
     // }
     // }
-    // 
+    //
     // public JettyTISRunner(String context, int port) {
     // this.init(context, port);
     // }
-    // 
+    //
     // public JettyTISRunner(String context, int port, String solrConfigFilename) {
     // this.init(context, port);
     // if (solrConfigFilename != null)
     // dispatchFilter.setInitParameter("solrconfig-filename",
     // solrConfigFilename);
     // }
-    // 
+    //
     // // public JettySolrRunner( String context, String home, String dataDir, int
     // // port, boolean log )
     // // {
@@ -63,9 +66,9 @@ public class JettyTISRunner {
     // // new SolrCore(dataDir, new IndexSchema(home+"/conf/schema.xml"));
     // // this.init( context, port );
     // // }
-    // 
+    //
     // private ServletContextHandler rootContext;
-    // 
+    //
     // // private void init(String context, int port) {
     // // this.context = context;
     // // server = new Server(port);
@@ -90,7 +93,7 @@ public class JettyTISRunner {
     // // dispatchFilter = rootContext.addFilter(InnerFilter.class, "*",
     // // Handler.REQUEST);
     // // }
-    // 
+    //
     // private void init(String context, int port) {
     // this.context = context;
     // server = new Server(port);
@@ -105,14 +108,14 @@ public class JettyTISRunner {
     // server.setSessionIdManager(new HashSessionIdManager(new Random()));
     // }
     // server.setStopAtShutdown(true);
-    // 
+    //
     // // ServletContextHandler
-    // 
+    //
     // this.rootContext = new ServletContextHandler(server, context// ,ServletContextHandler.SESSIONS
     // );
-    // 
+    //
     // // server.setThreadPool(new QueuedThreadPool(100));
-    // 
+    //
     // // Initialize the servlets
     // // this.rootContext = new Context(server, context,
     // // ServletContextHandler.SESSIONS);
@@ -121,37 +124,37 @@ public class JettyTISRunner {
     // dispatchFilter = rootContext.addFilter(InnerFilter.class, "*",
     // EnumSet.of(DispatcherType.REQUEST));
     // }
-    // 
+    //
     // public void addServlet(HttpServlet servlet, String pathSpec) {
     // this.rootContext.addServlet(new ServletHolder(servlet), pathSpec);
     // }
-    // 
+    //
     // public static class InnerFilter implements Filter {
-    // 
+    //
     // @Override
     // public void init(FilterConfig filterConfig) throws ServletException {
     // }
-    // 
+    //
     // @Override
     // public void doFilter(ServletRequest request, ServletResponse response,
     // FilterChain chain) throws IOException, ServletException {
     // chain.doFilter(request, response);
-    // 
+    //
     // }
-    // 
+    //
     // @Override
     // public void destroy() {
     // }
-    // 
+    //
     // }
-    // 
+    //
     // // ------------------------------------------------------------------------------------------------
     // // ------------------------------------------------------------------------------------------------
-    // 
+    //
     // public void start() throws Exception {
     // start(true);
     // }
-    // 
+    //
     // public void start(boolean waitForSolr) throws Exception {
     // if (!server.isRunning()) {
     // server.start();
@@ -160,14 +163,14 @@ public class JettyTISRunner {
     // // if (waitForSolr)
     // // waitForSolr(context);
     // }
-    // 
+    //
     // public void stop() throws Exception {
     // if (server.isRunning()) {
     // server.stop();
     // server.join();
     // }
     // }
-    // 
+    //
     // // /**
     // // * Waits until a ping query to the solr server succeeds, retrying every
     // // 200
@@ -198,7 +201,7 @@ public class JettyTISRunner {
     // //
     // // throw new RuntimeException("Jetty/Solr unresponsive", ex);
     // // }
-    // 
+    //
     // /**
     // * Returns the Local Port of the first Connector found for the jetty Server.
     // *
@@ -212,17 +215,17 @@ public class JettyTISRunner {
     // }
     // return conns[0].getLocalPort();
     // }
-    // 
+    //
     // // --------------------------------------------------------------
     // // --------------------------------------------------------------
-    // 
+    //
     // /**
     // * This is a stupid hack to give jetty something to attach to
     // */
     // public static class Servlet404 extends HttpServlet {
-    // 
+    //
     // private static final long serialVersionUID = 1L;
-    // 
+    //
     // @Override
     // public void service(HttpServletRequest req, HttpServletResponse res)
     // throws IOException {

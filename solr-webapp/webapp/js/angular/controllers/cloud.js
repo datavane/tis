@@ -1,19 +1,20 @@
-/*
- Licensed to the Apache Software Foundation (ASF) under one or more
- contributor license agreements.  See the NOTICE file distributed with
- this work for additional information regarding copyright ownership.
- The ASF licenses this file to You under the Apache License, Version 2.0
- (the "License"); you may not use this file except in compliance with
- the License.  You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-*/
+/**
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 
 solrAdminApp.controller('CloudController',
     function($scope, $location, Zookeeper, Constants, Collections, System, Metrics, ZookeeperStatus) {
@@ -154,25 +155,25 @@ var nodesSubController = function($scope, Collections, System, Metrics) {
     $scope.from = Math.max(0, $scope.from - parseInt($scope.pageSize));
     $scope.reload();
   };
-  
+
   // Checks if this node is the first (alphabetically) for a given host. Used to decide rowspan in table
   $scope.isFirstNodeForHost = function(node) {
-    var hostName = node.split(":")[0]; 
+    var hostName = node.split(":")[0];
     var nodesInHost = $scope.filteredNodes.filter(function (node) {
       return node.startsWith(hostName);
     });
     return nodesInHost[0] === node;
   };
-  
+
   // Returns the first live node for this host, to make sure we pick host-level metrics from a live node
   $scope.firstLiveNodeForHost = function(key) {
-    var hostName = key.split(":")[0]; 
+    var hostName = key.split(":")[0];
     var liveNodesInHost = $scope.filteredNodes.filter(function (key) {
       return key.startsWith(hostName);
     }).filter(function (key) {
       return $scope.live_nodes.includes(key);
     });
-    return liveNodesInHost.length > 0 ? liveNodesInHost[0] : key; 
+    return liveNodesInHost.length > 0 ? liveNodesInHost[0] : key;
   };
 
   // Initializes the cluster state, list of nodes, collections etc
@@ -228,7 +229,7 @@ var nodesSubController = function($scope, Collections, System, Metrics) {
         ensureNodeInHosts(node, hosts);
       }
 
-      // Make sure nodes are sorted alphabetically to align with rowspan in table 
+      // Make sure nodes are sorted alphabetically to align with rowspan in table
       for (var host in hosts) {
         hosts[host].nodes.sort();
       }
@@ -250,7 +251,7 @@ var nodesSubController = function($scope, Collections, System, Metrics) {
 
   /*
     Reload will fetch data for the current page of the table and thus refresh numbers.
-    It is also called whenever a filter or paging action is executed 
+    It is also called whenever a filter or paging action is executed
    */
   $scope.reload = function() {
     var nodes = $scope.nodes;
@@ -308,7 +309,7 @@ var nodesSubController = function($scope, Collections, System, Metrics) {
       case "health":
 
     }
-    
+
     if (filteredNodes) {
       // If filtering is active, calculate what hosts contain the nodes that match the filters
       isFiltered = true;
@@ -323,7 +324,7 @@ var nodesSubController = function($scope, Collections, System, Metrics) {
     }
     filteredNodes.sort();
     filteredHosts.sort();
-    
+
     // Find what hosts & nodes (from the filtered set) that should be displayed on current page
     for (var id = $scope.from ; id < $scope.from + pageSize && filteredHosts[id] ; id++) {
       var hostName = filteredHosts[id];
@@ -337,7 +338,7 @@ var nodesSubController = function($scope, Collections, System, Metrics) {
       }
     }
     nodesParam = nodesToShow.filter(function (node) {
-      return live_nodes.includes(node); 
+      return live_nodes.includes(node);
     }).join(',');
     var deadNodes = nodesToShow.filter(function (node) {
       return !live_nodes.includes(node);
@@ -522,7 +523,7 @@ var zkStatusSubController = function($scope, ZookeeperStatus) {
     $scope.tree = {};
     $scope.showData = false;
     $scope.showDetails = false;
-    
+
     $scope.toggleDetails = function() {
       $scope.showDetails = !$scope.showDetails === true;
     };
@@ -532,8 +533,8 @@ var zkStatusSubController = function($scope, ZookeeperStatus) {
         $scope.zkState = data.zkStatus;
         $scope.mainKeys = ["ok", "clientPort", "secureClientPort", "zk_server_state", "zk_version",
           "zk_approximate_data_size", "zk_znode_count", "zk_num_alive_connections"];
-        $scope.detailKeys = ["dataDir", "dataLogDir", 
-          "zk_avg_latency", "zk_max_file_descriptor_count", "zk_watch_count", 
+        $scope.detailKeys = ["dataDir", "dataLogDir",
+          "zk_avg_latency", "zk_max_file_descriptor_count", "zk_watch_count",
           "zk_packets_sent", "zk_packets_received",
           "tickTime", "maxClientCnxns", "minSessionTimeout", "maxSessionTimeout"];
         $scope.ensembleMainKeys = ["serverId", "electionPort", "quorumPort", "role"];
@@ -590,7 +591,7 @@ var treeSubController = function($scope, Zookeeper) {
 
 /**
  * Translates seconds into human readable format of seconds, minutes, hours, days, and years
- * 
+ *
  * @param  {number} seconds The number of seconds to be processed
  * @return {string}         The phrase describing the the amount of time
  */

@@ -1,19 +1,20 @@
-/*
- Licensed to the Apache Software Foundation (ASF) under one or more
- contributor license agreements.  See the NOTICE file distributed with
- this work for additional information regarding copyright ownership.
- The ASF licenses this file to You under the Apache License, Version 2.0
- (the "License"); you may not use this file except in compliance with
- the License.  You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-*/
+/**
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 
 solrAdminApp.controller('LoginController',
     ['$scope', '$routeParams', '$rootScope', '$location', '$window', 'AuthenticationService', 'Constants',
@@ -31,7 +32,7 @@ solrAdminApp.controller('LoginController',
           authScheme = "unknown";
           var authParams = {};
           if (wwwHeader && wwwHeader.length >= 1)
-            authScheme = wwwHeader[1]; 
+            authScheme = wwwHeader[1];
           if (wwwHeader && wwwHeader.length >= 3)
             authParams = www_auth_parse_params(wwwHeader[3]);
           if (typeof authParams === 'string' || authParams instanceof String) {
@@ -145,7 +146,7 @@ solrAdminApp.controller('LoginController',
           $scope.errorDescription = authParams['error_description'];
           $scope.authData = AuthenticationService.getAuthDataHeader();
         }
-        
+
         $scope.authScheme = sessionStorage.getItem("auth.scheme");
         $scope.authRealm = sessionStorage.getItem("auth.realm");
         $scope.wwwAuthHeader = sessionStorage.getItem("auth.wwwAuthHeader");
@@ -191,7 +192,7 @@ solrAdminApp.controller('LoginController',
             for (var p in params) {
                if( params.hasOwnProperty(p) ) {
                  arr.push(p + "=" + encodeURIComponent(params[p]));
-               } 
+               }
              }
              return arr.join("&");
           }
@@ -204,7 +205,7 @@ solrAdminApp.controller('LoginController',
             redirect.forEach(function(uri) { // Check that current node URL is among the configured callback URIs
               if ($window.location.href.startsWith(uri)) isLoginNode = true;
             });
-            return isLoginNode; 
+            return isLoginNode;
           } else {
             return true; // no redirect UIRs configured, all nodes are potential login nodes
           }
@@ -217,9 +218,9 @@ solrAdminApp.controller('LoginController',
             redirect.forEach(function(uri) { // if current node is in list, return its callback uri
               if ($window.location.href.startsWith(uri)) loginNode = uri;
             });
-            return loginNode; 
+            return loginNode;
           } else {
-             return $window.location.href.split('#')[0]; // Return base url of current URL as the url to use 
+             return $window.location.href.split('#')[0]; // Return base url of current URL as the url to use
           }
         };
 
@@ -235,7 +236,7 @@ solrAdminApp.controller('LoginController',
           AuthenticationService.ClearCredentials();
           $location.path("/");
         };
-        
+
         $scope.isLoggedIn = function() {
           return (sessionStorage.getItem("auth.username") !== null);
         };

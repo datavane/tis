@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.solrextend.lucene;
 
@@ -59,7 +62,7 @@ public class IndexFiles extends TestCase {
         String[] args = new String[] {};
         String usage = "java org.apache.lucene.demo.IndexFiles" + " [-index INDEX_PATH] [-docs DOCS_PATH] [-update]\n\n" + "This indexes the documents in DOCS_PATH, creating a Lucene index" + "in INDEX_PATH that can be searched with SearchFiles";
         // String docsPath = "D:\\solr\\solr-5.3.0-src";
-        // 
+        //
         boolean create = true;
         for (int i = 0; i < args.length; i++) {
             if ("-index".equals(args[i])) {
@@ -100,7 +103,7 @@ public class IndexFiles extends TestCase {
             // are indexing many documents, increase the RAM
             // buffer. But if you do this, increase the max heap
             // size to the JVM (eg add -Xmx512m or -Xmx1g):
-            // 
+            //
             // iwc.setRAMBufferSizeMB(256.0);
             IndexWriter writer = new IndexWriter(dir, iwc);
             indexDocs(writer, docDir);
@@ -109,7 +112,7 @@ public class IndexFiles extends TestCase {
             // a terribly costly operation, so generally it's only
             // worth it when your index is relatively static (ie
             // you're done adding documents to it):
-            // 
+            //
             writer.forceMerge(1);
             writer.close();
             System.out.println("allFilesIndexd" + allFilesIndexd);

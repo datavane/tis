@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.csvparse;
 
@@ -20,35 +23,35 @@ package com.qlangtech.tis.csvparse;
  */
 public class TerminatorConcentrateReport {
     // // private final BufferedWriter reportWriter;
-    // 
+    //
     // private final Set<HistoryReport> historyReport = new HashSet<HistoryReport>();
-    // 
+    //
     // private static final Pattern ipFilePattern = Pattern
     // .compile("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\.txt");
-    // 
+    //
     // private static final Pattern serverPattern = Pattern
     // .compile("used:(\\d+),available:(\\d+),use:(\\d+)%");
-    // 
+    //
     // private static final Pattern corePattern = Pattern
     // .compile("IP:(.+?)corename:(.+?)\\-(\\d{cd}),indexsize:(.+?),indexNum:(\\d*),timesum:(\\d*),querycount:(\\d*)");
-    // 
+    //
     // protected TerminatorConcentrateReport(Date parseDate) {
     // super(parseDate);
-    // 
+    //
     // // this.parseDate = parseDate;
     // // this.historyReport = new HistoryReport(this.parseDate);
-    // 
+    //
     // Calendar calender = Calendar.getInstance();
     // calender.setTime(this.getParseDate());
-    // 
+    //
     // for (int i = 0; i < 7; i++) {
     // calender.add(Calendar.DAY_OF_YEAR, -(1));
     // System.out.println(dateFormat.format(calender.getTime()));
     // this.historyReport.add(new HistoryReport(calender.getTime()));
     // }
-    // 
+    //
     // }
-    // 
+    //
     // public int getQueryCountAverage(String coreName) {
     // return (int) getAverageValue(coreName, new PropGetter() {
     // @Override
@@ -57,7 +60,7 @@ public class TerminatorConcentrateReport {
     // }
     // });
     // }
-    // 
+    //
     // public float getHistoryAverageCpuLoad(String coreName) {
     // return getAverageValue(coreName, new PropGetter() {
     // @Override
@@ -66,7 +69,7 @@ public class TerminatorConcentrateReport {
     // }
     // });
     // }
-    // 
+    //
     // public float getHistoryAverageIndexCount(String coreName) {
     // return getAverageValue(coreName, new PropGetter() {
     // @Override
@@ -75,7 +78,7 @@ public class TerminatorConcentrateReport {
     // }
     // });
     // }
-    // 
+    //
     // public float getQueryTimeAverage(String coreName) {
     // return getAverageValue(coreName, new PropGetter() {
     // @Override
@@ -84,7 +87,7 @@ public class TerminatorConcentrateReport {
     // }
     // });
     // }
-    // 
+    //
     // private float getAverageValue(String coreName, PropGetter get) {
     // // float sum = 0;
     // // int count = 0;
@@ -109,45 +112,45 @@ public class TerminatorConcentrateReport {
     // // return sum / count;
     // return 0;
     // }
-    // 
+    //
     // private interface PropGetter {
     // float get(Core core);
     // }
-    // 
+    //
     // private Map<String, Core> parseReportFromPhrase1() {
-    // 
+    //
     // final Map<String, Core> coreMap = new HashMap<String, Core>();
-    // 
+    //
     // File parent = new File(getWorkDir(), "data-" + this.getFormatDate());
-    // 
+    //
     // System.out.println("server data dir:" + parent.getAbsolutePath());
-    // 
+    //
     // String ipAddress = null;
-    // 
+    //
     // for (String fileName : parent.list()) {
     // ipAddress = getIpAddress(fileName);
     // if (ipAddress == null) {
     // continue;
     // }
-    // 
+    //
     // parseIpFile(coreMap, new File(parent, fileName), ipAddress);
-    // 
+    //
     // }
-    // 
+    //
     // return coreMap;
     // }
-    // 
+    //
     // // private Map<String, Core> parseReportFromCenterNode() {
     // //
     // // }
-    // 
+    //
     // public static String getWorkDir() {
     // return getDefaultValue("serverData",
     // "/home/baisui/terminator_index_report");
     // }
-    // 
+    //
     // private List<IPStatsInfo> parseServerPerspectView(Collection<Core> cores) {
-    // 
+    //
     // final List<IPStatsInfo> infoList = new LinkedList<IPStatsInfo>();
     // for (Core core : cores) {
     // infoList.addAll(core.getIpDimeStatsInfo());
@@ -157,26 +160,26 @@ public class TerminatorConcentrateReport {
     // public int compare(IPStatsInfo info1, IPStatsInfo info2) {
     // return info1.getIpAddress().compareTo(info2.getIpAddress());
     // }
-    // 
+    //
     // });
     // return infoList;
     // }
-    // 
+    //
     // // public static final Pattern HostPattern =
     // // Pattern.compile("^\\w+\\.\\w+");
-    // 
+    //
     // private void parseIpFile(Map<String, Core> coreMap, File ipfile,
     // String ipAddress) {
     // BufferedReader reader = null;
     // Matcher m = null;
     // try {
-    // 
+    //
     // float maxload5Min = 0;
-    // 
+    //
     // InetAddress[] address = InetAddress.getAllByName(ipAddress);
     // try {
     // for (InetAddress ip : address) {
-    // 
+    //
     // // m = HostPattern.matcher(ip.getHostName());
     // maxload5Min = parseMaxLoad(ip);
     // // if (m.find()) {
@@ -185,17 +188,17 @@ public class TerminatorConcentrateReport {
     // // throw new RuntimeException("ip.getHostName():"
     // // + ip.getHostName() + " is illegal");
     // // }
-    // 
+    //
     // }
     // } catch (Throwable e1) {
     // e1.printStackTrace();
     // }
-    // 
+    //
     // reader = new BufferedReader(new InputStreamReader(
     // new FileInputStream(ipfile)));
-    // 
+    //
     // // used:5527072,available:43943280,use:12%
-    // 
+    //
     // m = serverPattern
     // .matcher(StringUtils.trimToEmpty(reader.readLine()));
     // int used, available, use;
@@ -216,20 +219,20 @@ public class TerminatorConcentrateReport {
     // if (!m.find()) {
     // continue;
     // }
-    // 
+    //
     // String coreName = m.group(2);
     // core = coreMap.get(coreName);
     // if (core == null) {
     // core = new Core(coreName);
     // coreMap.put(coreName, core);
     // }
-    // 
+    //
     // final String ipaddress = StringUtils.trim(m.group(1));
-    // 
+    //
     // statsInfo = core.getIPStatsInfo(ipaddress);
     // if (statsInfo == null) {
     // statsInfo = new IPStatsInfo(ipaddress, coreName);
-    // 
+    //
     // statsInfo.setMaxLoad5Min(maxload5Min);
     // statsInfo.setAvailable(available);
     // statsInfo.setUsed(used);
@@ -237,7 +240,7 @@ public class TerminatorConcentrateReport {
     // statsInfo.setUedPercent(String.valueOf(use) + "%");
     // core.add(statsInfo);
     // }
-    // 
+    //
     // CoreGroup group = new CoreGroup(Integer.parseInt(m.group(3)),
     // coreName);
     // try {
@@ -247,11 +250,11 @@ public class TerminatorConcentrateReport {
     // group.setQueryConsumeTime(Float.parseFloat(m.group(6)));
     // } catch (Throwable e) {
     // }
-    // 
+    //
     // statsInfo.addGroup(group);
-    // 
+    //
     // }
-    // 
+    //
     // } catch (Exception e) {
     // throw new RuntimeException(e);
     // } finally {
@@ -261,95 +264,95 @@ public class TerminatorConcentrateReport {
     // }
     // }
     // }
-    // 
+    //
     // private static final Pattern loadPairPattern = Pattern
     // .compile("\\{\"\\d\\d:\\d\\d:\\d\\d\":\"([\\d|\\.]{2,})\"\\}");
-    // 
+    //
     // private float parseMaxLoad(InetAddress ip) {
-    // 
+    //
     // if ("true".equalsIgnoreCase(System.getProperty("habojump"))) {
     // return 0l;
     // }
-    // 
+    //
     // final String hostName = ip.getHostName();
-    // 
+    //
     // try {
-    // 
+    //
     // URL url = new URL(
     // "http://172.24.142.103:8080/monitorapi/platformDetailData.do?host="
     // + hostName + "&key=load-min-5&date="
     // + this.getFormatDate() + "&module=device");
-    // 
+    //
     // System.out.println(url);
-    // 
+    //
     // return ConfigFileContext.processContent(url,
-    // 
+    //
     // new StreamProcess<Float>() {
     // @Override
     // public Float p(int status, InputStream stream, String md5) {
-    // 
+    //
     // // System.out
     // // .println();
-    // 
+    //
     // float max = 0;
-    // 
+    //
     // try {
     // String json = IOUtils.toString(stream);
-    // 
+    //
     // Matcher m = loadPairPattern.matcher(json);
-    // 
+    //
     // while (m.find()) {
     // if (max < Float.parseFloat(m.group(1))) {
     // max = Float.parseFloat(m.group(1));
     // }
     // }
-    // 
+    //
     // } catch (IOException e) {
     // throw new RuntimeException(e);
     // }
-    // 
+    //
     // return max;
-    // 
+    //
     // }
-    // 
+    //
     // });
     // } catch (MalformedURLException e) {
     // throw new RuntimeException("host:" + hostName + " date:"
     // + this.getFormatDate(), e);
     // }
-    // 
+    //
     // }
-    // 
+    //
     // private String getIpAddress(String fileName) {
-    // 
+    //
     // Matcher matcher = ipFilePattern.matcher(fileName);
-    // 
+    //
     // if (matcher.matches()) {
     // return matcher.group(1);
     // }
-    // 
+    //
     // return null;
     // }
-    // 
+    //
     // public static String getDefaultValue(String key, String defaultValue) {
     // if ((System.getProperty(key) == null)) {
     // return defaultValue;
     // }
-    // 
+    //
     // return System.getProperty(key);
     // }
-    // 
+    //
     // public void startCreateReport() throws Exception {
-    // 
+    //
     // final Map<String, Core> phrase1result = this.parseReportFromPhrase1();
-    // 
+    //
     // for (String key : phrase1result.keySet()) {
     // System.out.print(key);
     // System.out.print(":");
     // System.out.print(phrase1result.get(key).getIpDesc());
     // System.out.println(phrase1result.get(key).getServerSum());
     // }
-    // 
+    //
     // // processExcel(
     // // Thread.currentThread().getClass()
     // // .getResourceAsStream("/core_report_template.xls"),
@@ -453,9 +456,9 @@ public class TerminatorConcentrateReport {
     // // }
     // //
     // // });
-    // 
+    //
     // }
-    // 
+    //
     // private void createServerPerspectView(
     // final Map<String, Core> phrase1result, HSSFWorkbook workbook) {
     // HSSFRow row;
@@ -465,7 +468,7 @@ public class TerminatorConcentrateReport {
     // List<IPStatsInfo> serverPerspectView = parseServerPerspectView(phrase1result
     // .values());
     // sheet = workbook.getSheetAt(1);
-    // 
+    //
     // // HSSFSheetConditionalFormatting formating = sheet
     // // .getSheetConditionalFormatting();
     // //
@@ -480,10 +483,10 @@ public class TerminatorConcentrateReport {
     // // CellRangeAddress(
     // // startRowIndex, 100, 5, 5) };
     // // formating.addConditionalFormatting(address, rule1);
-    // 
+    //
     // sheet.createRow(0).createCell(0)
     // .setCellValue("һ��" + serverPerspectView.size() + "̨������");
-    // 
+    //
     // rowIndex = startRowIndex;
     // String ipAddress = null;
     // int startMergeRow = rowIndex;
@@ -491,23 +494,23 @@ public class TerminatorConcentrateReport {
     // row = sheet.createRow(rowIndex++);
     // row.createCell(3).setCellValue(sInfo.getCoreName());
     // row.getCell(3).setCellStyle(createCellStyle(workbook));
-    // 
+    //
     // row.createCell(1).setCellValue(Core.formatVolume(sInfo.getUsed()));
     // row.getCell(1).setCellStyle(createCellStyle(workbook));
-    // 
+    //
     // row.createCell(2).setCellValue(sInfo.getUedPercent());
     // row.getCell(2).setCellType(Cell.CELL_TYPE_STRING);
     // HSSFCellStyle style = createCellStyle(workbook);
     // style.setAlignment(CellStyle.ALIGN_RIGHT);
     // row.getCell(2).setCellStyle(style);
-    // 
+    //
     // row.createCell(0).setCellValue(sInfo.getIpAddress());
     // row.getCell(0).setCellStyle(createCellStyle(workbook));
-    // 
+    //
     // row.createCell(4).setCellValue(
     // Core.formatVolume(sInfo.getIndexSize()));
     // row.getCell(4).setCellStyle(createCellStyle(workbook));
-    // 
+    //
     // row.createCell(5).setCellValue(
     // (float) sInfo.getIndexSize() / sInfo.getUsed());
     // style = createCellStyle(workbook);
@@ -515,7 +518,7 @@ public class TerminatorConcentrateReport {
     // row.getCell(5).setCellStyle(style);
     // // row.getCell(3).setCellValue(sInfo.getCoreName());
     // // row.getCell(0).setCellValue(sInfo.getIpAddress());
-    // 
+    //
     // if (StringUtils.isNotEmpty(ipAddress)
     // && !StringUtils.equals(ipAddress, sInfo.getIpAddress())) {
     // sheet.addMergedRegion(new CellRangeAddress(startMergeRow, // first
@@ -525,7 +528,7 @@ public class TerminatorConcentrateReport {
     // 0, // first column (0-based)
     // 0 // last column (0-based)
     // ));
-    // 
+    //
     // sheet.addMergedRegion(new CellRangeAddress(startMergeRow, // first
     // // row
     // // (0-based)
@@ -535,14 +538,14 @@ public class TerminatorConcentrateReport {
     // ));
     // startMergeRow = row.getRowNum();
     // }
-    // 
+    //
     // ipAddress = sInfo.getIpAddress();
     // }
-    // 
+    //
     // }
-    // 
+    //
     // private HSSFCellStyle createCellStyle(HSSFWorkbook workbook) {
-    // 
+    //
     // // Style the cell with borders all around.
     // HSSFCellStyle style = workbook.createCellStyle();
     // style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
@@ -553,26 +556,26 @@ public class TerminatorConcentrateReport {
     // style.setRightBorderColor(HSSFColor.BLACK.index);
     // style.setBorderTop(HSSFCellStyle.BORDER_THIN);
     // style.setTopBorderColor(HSSFColor.BLACK.index);
-    // 
+    //
     // return style;
     // }
-    // 
+    //
     // /**
     // * @param args
     // */
     // public static void main(String[] args) throws Exception {
-    // 
+    //
     // if (args.length > 0 && "getips".equals(args[0])) {
     // GetAllServer2LocalFile.main(new String[0]);
     // return;
     // }
-    // 
+    //
     // Date parseDate = dateFormat.parse(getDefaultValue("date",
     // dateFormat.format(new Date())));
-    // 
+    //
     // TerminatorConcentrateReport terminatorConcentrateReport = new TerminatorConcentrateReport(
     // parseDate);
     // terminatorConcentrateReport.startCreateReport();
-    // 
+    //
     // }
 }

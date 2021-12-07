@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.flume;
 
@@ -199,34 +202,34 @@ public class FlumeApplication {
             // "the name of this agent");
             // option.setRequired(true);
             // options.addOption(option);
-            // 
+            //
             // option = new Option("f", "conf-file", true,
             // "specify a config file (required if -z missing)");
             // option.setRequired(false);
             // options.addOption(option);
-            // 
+            //
             // option = new Option(null, "no-reload-conf", false,
             // "do not reload config file if changed");
             // options.addOption(option);
-            // 
+            //
             // // Options for Zookeeper
             // option = new Option("z", "zkConnString", true,
             // "specify the ZooKeeper connection to use (required if -f
             // missing)");
             // option.setRequired(false);
             // options.addOption(option);
-            // 
+            //
             // option = new Option("p", "zkBasePath", true,
             // "specify the base path in ZooKeeper for agent configs");
             // option.setRequired(false);
             // options.addOption(option);
-            // 
+            //
             // option = new Option("h", "help", false, "display help text");
             // options.addOption(option);
-            // 
+            //
             // CommandLineParser parser = new GnuParser();
             // CommandLine commandLine = parser.parse(options, args);
-            // 
+            //
             // if (commandLine.hasOption('h')) {
             // new HelpFormatter().printHelp("flume-ng agent", options, true);
             // return;
@@ -244,7 +247,7 @@ public class FlumeApplication {
             // // get options
             // String zkConnectionStr = commandLine.getOptionValue('z');
             // String baseZkPath = commandLine.getOptionValue('p');
-            // 
+            //
             // if (reload) {
             // EventBus eventBus = new EventBus(agentName + "-event-bus");
             // List<LifecycleAware> components = Lists.newArrayList();

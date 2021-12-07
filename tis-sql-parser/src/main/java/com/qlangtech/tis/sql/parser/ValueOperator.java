@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.sql.parser;
 
@@ -21,17 +24,17 @@ package com.qlangtech.tis.sql.parser;
 public abstract class ValueOperator {
     // protected final IDataTupleCreator tupleCreator;
     // protected final ColName output;
-    // 
+    //
     // public ValueOperator(ColName output, IDataTupleCreator expression) {
     // super();
     // this.tupleCreator = expression;
     // this.output = output;
     // }
-    // 
+    //
     // public String getName() {
     // return output.getAliasName();
     // }
-    // 
+    //
     // // /**
     // // * 得到流的值
     // // *
@@ -41,82 +44,82 @@ public abstract class ValueOperator {
     // // public Object getValue(IDataContext dataContext) {
     // // return tupleCreator.getVal(output.getName(), dataContext);
     // // }
-    // 
+    //
     // public abstract void process();
-    // 
+    //
     // public static ValueOperator createTableValueOperator(ColName output, Table expression) {
     // // return new TableValueOperator(output, expression);
     // return null;
     // }
-    // 
+    //
     // public static ValueOperator createGatherValueOperator(ColName output, Expression expression,
     // StackableAstVisitorContext<Integer> context) {
-    // 
+    //
     // StreamTransformVisitor visitor = new StreamTransformVisitor();
     // visitor.process(expression, context);
-    // 
+    //
     // IDataTupleCreator tupleCreator = new IDataTupleCreator() {
-    // 
+    //
     // @Override
     // public EntityName getEntityName() {
-    // 
+    //
     // return null;
     // }
-    // 
+    //
     // @Override
     // public void generateGroovyScript(FunctionVisitor.FuncFormat rr) {
-    // 
+    //
     // }
-    // 
+    //
     // @Override
     // public void accept(IDataTupleCreatorVisitor visitor) {
     // }
-    // 
+    //
     // // @Override
     // // public Object getVal(String name, IDataContext context) {
     // //
     // // return null;
     // // }
-    // 
+    //
     // };
-    // 
+    //
     // return new GatherValueOperator(output, tupleCreator);
     // }
-    // 
+    //
     // public static ValueOperator createTableTupleOperator(ColName output, Expression expression,
     // StackableAstVisitorContext<Integer> context) {
-    // 
+    //
     // StreamTransformVisitor visitor = new StreamTransformVisitor();
     // visitor.process(expression, context);
-    // 
+    //
     // IDataTupleCreator tupleCreator = new IDataTupleCreator() {
     // @Override
     // public EntityName getEntityName() {
-    // 
+    //
     // return null;
     // }
-    // 
+    //
     // @Override
     // public void generateGroovyScript(FunctionVisitor.FuncFormat rr) {
-    // 
+    //
     // // return null;
     // }
-    // 
+    //
     // @Override
     // public void accept(IDataTupleCreatorVisitor visitor) {
     // }
-    // 
+    //
     // // @Override
     // // public Object getVal(String name, IDataContext context) {
     // //
     // // return null;
     // // }
-    // 
+    //
     // };
-    // 
+    //
     // return new GatherValueOperator(output, tupleCreator);
     // }
-    // 
+    //
     // ////
     // // private static class TableValueOperator extends ValueOperator {
     // //
@@ -130,19 +133,19 @@ public abstract class ValueOperator {
     // // }
     // //
     // private static class GatherValueOperator extends ValueOperator {
-    // 
+    //
     // // private final ValueOperator[] params;
-    // 
+    //
     // public GatherValueOperator(ColName output, IDataTupleCreator dataTupleCreator) {
     // super(output, dataTupleCreator);
-    // 
+    //
     // }
-    // 
+    //
     // @Override
     // public void process() {
     // }
     // }
-    // 
+    //
     // // public static class EntitiyRef {
     // // // 表實體名稱
     // //
@@ -174,11 +177,11 @@ public abstract class ValueOperator {
     // // }
     // //
     // // }
-    // 
+    //
     // /**
     // * 数据流上下文，流计算中只是设定数据流的管道处理规则（是无状态），context才是具体的数据
     // */
     // public interface IDataContext {
-    // 
+    //
     // }
 }

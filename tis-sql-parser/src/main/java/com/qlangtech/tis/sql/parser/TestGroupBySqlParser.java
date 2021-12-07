@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.sql.parser;
 
@@ -79,10 +82,10 @@ public class TestGroupBySqlParser {
         // Query query =
         terminatorNode.parse(true);
     // System.out.println(SqlFormatter.formatSql(query, Optional.empty()));
-    // 
+    //
     // System.out.println("terminator node:" + terminatorNode.getExportName());
     // for (SqlTaskNode taskNode : taskNodes) {
-    // 
+    //
     // Query query = (Query) parser.createStatement(taskNode.getContent(), new
     // ParsingOptions());
     // StringBuffer content = new StringBuffer();
@@ -90,138 +93,138 @@ public class TestGroupBySqlParser {
     // Rewriter rewriter = new Rewriter(content, 0, new Stack<Object>(),
     // columnTracer);
     // sqlParser.process(query, rewriter);
-    // 
+    //
     // System.out.println("===========================================");
     // System.out.println(content);
     // }
     }
 
     // private static class Visitor extends TISStackableAstVisitor<Void, Integer> {
-    // 
+    //
     // @Override
     // public Void process(Node node, StackableAstVisitorContext<Integer> context) {
     // return super.process(node, context);
     // }
-    // 
+    //
     // protected Void visitNode(Node node, StackableAstVisitorContext<Integer>
     // context) {
     // throw new UnsupportedOperationException(String.valueOf(node));
     // }
-    // 
+    //
     // protected Void visitAliasedRelation(AliasedRelation node,
     // StackableAstVisitorContext<Integer> context) {
-    // 
+    //
     // this.process(node.getRelation(), context);
-    // 
+    //
     // if (context.getPreviousNode().isPresent()) {
     // System.out.println("getPreviousNode:" + context.getPreviousNode().get());
     // }
-    // 
+    //
     // System.out.println(node.getAlias().getValue());
-    // 
+    //
     // return null;
     // }
-    // 
+    //
     // @Override
     // protected Void visitComparisonExpression(ComparisonExpression node,
     // StackableAstVisitorContext<Integer> context) {
-    // 
+    //
     // node.getLeft();
     // // System.out.println(node.getOperator() + "," +
     // node.getOperator().getValue());
     // node.getRight();
-    // 
+    //
     // return null;
     // // return super.visitComparisonExpression(node, context);
     // }
-    // 
+    //
     // @Override
     // protected Void visitLogicalBinaryExpression(LogicalBinaryExpression node,
     // StackableAstVisitorContext<Integer> context) {
-    // 
+    //
     // System.out.println("operator:" + node.getOperator());
-    // 
+    //
     // this.process(node.getLeft(), context);
-    // 
+    //
     // this.process(node.getRight(), context);
-    // 
+    //
     // return null;
-    // 
+    //
     // // return super.visitLogicalBinaryExpression(node, context);
     // }
-    // 
+    //
     // @Override
     // protected Void visitTable(Table node, StackableAstVisitorContext<Integer>
     // context) {
-    // 
+    //
     // // System.out.println(node.getName() + "," +
     // context.getPreviousNode().get());
-    // 
+    //
     // return null;
     // }
-    // 
+    //
     // protected Void visitQuery(Query node, StackableAstVisitorContext<Integer>
     // context) {
     // if (node.getWith().isPresent()) {
-    // 
+    //
     // }
-    // 
+    //
     // processRelation(node.getQueryBody(), context);
-    // 
+    //
     // if (node.getOrderBy().isPresent()) {
     // process(node.getOrderBy().get(), context);
     // }
-    // 
+    //
     // if (node.getLimit().isPresent()) {
     // // append(indent, "LIMIT " + node.getLimit().get())
     // // .append('\n');
     // }
-    // 
+    //
     // return null;
     // }
-    // 
+    //
     // @Override
     // protected Void visitSelect(Select node, StackableAstVisitorContext<Integer>
     // context) {
-    // 
+    //
     // for (SelectItem item : node.getSelectItems()) {
     // visitSelectItem(item, context);
     // }
     // return null;
     // // return super.visitSelect(node, context);
     // }
-    // 
+    //
     // @Override
     // protected Void visitSelectItem(SelectItem node,
     // StackableAstVisitorContext<Integer> context) {
-    // 
+    //
     // // System.out.println(node);
-    // 
+    //
     // return null;
     // // return super.visitSelectItem(node, context);
     // }
-    // 
+    //
     // protected Void visitQuerySpecification(QuerySpecification body,
     // StackableAstVisitorContext<Integer> context) {
     // // return visitQueryBody(node, context);
-    // 
+    //
     // // Select select = ;
     // this.visitSelect(body.getSelect(), context);
     // // System.out.println("Columns = " + select.getSelectItems());
-    // 
+    //
     // // System.out.println("FromClass = " + body.getFrom().get().getClass());
-    // 
+    //
     // // System.out.println("From = " + body.getFrom().get());
-    // 
+    //
     // // Optional<Expression> where = body.getWhere();
     // // System.out.println("Where = " + where.get());
     // // System.out.println("Group by = " + body.getGroupBy());
     // // System.out.println("Order by = " + body.getOrderBy());
-    // 
+    //
     // if (body.getLimit().isPresent()) {
     // // System.out.println("Limit = " + body.getLimit().get());
     // }
-    // 
+    //
     // // final List<Expression> groupIds = Lists.newArrayList();
     // Optional<GroupBy> gby = body.getGroupBy();
     // if (gby.isPresent()) {
@@ -240,7 +243,7 @@ public class TestGroupBySqlParser {
     // System.out.println("======================================================");
     // // List<SelectItem>
     // SingleColumn single = null;
-    // 
+    //
     // // int itemSize = select.getSelectItems().size();
     // // int i = 0;
     // // for (SelectItem col : select.getSelectItems()) {
@@ -298,20 +301,20 @@ public class TestGroupBySqlParser {
     // // rewriter.append(",");
     // // }
     // // }
-    // 
+    //
     // Relation rel = null;
     // // Table table = null;
     // if (from.isPresent()) {
     // rel = from.get();
     // // rewriter.newline().append("FROM ");
     // // processRelation(rel, rewriter);
-    // 
+    //
     // this.processRelation(rel, context);
-    // 
+    //
     // } else {
     // throw new IllegalStateException("have not set from \n" + body);
     // }
-    // 
+    //
     // Optional<Expression> w = body.getWhere();
     // Expression where = null;
     // if (w.isPresent()) {
@@ -319,49 +322,49 @@ public class TestGroupBySqlParser {
     // process(where, context);
     // // rewriter.newline().append("WHERE ");
     // // rewriter.append(table);
-    // 
+    //
     // // processExpression(where, rewriter);
-    // 
+    //
     // } else {
     // // if (table != null) {
     // // rewriter.newline().append("WHERE ");
     // // }
     // }
-    // 
+    //
     // // for (int ii = 0; ii < groupIds.size(); ii++) {
     // // processExpression(groupIds.get(ii), rewriter);
     // // if (ii < groupIds.size() - 1) {
     // // rewriter.append(",");
     // // }
     // // }
-    // 
+    //
     // return null;
     // }
-    // 
+    //
     // @Override
     // protected Void visitJoin(Join node, StackableAstVisitorContext<Integer>
     // context) {
-    // 
+    //
     // JoinCriteria criteria = node.getCriteria().orElse(null);
     // String type = node.getType().toString();
     // if (criteria instanceof NaturalJoin) {
     // type = "NATURAL " + type;
     // }
-    // 
+    //
     // if (node.getType() != Join.Type.IMPLICIT) {
     // // builder.append('(');
     // }
     // process(node.getLeft(), context);
-    // 
+    //
     // // builder.append('\n');
     // if (node.getType() == Join.Type.IMPLICIT) {
     // // append(indent, ", ");
     // } else {
     // // append(indent, type).append(" JOIN ");
     // }
-    // 
+    //
     // process(node.getRight(), context);
-    // 
+    //
     // if (node.getType() != Join.Type.CROSS && node.getType() !=
     // Join.Type.IMPLICIT) {
     // if (criteria instanceof JoinUsing) {
@@ -377,15 +380,15 @@ public class TestGroupBySqlParser {
     // criteria);
     // }
     // }
-    // 
+    //
     // if (node.getType() != Join.Type.IMPLICIT) {
     // // builder.append(")");
     // }
-    // 
+    //
     // return null;
-    // 
+    //
     // }
-    // 
+    //
     // private void processRelation(Relation relation,
     // StackableAstVisitorContext<Integer> indent) {
     // // TODO: handle this properly
@@ -396,7 +399,7 @@ public class TestGroupBySqlParser {
     // process(relation, indent);
     // }
     // }
-    // 
+    //
     // }
     public void process(Query query, Rewriter rewriter) {
         QuerySpecification body = (QuerySpecification) query.getQueryBody();
@@ -449,9 +452,9 @@ public class TestGroupBySqlParser {
                         if (!from.isPresent()) {
                             throw new IllegalStateException("have not set from \n" + query.toString());
                         }
-                        // 
-                        // 
-                        rewriter.addColumnReference(// 
+                        //
+                        //
+                        rewriter.addColumnReference(//
                         new ColName(((Identifier) single.getExpression()).getValue()), null, from);
                     } else {
                         throw new IllegalStateException("illegal type " + single.getExpression() + "," + single.getExpression().getClass());
@@ -702,7 +705,7 @@ public class TestGroupBySqlParser {
 
         // public void addColumnReference(String colName, Optional<Relation> from) {
         // // System.out.println("<<<<<<<<<<<" + colName + ":" + refTab);
-        // 
+        //
         // this.columnTracer.put(new ColName(colName), getFromTableName(null,
         // from.get()));
         // }
@@ -721,25 +724,25 @@ public class TestGroupBySqlParser {
         // if (id != null && aliasRelation.getAlias().equals(id)) {
         // return getFromTableName(outputName, id, aliasRelation.getRelation());
         // }
-        // 
+        //
         // if (id == null) {
         // return getFromTableName(outputName, null, aliasRelation.getRelation());
         // }
         // }
-        // 
+        //
         // if (rel instanceof Table) {
         // Table t = (Table) rel;
-        // 
+        //
         // return ValueOperator.createTableValueOperator(outputName, t);
-        // 
+        //
         // // return String.valueOf(t.getName());
         // }
         // Join join = null;
         // if (rel instanceof Join) {
         // join = (Join) rel;
-        // 
+        //
         // Map<String /* alias */, Table/* tablename */> aliasMap = getAliasTable(join);
-        // 
+        //
         // Table t = aliasMap.get(id.getValue());
         // if (t == null) {
         // throw new IllegalStateException("alias:" + id.getValue() + ","
@@ -747,7 +750,7 @@ public class TestGroupBySqlParser {
         // }
         // return ValueOperator.createTableValueOperator(outputName, t);
         // }
-        // 
+        //
         // throw new IllegalStateException("rel is not valid:\n" + String.valueOf(rel));
         }
 

@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- * <p>
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
- * <p>
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- * <p>
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.plugin.annotation;
 
@@ -41,7 +44,7 @@ public enum Validator {
         }
         return true;
     }),
-    // 
+    //
     identity((msgHandler, context, fieldKey, fieldData) -> {
         if (StringUtils.isEmpty(fieldData)) {
             return true;
@@ -53,7 +56,7 @@ public enum Validator {
         }
         return true;
     }),
-    // 
+    //
     integer((msgHandler, context, fieldKey, fieldData) -> {
         if (StringUtils.isEmpty(fieldData)) {
             return true;
@@ -65,7 +68,7 @@ public enum Validator {
         }
         return true;
     }),
-    // 
+    //
     host((msgHandler, context, fieldKey, fieldData) -> {
         if (StringUtils.isEmpty(fieldData)) {
             return true;
@@ -77,7 +80,7 @@ public enum Validator {
         }
         return true;
     }),
-    // 
+    //
     url((msgHandler, context, fieldKey, fieldData) -> {
         if (StringUtils.isEmpty(fieldData)) {
             return true;
@@ -134,7 +137,7 @@ public enum Validator {
      * @param fieldData
      * @return false 校验失败
      */
-    public boolean validate(// 
+    public boolean validate(//
                             IFieldErrorHandler msgHandler, //
                             Context context, String fieldKey, String fieldData) {
         return this.fieldValidator.validate(msgHandler, context, fieldKey, fieldData);
@@ -149,8 +152,8 @@ public enum Validator {
      * @param
      * @return
      */
-    private static // 
-    FieldValidatorResult validate(// 
+    private static //
+    FieldValidatorResult validate(//
                                   IControlMsgHandler handler, //
                                   Context context, String fieldKey, FieldValidators fvalidator) {
 
@@ -250,8 +253,8 @@ public enum Validator {
      * @param fieldsValidator
      * @return false: 失败
      */
-    public static // 
-    boolean validate(// 
+    public static //
+    boolean validate(//
                      IControlMsgHandler handler, //
                      Context context, Map<String, FieldValidators> fieldsValidator) {
         handler.errorsPageShow(context);
@@ -354,7 +357,7 @@ public enum Validator {
          * @param fieldData
          * @return false：校验失败有错误
          */
-        boolean validate(// 
+        boolean validate(//
                          IFieldErrorHandler msgHandler, //
                          Context context, String fieldKey, String fieldData);
     }

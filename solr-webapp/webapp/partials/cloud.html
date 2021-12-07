@@ -1,19 +1,20 @@
-<!--
-Licensed to the Apache Software Foundation (ASF) under one or more
-contributor license agreements.  See the NOTICE file distributed with
-this work for additional information regarding copyright ownership.
-The ASF licenses this file to You under the Apache License, Version 2.0
-(the "License"); you may not use this file except in compliance with
-the License.  You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
+<!--~
+  ~   Licensed to the Apache Software Foundation (ASF) under one
+  ~   or more contributor license agreements.  See the NOTICE file
+  ~   distributed with this work for additional information
+  ~   regarding copyright ownership.  The ASF licenses this file
+  ~   to you under the Apache License, Version 2.0 (the
+  ~   "License"); you may not use this file except in compliance
+  ~   with the License.  You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  -->
 <div id="cloud" class="clearfix">
 
   <div id="frame">
@@ -37,7 +38,7 @@ limitations under the License.
       <div>Ensemble size: {{zkState.ensembleSize}}</div>
       <div>Ensemble mode: {{zkState.mode}}</div>
       <div>Dynamic reconfig enabled: {{zkState.dynamicReconfig}}</div>
-      
+
       <table id="zk-table">
         <thead>
           <tr>
@@ -154,7 +155,7 @@ limitations under the License.
               <td rowspan="{{hosts[h.host].nodes.length}}" ng-show="isFirstNodeForHost(key)">
                 <div class="host-name">{{h.host}}</div>
                 <span class="host-spec" ng-show="!showDetails[h.host]">
-                  <span title="{{h.system.system.uptime}}">{{h.system.system.name}}</span> 
+                  <span title="{{h.system.system.uptime}}">{{h.system.system.name}}</span>
                   <span title="free: {{h.memFree}}">{{h.memTotal}}</span>
                   <span title="{{h.system.jvm.name}} {{h.system.jvm.version}}">Java {{h.system.jvm.spec.version}}</span>
                   <br/>Load: {{h.loadAvg}}
@@ -162,7 +163,7 @@ limitations under the License.
                 <div class="host-spec" ng-show="showDetails[h.host]">
                   {{h.system.system.name}} {{h.system.system.version}}, {{h.system.system.availableProcessors}}cpu<br/>
                   Uptime: {{h.uptime}}<br/>
-                  <span title="Used: {{h.memUsed}} - includes OS file-cache, and it is normal for it to approach 100%">Memory: {{h.memTotal}}</span><br/> 
+                  <span title="Used: {{h.memUsed}} - includes OS file-cache, and it is normal for it to approach 100%">Memory: {{h.memTotal}}</span><br/>
                   File descriptors: {{h.openFileDescriptorCount}}/{{h.maxFileDescriptorCount}}<br/>
                   Disk: <span class="{{h.diskUsedPctStyle}}" title="Nodes may use other disks too">{{h.diskTotal}} used: {{h.diskUsedPct}}%</span><br/>
                   Load: {{h.loadAvg}}
@@ -243,7 +244,7 @@ limitations under the License.
         </tbody>
       </table>
     </div>
-    
+
     <div graph data="graphData" leaf-count="leafCount" helper-data="helperData" id="graph-content" class="content clearfix" ng-show="showGraph">
 
       <div id="canvas"></div>

@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
- * <p>
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
- * <p>
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- * <p>
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.realtime.transfer.ruledriven;
 
@@ -112,10 +115,10 @@ public class FunctionUtils {
         // Method[] methods = FunctionUtils.class.getMethods();
         // final Set<String> mnames = Sets.newHashSet();
         // for (Method m : methods) {// Modifier.STATIC
-        // 
+        //
         // if ((m.getModifiers() & (Modifier.STATIC | Modifier.PUBLIC)) ==
         // (Modifier.STATIC | Modifier.PUBLIC)) {
-        // 
+        //
         // if (mnames.add(m.getName())) {
         // System.out.println(
         // "import static com.qlangtech.tis.realtime.transfer.core.FunctionUtils." +
@@ -123,21 +126,21 @@ public class FunctionUtils {
         // }
         // }
         // }
-        // 
+        //
         // Class<?>[] clazzs = FunctionUtils.class.getDeclaredClasses();
-        // 
+        //
         // for (Class clazz : clazzs) {
-        // 
+        //
         // System.out.println("import " + StringUtils.replace(clazz.getName(), "$", ".")
         // + ";");
-        // 
+        //
         // }
         // min(GroupValues groupVales, IValGetter valGetter)
         Method method = FunctionUtils.getMethod("min", GroupValues.class, IValGetter.class);
         System.out.println(method);
         System.out.println(method.getReturnType());
         method = FunctionUtils.getMethod("concat_ws", String.class, Object[].class);
-        // 
+        //
         System.out.println(method);
         method = FunctionUtils.getMethod("round", double.class, int.class);
         System.out.println(method);

@@ -1,16 +1,19 @@
 /**
- * Copyright (c) 2020 QingLang, Inc. <baisui@qlangtech.com>
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
  *
- * This program is free software: you can use, redistribute, and/or modify
- * it under the terms of the GNU Affero General Public License, version 3
- * or later ("AGPL"), as published by the Free Software Foundation.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.solrj.extend;
 
@@ -279,7 +282,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // }
     // }
     // }
-    // 
+    //
     // /**
     // * @param zkHost
     // *
@@ -302,7 +305,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // this(zkHost, createHttpClient(socketTimeout, connTimeout,
     // maxConnectionsPerHost, maxConnections));
     // }
-    // 
+    //
     // @SuppressWarnings("all")
     // private static HttpClient createHttpClient(int socketTimeout, int
     // connTimeout, int maxConnectionsPerHost,
@@ -344,18 +347,18 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // // throw new IllegalStateException("httpClient is not type of
     // // 'DefaultHttpClient'");
     // // }
-    // 
+    //
     // return httpClient;
     // }
-    // 
+    //
     // public TisCloudSolrClient(String zkHost) {
     // this(zkHost, HttpClientUtil.createClient(null));
     // }
-    // 
+    //
     // public ExtendCloudSolrClient getExtendSolrClient() {
     // return solrClient;
     // }
-    // 
+    //
     // /**
     // * Query and stream response. 把solrQuery转成字符串的形式
     // *
@@ -389,7 +392,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // InvocationTargetException,
     // IntrospectionException, InstantiationException, IllegalAccessException,
     // IOException {
-    // 
+    //
     // List<String> sortList = query.getSorts().stream()
     // .map(sortClause -> sortClause.getItem() + " " +
     // sortClause.getOrder()).collect(Collectors.toList());
@@ -397,10 +400,10 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // collection, routerId,
     // query.get(CommonParams.Q), query.get(CommonParams.FL),
     // StringUtils.join(sortList, ",") });
-    // 
+    //
     // queryAndStreamResponse(streamQueryString, clazz, resultProcess);
     // }
-    // 
+    //
     // /**
     // * Query and stream response. 在回调方法的process方法中对每个对象进行处理
     // *
@@ -430,7 +433,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // IntrospectionException,
     // IllegalAccessException, InstantiationException, InvocationTargetException
     // {
-    // 
+    //
     // Map<String, SchemaPojoMapping> setMethods = null;
     // TupleStream tupleStream = streamFactory.constructStream(query);
     // tupleStream.open();
@@ -475,11 +478,11 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // }
     // tupleStream.close();
     // }
-    // 
+    //
     // private class SchemaPojoMapping {
     // private final Method pojoSetterMethod;
     // private final String schemaFieldName;
-    // 
+    //
     // /**
     // * @param pojoSetterMethod
     // * @param schemaFieldName
@@ -491,7 +494,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // this.schemaFieldName = schemaFieldName;
     // }
     // }
-    // 
+    //
     // /**
     // * Gets stream query count. 获得流式查询的总数
     // *
@@ -515,7 +518,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // }
     // return count.get();
     // }
-    // 
+    //
     // public static StringBuffer addUnderline(String value) {
     // StringBuffer parsedName = new StringBuffer();
     // char[] nameAry = value.toCharArray();
@@ -536,7 +539,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // }
     // return parsedName;
     // }
-    // 
+    //
     // /**
     // * 反序列化bean
     // *
@@ -547,13 +550,13 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // public <T> T transferBean(final Class<T> clazz, SolrDocument doc) {
     // return solrClient.getBinder().getBean(clazz, doc);
     // }
-    // 
+    //
     // public QueryResponse mergeQuery(String collection, SolrQuery query)
     // throws
     // Exception {
     // return mergeQuery(collection, query, true /* setShards */);
     // }
-    // 
+    //
     // /**
     // *
     // * @param collection
@@ -593,7 +596,7 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // span.finish();
     // }
     // }
-    // 
+    //
     // /**
     // * 走merge查询（慎用）
     // *
@@ -609,14 +612,14 @@ public class TisCloudSolrClient extends AbstractTisCloudSolrClient {
     // return new SimpleQueryResult<T>(response, response.getBeans(clazz),
     // response.getResults().getNumFound());
     // }
-    // 
+    //
     // public SolrZkClient getZkClient() {
     // solrClient.connect();
     // return solrClient.getZkStateReader().getZkClient();
     // }
-    // 
+    //
     // public TisZkClient getTisZkClient() {
-    // 
+    //
     // long start = System.currentTimeMillis();
     // try {
     // // System.out.println("start init TisZkClient");

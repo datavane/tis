@@ -1,19 +1,20 @@
-/*
- Licensed to the Apache Software Foundation (ASF) under one or more
- contributor license agreements.  See the NOTICE file distributed with
- this work for additional information regarding copyright ownership.
- The ASF licenses this file to You under the Apache License, Version 2.0
- (the "License"); you may not use this file except in compliance with
- the License.  You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-*/
+/**
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 
 var solrAdminServices = angular.module('solrAdminServices', ['ngResource']);
 
@@ -316,7 +317,7 @@ solrAdminServices.factory('System',
           // console.log("Decoded hash as " + JSON.stringify(hp, undefined, 2)); // For debugging callbacks
           return (hp['access_token'] && hp['token_type'] && hp['state']) || hp['error'];
         };
-        
+
         service.decodeHashParams = function(hash) {
           // access_token, token_type, expires_in, state
           if (hash == null || hash.length === 0) {
@@ -334,6 +335,6 @@ solrAdminServices.factory('System',
           }
           return params;
         };
-        
+
         return service;
       }]);
