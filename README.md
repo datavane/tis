@@ -62,7 +62,7 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
  
 ## 许可协议
 
- TIS is under the AGPL-3.0 License. See the [LICENSE](https://github.com/qlangtech/tis-solr/blob/master/LICENSE) file for details.
+ TIS is under the Apache2 License. See the [LICENSE](https://github.com/qlangtech/tis-solr/blob/master/LICENSE) file for details.
  
 ## 反馈
  
