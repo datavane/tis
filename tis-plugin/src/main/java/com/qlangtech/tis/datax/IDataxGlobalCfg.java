@@ -24,6 +24,9 @@ import com.qlangtech.tis.plugin.IdentityName;
  *
  */
 public interface IDataxGlobalCfg extends IdentityName {
+
+    String KEY_DISPLAY_NAME = "DataX-global";
+
     int getChannel();
 
     int getErrorLimitCount();

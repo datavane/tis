@@ -24,6 +24,8 @@ import com.qlangtech.tis.plugin.IdentityName;
  * @date 2020/04/13
  */
 public interface IK8sContext extends IdentityName {
+
+    String KEY_DISPLAY_NAME = "k8s";
     /**
      * k8s认证文本内容
      *

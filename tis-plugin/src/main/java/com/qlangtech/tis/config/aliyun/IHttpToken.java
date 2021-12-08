@@ -15,14 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.config.yarn;
+package com.qlangtech.tis.config.aliyun;
 
+import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.plugin.IdentityName;
+
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IYarnConfig extends IdentityName {
-    public String KEY_DISPLAY_NAME = "yarn";
+public interface IHttpToken extends IdentityName {
+
+    String KEY_FIELD_ALIYUN_TOKEN = "aliyunToken";
+    String KEY_DISPLAY_NAME = "httpToken";
+
+    public static IHttpToken getToken(String endpoint) {
+        IHttpToken aliyunToken = ParamsConfig.getItem(endpoint, KEY_DISPLAY_NAME);
+        Objects.requireNonNull(aliyunToken, "aliyunToekn can not be null");
+        return aliyunToken;
+    }
+
+    // private static String endpoint = "*** Provide OSS endpoint ***";
+    // private static String accessKeyId = "*** Provide your AccessKeyId ***";
+    // private static String accessKeySecret = "*** Provide your AccessKeySecret ***";
+    // public String getEndpoint();
+    String getAccessKeyId();
+
+    String getAccessKeySecret();
+
+    String getEndpoint();
 }

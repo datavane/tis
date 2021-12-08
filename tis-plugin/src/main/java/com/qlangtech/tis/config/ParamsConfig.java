@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.config;
 
@@ -23,7 +23,6 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.lang.StringUtils;
 
@@ -35,33 +34,51 @@ import java.util.stream.Collectors;
  * @date 2020/04/13
  */
 public abstract class ParamsConfig implements Describable<ParamsConfig>, IdentityName {
+    public static final String CONTEXT_PARAMS_CFG = "params-cfg";
 
-    public static List<ParamsConfig> getItems() {
-        IPluginStore pluginStore = TIS.getPluginStore(ParamsConfig.class);
-        return pluginStore.getPlugins();
+    public static <T extends ParamsConfig> List<T> getItems(String pluginDesc) {
+        IPluginStore<ParamsConfig> paramsCfgStore = getTargetPluginStore(pluginDesc);
+        return paramsCfgStore.getPlugins().stream().map((p) -> (T) p).collect(Collectors.toList());
+    }
+
+    // 取得所有的配置项
+//    public static <T> List<T> getItems(String pluginDesc) {
+//        List<ParamsConfig> items = getItems(pluginDesc);
+//        return items.stream().filter((r) -> type.isAssignableFrom(r.getClass())).map((r) -> (T) r).collect(Collectors.toList());
+//    }
+
+    public static IPluginStore<ParamsConfig> getTargetPluginStore(String targetPluginDesc) {
+
+        if (org.shai.xmodifier.util.StringUtils.isEmpty(targetPluginDesc)) {
+            throw new IllegalStateException("param targetPluginDesc can not be null");
+        }
+        IPluginStore<ParamsConfig> childPluginStore = getChildPluginStore(targetPluginDesc);
+        if (childPluginStore == null) {
+            throw new IllegalStateException("targetPluginDesc:" + targetPluginDesc + " relevant childPluginStore can not be null");
+        }
+        return childPluginStore;
+    }
+
+    public static IPluginStore<ParamsConfig> getChildPluginStore(String childFile) {
+        return TIS.getPluginStore(CONTEXT_PARAMS_CFG, childFile, ParamsConfig.class);
     }
 
     public abstract <INSTANCE> INSTANCE createConfigInstance();
 
-    public static <T extends IdentityName> T getItem(String identityName, Class<T> type) {
+    public static <T extends ParamsConfig> T getItem(String identityName, String targetPluginDesc) {
         if (StringUtils.isEmpty(identityName)) {
             throw new IllegalArgumentException("param identityName can not be empty");
         }
-        List<T> items = getItems(type);
+        List<T> items = getItems(targetPluginDesc);
         for (T i : items) {
             if (StringUtils.equals(i.identityValue(), identityName)) {
                 return i;
             }
         }
-        throw new IllegalStateException("Name:" + identityName + ",type:" + type.getName() + " can not find relevant config in["
+        throw new IllegalStateException("Name:" + identityName + ",type:" + targetPluginDesc + " can not find relevant config in["
                 + items.stream().map((r) -> r.identityValue()).collect(Collectors.joining(",")) + "]");
     }
 
-    // 取得所有的配置项
-    public static <T> List<T> getItems(Class<T> type) {
-        List<ParamsConfig> items = getItems();
-        return items.stream().filter((r) -> type.isAssignableFrom(r.getClass())).map((r) -> (T) r).collect(Collectors.toList());
-    }
 
     @Override
     @JSONField(serialize = false)

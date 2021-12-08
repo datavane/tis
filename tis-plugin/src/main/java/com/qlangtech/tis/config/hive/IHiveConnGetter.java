@@ -25,6 +25,6 @@ import com.qlangtech.tis.plugin.IdentityName;
  * @create: 2021-05-28 10:49
  **/
 public interface IHiveConnGetter extends IdentityName {
-
+    String PLUGIN_NAME = "HiveConn";
     public String getDbName();
 }

@@ -32,8 +32,7 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.*;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.ParamsConfigPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
@@ -280,7 +279,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             }
             store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
         } else if (this == PARAMS_CONFIG) {
-            return new ParamsConfigPluginStore();
+            return new ParamsConfigPluginStore(pluginMeta);
         } else if (pluginContext.isDataSourceAware()) {
             PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
             if (StringUtils.isEmpty(dsProp.getDbname())) {

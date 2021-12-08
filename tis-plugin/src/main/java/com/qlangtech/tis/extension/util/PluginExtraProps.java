@@ -166,7 +166,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                         pmeta = plugins.getJSONObject(i);
                         if (StringUtils.isBlank(pmeta.getString("hetero"))
                                 || StringUtils.isBlank(pmeta.getString("descName"))
-                                || StringUtils.isBlank(pmeta.getString("extraParam"))
+                        // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
+                        //        || StringUtils.isBlank(pmeta.getString("extraParam"))
                         ) {
                             throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + ",pluginClazz:" + pluginClazz.getName());
                         }
