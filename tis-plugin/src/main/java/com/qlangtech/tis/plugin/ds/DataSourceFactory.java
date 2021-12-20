@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin.ds;
 
@@ -225,11 +225,24 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             return this.getDataSourceName();
         }
 
+        /**
+         * 通过DataSource关联默认的DataXReader Desc 名称
+         *
+         * @return
+         */
+        public Optional<String> getDefaultDataXReaderDescName() {
+            return Optional.empty();
+        }
+
         @Override
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = new HashMap<>();
             eprops.put("supportFacade", this.supportFacade());
             eprops.put("facadeSourceTypes", this.facadeSourceTypes());
+            Optional<String> dataXReaderDesc = this.getDefaultDataXReaderDescName();
+            if (dataXReaderDesc.isPresent()) {
+                eprops.put("dataXReaderDesc", dataXReaderDesc.get());
+            }
             return eprops;
         }
 

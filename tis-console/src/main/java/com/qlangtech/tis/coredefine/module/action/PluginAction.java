@@ -99,11 +99,36 @@ public class PluginAction extends BasicModule {
   }
 
   /**
-   * 取得字段的帮助信息
+   * 刷新多选字段内容
    *
    * @param context
    */
-  public void doGetPluginFieldHelp(Context context) {
+  public void doGetFreshEnumField(Context context) {
+    DescriptorField descField = parseDescField();
+    this.setBizResult(context
+      , DescriptorsJSON.getSelectOptions(
+        descField.getTargetDesc(), descField.getFieldPropType(), descField.field));
+  }
+
+  private static class DescriptorField {
+    final String pluginImpl;
+    final String field;
+
+    public DescriptorField(String pluginImpl, String field) {
+      this.pluginImpl = pluginImpl;
+      this.field = field;
+    }
+
+    Descriptor getTargetDesc() {
+      return TIS.get().getDescriptor(this.pluginImpl);
+    }
+
+    PropertyType getFieldPropType() {
+      return (PropertyType) getTargetDesc().getPropertyType(this.field);
+    }
+  }
+
+  private DescriptorField parseDescField() {
     String pluginImpl = this.getString("impl");
     String fieldName = this.getString("field");
     if (StringUtils.isEmpty(pluginImpl)) {
@@ -112,13 +137,22 @@ public class PluginAction extends BasicModule {
     if (StringUtils.isEmpty(fieldName)) {
       throw new IllegalArgumentException("param 'field' can not be null");
     }
-    Descriptor targetDesc = TIS.get().getDescriptor(pluginImpl);
+    return new DescriptorField(pluginImpl, fieldName);
+  }
 
-    PropertyType fieldProp = (PropertyType) targetDesc.getPropertyType(fieldName);
+  /**
+   * 取得字段的帮助信息
+   *
+   * @param context
+   */
+  public void doGetPluginFieldHelp(Context context) {
+    DescriptorField descField = parseDescField();
+    // Descriptor targetDesc = TIS.get().getDescriptor(descField.pluginImpl);
 
-    PluginExtraProps.Props props = fieldProp.extraProp;
+    // PropertyType fieldProp = (PropertyType) targetDesc.getPropertyType(fieldName);
+    PluginExtraProps.Props props = descField.getFieldPropType().extraProp;
     if (!props.isAsynHelp()) {
-      throw new IllegalStateException("plugin:" + pluginImpl + ",field:" + fieldName + " is not support async help content fecthing");
+      throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not support async help content fecthing");
     }
     this.setBizResult(context, props.getAsynHelp());
   }

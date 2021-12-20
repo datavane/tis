@@ -173,7 +173,7 @@ public class TestComponentMeta extends TestCase {
             File targetFile = res.getTargetFile();
             assertTrue(targetFile.getAbsolutePath(), targetFile.exists());
         }
-        IYarnConfig yarn1 = ParamsConfig.getItem("yarn1", IYarnConfig.class);
+        IYarnConfig yarn1 = ParamsConfig.getItem("yarn1", IYarnConfig.KEY_DISPLAY_NAME);
         assertNotNull(yarn1);
         assertEquals("yarn1", yarn1.identityValue());
     }

@@ -24,7 +24,6 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -35,7 +34,6 @@ import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.*;
@@ -194,19 +192,27 @@ public class PluginItems {
         }
       };
     } else if (heteroEnum == HeteroEnum.DATAX_WRITER || heteroEnum == HeteroEnum.DATAX_READER) {
-      final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
-      if (StringUtils.isEmpty(dataxName)) {
-        throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
-      }
+      //final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+
+//      if (StringUtils.isEmpty(dataxName)) {
+//        String saveDbName = pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
+//        if (StringUtils.isNotBlank(saveDbName)) {
+//          store = DataxReader.getPluginStore(this.pluginContext, true, saveDbName);
+//        } else {
+//          throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
+//        }
+//      } else {
+//        KeyedPluginStore<?> keyStore = (heteroEnum == HeteroEnum.DATAX_READER)
+//          ? DataxReader.getPluginStore(this.pluginContext, dataxName) : DataxWriter.getPluginStore(this.pluginContext, dataxName);
+//        store = keyStore;
+//      }
 //      if ((heteroEnum == HeteroEnum.DATAX_READER)) {
 //        for (Descriptor.ParseDescribable<?> dataXReader : dlist) {
 //          DataSourceMeta sourceMeta = (DataSourceMeta) dataXReader.instance;
 //          pluginContext.setBizResult(context, sourceMeta.getTablesInDB());
 //        }
 //      }
-      KeyedPluginStore<?> keyStore = (heteroEnum == HeteroEnum.DATAX_READER)
-        ? DataxReader.getPluginStore(this.pluginContext, dataxName) : DataxWriter.getPluginStore(this.pluginContext, dataxName);
-      store = keyStore;
+      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext, this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta);
 
       Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
@@ -228,10 +234,28 @@ public class PluginItems {
             // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
             // IPluginContext pluginContext, String appname, SuFormProperties subfieldForm, Class<TT> clazz
             Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
-            DataxReader.SubFieldFormAppKey<Describable> key
-              = new DataxReader.SubFieldFormAppKey<>(pluginContext, dataxName, props, clazz);
+//            DataxReader.SubFieldFormAppKey<Describable> key
+//              = new DataxReader.SubFieldFormAppKey<>(pluginContext, dataxName, props, clazz);
+//
+
+
+            DataxReader.SubFieldFormAppKey<Describable> key = HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
+              , new HeteroEnum.DataXReaderAndWriterRelevantCreator<DataxReader.SubFieldFormAppKey<Describable>>() {
+                @Override
+                public DataxReader.SubFieldFormAppKey<Describable> dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                  return new DataxReader.SubFieldFormAppKey<>(pluginContext, true, saveDbName, props, clazz);
+                }
+
+                @Override
+                public DataxReader.SubFieldFormAppKey<Describable> appRelevant(IPluginContext pluginContext, String dataxName) {
+                  return new DataxReader.SubFieldFormAppKey<>(pluginContext, false, dataxName, props, clazz);
+                }
+              });
+
             return KeyedPluginStore.getPluginStore(key);
           }
+
+          ;
         });
       }
 

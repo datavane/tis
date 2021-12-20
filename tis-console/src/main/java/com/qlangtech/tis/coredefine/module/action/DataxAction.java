@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.coredefine.module.action;
 
@@ -46,6 +46,7 @@ import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
@@ -914,12 +915,17 @@ public class DataxAction extends BasicModule {
   private DataXBasicProcessMeta getDataXBasicProcessMeta(DataxReader.BaseDataxReaderDescriptor readerDesc, DataxWriter.BaseDataxWriterDescriptor writerDesc) {
     Objects.requireNonNull(readerDesc, "readerDesc can not be null");
     Objects.requireNonNull(writerDesc, "writerDesc can not be null");
+    DataXBasicProcessMeta processMeta = getDataXBasicProcessMetaByReader(readerDesc);
+    processMeta.setWriterRDBMS(writerDesc.isRdbms());
+    processMeta.setWriterSupportMultiTableInReader(writerDesc.isSupportMultiTable());
+    return processMeta;
+  }
 
+  public static DataXBasicProcessMeta getDataXBasicProcessMetaByReader(DataxReader.BaseDataxReaderDescriptor readerDesc) {
+    Objects.requireNonNull(readerDesc, "readerDesc can not be null");
     DataXBasicProcessMeta processMeta = new DataXBasicProcessMeta();
     processMeta.setReaderHasExplicitTable(readerDesc.hasExplicitTable());
     processMeta.setReaderRDBMS(readerDesc.isRdbms());
-    processMeta.setWriterRDBMS(writerDesc.isRdbms());
-    processMeta.setWriterSupportMultiTableInReader(writerDesc.isSupportMultiTable());
     return processMeta;
   }
 
@@ -950,9 +956,14 @@ public class DataxAction extends BasicModule {
 
   public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
 
-    String dataxName = filter.param(DataxUtils.DATAX_NAME);
-
-    DataxReader reader = DataxReader.load(filter.uploadPluginMeta.getPluginContext(), dataxName);
+    //String dataxName = filter.param(DataxUtils.DATAX_NAME);
+    IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(
+      filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta);
+    DataxReader reader = (DataxReader) pluginStore.getPlugin();
+    if (reader == null) {
+      throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
+    }
+    // DataxReader reader = DataxReader.load(filter.uploadPluginMeta.getPluginContext(), dataxName);
 //    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(filter.uploadPluginMeta.getPluginContext(), dataxName);
 //   readerStore.getPlugin();
 //    Objects.requireNonNull(reader, "reader can not be null");

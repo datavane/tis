@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.util;
 
@@ -110,16 +110,21 @@ public class HeteroList<T extends Describable<T>> {
         Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
         DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors);
         o.put("descriptors", desc2Json.getDescriptorsJSON(subFormFilter));
-        JSONArray items = new JSONArray();
-        JSONObject item = null;
 
-        for (T i : this.getItems()) {
-            item = (new DescribableJSON(i)).getItemJson(subFormFilter);
-            items.add(item);
-        }
-        o.put("items", items);
+        o.put("items", createItemsJSONArray(this.getItems(), subFormFilter));
 
         return o;
+    }
+
+    public static <TT extends Describable<TT>> JSONArray createItemsJSONArray(
+            List<TT> items, Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
+        JSONArray result = new JSONArray();
+        JSONObject item = null;
+        for (TT i : items) {
+            item = (new DescribableJSON(i)).getItemJson(subFormFilter);
+            result.add(item);
+        }
+        return result;
     }
 
 

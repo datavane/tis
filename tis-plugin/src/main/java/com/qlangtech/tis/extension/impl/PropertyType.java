@@ -50,7 +50,7 @@ public class PropertyType implements IPropertyType {
 
     public final String displayName;
 
-    private final FormField formField;
+    public final FormField formField;
 
     private final Field f;
 

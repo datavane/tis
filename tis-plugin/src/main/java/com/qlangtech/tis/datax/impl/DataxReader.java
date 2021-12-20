@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.datax.impl;
 
@@ -52,14 +52,19 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         return reader;
     }
 
-    /**
-     * save
-     *
-     * @param appname
-     */
     public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, String appname) {
+        return getPluginStore(pluginContext, false, appname);
+    }
+
+    /**
+     * @param pluginContext
+     * @param db            是否是db相关配置
+     * @param appname
+     * @return
+     */
+    public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, boolean db, String appname) {
         KeyedPluginStore<DataxReader> pluginStore
-                = new KeyedPluginStore(new AppKey(pluginContext, appname, DataxReader.class)
+                = new KeyedPluginStore(new AppKey(pluginContext, db, appname, DataxReader.class)
                 , new PluginStore.IPluginProcessCallback<DataxReader>() {
             @Override
             public void process(DataxReader reader) {
@@ -74,7 +79,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
                                 try {
                                     SubFieldFormAppKey<DataxReader> subFieldKey
-                                            = new SubFieldFormAppKey<>(pluginContext, appname, props, DataxReader.class);
+                                            = new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
                                     KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
                                     DataxReader subFieldReader = subFieldStore.getPlugin();
                                     if (subFieldReader == null) {
@@ -107,20 +112,26 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
      */
     public static IDataxReaderGetter dataxReaderGetter;
 
+    public static DataxReader load(IPluginContext pluginContext, String appName) {
+        return load(pluginContext, false, appName);
+    }
+
     /**
      * load
      *
      * @param appName
      * @return
      */
-    public static DataxReader load(IPluginContext pluginContext, String appName) {
+    public static DataxReader load(IPluginContext pluginContext, boolean isDB, String appName) {
+
         DataxReader appSource = null;
         if (dataxReaderGetter != null) {
             appSource = dataxReaderGetter.get(appName);
             DataxReader.dataxReaderThreadLocal.set(appSource);
             return appSource;
         }
-        appSource = getPluginStore(pluginContext, appName).getPlugin();
+
+        appSource = getPluginStore(pluginContext, isDB, appName).getPlugin();
         Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
         DataxReader.dataxReaderThreadLocal.set(appSource);
         return appSource;
@@ -128,9 +139,15 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
     private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("/x/(" + ValidatorCommons.pattern_identity + ")/update");
 
+//    public static class DBKey extends KeyedPluginStore.Key<DataxReader> {
+//        public DBKey(IPluginContext pluginContext, String appname) {
+//            super(TIS.DB_GROUP_NAME, AppKey.calAppName(pluginContext, appname), DataxReader.class);
+//        }
+//    }
+
     public static class AppKey<TT extends Describable> extends KeyedPluginStore.Key<TT> {
-        public AppKey(IPluginContext pluginContext, String appname, Class<TT> clazz) {
-            super(IFullBuildContext.NAME_APP_DIR, calAppName(pluginContext, appname), clazz);
+        public AppKey(IPluginContext pluginContext, boolean isDB, String appname, Class<TT> clazz) {
+            super(isDB ? TIS.DB_GROUP_NAME : IFullBuildContext.NAME_APP_DIR, calAppName(pluginContext, appname), clazz);
         }
 
         private static KeyedPluginStore.KeyVal calAppName(IPluginContext pluginContext, String appname) {
@@ -151,8 +168,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     public static class SubFieldFormAppKey<TT extends Describable> extends AppKey<TT> {
         public final SuFormProperties subfieldForm;
 
-        public SubFieldFormAppKey(IPluginContext pluginContext, String appname, SuFormProperties subfieldForm, Class<TT> clazz) {
-            super(pluginContext, appname, clazz);
+        public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname, SuFormProperties subfieldForm, Class<TT> clazz) {
+            super(pluginContext, isDB, Objects.requireNonNull(appname, "appname can not be empty"), clazz);
             this.subfieldForm = subfieldForm;
         }
 

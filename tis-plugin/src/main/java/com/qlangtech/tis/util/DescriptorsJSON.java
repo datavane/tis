@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.util;
 
@@ -164,13 +164,13 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
                 ISelectOptionsGetter optionsCreator = null;
                 if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
-                    if (!(d instanceof ISelectOptionsGetter)) {
-                        throw new IllegalStateException("descriptor:" + d.getClass()
-                                + " has a selectable field:" + key + " descriptor must be an instance of 'ISelectOptionsGetter'");
-                    }
-                    optionsCreator = d;
-                    List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(key);
-                    attrVal.put("options", selectOptions);
+//                    if (!(d instanceof ISelectOptionsGetter)) {
+//                        throw new IllegalStateException("descriptor:" + d.getClass()
+//                                + " has a selectable field:" + key + " descriptor must be an instance of 'ISelectOptionsGetter'");
+//                    }
+//                    optionsCreator = d;
+//                    List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(key);
+                    attrVal.put("options", getSelectOptions(d,val,key));
                 }
                 if (val.isDescribable()) {
                     DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors());
@@ -185,6 +185,21 @@ public class DescriptorsJSON<T extends Describable<T>> {
             descriptors.put(d.getId(), des);
         }
         return descriptors;
+    }
+
+    public static List<Descriptor.SelectOption> getSelectOptions(Descriptor descriptor, PropertyType propType, String fieldKey) {
+        ISelectOptionsGetter optionsCreator = null;
+        if (propType.typeIdentity() != FormFieldType.SELECTABLE.getIdentity()) {
+            throw new IllegalStateException("propType must be:" + FormFieldType.SELECTABLE + " but now is:" + propType.typeIdentity());
+        }
+        if (!(descriptor instanceof ISelectOptionsGetter)) {
+            throw new IllegalStateException("descriptor:" + descriptor.getClass()
+                    + " has a selectable field:" + fieldKey + " descriptor must be an instance of 'ISelectOptionsGetter'");
+        }
+        optionsCreator = descriptor;
+        List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(fieldKey);
+
+        return selectOptions;
     }
 
     public interface IPropGetter {

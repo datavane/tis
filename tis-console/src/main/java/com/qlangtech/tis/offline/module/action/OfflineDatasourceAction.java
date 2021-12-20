@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.offline.module.action;
 
@@ -26,10 +26,15 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.coredefine.module.action.DataxAction;
 import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.JoinRule;
@@ -45,7 +50,7 @@ import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
@@ -61,6 +66,9 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
+import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroList;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
@@ -68,6 +76,7 @@ import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -1041,17 +1050,121 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doGetDatasourceDbById(Context context) {
     Integer dbId = this.getInt("id");
     DBConfigSuit configSuit = offlineManager.getDbConfig(this, dbId);
-
     this.setBizResult(context, configSuit);
   }
 
-//  private void confusionPassword(DBConfig db) {
-//    StringBuilder sb = new StringBuilder();
-//    for (int i = 0; i < db.getPassword().length(); i++) {
-//      sb.append("*");
-//    }
-//    db.setPassword(sb.toString());
-//  }
+  /**
+   * 批量设置用,初始化数据库表
+   *
+   * @param context
+   * @throws IOException
+   */
+  public void doGetDsTabsVals(Context context) throws IOException {
+    com.alibaba.fastjson.JSONObject body = this.parseJsonPost();
+    com.alibaba.fastjson.JSONArray tabs = body.getJSONArray("tabs");
+    if (tabs == null) {
+      throw new IllegalArgumentException("initialize Tabs can not be null");
+    }
+    List<String> selectedTabs
+      = tabs.stream().map((tab) -> (String) tab).collect(Collectors.toList());
+
+    String pluginName = body.getString("name");
+    boolean require = body.getBooleanValue("require");
+    String extraParam = body.getString("extraParam");
+
+    UploadPluginMeta pluginMeta = null;
+    List<UploadPluginMeta> pluginMetas
+      = UploadPluginMeta.parse(new String[]{pluginName + ":" + (require ? "require" : StringUtils.EMPTY) + "," + extraParam});
+    for (UploadPluginMeta m : pluginMetas) {
+      pluginMeta = m;
+    }
+
+    Objects.requireNonNull(pluginMeta, "pluginMeta can not be null");
+
+    HeteroList<DataxReader> heteroList = pluginMeta.getHeteroList(this);
+    List<DataxReader> readers = heteroList.getItems();
+    Map<String, List<ColumnMetaData>> mapCols = null;
+    List<ISelectedTab> allNewTabs = Lists.newArrayList();
+    PluginFormProperties pluginFormPropertyTypes = null;
+    Map<String, Object> bizResult = Maps.newHashMap();
+    for (DataxReader reader : readers) {
+      mapCols = selectedTabs.stream().collect(Collectors.toMap((tab) -> tab, (tab) -> {
+        return reader.getTableMetadata(tab);
+      }));
+      if (MapUtils.isEmpty(mapCols)) {
+        throw new IllegalStateException("mapCols can not be empty");
+      }
+      pluginFormPropertyTypes = reader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
+      for (Map.Entry<String, List<ColumnMetaData>> tab2cols : mapCols.entrySet()) {
+        allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
+      }
+
+      DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
+      bizResult.put("subformDescriptor", desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()));
+      break;
+    }
+
+    Objects.requireNonNull(pluginFormPropertyTypes, "pluginFormPropertyTypes can not be null");
+    if (allNewTabs.size() < 1) {
+      throw new IllegalStateException("allNewTabs size can not small than 1");
+    }
+
+    bizResult.put("tabVals", pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+      @Override
+      public com.alibaba.fastjson.JSONObject visit(SuFormProperties props) {
+        return props.createSubFormVals(allNewTabs);
+      }
+    }));
+
+    this.setBizResult(context, bizResult);
+  }
+
+  /**
+   * 通过表名和列创建新tab实例，如果SelectedTab对象中有其他字段但是没有设置默认值，创建过程中就会出错
+   *
+   * @param pluginFormPropertyTypes
+   * @param tab2cols
+   * @return
+   */
+  private ISelectedTab createNewSelectedTab(
+    PluginFormProperties pluginFormPropertyTypes, Map.Entry<String, List<ColumnMetaData>> tab2cols) {
+    return pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+      @Override
+      public ISelectedTab visit(SuFormProperties props) {
+
+//            try {
+//            } catch (Exception e) {
+//              throw new RuntimeException("create subform,table:" + tab2cols.getKey()
+//                + ",cols size:" + tab2cols.getValue().size(), e);
+//            }
+
+        ISelectedTab subForm = props.newSubDetailed();
+        PropertyType pp = null;
+        for (Map.Entry<String, PropertyType> pentry : props.getKVTuples()) {
+          pp = pentry.getValue();
+          if (pp.isIdentity()) {
+            pp.setVal(subForm, tab2cols.getKey());
+            continue;
+          }
+          if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+            pp.setVal(subForm
+              , tab2cols.getValue().stream().map((c) -> c.getName()).collect(Collectors.toList()));
+            continue;
+          }
+          if (pp.isInputRequired()) {
+            if (StringUtils.isNotEmpty(pp.dftVal())) {
+              pp.setVal(subForm, pp.dftVal());
+              continue;
+            }
+            throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey()
+              + " creating,prop name:" + pentry.getKey() + ",subform class:" + subForm.getClass().getName());
+          }
+        }
+        return subForm;
+
+      }
+    });
+  }
 
   /**
    * Do get datasource table. 获取一个table的git配置信息
@@ -1059,9 +1172,16 @@ public class OfflineDatasourceAction extends BasicModule {
    * @param context the context
    */
   public void doGetDatasourceTableById(Context context) throws IOException {
-    Integer tableId = this.getInt("id");
-    TISTable tableConfig = this.offlineManager.getTableConfig(this, tableId);
-    this.setBizResult(context, tableConfig);
+    Integer dbId = this.getInt("id");
+    String tableName = this.getString("labelName");
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db
+      = this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByPrimaryKey(dbId);
+    Objects.requireNonNull(db, "db can not be null");
+    //TISTable tableConfig = this.offlineManager.getTableConfig(this, tableId);
+    //this.setBizResult(context, tableConfig);
+
+    DataxReader dbDataxReader = OfflineManager.getDBDataxReader(this, db.getName());
+    this.setBizResult(context, new DescriptorsJSON(dbDataxReader.getDescriptor()).getDescriptorsJSON());
   }
 
   /**
@@ -1161,6 +1281,52 @@ public class OfflineDatasourceAction extends BasicModule {
     }
   }
 
+  public static final String KEY_DATA_READER_SETTED = "dataReaderSetted";
+
+  @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
+  public void doGetDsRelevantReaderDesc(Context context) {
+    com.alibaba.fastjson.JSONObject form = this.parseJsonPost();
+    Integer dbId = form.getInteger("dbId");
+    if (dbId == null) {
+      throw new IllegalStateException("dbId can not be null");
+    }
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
+    //IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
+    //DataSourceFactory.BaseDataSourceFactoryDescriptor descriptor = (DataSourceFactory.BaseDataSourceFactoryDescriptor) dbPlugin.getPlugin().getDescriptor();
+    OfflineManager.DBDataXReaderDescName defaultDataXReaderDescName = offlineManager.getDBDataXReaderDescName(db.getName());
+    Map<String, Object> result = Maps.newHashMap();
+    if (!defaultDataXReaderDescName.readerDescName.isPresent()) {
+      //throw new IllegalStateException("datasource:" + db.getName() + " desc:" + descriptor.getDisplayName() + " has not relevant DataXReader defined");
+      // result.put(KEY_DATA_READER_SETTED + "NotSupport", descriptor.getId());
+      this.addErrorMessage(context, "插件:" + defaultDataXReaderDescName.dsDescriptor.getId() + " 不支持表导入");
+      return;
+    }
+
+    DataxReader dataxReader = OfflineManager.getDBDataxReader(this, db.getName());
+    if (dataxReader != null) {
+      result.put(KEY_DATA_READER_SETTED, true);
+      //this.setBizResult(context, result);
+      //return;
+    }
+
+    DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> descriptorList
+      = TIS.get().getDescriptorList(DataxReader.class);
+    Optional<DataxReader.BaseDataxReaderDescriptor> dataXReaderDesc = descriptorList.stream().filter((de) -> {
+      return defaultDataXReaderDescName.getReaderDescName().equals(de.getDisplayName());
+    }).map((d) -> (DataxReader.BaseDataxReaderDescriptor) d).findFirst();
+
+    if (!dataXReaderDesc.isPresent()) {
+      throw new IllegalStateException("DataXReaderDescName:"
+        + defaultDataXReaderDescName.getReaderDescName() + " can not find relevant DataXReader Descriptor");
+    }
+
+
+    result.put("readerDesc", new DescriptorsJSON(dataXReaderDesc.get()).getDescriptorsJSON());
+    result.put("processMeta", DataxAction.getDataXBasicProcessMetaByReader(dataXReaderDesc.get()));
+
+    this.setBizResult(context, result);
+  }
+
   /**
    * Do check table logic name repeat. 检查数据库 表逻辑名是否有重复<br/>
    * 并且反射发现表中的列,生成SQL骨架
@@ -1200,13 +1366,6 @@ public class OfflineDatasourceAction extends BasicModule {
 
     StringBuffer extractSQL = ColumnMetaData.buildExtractSQL(table, cols);
 
-//    StringBuffer sql = new StringBuffer();
-//    sql.append("SELECT ");
-//    sql.append(Joiner.on(",").join(cols.stream().map((r) -> r.getKey()).iterator())).append("\n");
-//    sql.append("FROM ").append(table);
-//    if (!StringUtils.equals(table, tableLogicName)) {
-//      sql.append(" AS ").append(tableLogicName);
-//    }
     TableReflect tableReflect = new TableReflect();
     tableReflect.setCols(cols);
     tableReflect.setSql(extractSQL.toString());
@@ -1449,7 +1608,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
     List<DatasourceTable> tables;
 
-    byte syncOnline;
+    // byte syncOnline;
 
     public DatasourceDb() {
     }
@@ -1485,13 +1644,13 @@ public class OfflineDatasourceAction extends BasicModule {
       this.tables.add(datasourceTable);
     }
 
-    public byte getSyncOnline() {
-      return syncOnline;
-    }
-
-    public void setSyncOnline(byte syncOnline) {
-      this.syncOnline = syncOnline;
-    }
+//    public byte getSyncOnline() {
+//      return syncOnline;
+//    }
+//
+//    public void setSyncOnline(byte syncOnline) {
+//      this.syncOnline = syncOnline;
+//    }
   }
 
   public static String getHiveType(int type) {

@@ -1,24 +1,25 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.offline.module.manager.impl;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.GitBranchInfo;
@@ -33,7 +34,7 @@ import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
@@ -52,6 +53,7 @@ import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * ds和wf中涉及到db的处理
@@ -62,6 +64,11 @@ import java.util.*;
 public class OfflineManager {
 
   private IWorkflowDAOFacade workflowDAOFacade;
+
+  public static DataxReader getDBDataxReader(IPluginContext pluginContext, String dbName) {
+    KeyedPluginStore<DataxReader> pluginStore = DataxReader.getPluginStore(pluginContext, true, dbName);
+    return pluginStore.getPlugin();
+  }
 
   public void setComDfireTisWorkflowDAOFacade(IWorkflowDAOFacade comDfireTisWorkflowDAOFacade) {
     this.workflowDAOFacade = comDfireTisWorkflowDAOFacade;
@@ -77,6 +84,20 @@ public class OfflineManager {
     query.createCriteria();
     query.setOrderByClause("id desc");
     return this.workflowDAOFacade.getWorkFlowDAO().selectByExample(query, 1, 100);
+  }
+
+  /**
+   * 通过DS名称取得 对应DataSource的DataXReader的DescriptorDisplayName
+   *
+   * @param dsName
+   * @return
+   */
+  public DBDataXReaderDescName getDBDataXReaderDescName(String dsName) {
+    IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dsName, DbScope.DETAILED));
+    DataSourceFactory.BaseDataSourceFactoryDescriptor descriptor
+      = (DataSourceFactory.BaseDataSourceFactoryDescriptor) dbPlugin.getPlugin().getDescriptor();
+    Optional<String> defaultDataXReaderDescName = descriptor.getDefaultDataXReaderDescName();
+    return new DBDataXReaderDescName(defaultDataXReaderDescName, descriptor);
   }
 
 
@@ -402,7 +423,7 @@ public class OfflineManager {
     List<DatasourceDb> dbList = workflowDAOFacade.getDatasourceDbDAO().selectByExample(criteria);
     DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
     tableCriteria.createCriteria();
-    List<DatasourceTable> tableList = workflowDAOFacade.getDatasourceTableDAO().selectByExample(tableCriteria);
+    // List<DatasourceTable> tableList = workflowDAOFacade.getDatasourceTableDAO().selectByExample(tableCriteria);
     Map<Integer, OfflineDatasourceAction.DatasourceDb> dbsMap = new HashMap<>();
     for (DatasourceDb db : dbList) {
       OfflineDatasourceAction.DatasourceDb datasourceDb1 = new OfflineDatasourceAction.DatasourceDb();
@@ -410,23 +431,31 @@ public class OfflineManager {
       datasourceDb1.setName(db.getName());
       dbsMap.put(db.getId(), datasourceDb1);
     }
-    for (DatasourceTable table : tableList) {
-      int dbId = table.getDbId();
-      if (dbsMap.containsKey(dbId)) {
-        OfflineDatasourceAction.DatasourceDb datasourceDb = dbsMap.get(dbId);
-        datasourceDb.addTable(table);
-      }
-//      else {
-//        throw new IllegalStateException(table + "找不到对应的db, dbId="
-//          + table.getDbId() + ",tableId:" + table.getName());
+//    for (DatasourceTable table : tableList) {
+//      int dbId = table.getDbId();
+//      if (dbsMap.containsKey(dbId)) {
+//        OfflineDatasourceAction.DatasourceDb datasourceDb = dbsMap.get(dbId);
+//        datasourceDb.addTable(table);
 //      }
-    }
+//    }
     return dbsMap.values();
   }
 
   public DBConfigSuit getDbConfig(IPluginContext pluginContext, DatasourceDb db) {
     Objects.requireNonNull(db, "instance of DatasourceDb can not be null");
-    DBConfigSuit dbSuit = new DBConfigSuit(db);
+
+    DBDataXReaderDescName dbDataXReaderDesc = this.getDBDataXReaderDescName(db.getName());
+    DataxReader dbDataxReader = null;
+    if (dbDataXReaderDesc.isSupportDataXReader()) {
+      dbDataxReader = getDBDataxReader(pluginContext, db.getName());
+    }
+    DBConfigSuit dbSuit = new DBConfigSuit(db, dbDataXReaderDesc.isSupportDataXReader(), dbDataxReader != null);
+
+    if (dbDataxReader != null) {
+      List<ISelectedTab> selectedTabs = dbDataxReader.getSelectedTabs();
+      dbSuit.addTabs(selectedTabs.stream()
+        .map((t) -> t.getName()).collect(Collectors.toList()));
+    }
 
     PostedDSProp dbProp = new PostedDSProp(db.getName(), DbScope.DETAILED);
 
@@ -455,17 +484,17 @@ public class OfflineManager {
     return db;
   }
 
-  public TISTable getTableConfig(IPluginContext pluginContext, Integer tableId) {
-    DatasourceTable tab = this.workflowDAOFacade.getDatasourceTableDAO().selectByPrimaryKey(tableId);
-    DatasourceDb db = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(tab.getDbId());
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
-    TISTable t = dbPlugin.loadTableMeta(tab.getName());
-    t.setDbName(db.getName());
-    t.setTableName(tab.getName());
-    t.setTabId(tableId);
-    t.setDbId(db.getId());
-    return t;
-  }
+//  public TISTable getTableConfig(IPluginContext pluginContext, Integer tableId) {
+//    DatasourceTable tab = this.workflowDAOFacade.getDatasourceTableDAO().selectByPrimaryKey(tableId);
+//    DatasourceDb db = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(tab.getDbId());
+//    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
+//    TISTable t = dbPlugin.loadTableMeta(tab.getName());
+//    t.setDbName(db.getName());
+//    t.setTableName(tab.getName());
+//    t.setTabId(tableId);
+//    t.setDbId(db.getId());
+//    return t;
+//  }
 
   public WorkflowPojo getWorkflowConfig(Integer workflowId, boolean isMaster) {
     WorkFlow workFlow = this.workflowDAOFacade.getWorkFlowDAO().selectByPrimaryKey(workflowId);
@@ -929,5 +958,23 @@ public class OfflineManager {
 //      this.workflowDAOFacade.getWorkFlowPublishHistoryDAO().updateByExampleSelective(workFlowPublishHistory, criteria1);
 //    }
     action.addActionMessage(context, "变更提交成功");
+  }
+
+  public static class DBDataXReaderDescName {
+    public final Optional<String> readerDescName;
+    public final DataSourceFactory.BaseDataSourceFactoryDescriptor dsDescriptor;
+
+    public DBDataXReaderDescName(Optional<String> readerDescName, DataSourceFactory.BaseDataSourceFactoryDescriptor dsDescriptor) {
+      this.readerDescName = readerDescName;
+      this.dsDescriptor = dsDescriptor;
+    }
+
+    public boolean isSupportDataXReader() {
+      return readerDescName.isPresent();
+    }
+
+    public String getReaderDescName() {
+      return this.readerDescName.get();
+    }
   }
 }

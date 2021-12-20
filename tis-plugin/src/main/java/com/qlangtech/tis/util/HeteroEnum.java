@@ -32,6 +32,7 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.*;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -178,6 +179,71 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         this(extensionPoint, identity, caption, selectable, false);
     }
 
+    public static IPluginStore<?> getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta) {
+//        final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+//
+//        if (StringUtils.isEmpty(dataxName)) {
+//            String saveDbName = pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
+//            if (StringUtils.isNotBlank(saveDbName)) {
+//                if (!getReader) {
+//                    throw new IllegalStateException("getReader must be true");
+//                }
+//                return DataxReader.getPluginStore(pluginContext, true, saveDbName);
+//            } else {
+//                throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
+//            }
+//        } else {
+//            KeyedPluginStore<?> keyStore = (getReader)
+//                    ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+//            return keyStore;
+//        }
+        return createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
+                , new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
+                    @Override
+                    public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                        if (!getReader) {
+                            throw new IllegalStateException("getReader must be true");
+                        }
+                        return DataxReader.getPluginStore(pluginContext, true, saveDbName);
+                    }
+
+                    @Override
+                    public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
+                        KeyedPluginStore<?> keyStore = (getReader)
+                                ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+                        return keyStore;
+                    }
+                });
+    }
+
+    public static <T> T createDataXReaderAndWriterRelevant(
+            IPluginContext pluginContext, UploadPluginMeta pluginMeta, DataXReaderAndWriterRelevantCreator<T> creator) {
+        final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+
+        if (StringUtils.isEmpty(dataxName)) {
+            String saveDbName = pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
+            if (StringUtils.isNotBlank(saveDbName)) {
+
+                // return DataxReader.getPluginStore(pluginContext, true, saveDbName);
+                return creator.dbRelevant(pluginContext, saveDbName);
+            } else {
+                throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
+            }
+        } else {
+//            KeyedPluginStore<?> keyStore = (getReader)
+//                    ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+//            return keyStore;
+            return creator.appRelevant(pluginContext, dataxName);
+        }
+    }
+
+    public interface DataXReaderAndWriterRelevantCreator<T> {
+        public T dbRelevant(IPluginContext pluginContext, String saveDbName);
+
+        public T appRelevant(IPluginContext pluginContext, String dataxName);
+
+    }
+
     @Override
     public boolean isAppNameAware() {
         return this.appNameAware;
@@ -273,11 +339,11 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             }
             store = com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
         } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
-            final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
-            if (StringUtils.isEmpty(dataxName)) {
-                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
-            }
-            store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+//            final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+//            if (StringUtils.isEmpty(dataxName)) {
+//                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
+//            }
+            store = getDataXReaderAndWriterStore(pluginContext, this == HeteroEnum.DATAX_READER, pluginMeta); // (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
         } else if (this == PARAMS_CONFIG) {
             return new ParamsConfigPluginStore(pluginMeta);
         } else if (pluginContext.isDataSourceAware()) {

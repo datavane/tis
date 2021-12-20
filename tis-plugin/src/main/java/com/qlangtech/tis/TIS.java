@@ -76,7 +76,7 @@ public class TIS {
     public static String VERSION = UNCOMPUTED_VERSION;
 
     private static final Logger logger = LoggerFactory.getLogger(TIS.class);
-    private static final String DB_GROUP_NAME = "db";
+    public static final String DB_GROUP_NAME = "db";
     public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
 
     public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
