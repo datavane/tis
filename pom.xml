@@ -68,15 +68,15 @@
         <module>tis-ds-dump</module>
         <module>tis-plugin-sezpoz</module>
         <module>tis-plugin</module>
-        <module>tis-solrcore-extend</module>
-        <module>tis-index-builder</module>
+<!--        <module>tis-solrcore-extend</module>-->
+<!--        <module>tis-index-builder</module>-->
         <module>tis-dag</module>
         <!--        <module>tis-realtime-base</module>-->
         <module>tis-sql-parser</module>
         <module>tis-common-dao</module>
         <module>tis-collection-info-collect</module>
         <module>tis-console</module>
-        <module>solr-webapp</module>
+<!--        <module>solr-webapp</module>-->
         <module>tis-scala-compiler</module>
         <!-- <module>tis-scala-compiler-dependencies</module>-->
 
@@ -594,57 +594,57 @@
                         </dependency>
         -->
 
-            <dependency>
-                <groupId>com.qlangtech.tis</groupId>
-                <artifactId>tis-solr-core</artifactId>
-                <version>${solr.version}-fix</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.lucene</groupId>
-                        <artifactId>lucene-analyzers-phonetic</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-auth</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-hdfs-client</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.htrace</groupId>
-                        <artifactId>htrace-core4</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-common</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-hdfs</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-slf4j-impl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-1.2-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-web</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.qlangtech.tis</groupId>-->
+<!--                <artifactId>tis-solr-core</artifactId>-->
+<!--                <version>${solr.version}-fix</version>-->
+<!--                <exclusions>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.lucene</groupId>-->
+<!--                        <artifactId>lucene-analyzers-phonetic</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.hadoop</groupId>-->
+<!--                        <artifactId>hadoop-auth</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.hadoop</groupId>-->
+<!--                        <artifactId>hadoop-annotations</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.hadoop</groupId>-->
+<!--                        <artifactId>hadoop-hdfs-client</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.htrace</groupId>-->
+<!--                        <artifactId>htrace-core4</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.hadoop</groupId>-->
+<!--                        <artifactId>hadoop-common</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.hadoop</groupId>-->
+<!--                        <artifactId>hadoop-hdfs</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.logging.log4j</groupId>-->
+<!--                        <artifactId>log4j-slf4j-impl</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.logging.log4j</groupId>-->
+<!--                        <artifactId>log4j-1.2-api</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.logging.log4j</groupId>-->
+<!--                        <artifactId>log4j-core</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.apache.logging.log4j</groupId>-->
+<!--                        <artifactId>log4j-web</artifactId>-->
+<!--                    </exclusion>-->
+<!--                </exclusions>-->
+<!--            </dependency>-->
 
 
             <dependency>

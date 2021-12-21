@@ -69,11 +69,11 @@
             <artifactId>solr-solrj</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-solr-core</artifactId>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.qlangtech.tis</groupId>-->
+<!--            <artifactId>tis-solr-core</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
