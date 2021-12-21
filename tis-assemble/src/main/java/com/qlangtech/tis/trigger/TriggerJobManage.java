@@ -1,24 +1,23 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.trigger;
 
-import com.qlangtech.tis.ISolrZKClientGetter;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.manage.common.Config;
@@ -60,18 +59,18 @@ import java.util.*;
 public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(TriggerJobManage.class);
     public static final int JETTY_TRIGGER_SERVER_PORT = 8080;
-    private ISolrZKClientGetter zkClientGetter;
+    // private ISolrZKClientGetter zkClientGetter;
     private IJobMetaDataDAO jobMetaDataDAO;
     private ITerminatorTriggerBizDalDAOFacade triggerBizDAO;
     private IPreTriggerProcess preTriggerProcess;
 
-    public ISolrZKClientGetter getZkClientGetter() {
-        return zkClientGetter;
-    }
-
-    public void setZkClientGetter(ISolrZKClientGetter zkClientGetter) {
-        this.zkClientGetter = zkClientGetter;
-    }
+//    public ISolrZKClientGetter getZkClientGetter() {
+//        return zkClientGetter;
+//    }
+//
+//    public void setZkClientGetter(ISolrZKClientGetter zkClientGetter) {
+//        this.zkClientGetter = zkClientGetter;
+//    }
 
     public static final String JOB_SCHEDULE = "jobSchedule";
     public static final String JOB_TRIGGER_SERVER = "jobTriggerServer";
@@ -102,7 +101,8 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     // }
     //
     public TisZkClient getZookeeper() {
-        return this.zkClientGetter.getSolrZkClient().unwrap();
+        // return this.zkClientGetter.getSolrZkClient().unwrap();
+        return null;
     }
 
     private static final Scheduler scheduler;
