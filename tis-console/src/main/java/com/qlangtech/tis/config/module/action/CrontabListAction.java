@@ -77,9 +77,9 @@ public class CrontabListAction extends BasicModule {
         if (colls == null) {
           colls = new ArrayList<String>();
           setIndexCollectionName(context);
-          context.getSolrZkClient().addOnReconnect(() -> {
-            setIndexCollectionName(context);
-          });
+//          context.getSolrZkClient().addOnReconnect(() -> {
+//            setIndexCollectionName(context);
+//          });
         }
       }
     }
@@ -110,22 +110,22 @@ public class CrontabListAction extends BasicModule {
    * @throws InterruptedException
    */
   private static void setIndexCollectionName(final RunContext context) {
-    try {
-      colls.addAll(context.getSolrZkClient().getChildren(ZkStateReader.COLLECTIONS_ZKNODE, new AbstractWatcher() {
-
-        @Override
-        protected void process(Watcher watcher) throws KeeperException, InterruptedException {
-          // TisTriggerJobManage.setAppAndRuntime();
-          synchronized (CrontabListAction.class) {
-            log.info("receive a new rewatch colls event");
-            setIndexCollectionName(context);
-          }
-        }
-      }, true));
-      log.info("colls:{}", colls);
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-      throw new ZooKeeperException(SolrException.ErrorCode.SERVER_ERROR, "", e);
-    }
+//    try {
+//      colls.addAll(context.getSolrZkClient().getChildren(ZkStateReader.COLLECTIONS_ZKNODE, new AbstractWatcher() {
+//
+//        @Override
+//        protected void process(Watcher watcher) throws KeeperException, InterruptedException {
+//          // TisTriggerJobManage.setAppAndRuntime();
+//          synchronized (CrontabListAction.class) {
+//            log.info("receive a new rewatch colls event");
+//            setIndexCollectionName(context);
+//          }
+//        }
+//      }, true));
+//      log.info("colls:{}", colls);
+//    } catch (Exception e) {
+//      log.error(e.getMessage(), e);
+//      throw new ZooKeeperException(SolrException.ErrorCode.SERVER_ERROR, "", e);
+//    }
   }
 }

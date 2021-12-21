@@ -226,47 +226,47 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     this.setBizResult(context, CoreAction.getIndexIncrStatus(this, true));
   }
 
-  /**
-   * 回调获取索引创建的状态
-   *
-   * @param context
-   * @throws Exception
-   */
-  public void doGetTaskStatus(Context context) throws Exception {
-    JSONObject post = this.parseJsonPost();
-    Integer taskId = post.getInteger(IParamContext.KEY_TASK_ID);
-    boolean showLog = post.getBooleanValue(KEY_SHOW_LOG);
-
-    WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskId);
-    if (buildHistory == null) {
-      throw new IllegalStateException("taskid:" + taskId + "relevant buildHistory can not be null");
-    }
-    if (StringUtils.isEmpty(buildHistory.getAppName())) {
-      throw new IllegalStateException("the prop appname of buildHistory can not be empty");
-    }
-    LogReader logReader = new LogReader();
-    if (showLog) {
-      RpcServiceReference service = StatusRpcClient.getService(getSolrZkClient());
-      PMonotorTarget.Builder t = PMonotorTarget.newBuilder();
-      t.setLogtype(LogCollectorClient.convert(LogType.FULL.typeKind));
-      t.setCollection(buildHistory.getAppName());
-      if (taskId > 0) {
-        t.setTaskid(taskId);
-      }
-      StatusRpcClient.AssembleSvcCompsite feedbackRpc = service.get();
-      StreamObserver<PMonotorTarget> observer = feedbackRpc.registerMonitorEvent(logReader);
-      observer.onNext(t.build());
-      Thread.sleep(3000);
-      observer.onCompleted();
-    }
-    Map<String, Object> bizResult = Maps.newHashMap();
-    bizResult.put("status", new ExtendWorkFlowBuildHistory(buildHistory));
-    if (showLog) {
-      bizResult.put("log", logReader.logContent.toString());
-    }
-    this.setBizResult(context, bizResult);
-
-  }
+//  /**
+//   * 回调获取索引创建的状态
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  public void doGetTaskStatus(Context context) throws Exception {
+//    JSONObject post = this.parseJsonPost();
+//    Integer taskId = post.getInteger(IParamContext.KEY_TASK_ID);
+//    boolean showLog = post.getBooleanValue(KEY_SHOW_LOG);
+//
+//    WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskId);
+//    if (buildHistory == null) {
+//      throw new IllegalStateException("taskid:" + taskId + "relevant buildHistory can not be null");
+//    }
+//    if (StringUtils.isEmpty(buildHistory.getAppName())) {
+//      throw new IllegalStateException("the prop appname of buildHistory can not be empty");
+//    }
+//    LogReader logReader = new LogReader();
+//    if (showLog) {
+//      RpcServiceReference service = StatusRpcClient.getService(getSolrZkClient());
+//      PMonotorTarget.Builder t = PMonotorTarget.newBuilder();
+//      t.setLogtype(LogCollectorClient.convert(LogType.FULL.typeKind));
+//      t.setCollection(buildHistory.getAppName());
+//      if (taskId > 0) {
+//        t.setTaskid(taskId);
+//      }
+//      StatusRpcClient.AssembleSvcCompsite feedbackRpc = service.get();
+//      StreamObserver<PMonotorTarget> observer = feedbackRpc.registerMonitorEvent(logReader);
+//      observer.onNext(t.build());
+//      Thread.sleep(3000);
+//      observer.onCompleted();
+//    }
+//    Map<String, Object> bizResult = Maps.newHashMap();
+//    bizResult.put("status", new ExtendWorkFlowBuildHistory(buildHistory));
+//    if (showLog) {
+//      bizResult.put("log", logReader.logContent.toString());
+//    }
+//    this.setBizResult(context, bizResult);
+//
+//  }
 
   /**
    * 创建索实例
@@ -451,22 +451,22 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
   private void deleteCollectionInCloud(Context context, String collectionName) {
     // 删除索引实例
-    try {
-      URL url = new URL("http://" + CoreAction.getCloudOverseerNode(this.getSolrZkClient())
-        + CoreAction.ADMIN_COLLECTION_PATH + "?action=DELETE&name=" + collectionName);
-      HttpUtils.processContent(url, new ConfigFileContext.StreamProcess<Object>() {
-        @Override
-        public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-          ProcessResponse result = null;
-          if ((result = ProcessResponse.processResponse(stream, (err) -> addErrorMessage(context, err))).success) {
-            addActionMessage(context, "成功删除了索引实例'" + collectionName + "'");
-          }
-          return null;
-        }
-      });
-    } catch (Throwable e) {
-      logger.warn(e.getMessage(), e);
-    }
+//    try {
+//      URL url = new URL("http://" + CoreAction.getCloudOverseerNode(this.getSolrZkClient())
+//        + CoreAction.ADMIN_COLLECTION_PATH + "?action=DELETE&name=" + collectionName);
+//      HttpUtils.processContent(url, new ConfigFileContext.StreamProcess<Object>() {
+//        @Override
+//        public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+//          ProcessResponse result = null;
+//          if ((result = ProcessResponse.processResponse(stream, (err) -> addErrorMessage(context, err))).success) {
+//            addActionMessage(context, "成功删除了索引实例'" + collectionName + "'");
+//          }
+//          return null;
+//        }
+//      });
+//    } catch (Throwable e) {
+//      logger.warn(e.getMessage(), e);
+//    }
   }
 
   /**

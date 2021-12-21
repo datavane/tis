@@ -25,5 +25,5 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
  */
 public interface ISolrZKClientGetter {
 
-    public ITISCoordinator getSolrZkClient();
+   // public ITISCoordinator getSolrZkClient();
 }

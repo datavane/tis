@@ -618,7 +618,7 @@ public class CoreAction extends BasicModule {
   public static TriggerBuildResult triggerBuild(
     BasicModule module, final Context context, ConfigFileContext.HTTPMethod httpMethod, List<PostParam> appendParams
     , List<ConfigFileContext.Header> headers) throws MalformedURLException {
-    final String assembleNodeAddress = getAssembleNodeAddress(module.getSolrZkClient());
+    final String assembleNodeAddress = getAssembleNodeAddress();
 
     TriggerBuildResult triggerResult
       = HttpUtils.process(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH)
@@ -664,13 +664,16 @@ public class CoreAction extends BasicModule {
     return triggerResult;
   }
 
-  public static String getAssembleNodeAddress(ITISCoordinator coordinator) {
+  public static String getAssembleNodeAddress() {
     // 增量状态收集节点
-    final String incrStateCollectAddress =
-      ZkUtils.getFirstChildValue(
-        coordinator,
-        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
-        null, true);
+//    final String incrStateCollectAddress =
+//      ZkUtils.getFirstChildValue(
+//        coordinator,
+//        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
+//        null, true);
+
+    final String incrStateCollectAddress = Config.getAssembleHost();
+
     return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
       + ":8080" + Config.CONTEXT_ASSEMBLE;
   }
@@ -1084,20 +1087,20 @@ public class CoreAction extends BasicModule {
    */
   public static void deleteCollection(BasicModule module, final Context context) throws Exception {
 
-    URL url = new URL("http://" + getCloudOverseerNode(module.getSolrZkClient()) + ADMIN_COLLECTION_PATH
-      + "?action=DELETE&name" + module.getCollectionName());
-    log.info("delete collection in  cloud url:" + url);
-    HttpUtils.processContent(url, new StreamProcess<Object>() {
-
-      @Override
-      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-        ProcessResponse result = null;
-        if (!(result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
-          throw new IllegalStateException("collection:" + module.getCollectionName() + " has not been delete");
-        }
-        return null;
-      }
-    });
+//    URL url = new URL("http://" + getCloudOverseerNode(module.getSolrZkClient()) + ADMIN_COLLECTION_PATH
+//      + "?action=DELETE&name" + module.getCollectionName());
+//    log.info("delete collection in  cloud url:" + url);
+//    HttpUtils.processContent(url, new StreamProcess<Object>() {
+//
+//      @Override
+//      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+//        ProcessResponse result = null;
+//        if (!(result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
+//          throw new IllegalStateException("collection:" + module.getCollectionName() + " has not been delete");
+//        }
+//        return null;
+//      }
+//    });
   }
 
   /**
@@ -1108,26 +1111,26 @@ public class CoreAction extends BasicModule {
    * @return
    */
   public static List<String> listCollection(BasicModule module, final Context context) throws Exception {
-    final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
+    //final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
     // : "plain";
     List<String> collections = Lists.newArrayList();
-    URL url = new URL("http://" + cloudOverseer + ADMIN_COLLECTION_PATH + "?action=LIST");
-    log.info("list collection in  cloud url:" + url);
-    HttpUtils.processContent(url, new StreamProcess<Object>() {
-
-      @Override
-      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-        ProcessResponse result = null;
-        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
-          Map<String, Object> biz = (Map<String, Object>) result.result;
-          List<String> clist = (List<String>) biz.get("collections");
-          if (!CollectionUtils.isEmpty(clist)) {
-            collections.addAll(clist);
-          }
-        }
-        return null;
-      }
-    });
+//    URL url = new URL("http://" + cloudOverseer + ADMIN_COLLECTION_PATH + "?action=LIST");
+//    log.info("list collection in  cloud url:" + url);
+//    HttpUtils.processContent(url, new StreamProcess<Object>() {
+//
+//      @Override
+//      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+//        ProcessResponse result = null;
+//        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
+//          Map<String, Object> biz = (Map<String, Object>) result.result;
+//          List<String> clist = (List<String>) biz.get("collections");
+//          if (!CollectionUtils.isEmpty(clist)) {
+//            collections.addAll(clist);
+//          }
+//        }
+//        return null;
+//      }
+//    });
     return collections;
   }
 
@@ -1146,49 +1149,49 @@ public class CoreAction extends BasicModule {
    */
   public static boolean createCollection(BasicModule module, final Context context, final Integer groupNum
     , final Integer repliationCount, FCoreRequest request, int publishSnapshotId) throws Exception {
-    if (publishSnapshotId < 0) {
-      throw new IllegalArgumentException("shall set publishSnapshotId");
-    }
-    if (!request.isValid()) {
-      return false;
-    }
-
-    SnapshotDomain snapshotDomain = module.getSnapshotViewDAO().getView(publishSnapshotId);
-    InputStream input = null;
-    IIndexMetaData meta = SolrFieldsParser.parse(() -> snapshotDomain.getSolrSchema().getContent());
-    ParseResult parseResult = meta.getSchemaParseResult();
-    String routerField = parseResult.getSharedKey();
-    if (StringUtils.isBlank(routerField)) {
-      module.addErrorMessage(context, "Schema中还没有设置‘sharedKey’");
-      return false;
-    }
-    final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
-    String tisRepositoryHost = StringUtils.EMPTY;
-    if (Config.isTestMock()) {
-      tisRepositoryHost = "&" + PropteryGetter.KEY_PROP_TIS_REPOSITORY_HOST + "=" + URLEncoder.encode(ManageUtils.getServerIp(), getEncode());
-    }
-
-    final String routerName = HashcodeRouter.NAME;
-    URL url = new URL("http://" + cloudOverseer + CREATE_COLLECTION_PATH
-      + request.getIndexName() + "&router.name=" + routerName + "&router.field=" + routerField
-      + "&replicationFactor=" + repliationCount + "&numShards=" + groupNum
-      + "&collection.configName=" + DEFAULT_SOLR_CONFIG + "&maxShardsPerNode=" + MAX_SHARDS_PER_NODE
-      + "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(request.getCreateNodeSet(), getEncode())
-      + "&" + PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID + "=" + publishSnapshotId
-      + tisRepositoryHost);
-
-    log.info("create new cloud url:" + url);
-    HttpUtils.processContent(url, new StreamProcess<Object>() {
-
-      @Override
-      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-        ProcessResponse result = null;
-        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
-          module.addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliationCount + "个副本");
-        }
-        return null;
-      }
-    });
+//    if (publishSnapshotId < 0) {
+//      throw new IllegalArgumentException("shall set publishSnapshotId");
+//    }
+//    if (!request.isValid()) {
+//      return false;
+//    }
+//
+//    SnapshotDomain snapshotDomain = module.getSnapshotViewDAO().getView(publishSnapshotId);
+//    InputStream input = null;
+//    IIndexMetaData meta = SolrFieldsParser.parse(() -> snapshotDomain.getSolrSchema().getContent());
+//    ParseResult parseResult = meta.getSchemaParseResult();
+//    String routerField = parseResult.getSharedKey();
+//    if (StringUtils.isBlank(routerField)) {
+//      module.addErrorMessage(context, "Schema中还没有设置‘sharedKey’");
+//      return false;
+//    }
+//    final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
+//    String tisRepositoryHost = StringUtils.EMPTY;
+//    if (Config.isTestMock()) {
+//      tisRepositoryHost = "&" + PropteryGetter.KEY_PROP_TIS_REPOSITORY_HOST + "=" + URLEncoder.encode(ManageUtils.getServerIp(), getEncode());
+//    }
+//
+//    final String routerName = HashcodeRouter.NAME;
+//    URL url = new URL("http://" + cloudOverseer + CREATE_COLLECTION_PATH
+//      + request.getIndexName() + "&router.name=" + routerName + "&router.field=" + routerField
+//      + "&replicationFactor=" + repliationCount + "&numShards=" + groupNum
+//      + "&collection.configName=" + DEFAULT_SOLR_CONFIG + "&maxShardsPerNode=" + MAX_SHARDS_PER_NODE
+//      + "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(request.getCreateNodeSet(), getEncode())
+//      + "&" + PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID + "=" + publishSnapshotId
+//      + tisRepositoryHost);
+//
+//    log.info("create new cloud url:" + url);
+//    HttpUtils.processContent(url, new StreamProcess<Object>() {
+//
+//      @Override
+//      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+//        ProcessResponse result = null;
+//        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
+//          module.addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliationCount + "个副本");
+//        }
+//        return null;
+//      }
+//    });
     return true;
   }
 

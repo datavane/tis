@@ -242,15 +242,15 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
    * @throws InterruptedException
    */
   protected boolean isIndexExist() throws KeeperException, InterruptedException {
-    AppDomainInfo app = this.getAppDomain();
-    String collection = app.getAppName();
-    if (StringUtils.isEmpty(collection)) {
-      throw new IllegalStateException("param 'collection' can not be null");
-    }
-    this.getApplicationDAO().updateLastProcessTime(collection);
-    if (app.getAppType() == AppType.SolrIndex) {
-      return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
-    }
+//    AppDomainInfo app = this.getAppDomain();
+//    String collection = app.getAppName();
+//    if (StringUtils.isEmpty(collection)) {
+//      throw new IllegalStateException("param 'collection' can not be null");
+//    }
+//    this.getApplicationDAO().updateLastProcessTime(collection);
+//    if (app.getAppType() == AppType.SolrIndex) {
+//      return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
+//    }
     return true;
   }
 
@@ -307,10 +307,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   public static final String Layout_template = "layout_template";
 
-  @Override
-  public ITISCoordinator getSolrZkClient() {
-    return getDaoContext().getSolrZkClient();
-  }
+//  @Override
+//  public ITISCoordinator getSolrZkClient() {
+//    return getDaoContext().getSolrZkClient();
+//  }
 
   private static Rundata createRundata() {
     return new Rundata() {

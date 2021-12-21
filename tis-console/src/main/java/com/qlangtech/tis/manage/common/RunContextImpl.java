@@ -113,10 +113,10 @@ public class RunContextImpl implements RunContext {
     return this.clusterStateReader.getInstance();
   }
 
-  @Override
-  public ITISCoordinator getSolrZkClient() {
-    return zooKeeperGetter.getInstance();
-  }
+//  @Override
+//  public ITISCoordinator getSolrZkClient() {
+//    return zooKeeperGetter.getInstance();
+//  }
 
 
   @Override
