@@ -32,11 +32,9 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.*;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.SendSMSUtils;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
-import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
 import com.qlangtech.tis.rpc.server.IncrStatusServer;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
-import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -118,7 +116,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        AbstractTisCloudSolrClient.initHashcodeRouter();
+        // AbstractTisCloudSolrClient.initHashcodeRouter();
         // 构建各阶段持久化
         try {
             this.afterPropertiesSet();

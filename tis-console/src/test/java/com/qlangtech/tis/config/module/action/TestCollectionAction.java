@@ -82,7 +82,7 @@ public class TestCollectionAction extends BasicActionTestCase {
 
   static {
 
-    AbstractTisCloudSolrClient.initHashcodeRouter();
+   // AbstractTisCloudSolrClient.initHashcodeRouter();
 
     // stub create collection
     HttpUtils.addMockApply(CoreAction.CREATE_COLLECTION_PATH, (url) -> {

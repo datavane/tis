@@ -66,7 +66,7 @@ public class TestIndexSwapTaskflowLauncherWithSingleTableIndexBuild extends TIST
     String pt = "20200616170903";
 
     static {
-        AbstractTisCloudSolrClient.initHashcodeRouter();
+      //  AbstractTisCloudSolrClient.initHashcodeRouter();
     }
 
     @Override

@@ -26,7 +26,7 @@ import org.apache.solr.client.solrj.SolrQuery;
  */
 public abstract class BasicTestCase extends TestCase {
     static {
-        AbstractTisCloudSolrClient.initHashcodeRouter();
+       // AbstractTisCloudSolrClient.initHashcodeRouter();
     }
 
     protected TisCloudSolrClient client = null;

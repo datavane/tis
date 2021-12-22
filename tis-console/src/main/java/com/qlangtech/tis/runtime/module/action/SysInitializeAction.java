@@ -285,57 +285,57 @@ public class SysInitializeAction   //extends BasicModule
   // 初始化ZK内容
   public boolean initializeZkPath(String zkHost) {
 
-    Matcher matcher = PATTERN_ZK_ADDRESS.matcher(zkHost);
-    if (!matcher.matches()) {
-      throw new IllegalStateException("zk address " + zkHost + " is not match " + PATTERN_ZK_ADDRESS);
-    }
-
-    final String zkServer = matcher.group(1);
-    String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
-    logger.info("zkServer:{},zkSubDir:{}", zkServer, zkSubDir);
-
-    if (StringUtils.endsWith(zkSubDir, "/")) {
-      zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
-    }
-
-    ZooKeeper zk = null;
-    StringBuffer buildLog = new StringBuffer();
-    String createPath = null;
-    try {
-      zk = new ZooKeeper(zkServer, 50000, null);
-      zk.getChildren("/", false);
-      buildLog.append("create zkServer ").append(zkServer);
-      createPath = zkSubDir + "/tis";
-
-      ITISCoordinator coordinator = getCoordinator(zk);
-      logger.info("guaranteeExist:{}", createPath);
-      ZkUtils.guaranteeExist(coordinator, createPath);
-      buildLog.append(",path1:").append(createPath);
-      createPath = zkSubDir + "/tis-lock/dumpindex";
-      ZkUtils.guaranteeExist(coordinator, createPath);
-      buildLog.append(",path2:").append(createPath);
-      createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
-      ZkUtils.guaranteeExist(coordinator, createPath);
-      buildLog.append(",path3:").append(createPath);
-      logger.info(buildLog.toString());
-    } catch (Throwable e) {
-      throw new IllegalStateException("zk address:" + zkServer + " can not connect Zookeeper server", e);
-    } finally {
-      try {
-        zk.close();
-      } catch (Throwable e) {
-
-      }
-    }
-
-    TisZkClient zkClient = new TisZkClient(zkHost, 60000);
-    try (SolrZkClient solrZk = zkClient.getZK()) {
-      try {
-        createClusterZkNodes(solrZk);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
+//    Matcher matcher = PATTERN_ZK_ADDRESS.matcher(zkHost);
+//    if (!matcher.matches()) {
+//      throw new IllegalStateException("zk address " + zkHost + " is not match " + PATTERN_ZK_ADDRESS);
+//    }
+//
+//    final String zkServer = matcher.group(1);
+//    String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
+//    logger.info("zkServer:{},zkSubDir:{}", zkServer, zkSubDir);
+//
+//    if (StringUtils.endsWith(zkSubDir, "/")) {
+//      zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
+//    }
+//
+//    ZooKeeper zk = null;
+//    StringBuffer buildLog = new StringBuffer();
+//    String createPath = null;
+//    try {
+//      zk = new ZooKeeper(zkServer, 50000, null);
+//      zk.getChildren("/", false);
+//      buildLog.append("create zkServer ").append(zkServer);
+//      createPath = zkSubDir + "/tis";
+//
+//      ITISCoordinator coordinator = getCoordinator(zk);
+//      logger.info("guaranteeExist:{}", createPath);
+//      ZkUtils.guaranteeExist(coordinator, createPath);
+//      buildLog.append(",path1:").append(createPath);
+//      createPath = zkSubDir + "/tis-lock/dumpindex";
+//      ZkUtils.guaranteeExist(coordinator, createPath);
+//      buildLog.append(",path2:").append(createPath);
+//      createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
+//      ZkUtils.guaranteeExist(coordinator, createPath);
+//      buildLog.append(",path3:").append(createPath);
+//      logger.info(buildLog.toString());
+//    } catch (Throwable e) {
+//      throw new IllegalStateException("zk address:" + zkServer + " can not connect Zookeeper server", e);
+//    } finally {
+//      try {
+//        zk.close();
+//      } catch (Throwable e) {
+//
+//      }
+//    }
+//
+//    TisZkClient zkClient = new TisZkClient(zkHost, 60000);
+//    try (SolrZkClient solrZk = zkClient.getZK()) {
+//      try {
+//        createClusterZkNodes(solrZk);
+//      } catch (Exception e) {
+//        throw new RuntimeException(e);
+//      }
+//    }
     return true;
   }
 

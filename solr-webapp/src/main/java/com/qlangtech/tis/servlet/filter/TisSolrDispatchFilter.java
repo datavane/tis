@@ -38,7 +38,7 @@ public class TisSolrDispatchFilter extends SolrDispatchFilter {
     private static final String TIS_SOLR_CORES_CONTAINER = "tis_solr_cores_container";
 
     static {
-        AbstractTisCloudSolrClient.initHashcodeRouter();
+       // AbstractTisCloudSolrClient.initHashcodeRouter();
     }
 
     // /**
