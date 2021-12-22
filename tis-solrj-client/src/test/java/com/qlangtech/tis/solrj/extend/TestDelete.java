@@ -23,8 +23,8 @@ package com.qlangtech.tis.solrj.extend;
  */
 public class TestDelete extends BasicTestCase {
 
-    public void testDelete() throws Exception {
-        this.client.deleteById("search4microgoods", "000b493a38764af19f2447e0fa724d86", "99928282");
-        System.out.println("has been  deleted");
-    }
+//    public void testDelete() throws Exception {
+//        this.client.deleteById("search4microgoods", "000b493a38764af19f2447e0fa724d86", "99928282");
+//        System.out.println("has been  deleted");
+//    }
 }

@@ -27,18 +27,18 @@ import org.apache.solr.common.SolrDocument;
  */
 public class TestGet extends TestCase {
 
-    private TisCloudSolrClient client = null;
-
-    @Override
-    protected void setUp() throws Exception {
-        client = new TisCloudSolrClient("10.1.6.65,2181,10.1.6.67,2181,10.1.6.80,2181/tis/cloud");
-    }
-
-    public void testGet() throws Exception {
-        SolrDocument document = client.getById("search4OrderInfo", "kkkk25", "00000241");
-        Assert.assertNotNull(document);
-        for (String name : document.getFieldNames()) {
-            System.out.println("key:" + name + ",value:" + document.getFieldValue(name));
-        }
-    }
+//    private TisCloudSolrClient client = null;
+//
+//    @Override
+//    protected void setUp() throws Exception {
+//        client = new TisCloudSolrClient("10.1.6.65,2181,10.1.6.67,2181,10.1.6.80,2181/tis/cloud");
+//    }
+//
+//    public void testGet() throws Exception {
+//        SolrDocument document = client.getById("search4OrderInfo", "kkkk25", "00000241");
+//        Assert.assertNotNull(document);
+//        for (String name : document.getFieldNames()) {
+//            System.out.println("key:" + name + ",value:" + document.getFieldValue(name));
+//        }
+//    }
 }

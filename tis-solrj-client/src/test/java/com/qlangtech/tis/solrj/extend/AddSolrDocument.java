@@ -33,12 +33,12 @@ import java.io.FileReader;
  */
 public class AddSolrDocument extends TestCase {
 
-    private TisCloudSolrClient client;
+   // private TisCloudSolrClient client;
 
     public void setUp() throws Exception {
         super.setUp();
         String zkHost = "10.1.6.65:2181,10.1.6.67:2181,10.1.6.80:2181/tis/cloud";
-        client = new TisCloudSolrClient(zkHost);
+//        client = new TisCloudSolrClient(zkHost);
     }
 
     public void tearDown() throws Exception {
@@ -46,7 +46,7 @@ public class AddSolrDocument extends TestCase {
     }
 
     private void add(SolrInputDocument doc) throws SolrServerException {
-        client.add("search4supplyUnionTabs", doc, 1L);
+        //client.add("search4supplyUnionTabs", doc, 1L);
     }
 
     private String getFile() throws Exception {

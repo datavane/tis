@@ -263,7 +263,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         ExecutePhaseRange range = chainContext.getExecutePhaseRange();
         logger.info("start component:" + range.getStart() + ",end component:" + range.getEnd());
         // chainContext.setZkClient(zkClient);
-        chainContext.setZkClient(null);
+        chainContext.setZkClient(this.zkClient);
         // chainContext.setZkStateReader(zkStateReader);
 //        Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
 //        Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");

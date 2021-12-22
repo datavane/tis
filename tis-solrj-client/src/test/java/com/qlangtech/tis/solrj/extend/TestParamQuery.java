@@ -17,10 +17,10 @@
  */
 package com.qlangtech.tis.solrj.extend;
 
-import java.net.URLDecoder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
-import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient.SimpleQueryResult;
+
+import java.net.URLDecoder;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

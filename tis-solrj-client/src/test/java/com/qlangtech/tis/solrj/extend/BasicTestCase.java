@@ -29,7 +29,7 @@ public abstract class BasicTestCase extends TestCase {
        // AbstractTisCloudSolrClient.initHashcodeRouter();
     }
 
-    protected TisCloudSolrClient client = null;
+  //  protected TisCloudSolrClient client = null;
 
     protected SolrQuery query = null;
 
@@ -57,10 +57,10 @@ public abstract class BasicTestCase extends TestCase {
         // public TisCloudSolrClient(String zkHost //
         // , int socketTimeout, int connTimeout, int maxConnectionsPerHost, int
         // maxConnections) {
-        client = new TisCloudSolrClient(zkHost, 5000, /* socketTimeout */
-                5000, /* connTimeout */
-                20, /* maxConnectionsPerHost */
-                100);
+//        client = new TisCloudSolrClient(zkHost, 5000, /* socketTimeout */
+//                5000, /* connTimeout */
+//                20, /* maxConnectionsPerHost */
+//                100);
         query = new SolrQuery();
         start = System.currentTimeMillis();
     }

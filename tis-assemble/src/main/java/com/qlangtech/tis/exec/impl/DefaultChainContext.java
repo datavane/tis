@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.exec.impl;
 
@@ -21,10 +21,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
-//import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
@@ -41,10 +41,11 @@ import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.cloud.ZkStateReader;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+//import com.qlangtech.tis.exec.IIndexMetaData;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -54,7 +55,7 @@ public class DefaultChainContext implements IExecChainContext {
 
     private String ps;
 
-    private TisZkClient zkClient;
+    private ITISCoordinator zkClient;
 
     private ITISFileSystem indexBuildFileSystem;
 
@@ -136,7 +137,7 @@ public class DefaultChainContext implements IExecChainContext {
 //    }
 
     //public void setIndexMetaData(IIndexMetaData indexMetaData) {
-     //   this.indexMetaData = indexMetaData;
+    //   this.indexMetaData = indexMetaData;
     //}
 
     @Override
@@ -207,14 +208,14 @@ public class DefaultChainContext implements IExecChainContext {
 //    }
 
     @Override
-    public TisZkClient getZkClient() {
+    public ITISCoordinator getZkClient() {
         if (this.zkClient == null) {
             throw new NullPointerException("zkClient can not null");
         }
         return this.zkClient;
     }
 
-    public void setZkClient(TisZkClient zkClient) {
+    public void setZkClient(ITISCoordinator zkClient) {
         this.zkClient = zkClient;
     }
 
