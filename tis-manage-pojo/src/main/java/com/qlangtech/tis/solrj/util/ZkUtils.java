@@ -37,11 +37,12 @@ import java.util.List;
 public class ZkUtils {
 
     public static final String ZK_ASSEMBLE_LOG_COLLECT_PATH = "/tis/incr-transfer-group/incr-state-collect";
+    public static final int ZK_ASSEMBLE_LOG_COLLECT_PORT = 56432;
     public static final String ZK_PATH_OVERSEER_ELECT_LEADER = "/overseer_elect/leader";
 
     private static final Logger logger = LoggerFactory.getLogger(ZkUtils.class);
 
-    private static final String PATH_SPLIT = "/";
+    public static final String PATH_SPLIT = "/";
 
     public static String getFirstChildValue(final ITISCoordinator coordinator, final String zkPath) {
         return getFirstChildValue(coordinator, zkPath, null, false);
@@ -66,7 +67,7 @@ public class ZkUtils {
                 });
             }
             for (String c : children) {
-                return new String(coordinator.getData(zkPath + PATH_SPLIT + c, null, new Stat(), true), "utf8");
+                return new String(coordinator.getData(zkPath + PATH_SPLIT + c, null, new Stat(), true), TisUTF8.get());
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

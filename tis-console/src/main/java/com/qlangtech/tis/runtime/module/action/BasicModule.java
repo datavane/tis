@@ -307,10 +307,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   public static final String Layout_template = "layout_template";
 
-//  @Override
-//  public ITISCoordinator getSolrZkClient() {
-//    return getDaoContext().getSolrZkClient();
-//  }
+  @Override
+  public ITISCoordinator getSolrZkClient() {
+    return getDaoContext().getSolrZkClient();
+  }
 
   private static Rundata createRundata() {
     return new Rundata() {

@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
@@ -43,6 +43,8 @@ public class Config {
     public static final String KEY_ZK_HOST = "zk.host";
 
     public static final String KEY_ASSEMBLE_HOST = "assemble.host";
+
+    public static final String KEY_DEPLOY_MODE = "deploy.mode";
 
     public static final String KEY_TIS_HOST = "tis.host";
 
@@ -115,9 +117,19 @@ public class Config {
         pairs.put(KEY_RUNTIME, this.runtime);
         pairs.put(KEY_TIS_DATASOURCE_TYPE, dbCfg.dbtype);
         pairs.put(KEY_TIS_DATASOURCE_DBNAME, dbCfg.dbname);
+        pairs.put(KEY_DEPLOY_MODE, this.deployMode);
         for (Map.Entry<String, String> e : pairs.entrySet()) {
             consumer.accept(e);
         }
+    }
+
+    /**
+     * 当前部署方式是否是单机版
+     *
+     * @return
+     */
+    public static boolean isStandaloneMode() {
+        return isTestMock() || "standalone".equalsIgnoreCase(getInstance().deployMode);
     }
 
     /**
@@ -161,12 +173,13 @@ public class Config {
 
     private final String runtime;
 
+    private final String deployMode;
+
 
     // 组装节点
     private final String assembleHost;
 
     private final TisDbConfig dbCfg;
-
 
 
     private static final Set<String> localDftValsKeys;
@@ -183,6 +196,8 @@ public class Config {
         this.assembleHost = p.getString(KEY_ASSEMBLE_HOST, true);
         this.tisHost = p.getString(KEY_TIS_HOST, true);
         this.runtime = p.getString(KEY_RUNTIME, true);
+
+        this.deployMode = p.getString(KEY_DEPLOY_MODE);
 
         this.dbCfg = new TisDbConfig();
         try {

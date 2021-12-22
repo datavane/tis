@@ -18,13 +18,18 @@
 package com.qlangtech.tis.manage.spring;
 
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.solrj.util.ZkUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 
 /**
@@ -44,14 +49,57 @@ public class ZooKeeperGetter extends EnvironmentBindService<ITISCoordinator> {
 
   @Override
   protected ITISCoordinator createSerivce(final RunEnvironment runtime) {
-    // SolrZkClient zookeeper = null;
-    return (ITISCoordinator) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[]{ITISCoordinator.class}, new InvocationHandler() {
-      @Override
-      public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        throw new UnsupportedOperationException(method.getName());
-        //  return null;
-      }
-    });
+    if (Config.isStandaloneMode()) {
+      return new ITISCoordinator() {
+        private final String DEFAULT_CHILD1_PATH = "child001";
+
+        @Override
+        public boolean shallConnect2RemoteIncrStatusServer() {
+          return true;
+        }
+
+        @Override
+        public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
+          if (ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH.equals(zkPath)) {
+            return Collections.singletonList(DEFAULT_CHILD1_PATH);
+          }
+          throw new IllegalStateException("zkPath:" + zkPath + " is illegal");
+        }
+
+        @Override
+        public void addOnReconnect(IOnReconnect onReconnect) {
+
+        }
+
+        @Override
+        public byte[] getData(String s, Watcher o, Stat stat, boolean b) {
+          if (StringUtils.equals(s
+            , ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + ZkUtils.PATH_SPLIT + DEFAULT_CHILD1_PATH)) {
+            return (Config.getAssembleHost() + ":" + ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT).getBytes(TisUTF8.get());
+          }
+          throw new IllegalStateException("zkPath:" + s + " is illegal");
+        }
+
+        @Override
+        public void create(String path, byte[] data, boolean persistent, boolean sequential) {
+
+        }
+
+        @Override
+        public boolean exists(String path, boolean watch) {
+          return true;
+        }
+
+        @Override
+        public <T> T unwrap() {
+          return null;
+        }
+      };
+    } else {
+      throw new UnsupportedOperationException("distribute mode is not support by now");
+    }
+
+
 //        final String zkAddress = Config.getZKHost();
 //        validateMultiServerIsReachable(zkAddress);
 //        try {

@@ -618,7 +618,7 @@ public class CoreAction extends BasicModule {
   public static TriggerBuildResult triggerBuild(
     BasicModule module, final Context context, ConfigFileContext.HTTPMethod httpMethod, List<PostParam> appendParams
     , List<ConfigFileContext.Header> headers) throws MalformedURLException {
-    final String assembleNodeAddress = getAssembleNodeAddress();
+    final String assembleNodeAddress = getAssembleNodeAddress(module.getSolrZkClient());
 
     TriggerBuildResult triggerResult
       = HttpUtils.process(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH)
@@ -664,16 +664,13 @@ public class CoreAction extends BasicModule {
     return triggerResult;
   }
 
-  public static String getAssembleNodeAddress() {
+  public static String getAssembleNodeAddress(ITISCoordinator coordinator) {
     // 增量状态收集节点
-//    final String incrStateCollectAddress =
-//      ZkUtils.getFirstChildValue(
-//        coordinator,
-//        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
-//        null, true);
-
-    final String incrStateCollectAddress = Config.getAssembleHost();
-
+    final String incrStateCollectAddress =
+      ZkUtils.getFirstChildValue(
+        coordinator,
+        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
+        null, true);
     return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
       + ":8080" + Config.CONTEXT_ASSEMBLE;
   }

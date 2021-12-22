@@ -76,11 +76,11 @@
       <artifactId>easymock</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.qlangtech.tis</groupId>
-      <artifactId>tis-solrcore-extend</artifactId>
-      <scope>test</scope>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>com.qlangtech.tis</groupId>-->
+<!--      <artifactId>tis-solrcore-extend</artifactId>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
 
 
     <dependency>

@@ -17,7 +17,7 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import com.qlangtech.tis.ISolrZKClientGetter;
+import com.qlangtech.tis.cloud.ISolrZKClientGetter;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import org.apache.solr.common.cloud.TISZkStateReader;
