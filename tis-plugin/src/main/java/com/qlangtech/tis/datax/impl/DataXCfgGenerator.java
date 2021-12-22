@@ -282,7 +282,8 @@ public class DataXCfgGenerator {
 
         IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceEntityName());
         if (tableAlias == null) {
-            throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias' keys:[" + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
+            throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias' keys:["
+                    + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
         }
         ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
         IDataxProcessor.TableMap
