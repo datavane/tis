@@ -46,10 +46,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 //import org.apache.solr.cloud.ZkController;
 
@@ -263,6 +260,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         ExecutePhaseRange range = chainContext.getExecutePhaseRange();
         logger.info("start component:" + range.getStart() + ",end component:" + range.getEnd());
         // chainContext.setZkClient(zkClient);
+        Objects.requireNonNull(this.zkClient, "zkClient can not be null");
         chainContext.setZkClient(this.zkClient);
         // chainContext.setZkStateReader(zkStateReader);
 //        Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
