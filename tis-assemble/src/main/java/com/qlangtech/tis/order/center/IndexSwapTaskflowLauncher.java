@@ -33,18 +33,13 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.SendSMSUtils;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
 import com.qlangtech.tis.realtime.utils.NetUtils;
-import com.qlangtech.tis.realtime.yarn.rpc.impl.MasterListenerStatus;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
 import com.qlangtech.tis.rpc.server.IncrStatusServer;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
-import com.qlangtech.tis.solrj.util.ZkUtils;
-import com.qlangtech.tis.trigger.zk.AbstractWatcher;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +47,10 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 //import org.apache.solr.cloud.ZkController;
 
@@ -65,7 +63,8 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     private static final Logger logger = LoggerFactory.getLogger(IndexSwapTaskflowLauncher.class);
 
     public static final String KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER = "IndexSwapTaskflowLauncher";
-    // private TisZkClient zkClient;
+    //   private TisZkClient zkClient;
+    private ITISCoordinator zkClient;
     //private ZkStateReader zkStateReader;
 
     static {
@@ -98,9 +97,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     }
 
 
-//    public void setZkClient(TisZkClient zkClient) {
-//        this.zkClient = zkClient;
-//    }
+    public void setZkClient(ITISCoordinator zkClient) {
+        this.zkClient = zkClient;
+    }
 
     public ITISCoordinator getZkClient() {
         // return zkClient;
@@ -133,11 +132,15 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
     // @Override
     public void afterPropertiesSet() throws Exception {
-//        try {
-//            this.setZkClient(new TisZkClient(Config.getZKHost(), 60000));
-//        } catch (Exception e) {
-//            throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
-//        }
+
+        try {
+            // this.setZkClient(new TisZkClient(Config.getZKHost(), 60000));
+            // return
+
+            this.setZkClient(TisZkClient.create());
+        } catch (Exception e) {
+            throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
+        }
         // 当初始集群初始化的时候assemble先与solr启动时不执行createClusterZkNodes会出错
         // ZkController.createClusterZkNodes(this.zkClient.getZK());
         // ZkStateReader zkStateReader = new ZkStateReader(zkClient.getZK());
@@ -260,7 +263,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         ActionInvocation invoke = null;
         ExecutePhaseRange range = chainContext.getExecutePhaseRange();
         logger.info("start component:" + range.getStart() + ",end component:" + range.getEnd());
-       // chainContext.setZkClient(zkClient);
+        // chainContext.setZkClient(zkClient);
         chainContext.setZkClient(null);
         // chainContext.setZkStateReader(zkStateReader);
 //        Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");

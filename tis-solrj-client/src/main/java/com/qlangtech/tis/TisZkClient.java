@@ -1,24 +1,28 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis;
 
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solr.common.cloud.ZkRepeatClientConnectionStrategy;
+import com.qlangtech.tis.solrj.util.ZkUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.*;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
@@ -26,6 +30,7 @@ import org.apache.zookeeper.data.Stat;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -57,6 +62,56 @@ public class TisZkClient implements ITISCoordinator {
         }
     }
 
+    public static ITISCoordinator create() {
+        if (Config.isStandaloneMode()) {
+            return new ITISCoordinator() {
+                private final String DEFAULT_CHILD1_PATH = "child001";
+                @Override
+                public boolean shallConnect2RemoteIncrStatusServer() {
+                    return true;
+                }
+                @Override
+                public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
+                    if (ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH.equals(zkPath)) {
+                        return Collections.singletonList(DEFAULT_CHILD1_PATH);
+                    }
+                    throw new IllegalStateException("zkPath:" + zkPath + " is illegal");
+                }
+
+                @Override
+                public void addOnReconnect(IOnReconnect onReconnect) {
+
+                }
+
+                @Override
+                public byte[] getData(String s, Watcher o, Stat stat, boolean b) {
+                    if (StringUtils.equals(s
+                            , ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + ZkUtils.PATH_SPLIT + DEFAULT_CHILD1_PATH)) {
+                        return (Config.getAssembleHost() + ":" + ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT).getBytes(TisUTF8.get());
+                    }
+                    throw new IllegalStateException("zkPath:" + s + " is illegal");
+                }
+
+                @Override
+                public void create(String path, byte[] data, boolean persistent, boolean sequential) {
+
+                }
+
+                @Override
+                public boolean exists(String path, boolean watch) {
+                    return true;
+                }
+
+                @Override
+                public <T> T unwrap() {
+                    return null;
+                }
+            };
+        } else {
+            return new TisZkClient(Config.getZKHost(), 60000);
+        }
+    }
+
     @Override
     public boolean shallConnect2RemoteIncrStatusServer() {
         return true;
@@ -64,7 +119,7 @@ public class TisZkClient implements ITISCoordinator {
 
     private final SolrZkClient zkclient;
 
-    public TisZkClient(String zkServerAddress, int zkClientTimeout) {
+    private TisZkClient(String zkServerAddress, int zkClientTimeout) {
         this(zkServerAddress, zkClientTimeout, new ArrayList<>());
     }
 
@@ -72,7 +127,7 @@ public class TisZkClient implements ITISCoordinator {
      * @param zkServerAddress
      * @param zkClientTimeout
      */
-    public TisZkClient(String zkServerAddress, int zkClientTimeout, final List<OnReconnect> reconnectList) {
+    private TisZkClient(String zkServerAddress, int zkClientTimeout, final List<OnReconnect> reconnectList) {
         // this.zkclient = ;
         this(new TisSolrZkClient(zkServerAddress, zkClientTimeout, zkClientTimeout, new ZkRepeatClientConnectionStrategy(), new OnReconnect() {
 
@@ -89,7 +144,7 @@ public class TisZkClient implements ITISCoordinator {
         }), reconnectList);
     }
 
-    public TisZkClient(SolrZkClient zkclient, List<OnReconnect> reconnectList) {
+    private TisZkClient(SolrZkClient zkclient, List<OnReconnect> reconnectList) {
         this.zkclient = zkclient;
         this.reconnectList = reconnectList;
     }
