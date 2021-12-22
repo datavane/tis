@@ -37,6 +37,7 @@ import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
 import com.qlangtech.tis.rpc.server.IncrStatusServer;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.solrj.extend.AbstractTisCloudSolrClient;
+import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
@@ -160,7 +161,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     // 发布增量集群任务收集器
     private Collection<IOnsListenerStatus> initIncrTransferStateCollect() throws Exception {
         // this.incrStatusUmbilicalProtocolServer = new IncrStatusUmbilicalProtocolImpl();
-        final int exportPort = NetUtils.getFreeSocketPort();
+        final int exportPort = ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT; //NetUtils.getFreeSocketPort();
         incrStatusServer = new IncrStatusServer(exportPort);
         incrStatusServer.addService(IncrStatusUmbilicalProtocolImpl.getInstance());
         incrStatusServer.addService(FullBuildStatCollectorServer.getInstance());
@@ -175,9 +176,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 //            getAllTransferChannel(result);
 //        });
 
-//        ZkUtils.registerAddress2ZK(// "/tis/incr-transfer-group/incr-state-collect"
-//                this.zkClient, // "/tis/incr-transfer-group/incr-state-collect"
-//                ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, exportPort);
+        ZkUtils.registerAddress2ZK(// "/tis/incr-transfer-group/incr-state-collect"
+                this.zkClient, // "/tis/incr-transfer-group/incr-state-collect"
+                ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, exportPort);
         IncrStatusUmbilicalProtocolImpl.getInstance().startLogging();
         return incrChannels;
     }
