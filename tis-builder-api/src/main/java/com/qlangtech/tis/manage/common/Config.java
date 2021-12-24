@@ -270,16 +270,21 @@ public class Config {
 
     public static TestCfgStream openTestCfgStream() throws IOException {
         String propertiesFile = "tis-web-config/config.properties";
-        File f = new File("../../" + propertiesFile);
+        File f = new File("../../../" + propertiesFile);
         if (f.exists()) {
             return new TestCfgStream(f);
         } else {
-            f = new File("../" + propertiesFile);
+            f = new File("../../" + propertiesFile);
             if (f.exists()) {
                 return new TestCfgStream(f);
             } else {
-                f = new File(propertiesFile);
-                return new TestCfgStream(f);
+                f = new File("../" + propertiesFile);
+                if (f.exists()) {
+                    return new TestCfgStream(f);
+                } else {
+                    f = new File(propertiesFile);
+                    return new TestCfgStream(f);
+                }
             }
         }
 //        TestCfgStream cfgStream = new TestCfgStream(f);

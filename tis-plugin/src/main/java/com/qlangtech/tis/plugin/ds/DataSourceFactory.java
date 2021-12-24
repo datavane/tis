@@ -203,7 +203,14 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     }
 
     protected ColumnMetaData.DataType getDataType(ResultSet cols) throws SQLException {
-        return new ColumnMetaData.DataType(cols.getInt("DATA_TYPE"), cols.getInt("COLUMN_SIZE"));
+
+        // decimal 的小数位长度
+        int decimalDigits = cols.getInt("DECIMAL_DIGITS");
+        ColumnMetaData.DataType colType = new ColumnMetaData.DataType(cols.getInt("DATA_TYPE"), cols.getInt("COLUMN_SIZE"));
+        if (decimalDigits > 0) {
+            colType.setDecimalDigits(decimalDigits);
+        }
+        return colType;
     }
 
     protected void closeResultSet(ResultSet rs) {

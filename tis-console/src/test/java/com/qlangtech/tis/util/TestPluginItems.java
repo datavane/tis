@@ -65,7 +65,7 @@ public class TestPluginItems extends TestCase {
     List<Option> opts = Lists.newArrayList();
     opts.add(new Option("orderdb", "orderdb"));
     OfflineDatasourceAction.existDbs = opts;
-    DataxAction.deps = Collections.emptyList();
+    DataxAction.cleanDepsCache();
     this.readerStore = DataxReader.getPluginStore(null, dataXName);
     File targetFile = readerStore.getTargetFile();
     File parentDir = targetFile.getParentFile();

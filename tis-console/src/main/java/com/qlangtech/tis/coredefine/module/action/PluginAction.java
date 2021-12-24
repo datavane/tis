@@ -39,6 +39,7 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -105,9 +106,15 @@ public class PluginAction extends BasicModule {
    */
   public void doGetFreshEnumField(Context context) {
     DescriptorField descField = parseDescField();
-    this.setBizResult(context
-      , DescriptorsJSON.getSelectOptions(
-        descField.getTargetDesc(), descField.getFieldPropType(), descField.field));
+    List<Descriptor.SelectOption> options = null;
+    if (descField.getFieldPropType().typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
+      options = DescriptorsJSON.getSelectOptions(
+        descField.getTargetDesc(), descField.getFieldPropType(), descField.field);
+      this.setBizResult(context, options);
+    } else if (descField.getFieldPropType().typeIdentity() == FormFieldType.ENUM.getIdentity()) {
+      this.setBizResult(context
+        , descField.getFieldPropType().getExtraProps().getJSONArray(Descriptor.KEY_ENUM_PROP));
+    }
   }
 
   private static class DescriptorField {

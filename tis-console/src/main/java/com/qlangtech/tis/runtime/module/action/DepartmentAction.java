@@ -18,6 +18,7 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.coredefine.module.action.DataxAction;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria.Criteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 import com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria;
@@ -59,6 +60,7 @@ public class DepartmentAction extends BasicModule {
           criteria.createCriteria().andDptIdEqualTo(dptId).andIsLeaf(true);
           dpt.setDptId(null);
           if (this.getDepartmentDAO().updateByExampleSelective(dpt, criteria) > 0) {
+            DataxAction.cleanDepsCache();
             this.addActionMessage(context, "更新部门：'" + dpt.getName() + "'");
           } else {
             this.addErrorMessage(context, "更新部门 '" + dpt.getName() + "' 失败");
@@ -86,6 +88,7 @@ public class DepartmentAction extends BasicModule {
     Department department = new Department();
     this.processDepartment(context, department, (dpt) -> {
       dpt.setDptId(this.getDepartmentDAO().insertSelective(dpt));
+      DataxAction.cleanDepsCache();
       this.addActionMessage(context, "成功添加部门：" + dpt.getName());
     });
   }
@@ -169,6 +172,7 @@ public class DepartmentAction extends BasicModule {
       return;
     }
     this.getDepartmentDAO().deleteByPrimaryKey(dptid);
+    DataxAction.cleanDepsCache();
     this.addActionMessage(context, "已经成功删除部门:" + OrgAuthorityAction.getDepartmentName(this.getDepartmentDAO(), dptid));
   }
 

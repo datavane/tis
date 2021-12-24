@@ -530,7 +530,11 @@ public class DataxAction extends BasicModule {
       });
   }
 
-  public static List<Option> deps;
+  private static List<Option> deps;
+
+  public static void cleanDepsCache() {
+    deps = null;
+  }
 
   /**
    * DataX中显示已有部门
