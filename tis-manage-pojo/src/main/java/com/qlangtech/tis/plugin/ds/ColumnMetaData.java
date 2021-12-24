@@ -119,10 +119,13 @@ public class ColumnMetaData extends Option {
     }
 
     public static class DataType implements Serializable {
+
         public final int type;
         public final int columnSize;
         // decimal 的小数位长度
         private Integer decimalDigits;
+        // 字段注释
+        private transient String comment;
 
         public DataType(int type) {
             this(type, -1);
