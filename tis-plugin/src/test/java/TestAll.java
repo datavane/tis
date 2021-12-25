@@ -17,6 +17,7 @@
  */
 
 import com.qlangtech.tis.TestTIS;
+import com.qlangtech.tis.datax.impl.TestDataxReader;
 import com.qlangtech.tis.extension.TestDescriptor;
 import com.qlangtech.tis.extension.impl.TestXmlFile;
 import com.qlangtech.tis.extension.model.TestUpdateCenter;
@@ -56,6 +57,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestUpdateCenter.class);
         suite.addTestSuite(TestDescriptor.class);
         suite.addTestSuite(TestAttrValMap.class);
+        suite.addTestSuite(TestDataxReader.class);
 
         return suite;
     }

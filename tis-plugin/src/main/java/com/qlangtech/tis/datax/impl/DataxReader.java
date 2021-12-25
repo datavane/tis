@@ -24,18 +24,15 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * datax Reader
@@ -43,7 +40,7 @@ import java.util.regex.Pattern;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:48
  */
-public abstract class DataxReader implements Describable<DataxReader>, IDataxReader {
+public abstract class DataxReader implements Describable<DataxReader>, IDataxReader, IPluginStore.RecyclableController {
     public static final String HEAD_KEY_REFERER = "Referer";
     public static final ThreadLocal<DataxReader> dataxReaderThreadLocal = new ThreadLocal<>();
 
@@ -63,11 +60,9 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
      * @return
      */
     public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, boolean db, String appname) {
-        KeyedPluginStore<DataxReader> pluginStore
-                = new KeyedPluginStore(new AppKey(pluginContext, db, appname, DataxReader.class)
-                , new PluginStore.IPluginProcessCallback<DataxReader>() {
+        return TIS.dataXReaderPluginStore.get(new TIS.DataXReaderAppKey(pluginContext, db, appname, new PluginStore.IPluginProcessCallback<DataxReader>() {
             @Override
-            public void process(DataxReader reader) {
+            public void afterDeserialize(final DataxReader reader) {
 
                 List<PluginFormProperties> subFieldFormPropertyTypes = reader.getDescriptor().getSubPluginFormPropertyTypes();
                 if (subFieldFormPropertyTypes.size() > 0) {
@@ -75,33 +70,41 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                     subFieldFormPropertyTypes.forEach((pt) -> {
                         pt.accept(new PluginFormProperties.IVisitor() {
                             @Override
-                            public Void visit(SuFormProperties props) {
-
-                                try {
-                                    SubFieldFormAppKey<DataxReader> subFieldKey
-                                            = new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
-                                    KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
-                                    DataxReader subFieldReader = subFieldStore.getPlugin();
-                                    if (subFieldReader == null) {
-                                        return null;
+                            public Void visit(final SuFormProperties props) {
+                                SubFieldFormAppKey<DataxReader> subFieldKey
+                                        = new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
+                                KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
+                                DataxReader subFieldReader = subFieldStore.getPlugin();
+                                if (subFieldReader == null) {
+                                    return null;
+                                }
+                                // 子表单中的内容更新了之后，要同步父表单中的状态
+                                subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener<DataxReader>(reader) {
+                                    @Override
+                                    public void accept(PluginStore<DataxReader> pluginStore) {
+                                        setReaderSubFormProp(props, pluginStore.getPlugin());
                                     }
+                                });
+
+                                setReaderSubFormProp(props, subFieldReader);
+
+                                return null;
+                            }
+
+                            private void setReaderSubFormProp(SuFormProperties props, DataxReader subFieldReader) {
+                                try {
                                     props.subFormField.set(reader, props.subFormField.get(subFieldReader));
                                 } catch (IllegalAccessException e) {
                                     throw new RuntimeException("get subField:" + props.getSubFormFieldName(), e);
                                 }
-
-
-                                return null;
                             }
                         });
                     });
                 }
             }
-
-        });
-
-        return pluginStore;
+        }));
     }
+
 
     public interface IDataxReaderGetter {
         DataxReader get(String appName);
@@ -137,35 +140,13 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         return appSource;
     }
 
-    private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("/x/(" + ValidatorCommons.pattern_identity + ")/update");
-
-//    public static class DBKey extends KeyedPluginStore.Key<DataxReader> {
+    //    public static class DBKey extends KeyedPluginStore.Key<DataxReader> {
 //        public DBKey(IPluginContext pluginContext, String appname) {
 //            super(TIS.DB_GROUP_NAME, AppKey.calAppName(pluginContext, appname), DataxReader.class);
 //        }
 //    }
 
-    public static class AppKey<TT extends Describable> extends KeyedPluginStore.Key<TT> {
-        public AppKey(IPluginContext pluginContext, boolean isDB, String appname, Class<TT> clazz) {
-            super(isDB ? TIS.DB_GROUP_NAME : IFullBuildContext.NAME_APP_DIR, calAppName(pluginContext, appname), clazz);
-        }
-
-        private static KeyedPluginStore.KeyVal calAppName(IPluginContext pluginContext, String appname) {
-            if (pluginContext == null) {
-                return new KeyedPluginStore.KeyVal(appname);
-            }
-            String referer = pluginContext.getRequestHeader(HEAD_KEY_REFERER);
-            Matcher configPathMatcher = DATAX_UPDATE_PATH.matcher(referer);
-            boolean inUpdateProcess = configPathMatcher.find();
-            if (inUpdateProcess && !pluginContext.isCollectionAware()) {
-                throw new IllegalStateException("pluginContext.isCollectionAware() must be true");
-            }
-            return (pluginContext != null && inUpdateProcess)
-                    ? new KeyedPluginStore.KeyVal(appname, pluginContext.getExecId()) : new KeyedPluginStore.KeyVal(appname);
-        }
-    }
-
-    public static class SubFieldFormAppKey<TT extends Describable> extends AppKey<TT> {
+    public static class SubFieldFormAppKey<TT extends Describable> extends KeyedPluginStore.AppKey<TT> {
         public final SuFormProperties subfieldForm;
 
         public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname, SuFormProperties subfieldForm, Class<TT> clazz) {
@@ -179,7 +160,21 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         }
     }
 
+    //IPluginStore.Recyclable relevant
+    private transient boolean dirty = false;
 
+    @Override
+    public boolean isDirty() {
+        return this.dirty;
+    }
+
+    @Override
+    public void signDirty() {
+        // 标记可以在PluginStore中被剔出了
+        this.dirty = true;
+    }
+
+    //IPluginStore.Recyclable stop
     @Override
     public final Descriptor<DataxReader> getDescriptor() {
         Descriptor<DataxReader> descriptor = TIS.get().getDescriptor(this.getClass());

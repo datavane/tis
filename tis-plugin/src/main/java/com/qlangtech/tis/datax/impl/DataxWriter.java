@@ -41,8 +41,9 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * @param appname
      */
     public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, String appname) {
-        KeyedPluginStore<DataxWriter> pluginStore = new KeyedPluginStore(new DataxReader.AppKey(context, false, appname, DataxWriter.class));
-        return pluginStore;
+//        KeyedPluginStore<DataxWriter> pluginStore = new KeyedPluginStore();
+//        return pluginStore;
+        return TIS.dataXWriterPluginStore.get(new KeyedPluginStore.AppKey(context, false, appname, DataxWriter.class));
     }
 
 

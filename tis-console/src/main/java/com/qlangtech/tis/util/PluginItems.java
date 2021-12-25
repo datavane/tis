@@ -252,7 +252,7 @@ public class PluginItems {
                 }
               });
 
-            return KeyedPluginStore.getPluginStore(key);
+            return  KeyedPluginStore.getPluginStore(key);
           }
 
           ;

@@ -87,6 +87,12 @@ public class DataxAction extends BasicModule {
   public void doTriggerFullbuildTask(Context context) throws Exception {
 
     DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
+    DataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
+    List<String> cfgFileNames = dataXProcessor.getDataxCfgFileNames(null);
+    if (!triggerType.validate(this, context, cfgFileNames)) {
+      return;
+    }
+
     Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(triggerType);
     if (!dataXJobSubmit.isPresent()) {
       this.setBizResult(context, Collections.singletonMap("installLocal", true));
@@ -334,20 +340,6 @@ public class DataxAction extends BasicModule {
   public void doSaveDataxWorker(Context context) {
     JSONObject postContent = this.parseJsonPost();
     JSONObject k8sSpec = postContent.getJSONObject("k8sSpec");
-    //JSONObject dataxWorker = postContent.getJSONObject("dataxWorker");
-
-    // UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.DATAX_WORKER.identity);
-
-//    JSONArray itemsArray = new JSONArray();
-//    itemsArray.add(dataxWorker);
-//    PluginAction.PluginItemsParser pluginItemsParser
-//      = PluginAction.parsePluginItems(this, pluginMeta
-//      , context, 0, dataxWorker.getJSONArray("items"), false);
-
-//    if (pluginItemsParser.faild) {
-//
-//      return;
-//    }
 
     IncrUtils.IncrSpecResult incrSpecResult = IncrUtils.parseIncrSpec(context, k8sSpec, this);
     if (!incrSpecResult.isSuccess()) {
@@ -356,36 +348,12 @@ public class DataxAction extends BasicModule {
 
     TargetResName resName = this.getK8SJobWorkerTargetName();
     DataXJobWorker worker = DataXJobWorker.getJobWorker(resName);
-    // PluginStore<DataXJobWorker> jobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-    // List<DataXJobWorker> jobWorkers = jobWorkerStore.getPlugins();
-    // List<Descriptor.ParseDescribable<DataXJobWorker>> dlist = Lists.newArrayList();
-    // boolean setted = false;
-    // for (DataXJobWorker worker : jobWorkers) {
-    //if (StringUtils.equals(resName.getName(), worker.identityValue())) {
+
     worker.setReplicasSpec(incrSpecResult.getSpec());
     if (incrSpecResult.hpa != null) {
       worker.setHpa(incrSpecResult.hpa);
     }
     DataXJobWorker.setJobWorker(resName, worker);
-    //   setted = true;
-    //}
-    // dlist.add(PluginStore.getDescribablesWithMeta(jobWorkerStore, worker));
-    // }
-//    if (!setted) {
-//      throw new IllegalStateException("has not setted");
-//    }
-
-    // jobWorkerStore.setPlugins(this, Optional.empty(), dlist, true);
-
-
-//    Descriptor.ParseDescribable<DataXJobWorker> describablesWithMeta
-//      = PluginStore.getDescribablesWithMeta(jobWorkerStore, DataXJobWorker.getJobWorker());
-//    DataXJobWorker dataxJobWorker = describablesWithMeta.instance;
-//    Objects.requireNonNull(dataxJobWorker, "dataxJobWorker can not be null");
-//
-//    //IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update
-//    List<Descriptor.ParseDescribable<DataXJobWorker>> dlist = Collections.singletonList(describablesWithMeta);
-//    jobWorkerStore.setPlugins(this, Optional.empty(), dlist, true);
   }
 
 
@@ -699,7 +667,7 @@ public class DataxAction extends BasicModule {
       throw new IllegalArgumentException("param dataxName can not be null");
     }
 
-    DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);//  appSource.isPresent() ? appSource.get() : (DataxProcessor) appSourceParseDescribable.instance;
+    DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
     dataxProcessor.setTableMaps(tableMaps);
     IAppSource.save(pluginContext, dataxName, dataxProcessor);
   }
@@ -959,45 +927,19 @@ public class DataxAction extends BasicModule {
   }
 
   public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
-
-    //String dataxName = filter.param(DataxUtils.DATAX_NAME);
     IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(
       filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta);
     DataxReader reader = (DataxReader) pluginStore.getPlugin();
     if (reader == null) {
       throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
     }
-    // DataxReader reader = DataxReader.load(filter.uploadPluginMeta.getPluginContext(), dataxName);
-//    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(filter.uploadPluginMeta.getPluginContext(), dataxName);
-//   readerStore.getPlugin();
-//    Objects.requireNonNull(reader, "reader can not be null");
     return reader.getTablesInDB();
   }
 
   public static List<ColumnMetaData> getReaderTableSelectableCols(String dataxName, String table) {
-//    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
-//    DataxReader reader = readerStore.getPlugin();
-//    Objects.requireNonNull(reader, "reader can not be null");
-//    List<ColumnMetaData> tableMeta = reader.getTableMetadata(table);
-//    return tableMeta;
 
     throw new UnsupportedOperationException();
   }
-
-//  /**
-//   * get cols meta
-//   *
-//   * @param context
-//   */
-//  public void doGetReaderTableSelectableCols(Context context) {
-//    String dataxName = this.getString(DataxUtils.DATAX_NAME);
-//    String tableName = this.getString("tableName");
-//    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(dataxName);
-//    DataxReader reader = readerStore.getPlugin();
-//    Objects.requireNonNull(reader, "reader can not be null");
-//    List<ColumnMetaData> tableMeta = reader.getTableMetadata(tableName);
-//    this.setBizResult(context, tableMeta);
-//  }
 
 
   public static class DataxPluginDescMeta extends PluginDescMeta<DataxReader> {

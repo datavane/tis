@@ -30,10 +30,13 @@ import com.qlangtech.tis.util.XStream2;
 import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +46,7 @@ import java.util.stream.Collectors;
  * @date 2020/04/13
  */
 public class PluginStore<T extends Describable> implements IPluginStore<T> {
-
+    private static final Logger logger = LoggerFactory.getLogger(PluginStore.class);
     private final transient Class<T> pluginClass;
 
     private List<T> plugins = Lists.newArrayList();
@@ -69,7 +72,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
      * @param <T>
      */
     public interface IPluginProcessCallback<T> {
-        void process(T t);
+        void afterDeserialize(T t);
     }
 
     public void cleanPlugins() {
@@ -95,6 +98,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     public File getTargetFile() {
         return this.file.getFile();
     }
+
     @Override
     public List<T> getPlugins() {
         this.load();
@@ -175,6 +179,31 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         return this.setPlugins(pluginContext, context, dlist, false);
     }
 
+    private final List<PluginsUpdateListener> pluginsUpdateListeners = Lists.newArrayList();
+
+    public void addPluginsUpdateListener(PluginsUpdateListener consumer) {
+        Objects.requireNonNull(consumer, "param consumer can not be null");
+        this.pluginsUpdateListeners.add(consumer);
+    }
+
+   public static abstract class PluginsUpdateListener<T extends Describable<T>> implements Consumer<PluginStore<T>>, Recyclable {
+        private final Recyclable recyclable;
+
+        public PluginsUpdateListener(Recyclable recyclable) {
+            this.recyclable = recyclable;
+        }
+
+//        @Override
+//        public void accept(PluginStore<T> pluginStore) {
+//            throw new UnsupportedOperationException();
+//        }
+
+        @Override
+        public boolean isDirty() {
+            return recyclable.isDirty();
+        }
+    }
+
     /**
      * save the plugin config
      *
@@ -186,11 +215,35 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             Set<XStream2.PluginMeta> pluginsMeta = Sets.newHashSet();
             List<T> collect = dlist.stream().map((r) -> {
                 pluginsMeta.addAll(r.extraPluginMetas);
+                for (IPluginProcessCallback<T> callback : pluginCreateCallback) {
+                    callback.afterDeserialize(r.instance);
+                }
                 return r.instance;
             }).collect(Collectors.toList());
+            if (this.plugins != null) {
+                this.plugins.forEach((plugin) -> {
+                    if (plugin instanceof IPluginStore.RecyclableController) {
+                        ((RecyclableController) plugin).signDirty();
+                    }
+                });
+            }
             this.plugins = collect;
             // XmlFile file = Descriptor.getConfigFile(getSerializeFileName());
             this.file.write(this, pluginsMeta);
+
+            if (CollectionUtils.isNotEmpty(pluginsUpdateListeners)) {
+                Iterator<PluginsUpdateListener> it = pluginsUpdateListeners.iterator();
+                PluginsUpdateListener next = null;
+                while (it.hasNext()) {
+                    next = it.next();
+                    if (next.isDirty()) {
+                        it.remove();
+                        continue;
+                    }
+                    next.accept(this);
+                }
+                logger.info("notify pluginsUpdateListeners size:" + pluginsUpdateListeners.size());
+            }
             return true;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -225,7 +278,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             if (plugins != null) {
                 plugins.forEach((p) -> {
                     for (IPluginProcessCallback<T> callback : this.pluginCreateCallback) {
-                        callback.process(p);
+                        callback.afterDeserialize(p);
                     }
                 });
             }

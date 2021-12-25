@@ -20,6 +20,8 @@ package com.qlangtech.tis;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.component.GlobalComponent;
 import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.extension.impl.ExtensionRefreshException;
@@ -31,6 +33,7 @@ import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.install.InstallState;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.FlatTableBuilder;
@@ -98,7 +101,8 @@ public class TIS {
     /**
      * All {@link DescriptorExtensionList} keyed by their {@link DescriptorExtensionList}.
      */
-    private static final transient Memoizer<Class<? extends Describable>, IPluginStore> globalPluginStore = new Memoizer<Class<? extends Describable>, IPluginStore>() {
+    private static final transient Memoizer<Class<? extends Describable>, IPluginStore> globalPluginStore
+            = new Memoizer<Class<? extends Describable>, IPluginStore>() {
 
         public PluginStore compute(Class<? extends Describable> key) {
             return new PluginStore(key);
@@ -111,6 +115,54 @@ public class TIS {
             return new KeyedPluginStore(key);
         }
     };
+
+
+    public static final transient Memoizer<KeyedPluginStore.AppKey, KeyedPluginStore<IAppSource>> appSourcePluginStore
+            = new Memoizer<KeyedPluginStore.AppKey, KeyedPluginStore<IAppSource>>() {
+        @Override
+        public KeyedPluginStore<IAppSource> compute(KeyedPluginStore.AppKey key) {
+            return new KeyedPluginStore(key);
+        }
+    };
+
+    public static final transient Memoizer<DataXReaderAppKey, KeyedPluginStore<DataxReader>> dataXReaderPluginStore
+            = new Memoizer<DataXReaderAppKey, KeyedPluginStore<DataxReader>>() {
+        @Override
+        public KeyedPluginStore<DataxReader> compute(DataXReaderAppKey key) {
+            return new KeyedPluginStore(key, key.pluginCreateCallback);
+        }
+    };
+
+    public static final transient Memoizer<KeyedPluginStore.AppKey, KeyedPluginStore<DataxWriter>> dataXWriterPluginStore
+            = new Memoizer<KeyedPluginStore.AppKey, KeyedPluginStore<DataxWriter>>() {
+        @Override
+        public KeyedPluginStore<DataxWriter> compute(KeyedPluginStore.AppKey key) {
+            return new KeyedPluginStore(key);
+        }
+    };
+
+    public static final transient Memoizer<DataxReader.SubFieldFormAppKey<? extends Describable>, KeyedPluginStore<? extends Describable>> dataXReaderSubFormPluginStore
+            = new Memoizer<DataxReader.SubFieldFormAppKey<? extends Describable>, KeyedPluginStore<? extends Describable>>() {
+        @Override
+        public KeyedPluginStore<? extends Describable> compute(DataxReader.SubFieldFormAppKey<? extends Describable> key) {
+            return new KeyedPluginStore(key);
+        }
+    };
+
+
+    public static class DataXReaderAppKey extends KeyedPluginStore.AppKey<DataxReader> {
+        public final PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback;
+
+        public DataXReaderAppKey(IPluginContext pluginContext, boolean isDB, String appname
+                , PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback) {
+            super(pluginContext, isDB, appname, DataxReader.class);
+            if (pluginCreateCallback == null) {
+                throw new IllegalStateException("param pluginCreateCallback can not be null");
+            }
+            this.pluginCreateCallback = pluginCreateCallback;
+        }
+    }
+
 
     private static final transient Memoizer<DSKey, DataSourceFactoryPluginStore> databasePluginStore
             = new Memoizer<DSKey, DataSourceFactoryPluginStore>() {

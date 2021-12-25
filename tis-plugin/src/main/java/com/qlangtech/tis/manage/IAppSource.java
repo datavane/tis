@@ -19,7 +19,6 @@ package com.qlangtech.tis.manage;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -36,8 +35,10 @@ import java.util.Optional;
  */
 public interface IAppSource extends Describable<IAppSource> {
 
+
     static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(IPluginContext context, String appName) {
-        return (KeyedPluginStore<T>) new KeyedPluginStore(new DataxReader.AppKey(context, false, appName, IAppSource.class));
+       // return (KeyedPluginStore<T>) new KeyedPluginStore(new DataxReader.AppKey(context, false, appName, IAppSource.class));
+        return (KeyedPluginStore<T>) TIS.appSourcePluginStore.get(new KeyedPluginStore.AppKey(context, false, appName, IAppSource.class));
     }
 
     static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, String appName) {

@@ -43,4 +43,16 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
     }
 
     public T find(String name, boolean throwNotFoundErr);
+
+    interface Recyclable {
+        // 是否已经是脏数据了，已经在PluginStore中被替换了
+        boolean isDirty();
+    }
+
+    interface RecyclableController extends Recyclable {
+        /**
+         * 标记已经失效
+         */
+        void signDirty();
+    }
 }

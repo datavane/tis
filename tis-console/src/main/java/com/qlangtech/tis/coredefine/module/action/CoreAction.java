@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.coredefine.module.action;
 
@@ -40,9 +40,9 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.exec.IExecChainContext;
-import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
@@ -60,7 +60,6 @@ import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
@@ -68,9 +67,6 @@ import com.qlangtech.tis.runtime.module.action.ClusterStateCollectAction;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
 import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
-import com.qlangtech.tis.solrdao.impl.ParseResult;
-import com.qlangtech.tis.solrj.extend.router.HashcodeRouter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
@@ -79,7 +75,6 @@ import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -98,7 +93,6 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -399,24 +393,32 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doDeployIncrSyncChannal(Context context) throws Exception {
     // 先进行打包编译
-    this.doCompileAndPackage(context);
-    if (context.hasErrors()) {
-      return;
-    }
-    // IncrUtils.IncrSpecResult applySpec = IncrUtils.parseIncrSpec(context, this.parseJsonPost(), this);
-    // if (!applySpec.isSuccess()) {
-    //   return;
-    // }
-    // 编译并且打包
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
+    StringBuffer logger = new StringBuffer("flin sync app:" + this.getCollectionName());
+    try {
+      long start = System.currentTimeMillis();
+      this.doCompileAndPackage(context);
+      if (context.hasErrors()) {
+        return;
+      }
+      logger.append("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
+      // 编译并且打包
+      IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
 
-    // 将打包好的构建，发布到k8s集群中去
-    // https://github.com/kubernetes-client/java
-    TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
-    // 通过k8s发布
-    k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
-    IndexIncrStatus incrStatus = new IndexIncrStatus();
-    this.setBizResult(context, incrStatus);
+      // 将打包好的构建，发布到k8s集群中去
+      // https://github.com/kubernetes-client/java
+      TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+      start = System.currentTimeMillis();
+      // 通过k8s发布
+      k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
+      logger.append("\n deploy to flink cluster consume:" + (System.currentTimeMillis() - start) + "ms ");
+      IndexIncrStatus incrStatus = new IndexIncrStatus();
+      this.setBizResult(context, incrStatus);
+    } catch (Exception ex) {
+      logger.append("an error occur:"+ ex.getMessage());
+      throw new TisException(ex.getMessage(), ex);
+    } finally {
+      log.info(logger.toString());
+    }
   }
 
   private static Map<Integer, Long> getDependencyDbsMap(BasicModule module, IndexStreamCodeGenerator indexStreamCodeGenerator) {

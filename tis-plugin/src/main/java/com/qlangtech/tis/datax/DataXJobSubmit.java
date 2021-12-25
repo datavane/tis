@@ -1,23 +1,24 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.datax;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
@@ -26,8 +27,10 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.tis.hadoop.rpc.RpcServiceReference;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
@@ -37,6 +40,8 @@ import java.util.concurrent.Callable;
  **/
 @TISExtensible
 public abstract class DataXJobSubmit {
+
+    public static final int MAX_TABS_NUM_IN_PER_JOB = 40;
 
     public static Callable<DataXJobSubmit> mockGetter;
 
@@ -61,7 +66,22 @@ public abstract class DataXJobSubmit {
     }
 
     public enum InstanceType {
-        DISTRIBUTE("distribute"), LOCAL("local");
+        DISTRIBUTE("distribute") {
+            @Override
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<String> cfgFileNames) {
+                return true;
+            }
+        }, LOCAL("local") {
+            @Override
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<String> cfgFileNames) {
+                if (cfgFileNames.size() > MAX_TABS_NUM_IN_PER_JOB) {
+                    controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过"
+                            + MAX_TABS_NUM_IN_PER_JOB + "张，如需要导入更多表，请使用分布式K8S DataX执行期");
+                    return false;
+                }
+                return true;
+            }
+        };
         public final String literia;
 
         public static InstanceType parse(String val) {
@@ -76,6 +96,8 @@ public abstract class DataXJobSubmit {
         private InstanceType(String val) {
             this.literia = val;
         }
+
+        public abstract boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<String> cfgFileNames);
     }
 
 
@@ -107,8 +129,22 @@ public abstract class DataXJobSubmit {
      * @param dataXfileName
      * @return
      */
-    public abstract IRemoteJobTrigger createDataXJob(IJoinTaskContext taskContext
+    public abstract IRemoteJobTrigger createDataXJob(IDataXJobContext taskContext
             , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName);
 
+
+    public abstract IDataXJobContext createJobContext(IJoinTaskContext parentContext);
+
+
+    public interface IDataXJobContext {
+        public <T> T getContextInstance();
+
+        IJoinTaskContext getTaskContext();
+
+        /**
+         * 任务执行完成之后回收
+         */
+        void destroy();
+    }
 
 }
