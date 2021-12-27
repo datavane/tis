@@ -64,17 +64,17 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             FlatTableBuilder.class, //
             "flat_table_builder", "宽表构建", Selectable.Single);
     // ////////////////////////////////////////////////////////
-    @TISExtension
-    public static final HeteroEnum<IndexBuilderTriggerFactory> INDEX_BUILD_CONTAINER = new HeteroEnum<IndexBuilderTriggerFactory>(//
-            IndexBuilderTriggerFactory.class, //
-            "index_build_container", // },
-            "索引构建容器", Selectable.Single);
-    // ////////////////////////////////////////////////////////
-    @TISExtension
-    public static final HeteroEnum<TableDumpFactory> DS_DUMP = new HeteroEnum<TableDumpFactory>(//
-            TableDumpFactory.class, //
-            "ds_dump", // },
-            "数据导出", Selectable.Single);
+//    @TISExtension
+//    public static final HeteroEnum<IndexBuilderTriggerFactory> INDEX_BUILD_CONTAINER = new HeteroEnum<IndexBuilderTriggerFactory>(//
+//            IndexBuilderTriggerFactory.class, //
+//            "index_build_container", // },
+//            "索引构建容器", Selectable.Single);
+//    // ////////////////////////////////////////////////////////
+//    @TISExtension
+//    public static final HeteroEnum<TableDumpFactory> DS_DUMP = new HeteroEnum<TableDumpFactory>(//
+//            TableDumpFactory.class, //
+//            "ds_dump", // },
+//            "数据导出", Selectable.Single);
     // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<FileSystemFactory> FS = new HeteroEnum<FileSystemFactory>(//

@@ -65,7 +65,7 @@
         <module>tis-base-test</module>
         <module>tis-web-start</module>
         <module>tis-assemble</module>
-        <module>tis-ds-dump</module>
+<!--        <module>tis-ds-dump</module>-->
         <module>tis-plugin-sezpoz</module>
         <module>tis-plugin</module>
 <!--        <module>tis-solrcore-extend</module>-->

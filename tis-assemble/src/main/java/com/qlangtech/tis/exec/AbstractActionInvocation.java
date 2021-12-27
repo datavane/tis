@@ -53,12 +53,12 @@ public class AbstractActionInvocation implements ActionInvocation {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractActionInvocation.class);
 
-    private static final IExecuteInterceptor[] directBuild = new IExecuteInterceptor[]{ // /////
-            new IndexBuildWithHdfsPathInterceptor(), new IndexBackFlowInterceptor()};
+//    private static final IExecuteInterceptor[] directBuild = new IExecuteInterceptor[]{ // /////
+//            new IndexBuildWithHdfsPathInterceptor(), new IndexBackFlowInterceptor()};
 
     // 工作流執行方式
-    public static final IExecuteInterceptor[] workflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
-            new WorkflowDumpAndJoinInterceptor(), new WorkflowIndexBuildInterceptor(), new IndexBackFlowInterceptor()};
+//    public static final IExecuteInterceptor[] workflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
+//            new WorkflowDumpAndJoinInterceptor(), new WorkflowIndexBuildInterceptor(), new IndexBackFlowInterceptor()};
 
     public static final IExecuteInterceptor[] dataXBuild = new IExecuteInterceptor[]{new DataXExecuteInterceptor()};
 
@@ -105,15 +105,16 @@ public class AbstractActionInvocation implements ActionInvocation {
 
                 private IExecuteInterceptor[] visitSolrAppSource(ISolrAppSource appSource) {
 
-                    Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
-                    Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
-                    // chainContext.setIndexMetaData(createIndexMetaData(chainContext));
-
-                    EntityName targetEntity = appSource.getTargetEntity();
-                    chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
-                    IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
-                    chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
-                    return workflowBuild;
+//                    Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
+//                    Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
+//                    // chainContext.setIndexMetaData(createIndexMetaData(chainContext));
+//
+//                    EntityName targetEntity = appSource.getTargetEntity();
+//                    chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
+//                    IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
+//                    chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
+//                    return workflowBuild;
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
@@ -126,12 +127,12 @@ public class AbstractActionInvocation implements ActionInvocation {
             TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange()));
 
         } else {
-            if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
-                ints = directBuild;
-            } else {
+//            if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
+//                ints = directBuild;
+//            } else {
                 // ints = fullints;
                 throw new UnsupportedOperationException();
-            }
+            //}
         }
         return createInvocation(chainContext, ints);
     }

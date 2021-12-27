@@ -17,8 +17,8 @@
  */
 package com.qlangtech.tis.component;
 
-import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-import com.qlangtech.tis.offline.TableDumpFactory;
+//import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
+//import com.qlangtech.tis.offline.TableDumpFactory;
 import java.util.List;
 
 /**
@@ -40,9 +40,9 @@ public class GlobalComponent {
     }
 
     // private List<FileSystemFactory> fsFactories;
-    private List<TableDumpFactory> dsDumpFactories;
-
-    private List<IndexBuilderTriggerFactory> indexBuilderFactories;
+//    private List<TableDumpFactory> dsDumpFactories;
+//
+//    private List<IndexBuilderTriggerFactory> indexBuilderFactories;
 
     // private List<FlatTableBuilder> flatTableBuilders;
     // private IncrK8sConfig incrK8sConfig;
@@ -73,19 +73,19 @@ public class GlobalComponent {
     // public void setFsFactories(List<FileSystemFactory> fsFactories) {
     // this.fsFactories = fsFactories;
     // }
-    public List<TableDumpFactory> getDsDumpFactories() {
-        return this.dsDumpFactories;
-    }
-
-    public void setDsDumpFactories(List<TableDumpFactory> dsDumpFactories) {
-        this.dsDumpFactories = dsDumpFactories;
-    }
-
-    public List<IndexBuilderTriggerFactory> getIndexBuilderFactories() {
-        return indexBuilderFactories;
-    }
-
-    public void setIndexBuilderFactories(List<IndexBuilderTriggerFactory> indexBuilderFactories) {
-        this.indexBuilderFactories = indexBuilderFactories;
-    }
+//    public List<TableDumpFactory> getDsDumpFactories() {
+//        return this.dsDumpFactories;
+//    }
+//
+//    public void setDsDumpFactories(List<TableDumpFactory> dsDumpFactories) {
+//        this.dsDumpFactories = dsDumpFactories;
+//    }
+//
+//    public List<IndexBuilderTriggerFactory> getIndexBuilderFactories() {
+//        return indexBuilderFactories;
+//    }
+//
+//    public void setIndexBuilderFactories(List<IndexBuilderTriggerFactory> indexBuilderFactories) {
+//        this.indexBuilderFactories = indexBuilderFactories;
+//    }
 }

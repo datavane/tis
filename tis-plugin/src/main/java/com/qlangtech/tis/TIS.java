@@ -37,8 +37,8 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.FlatTableBuilder;
-import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-import com.qlangtech.tis.offline.TableDumpFactory;
+//import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
+//import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DSKey;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -601,8 +601,8 @@ public class TIS {
         checkNotInitialized();
         permitInitialize = false;
         resources.add(getPluginStore(ParamsConfig.class));
-        resources.add(getPluginStore(TableDumpFactory.class));
-        resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
+//        resources.add(getPluginStore(TableDumpFactory.class));
+//        resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
         return new ComponentMeta(resources);
     }
 
@@ -615,7 +615,7 @@ public class TIS {
     public static ComponentMeta getCoreComponent(List<IRepositoryResource> resources) {
         checkNotInitialized();
         permitInitialize = false;
-        resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
+       // resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
         return new ComponentMeta(resources);
     }
 
@@ -639,9 +639,9 @@ public class TIS {
         permitInitialize = false;
 
         List<IRepositoryResource> resources = Lists.newArrayList();
-        resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
+       // resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
         resources.add(TIS.getPluginStore(FlatTableBuilder.class));
-        resources.add(TIS.getPluginStore(TableDumpFactory.class));
+       // resources.add(TIS.getPluginStore(TableDumpFactory.class));
         resources.add(TIS.getPluginStore(ParamsConfig.class));
         return new ComponentMeta(resources);
     }

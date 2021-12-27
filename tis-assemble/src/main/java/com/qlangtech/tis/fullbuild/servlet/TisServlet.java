@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
@@ -33,15 +33,10 @@ import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
-import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.ComponentMeta;
-import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
-import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONObject;
@@ -214,16 +209,16 @@ public class TisServlet extends HttpServlet {
                                     getLog().info(msg);
                                     mdcContext.resetParam(newTaskId);
                                     writeResult(true, msg, res, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(newTaskId)));
-                                    IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
+//                                    IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
                                     //Objects.requireNonNull(builderFactory, "builderFactory can not be null");
                                     // chainContext.setIndexBuildFileSystem(builderFactory.getFsFactory());
-                                    chainContext.setIndexBuilderTriggerFactory(builderFactory);
+                                    // chainContext.setIndexBuilderTriggerFactory(builderFactory);
 
-                                    IPluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
-                                    if (tableDumpFactory.getPlugin() != null) {
-                                        //  Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
-                                        chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
-                                    }
+                                    // IPluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
+                                    // if (tableDumpFactory.getPlugin() != null) {
+                                    //  Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
+//                                        chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
+//                                    }
 
                                     countDown.countDown();
                                     /************************************************************
