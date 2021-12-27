@@ -74,17 +74,19 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                 SubFieldFormAppKey<DataxReader> subFieldKey
                                         = new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
                                 KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
+
+                                // 子表单中的内容更新了之后，要同步父表单中的状态
+                                subFieldStore.addPluginsUpdateListener(
+                                        new PluginStore.PluginsUpdateListener<DataxReader>(subFieldKey.getSerializeFileName(), reader) {
+                                            @Override
+                                            public void accept(PluginStore<DataxReader> pluginStore) {
+                                                setReaderSubFormProp(props, pluginStore.getPlugin());
+                                            }
+                                        });
                                 DataxReader subFieldReader = subFieldStore.getPlugin();
                                 if (subFieldReader == null) {
                                     return null;
                                 }
-                                // 子表单中的内容更新了之后，要同步父表单中的状态
-                                subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener<DataxReader>(reader) {
-                                    @Override
-                                    public void accept(PluginStore<DataxReader> pluginStore) {
-                                        setReaderSubFormProp(props, pluginStore.getPlugin());
-                                    }
-                                });
 
                                 setReaderSubFormProp(props, subFieldReader);
 

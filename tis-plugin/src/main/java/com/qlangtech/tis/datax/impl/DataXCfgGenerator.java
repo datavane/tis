@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.datax.impl;
@@ -120,10 +120,11 @@ public class DataXCfgGenerator {
             return generateCfgs;
         }
 
-        File dataxCreateDDLDir = dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
-        generateCfgs.createDDLFiles = Lists.newArrayList(dataxCreateDDLDir.list((dir, f) -> {
-            return StringUtils.endsWith(f, IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX);
-        }));
+        //  File dataxCreateDDLDir = dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
+        generateCfgs.createDDLFiles = getExistDDLFiles();
+//    Lists.newArrayList(dataxCreateDDLDir.list((dir, f) -> {
+//            return StringUtils.endsWith(f, IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX);
+//        }));
 
         Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
@@ -140,11 +141,27 @@ public class DataXCfgGenerator {
         return generateCfgs;
     }
 
+    /**
+     * 取得已经存在的DDL Sql文件
+     *
+     * @return
+     */
+    private List<String> getExistDDLFiles() {
+        File dataxCreateDDLDir = dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
+        return Lists.newArrayList(dataxCreateDDLDir.list((dir, f) -> {
+            return StringUtils.endsWith(f, IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX);
+        }));
+    }
+
 
     public static final String FILE_GEN = "gen";
 
-    public GenerateCfgs startGenerateCfg(final File parentDir) throws Exception {
+    public GenerateCfgs startGenerateCfg(final File dataXCfgDir) throws Exception {
         GenerateCfgs cfgs = new GenerateCfgs();
+
+        FileUtils.forceMkdir(dataXCfgDir);
+        // 先清空文件
+        FileUtils.cleanDirectory(dataXCfgDir);
 
         boolean unStructedReader = dataxProcessor.isReaderUnStructed(this.pluginCtx);
 
@@ -157,13 +174,16 @@ public class DataXCfgGenerator {
         AtomicReference<Map<String, ISelectedTab>> selectedTabsRef = new AtomicReference<>();
         java.util.concurrent.Callable<Map<String, ISelectedTab>> selectedTabsCall = () -> {
             if (selectedTabsRef.get() == null) {
-                Map<String, ISelectedTab> selectedTabs = reader.getSelectedTabs().stream().collect(Collectors.toMap((t) -> t.getName(), (t) -> t));
+                Map<String, ISelectedTab> selectedTabs
+                        = reader.getSelectedTabs().stream().collect(Collectors.toMap((t) -> t.getName(), (t) -> t));
                 selectedTabsRef.set(selectedTabs);
             }
             return selectedTabsRef.get();
         };
 
-        File createDDLDir = this.dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
+
+        List<String> existDDLFiles = getExistDDLFiles();
+
         Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
         File configFile = null;
@@ -233,20 +253,28 @@ public class DataXCfgGenerator {
                     StringBuffer createDDL = writer.generateCreateDDL(mapper);
                     if (createDDL != null) {
                         createDDLFiles.add(sqlFileName);
+                        // 由于用户可能已经手动改动过生成的DDL文件，所以不能强行覆盖已经存在的DDL文件，overWrite参数应该为false
                         dataxProcessor.saveCreateTableDDL(this.pluginCtx, createDDL, sqlFileName, false);
                     }
                 }
             }
 
 
-            configFile = new File(parentDir, readerContext.getTaskName() + ".json");
+            configFile = new File(dataXCfgDir, readerContext.getTaskName() + ".json");
             FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, (tableMapper)), TisUTF8.get(), false);
             subTaskName.add(configFile.getName());
         }
 
+        // 将老的已经没有用的ddl sql文件删除调
+        File createDDLDir = this.dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
+        for (String oldDDLFile : existDDLFiles) {
+            if (!createDDLFiles.contains(oldDDLFile)) {
+                FileUtils.deleteQuietly(new File(createDDLDir, oldDDLFile));
+            }
+        }
 
         long current = System.currentTimeMillis();
-        FileUtils.write(new File(parentDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
+        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
         cfgs.createDDLFiles = Lists.newArrayList(createDDLFiles);
         cfgs.dataxFiles = subTaskName;
         cfgs.genTime = current;

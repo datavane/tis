@@ -535,11 +535,11 @@ public class DataxAction extends BasicModule {
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
     File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
 
-    if (!getExist) {
-      FileUtils.forceMkdir(dataxCfgDir);
-      // 先清空文件
-      FileUtils.cleanDirectory(dataxCfgDir);
-    }
+//    if (!getExist) {
+//      FileUtils.forceMkdir(dataxCfgDir);
+//      // 先清空文件
+//      FileUtils.cleanDirectory(dataxCfgDir);
+//    }
     this.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir) : cfgGenerator.startGenerateCfg(dataxCfgDir));
   }
 

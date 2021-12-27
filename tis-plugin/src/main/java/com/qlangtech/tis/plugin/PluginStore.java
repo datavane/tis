@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     private List<T> plugins = Lists.newArrayList();
     // 在plugin 从xstream中反序列化之后再进行一下额外的处理
     private final transient IPluginProcessCallback<T>[] pluginCreateCallback;
+    private transient final List<PluginsUpdateListener> pluginsUpdateListeners = Lists.newArrayList();
 
     private final transient XmlFile file;
 
@@ -179,18 +181,22 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         return this.setPlugins(pluginContext, context, dlist, false);
     }
 
-    private final List<PluginsUpdateListener> pluginsUpdateListeners = Lists.newArrayList();
+
 
     public void addPluginsUpdateListener(PluginsUpdateListener consumer) {
         Objects.requireNonNull(consumer, "param consumer can not be null");
         this.pluginsUpdateListeners.add(consumer);
     }
 
-   public static abstract class PluginsUpdateListener<T extends Describable<T>> implements Consumer<PluginStore<T>>, Recyclable {
+    public static abstract class PluginsUpdateListener<T extends Describable<T>> implements Consumer<PluginStore<T>>, Recyclable {
         private final Recyclable recyclable;
+        public final String identity;
 
-        public PluginsUpdateListener(Recyclable recyclable) {
+        static final AtomicInteger ver = new AtomicInteger();
+
+        public PluginsUpdateListener(String identity, Recyclable recyclable) {
             this.recyclable = recyclable;
+            this.identity = identity + "@ver" + ver.incrementAndGet();
         }
 
 //        @Override
@@ -238,6 +244,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                     next = it.next();
                     if (next.isDirty()) {
                         it.remove();
+                        logger.info("dirty instance:" + next.identity + " will remove from watch listeners");
                         continue;
                     }
                     next.accept(this);

@@ -18,13 +18,18 @@
 
 package com.qlangtech.tis.datax.impl;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.BasicTestCase;
+import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import org.easymock.EasyMock;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -32,9 +37,39 @@ import java.util.List;
  **/
 public class TestDataxReader extends BasicTestCase {
 
+    String dataXName = "mysql_startrock2";
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        TIS.dataXReaderPluginStore.clear();
+    }
+
+//    public void testUpdateDataxReader() {
+//        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataXName);
+//
+//        DataxReader dataxReader = readerStore.getPlugin();
+//        assertNotNull(dataxReader);
+//
+//
+//        SuFormProperties props = EasyMock.createMock("subformProp", SuFormProperties.class);
+//
+//        EasyMock.expect(props.getSubFormFieldName()).andReturn("selectedTabs");
+//
+//        DataxReader.SubFieldFormAppKey<DataxReader> subFieldKey
+//                = new DataxReader.SubFieldFormAppKey<>(null, false, dataXName, props, DataxReader.class);
+//        KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
+//
+//        List<Descriptor.ParseDescribable<DataxReader>> dlist = Lists.newArrayList();
+//        DataxReader subformReader =
+//        dlist.add(new Descriptor.ParseDescribable());
+//        subFieldStore.setPlugins(null, Optional.empty(), dlist);
+//
+//    }
+
 
     public void testGetDataxReader() {
-        String dataXName = "mysql_startrock2";
+
         KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataXName);
         DataxReader dataxReader = readerStore.getPlugin();
         assertNotNull("dataxReader can not be null", dataxReader);
