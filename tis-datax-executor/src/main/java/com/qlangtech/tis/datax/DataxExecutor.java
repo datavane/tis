@@ -104,7 +104,7 @@ public class DataxExecutor {
             KeyedPluginStore<DataxProcessor> processStore = IAppSource.getPluginStore(null, dataxName);
             List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();// Lists.newArrayList(DataxReader.getPluginStore(dataxName), DataxWriter.getPluginStore(dataxName));
             keyedPluginStores.add(TIS.getPluginStore(ParamsConfig.class));
-            keyedPluginStores.add(TIS.getPluginStore(FileSystemFactory.class));
+           // keyedPluginStores.add(TIS.getPluginStore(FileSystemFactory.class));
             keyedPluginStores.add(processStore);
             keyedPluginStores.add(DataxReader.getPluginStore(null, dataxName));
             keyedPluginStores.add(DataxWriter.getPluginStore(null, dataxName));
