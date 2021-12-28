@@ -25,8 +25,8 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.FlatTableBuilder;
-import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-import com.qlangtech.tis.offline.TableDumpFactory;
+//import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
+//import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.XStream2;
@@ -155,14 +155,14 @@ public class TestComponentMeta extends TestCase {
         ComponentMeta assembleComponent = TIS.getAssembleComponent();
         assembleComponent.synchronizePluginsFromRemoteRepository();
         TIS.clean();
-        IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
-        assertNotNull("builderFactory can not be null", builderFactory);
+//        IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
+//        assertNotNull("builderFactory can not be null", builderFactory);
 
         IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
         assertNotNull("flatTableBuilder can not be null", pluginStore.getPlugin());
 
-        IPluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
-        assertNotNull("tableDumpFactory can not be null", tableDumpFactory.getPlugin());
+//        IPluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
+//        assertNotNull("tableDumpFactory can not be null", tableDumpFactory.getPlugin());
     }
 
     public void testDumpAndIndexBuilderComponent() {

@@ -88,8 +88,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         }
 
         @Override
-        public IRemoteJobTrigger createDataXJob(IJoinTaskContext taskContext
-                , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName) {
+        public IRemoteJobTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName) {
             return new IRemoteJobTrigger() {
                 @Override
                 public void submitJob() {
@@ -102,6 +101,13 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
                 }
             };
         }
+
+        @Override
+        public IDataXJobContext createJobContext(IJoinTaskContext parentContext) {
+            return null;
+        }
+
+
     }
 
 }
