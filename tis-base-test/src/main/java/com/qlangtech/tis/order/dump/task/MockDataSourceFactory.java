@@ -93,7 +93,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
 
     private static class TestEmployeeDataSourceDumper implements IDataSourceDumper {
         private List<ColumnMetaData> colsMeta;
-        private List<Map<String, String>> dumpData;
+        private List<Map<String, Object>> dumpData;
         public final String testDBName;
         public final String testTableName;
 
@@ -116,7 +116,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
             }
             String line = null;
             dumpData = Lists.newArrayList();
-            Map<String, String> row = null;
+            Map<String, Object> row = null;
             String[] vals = null;
             for (int i = 3; i < lines.size(); i++) {
                 row = Maps.newHashMap();
@@ -151,7 +151,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
         }
 
         @Override
-        public Iterator<Map<String, String>> startDump() {
+        public Iterator<Map<String, Object>> startDump() {
             return dumpData.iterator();
         }
 

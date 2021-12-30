@@ -19,6 +19,8 @@ package com.qlangtech.tis.manage;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -37,8 +39,22 @@ public interface IAppSource extends Describable<IAppSource> {
 
 
     static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(IPluginContext context, String appName) {
-       // return (KeyedPluginStore<T>) new KeyedPluginStore(new DataxReader.AppKey(context, false, appName, IAppSource.class));
-        return (KeyedPluginStore<T>) TIS.appSourcePluginStore.get(new KeyedPluginStore.AppKey(context, false, appName, IAppSource.class));
+        // return (KeyedPluginStore<T>) new KeyedPluginStore(new DataxReader.AppKey(context, false, appName, IAppSource.class));
+        return (KeyedPluginStore<T>) TIS.appSourcePluginStore.get(createAppSourceKey(context, appName));
+    }
+
+    static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, String appName) {
+        return new KeyedPluginStore.AppKey(context, false, appName, IAppSource.class);
+    }
+
+    static void cleanPluginStoreCache(IPluginContext context, String appName) {
+        TIS.appSourcePluginStore.clear(createAppSourceKey(context, appName));
+    }
+
+    static void cleanAppSourcePluginStoreCache(IPluginContext context, String appName) {
+        IAppSource.cleanPluginStoreCache(context, appName);
+        DataxReader.cleanPluginStoreCache(context, false, appName);
+        DataxWriter.cleanPluginStoreCache(context, appName);
     }
 
     static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, String appName) {

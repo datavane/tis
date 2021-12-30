@@ -191,7 +191,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 while (columns1.next()) {
 
                     columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME"))
-                            , getDataType(columns1), pkCols.contains(colName)));
+                            , getDataType(colName, columns1), pkCols.contains(colName)));
                 }
 
             } finally {
@@ -202,7 +202,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return columns;
     }
 
-    protected ColumnMetaData.DataType getDataType(ResultSet cols) throws SQLException {
+    protected ColumnMetaData.DataType getDataType(String colName, ResultSet cols) throws SQLException {
 
         // decimal 的小数位长度
         int decimalDigits = cols.getInt("DECIMAL_DIGITS");

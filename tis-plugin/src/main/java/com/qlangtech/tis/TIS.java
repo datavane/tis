@@ -37,8 +37,6 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.FlatTableBuilder;
-//import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-//import com.qlangtech.tis.offline.TableDumpFactory;
 import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DSKey;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -59,6 +57,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
+
+//import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
+//import com.qlangtech.tis.offline.TableDumpFactory;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -152,6 +153,8 @@ public class TIS {
 
     public static class DataXReaderAppKey extends KeyedPluginStore.AppKey<DataxReader> {
         public final PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback;
+        private final String appname;
+        private final boolean isDB;
 
         public DataXReaderAppKey(IPluginContext pluginContext, boolean isDB, String appname
                 , PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback) {
@@ -160,6 +163,12 @@ public class TIS {
                 throw new IllegalStateException("param pluginCreateCallback can not be null");
             }
             this.pluginCreateCallback = pluginCreateCallback;
+            this.appname = appname;
+            this.isDB = isDB;
+        }
+
+        public boolean isSameAppName(String appname, boolean isDB) {
+            return this.appname.equals(appname) && (this.isDB == isDB);
         }
     }
 
@@ -615,7 +624,7 @@ public class TIS {
     public static ComponentMeta getCoreComponent(List<IRepositoryResource> resources) {
         checkNotInitialized();
         permitInitialize = false;
-       // resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
+        // resources.add(getPluginStore(IndexBuilderTriggerFactory.class));
         return new ComponentMeta(resources);
     }
 
@@ -639,9 +648,9 @@ public class TIS {
         permitInitialize = false;
 
         List<IRepositoryResource> resources = Lists.newArrayList();
-       // resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
+        // resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
         resources.add(TIS.getPluginStore(FlatTableBuilder.class));
-       // resources.add(TIS.getPluginStore(TableDumpFactory.class));
+        // resources.add(TIS.getPluginStore(TableDumpFactory.class));
         resources.add(TIS.getPluginStore(ParamsConfig.class));
         return new ComponentMeta(resources);
     }

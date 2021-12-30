@@ -92,7 +92,7 @@ public class DataDumpers {
         }
 
         @Override
-        public Iterator<Map<String, String>> startDump() {
+        public Iterator<Map<String, Object>> startDump() {
             throw new UnsupportedOperationException();
         }
 

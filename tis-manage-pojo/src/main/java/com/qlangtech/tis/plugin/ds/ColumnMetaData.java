@@ -221,6 +221,7 @@ public class ColumnMetaData extends Option {
             return "{" +
                     "type=" + type +
                     ", columnSize=" + columnSize +
+                    ", decimalDigits=" + decimalDigits +
                     '}';
         }
     }

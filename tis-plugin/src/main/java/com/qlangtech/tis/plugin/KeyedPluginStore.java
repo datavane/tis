@@ -151,8 +151,11 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     }
 
     public static class AppKey<TT extends Describable> extends Key<TT> {
+        public final boolean isDB;
+
         public AppKey(IPluginContext pluginContext, boolean isDB, String appname, Class<TT> clazz) {
             super(isDB ? TIS.DB_GROUP_NAME : IFullBuildContext.NAME_APP_DIR, calAppName(pluginContext, appname), clazz);
+            this.isDB = isDB;
         }
 
         private static KeyVal calAppName(IPluginContext pluginContext, String appname) {

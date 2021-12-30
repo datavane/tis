@@ -157,6 +157,17 @@ public class DataXCfgGenerator {
     public static final String FILE_GEN = "gen";
 
     public GenerateCfgs startGenerateCfg(final File dataXCfgDir) throws Exception {
+        return startGenerateCfg(dataXCfgDir, new IGenerateScriptFile() {
+            @Override
+            public void generateScriptFile(File dataXCfgDir, IDataxReader reader, IDataxWriter writer
+                    , IDataxReaderContext readerContext, List<String> subTaskName
+                    , Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
+                generateDataXAndSQLDDLFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
+            }
+        });
+    }
+
+    public GenerateCfgs startGenerateCfg(final File dataXCfgDir, IGenerateScriptFile scriptFileGenerator) throws Exception {
         GenerateCfgs cfgs = new GenerateCfgs();
 
         FileUtils.forceMkdir(dataXCfgDir);
@@ -237,32 +248,8 @@ public class DataXCfgGenerator {
                 // tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
                 throw new IllegalStateException("unexpect status");
             }
-
-            if (tableMapper.isPresent() && writerDescriptor.isSupportTabCreate()) {
-                for (ISelectedTab.ColMeta colMeta : tableMapper.get().getSourceCols()) {
-                    if (colMeta.getType() == null) {
-                        throw new IllegalStateException("reader context:" + readerContext.getSourceEntityName()
-                                + " relevant col type which's name " + colMeta.getName() + " can not be null");
-                    }
-                }
-                // 创建ddl
-
-                IDataxProcessor.TableMap mapper = tableMapper.get();
-                String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
-                if (!createDDLFiles.contains(sqlFileName)) {
-                    StringBuffer createDDL = writer.generateCreateDDL(mapper);
-                    if (createDDL != null) {
-                        createDDLFiles.add(sqlFileName);
-                        // 由于用户可能已经手动改动过生成的DDL文件，所以不能强行覆盖已经存在的DDL文件，overWrite参数应该为false
-                        dataxProcessor.saveCreateTableDDL(this.pluginCtx, createDDL, sqlFileName, false);
-                    }
-                }
-            }
-
-
-            configFile = new File(dataXCfgDir, readerContext.getTaskName() + ".json");
-            FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, (tableMapper)), TisUTF8.get(), false);
-            subTaskName.add(configFile.getName());
+            scriptFileGenerator.generateScriptFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
+            // generateScriptFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
         }
 
         // 将老的已经没有用的ddl sql文件删除调
@@ -281,6 +268,50 @@ public class DataXCfgGenerator {
         return cfgs;
     }
 
+    public interface IGenerateScriptFile {
+        void generateScriptFile(File dataXCfgDir, IDataxReader reader
+                , IDataxWriter writer
+                , IDataxReaderContext readerContext, List<String> subTaskName, Set<String> createDDLFiles
+                , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException;
+    }
+
+
+    private void generateDataXAndSQLDDLFile(File dataXCfgDir, IDataxReader reader
+            , IDataxWriter writer
+            , IDataxReaderContext readerContext, List<String> subTaskName, Set<String> createDDLFiles
+            , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
+        generateTabCreateDDL(this.pluginCtx, dataxProcessor, writer, readerContext, createDDLFiles, tableMapper, false);
+
+
+        File configFile = new File(dataXCfgDir, readerContext.getTaskName() + ".json");
+        FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, (tableMapper)), TisUTF8.get(), false);
+        subTaskName.add(configFile.getName());
+    }
+
+    public static void generateTabCreateDDL(IPluginContext pluginCtx, IDataxProcessor dataxProcessor, IDataxWriter writer
+            , IDataxReaderContext readerContext, Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper, boolean overWrite) throws IOException {
+        DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
+        if (tableMapper.isPresent() && writerDescriptor.isSupportTabCreate()) {
+            for (ISelectedTab.ColMeta colMeta : tableMapper.get().getSourceCols()) {
+                if (colMeta.getType() == null) {
+                    throw new IllegalStateException("reader context:" + readerContext.getSourceEntityName()
+                            + " relevant col type which's name " + colMeta.getName() + " can not be null");
+                }
+            }
+            // 创建ddl
+
+            IDataxProcessor.TableMap mapper = tableMapper.get();
+            String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
+            if (!createDDLFiles.contains(sqlFileName)) {
+                StringBuffer createDDL = writer.generateCreateDDL(mapper);
+                if (createDDL != null) {
+                    createDDLFiles.add(sqlFileName);
+                    // 由于用户可能已经手动改动过生成的DDL文件，所以不能强行覆盖已经存在的DDL文件，overWrite参数应该为false
+                    dataxProcessor.saveCreateTableDDL(pluginCtx, createDDL, sqlFileName, overWrite);
+                }
+            }
+        }
+    }
 
     private static class GenerateCfgs {
         private List<String> dataxFiles = Collections.emptyList();

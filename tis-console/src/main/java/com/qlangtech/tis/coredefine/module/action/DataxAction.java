@@ -27,14 +27,13 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.datax.DataXJobSubmit;
-import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -67,6 +66,7 @@ import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -540,7 +540,35 @@ public class DataxAction extends BasicModule {
 //      // 先清空文件
 //      FileUtils.cleanDirectory(dataxCfgDir);
 //    }
-    this.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir) : cfgGenerator.startGenerateCfg(dataxCfgDir));
+    this.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir)
+      : cfgGenerator.startGenerateCfg(dataxCfgDir));
+  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doRegenerateSqlDdlCfgs(Context context) throws Exception {
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+
+    DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
+    File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
+
+    IDataxWriter writer = dataxProcessor.getWriter(this);
+    DataxWriter.BaseDataxWriterDescriptor writerDesc = writer.getWriterDescriptor();
+    if (!writerDesc.isSupportTabCreate()) {
+      throw new IllegalStateException("writerDesc:" + writerDesc.getDisplayName() + " is not support generate Table create DDL");
+    }
+
+    this.setBizResult(context, cfgGenerator.startGenerateCfg(dataxCfgDir
+      , new DataXCfgGenerator.IGenerateScriptFile() {
+        @Override
+        public void generateScriptFile(File dataXCfgDir, IDataxReader reader, IDataxWriter writer
+          , IDataxReaderContext readerContext, List<String> subTaskName
+          , Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
+
+          DataXCfgGenerator.generateTabCreateDDL(
+            DataxAction.this, dataxProcessor, writer, readerContext, createDDLFiles, tableMapper, true);
+        }
+      }));
   }
 
 
@@ -600,6 +628,8 @@ public class DataxAction extends BasicModule {
     ApplicationCriteria appCriteria = new ApplicationCriteria();
     appCriteria.createCriteria().andProjectNameEqualTo(dataxName);
     this.getApplicationDAO().updateByExampleSelective(dataXApp, appCriteria);
+    IAppSource.cleanAppSourcePluginStoreCache(null, dataxName);
+    IAppSource.cleanAppSourcePluginStoreCache(this, dataxName);
     this.addActionMessage(context, "已经成功更新");
   }
 

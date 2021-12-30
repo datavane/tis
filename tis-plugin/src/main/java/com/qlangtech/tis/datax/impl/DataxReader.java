@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.datax.impl;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxReader;
@@ -28,11 +29,9 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.lang.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * datax Reader
@@ -60,7 +59,39 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
      * @return
      */
     public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, boolean db, String appname) {
-        return TIS.dataXReaderPluginStore.get(new TIS.DataXReaderAppKey(pluginContext, db, appname, new PluginStore.IPluginProcessCallback<DataxReader>() {
+        return TIS.dataXReaderPluginStore.get(createDataXReaderKey(pluginContext, db, appname));
+    }
+
+    public static void cleanPluginStoreCache(IPluginContext pluginContext, boolean db, String appname) {
+        TIS.DataXReaderAppKey appKey = createDataXReaderKey(pluginContext, db, appname);
+        TIS.dataXReaderPluginStore.clear(appKey);
+        //if (pluginContext != null && pluginContext.getExecId() != null) {
+
+        if (pluginContext != null) {
+            // 保证在DataXAction+doUpdateDatax 方法中两次调用以下方法块只被调用一次
+            return;
+        }
+        // 需要将非编辑模式下的对象也跟新一下=====================================
+        Set<Map.Entry<SubFieldFormAppKey<? extends Describable>, KeyedPluginStore<? extends Describable>>>
+                entries = TIS.dataXReaderSubFormPluginStore.getEntries();
+        List<SubFieldFormAppKey<? extends Describable>> willDelete = Lists.newArrayList();
+        entries.forEach((e) -> {
+            SubFieldFormAppKey key = e.getKey();
+            if (StringUtils.equals(key.keyVal.getVal(), appname) && key.isDB == db) {
+                willDelete.add(key);
+            }
+//                if (key.isSameAppName(appname, db) && StringUtils.isEmpty(key.keyVal.getSuffix())) {
+//                    setReaderSubFormProp(props, e.getValue().getPlugin(), pluginStore.getPlugin());
+//                }
+        });
+        willDelete.forEach((deleteKey) -> {
+            TIS.dataXReaderSubFormPluginStore.clear(deleteKey);
+        });
+        //}
+    }
+
+    private static TIS.DataXReaderAppKey createDataXReaderKey(IPluginContext pluginContext, boolean db, String appname) {
+        return new TIS.DataXReaderAppKey(pluginContext, db, appname, new PluginStore.IPluginProcessCallback<DataxReader>() {
             @Override
             public void afterDeserialize(final DataxReader reader) {
 
@@ -81,6 +112,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                             @Override
                                             public void accept(PluginStore<DataxReader> pluginStore) {
                                                 setReaderSubFormProp(props, pluginStore.getPlugin());
+
+
                                             }
                                         });
                                 DataxReader subFieldReader = subFieldStore.getPlugin();
@@ -94,6 +127,13 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                             }
 
                             private void setReaderSubFormProp(SuFormProperties props, DataxReader subFieldReader) {
+                                setReaderSubFormProp(props, reader, subFieldReader);
+                            }
+
+                            private void setReaderSubFormProp(SuFormProperties props, DataxReader reader, DataxReader subFieldReader) {
+                                if (reader == null) {
+                                    return;
+                                }
                                 try {
                                     props.subFormField.set(reader, props.subFormField.get(subFieldReader));
                                 } catch (IllegalAccessException e) {
@@ -104,7 +144,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                     });
                 }
             }
-        }));
+        });
     }
 
 

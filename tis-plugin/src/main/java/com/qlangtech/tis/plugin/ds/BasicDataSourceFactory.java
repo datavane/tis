@@ -53,7 +53,7 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
     @FormField(ordinal = 3, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.db_col_name})
     public String dbName;
 
-    @FormField(ordinal = 5, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})
+    @FormField(ordinal = 5, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.db_col_name})
     public String userName;
 
     @FormField(ordinal = 7, type = FormFieldType.PASSWORD, validate = {})
