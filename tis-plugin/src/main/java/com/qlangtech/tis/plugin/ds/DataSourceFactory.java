@@ -202,6 +202,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return columns;
     }
 
+
+
     protected ColumnMetaData.DataType getDataType(String colName, ResultSet cols) throws SQLException {
 
         // decimal 的小数位长度
