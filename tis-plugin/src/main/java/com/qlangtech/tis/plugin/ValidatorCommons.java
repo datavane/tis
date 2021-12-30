@@ -33,7 +33,7 @@ public interface ValidatorCommons {
     Pattern PATTERN_ABSOLUTE_PATH = Pattern.compile("/" + PATTERN_RELATIVE_PATH.toString());
     String MSG_ABSOLUTE_PATH_ERROR = "不符合绝对路径格式要求";
     // 数据库列名
-    Pattern PATTERN_DB_COL_NAME = Pattern.compile("(^_([a-zA-Z0-9]_?)*$)|(^[a-zA-Z](_?[a-zA-Z0-9])*_?$)");
+    Pattern PATTERN_DB_COL_NAME = Pattern.compile("(^_([a-zA-Z0-9]_?)*$)|(^[a-zA-Z0-9](_?[a-zA-Z0-9])*_?$)");
 
     String MSG_DB_COL_NAME_ERROR = "格式不正确，提示:'首位可以是字母或下划线。首位之后可以是字母，数字以及下划线。下划线后不能接下划线'";
 

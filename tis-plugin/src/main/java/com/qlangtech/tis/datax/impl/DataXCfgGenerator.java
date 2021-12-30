@@ -157,9 +157,9 @@ public class DataXCfgGenerator {
     public static final String FILE_GEN = "gen";
 
     public GenerateCfgs startGenerateCfg(final File dataXCfgDir) throws Exception {
-        return startGenerateCfg(dataXCfgDir, new IGenerateScriptFile() {
+        return startGenerateCfg(new IGenerateScriptFile() {
             @Override
-            public void generateScriptFile(File dataXCfgDir, IDataxReader reader, IDataxWriter writer
+            public void generateScriptFile(IDataxReader reader, IDataxWriter writer
                     , IDataxReaderContext readerContext, List<String> subTaskName
                     , Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
                 generateDataXAndSQLDDLFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
@@ -167,12 +167,12 @@ public class DataXCfgGenerator {
         });
     }
 
-    public GenerateCfgs startGenerateCfg(final File dataXCfgDir, IGenerateScriptFile scriptFileGenerator) throws Exception {
+    public GenerateCfgs startGenerateCfg(IGenerateScriptFile scriptFileGenerator) throws Exception {
         GenerateCfgs cfgs = new GenerateCfgs();
 
-        FileUtils.forceMkdir(dataXCfgDir);
-        // 先清空文件
-        FileUtils.cleanDirectory(dataXCfgDir);
+//        FileUtils.forceMkdir(dataXCfgDir);
+//        // 先清空文件
+//        FileUtils.cleanDirectory(dataXCfgDir);
 
         boolean unStructedReader = dataxProcessor.isReaderUnStructed(this.pluginCtx);
 
@@ -248,7 +248,7 @@ public class DataXCfgGenerator {
                 // tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
                 throw new IllegalStateException("unexpect status");
             }
-            scriptFileGenerator.generateScriptFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
+            scriptFileGenerator.generateScriptFile(reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
             // generateScriptFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
         }
 
@@ -261,7 +261,7 @@ public class DataXCfgGenerator {
         }
 
         long current = System.currentTimeMillis();
-        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
+//        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
         cfgs.createDDLFiles = Lists.newArrayList(createDDLFiles);
         cfgs.dataxFiles = subTaskName;
         cfgs.genTime = current;
@@ -269,7 +269,7 @@ public class DataXCfgGenerator {
     }
 
     public interface IGenerateScriptFile {
-        void generateScriptFile(File dataXCfgDir, IDataxReader reader
+        void generateScriptFile(IDataxReader reader
                 , IDataxWriter writer
                 , IDataxReaderContext readerContext, List<String> subTaskName, Set<String> createDDLFiles
                 , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException;
@@ -313,7 +313,7 @@ public class DataXCfgGenerator {
         }
     }
 
-    private static class GenerateCfgs {
+    public static class GenerateCfgs {
         private List<String> dataxFiles = Collections.emptyList();
         private List<String> createDDLFiles = Collections.emptyList();
         private long genTime;

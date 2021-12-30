@@ -56,7 +56,7 @@ public class MockFlatTableBuilder extends FlatTableBuilder {
     }
 
     @Override
-    public DataflowTask createTask(ISqlTask nodeMeta, boolean isFinalNode, ITemplateContext tplContext, ITaskContext taskContext, IFs2Table fs2Table, IJoinTaskStatus joinTaskStatus) {
+    public DataflowTask createTask(ISqlTask nodeMeta, boolean isFinalNode, ITemplateContext tplContext, ITaskContext taskContext, IJoinTaskStatus joinTaskStatus) {
         return new DataflowTask(nodeMeta.getId()) {
 
             private Map<String, Boolean> status = Maps.newHashMap();
@@ -82,6 +82,8 @@ public class MockFlatTableBuilder extends FlatTableBuilder {
             }
         };
     }
+
+
 
     @Override
     public String identityValue() {

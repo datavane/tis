@@ -34,6 +34,7 @@ import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +66,9 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         List<IRemoteJobTrigger> triggers = Lists.newArrayList();
 
         List<String> cfgFileNames = appSource.getDataxCfgFileNames(null);
+        if (CollectionUtils.isEmpty(cfgFileNames)) {
+            throw new IllegalStateException("dataX cfgFileNames can not be empty");
+        }
 
         DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();
         Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(expectDataXJobSumit);

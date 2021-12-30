@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.exec.datax;
 
+import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxGlobalCfg;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecuteResult;
@@ -75,7 +76,8 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
 
         DataXExecuteInterceptor executeInterceptor = new DataXExecuteInterceptor() {
             @Override
-            protected IRemoteJobTrigger createDataXJob(IExecChainContext execChainContext, RpcServiceReference statusRpc, DataxProcessor appSource, String fileName) {
+            protected IRemoteJobTrigger createDataXJob(DataXJobSubmit.IDataXJobContext execChainContext
+                    , DataXJobSubmit submit, DataXJobSubmit.InstanceType expectDataXJobSumit, RpcServiceReference statusRpc, DataxProcessor appSource, String fileName) {
                 assertEquals(dataCfgFileName, fileName);
                 return jobTrigger;
             }

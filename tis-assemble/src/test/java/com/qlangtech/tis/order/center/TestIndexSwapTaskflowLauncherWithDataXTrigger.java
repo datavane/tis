@@ -59,7 +59,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         ExecuteResult executeResult = taskflowLauncher.startWork(chainContext);
         assertTrue(executeResult.isSuccess());
     }
-
+    static final int TASK_ID = 253;
 
     public static DefaultChainContext createRangeChainContext(FullbuildPhase start, FullbuildPhase end) throws Exception {
         TestParamContext params = new TestParamContext();
@@ -74,7 +74,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         Assert.assertEquals(start, range.getStart());
         Assert.assertEquals(end, range.getEnd());
 
-        chainContext.setAttribute(IExecChainContext.KEY_TASK_ID, TestIndexSwapTaskflowLauncher.TASK_ID);
+        chainContext.setAttribute(IExecChainContext.KEY_TASK_ID, TASK_ID);
 
         chainContext.setMdcParamContext(() -> {
         });

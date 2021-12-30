@@ -33,7 +33,6 @@ import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -535,13 +534,21 @@ public class DataxAction extends BasicModule {
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
     File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
 
-//    if (!getExist) {
-//      FileUtils.forceMkdir(dataxCfgDir);
-//      // 先清空文件
-//      FileUtils.cleanDirectory(dataxCfgDir);
-//    }
+    if (!getExist) {
+      FileUtils.forceMkdir(dataxCfgDir);
+      // 先清空文件
+      FileUtils.cleanDirectory(dataxCfgDir);
+    }
+
+    DataXCfgGenerator.GenerateCfgs generateCfgs = null;
     this.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir)
-      : cfgGenerator.startGenerateCfg(dataxCfgDir));
+      : (generateCfgs = cfgGenerator.startGenerateCfg(dataxCfgDir)));
+
+    if (!getExist) {
+      Objects.requireNonNull(generateCfgs, "generateCfgs can not be null");
+      FileUtils.write(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN)
+        , String.valueOf(generateCfgs.getGenTime()), TisUTF8.get(), false);
+    }
   }
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
@@ -550,7 +557,6 @@ public class DataxAction extends BasicModule {
     DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
 
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
-    File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
 
     IDataxWriter writer = dataxProcessor.getWriter(this);
     DataxWriter.BaseDataxWriterDescriptor writerDesc = writer.getWriterDescriptor();
@@ -558,10 +564,10 @@ public class DataxAction extends BasicModule {
       throw new IllegalStateException("writerDesc:" + writerDesc.getDisplayName() + " is not support generate Table create DDL");
     }
 
-    this.setBizResult(context, cfgGenerator.startGenerateCfg(dataxCfgDir
-      , new DataXCfgGenerator.IGenerateScriptFile() {
+    this.setBizResult(context, cfgGenerator.startGenerateCfg(
+      new DataXCfgGenerator.IGenerateScriptFile() {
         @Override
-        public void generateScriptFile(File dataXCfgDir, IDataxReader reader, IDataxWriter writer
+        public void generateScriptFile(IDataxReader reader, IDataxWriter writer
           , IDataxReaderContext readerContext, List<String> subTaskName
           , Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
 
