@@ -337,7 +337,7 @@ public class SysInitializeAction   //extends BasicModule
     }
 
     try {
-      Thread.sleep(10000);
+      Thread.sleep(2000);
     } catch (InterruptedException e) {
 
     }
