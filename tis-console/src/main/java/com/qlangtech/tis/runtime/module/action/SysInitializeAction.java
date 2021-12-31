@@ -387,16 +387,16 @@ public class SysInitializeAction   //extends BasicModule
     };
     return coordinator;
   }
-
-  /**
-   * 百岁add
-   * copy from org.apache.solr.cloud.ZkController
-   * Create the zknodes necessary for a cluster to operate
-   *
-   * @param zkClient a SolrZkClient
-   * @throws KeeperException      if there is a Zookeeper error
-   * @throws InterruptedException on interrupt
-   */
+//
+//  /**
+//   * 百岁add
+//   * copy from org.apache.solr.cloud.ZkController
+//   * Create the zknodes necessary for a cluster to operate
+//   *
+//   * @param zkClient a SolrZkClient
+//   * @throws KeeperException      if there is a Zookeeper error
+//   * @throws InterruptedException on interrupt
+//   */
 //  public static void createClusterZkNodes(SolrZkClient zkClient)
 //    throws KeeperException, InterruptedException, IOException {
 //    ZkCmdExecutor cmdExecutor = new ZkCmdExecutor(zkClient.getZkClientTimeout());
