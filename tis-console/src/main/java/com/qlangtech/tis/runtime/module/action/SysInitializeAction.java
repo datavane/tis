@@ -285,49 +285,49 @@ public class SysInitializeAction   //extends BasicModule
   // 初始化ZK内容
   public boolean initializeZkPath(String zkHost) {
 
-//    Matcher matcher = PATTERN_ZK_ADDRESS.matcher(zkHost);
-//    if (!matcher.matches()) {
-//      throw new IllegalStateException("zk address " + zkHost + " is not match " + PATTERN_ZK_ADDRESS);
-//    }
-//
-//    final String zkServer = matcher.group(1);
-//    String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
-//    logger.info("zkServer:{},zkSubDir:{}", zkServer, zkSubDir);
-//
-//    if (StringUtils.endsWith(zkSubDir, "/")) {
-//      zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
-//    }
-//
-//    ZooKeeper zk = null;
-//    StringBuffer buildLog = new StringBuffer();
-//    String createPath = null;
-//    try {
-//      zk = new ZooKeeper(zkServer, 50000, null);
-//      zk.getChildren("/", false);
-//      buildLog.append("create zkServer ").append(zkServer);
-//      createPath = zkSubDir + "/tis";
-//
-//      ITISCoordinator coordinator = getCoordinator(zk);
-//      logger.info("guaranteeExist:{}", createPath);
-//      ZkUtils.guaranteeExist(coordinator, createPath);
-//      buildLog.append(",path1:").append(createPath);
-//      createPath = zkSubDir + "/tis-lock/dumpindex";
-//      ZkUtils.guaranteeExist(coordinator, createPath);
-//      buildLog.append(",path2:").append(createPath);
-//      createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
-//      ZkUtils.guaranteeExist(coordinator, createPath);
-//      buildLog.append(",path3:").append(createPath);
-//      logger.info(buildLog.toString());
-//    } catch (Throwable e) {
-//      throw new IllegalStateException("zk address:" + zkServer + " can not connect Zookeeper server", e);
-//    } finally {
-//      try {
-//        zk.close();
-//      } catch (Throwable e) {
-//
-//      }
-//    }
-//
+    Matcher matcher = PATTERN_ZK_ADDRESS.matcher(zkHost);
+    if (!matcher.matches()) {
+      throw new IllegalStateException("zk address " + zkHost + " is not match " + PATTERN_ZK_ADDRESS);
+    }
+
+    final String zkServer = matcher.group(1);
+    String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
+    logger.info("zkServer:{},zkSubDir:{}", zkServer, zkSubDir);
+
+    if (StringUtils.endsWith(zkSubDir, "/")) {
+      zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
+    }
+
+    ZooKeeper zk = null;
+    StringBuffer buildLog = new StringBuffer();
+    String createPath = null;
+    try {
+      zk = new ZooKeeper(zkServer, 50000, null);
+      zk.getChildren("/", false);
+      buildLog.append("create zkServer ").append(zkServer);
+      createPath = zkSubDir + "/tis";
+
+      ITISCoordinator coordinator = getCoordinator(zk);
+      logger.info("guaranteeExist:{}", createPath);
+      ZkUtils.guaranteeExist(coordinator, createPath);
+      buildLog.append(",path1:").append(createPath);
+      createPath = zkSubDir + "/tis-lock/dumpindex";
+      ZkUtils.guaranteeExist(coordinator, createPath);
+      buildLog.append(",path2:").append(createPath);
+      createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
+      ZkUtils.guaranteeExist(coordinator, createPath);
+      buildLog.append(",path3:").append(createPath);
+      logger.info(buildLog.toString());
+    } catch (Throwable e) {
+      throw new IllegalStateException("zk address:" + zkServer + " can not connect Zookeeper server", e);
+    } finally {
+      try {
+        zk.close();
+      } catch (Throwable e) {
+
+      }
+    }
+
 //    TisZkClient zkClient = new TisZkClient(zkHost, 60000);
 //    try (SolrZkClient solrZk = zkClient.getZK()) {
 //      try {
@@ -397,22 +397,22 @@ public class SysInitializeAction   //extends BasicModule
    * @throws KeeperException      if there is a Zookeeper error
    * @throws InterruptedException on interrupt
    */
-  public static void createClusterZkNodes(SolrZkClient zkClient)
-    throws KeeperException, InterruptedException, IOException {
-    ZkCmdExecutor cmdExecutor = new ZkCmdExecutor(zkClient.getZkClientTimeout());
-    cmdExecutor.ensureExists(ZkStateReader.LIVE_NODES_ZKNODE, zkClient);
-    cmdExecutor.ensureExists(ZkStateReader.COLLECTIONS_ZKNODE, zkClient);
-    cmdExecutor.ensureExists(ZkStateReader.ALIASES, zkClient);
-    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_EVENTS_PATH, zkClient);
-    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_TRIGGER_STATE_PATH, zkClient);
-    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_NODE_ADDED_PATH, zkClient);
-    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_NODE_LOST_PATH, zkClient);
-    byte[] emptyJson = "{}".getBytes(StandardCharsets.UTF_8);
-    cmdExecutor.ensureExists(ZkStateReader.CLUSTER_STATE, emptyJson, CreateMode.PERSISTENT, zkClient);
-    cmdExecutor.ensureExists(ZkStateReader.SOLR_SECURITY_CONF_PATH, emptyJson, CreateMode.PERSISTENT, zkClient);
-    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_CONF_PATH, emptyJson, CreateMode.PERSISTENT, zkClient);
-    // bootstrapDefaultConfigSet(zkClient);
-  }
+//  public static void createClusterZkNodes(SolrZkClient zkClient)
+//    throws KeeperException, InterruptedException, IOException {
+//    ZkCmdExecutor cmdExecutor = new ZkCmdExecutor(zkClient.getZkClientTimeout());
+//    cmdExecutor.ensureExists(ZkStateReader.LIVE_NODES_ZKNODE, zkClient);
+//    cmdExecutor.ensureExists(ZkStateReader.COLLECTIONS_ZKNODE, zkClient);
+//    cmdExecutor.ensureExists(ZkStateReader.ALIASES, zkClient);
+//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_EVENTS_PATH, zkClient);
+//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_TRIGGER_STATE_PATH, zkClient);
+//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_NODE_ADDED_PATH, zkClient);
+//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_NODE_LOST_PATH, zkClient);
+//    byte[] emptyJson = "{}".getBytes(StandardCharsets.UTF_8);
+//    cmdExecutor.ensureExists(ZkStateReader.CLUSTER_STATE, emptyJson, CreateMode.PERSISTENT, zkClient);
+//    cmdExecutor.ensureExists(ZkStateReader.SOLR_SECURITY_CONF_PATH, emptyJson, CreateMode.PERSISTENT, zkClient);
+//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_CONF_PATH, emptyJson, CreateMode.PERSISTENT, zkClient);
+//    // bootstrapDefaultConfigSet(zkClient);
+//  }
 
 
   void initializeSchemaConfig(Application app) throws IOException {
