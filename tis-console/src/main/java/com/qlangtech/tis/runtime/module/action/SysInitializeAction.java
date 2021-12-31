@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.cloud.AdapterTisCoordinator;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
@@ -296,29 +297,35 @@ public class SysInitializeAction   //extends BasicModule
     ZooKeeper zk = null;
     StringBuffer buildLog = new StringBuffer();
     String createPath = null;
+    List<String> createPaths = Lists.newArrayList();
     try {
-      final Watcher watcher = new Watcher() {
-        @Override
-        public void process(WatchedEvent event) {
-          logger.info(event.getType() + "," + event.getState() + "," + event.getPath());
-        }
-      };
-      zk = new ZooKeeper(zkServer, 50000, watcher);
+//      final Watcher watcher = new Watcher() {
+//        @Override
+//        public void process(WatchedEvent event) {
+//          logger.info(event.getType() + "," + event.getState() + "," + event.getPath());
+//        }
+//      };
+      zk = this.createZK(zkServer); //new ZooKeeper(zkServer, 50000, watcher);
       zk.getChildren("/", false);
       buildLog.append("create zkServer ").append(zkServer);
       createPath = zkSubDir + "/tis";
 
       ITISCoordinator coordinator = getCoordinator(zk);
       logger.info("guaranteeExist:{}", createPath);
+      createPaths.add(createPath);
       ZkUtils.guaranteeExist(coordinator, createPath);
       buildLog.append(",path1:").append(createPath);
       createPath = zkSubDir + "/tis-lock/dumpindex";
+      createPaths.add(createPath);
       ZkUtils.guaranteeExist(coordinator, createPath);
       buildLog.append(",path2:").append(createPath);
       createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
+      createPaths.add(createPath);
       ZkUtils.guaranteeExist(coordinator, createPath);
       buildLog.append(",path3:").append(createPath);
       logger.info(buildLog.toString());
+
+
     } catch (Throwable e) {
       throw new IllegalStateException("zk address:" + zkServer + " can not connect Zookeeper server", e);
     } finally {
@@ -329,6 +336,31 @@ public class SysInitializeAction   //extends BasicModule
       }
     }
 
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+
+    }
+
+    try {
+      zk = this.createZK(zkServer);
+      for (String p : createPaths) {
+        if (zk.exists(p, false) == null) {
+          throw new TisException("create path:" + p + " must be exist");
+        }
+      }
+    } catch (TisException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        zk.close();
+      } catch (InterruptedException e) {
+      }
+    }
+
+
 //    TisZkClient zkClient = new TisZkClient(zkHost, 60000);
 //    try (SolrZkClient solrZk = zkClient.getZK()) {
 //      try {
@@ -338,6 +370,16 @@ public class SysInitializeAction   //extends BasicModule
 //      }
 //    }
     return true;
+  }
+
+  private ZooKeeper createZK(String zkServer) throws IOException {
+    final Watcher watcher = new Watcher() {
+      @Override
+      public void process(WatchedEvent event) {
+        logger.info(event.getType() + "," + event.getState() + "," + event.getPath());
+      }
+    };
+    return new ZooKeeper(zkServer, 50000, watcher);
   }
 
   private static ITISCoordinator getCoordinator(ZooKeeper zooKeeper) throws Exception {
