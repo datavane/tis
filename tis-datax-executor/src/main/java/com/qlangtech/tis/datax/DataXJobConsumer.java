@@ -206,7 +206,8 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
     }
 
     protected String getIncrStateCollectAddress() {
-        return ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH);
+        // return ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH);
+        return Config.getAssembleHost() + ":" + ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT;
     }
 
     protected String getMainClassName() {

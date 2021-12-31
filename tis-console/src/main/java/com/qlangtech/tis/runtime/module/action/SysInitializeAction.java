@@ -319,10 +319,10 @@ public class SysInitializeAction   //extends BasicModule
       createPaths.add(createPath);
       ZkUtils.guaranteeExist(coordinator, createPath);
       buildLog.append(",path2:").append(createPath);
-      createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
-      createPaths.add(createPath);
-      ZkUtils.guaranteeExist(coordinator, createPath);
-      buildLog.append(",path3:").append(createPath);
+//      createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
+//      createPaths.add(createPath);
+//      ZkUtils.guaranteeExist(coordinator, createPath);
+//      buildLog.append(",path3:").append(createPath);
       logger.info(buildLog.toString());
 
 
