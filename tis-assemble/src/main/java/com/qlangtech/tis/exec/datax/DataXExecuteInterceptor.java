@@ -38,10 +38,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -56,6 +53,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
     @Override
     protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
+
 
         RpcServiceReference statusRpc = getDataXExecReporter();
 
@@ -79,6 +77,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
         DataXJobSubmit submit = jobSubmit.get();
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
+        Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
         try {
             for (String fileName : cfgFileNames) {
                 jobTrigger = createDataXJob(dataXJobContext, submit, expectDataXJobSumit, statusRpc, appSource, fileName);

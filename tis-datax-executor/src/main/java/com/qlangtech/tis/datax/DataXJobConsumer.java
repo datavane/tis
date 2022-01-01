@@ -207,6 +207,7 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
 
     protected String getIncrStateCollectAddress() {
         // return ZkUtils.getFirstChildValue(this.coordinator, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH);
+        // TODO: 如果是分布式环境的话这个getAssembleHost 需要可以支持HA，目前是写死的
         return Config.getAssembleHost() + ":" + ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT;
     }
 
