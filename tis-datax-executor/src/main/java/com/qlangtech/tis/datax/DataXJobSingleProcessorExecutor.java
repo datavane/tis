@@ -114,6 +114,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
                     if (resultHandler.getException() != null) {
                         logger.error("dataX:" + dataxName + ",ERROR MSG:" + resultHandler.getException().getMessage());
                         // throw new RuntimeException(command, resultHandler.getException());
+                        throw new DataXJobSingleProcessorException("dataX:" + dataxName + ",ERROR MSG:" + resultHandler.getException().getMessage());
                     }
                 }
             } finally {
