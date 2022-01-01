@@ -22,7 +22,8 @@ package com.qlangtech.tis.manage.biz.dal.pojo;
  * @date 2021-04-19 22:34
  */
 public enum AppType {
-    SolrIndex(1), DataXPipe(2);
+    //SolrIndex(1),
+    DataXPipe(2);
 
     private final int type;
 

@@ -1241,7 +1241,8 @@ public class SchemaAction extends BasicModule {
     }
     final RunEnvironment runtime = RunEnvironment.getSysRuntime();
     ServerGroupCriteria sgCriteria = new ServerGroupCriteria();
-    sgCriteria.createCriteria().andAppIdEqualTo(app.getAppId()).andRuntEnvironmentEqualTo(runtime.getId()).andGroupIndexEqualTo((short) 0);
+    sgCriteria.createCriteria().andAppIdEqualTo(app.getAppId())
+      .andRuntEnvironmentEqualTo(runtime.getId()).andGroupIndexEqualTo((short) 0);
     List<ServerGroup> sGroupList = groupDAO.selectByExample(sgCriteria);
     for (ServerGroup group : sGroupList) {
       return group.getPublishSnapshotId();

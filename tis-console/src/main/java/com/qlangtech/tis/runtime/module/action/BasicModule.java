@@ -242,12 +242,12 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
    * @throws InterruptedException
    */
   protected boolean isIndexExist() throws KeeperException, InterruptedException {
-//    AppDomainInfo app = this.getAppDomain();
-//    String collection = app.getAppName();
-//    if (StringUtils.isEmpty(collection)) {
-//      throw new IllegalStateException("param 'collection' can not be null");
-//    }
-//    this.getApplicationDAO().updateLastProcessTime(collection);
+    AppDomainInfo app = this.getAppDomain();
+    String collection = app.getAppName();
+    if (StringUtils.isEmpty(collection)) {
+      throw new IllegalStateException("param 'collection' can not be null");
+    }
+    this.getApplicationDAO().updateLastProcessTime(collection);
 //    if (app.getAppType() == AppType.SolrIndex) {
 //      return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
 //    }
