@@ -373,10 +373,7 @@ public class DataxExecutor {
     }
 
     protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
-//        if (1 == 1) {
-//            // FIXME
-//            throw new Error("for test breakdown startEngine");
-//        }
+
         Engine engine = new Engine() {
             @Override
             protected JobContainer createJobContainer(Configuration allConf) {

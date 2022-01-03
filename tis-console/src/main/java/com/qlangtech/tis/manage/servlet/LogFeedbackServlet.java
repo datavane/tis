@@ -1,22 +1,23 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.servlet;
 
+import ch.qos.logback.core.helpers.CyclicBuffer;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.protobuf.MessageOrBuilder;
@@ -25,7 +26,6 @@ import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TISK8sDelegate;
-import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
@@ -105,7 +105,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
   public class LogSocket extends WebSocketAdapter implements ILogListener, LogCollectorClient.IPhaseStatusCollectionListener {
 
-    private final Set<LogType> logtypes = new HashSet<>();
+    // 在客户端中将服务端的流式消息缓存一些，这样用户重复打开终端显示，第二次显示不会为空内容
+    private final Map<LogType, CyclicBuffer<MessageOrBuilder>> logtypes = new HashMap<>();
 
     private String collectionName;
 
@@ -196,8 +197,11 @@ public class LogFeedbackServlet extends WebSocketServlet {
       try {
         PExecuteState event = (PExecuteState) evt;
         LogType ltype = LogCollectorClient.convert(event.getLogType());
-        if (this.isConnected() && this.logtypes.contains(ltype)) {
+        CyclicBuffer<MessageOrBuilder> messageBuffer = null;
+        if (this.isConnected() && (messageBuffer = this.logtypes.get(ltype)) != null) {
           // JsonFormat.Printer printer = JsonFormat.printer();
+          // 向客户端缓存中也写一份
+          messageBuffer.add(event);
           sendMsg2Client(event);
         }
       } catch (IOException e) {
@@ -226,12 +230,30 @@ public class LogFeedbackServlet extends WebSocketServlet {
         // 线上环境不提供详细日志发送
         // return;
       }
-      if (!this.logtypes.add(monitorTarget.getLogType()) && /**
-       * POD日志监听需要可能会因为超时而重连
-       */
-        !monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE, LogType.DATAX_WORKER_POD_LOG)) {
-        return;
+
+      synchronized (this.logtypes) {
+        CyclicBuffer<MessageOrBuilder> msgBuffer = null;
+        if ((msgBuffer = this.logtypes.get(monitorTarget.getLogType())) != null) {
+          if (!monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE, LogType.DATAX_WORKER_POD_LOG)) {
+            // 将缓存中的数据写入到客户端
+            for (MessageOrBuilder msg : msgBuffer.asList()) {
+              sendMsg2Client(msg);
+            }
+            return;
+          }
+        }
+        if (msgBuffer == null) {
+          msgBuffer = new CyclicBuffer<>(200);
+          this.logtypes.put(monitorTarget.getLogType(), msgBuffer);
+        }
       }
+
+//      if (!this.logtypes.add(monitorTarget.getLogType()) && /**
+//       * POD日志监听需要可能会因为超时而重连
+//       */
+//        !monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE, LogType.DATAX_WORKER_POD_LOG)) {
+//        return;
+//      }
       if (monitorTarget.testLogType(LogType.DATAX_WORKER_POD_LOG)) {
         PayloadMonitorTarget mtarget = (PayloadMonitorTarget) monitorTarget;
         final String podName = mtarget.getPayLoad();
@@ -265,7 +287,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
             throw new RuntimeException("taskid:" + taskid, e);
           }
         });
-      //} else if (monitorTarget.testLogType(LogType.MQ_TAGS_STATUS)) {
+        //} else if (monitorTarget.testLogType(LogType.MQ_TAGS_STATUS)) {
 //        PluginStore<MQListenerFactory> mqListenerFactory = TIS.getPluginStore(this.collectionName, MQListenerFactory.class);
 //        MQListenerFactory plugin = mqListenerFactory.getPlugin();
 //        // 增量节点处理

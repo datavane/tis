@@ -31,11 +31,12 @@
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis</artifactId>
     <!--https://maven.apache.org/maven-ci-friendly.html-->
-    <version>3.3.0</version>
+    <version>3.4.0</version>
     <packaging>pom</packaging>
     <name>tis</name>
     <url>http://maven.apache.org</url>
     <properties>
+        <testcontainers.version>1.15.3</testcontainers.version>
         <flink.version>tis-1.13.1</flink.version>
         <alibaba.datax.version>${project.version}</alibaba.datax.version>
         <tisasm.oss.put.skip>true</tisasm.oss.put.skip>

@@ -117,7 +117,7 @@ public abstract class DataXJobSubmit {
         ) {
             msg.setAllRowsApproximately(dataXJob.getReadRows());
         } else {
-            msg.setAllRowsApproximately(1000000);
+            msg.setAllRowsApproximately(-1);
         }
         return msg;
     }
