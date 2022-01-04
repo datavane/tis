@@ -355,7 +355,7 @@ public class TIS {
     public static final File pluginDirRoot;
 
     static {
-        String pluginRootDir = System.getProperty("plugin_dir_root");
+         String pluginRootDir = System.getProperty("plugin_dir_root");
         pluginDirRoot = StringUtils.isEmpty(pluginRootDir)
                 ? new File(Config.getLibDir(), KEY_TIS_PLUGIN_ROOT)
                 : new File(pluginRootDir);
