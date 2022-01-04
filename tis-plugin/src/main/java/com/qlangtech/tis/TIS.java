@@ -44,6 +44,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.util.*;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.commons.lang.StringUtils;
 import org.jvnet.hudson.reactor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -351,7 +352,14 @@ public class TIS {
 
     public static final File pluginCfgRoot = new File(Config.getMetaCfgDir(), KEY_TIS_PLUGIN_CONFIG);
 
-    public static final File pluginDirRoot = new File(Config.getLibDir(), KEY_TIS_PLUGIN_ROOT);
+    public static final File pluginDirRoot;
+
+    static {
+        String pluginRootDir = System.getProperty("plugin_dir_root");
+        pluginDirRoot = StringUtils.isEmpty(pluginRootDir)
+                ? new File(Config.getLibDir(), KEY_TIS_PLUGIN_ROOT)
+                : new File(pluginRootDir);
+    }
 
     private static TIS tis;
 
