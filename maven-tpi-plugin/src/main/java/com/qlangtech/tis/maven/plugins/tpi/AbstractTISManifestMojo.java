@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.maven.plugins.tpi;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
@@ -26,6 +27,7 @@ import org.apache.maven.model.License;
 import org.apache.maven.model.Scm;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.util.IOUtil;
@@ -253,9 +255,18 @@ public abstract class AbstractTISManifestMojo extends AbstractHpiMojo {
 
     private String getScmUrl() {
         Scm scm = project.getScm();
-        if (scm != null) {
+
+        if (scm == null || StringUtils.isEmpty(scm.getUrl())) {
+            MavenProject parent = project.getParent();
+            scm = parent.getScm();
+            if (scm != null && StringUtils.isNotBlank(scm.getUrl())) {
+                boolean endWithSlash = StringUtils.endsWith(scm.getUrl(), "/");
+                return scm.getUrl() + (endWithSlash ? StringUtils.EMPTY : "/") + project.getArtifactId();
+            }
+        } else {
             return scm.getUrl();
         }
+
         return null;
     }
 

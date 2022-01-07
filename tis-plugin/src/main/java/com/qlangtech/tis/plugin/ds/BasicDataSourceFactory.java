@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -94,10 +95,13 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
         }
         List<ColumnMetaData> columns = new ArrayList<>();
         try {
-
             final DBConfig dbConfig = getDbConfig();
             dbConfig.vistDbName((config, ip, dbname) -> {
                 columns.addAll(parseTableColMeta(table, config, ip, dbname));
+                logger.info("tabmeta:{},colsSize:{},cols:{}"
+                        , table
+                        , columns.size()
+                        , columns.stream().map((c) -> c.getName()).collect(Collectors.joining(",")));
                 return true;
             });
             return columns;

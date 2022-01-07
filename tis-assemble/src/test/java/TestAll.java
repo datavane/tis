@@ -18,6 +18,7 @@
 
 import com.qlangtech.tis.exec.TestActionInvocation;
 import com.qlangtech.tis.exec.datax.TestDataXExecuteInterceptor;
+import com.qlangtech.tis.flume.TestTisPropertiesFileConfigurationProvider;
 import com.qlangtech.tis.full.dump.TestDefaultChainContext;
 import com.qlangtech.tis.fullbuild.servlet.TestTisServlet;
 import com.qlangtech.tis.fullbuild.taskflow.TestReactor;
@@ -50,6 +51,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestIncrStatusServer.class);
         suite.addTestSuite(TestRealtimeLoggerCollectorAppender.class);
         suite.addTestSuite(TestDataXExecuteInterceptor.class);
+        suite.addTestSuite(TestTisPropertiesFileConfigurationProvider.class);
         return suite;
     }
 }

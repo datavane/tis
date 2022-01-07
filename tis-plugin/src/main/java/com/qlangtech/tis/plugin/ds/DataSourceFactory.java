@@ -139,6 +139,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     protected List<ColumnMetaData> parseTableColMeta(String table, String jdbcUrl) {
         final List<ColumnMetaData> columns = Lists.newArrayList();
+        // 防止有col重复，测试中有用户取出的cols会有重复的
+        final Set<String> addedCols = Sets.newHashSet();
         validateConnection(jdbcUrl, (conn) -> {
             DatabaseMetaData metaData1 = null;
             ResultSet primaryKeys = null;
@@ -189,9 +191,12 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                  * IS_GENERATEDCOLUMN
                  * */
                 while (columns1.next()) {
-
-                    columns.add(new ColumnMetaData((i++), (colName = columns1.getString("COLUMN_NAME"))
-                            , getDataType(colName, columns1), pkCols.contains(colName)));
+                    colName = columns1.getString("COLUMN_NAME");
+                    // 如果有重复的col已经添加则直接跳过
+                    if (addedCols.add(colName)) {
+                        columns.add(new ColumnMetaData((i++), colName
+                                , getDataType(colName, columns1), pkCols.contains(colName)));
+                    }
                 }
 
             } finally {
@@ -201,7 +206,6 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         });
         return columns;
     }
-
 
 
     protected ColumnMetaData.DataType getDataType(String colName, ResultSet cols) throws SQLException {

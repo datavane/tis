@@ -34,6 +34,8 @@ import java.util.function.Consumer;
  */
 public class Config {
 
+    public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/guide/plugin/plugins/#";
+
     private static final String bundlePath = "tis-web-config/config";
     private static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
     private static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
@@ -110,6 +112,13 @@ public class Config {
      * @param consumer
      */
     public void visitKeyValPair(Consumer<Map.Entry<String, String>> consumer) {
+        Map<String, String> pairs = getImportKV();
+        for (Map.Entry<String, String> e : pairs.entrySet()) {
+            consumer.accept(e);
+        }
+    }
+
+    private Map<String, String> getImportKV() {
         Map<String, String> pairs = new HashMap<>();
         pairs.put(KEY_ZK_HOST, this.zkHost);
         pairs.put(KEY_ASSEMBLE_HOST, this.assembleHost);
@@ -118,9 +127,13 @@ public class Config {
         pairs.put(KEY_TIS_DATASOURCE_TYPE, dbCfg.dbtype);
         pairs.put(KEY_TIS_DATASOURCE_DBNAME, dbCfg.dbname);
         pairs.put(KEY_DEPLOY_MODE, this.deployMode);
-        for (Map.Entry<String, String> e : pairs.entrySet()) {
-            consumer.accept(e);
-        }
+        return pairs;
+    }
+
+    public Map<String, String> getAllKV() {
+        HashMap<String, String> kvs = new HashMap<>(getImportKV());
+        kvs.put(KEY_DATA_DIR, getDataDir(true).getAbsolutePath());
+        return kvs;
     }
 
     /**

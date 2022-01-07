@@ -28,9 +28,11 @@ import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
 
@@ -43,6 +45,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
     public static final String KEY_DISPLAY_NAME = "displayName";
     public static final String KEY_EXTEND_POINT = "extendPoint";
     public static final String KEY_IMPL = "impl";
+    public static final String KEY_IMPL_URL = "implUrl";
 
     private final List<Descriptor<T>> descriptors;
 
@@ -126,9 +129,11 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     des.put("subForm", true);
                 }
             });
-            des.put(KEY_DISPLAY_NAME, d.getDisplayName());
+
             des.put(KEY_EXTEND_POINT, d.getT().getName());
-            des.put(KEY_IMPL, d.getId());
+
+            setDescInfo(d, des);
+
             des.put("veriflable", d.overWriteValidateMethod);
             if (IdentityName.class.isAssignableFrom(d.clazz)) {
                 des.put("pkField", d.getIdentityField().displayName);
@@ -185,6 +190,12 @@ public class DescriptorsJSON<T extends Describable<T>> {
             descriptors.put(d.getId(), des);
         }
         return descriptors;
+    }
+
+    public static void setDescInfo(Descriptor d, JSONObject des) {
+        des.put(KEY_DISPLAY_NAME, d.getDisplayName());
+        des.put(KEY_IMPL, d.getId());
+        des.put(KEY_IMPL_URL, Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.lowerCase(d.clazz.getSimpleName()));
     }
 
     public static List<Descriptor.SelectOption> getSelectOptions(Descriptor descriptor, PropertyType propType, String fieldKey) {

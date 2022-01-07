@@ -22,7 +22,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import org.apache.commons.lang.StringUtils;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -106,6 +110,10 @@ public class HeteroList<T extends Describable<T>> {
         o.put("identityId", this.identityId);
         o.put("cardinality", this.getSelectable().identity);
         o.put("extensionPoint", this.extensionPoint.getName());
+        //http://tis.pub/docs/guide/plugin/plugins/#%E6%89%A9%E5%B1%95%E7%82%B9comqlangtechtisasyncmessageclientconsumerimplabstractasyncmsgdeserialize
+        o.put("extensionPointUrl", Config.TIS_PUB_PLUGINS_DOC_URL
+                + URLEncoder.encode("扩展点" + StringUtils.lowerCase(StringUtils.remove(this.extensionPoint.getName(), ".")), TisUTF8.getName()));
+
 
         Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
         DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors);
