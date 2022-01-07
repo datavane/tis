@@ -17,6 +17,7 @@
  */
 
 import com.qlangtech.tis.web.start.TisApp;
+import com.qlangtech.tis.web.start.TisAppLaunchPort;
 import junit.framework.TestCase;
 
 /**
@@ -26,7 +27,7 @@ import junit.framework.TestCase;
 public class StartTISWeb extends TestCase {
 
     public void testStart() throws Exception {
-        TisApp app = new TisApp("/collect", 8080, (context) -> {
+        TisApp app = new TisApp("/collect", TisAppLaunchPort.getPort(), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });

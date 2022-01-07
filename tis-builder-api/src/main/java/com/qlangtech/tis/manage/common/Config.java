@@ -19,6 +19,7 @@ package com.qlangtech.tis.manage.common;
 
 
 import com.qlangtech.tis.org.apache.commons.io.FileUtils;
+import com.qlangtech.tis.web.start.TisAppLaunchPort;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -41,6 +42,7 @@ public class Config {
     private static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
 
     public static final String S4TOTALPAY = "search4totalpay";
+
 
     public static final String KEY_ZK_HOST = "zk.host";
 
@@ -205,6 +207,7 @@ public class Config {
 
     private Config() {
         P p = P.create();
+
         this.zkHost = p.getString(KEY_ZK_HOST, true);
         this.assembleHost = p.getString(KEY_ASSEMBLE_HOST, true);
         this.tisHost = p.getString(KEY_TIS_HOST, true);
@@ -245,7 +248,7 @@ public class Config {
         } else {
             threadContext.remove();
         }
-        return "http://" + tisHost + ":8080" + CONTEXT_TIS;
+        return "http://" + tisHost + ":" + TisAppLaunchPort.getPort() + CONTEXT_TIS;
     }
 
     public static String getTisHost() {
@@ -257,7 +260,8 @@ public class Config {
     }
 
     public static String getAssembleHttpHost() {
-        return "http://" + getAssembleHost() + ":8080" + CONTEXT_ASSEMBLE;
+        return "http://" + getAssembleHost()
+                + ":" + TisAppLaunchPort.getPort() + CONTEXT_ASSEMBLE;
     }
 
     public static TisDbConfig getDbCfg() {

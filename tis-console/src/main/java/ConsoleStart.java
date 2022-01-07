@@ -16,6 +16,7 @@
  *   limitations under the License.
  */
 import com.qlangtech.tis.web.start.TisApp;
+import com.qlangtech.tis.web.start.TisAppLaunchPort;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -24,7 +25,7 @@ import com.qlangtech.tis.web.start.TisApp;
 public class ConsoleStart {
 
     public static void main(String[] args) throws Exception {
-        TisApp app = new TisApp("/tjs", 8080, (context) -> {
+        TisApp app = new TisApp("/tjs", TisAppLaunchPort.getPort(), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });

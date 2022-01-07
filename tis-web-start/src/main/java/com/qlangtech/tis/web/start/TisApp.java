@@ -32,6 +32,8 @@ import java.util.Objects;
  */
 public class TisApp {
 
+
+
     public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
 
     static {
@@ -66,6 +68,8 @@ public class TisApp {
 
     private final JettyTISRunner jetty;
 
+
+
     public static void main(String[] args) throws Exception {
 
         if (TriggerStop.isStopCommand(args)) {
@@ -76,7 +80,8 @@ public class TisApp {
         }
 
         // 启动应用使用本地8080端口
-        TisApp tisApp = new TisApp(8080, (context) -> {
+
+        TisApp tisApp = new TisApp(TisAppLaunchPort.getPort(), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });

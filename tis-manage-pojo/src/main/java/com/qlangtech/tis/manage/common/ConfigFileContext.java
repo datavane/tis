@@ -56,9 +56,9 @@ public class ConfigFileContext {
 
     public static final String KEY_HEAD_FILES = "dirlist";
 
-    public static int getPort(RunEnvironment runEnvir) {
-        return (runEnvir == RunEnvironment.DAILY ? 8080 : 7001);
-    }
+//    public static int getPort(RunEnvironment runEnvir) {
+//        return (runEnvir == RunEnvironment.DAILY ? 8080 : 7001);
+//    }
 
     private static final int DEFAULT_MAX_CONNECT_RETRY_COUNT = 1;
 
