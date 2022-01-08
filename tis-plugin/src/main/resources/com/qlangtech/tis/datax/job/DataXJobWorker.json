@@ -6,7 +6,6 @@
       "plugin": [
         {
           "hetero": "k8s-images",
-          "extraParam": "append_true",
           "descName": "image"
         }
       ]

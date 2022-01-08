@@ -150,10 +150,7 @@ public class TisApp {
     }
 
     public void start(String[] args) throws Exception {
+        logger.info("start TIS with port:{}", this.jetty.getPort());
         this.jetty.start();
-
-        logger.info("========================================================================");
-        logger.info("successful start TIS with port:{}", this.jetty.getPort());
-        logger.info("========================================================================");
     }
 }

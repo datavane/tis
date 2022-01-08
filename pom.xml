@@ -48,7 +48,6 @@
         <curator.version>2.13.0</curator.version>
         <jetty.version>9.4.27.v20200227</jetty.version>
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
-
         <scala.version>2.11.0</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
         <tisasm-maven-plugin.version>1.0.4</tisasm-maven-plugin.version>

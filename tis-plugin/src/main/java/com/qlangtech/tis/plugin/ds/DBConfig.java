@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin.ds;
 
@@ -158,42 +158,50 @@ public class DBConfig implements IDbMeta {
             });
             return t;
         });
-        int dbCount = 0;
-        for (Map.Entry<String, List<String>> entry : this.getDbEnum().entrySet()) {
-            dbCount += entry.getValue().size();
-        }
-        final CountDownLatch countDownLatch = new CountDownLatch(facade ? 1 : dbCount);
-        int hostCount = 0;
-        AtomicReference<String> fjdbcUrl = new AtomicReference<>();
-        outer:
-        for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
-            for (String dbName : entry.getValue()) {
-                // TODO 访问mysql的方式，将来如果有其他数据库可以再扩展一下
-                // String jdbcUrl = "jdbc:mysql://" + (resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey()) + ":" + this.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
-                String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey(), dbName);
-                hostCount++;
-                fixedThreadPool.execute(() -> {
-                    try {
-                        fjdbcUrl.set(jdbcUrl);
-                        urlProcess.visit((facade ? name : dbName), jdbcUrl);
-                    } finally {
-                        countDownLatch.countDown();
+        try {
+            int dbCount = 0;
+            for (Map.Entry<String, List<String>> entry : this.getDbEnum().entrySet()) {
+                dbCount += entry.getValue().size();
+            }
+            final CountDownLatch countDownLatch = new CountDownLatch(facade ? 1 : dbCount);
+            int hostCount = 0;
+            AtomicReference<String> fjdbcUrl = new AtomicReference<>();
+            outer:
+            for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
+                for (String dbName : entry.getValue()) {
+                    // TODO 访问mysql的方式，将来如果有其他数据库可以再扩展一下
+                    // String jdbcUrl = "jdbc:mysql://" + (resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey()) + ":" + this.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
+                    String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey(), dbName);
+                    hostCount++;
+                    fixedThreadPool.execute(() -> {
+                        try {
+                            fjdbcUrl.set(jdbcUrl);
+                            urlProcess.visit((facade ? name : dbName), jdbcUrl);
+                        } finally {
+                            countDownLatch.countDown();
+                        }
+                    });
+                    if (facade) {
+                        break outer;
                     }
-                });
-                if (facade) {
-                    break outer;
                 }
             }
-        }
-        try {
-            if (!countDownLatch.await(6, TimeUnit.SECONDS)) {
-                msgHandler.addErrorMessage(context, "连接超时:" + fjdbcUrl.get());
-                return false;
+            try {
+                if (!countDownLatch.await(12, TimeUnit.SECONDS)) {
+                    msgHandler.addErrorMessage(context, "连接超时:" + fjdbcUrl.get());
+                    return false;
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            return true;
+        } finally {
+            try {
+                fixedThreadPool.shutdownNow();
+            } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
+            }
         }
-        return true;
     }
 
     /**
