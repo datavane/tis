@@ -64,6 +64,10 @@ public class JettyTISRunner {
         });
     }
 
+    public int getPort() {
+        return this.port;
+    }
+
     /**
      * A main class that starts jetty+solr This is useful for debugging
      */
