@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.web.start;
 
-import com.qlangtech.tis.manage.common.TisSubModule;
 import com.qlangtech.tis.web.start.JettyTISRunner.IWebAppContextSetter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

@@ -16,7 +16,7 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.manage.common;
+package com.qlangtech.tis.web.start;
 
 /**
  * TIS 子模块枚举

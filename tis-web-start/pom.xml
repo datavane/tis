@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>tis-web-start</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <name>tis-web-start</name>
     <url>http://maven.apache.org</url>
