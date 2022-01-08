@@ -57,12 +57,12 @@
 
     <modules>
         <module>xmodifier</module>
+        <module>tis-builder-api</module>
         <module>tis-manage-pojo</module>
         <module>tis-hadoop-rpc</module>
         <module>tis-solrconfig-parser</module>
         <module>tis-solrj-client</module>
         <module>tis-common</module>
-        <module>tis-builder-api</module>
         <module>tis-base-test</module>
         <module>tis-web-start</module>
         <module>tis-assemble</module>
