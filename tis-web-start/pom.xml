@@ -19,6 +19,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>com.qlangtech.tis</groupId>
         <artifactId>tis</artifactId>
@@ -27,7 +28,7 @@
     </parent>
 
     <artifactId>tis-web-start</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>tis-web-start</name>
     <url>http://maven.apache.org</url>
@@ -167,7 +168,8 @@
         <!--for use of TisAppLaunchPort.getPort()-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-builder-api</artifactId>
+            <artifactId>tis-web-start-api</artifactId>
+            <scope>compile</scope>
         </dependency>
 
 
