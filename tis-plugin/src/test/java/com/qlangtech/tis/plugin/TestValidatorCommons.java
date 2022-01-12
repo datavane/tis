@@ -48,4 +48,26 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         matcher = ValidatorCommons.PATTERN_DB_COL_NAME.matcher("ORDER_DB");
         assertTrue(matcher.matches());
     }
+
+    public void testPattern_identity() {
+        Matcher matcher = pattern_identity.matcher("0DbName1");
+        assertTrue(matcher.matches());
+
+         matcher = pattern_identity.matcher("0DbNa-me1_");
+        assertTrue(matcher.matches());
+
+        matcher = pattern_identity.matcher("0Db@Na-me1");
+        assertFalse(matcher.matches());
+    }
+
+    public void testNoneBlank(){
+        Matcher matcher = PATTERN_NONE_BLANK.matcher("0DbName1");
+        assertTrue(matcher.matches());
+
+        matcher = PATTERN_NONE_BLANK.matcher("0DbN ame1");
+        assertFalse(matcher.matches());
+
+        matcher = PATTERN_NONE_BLANK.matcher(" 0DbName1");
+        assertFalse(matcher.matches());
+    }
 }

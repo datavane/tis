@@ -187,8 +187,9 @@ public class DBConfig implements IDbMeta {
                 }
             }
             try {
-                if (!countDownLatch.await(12, TimeUnit.SECONDS)) {
-                    msgHandler.addErrorMessage(context, "连接超时:" + fjdbcUrl.get());
+                final int expireSec = 15;
+                if (!countDownLatch.await(expireSec, TimeUnit.SECONDS)) {
+                    msgHandler.addErrorMessage(context, "连接"+expireSec+"秒,超时:" + fjdbcUrl.get());
                     return false;
                 }
             } catch (InterruptedException e) {

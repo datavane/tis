@@ -16,27 +16,32 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.web.start;
+package com.qlangtech.tis.db.parser;
+
+import junit.framework.TestCase;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-01-07 17:27
+ * @create: 2022-01-11 10:20
  **/
-public class TisAppLaunchPort {
-    public static final String KEY_TIS_LAUNCH_PORT = "tis.launch.port";
-    private final int launchPort;
+public class TestScannerPatterns extends TestCase {
+    public void testTT_HOSTMatch() {
+        Pattern pattern = ScannerPatterns.TokenTypes.TT_HOST.createPattern();
+        Matcher matcher = pattern.matcher("localhost");
+        // System.out.println(matcher.matches());
+        assertTrue(matcher.matches());
+        matcher = pattern.matcher("192.168.28.200");
+        assertTrue(matcher.matches());
+        matcher = pattern.matcher("localhostt");
+        assertFalse(matcher.matches());
 
-    private static TisAppLaunchPort instance;
+        matcher = pattern.matcher("baisui.com");
+        assertTrue(matcher.matches());
 
-    private TisAppLaunchPort() {
-        this.launchPort = Integer.parseInt(System.getProperty(KEY_TIS_LAUNCH_PORT, "8080"));
-    }
-
-
-    public static int getPort() {
-        if(instance == null){
-            instance = new TisAppLaunchPort();
-        }
-        return instance.launchPort;
+        matcher = pattern.matcher(":localhost");
+        assertFalse(matcher.find());
     }
 }

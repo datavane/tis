@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin.annotation;
 
@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -44,87 +45,147 @@ public enum Validator {
         }
         return true;
     }),
-    //
+    user_name((msgHandler, context, fieldKey, fieldData) -> {
+
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.pattern_user_name, ValidatorCommons.MSG_USER_NAME_ERROR), fieldKey, fieldData);
+
+//        if (StringUtils.isEmpty(fieldData)) {
+//            return true;
+//        }
+//        Matcher matcher = ValidatorCommons.pattern_identity.matcher(fieldData);
+//        if (!matcher.matches()) {
+//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_IDENTITY_ERROR);
+//            return false;
+//        }
+//        return true;
+    }),
     identity((msgHandler, context, fieldKey, fieldData) -> {
-        if (StringUtils.isEmpty(fieldData)) {
-            return true;
-        }
-        Matcher matcher = ValidatorCommons.pattern_identity.matcher(fieldData);
-        if (!matcher.matches()) {
-            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_IDENTITY_ERROR);
-            return false;
-        }
-        return true;
+
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.pattern_identity, ValidatorCommons.MSG_IDENTITY_ERROR), fieldKey, fieldData);
+
+//        if (StringUtils.isEmpty(fieldData)) {
+//            return true;
+//        }
+//        Matcher matcher = ValidatorCommons.pattern_identity.matcher(fieldData);
+//        if (!matcher.matches()) {
+//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_IDENTITY_ERROR);
+//            return false;
+//        }
+//        return true;
     }),
     //
     integer((msgHandler, context, fieldKey, fieldData) -> {
-        if (StringUtils.isEmpty(fieldData)) {
-            return true;
-        }
-        Matcher matcher = ValidatorCommons.pattern_integer.matcher(fieldData);
-        if (!matcher.matches()) {
-            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_INTEGER_ERROR);
-            return false;
-        }
-        return true;
+
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.pattern_integer, ValidatorCommons.MSG_INTEGER_ERROR), fieldKey, fieldData);
+
+//        if (StringUtils.isEmpty(fieldData)) {
+//            return true;
+//        }
+//        Matcher matcher = ValidatorCommons.pattern_integer.matcher(fieldData);
+//        if (!matcher.matches()) {
+//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_INTEGER_ERROR);
+//            return false;
+//        }
+//        return true;
     }),
     //
     host((msgHandler, context, fieldKey, fieldData) -> {
-        if (StringUtils.isEmpty(fieldData)) {
-            return true;
-        }
-        Matcher matcher = ValidatorCommons.host_pattern.matcher(fieldData);
-        if (!matcher.matches()) {
-            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_HOST_IP_ERROR);
-            return false;
-        }
-        return true;
+
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.host_pattern, ValidatorCommons.MSG_HOST_IP_ERROR), fieldKey, fieldData);
+
+//        if (StringUtils.isEmpty(fieldData)) {
+//            return true;
+//        }
+//        Matcher matcher = ValidatorCommons.host_pattern.matcher(fieldData);
+//        if (!matcher.matches()) {
+//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_HOST_IP_ERROR);
+//            return false;
+//        }
+//        return true;
     }),
     //
     url((msgHandler, context, fieldKey, fieldData) -> {
-        if (StringUtils.isEmpty(fieldData)) {
-            return true;
-        }
-        Matcher matcher = ValidatorCommons.PATTERN_URL.matcher(fieldData);
-        if (!matcher.matches()) {
-            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_URL_ERROR);
-            return false;
-        }
-        return true;
+
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.PATTERN_URL, ValidatorCommons.MSG_URL_ERROR), fieldKey, fieldData);
+
+//        if (StringUtils.isEmpty(fieldData)) {
+//            return true;
+//        }
+//        Matcher matcher = ValidatorCommons.PATTERN_URL.matcher(fieldData);
+//        if (!matcher.matches()) {
+//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_URL_ERROR);
+//            return false;
+//        }
+//        return true;
     }),
     db_col_name((msgHandler, context, fieldKey, fieldData) -> {
-        if (StringUtils.isEmpty(fieldData)) {
-            return true;
-        }
-        Matcher matcher = ValidatorCommons.PATTERN_DB_COL_NAME.matcher(fieldData);
-        if (!matcher.matches()) {
-            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_DB_COL_NAME_ERROR);
-            return false;
-        }
-        return true;
+
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.PATTERN_DB_COL_NAME, ValidatorCommons.MSG_DB_COL_NAME_ERROR), fieldKey, fieldData);
+
+//        if (StringUtils.isEmpty(fieldData)) {
+//            return true;
+//        }
+//        Matcher matcher = ValidatorCommons.PATTERN_DB_COL_NAME.matcher(fieldData);
+//        if (!matcher.matches()) {
+//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_DB_COL_NAME_ERROR);
+//            return false;
+//        }
+//        return true;
     }),
     relative_path((msgHandler, context, fieldKey, fieldData) -> {
-        if (StringUtils.isEmpty(fieldData)) {
-            return true;
-        }
-        Matcher matcher = ValidatorCommons.PATTERN_RELATIVE_PATH.matcher(fieldData);
-        if (!matcher.matches()) {
-            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_RELATIVE_PATH_ERROR);
-            return false;
-        }
-        return true;
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.PATTERN_RELATIVE_PATH, ValidatorCommons.MSG_RELATIVE_PATH_ERROR), fieldKey, fieldData);
     }),
     absolute_path((msgHandler, context, fieldKey, fieldData) -> {
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR), fieldKey, fieldData);
+
+//        if (StringUtils.isEmpty(fieldData)) {
+//            return true;
+//        }
+//        Matcher matcher = ValidatorCommons.PATTERN_ABSOLUTE_PATH.matcher(fieldData);
+//        if (!matcher.matches()) {
+//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
+//            return false;
+//        }
+//        return true;
+    }),
+    none_blank((msgHandler, context, fieldKey, fieldData) -> {
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.PATTERN_NONE_BLANK, ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
+    }),;
+
+    static ValidateRule rule(Pattern p, String errMsg) {
+        return new ValidateRule(p, errMsg);
+    }
+
+    private static boolean validatePattern(IFieldErrorHandler msgHandler, Context context, ValidateRule validateRule, String fieldKey, String fieldData) {
         if (StringUtils.isEmpty(fieldData)) {
             return true;
         }
-        Matcher matcher = ValidatorCommons.PATTERN_ABSOLUTE_PATH.matcher(fieldData);
+        Matcher matcher = validateRule.pattern.matcher(fieldData);
         if (!matcher.matches()) {
-            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
+            msgHandler.addFieldError(context, fieldKey, validateRule.errorMsg);
             return false;
         }
         return true;
-    });
+    }
+
+    private static class ValidateRule {
+        private final Pattern pattern;
+        private final String errorMsg;
+
+        public ValidateRule(Pattern pattern, String errorMsg) {
+            this.pattern = pattern;
+            this.errorMsg = errorMsg;
+        }
+    }
 
     private final IFieldValidator fieldValidator;
 

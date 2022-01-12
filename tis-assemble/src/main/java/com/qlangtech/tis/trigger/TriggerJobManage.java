@@ -59,18 +59,9 @@ import java.util.*;
 public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(TriggerJobManage.class);
     public static final int JETTY_TRIGGER_SERVER_PORT = 8080;
-    // private ISolrZKClientGetter zkClientGetter;
     private IJobMetaDataDAO jobMetaDataDAO;
     private ITerminatorTriggerBizDalDAOFacade triggerBizDAO;
     private IPreTriggerProcess preTriggerProcess;
-
-//    public ISolrZKClientGetter getZkClientGetter() {
-//        return zkClientGetter;
-//    }
-//
-//    public void setZkClientGetter(ISolrZKClientGetter zkClientGetter) {
-//        this.zkClientGetter = zkClientGetter;
-//    }
 
     public static final String JOB_SCHEDULE = "jobSchedule";
     public static final String JOB_TRIGGER_SERVER = "jobTriggerServer";

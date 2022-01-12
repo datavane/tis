@@ -73,6 +73,7 @@ import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.web.start.TisAppLaunchPort;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.lang.StringUtils;
@@ -674,7 +675,7 @@ public class CoreAction extends BasicModule {
         ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
         null, true);
     return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
-      + ":8080" + Config.CONTEXT_ASSEMBLE;
+      + ":"+ TisAppLaunchPort.getPort() + Config.CONTEXT_ASSEMBLE;
   }
 
   public static class TriggerBuildResult {

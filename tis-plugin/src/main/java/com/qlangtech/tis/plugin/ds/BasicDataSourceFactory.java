@@ -51,13 +51,13 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
     public String name;
 
     // 数据库名称
-    @FormField(ordinal = 3, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.db_col_name})
+    @FormField(ordinal = 3, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})
     public String dbName;
 
-    @FormField(ordinal = 5, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.db_col_name})
+    @FormField(ordinal = 5, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.user_name})
     public String userName;
 
-    @FormField(ordinal = 7, type = FormFieldType.PASSWORD, validate = {})
+    @FormField(ordinal = 7, type = FormFieldType.PASSWORD, validate = {Validator.none_blank})
     public String password;
     /**
      * 节点描述

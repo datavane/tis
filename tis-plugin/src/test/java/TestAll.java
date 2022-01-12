@@ -18,6 +18,8 @@
 
 import com.qlangtech.tis.TestTIS;
 import com.qlangtech.tis.datax.impl.TestDataxReader;
+import com.qlangtech.tis.db.parser.TestDBConfigParser;
+import com.qlangtech.tis.db.parser.TestScannerPatterns;
 import com.qlangtech.tis.extension.TestDescriptor;
 import com.qlangtech.tis.extension.impl.TestXmlFile;
 import com.qlangtech.tis.extension.model.TestUpdateCenter;
@@ -43,6 +45,8 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestScannerPatterns.class);
+        suite.addTestSuite(TestDBConfigParser.class);
         suite.addTestSuite(TestValidatorCommons.class);
         suite.addTestSuite(TestHeteroList.class);
         suite.addTestSuite(TestUploadPluginMeta.class);

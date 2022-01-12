@@ -26,6 +26,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.*;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +40,7 @@ import java.util.List;
  * @date 2019年1月17日
  */
 public class TisZkClient implements ITISCoordinator {
-
+    private static final Logger logger = LoggerFactory.getLogger(TisZkClient.class);
     private final List<OnReconnect> reconnectList;
 
     @Override
@@ -64,12 +66,15 @@ public class TisZkClient implements ITISCoordinator {
 
     public static ITISCoordinator create() {
         if (Config.isStandaloneMode()) {
+            logger.info("create ITISCoordinator with Standalone Mode");
             return new ITISCoordinator() {
                 private final String DEFAULT_CHILD1_PATH = "child001";
+
                 @Override
                 public boolean shallConnect2RemoteIncrStatusServer() {
                     return true;
                 }
+
                 @Override
                 public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
                     if (ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH.equals(zkPath)) {
@@ -108,6 +113,7 @@ public class TisZkClient implements ITISCoordinator {
                 }
             };
         } else {
+            logger.info("create ITISCoordinator with Distribute Mode");
             return new TisZkClient(Config.getZKHost(), 60000);
         }
     }
