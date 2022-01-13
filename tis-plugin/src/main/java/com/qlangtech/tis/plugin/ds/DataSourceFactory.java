@@ -147,8 +147,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             ResultSet columns1 = null;
             try {
                 metaData1 = conn.getMetaData();
-                primaryKeys = metaData1.getPrimaryKeys(null, null, table);
-                columns1 = metaData1.getColumns(null, null, table, null);
+                primaryKeys = getPrimaryKeys(table, metaData1);
+                columns1 = getColumnsMeta(table, metaData1);
                 Set<String> pkCols = Sets.newHashSet();
                 while (primaryKeys.next()) {
                     // $NON-NLS-1$
@@ -205,6 +205,14 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             }
         });
         return columns;
+    }
+
+    protected ResultSet getColumnsMeta(String table, DatabaseMetaData metaData1) throws SQLException {
+        return metaData1.getColumns(null, null, table, null);
+    }
+
+    protected ResultSet getPrimaryKeys(String table, DatabaseMetaData metaData1) throws SQLException {
+        return metaData1.getPrimaryKeys(null, null, table);
     }
 
 
