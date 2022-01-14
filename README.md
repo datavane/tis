@@ -11,7 +11,7 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
  -->
 
-v3.4.0涉及到的功能点(2022/1/14)：
+## v3.4.0涉及到的功能点(2022/1/14)：
 
 1. MySQL 增量同步Datetime类型binlog接收到的时间 比实际UTC时间快8小时，导致下游StarRocks中的时间和上游MySQL的DateTime时间不一致 https://github.com/qlangtech/tis/issues/89
 2. 数据库名支持中划线 https://github.com/qlangtech/tis/issues/86
