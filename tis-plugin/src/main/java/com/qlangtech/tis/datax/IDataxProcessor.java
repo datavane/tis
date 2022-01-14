@@ -104,7 +104,8 @@ public interface IDataxProcessor {
         public TableAlias(String from) {
             this.from = from;
             // 如果使用oracle的表，表名中可能出现点，所以要将它去掉
-            this.to = StringUtils.substringAfterLast(from, ".");
+            int indexOfCommon = StringUtils.indexOf(from, ".");
+            this.to = indexOfCommon > -1 ? StringUtils.substring(from, indexOfCommon + 1) : from;
         }
 
         public String getFrom() {

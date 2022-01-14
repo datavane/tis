@@ -34,6 +34,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -45,6 +46,9 @@ import java.util.stream.Collectors;
  * @create: 2021-06-06 19:48
  **/
 public abstract class BasicDataSourceFactory extends DataSourceFactory implements JdbcUrlBuilder {
+    //
+    public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.of("Asia/Shanghai");
+
     private static final Logger logger = LoggerFactory.getLogger(BasicDataSourceFactory.class);
 
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})

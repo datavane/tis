@@ -909,6 +909,24 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         msgHandler.addFieldError(context, attrKey, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
     }
 
+    public ParseDescribable<T> newInstance(
+            String appName, //
+            FormData formData //
+    ) {
+        return newInstance(IPluginContext.namedContext(appName), formData.body, Optional.empty());
+    }
+
+    public static class FormData {
+        final HashMap<String, JSONObject> body = Maps.newHashMap();
+
+        public JSONObject addProp(String key, String val) {
+            JSONObject o = new JSONObject();
+            o.put(Descriptor.KEY_primaryVal, val);
+            body.put(key, o);
+            return o;
+        }
+    }
+
     // @Override
     public ParseDescribable<T> newInstance(
             IPluginContext pluginContext, //
