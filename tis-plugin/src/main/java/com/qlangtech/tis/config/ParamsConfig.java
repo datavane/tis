@@ -19,6 +19,7 @@ package com.qlangtech.tis.config;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@Public
 public abstract class ParamsConfig implements Describable<ParamsConfig>, IdentityName {
     public static final String CONTEXT_PARAMS_CFG = "params-cfg";
 

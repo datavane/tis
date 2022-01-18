@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax.job;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.RcHpaStatus;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-04-23 17:49
  **/
+@Public
 public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public static final String KEY_FIELD_NAME = "k8sImage";

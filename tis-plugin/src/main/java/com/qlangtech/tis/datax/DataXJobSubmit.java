@@ -20,6 +20,7 @@ package com.qlangtech.tis.datax;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
@@ -39,6 +40,7 @@ import java.util.concurrent.Callable;
  * @create: 2021-04-27 17:03
  **/
 @TISExtensible
+@Public
 public abstract class DataXJobSubmit {
 
     public static final int MAX_TABS_NUM_IN_PER_JOB = 40;

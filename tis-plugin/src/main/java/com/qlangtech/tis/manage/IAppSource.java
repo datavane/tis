@@ -19,6 +19,7 @@ package com.qlangtech.tis.manage;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
@@ -35,6 +36,7 @@ import java.util.Optional;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:16
  */
+@Public
 public interface IAppSource extends Describable<IAppSource> {
 
 

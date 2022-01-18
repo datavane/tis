@@ -18,6 +18,7 @@
 package com.qlangtech.tis.plugin.incr;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.compiler.incr.ICompileAndPackage;
 import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.extension.Describable;
@@ -28,6 +29,7 @@ import com.qlangtech.tis.plugin.IdentityName;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@Public
 public abstract class IncrStreamFactory implements Describable<IncrStreamFactory> {
 
     // public static final String FLINK_STREM = "flink_Stream";

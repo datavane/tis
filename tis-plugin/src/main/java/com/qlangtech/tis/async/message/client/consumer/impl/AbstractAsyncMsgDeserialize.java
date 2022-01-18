@@ -18,6 +18,7 @@
 package com.qlangtech.tis.async.message.client.consumer.impl;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.async.message.client.consumer.IAsyncMsgDeserialize;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -26,6 +27,7 @@ import com.qlangtech.tis.extension.Descriptor;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@Public
 public abstract class AbstractAsyncMsgDeserialize implements IAsyncMsgDeserialize, Describable<AbstractAsyncMsgDeserialize> {
 
     // public abstract String getName();

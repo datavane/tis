@@ -21,6 +21,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.lang.TisException;
@@ -39,6 +40,7 @@ import java.util.*;
  * @author: baisui 百岁
  * @create: 2020-11-24 10:40
  **/
+@Public
 public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName, DataSourceMeta, Wrapper {
 
     public static final String DS_TYPE_MYSQL = "MySQL";

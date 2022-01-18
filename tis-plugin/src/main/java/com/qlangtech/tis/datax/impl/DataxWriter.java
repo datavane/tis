@@ -18,6 +18,7 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.extension.Describable;
@@ -33,6 +34,7 @@ import java.util.Objects;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:48
  */
+@Public
 public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWriter {
 
     /**

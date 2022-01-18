@@ -19,6 +19,7 @@ package com.qlangtech.tis.datax.impl;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Describable;
@@ -39,6 +40,7 @@ import java.util.*;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:48
  */
+@Public
 public abstract class DataxReader implements Describable<DataxReader>, IDataxReader, IPluginStore.RecyclableController {
     public static final String HEAD_KEY_REFERER = "Referer";
     public static final ThreadLocal<DataxReader> dataxReaderThreadLocal = new ThreadLocal<>();

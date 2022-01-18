@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.incr;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.extension.Describable;
@@ -34,6 +35,7 @@ import java.util.Map;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-09-29 10:50
  **/
+@Public
 public abstract class TISSinkFactory implements Describable<TISSinkFactory> {
 
     @TISExtension

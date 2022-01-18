@@ -18,6 +18,7 @@
 package com.qlangtech.tis.offline;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
@@ -30,6 +31,7 @@ import com.qlangtech.tis.plugin.PluginStore;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@Public
 public abstract class FileSystemFactory implements Describable<FileSystemFactory>, ITISFileSystemFactory, IdentityName {
 
     public static FileSystemFactory getFsFactory(String fsName) {

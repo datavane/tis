@@ -18,6 +18,7 @@
 package com.qlangtech.tis.async.message.client.consumer.impl;
 
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.async.message.client.consumer.IConsumerHandle;
 import com.qlangtech.tis.async.message.client.consumer.IMQConsumerStatusFactory;
 import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
@@ -35,6 +36,7 @@ import java.util.Optional;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@Public
 public abstract class MQListenerFactory implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
 
     @Override
