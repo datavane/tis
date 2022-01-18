@@ -10,6 +10,17 @@ TIS快速为您构建企业级实时数仓库服务，**基于批(DataX)流(Flin
 TIS平台是一套为企业级用户提供大数据多维、实时、查询的搜索中台产品。用户可以在TIS上自助快速构建搜索服务，它大大降低了搜索技术的门槛 [详细说明](http://tis.pub/docs/) 
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
  -->
+
+## v3.4.0涉及到的功能点(2022/1/14)：
+
+1. MySQL 增量同步Datetime类型binlog接收到的时间 比实际UTC时间快8小时，导致下游StarRocks中的时间和上游MySQL的DateTime时间不一致 https://github.com/qlangtech/tis/issues/89
+2. 数据库名支持中划线 https://github.com/qlangtech/tis/issues/86
+3. Oracle数据库可以选择系统授权给的其他用户名下的表 https://github.com/qlangtech/tis/issues/85
+4. 在配置DATAX oracle reader 时，避免大量重复字段出现 https://github.com/qlangtech/tis/issues/81
+5. 执行TIS 批量任务失败，但是最终任务状态显示失败 https://github.com/qlangtech/tis/issues/79
+6. Flink实时同步支持阿里云ES同步，填入的用户名、密码可以生效 https://github.com/qlangtech/tis/issues/76
+7. 重构TIS启动脚本，优化TIS启动时间 https://github.com/qlangtech/tis/issues/65
+8. TIS启动端口可配置 https://github.com/qlangtech/tis/issues/62
  
 ## 安装说明
 
