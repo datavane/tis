@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.db.parser.DBConfigParser;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -284,6 +285,14 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
             }
             return true;
         }
+    }
+
+    /**
+     * 某些数据库是支持schema概念，如支持则实现该接口
+     */
+    @Public
+    public interface ISchemaSupported {
+        public String getDBSchema();
     }
 
     public static void main(String[] args) {

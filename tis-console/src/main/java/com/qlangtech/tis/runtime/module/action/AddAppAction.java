@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.runtime.module.action;
 
@@ -43,6 +43,7 @@ import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.openapi.impl.AppKey;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
@@ -65,7 +66,7 @@ import java.util.regex.Pattern;
 
 /**
  * 添加应用
- *
+ *order2
  * @author 百岁（baisui@qlangtech.com）
  * @date 2012-4-1
  */
@@ -601,21 +602,22 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   // public void setTerminatorTriggerBizDalDaoFacade(ITerminatorTriggerBizDalDAOFacade triggerDaoContext) {
   // this.triggerContext = triggerDaoContext;
   // }
-  private static final Pattern APPNAME_PATTERN = Pattern.compile("[a-zA-Z0-9_]+");
+  // private static final Pattern APPNAME_PATTERN = Pattern.compile("[a-zA-Z0-9_]+");
 
   public static void main(String[] arg) throws Exception {
-    System.out.println("search4realjhsItemtest");
-    Matcher m = APPNAME_PATTERN.matcher("search4realj_hsItemtest");
-    System.out.println(m.matches());
+//    System.out.println("search4realjhsItemtest");
+//    Matcher m = APPNAME_PATTERN.matcher("search4realj_hsItemtest");
+//    System.out.println(m.matches());
   }
 
   public static boolean isAppNameValid(IFieldErrorHandler msgHandler, Context context, String fieldKey, Application form) {
-    Matcher m = APPNAME_PATTERN.matcher(form.getProjectName());
-    if (!m.matches()) {
-      msgHandler.addFieldError(context, fieldKey, "必须用小写字母或大写字母数字组成");
-      return false;
-    }
-    return true;
+//    Matcher m = APPNAME_PATTERN.matcher(form.getProjectName());
+//    if (!m.matches()) {
+//      msgHandler.addFieldError(context, fieldKey, "必须用小写字母或大写字母数字组成");
+//      return false;
+//    }
+//    return true;
+    return Validator.identity.validate(msgHandler, context, fieldKey, form.getProjectName());
   }
 
   private boolean validateAppForm(Context context, Application app) {
