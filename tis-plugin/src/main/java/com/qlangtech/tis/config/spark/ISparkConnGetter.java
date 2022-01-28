@@ -15,17 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.fs;
+
+package com.qlangtech.tis.config.spark;
+
+import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.plugin.IdentityName;
 
 /**
- * 底层文件系统抽象，目前支持hdfs，将来需要支持AliOss，亚马逊文件系统
- *
- * @author 百岁（baisui@qlangtech.com）
- * @date 2018年11月23日
- */
-public interface ITISFileSystemFactory {
-    String KEY_FIELD_NAME_FS_NAME = "fsName";
-    // public String getRootDir();
-    public String getFSAddress();
-    public ITISFileSystem getFileSystem();
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2022-01-28 09:57
+ **/
+public interface ISparkConnGetter extends IdentityName {
+
+    public static ISparkConnGetter getConnGetter(String sparkConn) {
+        return ParamsConfig.getItem(sparkConn, ISparkConnGetter.PLUGIN_NAME);
+    }
+
+    String PLUGIN_NAME = "SparkConn";
+
+    /**
+     * example: spark://192.168.28.201:7077
+     *
+     * @return
+     */
+    public String getSparkMaster();
 }

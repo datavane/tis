@@ -35,6 +35,18 @@ import java.util.function.Consumer;
  */
 public class Config {
 
+    public static final String LIB_PLUGINS_PATH = "libs/plugins";
+
+    public static final String PLUGIN_LIB_DIR = "WEB-INF/lib";
+
+    public static File getPluginLibDir(String pluginName) {
+        File libDir = new File(Config.getDataDir(), Config.LIB_PLUGINS_PATH + "/" + pluginName + "/WEB-INF/lib");
+        if (!libDir.exists() || libDir.isFile()) {
+            throw new IllegalStateException("dir " + pluginName + " is illegal:" + libDir.getAbsolutePath());
+        }
+        return libDir;
+    }
+
     public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/guide/plugin/plugins/#";
 
     private static final String bundlePath = "tis-web-config/config";

@@ -20,7 +20,8 @@ package com.qlangtech.tis.datax;
 
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.extension.impl.IOUtils;
-import org.shai.xmodifier.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
+
 
 import java.io.IOException;
 import java.io.InputStream;
