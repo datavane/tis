@@ -452,36 +452,46 @@ public class PluginAction extends BasicModule {
     execContext.put("id", this.getString("id"));
 
     IPluginEnum heteroEnum = null;
+    Optional<IPropertyType.SubFormFilter> subFormFilter = null;
     for (UploadPluginMeta meta : pluginsMeta) {
       heteroEnum = meta.getHeteroEnum();
       plugins = heteroEnum.getPlugins(this, meta);
-      for (Describable p : plugins) {
+      for (Describable plugin : plugins) {
+        subFormFilter = meta.getSubFormFilter();
+        PluginFormProperties pluginFormPropertyTypes = plugin.getDescriptor().getPluginFormPropertyTypes(subFormFilter);
+        pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
 
-        PluginFormProperties pluginFormPropertyTypes = p.getDescriptor().getPluginFormPropertyTypes(meta.getSubFormFilter());
-        pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor() {
+
           @Override
-          protected void visitSubForm(JSONObject behaviorMeta, SuFormProperties props) {
-            JSONObject fieldDataGetterMeta = null;
-            JSONArray params = null;
-            JSONObject onClickFillData = behaviorMeta.getJSONObject("onClickFillData");
+          protected void visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
+            SuFormProperties.SuFormPropertyGetterMeta fieldDataGetterMeta = null;
+            List<String> params = null;
+            Map<String, SuFormProperties.SuFormPropertyGetterMeta> onClickFillData = behaviorMeta.getOnClickFillData();
             Objects.requireNonNull(onClickFillData, "onClickFillData can not be null");
             Map<String, Object> fillFieldsData = Maps.newHashMap();
-            for (String fillField : onClickFillData.keySet()) {
-              fieldDataGetterMeta = onClickFillData.getJSONObject(fillField);
+            for (Map.Entry<String, SuFormProperties.SuFormPropertyGetterMeta> entry : onClickFillData.entrySet()) {
+              String fillField = entry.getKey();
+
+              fieldDataGetterMeta = entry.getValue();//= onClickFillData.getJSONObject(fillField);
               Objects.requireNonNull(fieldDataGetterMeta, "fillField:" + fillField + " relevant behavier meta can not be null");
-              String targetMethod = fieldDataGetterMeta.getString("method");
-              params = fieldDataGetterMeta.getJSONArray("params");
-              Objects.requireNonNull(params, "params can not be null");
+              // String targetMethod = fieldDataGetterMeta.getString("method");
+              String targetMethod = fieldDataGetterMeta.getMethod();
+              //  params = fieldDataGetterMeta.getJSONArray("params");
+              params = fieldDataGetterMeta.getParams();
+              if (CollectionUtils.isEmpty(params)) {
+                throw new IllegalStateException("params can not be null");
+              }
+              // Objects.requireNonNull(params, "params can not be null");
               Class<?>[] paramClass = new Class<?>[params.size()];
               String[] paramsVals = new String[params.size()];
               for (int index = 0; index < params.size(); index++) {
                 paramClass[index] = String.class;
-                paramsVals[index] = Objects.requireNonNull(execContext.get(params.getString(index))
-                  , "param:" + params.getString(index) + " can not be null in context");
+                paramsVals[index] = Objects.requireNonNull(execContext.get(params.get(index))
+                  , "param:" + params.get(index) + " can not be null in context");
               }
-              Method method = ReflectionUtils.findMethod(p.getClass(), targetMethod, paramClass);
-              Objects.requireNonNull(method, "target method '" + targetMethod + "' of " + p.getClass() + " can not be null");
-              fillFieldsData.put(fillField, ReflectionUtils.invokeMethod(method, p, paramsVals));
+              Method method = ReflectionUtils.findMethod(plugin.getClass(), targetMethod, paramClass);
+              Objects.requireNonNull(method, "target method '" + targetMethod + "' of " + plugin.getClass() + " can not be null");
+              fillFieldsData.put(fillField, ReflectionUtils.invokeMethod(method, plugin, paramsVals));
             }
             // params 必须全为spring类型的
             setBizResult(context, fillFieldsData);

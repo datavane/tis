@@ -605,8 +605,8 @@ public class DataxAction extends BasicModule {
     String dataxName = this.getCollectionName();
     DataxProcessor old = IAppSource.load(null, dataxName);
     DataxProcessor editting = IAppSource.load(this, dataxName);
-    File oldWorkDir = old.getDataXWorkDir(null);
-    File edittingDir = editting.getDataXWorkDir(this);
+    File oldWorkDir = old.getDataXWorkDir((IPluginContext) null);
+    File edittingDir = editting.getDataXWorkDir((IPluginContext) this);
 
     String edittingDirSuffix = StringUtils.substringAfter(edittingDir.getName(), oldWorkDir.getName());
     Matcher matcher = PatternEdittingDirSuffix.matcher(edittingDirSuffix);
@@ -900,7 +900,7 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
-  public void doValidateReaderWriter(Context context) {
+  public void doValidateReaderWriter(Context context) throws Exception {
     this.errorsPageShow(context);
     JSONObject post = this.parseJsonPost();
 
@@ -917,6 +917,9 @@ public class DataxAction extends BasicModule {
     DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
     DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
     DataXBasicProcessMeta processMeta = getDataXBasicProcessMeta(readerDesc, writerDesc);
+    //DataxProcessor processor = DataxProcessor.load(this, dataxPipeName);
+    //File workDir = processor.getDataXWorkDir(this);
+    FileUtils.write(IDataxProcessor.getWriterDescFile(this, dataxPipeName), writerDesc.getId(), TisUTF8.get(), false);
     this.setBizResult(context, processMeta);
   }
 

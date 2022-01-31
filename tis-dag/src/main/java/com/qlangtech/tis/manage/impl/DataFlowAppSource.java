@@ -82,12 +82,6 @@ public class DataFlowAppSource implements ISolrAppSource {
         return this.dataflow.getId();
     }
 
-//    @Override
-//    public <T> T accept(ISolrAppSourceVisitor<T> visitor) {
-//        return visitor.visit(this);
-//    }
-
-
     @Override
     public boolean isExcludeFacadeDAOSupport() {
         try {
@@ -97,13 +91,6 @@ public class DataFlowAppSource implements ISolrAppSource {
             throw new RuntimeException("dataflow:" + this.dataflowName, e);
         }
     }
-
-    //    @Override
-//    public boolean isTriggerIgnore(EntityName entityName) {
-//        //this.erRules.isTriggerIgnore(entityName);
-//        return this.getErRules().isTriggerIgnore(entityName);
-//        // return false;
-//    }
 
     @Override
     public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
@@ -168,8 +155,6 @@ public class DataFlowAppSource implements ISolrAppSource {
         for (DependencyNode dump : topology.getDumpNodes()) {
             tabDump = singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
                     "tableDump.getPt()", execChainContext.getZkClient(), execChainContext, dumpPhaseStatus);
-//            tabDump = new SingleTableDump(dump, false, /* isHasValidTableDump */
-//                    "tableDump.getPt()", zkClient, execChainContext, dumpPhaseStatus);
             taskMap.put(dump.getId(), new TISReactor.TaskAndMilestone(tabDump));
         }
 
@@ -214,14 +199,8 @@ public class DataFlowAppSource implements ISolrAppSource {
             //  final PrintWriter w = new PrintWriter(sw, true);
             ReactorListener listener = new ReactorListener() {
                 // TODO: Does it really needs handlers to be synchronized?
-//                @Override
-//                public synchronized void onTaskStarted(Task t) {
-//            //        w.println("Started " + t.getDisplayName());
-//                }
-
                 @Override
                 public synchronized void onTaskCompleted(Task t) {
-                    //   w.println("Ended " + t.getDisplayName());
                     processTaskResult(execChainContext, (TISReactor.TaskImpl) t, dataProcessFeedback, new ITaskResultProcessor() {
                         @Override
                         public void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task) {
@@ -252,11 +231,6 @@ public class DataFlowAppSource implements ISolrAppSource {
                         }
                     });
                 }
-//
-//                @Override
-//                public synchronized void onAttained(Milestone milestone) {
-//                    w.println("Attained " + milestone);
-//                }
             };
 
 

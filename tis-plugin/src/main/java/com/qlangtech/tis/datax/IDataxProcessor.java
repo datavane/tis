@@ -17,8 +17,18 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -35,6 +45,33 @@ import java.util.stream.Collectors;
  */
 public interface IDataxProcessor {
     public String DATAX_CREATE_DDL_FILE_NAME_SUFFIX = ".sql";
+
+    static File getWriterDescFile(IPluginContext pluginContext, String dataXName) {
+        File workDir = getDataXWorkDir(pluginContext, dataXName);
+        return new File(workDir, "writerDesc");
+    }
+
+    static File getDataXWorkDir(IPluginContext pluginContext, String appName) {
+        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(pluginContext, appName);
+        File targetFile = readerStore.getTargetFile();
+        return targetFile.getParentFile();
+    }
+
+    static Descriptor getWriterDescriptor(UploadPluginMeta pluginMeta //IPluginContext pluginContext, String dataXName
+    ) throws Exception {
+        //    DataxProcessor processor = DataxProcessor.load(pluginContext, dataXName);
+        //    File workDir = processor.getDataXWorkDir(pluginContext);
+        String dataXName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+        if (StringUtils.isEmpty(dataXName)) {
+            throw new IllegalStateException("param dataXName can not be null");
+        }
+//        DataxWriter.BaseDataxWriterDescriptor writerDesc
+//                = (DataxWriter.BaseDataxWriterDescriptor)
+        Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginMeta.getPluginContext(), dataXName), TisUTF8.get()));
+//        Class<? extends DataxWriter> writerClass = writerDesc.clazz;
+//        return (Class<DataxWriter>)writerClass;
+        return descriptor;
+    }
 
     IDataxReader getReader(IPluginContext pluginCtx);
 

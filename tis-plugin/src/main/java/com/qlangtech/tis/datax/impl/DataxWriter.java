@@ -23,6 +23,7 @@ import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.util.IPluginContext;
 
@@ -107,6 +108,15 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
 
     protected <TT extends BaseDataxWriterDescriptor> Class<TT> getExpectDescClass() {
         return (Class<TT>) BaseDataxWriterDescriptor.class;
+    }
+
+    /**
+     * Hudi 需要rewrite SelectTab的prop
+     */
+    public interface IRewriteSuFormProperties {
+        SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception;
+
+        SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception;
     }
 
 

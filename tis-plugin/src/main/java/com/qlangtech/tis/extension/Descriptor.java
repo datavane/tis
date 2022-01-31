@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -273,7 +275,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             throw new IllegalStateException("subFieldName:" + subFieldName + " prop must be "
                     + SuFormProperties.class.getSimpleName() + "but now is :" + propertyType.getClass().getName());
         }
-        return (SuFormProperties) propertyType;//filterFieldProp(((SuFormProperties) propertyType).fieldsType);
+        return (SuFormProperties) propertyType;
     }
 
     public List<PluginFormProperties> getSubPluginFormPropertyTypes() {
@@ -291,14 +293,39 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (subFormFilter.isPresent()) {
             filter = subFormFilter.get();
             if (filter.match(this)) {
-                return getSubPluginFormPropertyTypes(filter.subFieldName);
+                SuFormProperties subPluginFormPropertyTypes = (SuFormProperties) getSubPluginFormPropertyTypes(filter.subFieldName);
+
+
+                try {
+
+                    // 类似Hudi的Writer需要覆盖Reader的subFieldName的在Reader的表设置表单中需要设置Hudi相关的属性
+                    //   DataxWriter dataxWriter = DataxWriter.load(filter.uploadPluginMeta.getPluginContext(), dataXName);
+                    Descriptor writerDescriptor
+                            = IDataxProcessor.getWriterDescriptor(filter.uploadPluginMeta);// dataxWriter.getClass();
+                    if (writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
+                        return ((DataxWriter.IRewriteSuFormProperties) writerDescriptor)
+                                .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes);
+                    }
+//                    String overwriteSubField = IOUtils.loadResourceFromClasspath(
+//                            writerClass, writerClass.getSimpleName() + "." + filter.subFieldName + ".json", false);
+//                    if (overwriteSubField != null) {
+//                        JSONObject subField = JSON.parseObject(overwriteSubField);
+//                        Class<?> clazz = writerClass.getClassLoader().loadClass(subField.getString(SubForm.FIELD_DES_CLASS));
+//                        return SuFormProperties.copy(filterFieldProp(buildPropertyTypes(this, clazz)), subPluginFormPropertyTypes);
+//                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+
+                return subPluginFormPropertyTypes;
             }
         }
 
         return new RootFormProperties(filterFieldProp(getPropertyTypes()));
     }
 
-    private Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String, /*** fieldname*/IPropertyType> props) {
+    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String, /*** fieldname*/IPropertyType> props) {
         return props.entrySet().stream().filter((e) -> e.getValue() instanceof PropertyType)
                 .collect(Collectors.toMap((e) -> e.getKey(), (e) -> (PropertyType) e.getValue()));
     }
@@ -306,7 +333,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes() {
         if (propertyTypes == null) {
-            propertyTypes = buildPropertyTypes(clazz);
+            propertyTypes = buildPropertyTypes(this, clazz);
 
             List<PropertyType> identityFields
                     = propertyTypes.values().stream().filter((p) -> {
@@ -338,7 +365,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param clazz
      * @return
      */
-    private Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Class<?> clazz) {
+    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Descriptor descriptor, Class<?> clazz) {
         try {
             Map<String, IPropertyType> r = new HashMap<>();
 
@@ -368,7 +395,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                     throw new IllegalStateException("field " + f.getName()
                                             + "'s SubForm annotation descClass can not be null");
                                 }
-                                r.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(subFromDescClass))));
+                                r.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(descriptor, subFromDescClass))));
                             }
 
                             formField = f.getAnnotation(FormField.class);
@@ -400,7 +427,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                                     if ((formField.type() == FormFieldType.ENUM)
                                             || formField.type() == FormFieldType.MULTI_SELECTABLE) {
-                                        resolveEnumProp(Descriptor.this, fieldExtraProps);
+                                        resolveEnumProp(descriptor, fieldExtraProps);
                                     }
                                     ptype.setExtraProp(fieldExtraProps);
                                 }

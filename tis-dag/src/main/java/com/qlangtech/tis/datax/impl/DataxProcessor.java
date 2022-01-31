@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.datax.impl;
 
@@ -26,7 +26,6 @@ import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;
@@ -35,6 +34,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRules;
@@ -64,6 +64,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     protected static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
+
+
 
     public interface IDataxProcessorGetter {
         DataxProcessor get(String dataXName);
@@ -209,10 +211,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
 
     @Override
     public File getDataXWorkDir(IPluginContext pluginContext) {
-
-        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(pluginContext, this.identityValue());
-        File targetFile = readerStore.getTargetFile();
-        return targetFile.getParentFile();
+        return IDataxProcessor.getDataXWorkDir(pluginContext, this.identityValue());
     }
 
     /**
@@ -223,7 +222,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
      */
     public void makeTempDir(String execId) throws Exception {
 
-        File workingDir = getDataXWorkDir(null);
+        File workingDir = getDataXWorkDir((IPluginContext) null);
         FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), KeyedPluginStore.TMP_DIR_NAME + workingDir.getName() + "-" + execId));
     }
 

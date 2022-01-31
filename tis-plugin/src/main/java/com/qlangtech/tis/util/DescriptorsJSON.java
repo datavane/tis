@@ -21,6 +21,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -69,9 +71,16 @@ public class DescriptorsJSON<T extends Describable<T>> {
     }
 
     public static abstract class SubFormFieldVisitor implements PluginFormProperties.IVisitor {
+
+        final Optional<IPropertyType.SubFormFilter> subFormFilter;
+
+        public SubFormFieldVisitor(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+            this.subFormFilter = subFormFilter;
+        }
+
         @Override
         public final Void visit(SuFormProperties props) {
-            JSONObject behaviorMeta = null;
+            SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta = null;
             List allSuperclasses = Lists.newArrayList(props.parentClazz);
             allSuperclasses.addAll(ClassUtils.getAllSuperclasses(props.parentClazz));
 
@@ -81,12 +90,22 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 String jsonMeta = IOUtils.loadResourceFromClasspath(superClass
                         , superClass.getSimpleName() + "." + props.getSubFormFieldName() + ".json", false);
                 if (jsonMeta != null) {
-                    behaviorMeta = JSON.parseObject(jsonMeta);
+                    behaviorMeta = JSON.parseObject(jsonMeta, SuFormProperties.SuFormPropertiesBehaviorMeta.class);
                     break;
                 }
             }
+            try {
+                if (this.subFormFilter.isPresent()) {
+                    Descriptor writerDescriptor = IDataxProcessor.getWriterDescriptor(this.subFormFilter.get().uploadPluginMeta);
+                    if (writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
+                        behaviorMeta = ((DataxWriter.IRewriteSuFormProperties) writerDescriptor).overwriteBehaviorMeta(behaviorMeta);
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
-
+            //   IDataxProcessor.getWriterDescriptor(this);
             visitSubForm(behaviorMeta, props);
             return null;
         }
@@ -95,11 +114,13 @@ public class DescriptorsJSON<T extends Describable<T>> {
          * @param behaviorMeta 可能为空 结构可以查阅：com/qlangtech/tis/plugin/datax/DataxMySQLReader.selectedTabs.json
          * @param props
          */
-        protected abstract void visitSubForm(JSONObject behaviorMeta, SuFormProperties props);
+        protected abstract void visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props);
     }
 
-    public JSONObject getDescriptorsJSON(Optional<IPropertyType.SubFormFilter> subFormFilter) {
 
+    public JSONObject getDescriptorsJSON(
+            Optional<IPropertyType.SubFormFilter> subFormFilter
+    ) {
         JSONArray attrs;
         String key;
         PropertyType val;
@@ -114,9 +135,9 @@ public class DescriptorsJSON<T extends Describable<T>> {
             pluginFormPropertyTypes = d.getPluginFormPropertyTypes(subFormFilter);
 
             JSONObject des = new JSONObject();
-            pluginFormPropertyTypes.accept(new SubFormFieldVisitor() {
+            pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
                 @Override
-                public void visitSubForm(JSONObject behaviorMeta, SuFormProperties props) {
+                public void visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
                     JSONObject subForm = new JSONObject();
                     if (behaviorMeta != null) {
                         subForm.put("behaviorMeta", behaviorMeta);
@@ -132,7 +153,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
             des.put(KEY_EXTEND_POINT, d.getT().getName());
 
-            setDescInfo(d, des);
+            this.setDescInfo(d, des);
 
             des.put("veriflable", d.overWriteValidateMethod);
             if (IdentityName.class.isAssignableFrom(d.clazz)) {
@@ -175,7 +196,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
 //                    }
 //                    optionsCreator = d;
 //                    List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(key);
-                    attrVal.put("options", getSelectOptions(d,val,key));
+                    attrVal.put("options", getSelectOptions(d, val, key));
                 }
                 if (val.isDescribable()) {
                     DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors());

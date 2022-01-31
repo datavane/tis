@@ -46,8 +46,12 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
 
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
 
+    public static SuFormProperties copy(Map<String, /*** fieldname */PropertyType> fieldsType, SuFormProperties old) {
+        return new SuFormProperties(old.parentClazz, old.subFormField, old.subFormFieldsAnnotation, fieldsType);
+    }
 
-    public SuFormProperties(Class<?> parentClazz, Field subFormField, SubForm subFormFieldsAnnotation, Map<String, PropertyType> fieldsType) {
+    public SuFormProperties(Class<?> parentClazz, Field subFormField
+            , SubForm subFormFieldsAnnotation, Map<String, PropertyType> fieldsType) {
         Objects.requireNonNull(fieldsType, "fieldsType can not be null");
         this.parentClazz = parentClazz;
         this.fieldsType = fieldsType;
@@ -210,5 +214,47 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
     @Override
     public <T> T accept(IVisitor visitor) {
         return visitor.visit(this);
+    }
+
+    public static class SuFormPropertiesBehaviorMeta {
+        String clickBtnLabel;
+        Map<String, SuFormPropertyGetterMeta> onClickFillData;
+
+        public String getClickBtnLabel() {
+            return clickBtnLabel;
+        }
+
+        public void setClickBtnLabel(String clickBtnLabel) {
+            this.clickBtnLabel = clickBtnLabel;
+        }
+
+        public Map<String, SuFormPropertyGetterMeta> getOnClickFillData() {
+            return onClickFillData;
+        }
+
+        public void setOnClickFillData(Map<String, SuFormPropertyGetterMeta> onClickFillData) {
+            this.onClickFillData = onClickFillData;
+        }
+    }
+
+    public static class SuFormPropertyGetterMeta {
+        String method;
+        List<String> params;
+
+        public String getMethod() {
+            return method;
+        }
+
+        public void setMethod(String method) {
+            this.method = method;
+        }
+
+        public List<String> getParams() {
+            return params;
+        }
+
+        public void setParams(List<String> params) {
+            this.params = params;
+        }
     }
 }

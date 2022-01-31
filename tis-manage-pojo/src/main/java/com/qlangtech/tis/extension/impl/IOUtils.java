@@ -161,10 +161,7 @@ public class IOUtils {
     }
 
     /**
-     * Resolves the given path with respect to given base. If the path represents an absolute path, a file representing
-     * it is returned, otherwise a file representing a path relative to base is returned.
-     * <p>
-     * It would be nice if File#File(File, String) were doing this.
+hh
      *
      * @param base File that represents the parent, may be null if path is absolute
      * @param path Path of the file, may not be null
