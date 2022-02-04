@@ -22,6 +22,7 @@ import com.qlangtech.tis.datax.impl.TestTableAlias;
 import com.qlangtech.tis.db.parser.TestDBConfigParser;
 import com.qlangtech.tis.db.parser.TestScannerPatterns;
 import com.qlangtech.tis.extension.TestDescriptor;
+import com.qlangtech.tis.extension.impl.TestSuFormProperties;
 import com.qlangtech.tis.extension.impl.TestXmlFile;
 import com.qlangtech.tis.extension.model.TestUpdateCenter;
 import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
@@ -46,6 +47,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestSuFormProperties.class);
         suite.addTestSuite(TestTableAlias.class);
         suite.addTestSuite(TestScannerPatterns.class);
         suite.addTestSuite(TestDBConfigParser.class);

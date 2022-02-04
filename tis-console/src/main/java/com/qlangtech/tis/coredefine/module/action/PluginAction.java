@@ -27,6 +27,7 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
@@ -41,6 +42,7 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.*;
@@ -154,10 +156,29 @@ public class PluginAction extends BasicModule {
    */
   public void doGetPluginFieldHelp(Context context) {
     DescriptorField descField = parseDescField();
-    // Descriptor targetDesc = TIS.get().getDescriptor(descField.pluginImpl);
+    // List<UploadPluginMeta> pluginMeta = getPluginMeta();
 
-    // PropertyType fieldProp = (PropertyType) targetDesc.getPropertyType(fieldName);
-    PluginExtraProps.Props props = descField.getFieldPropType().extraProp;
+    UploadPluginMeta pluginMeta
+      = UploadPluginMeta.parse(this, this.getString("plugin"));
+
+    Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+
+    PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
+
+    PluginExtraProps.Props props = pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
+      @Override
+      protected PluginExtraProps.Props visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
+        PropertyType propertyType = props.fieldsType.get(descField.field);
+        return propertyType.extraProp;
+      }
+
+      @Override
+      public PluginExtraProps.Props visit(RootFormProperties props) {
+        return descField.getFieldPropType().extraProp;
+      }
+    });
+
+    // PluginExtraProps.Props props = descField.getFieldPropType().extraProp;
     if (!props.isAsynHelp()) {
       throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not support async help content fecthing");
     }
@@ -446,6 +467,8 @@ public class PluginAction extends BasicModule {
    * @throws Exception
    */
   public void doSubformDetailedClick(Context context) throws Exception {
+
+    DataSourceMeta.tableMetadataLocal.remove();
     List<UploadPluginMeta> pluginsMeta = getPluginMeta();
     List<Describable> plugins = null;
     Map<String, String> execContext = Maps.newHashMap();
@@ -460,10 +483,9 @@ public class PluginAction extends BasicModule {
         subFormFilter = meta.getSubFormFilter();
         PluginFormProperties pluginFormPropertyTypes = plugin.getDescriptor().getPluginFormPropertyTypes(subFormFilter);
         pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
-
-
           @Override
-          protected void visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
+          protected Void visitSubForm(
+            SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
             SuFormProperties.SuFormPropertyGetterMeta fieldDataGetterMeta = null;
             List<String> params = null;
             Map<String, SuFormProperties.SuFormPropertyGetterMeta> onClickFillData = behaviorMeta.getOnClickFillData();
@@ -495,9 +517,9 @@ public class PluginAction extends BasicModule {
             }
             // params 必须全为spring类型的
             setBizResult(context, fillFieldsData);
+            return null;
           }
         });
-
 
         return;
       }

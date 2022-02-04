@@ -79,7 +79,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
         }
 
         @Override
-        public final Void visit(SuFormProperties props) {
+        public final <T> T visit(SuFormProperties props) {
             SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta = null;
             List allSuperclasses = Lists.newArrayList(props.parentClazz);
             allSuperclasses.addAll(ClassUtils.getAllSuperclasses(props.parentClazz));
@@ -106,15 +106,14 @@ public class DescriptorsJSON<T extends Describable<T>> {
             }
 
             //   IDataxProcessor.getWriterDescriptor(this);
-            visitSubForm(behaviorMeta, props);
-            return null;
+            return visitSubForm(behaviorMeta, props);
         }
 
         /**
          * @param behaviorMeta 可能为空 结构可以查阅：com/qlangtech/tis/plugin/datax/DataxMySQLReader.selectedTabs.json
          * @param props
          */
-        protected abstract void visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props);
+        protected abstract <T> T visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props);
     }
 
 
@@ -137,7 +136,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
             JSONObject des = new JSONObject();
             pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
                 @Override
-                public void visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
+                public Void visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
                     JSONObject subForm = new JSONObject();
                     if (behaviorMeta != null) {
                         subForm.put("behaviorMeta", behaviorMeta);
@@ -148,6 +147,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     }
                     des.put("subFormMeta", subForm);
                     des.put("subForm", true);
+                    return null;
                 }
             });
 

@@ -303,8 +303,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     Descriptor writerDescriptor
                             = IDataxProcessor.getWriterDescriptor(filter.uploadPluginMeta);// dataxWriter.getClass();
                     if (writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
-                        return ((DataxWriter.IRewriteSuFormProperties) writerDescriptor)
-                                .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes);
+                        return Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor)
+                                        .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes)
+                                , "result can not be null " + PluginFormProperties.class.getSimpleName());
                     }
 //                    String overwriteSubField = IOUtils.loadResourceFromClasspath(
 //                            writerClass, writerClass.getSimpleName() + "." + filter.subFieldName + ".json", false);

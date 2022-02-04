@@ -40,14 +40,19 @@ import java.util.*;
 public class SuFormProperties extends PluginFormProperties implements IPropertyType {
     public final Map<String, /*** fieldname */PropertyType> fieldsType;
     public final Field subFormField;
+    private Class desClazz;
     public final SubForm subFormFieldsAnnotation;
     public final Class<?> parentClazz;
     private final PropertyType pkPropertyType;
 
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
 
-    public static SuFormProperties copy(Map<String, /*** fieldname */PropertyType> fieldsType, SuFormProperties old) {
-        return new SuFormProperties(old.parentClazz, old.subFormField, old.subFormFieldsAnnotation, fieldsType);
+    public static SuFormProperties copy(Map<String, /*** fieldname */PropertyType> fieldsType, Class<?> descClazz, SuFormProperties old) {
+        SuFormProperties result = new SuFormProperties(old.parentClazz, old.subFormField, old.subFormFieldsAnnotation, fieldsType);
+        if (!old.subFormFieldsAnnotation.desClazz().isAssignableFrom(descClazz)) {
+            throw new IllegalStateException("class:" + old.subFormFieldsAnnotation.desClazz() + " must be parent of " + descClazz);
+        }
+        return result.overWriteDesClazz(descClazz);
     }
 
     public SuFormProperties(Class<?> parentClazz, Field subFormField
@@ -57,6 +62,7 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         this.fieldsType = fieldsType;
         this.subFormField = subFormField;
         this.subFormFieldsAnnotation = subFormFieldsAnnotation;
+        this.desClazz = subFormFieldsAnnotation.desClazz();
         Optional<Map.Entry<String, PropertyType>> idType = fieldsType.entrySet().stream().filter((ft) -> ft.getValue().isIdentity()).findFirst();
         if (!idType.isPresent()) {
             throw new IllegalArgumentException(subFormFieldsAnnotation.desClazz() + " has not define a identity prop");
@@ -74,11 +80,16 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
 
     public <T> T newSubDetailed() {
         try {
-            Class<?> aClass = this.subFormFieldsAnnotation.desClazz();
-            return (T) aClass.newInstance();
+            // Class<?> aClass = desClazz this.subFormFieldsAnnotation.desClazz();
+            return (T) this.desClazz.newInstance();
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public SuFormProperties overWriteDesClazz(Class desClazz) {
+        this.desClazz = desClazz;
+        return this;
     }
 
     private static final CustomerGroovyClassLoader loader = new CustomerGroovyClassLoader();

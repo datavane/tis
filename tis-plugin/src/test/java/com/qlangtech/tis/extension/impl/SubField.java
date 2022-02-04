@@ -15,40 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.plugin.ds;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+package com.qlangtech.tis.extension.impl;
+
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 
 /**
- * 数据源meta信息获取
- *
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-07 15:51
- */
-public interface DataSourceMeta {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2022-02-01 10:52
+ **/
+public class SubField {
 
-    static ThreadLocal<Map<String, List<ColumnMetaData>>> tableMetadataLocal = ThreadLocal.withInitial(() -> {
-        return new HashMap<>();
-    });
+    @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    public String name;
 
-    /**
-     * Get all the tables in dataBase
-     *
-     * @return
-     */
-    default List<String> getTablesInDB() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Get table column metaData list
-     *
-     * @param table
-     * @return
-     */
-    default List<ColumnMetaData> getTableMetadata(String table) {
-        throw new UnsupportedOperationException();
-    }
+    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT)
+    public String subProp1;
 }
