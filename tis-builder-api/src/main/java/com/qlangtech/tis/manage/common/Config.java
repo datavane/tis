@@ -94,6 +94,7 @@ public class Config {
 
     public static void setDataDir(String path) {
         System.setProperty(KEY_DATA_DIR, path);
+        getInstance().dataDir = new File(path);
     }
 
     public static void setTest(boolean val) {
@@ -106,7 +107,7 @@ public class Config {
 
     public static File setTestDataDir() {
         String dataDir = null;
-        if ((dataDir = System.getProperty(Config.KEY_DATA_DIR)) != null) {
+        if ((dataDir = System.getProperty(KEY_DATA_DIR)) != null) {
             throw new RuntimeException("dataDir:" + dataDir + " must be empty");
         }
         try {
@@ -188,7 +189,7 @@ public class Config {
     }
 
     public static File getDataDir(boolean valiate) {
-        File dir = new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
+        File dir = getInstance().dataDir; //new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
         if (valiate && !(dir.isDirectory() && dir.exists())) {
             throw new IllegalStateException("dir:" + dir.getAbsolutePath() + " is invalid DATA DIR");
         }
@@ -202,6 +203,8 @@ public class Config {
     private final String runtime;
 
     private final String deployMode;
+
+    private File dataDir;
 
 
     // 组装节点
@@ -227,6 +230,10 @@ public class Config {
         this.runtime = p.getString(KEY_RUNTIME, true);
 
         this.deployMode = p.getString(KEY_DEPLOY_MODE);
+
+        this.dataDir = new File(
+                StringUtils.defaultIfEmpty(p.getString(KEY_DATA_DIR)
+                        , System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR)));
 
         this.dbCfg = new TisDbConfig();
         try {
@@ -317,15 +324,6 @@ public class Config {
                 }
             }
         }
-//        TestCfgStream cfgStream = new TestCfgStream(f);
-//        if (!f.exists()) {
-//            f = new File(propertiesFile);
-//            cfgStream = new TestCfgStream(f);
-//            if (!f.exists()) {
-//                return cfgStream;
-//            }
-//        }
-        //return cfgStream.setPropsStream(FileUtils.openInputStream(f));
     }
 
     public static class TestCfgStream {
