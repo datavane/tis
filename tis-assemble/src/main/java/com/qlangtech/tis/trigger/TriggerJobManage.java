@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.trigger;
 
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.manage.common.Config;
@@ -157,8 +158,8 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
             // Trigger the job to run now, and then repeat every 40 seconds
             Trigger trigger = createTrigger(TRIGGER_JOB_KEY_PREFIX + schedule.getJobid(), schedule);
 
-            Map<JobDetail, List<Trigger>> triggersAndJobs = new HashMap<JobDetail, List<Trigger>>();
-            triggersAndJobs.put(job, Arrays.asList(trigger));
+            Map<JobDetail, Set<? extends Trigger>> triggersAndJobs = new HashMap<>();
+            triggersAndJobs.put(job, Sets.newHashSet(trigger));
             scheduler.scheduleJobs(triggersAndJobs, true);
 
         } catch (ObjectAlreadyExistsException e) {
