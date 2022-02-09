@@ -29,6 +29,9 @@ import java.util.Map;
  */
 public interface DataSourceMeta {
 
+    String METHOD_GET_PARTITION_KEYS = "getPartitionKeys";
+    String METHOD_GET_PRIMARY_KEYS = "getPrimaryKeys";
+
     static ThreadLocal<Map<String, List<ColumnMetaData>>> tableMetadataLocal = ThreadLocal.withInitial(() -> {
         return new HashMap<>();
     });

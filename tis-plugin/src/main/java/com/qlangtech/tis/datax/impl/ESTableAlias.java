@@ -27,6 +27,7 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,6 +40,10 @@ public class ESTableAlias extends IDataxProcessor.TableMap {
 
     // json 格式
     private String schemaContent;
+
+    public ESTableAlias() {
+        super(Collections.emptyList());
+    }
 
     @Override
     public List<ISelectedTab.ColMeta> getSourceCols() {

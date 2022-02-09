@@ -19,9 +19,7 @@ package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -35,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -181,15 +180,35 @@ public interface IDataxProcessor {
      */
     public class TableMap extends TableAlias {
 
-        private List<ISelectedTab.ColMeta> sourceCols;
+        // private List<ISelectedTab.ColMeta> sourceCols;
+        private final ISelectedTab tab;
+
+        public TableMap(ISelectedTab tab) {
+            this.tab = tab;
+        }
+
+        public TableMap(final List<ISelectedTab.ColMeta> cmetas) {
+            this.tab = new ISelectedTab() {
+                @Override
+                public List<ColMeta> getCols() {
+                    return cmetas;
+                }
+            };
+        }
 
         public List<ISelectedTab.ColMeta> getSourceCols() {
-            return sourceCols;
+            //Objects.requireNonNull(tab, "param tab can not be null");
+            return this.getSourceTab().getCols();
         }
 
-        public void setSourceCols(List<ISelectedTab.ColMeta> sourceCols) {
-            this.sourceCols = sourceCols;
+        public ISelectedTab getSourceTab() {
+            Objects.requireNonNull(tab, "param tab can not be null");
+            return this.tab;
         }
+
+//        public void setSourceCols(List<ISelectedTab.ColMeta> sourceCols) {
+//            this.sourceCols = sourceCols;
+//        }
 
     }
 

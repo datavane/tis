@@ -34,11 +34,17 @@ import java.util.stream.Collectors;
 public interface ISelectedTab {
 
 
-    String getName();
+    default String getName() {
+        throw new UnsupportedOperationException();
+    }
 
-    String getWhere();
+    default String getWhere() {
+        return null;
+    }
 
-    boolean isAllCols();
+    default boolean isAllCols() {
+        return true;
+    }
 
     List<ColMeta> getCols();
 

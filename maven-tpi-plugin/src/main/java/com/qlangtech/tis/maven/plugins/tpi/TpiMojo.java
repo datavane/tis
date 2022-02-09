@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.maven.plugins.tpi;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -26,6 +27,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.*;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.UnixStat;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
@@ -162,6 +164,10 @@ public class TpiMojo extends AbstractTISManifestMojo {
         archiver.setOutputFile(tpiFile);
         hpiArchiver.addConfiguredManifest(manifest);
         hpiArchiver.addDirectory(getWebappDirectory(), getIncludes(), getExcludes());
+
+        File testFile = new File("test.sh");
+        FileUtils.write(testFile, "echo 'hello'", "utf8", false);
+        hpiArchiver.addFile(testFile, "test.sh", UnixStat.FILE_FLAG | UnixStat.PERM_MASK);
         // create archive
         archiver.createArchive(project, archive);
         project.getArtifact().setFile(tpiFile);

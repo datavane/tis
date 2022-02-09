@@ -204,8 +204,8 @@ public class FSHistoryFileUtils {
         Collections.sort(timestampList, (o1, o2) -> (int) (o2.timeStamp - o1.timeStamp));
     }
 
-    public static String getJoinTableStorePath(String rootDir, INameWithPathGetter pathGetter) {
-        return rootDir + "/" + pathGetter.getNameWithPath();
+    public static String getJoinTableStorePath(IPath rootDir, INameWithPathGetter pathGetter) {
+        return rootDir.getName() + "/" + pathGetter.getNameWithPath();
     }
 
     public static class PathInfo {

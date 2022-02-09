@@ -773,8 +773,8 @@ public class DataxAction extends BasicModule {
         }
         tabMapper = (IDataxProcessor.TableMap) findMapper.get();
       } else {
-        tabMapper = new IDataxProcessor.TableMap();
-        tabMapper.setSourceCols(selectedTab.getCols());
+        tabMapper = new IDataxProcessor.TableMap(selectedTab);
+        // tabMapper.setSourceCols(selectedTab.getCols());
         tabMapper.setFrom(selectedTab.getName());
         tabMapper.setTo(selectedTab.getName());
       }
@@ -815,11 +815,14 @@ public class DataxAction extends BasicModule {
     if ((processMeta.isReaderRDBMS())) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
     }
-
-    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap();
     List<ISelectedTab.ColMeta> writerCols = Lists.newArrayList();
-
-    tableMapper.setSourceCols(writerCols);
+    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new ISelectedTab() {
+      @Override
+      public List<ColMeta> getCols() {
+        return writerCols;
+      }
+    });
+    // tableMapper.setSourceCols(writerCols);
     ////////////////////
     final String keyColsMeta = "colsMeta";
     IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());

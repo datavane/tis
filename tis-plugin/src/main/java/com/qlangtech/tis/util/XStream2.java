@@ -33,6 +33,7 @@ import com.thoughtworks.xstream.core.JVM;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.xml.XppDriver;
+import com.thoughtworks.xstream.security.AnyTypePermission;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,7 @@ public class XStream2 extends XStream {
     public XStream2(XppDriver xppDruver) {
         super(null, null, xppDruver);
         this.xppDruver = xppDruver;
+        this.addPermission(AnyTypePermission.ANY);
     }
 
     private RobustReflectionConverter reflectionConverter;

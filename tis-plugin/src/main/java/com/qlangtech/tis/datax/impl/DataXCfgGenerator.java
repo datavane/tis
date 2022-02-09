@@ -235,8 +235,8 @@ public class DataXCfgGenerator {
                 Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
                 ISelectedTab tab = selectedTabs.get(readerContext.getSourceEntityName());
                 Objects.requireNonNull(tab, readerContext.getSourceEntityName() + " relevant tab can not be null");
-                IDataxProcessor.TableMap m = new IDataxProcessor.TableMap();
-                m.setSourceCols(tab.getCols());
+                IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(tab);
+               //m.setSourceCols(tab.getCols());
                 m.setTo(tab.getName());
                 m.setFrom(tab.getName());
                 tableMapper = Optional.of(m);
@@ -346,10 +346,9 @@ public class DataXCfgGenerator {
         }
         ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
         IDataxProcessor.TableMap
-                tableMap = new IDataxProcessor.TableMap();
+                tableMap = new IDataxProcessor.TableMap(selectedTab);
         tableMap.setFrom(tableAlias.getFrom());
         tableMap.setTo(tableAlias.getTo());
-        tableMap.setSourceCols(selectedTab.getCols());
         return tableMap;
     }
 

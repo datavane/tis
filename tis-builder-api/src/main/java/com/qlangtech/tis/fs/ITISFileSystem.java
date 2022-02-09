@@ -49,7 +49,7 @@ public interface ITISFileSystem {
      *
      * @return
      */
-    public String getRootDir();
+    public IPath getRootDir();
 
     /**
      * 取得文件系统的名称 hdfs ，OSS，或者其他
