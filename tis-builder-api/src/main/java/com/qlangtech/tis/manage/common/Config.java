@@ -134,7 +134,15 @@ public class Config {
     }
 
     private Map<String, String> getImportKV() {
-        Map<String, String> pairs = new HashMap<>();
+        Map<String, String> pairs = new HashMap<String, String>() {
+            @Override
+            public String put(String key, String value) {
+                if (StringUtils.isEmpty(value)) {
+                    return null;
+                }
+                return super.put(key, value);
+            }
+        };
         pairs.put(KEY_ZK_HOST, this.zkHost);
         pairs.put(KEY_ASSEMBLE_HOST, this.assembleHost);
         pairs.put(KEY_TIS_HOST, this.tisHost);
