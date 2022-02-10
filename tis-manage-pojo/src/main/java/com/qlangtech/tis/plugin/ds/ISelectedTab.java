@@ -48,10 +48,34 @@ public interface ISelectedTab {
 
     List<ColMeta> getCols();
 
+    /**
+     * TODO 考虑可以和 ColumnMetaData 合并
+     *
+     * @see com.qlangtech.tis.plugin.ds.ColumnMetaData
+     */
     public class ColMeta implements Serializable {
         private String name;
         private ColumnMetaData.DataType type;
         private Boolean pk = false;
+
+        private String comment;
+        private boolean nullable;
+
+        public String getComment() {
+            return comment;
+        }
+
+        public void setComment(String comment) {
+            this.comment = comment;
+        }
+
+        public boolean isNullable() {
+            return nullable;
+        }
+
+        public void setNullable(boolean nullable) {
+            this.nullable = nullable;
+        }
 
         /**
          * 是否是主键，有时下游writer表例如clickhouse如果选择自动建表脚本，则需要知道表中的主键信息

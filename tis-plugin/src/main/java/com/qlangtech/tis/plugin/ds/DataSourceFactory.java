@@ -28,6 +28,7 @@ import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,6 +148,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             DatabaseMetaData metaData1 = null;
             ResultSet primaryKeys = null;
             ResultSet columns1 = null;
+            ColumnMetaData colMeta = null;
+            String comment = null;
             try {
                 metaData1 = conn.getMetaData();
                 primaryKeys = getPrimaryKeys(table, metaData1);
@@ -194,10 +197,16 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                  * */
                 while (columns1.next()) {
                     colName = columns1.getString("COLUMN_NAME");
+                    comment = columns1.getString("REMARKS");
                     // 如果有重复的col已经添加则直接跳过
                     if (addedCols.add(colName)) {
-                        columns.add(new ColumnMetaData((i++), colName
-                                , getDataType(colName, columns1), pkCols.contains(colName)));
+                        colMeta = new ColumnMetaData((i++), colName
+                                , getDataType(colName, columns1), pkCols.contains(colName)
+                                , columns1.getBoolean("IS_NULLABLE"));
+                        if (StringUtils.isNotEmpty(comment)) {
+                            colMeta.setComment(comment);
+                        }
+                        columns.add(colMeta);
                     }
                 }
 

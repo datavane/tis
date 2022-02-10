@@ -29,6 +29,7 @@ public class HiveColumn {
 
     // 插入后的name
     private String name;
+    private boolean nullable;
 
     // 原来的name rawName as name
     private String rawName;
@@ -56,6 +57,14 @@ public class HiveColumn {
         if (getRawName() == null) {
             setRawName(name);
         }
+    }
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public void setNullable(boolean nullable) {
+        this.nullable = nullable;
     }
 
     public String getType() {

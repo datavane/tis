@@ -70,16 +70,36 @@ public class ColumnMetaData extends Option {
     // 是否是主键
     private final boolean pk;
 
+    private final boolean nullable;
+
     /**
-     * @param key  column名字
-     * @param type column类型 java.sql.Types
+     * 列的注释
      */
-    public ColumnMetaData(int index, String key, DataType type, boolean pk) {
+    private transient String comment;
+
+
+    /**
+     * @param index
+     * @param key      column名字
+     * @param type     column类型 java.sql.Types
+     * @param pk
+     * @param nullable 是否可空
+     */
+    public ColumnMetaData(int index, String key, DataType type, boolean pk, boolean nullable) {
         super(key, key);
         this.pk = pk;
         this.key = key;
         this.type = type;
         this.index = index;
+        this.nullable = nullable;
+    }
+
+    public String getComment() {
+        return this.comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public ReservedFieldType getSchemaFieldType() {
@@ -88,6 +108,10 @@ public class ColumnMetaData extends Option {
 
     public void setSchemaFieldType(ReservedFieldType schemaFieldType) {
         this.schemaFieldType = schemaFieldType;
+    }
+
+    public boolean isNullable() {
+        return this.nullable;
     }
 
     public int getIndex() {
@@ -124,8 +148,6 @@ public class ColumnMetaData extends Option {
         public final int columnSize;
         // decimal 的小数位长度
         private Integer decimalDigits;
-        // 字段注释
-        private transient String comment;
 
         public DataType(int type) {
             this(type, -1);
