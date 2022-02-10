@@ -94,6 +94,10 @@ public class ColumnMetaData extends Option {
         this.nullable = nullable;
     }
 
+    public ColumnMetaData(int index, String key, DataType type, boolean pk) {
+        this(index, key, type, pk, !pk);
+    }
+
     public String getComment() {
         return this.comment;
     }
