@@ -1,28 +1,26 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 package com.qlangtech.tis.datax.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
@@ -34,16 +32,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
-import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.er.ERRules;
-import com.qlangtech.tis.sql.parser.er.IERRules;
-import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
-import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
-import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -52,6 +41,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+//import com.qlangtech.tis.plugin.ds.ISelectedTab;
+//import com.qlangtech.tis.sql.parser.DBNode;
+//import com.qlangtech.tis.sql.parser.er.ERRules;
+//import com.qlangtech.tis.sql.parser.er.IERRules;
+//import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
+//import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
+//import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+//import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+//import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+//import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 
 /**
  * DataX任务执行方式的抽象
@@ -64,7 +64,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     protected static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
-
 
 
     public interface IDataxProcessorGetter {
@@ -288,36 +287,36 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     public boolean isExcludeFacadeDAOSupport() {
         return true;
     }
-
-    @Override
-    public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
-
-        Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
-        IDataxReader reader = this.getReader(null);
-        Objects.requireNonNull(reader, "dataXReader can not be null");
-        List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
-        for (ISelectedTab tab : selectedTabs) {
-            tabColsMapper.put(() -> EntityName.parse(tab.getName()), Collections.emptyList());
-        }
-
-        return tabColsMapper;
-    }
-
-    @Override
-    public Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter) {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public IERRules getERRule() {
-        ERRules erRules = new ERRules() {
-            public List<PrimaryTableMeta> getPrimaryTabs() {
-                TabExtraMeta tabMeta = new TabExtraMeta();
-                PrimaryTableMeta ptab = new PrimaryTableMeta("tabName", tabMeta);
-                return Collections.singletonList(ptab);
-            }
-        };
-
-        return erRules;
-    }
+//
+//    @Override
+//    public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
+//
+//        Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
+//        IDataxReader reader = this.getReader(null);
+//        Objects.requireNonNull(reader, "dataXReader can not be null");
+//        List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
+//        for (ISelectedTab tab : selectedTabs) {
+//            tabColsMapper.put(() -> EntityName.parse(tab.getName()), Collections.emptyList());
+//        }
+//
+//        return tabColsMapper;
+//    }
+//
+//    @Override
+//    public Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter) {
+//        return Collections.emptyMap();
+//    }
+//
+//    @Override
+//    public IERRules getERRule() {
+//        ERRules erRules = new ERRules() {
+//            public List<PrimaryTableMeta> getPrimaryTabs() {
+//                TabExtraMeta tabMeta = new TabExtraMeta();
+//                PrimaryTableMeta ptab = new PrimaryTableMeta("tabName", tabMeta);
+//                return Collections.singletonList(ptab);
+//            }
+//        };
+//
+//        return erRules;
+//    }
 }

@@ -43,10 +43,7 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.lang.TisException;
-import com.qlangtech.tis.manage.IAppSource;
-import com.qlangtech.tis.manage.IBasicAppSource;
-import com.qlangtech.tis.manage.ISolrAppSource;
-import com.qlangtech.tis.manage.PermissionConstant;
+import com.qlangtech.tis.manage.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
@@ -375,7 +372,8 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(this, indexStreamCodeGenerator);
 
-    if (appSource.isExcludeFacadeDAOSupport()) {
+   // if (appSource.isExcludeFacadeDAOSupport()) {
+    if (true) {
       daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap());
     } else {
       Map<Integer, Long> dependencyDbs = getDependencyDbsMap(this, indexStreamCodeGenerator);
@@ -436,13 +434,6 @@ public class CoreAction extends BasicModule {
   }
 
   private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module) throws Exception {
-    //final WorkFlow workFlow = module.loadDF(workflowid);
-    //SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(workFlow.getName());
-//    return getIndexStreamCodeGenerator(module);//, workFlow, wfTopology.isSingleDumpTableDependency());
-//  }
-//
-//  public static IndexStreamCodeGenerator getIndexStreamCodeGenerator(
-//    BasicModule module, WorkFlow workFlow, boolean excludeFacadeDAOSupport) throws Exception {
 
     IBasicAppSource appSource = IAppSource.load(null, module.getCollectionName());
 
@@ -454,13 +445,13 @@ public class CoreAction extends BasicModule {
       }
 
       @Override
-      public Date visit(SingleTableAppSource single) {
+      public Date visit(ISingleTableAppSource single) {
         DatasourceTable table = module.getWorkflowDAOFacade().getDatasourceTableDAO().loadFromWriteDB(single.getTabId());
         return table.getOpTime();
       }
 
       @Override
-      public Date visit(DataFlowAppSource dataflow) {
+      public Date visit(IDataFlowAppSource dataflow) {
         Integer dfId = dataflow.getDfId();
         WorkFlow workFlow = module.getWorkflowDAOFacade().getWorkFlowDAO().loadFromWriteDB(dfId);
         return workFlow.getOpTime();

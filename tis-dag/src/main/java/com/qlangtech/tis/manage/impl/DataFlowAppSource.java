@@ -35,6 +35,7 @@ import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.fullbuild.taskflow.IFlatTableBuilder;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
 import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
+import com.qlangtech.tis.manage.IDataFlowAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.FlatTableBuilder;
@@ -66,7 +67,7 @@ import java.util.concurrent.Executors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:20
  */
-public class DataFlowAppSource implements ISolrAppSource {
+public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     private static final Logger logger = LoggerFactory.getLogger("fullbuild");
     public static final File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_APP_DIR);
     private final String dataflowName;
@@ -92,7 +93,7 @@ public class DataFlowAppSource implements ISolrAppSource {
         }
     }
 
-    @Override
+    // @Override
     public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
 
         try {
@@ -283,7 +284,7 @@ public class DataFlowAppSource implements ISolrAppSource {
         }
     }
 
-    @Override
+    // @Override
     public IERRules getERRule() {
         try {
             return this.getErRules();
@@ -297,7 +298,7 @@ public class DataFlowAppSource implements ISolrAppSource {
      *
      * @return
      */
-    @Override
+    //  @Override
     public Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter) {
         try {
             SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataflowName);

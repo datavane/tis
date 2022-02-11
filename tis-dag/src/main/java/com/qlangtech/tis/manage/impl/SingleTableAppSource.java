@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.impl;
 
@@ -27,6 +27,7 @@ import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
+import com.qlangtech.tis.manage.ISingleTableAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
@@ -50,7 +51,7 @@ import java.util.*;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-31 11:20
  */
-public class SingleTableAppSource implements ISolrAppSource, IStreamIncrGenerateStrategy {
+public class SingleTableAppSource implements ISolrAppSource, IStreamIncrGenerateStrategy, ISingleTableAppSource {
     private final DatasourceDb db;
     //    private final DatasourceTable table;
     private final Integer tabId;
@@ -136,17 +137,17 @@ public class SingleTableAppSource implements ISolrAppSource, IStreamIncrGenerate
     }
 
 
-    @Override
+    //@Override
     public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
         return Collections.emptyMap();
     }
 
-    @Override
+    // @Override
     public Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter) {
         return Collections.emptyMap();
     }
 
-    @Override
+    // @Override
     public IERRules getERRule() {
         return new SingleTableErRule();
     }

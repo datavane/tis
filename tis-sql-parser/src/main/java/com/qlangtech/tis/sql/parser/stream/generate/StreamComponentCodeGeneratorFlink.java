@@ -91,16 +91,17 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
         final PrintStream traversesAllNodeOut = new PrintStream(new File("./traversesAllNode.txt"));
 
         try {
-            Map<IEntityNameGetter, List<IValChain>> tabTriggers = this.streamIncrGenerateStrategy.getTabTriggerLinker();
-            IERRules erR = streamIncrGenerateStrategy.getERRule();
+//            Map<IEntityNameGetter, List<IValChain>> tabTriggers = this.streamIncrGenerateStrategy.getTabTriggerLinker();
+//            IERRules erR = streamIncrGenerateStrategy.getERRule();
 
-            PropGetter last = null;
-            PropGetter first = null;
-            Optional<TableRelation> firstParent = null;
+//            PropGetter last = null;
+//            PropGetter first = null;
+//            Optional<TableRelation> firstParent = null;
+            Map<IEntityNameGetter, List<IValChain>> tabTriggers = Collections.emptyMap();
             FunctionVisitor.FuncFormat aliasListBuffer = new FunctionVisitor.FuncFormat();
 
 
-            for (Map.Entry<IEntityNameGetter, List<IValChain>> e : tabTriggers.entrySet()) {
+           // for (Map.Entry<IEntityNameGetter, List<IValChain>> e : tabTriggers.entrySet()) {
 //                final EntityName entityName = e.getKey().getEntityName();
 //                final Set<String> relevantCols = e.getValue().stream()
 //                        .map((rr) -> rr.last().getOutputColName().getName()).collect(Collectors.toSet());
@@ -407,7 +408,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 //                                }
 //                            }).appendLine(") // end setGetterRowsFromOuterPersistence").returnLine().returnLine();
 //                }
-            }
+           // }
 
 
             MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, aliasListBuffer,

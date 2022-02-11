@@ -18,31 +18,10 @@
 
 package com.qlangtech.tis.manage;
 
-import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
-import com.qlangtech.tis.manage.impl.SingleTableAppSource;
-import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-04-27 15:26
+ * @create: 2022-02-11 11:19
  **/
-public interface IBasicAppSource extends IAppSource, IStreamIncrGenerateStrategy {
-    <T> T accept(IAppSourceVisitor<T> visitor);
-
-    interface IAppSourceVisitor<T> {
-
-        T visit(SingleTableAppSource single);
-
-        T visit(DataFlowAppSource dataflow);
-
-//        default public T visit(ISolrAppSource app) {
-//            return null;
-//        }
-
-
-        default public T visit(DataxProcessor app) {
-            return null;
-        }
-    }
+public interface IDataFlowAppSource {
+    Integer getDfId();
 }

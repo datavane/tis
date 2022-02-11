@@ -99,7 +99,8 @@ public class MergeData {
             throw new IllegalArgumentException("param facadeContextList can not be null");
         }
         this.facadeContextList = facadeContextList;
-        this.erRules = streamIncrGenerateStrategy.getERRule();
+       // this.erRules = streamIncrGenerateStrategy.getERRule();
+        this.erRules = null;
         Objects.requireNonNull(erRules, "erRules can not be null");
         List<PrimaryTableMeta> primaryTabs = this.erRules.getPrimaryTabs();// erRules.getPrimaryTabs();
         // 索引的主索引表

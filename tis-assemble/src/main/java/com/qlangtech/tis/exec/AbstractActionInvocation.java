@@ -26,6 +26,8 @@ import com.qlangtech.tis.exec.impl.*;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.manage.IBasicAppSource;
+import com.qlangtech.tis.manage.IDataFlowAppSource;
+import com.qlangtech.tis.manage.ISingleTableAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.impl.SingleTableAppSource;
@@ -94,13 +96,15 @@ public class AbstractActionInvocation implements ActionInvocation {
             IBasicAppSource appSource = chainContext.getAppSource();// DataFlowAppSource.load(chainContext.getIndexName());
             ints = appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
                 @Override
-                public IExecuteInterceptor[] visit(SingleTableAppSource single) {
-                    return visitSolrAppSource(single);
+                public IExecuteInterceptor[] visit(ISingleTableAppSource single) {
+                 //   return visitSolrAppSource(single);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
-                public IExecuteInterceptor[] visit(DataFlowAppSource dataflow) {
-                    return visitSolrAppSource(dataflow);
+                public IExecuteInterceptor[] visit(IDataFlowAppSource dataflow) {
+                   // return visitSolrAppSource(dataflow);
+                    throw new UnsupportedOperationException();
                 }
 
                 private IExecuteInterceptor[] visitSolrAppSource(ISolrAppSource appSource) {

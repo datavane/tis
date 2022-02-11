@@ -69,7 +69,7 @@ public class MapDataMethodCreator {
      * @return
      */
     public String getGenerateMapDataMethodBody() {
-        IERRules erRule = streamIncrGenerateStrategy.getERRule();
+        IERRules erRule = null; //streamIncrGenerateStrategy.getERRule();
         FunctionVisitor.FuncFormat funcFormat = new FunctionVisitor.FuncFormat();
 
         funcFormat.appendLine("val " + this.entityName.entities()

@@ -15,34 +15,13 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.qlangtech.tis.sql.parser.tuple.creator;
 
-import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
-import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.er.IERRules;
-
-import java.util.List;
-import java.util.Map;
+package com.qlangtech.tis.manage;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-06 09:49
- */
-public interface IStreamIncrGenerateStrategy {
-
-
-    boolean isExcludeFacadeDAOSupport();
-
-    Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker();
-
-    /**
-     * map<dbname,list<tables>>
-     *
-     * @return
-     */
-    Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter);
-
-    IERRules getERRule();
-
-
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2022-02-11 11:18
+ **/
+public interface ISingleTableAppSource {
+    Integer getTabId();
 }
