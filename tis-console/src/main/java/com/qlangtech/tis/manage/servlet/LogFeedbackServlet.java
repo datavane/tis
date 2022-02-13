@@ -280,9 +280,15 @@ public class LogFeedbackServlet extends WebSocketServlet {
           try {
             StatusRpcClient.AssembleSvcCompsite feedback = getStatusRpc().get();
             final Iterator<PPhaseStatusCollection> statIt = feedback.buildPhraseStatus(taskid);
+            boolean serverSideBreak = true;
             while (isConnected() && statIt.hasNext()) {
-              process(statIt.next());
+              if (!process(statIt.next())) {
+                // 任务已经结束，停止接收任务执行状态
+                serverSideBreak = false;
+                break;
+              }
             }
+            logger.info("exit buildPhraseStatus status monitor,serverSideBreak:{}", serverSideBreak);
           } catch (Exception e) {
             throw new RuntimeException("taskid:" + taskid, e);
           }
@@ -322,10 +328,15 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
     private Boolean preTaskComplete;
 
+    /**
+     * @param ss
+     * @return true：任务仍在执行中 false：任务已经终止，不需要再继续监听了
+     * @throws Exception
+     */
     @Override
-    public void process(PPhaseStatusCollection ss) throws Exception {
+    public boolean process(PPhaseStatusCollection ss) throws Exception {
       if (this.isClosed()) {
-        return;
+        return false;
       }
 
       if (this.buildTask == null) {
@@ -335,13 +346,13 @@ public class LogFeedbackServlet extends WebSocketServlet {
       PhaseStatusCollection buildState
         = LogCollectorClient.convert(ss, new ExecutePhaseRange(
         FullbuildPhase.parse(this.buildTask.getDelegate().getStartPhase()), FullbuildPhase.parse(this.buildTask.getDelegate().getEndPhase())));
-
+      boolean jobStop = false;
+      ExtendWorkFlowBuildHistory status = null;
       if (preTaskComplete != null) {
 
         if ((buildState.isComplete() ^ preTaskComplete)) {
           // 状态变化了要重新向客户发一个请求
           int waitTry = 0;
-          ExtendWorkFlowBuildHistory status = null;
           do {
             if (waitTry++ > 4) {
               // 等待尝试4次退出
@@ -350,18 +361,30 @@ public class LogFeedbackServlet extends WebSocketServlet {
             // assemble节点反馈执行状态与状态写入到数据库有一个时间差，需要等一下
             Thread.sleep(2000);
             status = getBuildHistory();
-            if (ExecResult.parse(status.getState()) != ExecResult.DOING
-              && (ExecResult.parse(status.getState()) != ExecResult.ASYN_DOING)) {
+            if (isTerminal(status)) {
+              jobStop = true;
               break;
             }
           } while (true);
-          this.sendMsg2Client(status);
           preTaskComplete = buildState.isComplete();
         }
       } else {
+        status = getBuildHistory();
+        if (isTerminal(status)) {
+          jobStop = true;
+        }
         preTaskComplete = buildState.isComplete();
       }
-      sendMsg2Client(buildState);
+      if (jobStop && status != null) {
+        this.sendMsg2Client(status);
+      }
+      this.sendMsg2Client(buildState);
+      return !jobStop;
+    }
+
+    private boolean isTerminal(ExtendWorkFlowBuildHistory status) {
+      return ExecResult.parse(status.getState()) != ExecResult.DOING &&
+        ExecResult.parse(status.getState()) != ExecResult.ASYN_DOING;
     }
 
     @Override

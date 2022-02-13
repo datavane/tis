@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.rpc.grpc.log;
 
@@ -58,6 +58,7 @@ public class LogCollectorClient implements ILogReporter {
     public LogCollectorClient(ManagedChannel channel) {
         this.blockStub = LogCollectorGrpc.newBlockingStub(channel);
         this.stub = LogCollectorGrpc.newStub(channel);
+
     }
 
     public static void main(String[] args) throws Exception {
@@ -197,8 +198,8 @@ public class LogCollectorClient implements ILogReporter {
     public static LogType convert(com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState.LogType logtype) {
         switch (logtype) {
             case MQ_TAGS_STATUS:
-              //  return LogType.MQ_TAGS_STATUS;
-             throw new UnsupportedOperationException("logtype :"+ logtype);
+                //  return LogType.MQ_TAGS_STATUS;
+                throw new UnsupportedOperationException("logtype :" + logtype);
             case INCR_SEND:
                 return LogType.INCR_SEND;
             case INCR_DEPLOY_STATUS_CHANGE:
@@ -216,7 +217,7 @@ public class LogCollectorClient implements ILogReporter {
 
     static {
         ImmutableMap.Builder logTypeMapBuilder = ImmutableMap.builder();
-       // logTypeMapBuilder.put(LogType.MQ_TAGS_STATUS.typeKind, PExecuteState.LogType.MQ_TAGS_STATUS);
+        // logTypeMapBuilder.put(LogType.MQ_TAGS_STATUS.typeKind, PExecuteState.LogType.MQ_TAGS_STATUS);
         logTypeMapBuilder.put(LogType.INCR_SEND.typeKind, PExecuteState.LogType.INCR_SEND);
         logTypeMapBuilder.put(LogType.INCR_DEPLOY_STATUS_CHANGE.typeKind, PExecuteState.LogType.INCR_DEPLOY_STATUS_CHANGE);
         logTypeMapBuilder.put(LogType.FULL.typeKind, PExecuteState.LogType.FULL);
@@ -317,6 +318,13 @@ public class LogCollectorClient implements ILogReporter {
          */
         boolean isReady();
 
-        void process(PPhaseStatusCollection ss) throws Exception;
+        /**
+         * 接收任务执行状态消息
+         *
+         * @param ss
+         * @return true：任务仍在执行中 false：任务已经终止，不需要再继续监听了
+         * @throws Exception
+         */
+        boolean process(PPhaseStatusCollection ss) throws Exception;
     }
 }
