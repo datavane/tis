@@ -33,17 +33,9 @@ import java.util.Objects;
 public class TisApp {
 
 
-    public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
-
     static {
         // System.setProperty("logback.ContextSelector", "com.qlangtech.tis.web.start.TISContextSelector");
         System.setProperty("logback.ContextSelector", "JNDI");
-//${log.dir}/assemble/task
-        System.setProperty(KEY_ASSEMBLE_TASK_DIR, System.getProperty("log.dir") + "/assemble/task");
-    }
-
-    public static final File getAssebleTaskDir() {
-        return new File(System.getProperty(KEY_ASSEMBLE_TASK_DIR));
     }
 
     public static final String KEY_WEB_ROOT_DIR = "web.root.dir";

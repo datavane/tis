@@ -18,13 +18,21 @@
 
 package com.qlangtech.tis.web.start;
 
+import java.io.File;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-01-07 17:27
  **/
 public class TisAppLaunchPort {
     public static final String KEY_TIS_LAUNCH_PORT = "tis.launch.port";
+    public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
     private final int launchPort;
+
+    static {
+        //${log.dir}/assemble/task
+        System.setProperty(TisAppLaunchPort.KEY_ASSEMBLE_TASK_DIR, System.getProperty("log.dir") + "/assemble/task");
+    }
 
     private static TisAppLaunchPort instance;
 
@@ -34,9 +42,13 @@ public class TisAppLaunchPort {
 
 
     public static int getPort() {
-        if(instance == null){
+        if (instance == null) {
             instance = new TisAppLaunchPort();
         }
         return instance.launchPort;
+    }
+
+    public static final File getAssebleTaskDir() {
+        return new File(System.getProperty(KEY_ASSEMBLE_TASK_DIR));
     }
 }

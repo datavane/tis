@@ -19,7 +19,7 @@ package com.qlangtech.tis;
 
 import ch.qos.logback.classic.util.ContextInitializer;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.web.start.TisApp;
+import com.qlangtech.tis.web.start.TisAppLaunchPort;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
@@ -40,7 +40,7 @@ public abstract class BaseTestCase extends TestCase {
             FileUtils.forceMkdir(logDir);
             FileUtils.cleanDirectory(logDir);
             System.setProperty(Config.KEY_LOG_DIR, logDir.getAbsolutePath());
-            System.setProperty(TisApp.KEY_ASSEMBLE_TASK_DIR, assembleLogdir.getAbsolutePath());
+            System.setProperty(TisAppLaunchPort.KEY_ASSEMBLE_TASK_DIR, assembleLogdir.getAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
