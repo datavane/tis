@@ -1,35 +1,29 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.sql.parser.stream.generate;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.sql.parser.TisGroupBy;
-import com.qlangtech.tis.sql.parser.er.*;
-import com.qlangtech.tis.sql.parser.meta.PrimaryLinkKey;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.PropGetter;
 import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
@@ -48,9 +42,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 //java runtime compiler: https://blog.csdn.net/lmy86263/article/details/59742557
 
@@ -483,27 +474,27 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
     /**
      * 生成spring等增量应用启动需要的配置文件
      */
-    public void generateConfigFiles() throws Exception {
-
-
-        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, new FunctionVisitor.FuncFormat(),
-                Collections.emptyMap(), this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
-
-
-        File parentDir =
-                new File(getSpringConfigFilesDir()
-                        , "com/qlangtech/tis/realtime/transfer/" + this.collectionName);
-
-        FileUtils.forceMkdir(parentDir);
-
-        this.mergeGenerate(mergeData
-                , "/com/qlangtech/tis/classtpl/app-context.xml.vm"
-                , new File(parentDir, "app-context.xml"));
-
-        this.mergeGenerate(mergeData
-                , "/com/qlangtech/tis/classtpl/field-transfer.xml.vm"
-                , new File(parentDir, "field-transfer.xml"));
-    }
+//    public void generateConfigFiles() throws Exception {
+//
+//
+//        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, new FunctionVisitor.FuncFormat(),
+//                Collections.emptyMap(), null, this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
+//
+//
+//        File parentDir =
+//                new File(getSpringConfigFilesDir()
+//                        , "com/qlangtech/tis/realtime/transfer/" + this.collectionName);
+//
+//        FileUtils.forceMkdir(parentDir);
+//
+//        this.mergeGenerate(mergeData
+//                , "/com/qlangtech/tis/classtpl/app-context.xml.vm"
+//                , new File(parentDir, "app-context.xml"));
+//
+//        this.mergeGenerate(mergeData
+//                , "/com/qlangtech/tis/classtpl/field-transfer.xml.vm"
+//                , new File(parentDir, "field-transfer.xml"));
+//    }
 
     /**
      * Spring config file root dir

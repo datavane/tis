@@ -87,6 +87,7 @@ public class MergeData {
     public MergeData(
             String collection, Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap
             , FunctionVisitor.FuncFormat aliasListBuilder, Map<IEntityNameGetter, List<IValChain>> tabTriggers
+            , IERRules erRules
             , List<FacadeContext> facadeContextList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy, boolean excludeFacadeDAOSupport) {
         super();
         this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
@@ -100,7 +101,7 @@ public class MergeData {
         }
         this.facadeContextList = facadeContextList;
        // this.erRules = streamIncrGenerateStrategy.getERRule();
-        this.erRules = null;
+        this.erRules = erRules;
         Objects.requireNonNull(erRules, "erRules can not be null");
         List<PrimaryTableMeta> primaryTabs = this.erRules.getPrimaryTabs();// erRules.getPrimaryTabs();
         // 索引的主索引表

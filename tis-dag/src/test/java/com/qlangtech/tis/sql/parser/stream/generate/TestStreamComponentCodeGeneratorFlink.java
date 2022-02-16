@@ -21,6 +21,7 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import junit.framework.TestCase;
@@ -65,7 +66,7 @@ public class TestStreamComponentCodeGeneratorFlink extends TestCase {
 
         List<FacadeContext> facadeList = Lists.newArrayList();
         StreamComponentCodeGeneratorFlink streamCodeGenerator
-                = new StreamComponentCodeGeneratorFlink(collectionName, timestamp, facadeList, (IStreamIncrGenerateStrategy) appSource, true);
+                = new StreamComponentCodeGeneratorFlink(collectionName, timestamp, facadeList, (IBasicAppSource) appSource, true);
         //EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 

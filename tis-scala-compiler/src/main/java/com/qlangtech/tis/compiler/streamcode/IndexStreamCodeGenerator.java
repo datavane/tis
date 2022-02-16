@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.compiler.java.FileObjectsContext;
 import com.qlangtech.tis.compiler.java.ResourcesFile;
 import com.qlangtech.tis.compiler.java.ZipPath;
+import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.sql.parser.DBNode;
@@ -45,7 +46,7 @@ public class IndexStreamCodeGenerator {
     public final String collection;
 
     // private SqlTaskNodeMeta.SqlDataFlowTopology dfTopology;
-    private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
+    private final IBasicAppSource streamIncrGenerateStrategy;
     public final long incrScriptTimestamp;
 
     private List<FacadeContext> facadeList;
@@ -61,7 +62,7 @@ public class IndexStreamCodeGenerator {
     private final boolean excludeFacadeDAOSupport;
 
 
-    public IndexStreamCodeGenerator(String collection, IStreamIncrGenerateStrategy streamIncrGenerateStrategy, long incrScriptTimestamp
+    public IndexStreamCodeGenerator(String collection, IBasicAppSource streamIncrGenerateStrategy, long incrScriptTimestamp
             , IDBTableNamesGetter dbTableNamesGetter, boolean excludeFacadeDAOSupport) throws Exception {
         if (StringUtils.isEmpty(collection)) {
             throw new IllegalArgumentException("argument collection can not be null");

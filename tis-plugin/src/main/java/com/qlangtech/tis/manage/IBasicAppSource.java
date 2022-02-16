@@ -30,9 +30,13 @@ public interface IBasicAppSource extends IAppSource, IStreamIncrGenerateStrategy
 
     interface IAppSourceVisitor<T> {
 
-        T visit(ISingleTableAppSource single);
+        default T visit(ISingleTableAppSource single) {
+            throw new UnsupportedOperationException();
+        }
 
-        T visit(IDataFlowAppSource dataflow);
+        default T visit(IDataFlowAppSource dataflow) {
+            throw new UnsupportedOperationException();
+        }
 
 //        default public T visit(ISolrAppSource app) {
 //            return null;

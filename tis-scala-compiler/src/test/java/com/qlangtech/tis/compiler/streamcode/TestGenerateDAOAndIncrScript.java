@@ -22,6 +22,7 @@ import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
@@ -72,7 +73,7 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
         IAppSource appSource = IAppSource.load(null, collection);
         assertNotNull(appSource);
 
-        return new IndexStreamCodeGenerator(collection, (IStreamIncrGenerateStrategy) appSource, dataflowTimestamp, (dbid, tables) -> {
+        return new IndexStreamCodeGenerator(collection, (IBasicAppSource) appSource, dataflowTimestamp, (dbid, tables) -> {
             assertTrue(tables.size() > 0);
             return tables;
         }, false);

@@ -1,32 +1,37 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.sql.parser.TisGroupBy;
+import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRules;
-import com.qlangtech.tis.sql.parser.er.TableRelation;
+import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
+import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
-import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.PropGetter;
@@ -59,17 +64,17 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
     private static final Logger logger = LoggerFactory.getLogger(StreamComponentCodeGeneratorFlink.class);
 
-    private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
+    private final IBasicAppSource streamIncrGenerateStrategy;
     private final boolean excludeFacadeDAOSupport;
     private final List<FacadeContext> daoFacadeList;
 
     public StreamComponentCodeGeneratorFlink(String collectionName, long timestamp,
-                                             List<FacadeContext> daoFacadeList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy) {
+                                             List<FacadeContext> daoFacadeList, IBasicAppSource streamIncrGenerateStrategy) {
         this(collectionName, timestamp, daoFacadeList, streamIncrGenerateStrategy, false);
     }
 
     public StreamComponentCodeGeneratorFlink(String collectionName, long timestamp,
-                                             List<FacadeContext> daoFacadeList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy
+                                             List<FacadeContext> daoFacadeList, IBasicAppSource streamIncrGenerateStrategy
             , boolean excludeFacadeDAOSupport) {
         super(collectionName, timestamp);
         Objects.requireNonNull(streamIncrGenerateStrategy, "streamIncrGenerateStrategy can not be null");
@@ -80,7 +85,35 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     }
 
 
+    //    @Override
+    private Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
+        return streamIncrGenerateStrategy.accept(new IBasicAppSource.IAppSourceVisitor<Map<IEntityNameGetter, List<IValChain>>>() {
+            @Override
+            public Map<IEntityNameGetter, List<IValChain>> visit(DataxProcessor processor) {
+                Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
+                IDataxReader reader = processor.getReader(null);
+                Objects.requireNonNull(reader, "dataXReader can not be null");
+                List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
+                for (ISelectedTab tab : selectedTabs) {
+                    tabColsMapper.put(() -> EntityName.parse(tab.getName()), Collections.emptyList());
+                }
+                return tabColsMapper;
+            }
+        });
+    }
 
+
+    //    @Override
+    private IERRules getERRule() {
+        ERRules erRules = new ERRules() {
+            public List<PrimaryTableMeta> getPrimaryTabs() {
+                TabExtraMeta tabMeta = new TabExtraMeta();
+                PrimaryTableMeta ptab = new PrimaryTableMeta("tabName", tabMeta);
+                return Collections.singletonList(ptab);
+            }
+        };
+        return erRules;
+    }
 
     /**
      * 开始生成增量执行脚本（scala版本）
@@ -97,11 +130,12 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 //            PropGetter last = null;
 //            PropGetter first = null;
 //            Optional<TableRelation> firstParent = null;
-            Map<IEntityNameGetter, List<IValChain>> tabTriggers = Collections.emptyMap();
+            Map<IEntityNameGetter, List<IValChain>> tabTriggers = getTabTriggerLinker();
+
             FunctionVisitor.FuncFormat aliasListBuffer = new FunctionVisitor.FuncFormat();
 
 
-           // for (Map.Entry<IEntityNameGetter, List<IValChain>> e : tabTriggers.entrySet()) {
+            // for (Map.Entry<IEntityNameGetter, List<IValChain>> e : tabTriggers.entrySet()) {
 //                final EntityName entityName = e.getKey().getEntityName();
 //                final Set<String> relevantCols = e.getValue().stream()
 //                        .map((rr) -> rr.last().getOutputColName().getName()).collect(Collectors.toSet());
@@ -408,11 +442,11 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 //                                }
 //                            }).appendLine(") // end setGetterRowsFromOuterPersistence").returnLine().returnLine();
 //                }
-           // }
+            // }
 
 
             MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, aliasListBuffer,
-                    tabTriggers, this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
+                    tabTriggers, getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
             mergeGenerate(mergeData);
         } finally {
             IOUtils.closeQuietly(traversesAllNodeOut, (ex) -> {
@@ -429,7 +463,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
 
         MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, new FunctionVisitor.FuncFormat(),
-                Collections.emptyMap(), this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
+                Collections.emptyMap(), getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
 
 
         File parentDir =
