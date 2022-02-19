@@ -2,6 +2,8 @@
 
 [![Stargazers over time](https://starchart.cc/qlangtech/tis-solr.svg)](https://starchart.cc/qlangtech/tis-solr)
 ![tis](docs/tis-logo.png)
+
+![](https://tokei.rs/b1/github/qlangtech/tis)
 ## TIS介绍
 
 TIS快速为您构建企业级实时数仓库服务，**基于批(DataX)流(Flink-CDC)一体数据中台，提供简单易用的操作界面，降低用户实施各端（MySQL、PostgreSQL、Oracle、ElasticSearch、ClickHouse、Doris等）
