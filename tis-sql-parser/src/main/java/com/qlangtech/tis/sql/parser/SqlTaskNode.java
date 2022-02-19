@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;
@@ -113,7 +114,7 @@ public class SqlTaskNode {
                 entry : colsRef.getColRefMap().entrySet()) {
             // int index, String key, int type, boolean pk
             result.add(new ColumnMetaData(index++, StringUtils.lowerCase(entry.getKey().getName())
-                    , new ColumnMetaData.DataType(-1)
+                    , new DataType(-1)
                     , /**  * 暂时无法取到类型，先用-1占一下位置    */
                     false));
         }

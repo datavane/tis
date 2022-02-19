@@ -31,6 +31,7 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.tis.hadoop.rpc.RpcServiceReference;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -70,12 +71,12 @@ public abstract class DataXJobSubmit {
     public enum InstanceType {
         DISTRIBUTE("distribute") {
             @Override
-            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<String> cfgFileNames) {
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames) {
                 return true;
             }
         }, LOCAL("local") {
             @Override
-            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<String> cfgFileNames) {
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames) {
                 if (cfgFileNames.size() > MAX_TABS_NUM_IN_PER_JOB) {
                     controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过"
                             + MAX_TABS_NUM_IN_PER_JOB + "张，如需要导入更多表，请使用分布式K8S DataX执行期");
@@ -99,7 +100,7 @@ public abstract class DataXJobSubmit {
             this.literia = val;
         }
 
-        public abstract boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<String> cfgFileNames);
+        public abstract boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames);
     }
 
 

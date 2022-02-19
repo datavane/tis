@@ -17,13 +17,8 @@
  */
 package com.qlangtech.tis.plugin.ds;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.io.Serializable;
-import java.sql.Types;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 选中需要导入的表
@@ -51,11 +46,11 @@ public interface ISelectedTab {
     /**
      * TODO 考虑可以和 ColumnMetaData 合并
      *
-     * @see com.qlangtech.tis.plugin.ds.ColumnMetaData
+     * //@see com.qlangtech.tis.plugin.ds.ColumnMetaData
      */
     public class ColMeta implements Serializable {
         private String name;
-        private ColumnMetaData.DataType type;
+        private DataType type;
         private Boolean pk = false;
 
         private String comment;
@@ -101,89 +96,12 @@ public interface ISelectedTab {
             this.name = name;
         }
 
-        public ColumnMetaData.DataType getType() {
+        public DataType getType() {
             return type;
         }
 
-        public void setType(ColumnMetaData.DataType type) {
+        public void setType(DataType type) {
             this.type = type;
-        }
-    }
-
-    // https://github.com/alibaba/DataX/blob/master/mysqlreader/doc/mysqlreader.md#33-%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2
-    enum DataXReaderColType {
-        Long("long", new ColumnMetaData.DataType(Types.BIGINT)),
-        INT("int", new ColumnMetaData.DataType(Types.INTEGER)),
-        Double("double", new ColumnMetaData.DataType(Types.DOUBLE)),
-        STRING("string", new ColumnMetaData.DataType(Types.VARCHAR, 256)),
-        Boolean("boolean", new ColumnMetaData.DataType(Types.BOOLEAN)),
-        Date("date", new ColumnMetaData.DataType(Types.DATE)),
-        Bytes("bytes", new ColumnMetaData.DataType(Types.BLOB));
-
-        private final String literia;
-        public final ColumnMetaData.DataType dataType;
-
-        private DataXReaderColType(String literia, ColumnMetaData.DataType dataType) {
-            this.literia = literia;
-            this.dataType = dataType;
-        }
-
-        public static ColumnMetaData.DataType parse(String literia) {
-            literia = StringUtils.lowerCase(literia);
-            for (DataXReaderColType t : DataXReaderColType.values()) {
-                if (literia.equals(t.literia)) {
-                    return t.dataType;
-                }
-            }
-            return null;
-        }
-
-        public String getLiteria() {
-            return literia;
-        }
-
-//        /**
-//         * https://github.com/alibaba/DataX/blob/master/mysqlreader/doc/mysqlreader.md#33-%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2
-//         *
-//         * @param mysqlType java.sql.Types
-//         * @return
-//         */
-//        public static ColumnMetaData.DataType parse(int mysqlType) {
-//            return new ColumnMetaData.DataType(mysqlType);
-//            switch (mysqlType) {
-//                case Types.INTEGER:
-//                case Types.TINYINT:
-//                case Types.SMALLINT:
-//                case Types.BIGINT:
-//                    return new ColumnMetaData.DataType( DataXReaderColType.Long;
-//                case Types.FLOAT:
-//                case Types.DOUBLE:
-//                case Types.DECIMAL:
-//                    return DataXReaderColType.Double;
-//                case Types.DATE:
-//                case Types.TIME:
-//                case Types.TIMESTAMP:
-//                    return DataXReaderColType.Date;
-//                case Types.BIT:
-//                case Types.BOOLEAN:
-//                    return DataXReaderColType.Boolean;
-//                case Types.BLOB:
-//                case Types.BINARY:
-//                case Types.LONGVARBINARY:
-//                case Types.VARBINARY:
-//                    return DataXReaderColType.Bytes;
-//                default:
-//                    return DataXReaderColType.STRING;
-//            }
-//        }
-
-        @Override
-        public String toString() {
-            return this.literia;
-        }
-
-        public static String toDesc() {
-            return Arrays.stream(DataXReaderColType.values()).map((t) -> "'" + t.literia + "'").collect(Collectors.joining(","));
         }
     }
 }

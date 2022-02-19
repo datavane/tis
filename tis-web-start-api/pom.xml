@@ -28,7 +28,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis-web-start-api</artifactId>
 
     <dependencies>

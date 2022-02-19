@@ -35,10 +35,7 @@ import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
-import com.qlangtech.tis.plugin.ds.PostedDSProp;
-import com.qlangtech.tis.plugin.ds.TISTable;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
@@ -640,7 +637,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             List<ColName> colNames = task.parse(false).getColsRefs().getColRefMap().keySet();
             AtomicInteger index = new AtomicInteger();
             return colNames.stream().map((c) -> {
-                return new ColumnMetaData(index.getAndIncrement(), c.getAliasName(), new ColumnMetaData.DataType(Types.VARCHAR) , false);
+                return new ColumnMetaData(index.getAndIncrement(), c.getAliasName(), new DataType(Types.VARCHAR) , false);
             }).collect(Collectors.toList());
         }
 

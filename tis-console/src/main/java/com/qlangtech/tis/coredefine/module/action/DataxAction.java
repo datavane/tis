@@ -48,6 +48,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
@@ -87,7 +88,7 @@ public class DataxAction extends BasicModule {
 
     DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
     DataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
-    List<String> cfgFileNames = dataXProcessor.getDataxCfgFileNames(null);
+    List<File> cfgFileNames = dataXProcessor.getDataxCfgFileNames(null);
     if (!triggerType.validate(this, context, cfgFileNames)) {
       return;
     }
@@ -880,7 +881,7 @@ public class DataxAction extends BasicModule {
             colMeta = new ISelectedTab.ColMeta();
             colMeta.setName(targetColName);
 
-            ColumnMetaData.DataType dataType = targetCol.getObject("type", ColumnMetaData.DataType.class);
+            DataType dataType = targetCol.getObject("type", DataType.class);
             // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
             colMeta.setType(dataType);
             writerCols.add(colMeta);

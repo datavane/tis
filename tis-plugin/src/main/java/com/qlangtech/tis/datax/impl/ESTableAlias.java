@@ -23,9 +23,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +56,7 @@ public class ESTableAlias extends IDataxProcessor.TableMap {
             colMeta = new ISelectedTab.ColMeta() {
 
                 @Override
-                public ColumnMetaData.DataType getType() {
+                public DataType getType() {
                     //return super.getType();
                     throw new UnsupportedOperationException();
                 }

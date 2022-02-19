@@ -36,6 +36,7 @@ public class TestAll extends TestCase {
         TestSuite suite = new TestSuite();
         suite.addTestSuite(TestUtils.class);
         suite.addTestSuite(TestTisMetaProps.class);
+
         return suite;
     }
 }

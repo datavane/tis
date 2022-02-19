@@ -16,23 +16,40 @@
  * limitations under the License.
  */
 
-import com.qlangtech.tis.manage.common.TestCenterResource;
+package com.qlangtech.tis.datax;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
+
+import java.util.List;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-02-06 06:44
- */
-public class TestAll extends TestCase {
+ * 针对类似Hudi 这样的数据类型，增量写入需要是Flink SQL写入方式，
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2022-02-19 13:02
+ **/
+public interface IStreamTableCreator {
+    /**
+     * 比表写入相关的元数据信息
+     *
+     * @param tableName
+     * @return
+     */
+    public IStreamTableMeta getStreamTableMeta(String tableName);
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(TestCenterResource.class);
-       // suite.addTestSuite(TestColumnMetaData.class);
-        return suite;
+    interface IStreamTableMeta {
+        /**
+         * 表相关的列信息
+         *
+         * @return
+         */
+        List<HdfsColMeta> getColsMeta();
+
+        /**
+         * 创建Flink SQL 的DDL
+         *
+         * @return
+         */
+        StringBuffer createFlinkTableDDL();
     }
-
 }

@@ -38,6 +38,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -63,7 +64,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
         List<IRemoteJobTrigger> triggers = Lists.newArrayList();
 
-        List<String> cfgFileNames = appSource.getDataxCfgFileNames(null);
+        List<File> cfgFileNames = appSource.getDataxCfgFileNames(null);
         if (CollectionUtils.isEmpty(cfgFileNames)) {
             throw new IllegalStateException("dataX cfgFileNames can not be empty");
         }
@@ -79,18 +80,18 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
         try {
-            for (String fileName : cfgFileNames) {
-                jobTrigger = createDataXJob(dataXJobContext, submit, expectDataXJobSumit, statusRpc, appSource, fileName);
+            for (File fileName : cfgFileNames) {
+                jobTrigger = createDataXJob(dataXJobContext, submit, expectDataXJobSumit, statusRpc, appSource, fileName.getName());
                 triggers.add(jobTrigger);
 
                 StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
                 // 将任务注册，可供页面展示
                 svc.reportDumpJobStatus(false, false, true, execChainContext.getTaskId()
-                        , fileName, 0, 0);
+                        , fileName.getName(), 0, 0);
             }
 
             logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
-                    , cfgFileNames.stream().collect(Collectors.joining(",")));
+                    , cfgFileNames.stream().map((f) -> f.getName()).collect(Collectors.joining(",")));
             for (IRemoteJobTrigger t : triggers) {
                 t.submitJob();
             }

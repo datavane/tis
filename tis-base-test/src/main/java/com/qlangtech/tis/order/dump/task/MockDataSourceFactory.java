@@ -110,7 +110,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
                 ColumnMetaData cm = null;
                 for (int i = 0; i < titles.length; i++) {
                     //int index, String key, int type, boolean pk
-                    cm = new ColumnMetaData(i, StringUtils.trimToEmpty(titles[i]), new ColumnMetaData.DataType(Types.VARCHAR), false);
+                    cm = new ColumnMetaData(i, StringUtils.trimToEmpty(titles[i]), new DataType(Types.VARCHAR), false);
                     this.colsMeta.add(cm);
                 }
             }

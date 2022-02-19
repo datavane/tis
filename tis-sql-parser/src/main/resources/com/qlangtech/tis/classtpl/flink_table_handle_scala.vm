@@ -1,0 +1,16 @@
+package com.qlangtech.tis.realtime.transfer.${config.collection}
+
+import java.util
+import org.apache.flink.streaming.api.functions.sink.{PrintSinkFunction, SinkFunction}
+import com.qlangtech.tis.realtime.{TableRegisterFlinkSourceHandle}
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment
+
+class ${config.javaName}SourceHandle extends TableRegisterFlinkSourceHandle {
+    override protected def executeSql(tabEnv: StreamTableEnvironment): Unit = {
+
+#foreach($i in $config.dumpTables  )
+
+#end
+
+    }
+}

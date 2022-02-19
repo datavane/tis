@@ -17,6 +17,8 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
@@ -118,7 +120,7 @@ public interface IDataxProcessor {
      *
      * @return
      */
-    public List<String> getDataxCfgFileNames(IPluginContext pluginCtx);
+    public List<File> getDataxCfgFileNames(IPluginContext pluginCtx);
 
     /**
      * 表映射
@@ -194,6 +196,24 @@ public interface IDataxProcessor {
                     return cmetas;
                 }
             };
+        }
+
+        public static TableMap create(String tableName, List<HdfsColMeta> colMetas) {
+            List<ISelectedTab.ColMeta> cmetas = Lists.newArrayList();
+            ISelectedTab.ColMeta cm = null;
+            for (HdfsColMeta c : colMetas) {
+                cm = new ISelectedTab.ColMeta();
+                cm.setName(c.colName);
+                cm.setNullable(c.nullable);
+                cm.setType(c.type);
+                cm.setPk(c.pk);
+                cmetas.add(cm);
+            }
+
+            IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(cmetas);
+            tableMapper.setFrom(tableName);
+            tableMapper.setTo(tableName);
+            return tableMapper;
         }
 
         public List<ISelectedTab.ColMeta> getSourceCols() {
