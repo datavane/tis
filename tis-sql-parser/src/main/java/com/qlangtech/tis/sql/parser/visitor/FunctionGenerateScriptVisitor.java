@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public class FunctionGenerateScriptVisitor extends FunctionVisitor {
 
-    public FunctionGenerateScriptVisitor(ColRef colRef, Map<ColName, IDataTupleCreator> params, FuncFormat funcFormat, IScriptGenerateContext generateContext, boolean processAggregationResult) {
+    public FunctionGenerateScriptVisitor(ColRef colRef, Map<ColName, IDataTupleCreator> params, BlockScriptBuffer funcFormat, IScriptGenerateContext generateContext, boolean processAggregationResult) {
         super(colRef, new UnWriteableMap(params), funcFormat, generateContext, processAggregationResult);
     }
 

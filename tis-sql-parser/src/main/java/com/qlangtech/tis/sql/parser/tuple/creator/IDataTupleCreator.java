@@ -18,7 +18,8 @@
 package com.qlangtech.tis.sql.parser.tuple.creator;
 
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.IScriptGenerateContext;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -37,7 +38,7 @@ public interface IDataTupleCreator extends IEntityNameGetter{
      *
      * @return
      */
-    public void generateGroovyScript(FunctionVisitor.FuncFormat rr, IScriptGenerateContext context, boolean processAggregationResult);
+    public void generateGroovyScript(BlockScriptBuffer rr, IScriptGenerateContext context, boolean processAggregationResult);
     // 退出當前棧之後執行回調處理
     // public void process(Object val);
     // public Object getVal(String name, IDataContext dataContext);

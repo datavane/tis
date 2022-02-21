@@ -27,7 +27,6 @@ import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamComponentCodeGeneratorFlink;
-import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -59,11 +58,11 @@ public class IndexStreamCodeGenerator {
 
     // private String workflowName;
     // 自动生成的incr脚本中需要dao支持吗？
-    private final boolean excludeFacadeDAOSupport;
+
 
 
     public IndexStreamCodeGenerator(String collection, IBasicAppSource streamIncrGenerateStrategy, long incrScriptTimestamp
-            , IDBTableNamesGetter dbTableNamesGetter, boolean excludeFacadeDAOSupport) throws Exception {
+            , IDBTableNamesGetter dbTableNamesGetter) throws Exception {
         if (StringUtils.isEmpty(collection)) {
             throw new IllegalArgumentException("argument collection can not be null");
         }
@@ -74,7 +73,6 @@ public class IndexStreamCodeGenerator {
         if (incrScriptTimestamp < 1) {
             throw new IllegalArgumentException("illegal incrScriptTimestamp can not small than 1");
         }
-        this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
         // 增量脚本时间戳
         // ManageUtils.formatNowYyyyMMddHHmmss(latestOptime);
         this.incrScriptTimestamp = incrScriptTimestamp;
@@ -94,7 +92,7 @@ public class IndexStreamCodeGenerator {
         //  this.dbTables = getDependencyTables(dfTopology);
         facadeList = Lists.newArrayList();
         streamCodeGenerator = new StreamComponentCodeGeneratorFlink(
-                this.collection, incrScriptTimestamp, facadeList, this.streamIncrGenerateStrategy, excludeFacadeDAOSupport);
+                this.collection, incrScriptTimestamp, facadeList, this.streamIncrGenerateStrategy);
         this.streamScriptRootDir = StreamContextConstant.getStreamScriptRootDir(this.collection, incrScriptTimestamp);
     }
 

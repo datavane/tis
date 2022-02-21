@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser.visitor;
 
@@ -37,11 +37,10 @@ import com.qlangtech.tis.sql.parser.utils.NodeUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 识别 sql中的方法體
@@ -70,7 +69,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
 
     // ======================================================================
     private static final Map<String, TISUdfMeta> /* funcName */
-    funcMeta;
+            funcMeta;
 
     private final boolean processAggregationResult;
 
@@ -95,8 +94,8 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
         funcMeta.put(FUNCTION_OP_AND, new TISUdfMeta(false, FunctionUtils.getMethod("op_and", int.class, int.class)));
         // GroupValues datas, IDoubleValGetter valGetter
         funcMeta.put("sum", new TISUdfMeta(true, /* aggregateFunc */
-        true, /* numeric */
-        FunctionUtils.getMethod("sum", GroupValues.class, IDoubleValGetter.class)));
+                true, /* numeric */
+                FunctionUtils.getMethod("sum", GroupValues.class, IDoubleValGetter.class)));
         funcMeta.put("get_json_object", new TISUdfMeta(false, FunctionUtils.getMethod("get_json_object", String.class, String.class)));
         // caseIfFunc(Object defaultVal, Case... cases)
         funcMeta.put("coalesce", new TISUdfMeta(false, FunctionUtils.getMethod("caseIfFunc", Object.class, Case[].class)));
@@ -122,7 +121,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
      *                                 }
      *                                 </p>
      */
-    public FunctionVisitor(ColRef colRef, Map<ColName, IDataTupleCreator> params, FuncFormat funcFormat, IScriptGenerateContext generateContext, boolean processAggregationResult) {
+    public FunctionVisitor(ColRef colRef, Map<ColName, IDataTupleCreator> params, BlockScriptBuffer funcFormat, IScriptGenerateContext generateContext, boolean processAggregationResult) {
         super();
         // this.functionDataTupleCreator = functionDataTupleCreator;
         this.funcFormat = funcFormat;
@@ -193,7 +192,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
     }
 
     private boolean isEqualOrNotOperator(ComparisonExpression.Operator operator) {
-        switch(operator) {
+        switch (operator) {
             case EQUAL:
             case NOT_EQUAL:
                 return true;
@@ -209,7 +208,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
     }
 
     private String operatorLiteria(ComparisonExpression.Operator operator) {
-        switch(operator) {
+        switch (operator) {
             case EQUAL:
                 return "==";
             case NOT_EQUAL:
@@ -254,14 +253,14 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
         boolean isAggregateFunc = this.isAggregateFunc();
         // =============================================
         if (isAggregateNumerica) {
-        // this.funcFormat.append("Double.parseDouble(");
+            // this.funcFormat.append("Double.parseDouble(");
         }
         if (generateContext.isJoinPoint()) {
             this.processJoinPointPram(col);
             if (!this.operatorResultTypeStack.isEmpty()) {
                 OperatorResultTypeEnum opResultTypeEnum = this.operatorResultTypeStack.peek();
-            // TODO: 暂时先注释掉
-            // this.funcFormat.append("(").append(opResultTypeEnum.getLiteria()).append(")");
+                // TODO: 暂时先注释掉
+                // this.funcFormat.append("(").append(opResultTypeEnum.getLiteria()).append(")");
             }
             this.funcFormat.append("getMediaResult(\"" + col.getName() + "\",row)");
         } else {
@@ -275,7 +274,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
             }
         }
         if (isAggregateNumerica) {
-        // this.funcFormat.append(")");
+            // this.funcFormat.append(")");
         }
         // =============================================
         return null;
@@ -313,7 +312,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
         this.process(node.getExpression(), context);
         this.funcFormat.append(")");
         return null;
-    // return super.visitCast(node, context);
+        // return super.visitCast(node, context);
     }
 
     public String getFuncFormat() {
@@ -324,7 +323,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
     protected Void visitStringLiteral(StringLiteral node, Void context) {
         this.funcFormat.append("\"").append(node.getValue()).append("\"");
         return null;
-    // return super.visitStringLiteral(node, context);
+        // return super.visitStringLiteral(node, context);
     }
 
     @Override
@@ -351,7 +350,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
                 // 如果是聚合函数
                 funcFormat.append("v, (r) => { \n");
                 if (fmeta.isNumeric()) {
-                // funcFormat.append("(Double)");
+                    // funcFormat.append("(Double)");
                 }
                 writeParams(node, context);
                 funcFormat.append("}");
@@ -385,7 +384,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
         final boolean isAggregateNumerica = this.isAggregateNumerica();
         funcFormat.append(isAggregateNumerica ? "defaultDoubleVal" : "defaultVal").append("(");
         this.inAggregateFunctionStack.push(new TISUdfMeta(false, /* aggregateFunc */
-        null));
+                null));
         try {
             boolean first = true;
             for (Expression oper : node.getOperands()) {
@@ -444,117 +443,7 @@ public class FunctionVisitor extends DefaultTraversalVisitor<Void, Void> {
         return null;
     }
 
-    private final FuncFormat funcFormat;
-
-    public static class FuncFormat implements IToString {
-
-        private final List<Object> format = new ArrayList<>();
-
-        private int indent;
-
-        private void addIndent() {
-            this.indent += 4;
-        }
-
-        private void decreaseIndent() {
-            this.indent -= 4;
-        }
-
-        public FuncFormat methodBody(Object method, IFuncFormatCall call) {
-            return methodBody(true, method, call);
-        }
-
-        public void buildRowMapTraverseLiteria(EntityName entity, IFuncFormatCall call) {
-            this.methodBody("for ( ( r:" + EntityName.ROW_MAP_CLASS_NAME + ") <- " + entity.entities() + ".asScala)", call);
-        }
-
-        public FuncFormat methodBody(boolean returnLine, Object method, IFuncFormatCall call) {
-            if (returnLine) {
-                this.returnLine();
-                this.appendIndent();
-            }
-            this.append(method).append("{").returnLine();
-            this.addIndent();
-            try {
-                call.execute(this);
-                this.returnLine();
-            } finally {
-                this.decreaseIndent();
-            }
-            this.appendIndent().append("}");
-            if (returnLine) {
-                // this.returnLine();
-                this.returnLine();
-            }
-            return this;
-        }
-
-        private static final Pattern PATTERN_LAST_RETURN = Pattern.compile("\n\\s*$");
-
-        private boolean lastReturnChar = false;
-
-        public FuncFormat append(Object val) {
-            if (val instanceof String) {
-                Matcher matcher = PATTERN_LAST_RETURN.matcher((String) val);
-                this.lastReturnChar = matcher.find();
-            } else {
-                this.lastReturnChar = false;
-            }
-            format.add(val);
-            return this;
-        }
-
-        public FuncFormat appendLine(Object val) {
-            return startLine(val).appendIndent();
-        }
-
-        public FuncFormat startLine(Object val) {
-            if (!lastReturnChar) {
-                this.returnLine();
-            }
-            appendIndent();
-            return this.append(val);
-        }
-
-        private FuncFormat appendIndent() {
-            if (indent > 0) {
-                for (int i = 0; i < indent; i++) {
-                    format.add(" ");
-                }
-            }
-            return this;
-        }
-
-        public FuncFormat append(long val) {
-            // appendIndent();
-            format.add(val);
-            return this;
-        }
-
-        public FuncFormat returnLine() {
-            this.append("\n");
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            StringBuffer buffer = new StringBuffer();
-            for (Object o : format) {
-                buffer.append(o);
-            }
-            return buffer.toString();
-        }
-    }
-
-    public interface IToString {
-
-        public String toString();
-    }
-
-    public interface IFuncFormatCall {
-
-        public void execute(FuncFormat f);
-    }
+    private final BlockScriptBuffer funcFormat;
 
     private static class MockScriptGenerateContext implements IScriptGenerateContext {
         @Override

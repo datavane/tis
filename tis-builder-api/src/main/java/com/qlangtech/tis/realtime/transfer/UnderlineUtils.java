@@ -17,6 +17,8 @@
  */
 package com.qlangtech.tis.realtime.transfer;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
@@ -56,5 +58,15 @@ public class UnderlineUtils {
             }
         }
         return parsedName;
+    }
+
+    public static String getJavaName(String collection) {
+//        Matcher matcher = PATTERN_COLLECTION_NAME.matcher(collection);
+//        if (!matcher.matches()) {
+//            throw new IllegalStateException("collection:" + collection + " is not match the Pattern:" + PATTERN_COLLECTION_NAME);
+//        }
+//        return matcher.replaceFirst("S4$2");
+        // return StringUtils.capitalize(collection);
+        return StringUtils.capitalize(removeUnderline(collection).toString());
     }
 }

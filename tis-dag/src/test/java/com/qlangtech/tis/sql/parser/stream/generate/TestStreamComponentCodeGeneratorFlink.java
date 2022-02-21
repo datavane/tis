@@ -66,7 +66,7 @@ public class TestStreamComponentCodeGeneratorFlink extends TestCase {
 
         List<FacadeContext> facadeList = Lists.newArrayList();
         StreamComponentCodeGeneratorFlink streamCodeGenerator
-                = new StreamComponentCodeGeneratorFlink(collectionName, timestamp, facadeList, (IBasicAppSource) appSource, true);
+                = new StreamComponentCodeGeneratorFlink(collectionName, timestamp, facadeList, (IBasicAppSource) appSource);
         //EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 

@@ -76,7 +76,7 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
         return new IndexStreamCodeGenerator(collection, (IBasicAppSource) appSource, dataflowTimestamp, (dbid, tables) -> {
             assertTrue(tables.size() > 0);
             return tables;
-        }, false);
+        });
     }
 
     private static class DefaultMessageHandler implements IControlMsgHandler {

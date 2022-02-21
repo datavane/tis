@@ -24,7 +24,7 @@ import com.qlangtech.tis.sql.parser.TisGroupBy;
 import com.qlangtech.tis.sql.parser.er.*;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
 
 import java.util.List;
 import java.util.Optional;
@@ -70,7 +70,7 @@ public class MapDataMethodCreator {
      */
     public String getGenerateMapDataMethodBody() {
         IERRules erRule = null; //streamIncrGenerateStrategy.getERRule();
-        FunctionVisitor.FuncFormat funcFormat = new FunctionVisitor.FuncFormat();
+        FuncFormat funcFormat = new FuncFormat();
 
         funcFormat.appendLine("val " + this.entityName.entities()
                 + "ThreadLocal : ThreadLocal[Map[GroupKey, GroupValues]]  = addThreadLocalVal()");

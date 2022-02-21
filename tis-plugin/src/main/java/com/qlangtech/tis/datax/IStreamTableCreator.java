@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax;
 
 import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 
 import java.util.List;
 
@@ -28,7 +29,8 @@ import java.util.List;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-02-19 13:02
  **/
-public interface IStreamTableCreator {
+public interface IStreamTableCreator extends IStreamIncrGenerateStrategy {
+
     /**
      * 比表写入相关的元数据信息
      *
@@ -45,11 +47,11 @@ public interface IStreamTableCreator {
          */
         List<HdfsColMeta> getColsMeta();
 
-        /**
-         * 创建Flink SQL 的DDL
-         *
-         * @return
-         */
-        StringBuffer createFlinkTableDDL();
+//        /**
+//         * 创建Flink SQL 的DDL
+//         *
+//         * @return
+//         */
+//        StringBuffer createFlinkTableDDL();
     }
 }

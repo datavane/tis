@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser.stream.generate;
 
@@ -28,7 +28,8 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
+import com.qlangtech.tis.sql.parser.visitor.IBlockToString;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -39,15 +40,15 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class MergeData {
+public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateData {
 
     private final String collection;
-    private final boolean excludeFacadeDAOSupport;
+    // private final boolean excludeFacadeDAOSupport;
     private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
 
     private final Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap;
 
-    private final FunctionVisitor.FuncFormat aliasListBuilder;
+    private final FuncFormat aliasListBuilder;
 
     private final Map<IEntityNameGetter, List<IValChain>> tabTriggers;
 
@@ -56,26 +57,14 @@ public class MergeData {
     private final Set<PrimaryTableMeta> primaryTableNames;
     private final IERRules erRules;
 
-    private final Map<String, FunctionVisitor.IToString> /**
+    private final Map<String, IBlockToString> /**
      * method token
      */
             globalScripts = Maps.newHashMap();
 
     private static final Pattern PATTERN_COLLECTION_NAME = Pattern.compile("(search4)([^\\s]+)");
 
-    public String getJavaName() {
-        return getJavaName(this.collection);
-    }
 
-    public static String getJavaName(String collection) {
-//        Matcher matcher = PATTERN_COLLECTION_NAME.matcher(collection);
-//        if (!matcher.matches()) {
-//            throw new IllegalStateException("collection:" + collection + " is not match the Pattern:" + PATTERN_COLLECTION_NAME);
-//        }
-//        return matcher.replaceFirst("S4$2");
-        // return StringUtils.capitalize(collection);
-        return StringUtils.capitalize(UnderlineUtils.removeUnderline(collection).toString());
-    }
 
     /**
      * @param collection
@@ -86,12 +75,16 @@ public class MergeData {
      */
     public MergeData(
             String collection, Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap
-            , FunctionVisitor.FuncFormat aliasListBuilder, Map<IEntityNameGetter, List<IValChain>> tabTriggers
+            , FuncFormat aliasListBuilder, Map<IEntityNameGetter, List<IValChain>> tabTriggers
             , IERRules erRules
-            , List<FacadeContext> facadeContextList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy, boolean excludeFacadeDAOSupport) {
+            , List<FacadeContext> facadeContextList
+            , IStreamIncrGenerateStrategy streamIncrGenerateStrategy) {
         super();
         this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
-        this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
+
+
+
+
         this.collection = collection;
         this.mapDataMethodCreatorMap = mapDataMethodCreatorMap;
         this.aliasListBuilder = aliasListBuilder;
@@ -100,7 +93,6 @@ public class MergeData {
             throw new IllegalArgumentException("param facadeContextList can not be null");
         }
         this.facadeContextList = facadeContextList;
-       // this.erRules = streamIncrGenerateStrategy.getERRule();
         this.erRules = erRules;
         Objects.requireNonNull(erRules, "erRules can not be null");
         List<PrimaryTableMeta> primaryTabs = this.erRules.getPrimaryTabs();// erRules.getPrimaryTabs();
@@ -121,7 +113,7 @@ public class MergeData {
     private final Stack<FlatTableRelation> unprocessedTableRelations = new Stack<>();
 
     public boolean isFacadeDAOSupport() {
-        return !excludeFacadeDAOSupport;
+        return !this.streamIncrGenerateStrategy.isExcludeFacadeDAOSupport();
     }
 
     /**
@@ -143,11 +135,11 @@ public class MergeData {
         return this.unprocessedTableRelations;
     }
 
-    public void addGlobalScript(String methodToken, FunctionVisitor.IToString script) {
+    public void addGlobalScript(String methodToken, IBlockToString script) {
         this.globalScripts.put(methodToken, script);
     }
 
-    public Collection<FunctionVisitor.IToString> getGlobalScripts() {
+    public Collection<IBlockToString> getGlobalScripts() {
         return this.globalScripts.values();
     }
 

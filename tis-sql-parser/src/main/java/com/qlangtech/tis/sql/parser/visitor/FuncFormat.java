@@ -16,31 +16,14 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.manage;
+package com.qlangtech.tis.sql.parser.visitor;
 
-import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-04-27 15:26
+ * @create: 2022-02-19 22:35
  **/
-public interface IBasicAppSource extends IAppSource, IStreamIncrGenerateStrategy {
-    <T> T accept(IAppSourceVisitor<T> visitor);
+public class FuncFormat extends BlockScriptBuffer {
 
-    interface IAppSourceVisitor<T> {
-
-        default T visit(ISingleTableAppSource single) {
-            throw new UnsupportedOperationException();
-        }
-
-        default T visit(IDataFlowAppSource dataflow) {
-            throw new UnsupportedOperationException();
-        }
-
-
-        default T visit(DataxProcessor app) {
-            return null;
-        }
-    }
 }

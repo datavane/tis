@@ -21,7 +21,9 @@ import com.qlangtech.tis.sql.parser.ColName;
 import com.qlangtech.tis.sql.parser.TisGroupBy;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
+
 import java.util.Optional;
 
 /**
@@ -164,7 +166,7 @@ public class PropGetter implements IScriptGenerateContext {
      *                                 }
      *                                 </p>
      */
-    public void getGroovyScript(FunctionVisitor.FuncFormat rr, boolean processAggregationResult) {
+    public void getGroovyScript(BlockScriptBuffer rr, boolean processAggregationResult) {
         if (tupleCreator == null) {
             return;
         }

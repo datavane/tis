@@ -22,6 +22,8 @@ import com.qlangtech.tis.sql.parser.TisGroupBy;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreatorVisitor;
+import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
 import com.qlangtech.tis.sql.parser.visitor.FunctionGenerateScriptVisitor;
 import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
 import com.facebook.presto.sql.tree.Expression;
@@ -54,7 +56,7 @@ public class FunctionDataTupleCreator implements IDataTupleCreator {
         // 对expression解析之后需要向baseRefMap中添加引用
         this.colRef = colRef;
         Map<ColName, IDataTupleCreator> p = Maps.newHashMap();
-        FunctionVisitor functionVisitor = new FunctionVisitor(this.getColRef(), p, new FunctionVisitor.FuncFormat(), false);
+        FunctionVisitor functionVisitor = new FunctionVisitor(this.getColRef(), p, new FuncFormat(), false);
         functionVisitor.process(this.expression, null);
         // 将参数固定住
         this.params = Collections.unmodifiableMap(p);
@@ -73,7 +75,7 @@ public class FunctionDataTupleCreator implements IDataTupleCreator {
         return this.refTableSourceCount;
     }
 
-    public void generateGroovyScript(FunctionVisitor.FuncFormat rr, IScriptGenerateContext context, boolean processAggregationResult) {
+    public void generateGroovyScript(BlockScriptBuffer rr, IScriptGenerateContext context, boolean processAggregationResult) {
         final FunctionVisitor //
         functionVisitor = new FunctionGenerateScriptVisitor(this.colRef, this.params, rr, context, processAggregationResult);
         functionVisitor.process(this.expression, null);

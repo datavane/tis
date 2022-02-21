@@ -48,8 +48,6 @@ import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
-import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.manage.servlet.QueryCloudSolrClient;
 import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
 import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
@@ -372,7 +370,7 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(this, indexStreamCodeGenerator);
 
-   // if (appSource.isExcludeFacadeDAOSupport()) {
+    // if (appSource.isExcludeFacadeDAOSupport()) {
     if (true) {
       daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap());
     } else {
@@ -413,7 +411,7 @@ public class CoreAction extends BasicModule {
       IndexIncrStatus incrStatus = new IndexIncrStatus();
       this.setBizResult(context, incrStatus);
     } catch (Exception ex) {
-      logger.append("an error occur:"+ ex.getMessage());
+      logger.append("an error occur:" + ex.getMessage());
       throw new TisException(ex.getMessage(), ex);
     } finally {
       log.info(logger.toString());
@@ -464,7 +462,7 @@ public class CoreAction extends BasicModule {
       tableCriteria.createCriteria().andDbIdEqualTo(dbId);
       List<DatasourceTable> tableList = module.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(tableCriteria);
       return tableList.stream().map((t) -> t.getName()).collect(Collectors.toList());
-    }, appSource.isExcludeFacadeDAOSupport());
+    });
   }
 
 
@@ -666,7 +664,7 @@ public class CoreAction extends BasicModule {
         ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
         null, true);
     return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
-      + ":"+ TisAppLaunchPort.getPort() + Config.CONTEXT_ASSEMBLE;
+      + ":" + TisAppLaunchPort.getPort() + Config.CONTEXT_ASSEMBLE;
   }
 
   public static class TriggerBuildResult {

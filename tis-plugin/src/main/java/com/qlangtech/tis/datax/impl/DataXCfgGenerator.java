@@ -33,6 +33,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,6 +55,10 @@ public class DataXCfgGenerator {
             velocityEngine = new VelocityEngine();
             Properties prop = new Properties();
             prop.setProperty("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.NullLogChute");
+
+            prop.setProperty("resource.loader", "tisLoader");
+            prop.setProperty("tisLoader.resource.loader.class", TISClasspathResourceLoader.class.getName());
+
             velocityEngine.init(prop);
         } catch (Exception e) {
             throw new RuntimeException(e);

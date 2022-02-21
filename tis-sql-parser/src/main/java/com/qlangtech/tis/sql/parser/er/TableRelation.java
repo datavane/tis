@@ -24,7 +24,7 @@ import com.qlangtech.tis.sql.parser.meta.PrimaryLinkKey;
 import com.qlangtech.tis.sql.parser.stream.generate.FlatTableRelation;
 import com.qlangtech.tis.sql.parser.stream.generate.MergeData;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -235,9 +235,9 @@ public class TableRelation {
                 , nextRelation.buildQueryHeaderByTailerInfo(
                         currentTableRelation.getTailerKeys().stream().map((rr) -> rr.getHeadLinkKey()).collect(Collectors.toSet())));
 
-        FunctionVisitor.FuncFormat f = nextRelation.buildInvokeQueryHeaderByTailerInfo();
+        FuncFormat f = nextRelation.buildInvokeQueryHeaderByTailerInfo();
         // 执行处理结果
-        FunctionVisitor.FuncFormat p = nextRelation.buildInvokeQueryHeaderByTailerInfoResultProcess(primary, currentTableRelation);
+        FuncFormat p = nextRelation.buildInvokeQueryHeaderByTailerInfoResultProcess(primary, currentTableRelation);
         f.appendLine(p);
         return f.toString();
     }
@@ -261,7 +261,7 @@ public class TableRelation {
             // joinerKey.getParentKey();
             // 先查数据库，将子表的记录都查出来
             // child.getName();
-            FunctionVisitor.FuncFormat r = new FunctionVisitor.FuncFormat();
+            FuncFormat r = new FuncFormat();
             r.startLine("// create by TableRelation.createChildPKLiteria()");
             r.startLine("val primaryColMeta = tabColumnMetaMap.get(\"" + primary.getTabName() + "\")");
             r.startLine("if (primaryColMeta == null) {");

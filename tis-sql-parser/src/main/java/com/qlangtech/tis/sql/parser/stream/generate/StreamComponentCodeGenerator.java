@@ -21,12 +21,14 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
+import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 import com.qlangtech.tis.sql.parser.TisGroupBy;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.PropGetter;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
+import com.qlangtech.tis.sql.parser.visitor.IBlockToString;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -76,10 +78,10 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
     }
 
 
-    private void generateFunctionCallScript(FunctionVisitor.FuncFormat rr, final PropGetter propGetter) {
+    private void generateFunctionCallScript(FuncFormat rr, final PropGetter propGetter) {
         rr.startLine("//===================================");
         final AtomicBoolean isFirstReturn = new AtomicBoolean(true);
-        final FunctionVisitor.IToString returnVal = new FunctionVisitor.IToString() {
+        final IBlockToString returnVal = new IBlockToString() {
             @Override
             public String toString() {
                 // return isFirstReturn.get() ? "return " : StringUtils.EMPTY;
@@ -520,13 +522,13 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
         return creator;
     }
 
-    private void generateCreateGroupResultScript(FunctionVisitor.FuncFormat rr, final PropGetter propGetter,
+    private void generateCreateGroupResultScript(FuncFormat rr, final PropGetter propGetter,
                                                  TisGroupBy groups) {
         if (propGetter.isLastFunctInChain()) {
             rr.startLine("var result:Any = null");
         }
         final AtomicBoolean hasBreak = new AtomicBoolean();
-        rr.startLine(new FunctionVisitor.IToString() {
+        rr.startLine(new IBlockToString() {
             public String toString() {
                 return hasBreak.get() ? "breakable {" : StringUtils.EMPTY;
             }
@@ -572,7 +574,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
             }
         });
 
-        rr.startLine(new FunctionVisitor.IToString() {
+        rr.startLine(new IBlockToString() {
             public String toString() {
                 return hasBreak.get() ? "} //end breakable" : StringUtils.EMPTY;
             }
@@ -647,7 +649,7 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
     }
 
     public final File getIncrScriptMainFile() {
-        return new File(this.incrScriptDir, (MergeData.getJavaName(this.collectionName)) + "Listener.scala");
+        return new File(this.incrScriptDir, (UnderlineUtils.getJavaName(this.collectionName)) + "Listener.scala");
     }
 
 

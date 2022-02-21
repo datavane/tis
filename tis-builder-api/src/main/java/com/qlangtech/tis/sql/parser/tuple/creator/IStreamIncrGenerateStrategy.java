@@ -17,14 +17,29 @@
  */
 package com.qlangtech.tis.sql.parser.tuple.creator;
 
+import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
+
+import java.util.List;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-06 09:49
  */
 public interface IStreamIncrGenerateStrategy {
 
+    String TEMPLATE_FLINK_TABLE_HANDLE_SCALA = "flink_table_handle_scala.vm";
 
-    boolean isExcludeFacadeDAOSupport();
+    default boolean isExcludeFacadeDAOSupport() {
+        return true;
+    }
+
+    default String getFlinkStreamGenerateTemplateFileName() {
+        return "flink_source_handle_scala.vm";
+    }
+
+    default IStreamTemplateData decorateMergeData(IStreamTemplateData mergeData) {
+        return mergeData;
+    }
 
 //    Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker();
 //
@@ -38,4 +53,46 @@ public interface IStreamIncrGenerateStrategy {
 //    IERRules getERRule();
 
 
+    /**
+     *
+     **/
+    interface IStreamTemplateData {
+
+        /**
+         * TIS App 应用名称
+         *
+         * @return
+         */
+        public String getCollection();
+
+        public default String getJavaName() {
+            return UnderlineUtils.getJavaName(this.getCollection());
+        }
+
+
+        public List<EntityName> getDumpTables();
+    }
+
+    public static abstract class AdapterStreamTemplateData implements IStreamTemplateData {
+        private final IStreamTemplateData data;
+
+        public AdapterStreamTemplateData(IStreamTemplateData data) {
+            this.data = data;
+        }
+
+        @Override
+        public String getCollection() {
+            return data.getCollection();
+        }
+
+        @Override
+        public String getJavaName() {
+            return data.getJavaName();
+        }
+
+        @Override
+        public List<EntityName> getDumpTables() {
+            return data.getDumpTables();
+        }
+    }
 }

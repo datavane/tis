@@ -25,6 +25,7 @@ import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 import com.qlangtech.tis.sql.parser.TisGroupBy;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRules;
@@ -32,10 +33,12 @@ import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
 import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
+import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.PropGetter;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
+import com.qlangtech.tis.sql.parser.visitor.IBlockToString;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -65,23 +68,19 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     private static final Logger logger = LoggerFactory.getLogger(StreamComponentCodeGeneratorFlink.class);
 
     private final IBasicAppSource streamIncrGenerateStrategy;
-    private final boolean excludeFacadeDAOSupport;
+
     private final List<FacadeContext> daoFacadeList;
+
+
 
     public StreamComponentCodeGeneratorFlink(String collectionName, long timestamp,
                                              List<FacadeContext> daoFacadeList, IBasicAppSource streamIncrGenerateStrategy) {
-        this(collectionName, timestamp, daoFacadeList, streamIncrGenerateStrategy, false);
-    }
-
-    public StreamComponentCodeGeneratorFlink(String collectionName, long timestamp,
-                                             List<FacadeContext> daoFacadeList, IBasicAppSource streamIncrGenerateStrategy
-            , boolean excludeFacadeDAOSupport) {
         super(collectionName, timestamp);
         Objects.requireNonNull(streamIncrGenerateStrategy, "streamIncrGenerateStrategy can not be null");
         // this.erRules = ERRules.getErRule(topology.getName());
         this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
         this.daoFacadeList = daoFacadeList;
-        this.excludeFacadeDAOSupport = excludeFacadeDAOSupport;
+
     }
 
 
@@ -130,9 +129,9 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 //            PropGetter last = null;
 //            PropGetter first = null;
 //            Optional<TableRelation> firstParent = null;
-            Map<IEntityNameGetter, List<IValChain>> tabTriggers = getTabTriggerLinker();
+           // Map<IEntityNameGetter, List<IValChain>> tabTriggers = getTabTriggerLinker();
 
-            FunctionVisitor.FuncFormat aliasListBuffer = new FunctionVisitor.FuncFormat();
+            FuncFormat aliasListBuffer = new FuncFormat();
 
 
             // for (Map.Entry<IEntityNameGetter, List<IValChain>> e : tabTriggers.entrySet()) {
@@ -446,8 +445,9 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
 
             MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, aliasListBuffer,
-                    tabTriggers, getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
-            mergeGenerate(mergeData);
+                    getTabTriggerLinker(), getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
+
+            mergeGenerate(streamIncrGenerateStrategy.decorateMergeData(mergeData));
         } finally {
             IOUtils.closeQuietly(traversesAllNodeOut, (ex) -> {
                 logger.error(ex.getMessage(), ex);
@@ -462,8 +462,8 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     public void generateConfigFiles() throws Exception {
 
 
-        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, new FunctionVisitor.FuncFormat(),
-                Collections.emptyMap(), getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy, this.excludeFacadeDAOSupport);
+        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, new FuncFormat(),
+                Collections.emptyMap(), getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
 
 
         File parentDir =
@@ -505,13 +505,13 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
         return creator;
     }
 
-    private void generateCreateGroupResultScript(FunctionVisitor.FuncFormat rr, final PropGetter propGetter,
+    private void generateCreateGroupResultScript(FuncFormat rr, final PropGetter propGetter,
                                                  TisGroupBy groups) {
         if (propGetter.isLastFunctInChain()) {
             rr.startLine("var result:Any = null");
         }
         final AtomicBoolean hasBreak = new AtomicBoolean();
-        rr.startLine(new FunctionVisitor.IToString() {
+        rr.startLine(new IBlockToString() {
             public String toString() {
                 return hasBreak.get() ? "breakable {" : StringUtils.EMPTY;
             }
@@ -557,7 +557,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
             }
         });
 
-        rr.startLine(new FunctionVisitor.IToString() {
+        rr.startLine(new IBlockToString() {
             public String toString() {
                 return hasBreak.get() ? "} //end breakable" : StringUtils.EMPTY;
             }
@@ -571,7 +571,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     }
 
 
-    private VelocityContext createContext(MergeData mergeData) {
+    private VelocityContext createContext(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData) {
 
         VelocityContext velocityContext = new VelocityContext();
         velocityContext.put("config", mergeData);
@@ -579,9 +579,10 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
         return velocityContext;
     }
 
-    private void mergeGenerate(MergeData mergeData) {
+    private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData) {
 
-        mergeGenerate(mergeData, "/com/qlangtech/tis/classtpl/flink_source_handle_scala.vm", getIncrScriptMainFile());
+        this.mergeGenerate(mergeData, "/com/qlangtech/tis/classtpl/"
+                + this.streamIncrGenerateStrategy.getFlinkStreamGenerateTemplateFileName(), getIncrScriptMainFile());
 //        OutputStreamWriter writer = null;
 //        // Reader tplReader = null;
 //        try {
@@ -613,10 +614,10 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 //        }
     }
 
-    private void mergeGenerate(MergeData mergeData, String vmClasspath, File createdFile) {
+    private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData, String vmClasspath, File createdFile) {
         OutputStreamWriter writer = null;
         try {
-            VelocityContext context = createContext(mergeData);
+            VelocityContext context = this.createContext(mergeData);
 
             FileUtils.forceMkdir(this.incrScriptDir);
             writer = new OutputStreamWriter(FileUtils.openOutputStream(createdFile), TisUTF8.get());
@@ -632,7 +633,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     }
 
     public final File getIncrScriptMainFile() {
-        return new File(this.incrScriptDir, (MergeData.getJavaName(this.collectionName)) + "Listener.scala");
+        return new File(this.incrScriptDir, (UnderlineUtils.getJavaName(this.collectionName)) + "Listener.scala");
     }
 
 

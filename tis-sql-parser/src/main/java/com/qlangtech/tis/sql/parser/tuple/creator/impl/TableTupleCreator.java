@@ -21,7 +21,8 @@ import com.qlangtech.tis.sql.parser.meta.NodeType;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreatorVisitor;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
 
 /**
  * 表数据发生器
@@ -51,7 +52,7 @@ public class TableTupleCreator implements IDataTupleCreator {
     }
 
     @Override
-    public void generateGroovyScript(FunctionVisitor.FuncFormat rr, IScriptGenerateContext context, boolean processAggregationResult) {
+    public void generateGroovyScript(BlockScriptBuffer rr, IScriptGenerateContext context, boolean processAggregationResult) {
         rr.append("tab:" + this.realEntityName);
     }
 

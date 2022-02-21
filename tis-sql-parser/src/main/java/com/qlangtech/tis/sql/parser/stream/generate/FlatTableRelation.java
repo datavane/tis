@@ -24,7 +24,7 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.visitor.FunctionVisitor;
+import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -68,7 +68,7 @@ public class FlatTableRelation {
      * @param extraHeaderColKeys 额外的col
      * @return
      */
-    public FunctionVisitor.FuncFormat buildQueryHeaderByTailerInfo(final Set<String> extraHeaderColKeys) {
+    public FuncFormat buildQueryHeaderByTailerInfo(final Set<String> extraHeaderColKeys) {
         // final String paramsList = this.getJoinerKeys().stream().map((jk) -> {
         // TisGroupBy.TisColumn col = new TisGroupBy.TisColumn(jk.getChildKey());
         // return col.getJavaVarName() + " : String";
@@ -77,7 +77,7 @@ public class FlatTableRelation {
         final EntityName tailerEntity = this.getTailerEntity();
         final EntityName headEntity = this.getHeaderEntity();
         final String methodToken = "private def " + this.buildQueryHeaderByTailerInfoMethodName() + "(" + this.getJoinerKeysQueryMethodParamsLiteria() + ") : " + (this.isHeaderMulti() ? "List[RowMap]" : "RowMap") + " =";
-        FunctionVisitor.FuncFormat r = new FunctionVisitor.FuncFormat();
+        FuncFormat r = new FuncFormat();
         r.methodBody(methodToken, (m) -> {
             // 定义结果集对象
             m.startLine(headEntity.buildDefineRowMapListLiteria());
@@ -118,8 +118,8 @@ public class FlatTableRelation {
      *
      * @return
      */
-    public FunctionVisitor.FuncFormat buildInvokeQueryHeaderByTailerInfo() {
-        FunctionVisitor.FuncFormat r = new FunctionVisitor.FuncFormat();
+    public FuncFormat buildInvokeQueryHeaderByTailerInfo() {
+        FuncFormat r = new FuncFormat();
         final String paramsList = this.getHeaderKeys().stream().map((m) -> {
             TisGroupBy.TisColumn col = new TisGroupBy.TisColumn(m.getHeadLinkKey());
             r.appendLine("val " + col.getJavaVarName() + " = row.getColumn(\"" + m.getTailerLinkKey() + "\")");
@@ -137,8 +137,8 @@ public class FlatTableRelation {
      * @param preTableRelation 上一个表关联关系
      * @return
      */
-    public FunctionVisitor.FuncFormat buildInvokeQueryHeaderByTailerInfoResultProcess(PrimaryTableMeta primary, FlatTableRelation preTableRelation) {
-        FunctionVisitor.FuncFormat f = new FunctionVisitor.FuncFormat();
+    public FuncFormat buildInvokeQueryHeaderByTailerInfoResultProcess(PrimaryTableMeta primary, FlatTableRelation preTableRelation) {
+        FuncFormat f = new FuncFormat();
         EntityName headerEntity = this.getHeaderEntity();
         f.appendLine("val " + headerEntity.getJavaEntityName() + "Meta : AliasList = tabColumnMetaMap.get(\"" + headerEntity.getTabName() + "\");");
         // TableRelation.FinalLinkKey finalLinkKey = getFinalLinkKey(primary.getDBPrimayKeyName().getName(), preTableRelation);
