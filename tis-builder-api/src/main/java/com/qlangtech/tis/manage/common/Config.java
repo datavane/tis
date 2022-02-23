@@ -21,6 +21,8 @@ package com.qlangtech.tis.manage.common;
 import com.qlangtech.tis.org.apache.commons.io.FileUtils;
 import com.qlangtech.tis.web.start.TisAppLaunchPort;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +36,7 @@ import java.util.function.Consumer;
  * @date 2020/04/13
  */
 public class Config {
-
+    private static final Logger logger = LoggerFactory.getLogger(Config.class);
     public static final String LIB_PLUGINS_PATH = "libs/plugins";
 
     public static final String PLUGIN_LIB_DIR = "WEB-INF/lib";
@@ -197,7 +199,13 @@ public class Config {
     }
 
     public static File getDataDir(boolean valiate) {
-        File dir = getInstance().dataDir; //new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
+        File dir = null; //new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
+        try {
+            dir = getInstance().dataDir;
+        } catch (Throwable e) {
+            logger.warn("can not get dataDir from config instance:" + e.getMessage());
+            dir = new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
+        }
         if (valiate && !(dir.isDirectory() && dir.exists())) {
             throw new IllegalStateException("dir:" + dir.getAbsolutePath() + " is invalid DATA DIR");
         }

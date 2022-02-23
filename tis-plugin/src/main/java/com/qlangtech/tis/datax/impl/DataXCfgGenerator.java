@@ -33,7 +33,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 import java.io.File;
 import java.io.IOException;
@@ -241,7 +240,7 @@ public class DataXCfgGenerator {
                 ISelectedTab tab = selectedTabs.get(readerContext.getSourceEntityName());
                 Objects.requireNonNull(tab, readerContext.getSourceEntityName() + " relevant tab can not be null");
                 IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(tab);
-               //m.setSourceCols(tab.getCols());
+                //m.setSourceCols(tab.getCols());
                 m.setTo(tab.getName());
                 m.setFrom(tab.getName());
                 tableMapper = Optional.of(m);

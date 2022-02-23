@@ -35,6 +35,11 @@ public class AdapterRCController implements IRCController {
     }
 
     @Override
+    public void checkUseable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void removeInstance(TargetResName collection) throws Exception {
         throw new UnsupportedOperationException();
     }

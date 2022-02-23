@@ -51,7 +51,7 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
 
     public static IPluginStore<ParamsConfig> getTargetPluginStore(String targetPluginDesc) {
 
-        if (org.shai.xmodifier.util.StringUtils.isEmpty(targetPluginDesc)) {
+        if (StringUtils.isEmpty(targetPluginDesc)) {
             throw new IllegalStateException("param targetPluginDesc can not be null");
         }
         IPluginStore<ParamsConfig> childPluginStore = getChildPluginStore(targetPluginDesc);
@@ -64,6 +64,7 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     public static IPluginStore<ParamsConfig> getChildPluginStore(String childFile) {
         return TIS.getPluginStore(CONTEXT_PARAMS_CFG, childFile, ParamsConfig.class);
     }
+
 
     public abstract <INSTANCE> INSTANCE createConfigInstance();
 

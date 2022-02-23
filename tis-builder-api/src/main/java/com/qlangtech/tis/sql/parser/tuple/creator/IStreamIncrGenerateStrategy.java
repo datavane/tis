@@ -58,6 +58,8 @@ public interface IStreamIncrGenerateStrategy {
      **/
     interface IStreamTemplateData {
 
+        String KEY_STREAM_SOURCE_TABLE_SUFFIX = "_source";
+
         /**
          * TIS App 应用名称
          *

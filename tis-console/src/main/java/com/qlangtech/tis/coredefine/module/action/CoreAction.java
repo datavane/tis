@@ -392,6 +392,8 @@ public class CoreAction extends BasicModule {
     // 先进行打包编译
     StringBuffer logger = new StringBuffer("flin sync app:" + this.getCollectionName());
     try {
+      TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+      k8sClient.checkUseable();
       long start = System.currentTimeMillis();
       this.doCompileAndPackage(context);
       if (context.hasErrors()) {
@@ -403,7 +405,7 @@ public class CoreAction extends BasicModule {
 
       // 将打包好的构建，发布到k8s集群中去
       // https://github.com/kubernetes-client/java
-      TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+
       start = System.currentTimeMillis();
       // 通过k8s发布
       k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());

@@ -19,12 +19,15 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.qlangtech.tis.TIS;
-import org.apache.commons.collections.ExtendedProperties;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.runtime.resource.Resource;
 import org.apache.velocity.runtime.resource.loader.ResourceLoader;
+import org.apache.velocity.util.ExtProperties;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 
 /**
  * velocity 可以从Plugin中加载模版文件
@@ -33,14 +36,27 @@ import java.io.InputStream;
  * @create: 2022-02-21 17:38
  **/
 public class TISClasspathResourceLoader extends ResourceLoader {
+
+
     @Override
-    public void init(ExtendedProperties configuration) {
+    public void init(ExtProperties configuration) {
+
     }
 
     @Override
-    public InputStream getResourceStream(String source) throws ResourceNotFoundException {
-        return TIS.get().pluginManager.uberClassLoader.getResourceAsStream(source);
+    public Reader getResourceReader(String source, String encoding) throws ResourceNotFoundException {
+        InputStream res = TIS.get().pluginManager.uberClassLoader.getResourceAsStream(source);
+        if (res == null) {
+            //  throw new IllegalStateException("res:" + source + " relevant stream source can not be null");
+            return null;
+        }
+        try {
+            return new InputStreamReader(res, encoding);
+        } catch (UnsupportedEncodingException e) {
+            throw new ResourceNotFoundException(e);
+        }
     }
+
 
     @Override
     public boolean isSourceModified(Resource resource) {

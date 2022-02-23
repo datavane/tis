@@ -33,6 +33,7 @@ import junit.framework.TestSuite;
 public class TestAll extends TestCase {
 
     public static Test suite() {
+
         TestSuite suite = new TestSuite();
         suite.addTestSuite(TestUtils.class);
         suite.addTestSuite(TestTisMetaProps.class);

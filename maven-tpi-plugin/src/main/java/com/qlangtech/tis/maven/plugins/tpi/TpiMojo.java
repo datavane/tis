@@ -165,9 +165,9 @@ public class TpiMojo extends AbstractTISManifestMojo {
         hpiArchiver.addConfiguredManifest(manifest);
         hpiArchiver.addDirectory(getWebappDirectory(), getIncludes(), getExcludes());
 
-        File testFile = new File("test.sh");
-        FileUtils.write(testFile, "echo 'hello'", "utf8", false);
-        hpiArchiver.addFile(testFile, "test.sh", UnixStat.FILE_FLAG | UnixStat.PERM_MASK);
+//        File testFile = new File("test.sh");
+//        FileUtils.write(testFile, "echo 'hello'", "utf8", false);
+//        hpiArchiver.addFile(testFile, "test.sh", UnixStat.FILE_FLAG | UnixStat.PERM_MASK);
         // create archive
         archiver.createArchive(project, archive);
         project.getArtifact().setFile(tpiFile);
