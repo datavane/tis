@@ -32,12 +32,15 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
+import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 //import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
@@ -50,7 +53,7 @@ import java.util.*;
  */
 public class DefaultChainContext implements IExecChainContext {
 
-    // private String ps;
+    private final String ps;
 
     private ITISCoordinator zkClient;
 
@@ -175,7 +178,8 @@ public class DefaultChainContext implements IExecChainContext {
 
     public DefaultChainContext(IParamContext execContext) {
         super();
-        //  ps = LocalDateTime.now().format(SingleTableDump.DATE_TIME_FORMATTER);
+       // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        this.ps = IParamContext.getCurrentTimeStamp();
         this.httpExecContext = execContext;
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }
@@ -248,7 +252,8 @@ public class DefaultChainContext implements IExecChainContext {
 //            throw new IllegalArgumentException("ps:" + ps + " shall start with 201");
 //        }
 //        return ps;
-        throw new UnsupportedOperationException();
+        //  throw new UnsupportedOperationException();
+        return ps;
     }
 
     public String getString(String key) {

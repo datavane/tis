@@ -58,9 +58,6 @@ import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
 import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,8 +125,8 @@ public class DataxExecutor {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        if (args.length != 6) {
-            throw new IllegalArgumentException("args length must be 5");
+        if (args.length != 7) {
+            throw new IllegalArgumentException("args length must be 7,but now is " + args.length);
         }
         Integer jobId = Integer.parseInt(args[0]);
         String jobName = args[1];
@@ -138,6 +135,8 @@ public class DataxExecutor {
         DataXJobSubmit.InstanceType execMode = DataXJobSubmit.InstanceType.parse(args[4]);
 
         final int allRows = Integer.parseInt(args[5]);
+        // 任务每次执行会生成一个时间戳
+        final String execTimeStamp = args[6];
 
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(TISCollectionUtils.KEY_COLLECTION, dataXName);
@@ -173,7 +172,7 @@ public class DataxExecutor {
 
         try {
             dataxExecutor.reportDataXJobStatus(false, false, false, jobId, jobName);
-            dataxExecutor.exec(jobId, jobName, dataXName);
+            dataxExecutor.exec(jobId, jobName, dataXName, execTimeStamp);
             dataxExecutor.reportDataXJobStatus(false, jobId, jobName);
         } catch (Throwable e) {
             dataxExecutor.reportDataXJobStatus(true, jobId, jobName);
@@ -224,7 +223,7 @@ public class DataxExecutor {
     }
 
 
-    public void exec(Integer jobId, String jobName, String dataxName) throws Exception {
+    public void exec(Integer jobId, String jobName, String dataxName, String execTimeStamp) throws Exception {
         boolean success = false;
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         try {
@@ -234,7 +233,7 @@ public class DataxExecutor {
 
             final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
             DataxProcessor dataxProcessor = DataxProcessor.load(null, dataxName);
-            this.startWork(dataxName, jobId, jobName, dataxProcessor, uberClassLoader);
+            this.startWork(dataxName, jobId, jobName, execTimeStamp, dataxProcessor, uberClassLoader);
             success = true;
         } finally {
             TIS.clean();
@@ -276,7 +275,7 @@ public class DataxExecutor {
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(String dataxName, Integer jobId, String jobName, IDataxProcessor dataxProcessor
+    public void startWork(String dataxName, Integer jobId, String jobName, String execTimeStamp, IDataxProcessor dataxProcessor
             , final JarLoader uberClassLoader) throws IOException, Exception {
         try {
 
@@ -284,8 +283,13 @@ public class DataxExecutor {
             KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
             KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
             File jobPath = new File(dataxProcessor.getDataxCfgDir(null), jobName);
-            String[] args = new String[]{"-mode", "standalone", "-jobid", String.valueOf(jobId), "-job", jobPath.getAbsolutePath()};
+//            String[] args = new String[]{
+//                    "-mode", "standalone"
+//                    , "-jobid", String.valueOf(jobId)
+//                    , "-job", jobPath.getAbsolutePath()
+//                    , "-execTimeStamp", execTimeStamp};
 
+            ;
 
             DataxReader reader = readerStore.getPlugin();
             Objects.requireNonNull(reader, "dataxName:" + dataxName + " relevant reader can not be null");
@@ -299,7 +303,7 @@ public class DataxExecutor {
             initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), uberClassLoader);
 
 
-            entry(args, jobName);
+            entry(new DataXJobArgs(jobPath, jobId, "standalone", execTimeStamp), jobName);
 
         } catch (Throwable e) {
             throw new Exception(e);
@@ -337,25 +341,39 @@ public class DataxExecutor {
 //        svc.reportDumpTableStatus(dumpStatus);
     }
 
+    private static class DataXJobArgs {
+        private final File jobPath;
+        private final Integer jobId;
+        private final String runtimeMode;
+        private final String execTimeStamp;
 
-    public void entry(String[] args, String jobName) throws Throwable {
-        Options options = new Options();
-        options.addOption("job", true, "Job config.");
-        options.addOption("jobid", true, "Job unique id.");
-        options.addOption("mode", true, "Job runtime mode.");
-        BasicParser parser = new BasicParser();
-        CommandLine cl = parser.parse(options, args);
-        String jobPath = cl.getOptionValue("job");
-        String jobIdString = cl.getOptionValue("jobid");
-        String RUNTIME_MODE = cl.getOptionValue("mode");
-        Configuration configuration = parse(jobPath);
-        Objects.requireNonNull(configuration, "configuration can not be null");
-        int jobId = 0;
-        if (!"-1".equalsIgnoreCase(jobIdString)) {
-            jobId = Integer.parseInt(jobIdString);
+        public DataXJobArgs(File jobPath, Integer jobId, String runtimeMode, String execTimeStamp) {
+            this.jobPath = jobPath;
+            this.jobId = jobId;
+            this.runtimeMode = runtimeMode;
+            this.execTimeStamp = execTimeStamp;
         }
+    }
 
-        boolean isStandAloneMode = "standalone".equalsIgnoreCase(RUNTIME_MODE);
+    public void entry(DataXJobArgs args, String jobName) throws Throwable {
+//        Options options = new Options();
+//        options.addOption("job", true, "Job config.");
+//        options.addOption("jobid", true, "Job unique id.");
+//        options.addOption("mode", true, "Job runtime mode.");
+        //BasicParser parser = new BasicParser();
+        // CommandLine cl = parser.parse(options, args);
+//        String jobPath = cl.getOptionValue("job");
+//        String jobIdString = cl.getOptionValue("jobid");
+//        String RUNTIME_MODE = cl.getOptionValue("mode");
+        Configuration configuration = parse(args.jobPath.getAbsolutePath());
+        configuration.set(DataxUtils.EXEC_TIMESTAMP, args.execTimeStamp);
+        Objects.requireNonNull(configuration, "configuration can not be null");
+        int jobId = args.jobId;
+//        if (!"-1".equalsIgnoreCase(jobIdString)) {
+//            jobId = Integer.parseInt(jobIdString);
+//        }
+
+        boolean isStandAloneMode = "standalone".equalsIgnoreCase(args.runtimeMode);
         if (!isStandAloneMode && jobId == -1L) {
             throw DataXException.asDataXException(FrameworkErrorCode.CONFIG_ERROR, "非 standalone 模式必须在 URL 中提供有效的 jobId.");
         }
@@ -417,6 +435,7 @@ public class DataxExecutor {
      */
     public Configuration parse(final String jobPath) {
         Configuration configuration = ConfigParser.parseJobConfig(jobPath);
+
         Configuration readerCfg = Configuration.newDefault();
         readerCfg.set("class", this.readerMeta.getImplClass());
         Configuration writerCfg = Configuration.newDefault();

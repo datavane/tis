@@ -25,7 +25,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class Module {
 
-    private final String namespace;
+    public final String namespace;
 
     public Module(String namespache) {
         this.namespace = namespache;

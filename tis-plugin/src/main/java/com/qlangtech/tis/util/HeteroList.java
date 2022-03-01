@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.lang.StringUtils;
@@ -117,10 +118,16 @@ public class HeteroList<T extends Describable<T>> {
 
         Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
         DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors);
-        o.put("descriptors", desc2Json.getDescriptorsJSON(subFormFilter));
 
-        o.put("items", createItemsJSONArray(this.getItems(), subFormFilter));
-
+        try {
+            if (this.getItems().size() == 1) {
+                GroovyShellEvaluate.pluginThreadLocal.set(this.getItems().get(0));
+            }
+            o.put("descriptors", desc2Json.getDescriptorsJSON(subFormFilter));
+            o.put("items", createItemsJSONArray(this.getItems(), subFormFilter));
+        } finally {
+            GroovyShellEvaluate.pluginThreadLocal.remove();
+        }
         return o;
     }
 

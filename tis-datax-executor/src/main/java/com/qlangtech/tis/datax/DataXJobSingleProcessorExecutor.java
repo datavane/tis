@@ -88,6 +88,8 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             cmdLine.addArgument(getExecMode().literia);
             // 估计 总记录数目
             cmdLine.addArgument(String.valueOf(allRowsApproximately));
+            // 当前批次的执行时间戳
+            cmdLine.addArgument(msg.getExecTimeStamp());
 
             DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
 

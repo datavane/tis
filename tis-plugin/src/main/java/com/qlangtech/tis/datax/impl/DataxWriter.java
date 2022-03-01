@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,8 +45,6 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * @param appname
      */
     public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, String appname) {
-//        KeyedPluginStore<DataxWriter> pluginStore = new KeyedPluginStore();
-//        return pluginStore;
         return TIS.dataXWriterPluginStore.get(createDataXWriterKey(context, appname));
     }
 
@@ -54,6 +53,9 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     }
 
     private static KeyedPluginStore.AppKey createDataXWriterKey(IPluginContext context, String appname) {
+        if (StringUtils.isEmpty(appname)) {
+            throw new IllegalArgumentException("param appname can not be null");
+        }
         return new KeyedPluginStore.AppKey(context, false, appname, DataxWriter.class);
     }
 

@@ -64,7 +64,6 @@ import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
-import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -193,8 +192,7 @@ public class CoreAction extends BasicModule {
   }
 
   public static IndexIncrStatus getIndexIncrStatus(BasicModule module, boolean getRcConfigInCache) throws Exception {
-    IndexIncrStatus incrStatus = new IndexIncrStatus();
-    doGetDataXReaderWriterDesc(module.getCollectionName(), incrStatus);
+    IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
     if (store.getPlugin() == null) {
@@ -259,8 +257,16 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT, sideEffect = false)
   public void doCreateIncrSyncChannal(Context context) throws Exception {
+
     IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context);
     this.setBizResult(context, incrStatus);
+  }
+
+  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT, sideEffect = false)
+  public void doStartIncrSyncChannal(Context context) throws Exception {
+//    IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context);
+
+    this.setBizResult(context, doGetDataXReaderWriterDesc(this.getCollectionName()));
   }
 
   public static IndexIncrStatus generateDAOAndIncrScript(BasicModule module, Context context) throws Exception {
@@ -292,10 +298,10 @@ public class CoreAction extends BasicModule {
 
 
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
-    List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
+    // List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
     //PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
-    IndexIncrStatus incrStatus = new IndexIncrStatus();
-    doGetDataXReaderWriterDesc(module.getCollectionName(), incrStatus);
+
+    IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
 //    if (validateGlobalIncrStreamFactory && store.getPlugin() == null) {
 //      throw new IllegalStateException("global IncrStreamFactory config can not be null");
 //    }
@@ -339,13 +345,15 @@ public class CoreAction extends BasicModule {
   }
 
 
-  private static void doGetDataXReaderWriterDesc(String appName, IndexIncrStatus incrStatus) throws Exception {
+  private static IndexIncrStatus doGetDataXReaderWriterDesc(String appName) throws Exception {
+    IndexIncrStatus incrStatus = new IndexIncrStatus();
     DataxProcessor dataxProcessor = DataxProcessor.load(null, appName);
     DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null);
     incrStatus.setWriterDesc(createDescVals(writer.getDescriptor()));
 
     DataxReader reader = (DataxReader) dataxProcessor.getReader(null);
     incrStatus.setReaderDesc(createDescVals(reader.getDescriptor()));
+    return incrStatus;
   }
 
   private static HashMap<String, Object> createDescVals(Descriptor writerDesc) {

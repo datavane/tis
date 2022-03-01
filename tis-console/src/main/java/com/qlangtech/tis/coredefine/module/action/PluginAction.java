@@ -557,8 +557,19 @@ public class PluginAction extends BasicModule {
       this.errorsPageShow(context);
     }
     List<UploadPluginMeta> plugins = getPluginMeta();
-    JSONArray pluginArray = parseJsonArrayPost();
+    JSONObject postData = this.parseJsonPost();
+    String serverForward = postData.getString("serverForward");
+    String[] forwardParams = null;
+    if (StringUtils.isNotEmpty(serverForward)) {
+      forwardParams = StringUtils.split(serverForward, ":");
+      if (forwardParams.length != 3) {
+        throw new IllegalArgumentException("illegal forward param:" + serverForward);
+      }
+    }
 
+
+    JSONArray pluginArray =
+      Objects.requireNonNull(postData.getJSONArray("items"), "json prop items can not be null");
     UploadPluginMeta pluginMeta = null;
     // JSONObject itemObj = null;
     boolean faild = false;
@@ -592,6 +603,14 @@ public class PluginAction extends BasicModule {
     for (PluginItems pi : categoryPlugins) {
       describables.addAll(pi.save(context));
     }
+
+    if (forwardParams != null) {
+      //  getRundata().forwardTo(getCoredefine().namespace, "core_action", "create_incr_sync_channal");
+      getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
+      return;
+    }
+
+
     addActionMessage(context, "配置保存成功");
     // 成功保存的主键信息返回给客户端
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
@@ -599,6 +618,8 @@ public class PluginAction extends BasicModule {
         .filter((d) -> d instanceof IdentityName)
         .map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
     }
+
+
   }
 
 

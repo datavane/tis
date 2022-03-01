@@ -27,6 +27,7 @@ import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,13 +57,24 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         public void setKey(Key key);
     }
 
+//    @Override
+//    public T getPlugin() {
+//        T plugin = super.getPlugin();
+//        if (plugin instanceof IPluginKeyAware) {
+//            ((IPluginKeyAware) plugin).setKey(this.key);
+//        }
+//        return plugin;
+//    }
+
     @Override
-    public T getPlugin() {
-        T plugin = super.getPlugin();
-        if (plugin instanceof IPluginKeyAware) {
-            ((IPluginKeyAware) plugin).setKey(this.key);
+    public List<T> getPlugins() {
+        List<T> plugins = super.getPlugins();
+        for (T plugin : plugins) {
+            if (plugin instanceof IPluginKeyAware) {
+                ((IPluginKeyAware) plugin).setKey(this.key);
+            }
         }
-        return plugin;
+        return plugins;
     }
 
     @Override

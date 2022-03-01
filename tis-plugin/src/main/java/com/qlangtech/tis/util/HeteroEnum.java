@@ -29,7 +29,9 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.IAppSource;
-import com.qlangtech.tis.offline.*;
+import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.offline.FileSystemFactory;
+import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -178,6 +180,27 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             String identity, String caption, Selectable selectable) {
         this(extensionPoint, identity, caption, selectable, false);
     }
+
+    public static MQListenerFactory getIncrSourceListenerFactory(String dataXName) {
+        IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
+        List<MQListenerFactory> mqFactories = MQ.getPlugins(pluginContext, null);
+        MQListenerFactory mqFactory = null;
+        for (MQListenerFactory factory : mqFactories) {
+            mqFactory = factory;
+        }
+        Objects.requireNonNull(mqFactory, "mqFactory can not be null, mqFactories size:" + mqFactories.size());
+        return mqFactory;
+    }
+
+    public static IncrStreamFactory getIncrStreamFactory(String dataxName) {
+        IPluginContext pluginContext = IPluginContext.namedContext(dataxName);
+        List<IncrStreamFactory> streamFactories = HeteroEnum.INCR_STREAM_CONFIG.getPlugins(pluginContext, null);
+        for (IncrStreamFactory factory : streamFactories) {
+            return factory;
+        }
+        throw new IllegalStateException("stream app:" + dataxName + " incrController can not not be null");
+    }
+
 
     public static IPluginStore<?> getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta) {
 //        final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);

@@ -112,6 +112,7 @@ public abstract class DataXJobSubmit {
         msg.setDataXName(taskContext.getIndexName());
         msg.setJobId(taskContext.getTaskId());
         msg.setJobName(dataXfileName);
+        msg.setExecTimeStamp(taskContext.getPartitionTimestamp());
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest(taskContext.getIndexName());
         DumpPhaseStatus.TableDumpStatus dataXJob = null;
         if (preTaskStatus != null

@@ -25,7 +25,5 @@ public class DataxUtils {
     public static final String DATAX_NAME = "dataxName";
     // 用于保存DB对应的 tables
     public static final String DATAX_DB_NAME = "dataxDB";
-
-//    public static final String DATAX_QUEUE_ZK_PATH = "zkQueuePath";
-//    public static final String DATAX_ZK_ADDRESS = "zkAddress";
+    public static final String EXEC_TIMESTAMP = "execTimeStamp";
 }

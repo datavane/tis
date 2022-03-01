@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -39,7 +40,7 @@ public class DescribableJSON<T extends Describable<T>> {
 
     public DescribableJSON(T instance, Descriptor<T> descriptor) {
         this.instance = instance;
-        this.descriptor = descriptor;
+        this.descriptor = Objects.requireNonNull(descriptor, "param descriptor can not be null");
     }
 
     public DescribableJSON(T instance) {

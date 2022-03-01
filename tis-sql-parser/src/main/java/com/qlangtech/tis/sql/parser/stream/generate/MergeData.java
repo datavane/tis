@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateData {
 
     private final String collection;
-    // private final boolean excludeFacadeDAOSupport;
     private final IStreamIncrGenerateStrategy streamIncrGenerateStrategy;
 
     private final Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap;
@@ -62,7 +61,7 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
      */
             globalScripts = Maps.newHashMap();
 
-    private static final Pattern PATTERN_COLLECTION_NAME = Pattern.compile("(search4)([^\\s]+)");
+   // private static final Pattern PATTERN_COLLECTION_NAME = Pattern.compile("(search4)([^\\s]+)");
 
 
 
@@ -81,10 +80,6 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
             , IStreamIncrGenerateStrategy streamIncrGenerateStrategy) {
         super();
         this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
-
-
-
-
         this.collection = collection;
         this.mapDataMethodCreatorMap = mapDataMethodCreatorMap;
         this.aliasListBuilder = aliasListBuilder;
@@ -104,10 +99,6 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
             throw new IllegalStateException("primaryTableName is not illegal");
         }
         this.primaryTableNames = primaryTablesName;
-//        this.erRules = erRules;
-//        if (erRules == null) {
-//            throw new IllegalArgumentException("erRules can not be null");
-//        }
     }
 
     private final Stack<FlatTableRelation> unprocessedTableRelations = new Stack<>();

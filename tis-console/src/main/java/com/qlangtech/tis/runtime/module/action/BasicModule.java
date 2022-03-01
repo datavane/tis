@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.runtime.module.action;
 
@@ -254,7 +254,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return true;
   }
 
-  //public static final String key_FORWARD = "forward";
+  public static final String key_FORWARD = "forward";
 
   public static ActionContext getActionContext() {
     return ActionContext.getContext();
@@ -263,11 +263,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   protected String getReturnCode() {
 
     ActionContext actionCtx = ActionContext.getContext();
-    ActionProxy proxy = actionCtx.getActionInvocation().getProxy();
+    //ActionProxy proxy = actionCtx.getActionInvocation().getProxy();
     // 并且只有screen中的 模块可以设置forward
-//    if (isScreenApply() && this.getRequest().getAttribute(TERMINATOR_FORWARD) != null) {
-//      return key_FORWARD;
-//    }
+    if (this.getRequest().getAttribute(TERMINATOR_FORWARD) != null) {
+      return key_FORWARD;
+    }
     final String moduleName = this.getClass().getSimpleName();
 //    ActionContext actionContext = ServletActionContext.getActionContext(this.getRequest());
 //    ActionMapping mapping = ServletActionContext.getActionMapping();
@@ -292,9 +292,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return moduleName + "_ajax";// : StringUtils.EMPTY);
   }
 
-  public static boolean isScreenApply() {
-    return "screen".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#"));
-  }
+//  public static boolean isScreenApply() {
+//    return "screen".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#"));
+//  }
 
   public static final boolean isActionSubmit(ActionMapping mapping) {
     return "action".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#"))
@@ -320,17 +320,17 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
         return ServletActionContext.getRequest();
       }
 
-      public void forwardTo(String target) {
-        // 设置跳转到的地方可以是 action 或者 vm
-        // getRequest().setAttribute(TERMINATOR_FORWARD,
-        // new Forward(null, target));
-        forwardTo(null, target);
-        return;
-      }
+//      public void forwardTo(String target) {
+//        // 设置跳转到的地方可以是 action 或者 vm
+//        // getRequest().setAttribute(TERMINATOR_FORWARD,
+//        // new Forward(null, target));
+//        forwardTo(null, target);
+//        return;
+//      }
 
       @Override
-      public void forwardTo(String namespace, String target) {
-        getRequest().setAttribute(TERMINATOR_FORWARD, new Forward(namespace, target));
+      public void forwardTo(String namespace, String target, String method) {
+        getRequest().setAttribute(TERMINATOR_FORWARD, new Forward(namespace, target, method));
         return;
       }
 
@@ -465,9 +465,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
     public HttpServletRequest getRequest();
 
-    public void forwardTo(String target);
+    public default void forwardTo(String target){
+      throw new UnsupportedOperationException(target);
+    }
 
-    public void forwardTo(String namespace, String target);
+    public void forwardTo(String namespace, String target, String method);
 
     public void setLayout(String layout);
 
@@ -516,12 +518,19 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return trigger;
   }
 
-  // private static final String DEFAULT_MEHTO = "execute";
+  public static final String KEY_MEHTO = "emethod";
+
   public static String parseMehtodName() {
     HttpServletRequest request = ServletActionContext.getRequest();
 
+    String forwardMethod = (String) request.getAttribute(KEY_MEHTO);
+    if (forwardMethod != null) {
+      //request.removeAttribute(KEY_MEHTO);
+      return normalizeExecuteMethod("event_submit_do_" + forwardMethod);
+    }
+
     // 判断参数的emethod参数
-    final String execMethod = request.getParameter("emethod");
+    final String execMethod = request.getParameter(KEY_MEHTO);
     if (StringUtils.isNotBlank(execMethod)) {
       return normalizeExecuteMethod("event_submit_do_" + execMethod);
     }
@@ -1111,13 +1120,15 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     private String namespace;
 
     private final String action;
+    public final String method;
 
-    public Forward(String namespace, String action) {
+    public Forward(String namespace, String action, String method) {
       super();
       if (StringUtils.isNotBlank(namespace)) {
         this.namespace = (StringUtils.startsWith(namespace, "/") ? StringUtils.EMPTY : "/") + namespace;
       }
       this.action = action;
+      this.method = method;
     }
 
     public String getNamespace() {
