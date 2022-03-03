@@ -371,9 +371,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             Map<String, IPropertyType> r = new HashMap<>();
 
 
-            Optional<PluginExtraProps> extraProps = PluginExtraProps.load(clazz);// PluginExtraProps.load(clazz);
-
-            //PluginExtraProps extraProps = null;
+            Optional<PluginExtraProps> extraProps = PluginExtraProps.load(Optional.of(descriptor), clazz);
 
             // 支持使用继承的方式来实现复用，例如：DataXHiveWriter继承DataXHdfsWriter来实现
             PluginExtraProps.visitAncestorsClass(clazz, new PluginExtraProps.IClassVisitor<Void>() {
@@ -1243,6 +1241,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         public String getField(String key) {
             return fieldVals.get(key);
         }
+    }
+
+    public PluginExtraProps fieldExtraDescs = new PluginExtraProps();
+
+    protected void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
+        JSONObject c = new JSONObject();
+        c.put(PluginExtraProps.KEY_DFTVAL_PROP, dftVal);
+        PluginExtraProps.Props props = new PluginExtraProps.Props(c);
+        props.tagAsynHelp(new StringBuffer(helperContent));
+        this.fieldExtraDescs.put(fieldName, props);
     }
 
 

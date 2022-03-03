@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.extension.util;
 
@@ -24,8 +24,10 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
@@ -100,6 +102,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     }
 
+    public static Optional<PluginExtraProps> load(Class<?> clazz) {
+        return load(Optional.empty(), clazz);
+    }
 
     /**
      * field form extran descriptor
@@ -108,7 +113,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
      * @return
      * @throws IOException
      */
-    public static Optional<PluginExtraProps> load(Class<?> clazz) {
+    public static Optional<PluginExtraProps> load(Optional<Descriptor> desc, Class<?> clazz) {
+
 
         PluginExtraProps ep = visitAncestorsClass(clazz, (c, extraProps) -> {
             Optional<PluginExtraProps> nxtExtraProps = parseExtraProps(c);
@@ -122,10 +128,20 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return extraProps;
         });
 
+
         if (ep != null) {
             String resourceName = clazz.getSimpleName() + ".json";
             for (Map.Entry<String, PluginExtraProps.Props> entry : ep.entrySet()) {
                 validate(entry.getValue().props, entry.getKey(), clazz, resourceName, true);
+            }
+
+        }
+        PluginExtraProps e = null;
+        if (desc.isPresent() && MapUtils.isNotEmpty(e = desc.get().fieldExtraDescs)) {
+            if (ep != null) {
+                ep.mergeProps(e);
+            } else {
+                ep = e;
             }
         }
 
@@ -157,7 +173,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
             if (finalValidate) {
                 JSONObject creatorJ = (JSONObject) creator;
-               // Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
+                //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
                 Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
                 JSONObject pmeta = null;
                 JSONArray plugins = creatorJ.getJSONArray("plugin");
@@ -166,8 +182,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                         pmeta = plugins.getJSONObject(i);
                         if (StringUtils.isBlank(pmeta.getString("hetero"))
                                 || StringUtils.isBlank(pmeta.getString("descName"))
-                        // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
-                        //        || StringUtils.isBlank(pmeta.getString("extraParam"))
+                            // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
+                            //        || StringUtils.isBlank(pmeta.getString("extraParam"))
                         ) {
                             throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + ",pluginClazz:" + pluginClazz.getName());
                         }
