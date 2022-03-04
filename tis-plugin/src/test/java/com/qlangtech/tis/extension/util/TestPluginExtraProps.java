@@ -117,5 +117,22 @@ public class TestPluginExtraProps extends TestCase {
         Assert.assertTrue("isAsynHelp must be true", nameProp.isAsynHelp());
         Assert.assertEquals(DefaultPlugin.FILED_NAME_DESCRIPTION, nameProp.getAsynHelp());
         Assert.assertEquals(DefaultPlugin.DFT_NAME_VALUE, nameProp.getDftVal());
+
+
+
+
+
+    }
+
+    public void testAddFieldDescriptorWithNotMatchFieldName() {
+        try {
+            DefaultPlugin plugin = new DefaultPlugin();
+            DefaultPlugin.DefaultDescriptor desc = (DefaultPlugin.DefaultDescriptor) plugin.getDescriptor();
+            desc.addFieldDescriptor("xxx", DefaultPlugin.DFT_NAME_VALUE, DefaultPlugin.FILED_NAME_DESCRIPTION);
+            PluginExtraProps.load(Optional.of(desc), DefaultPlugin.class);
+            Assert.fail("must be faild");
+        } catch (Exception e) {
+            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:name,cols", e.getMessage());
+        }
     }
 }

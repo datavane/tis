@@ -284,6 +284,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 .map((pp) -> (SuFormProperties) pp).collect(Collectors.toList());
     }
 
+    public Set<String> getPropertyFields() {
+        return getPropertyTypes().keySet();
+    }
+
     public PluginFormProperties getPluginFormPropertyTypes() {
         return getPluginFormPropertyTypes(Optional.empty());
     }
@@ -334,7 +338,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes() {
         if (propertyTypes == null) {
-            propertyTypes = buildPropertyTypes(this, clazz);
+            propertyTypes = buildPropertyTypes(Optional.of(this), clazz);
 
             List<PropertyType> identityFields
                     = propertyTypes.values().stream().filter((p) -> {
@@ -366,12 +370,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param clazz
      * @return
      */
-    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Descriptor descriptor, Class<?> clazz) {
+    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Optional<Descriptor> descriptor, Class<?> clazz) {
         try {
             Map<String, IPropertyType> r = new HashMap<>();
 
-
-            Optional<PluginExtraProps> extraProps = PluginExtraProps.load(Optional.of(descriptor), clazz);
+            Optional<PluginExtraProps> extraProps = PluginExtraProps.load(descriptor, clazz);
 
             // 支持使用继承的方式来实现复用，例如：DataXHiveWriter继承DataXHdfsWriter来实现
             PluginExtraProps.visitAncestorsClass(clazz, new PluginExtraProps.IClassVisitor<Void>() {
@@ -424,9 +427,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                         props.put(PluginExtraProps.KEY_DFTVAL_PROP, unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call());
                                     }
 
-                                    if ((formField.type() == FormFieldType.ENUM)
-                                            || formField.type() == FormFieldType.MULTI_SELECTABLE) {
-                                        resolveEnumProp(descriptor, fieldExtraProps);
+                                    if (descriptor.isPresent()
+                                            && ((formField.type() == FormFieldType.ENUM)
+                                            || formField.type() == FormFieldType.MULTI_SELECTABLE)) {
+                                        resolveEnumProp(descriptor.get(), fieldExtraProps);
                                     }
                                     ptype.setExtraProp(fieldExtraProps);
                                 }
@@ -442,98 +446,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
             });
 
-//            List allSuperclasses = ClassUtils.getAllSuperclasses(clazz);
-//            allSuperclasses.add(clazz);
-//            Class targetClass = null;
-
-
-//            for (Object c : allSuperclasses) {
-//                targetClass = (Class) c;
-//                // extraProps = PluginExtraProps.load(targetClass);
-//                AA:
-//                for (Field f : targetClass.getDeclaredFields()) {
-//                    if (!Modifier.isPublic(f.getModifiers())) {
-//                        continue;
-//                    }
-//
-//                    if ((subFormFields = f.getAnnotation(SubForm.class)) != null) {
-//                        subFromDescClass = subFormFields.desClazz();
-//                        if (subFromDescClass == null) {
-//                            throw new IllegalStateException("field " + f.getName()
-//                                    + "'s SubForm annotation descClass can not be null");
-//                        }
-//                        r.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(subFromDescClass))));
-//                    }
-//
-//                    formField = f.getAnnotation(FormField.class);
-//                    if (formField != null) {
-//                        ptype = new PropertyType(f, formField);
-//                        if (extraProps.isPresent()
-//                                && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
-//                            String dftVal = fieldExtraProps.getDftVal();
-//
-//                            if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
-//                                continue AA;
-//                            }
-//
-//                            if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
-//
-//                                UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
-//                                boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
-//                                JSONObject props = fieldExtraProps.getProps();
-//                                Callable<String> valGetter = () -> (String) GroovyShellEvaluate.eval(meta.getName());
-//                                props.put(PluginExtraProps.KEY_DFTVAL_PROP, unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call());
-//                            }
-//
-//                            if ((formField.type() == FormFieldType.ENUM) || formField.type() == FormFieldType.MULTI_SELECTABLE) {
-//                                Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
-////                                if (anEnum == null) {
-////                                    throw new IllegalStateException("fieldName:" + f.getName() + " relevant enum descriptor in json config can not be null");
-////                                }
-//                                if (anEnum != null && anEnum instanceof String) {
-//                                    // 使用了如下这种配置方式，需要使用groovy进行解析
-//                                    // "enum": "com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()"
-//                                    // 需要转化成以下这种格式:
-//                                    //                                "enum": [
-//                                    //                                {
-//                                    //                                    "label": "是",
-//                                    //                                        "val": true
-//                                    //                                },
-//                                    //                                {
-//                                    //                                    "label": "否",
-//                                    //                                        "val": false
-//                                    //                                }
-//                                    // ]
-//                                    try {
-//                                        GroovyShellEvaluate.descriptorThreadLocal.set(this);
-//                                        List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
-//                                        JSONArray enums = new JSONArray();
-//                                        if (itEnums != null) {
-//                                            itEnums.forEach((key) -> {
-//                                                JSONObject o = new JSONObject();
-//                                                o.put("label", key.getName());
-//                                                o.put("val", key.getValue());
-//                                                enums.add(o);
-//                                            });
-//                                        }
-//                                        fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
-//                                    } finally {
-//                                        GroovyShellEvaluate.descriptorThreadLocal.remove();
-//                                    }
-//                                }
-//                            }
-//                            ptype.setExtraProp(fieldExtraProps);
-//                        }
-//                        r.put(f.getName(), ptype);
-//                    }
-//                }
-//            }
             return r;
         } catch (Exception e) {
             throw new RuntimeException("parse desc:" + clazz.getName(), e);
         }
 
     }
+
 
 //    public static JSONArray resolveEnumProp(Descriptor descriptor, PropertyType propType) {
 //        return resolveEnumProp(descriptor, propType.extraProp);

@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -57,7 +58,7 @@ public class RewriteSuFormPropertiesPlugin implements Describable<RewriteSuFormP
                             + "." + subformProps.getSubFormFieldName() + ".json", true);
             JSONObject subField = JSON.parseObject(overwriteSubField);
             Class<?> clazz = RewriteSuFormPropertiesPlugin.class.getClassLoader().loadClass(subField.getString(SubForm.FIELD_DES_CLASS));
-            return SuFormProperties.copy(filterFieldProp(Descriptor.buildPropertyTypes(this, clazz)), clazz, subformProps);
+            return SuFormProperties.copy(filterFieldProp(Descriptor.buildPropertyTypes(Optional.of(this), clazz)), clazz, subformProps);
         }
 
         @Override

@@ -20,7 +20,6 @@ package com.qlangtech.tis.extension;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 
@@ -60,6 +59,11 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
     public static class DefaultDescriptor extends Descriptor<DefaultPlugin> {
         public DefaultDescriptor() {
             this.addFieldDescriptor("name", DFT_NAME_VALUE, FILED_NAME_DESCRIPTION);
+           // this.addFieldDescriptor("xxx", DFT_NAME_VALUE, FILED_NAME_DESCRIPTION);
+        }
+
+        public void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
+            super.addFieldDescriptor(fieldName, dftVal, helperContent);
         }
     }
 }

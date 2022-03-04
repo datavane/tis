@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.collections.MapUtils;
@@ -35,8 +36,10 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * load extra prop desc like 'lable' and so on
@@ -139,7 +142,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         PluginExtraProps e = null;
         if (desc.isPresent() && MapUtils.isNotEmpty(e = desc.get().fieldExtraDescs)) {
             if (ep != null) {
-                ep.mergeProps(e);
+                ep.mergeProps(e, desc);
             } else {
                 ep = e;
             }
@@ -214,15 +217,32 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     }
 
     public void mergeProps(PluginExtraProps props) {
+        this.mergeProps(props, Optional.empty());
+    }
+
+    public void mergeProps(PluginExtraProps props, Optional<Descriptor> desc) {
         if (props == null) {
             throw new IllegalArgumentException("param props can not be null");
         }
         Props p = null;
+
+        AtomicReference<Map<String, IPropertyType>> ppRef = new AtomicReference<>();
         for (Map.Entry<String, PluginExtraProps.Props> entry : props.entrySet()) {
             p = this.get(entry.getKey());
             if (p != null) {
                 p.merge(entry.getValue());
             } else {
+                if (desc.isPresent()) {
+                    // && !(fieldKeys = desc.get().getPropertyFields()).contains(entry.getKey())
+                    Map<String, IPropertyType> pp = ppRef.updateAndGet((pre) -> {
+                        return (pre == null) ? Descriptor.buildPropertyTypes(Optional.empty(), desc.get().clazz) : pre;
+                    });
+                    if (!pp.containsKey(entry.getKey())) {
+                        throw new IllegalStateException("prop key:" + entry.getKey()
+                                + " relevant prop must exist , exist props keys:"
+                                + pp.keySet().stream().collect(Collectors.joining(",")));
+                    }
+                }
                 this.put(entry.getKey(), entry.getValue());
             }
         }
