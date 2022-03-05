@@ -185,7 +185,8 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         Class<?> fieldType = subFormField.getType();
         if (!Collection.class.isAssignableFrom(fieldType)) {
             // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
-            throw new UnsupportedOperationException("sub form field:" + subFormField.getName() + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
+            throw new UnsupportedOperationException("sub form field:" + subFormField.getName()
+                    + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
         }
 
         // JSONObject vals = new JSONObject();

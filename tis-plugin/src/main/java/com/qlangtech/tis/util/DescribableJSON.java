@@ -39,8 +39,9 @@ public class DescribableJSON<T extends Describable<T>> {
     private final Descriptor<T> descriptor;
 
     public DescribableJSON(T instance, Descriptor<T> descriptor) {
-        this.instance = instance;
-        this.descriptor = Objects.requireNonNull(descriptor, "param descriptor can not be null");
+        this.instance = Objects.requireNonNull(instance, "param instance can not be null");
+        this.descriptor = Objects.requireNonNull(descriptor
+                , "param descriptor can not be null,plugin type:" + instance.getClass());
     }
 
     public DescribableJSON(T instance) {

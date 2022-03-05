@@ -482,14 +482,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 GroovyShellEvaluate.descriptorThreadLocal.set(descriptor);
                 List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
 
-                if (itEnums != null) {
-                    itEnums.forEach((key) -> {
-                        JSONObject o = new JSONObject();
-                        o.put("label", key.getName());
-                        o.put("val", key.getValue());
-                        enums.add(o);
-                    });
-                }
+                enums = Option.toJson(itEnums);
+//                if (itEnums != null) {
+//                    itEnums.forEach((key) -> {
+//                        JSONObject o = new JSONObject();
+//                        o.put("label", key.getName());
+//                        o.put("val", key.getValue());
+//                        enums.add(o);
+//                    });
+//                }
                 fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
             } finally {
                 GroovyShellEvaluate.descriptorThreadLocal.remove();
@@ -765,7 +766,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         FormFieldType.SelectedItem item = null;
         for (int i = 0; i < enums.size(); i++) {
             select = enums.getJSONObject(i);
-            item = new FormFieldType.SelectedItem(select.getString("label"), select.getString("val")
+            item = new FormFieldType.SelectedItem(select.getString(PluginExtraProps.KEY_LABEL), select.getString("val")
                     , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
             if (item.isChecked()) {
                 selected++;
@@ -978,7 +979,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                 if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
                     List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(valJ);
-                    List<String> multi = selectedItems.stream().filter((item) -> item.isChecked()).map((item) -> item.getValue()).collect(Collectors.toList());
+                    List<String> multi = selectedItems.stream()
+                            .filter((item) -> item.isChecked())
+                            .map((item) -> (String) item.getValue())
+                            .collect(Collectors.toList());
+
                     attrDesc.setVal(describable, multi);
                 } else {
 
@@ -1165,10 +1170,18 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public PluginExtraProps fieldExtraDescs = new PluginExtraProps();
 
     protected void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
+        this.addFieldDescriptor(fieldName, dftVal, helperContent, Optional.empty());
+    }
+
+    protected void addFieldDescriptor(String fieldName, Object dftVal
+            , String helperContent, Optional<List<Option>> enums) {
         JSONObject c = new JSONObject();
         c.put(PluginExtraProps.KEY_DFTVAL_PROP, dftVal);
         PluginExtraProps.Props props = new PluginExtraProps.Props(c);
         props.tagAsynHelp(new StringBuffer(helperContent));
+        if (enums.isPresent()) {
+            c.put(KEY_ENUM_PROP, Option.toJson(enums.get()));
+        }
         this.fieldExtraDescs.put(fieldName, props);
     }
 

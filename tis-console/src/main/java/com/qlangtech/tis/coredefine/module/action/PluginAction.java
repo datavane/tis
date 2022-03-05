@@ -156,12 +156,15 @@ public class PluginAction extends BasicModule {
    */
   public void doGetPluginFieldHelp(Context context) {
     DescriptorField descField = parseDescField();
-    // List<UploadPluginMeta> pluginMeta = getPluginMeta();
 
-    UploadPluginMeta pluginMeta
-      = UploadPluginMeta.parse(this, this.getString("plugin"));
+    String plugin = this.getString("plugin");
+    Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
+    if (StringUtils.isNotEmpty(plugin)) {
+      UploadPluginMeta pluginMeta
+        = UploadPluginMeta.parse(this, plugin);
+      subFormFilter = pluginMeta.getSubFormFilter();
+    }
 
-    Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
     PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
 
@@ -486,6 +489,8 @@ public class PluginAction extends BasicModule {
           @Override
           protected Void visitSubForm(
             SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
+
+
             SuFormProperties.SuFormPropertyGetterMeta fieldDataGetterMeta = null;
             List<String> params = null;
             Map<String, SuFormProperties.SuFormPropertyGetterMeta> onClickFillData = behaviorMeta.getOnClickFillData();
@@ -494,7 +499,7 @@ public class PluginAction extends BasicModule {
             for (Map.Entry<String, SuFormProperties.SuFormPropertyGetterMeta> entry : onClickFillData.entrySet()) {
               String fillField = entry.getKey();
 
-              fieldDataGetterMeta = entry.getValue();//= onClickFillData.getJSONObject(fillField);
+              fieldDataGetterMeta = entry.getValue();
               Objects.requireNonNull(fieldDataGetterMeta, "fillField:" + fillField + " relevant behavier meta can not be null");
               // String targetMethod = fieldDataGetterMeta.getString("method");
               String targetMethod = fieldDataGetterMeta.getMethod();
@@ -503,7 +508,7 @@ public class PluginAction extends BasicModule {
               if (CollectionUtils.isEmpty(params)) {
                 throw new IllegalStateException("params can not be null");
               }
-              // Objects.requireNonNull(params, "params can not be null");
+
               Class<?>[] paramClass = new Class<?>[params.size()];
               String[] paramsVals = new String[params.size()];
               for (int index = 0; index < params.size(); index++) {
