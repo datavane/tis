@@ -118,7 +118,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     public interface IRewriteSuFormProperties {
         SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception;
 
-        SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception;
+     //   SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception;
     }
 
 

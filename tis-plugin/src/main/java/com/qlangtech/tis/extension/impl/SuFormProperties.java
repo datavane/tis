@@ -21,23 +21,34 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import groovy.lang.GroovyClassLoader;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-11 13:22
  */
 public class SuFormProperties extends PluginFormProperties implements IPropertyType {
+
+    public static final ThreadLocal<SuFormGetterContext> subFormGetterProcessThreadLocal = ThreadLocal.withInitial(() -> {
+        return new SuFormGetterContext();
+    });
+
     public final Map<String, /*** fieldname */PropertyType> fieldsType;
     public final Field subFormField;
     private Class desClazz;
@@ -182,6 +193,24 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
 
     @Override
     public JSON getInstancePropsJson(Object instance) {
+//        Class<?> fieldType = subFormField.getType();
+//        if (!Collection.class.isAssignableFrom(fieldType)) {
+//            // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
+//            throw new UnsupportedOperationException("sub form field:" + subFormField.getName()
+//                    + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
+//        }
+//        getSubFormPropVal(instance);
+//        try {
+//            Object o = subFormField.get(instance);
+
+        return createSubFormVals(getSubFormPropVal(instance));
+
+//        } catch (IllegalAccessException e) {
+//            throw new RuntimeException(e);
+//        }
+    }
+
+    public Collection<IdentityName> getSubFormPropVal(Object instance) {
         Class<?> fieldType = subFormField.getType();
         if (!Collection.class.isAssignableFrom(fieldType)) {
             // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
@@ -189,33 +218,21 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
                     + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
         }
 
-        // JSONObject vals = new JSONObject();
-
         try {
             Object o = subFormField.get(instance);
 
-            return createSubFormVals(o);
-//            Collection<?> itItems = null;
-//            if (o != null) {
-//                itItems = (Collection<?>) o;
-//                for (Object i : itItems) {
-//                    vals.put(String.valueOf(pkPropertyType.getVal(i)), (new RootFormProperties(fieldsType)).getInstancePropsJson(i));
-//                }
-//            }
+            return (Collection<IdentityName>) o;
+
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-
-        // return vals;
     }
 
-    public JSONObject createSubFormVals(Object subFormFieldInstance) {
+    public JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
         JSONObject vals = new JSONObject();
 
-        Collection<?> itItems = null;
         if (subFormFieldInstance != null) {
-            itItems = (Collection<?>) subFormFieldInstance;
-            for (Object i : itItems) {
+            for (Object i : subFormFieldInstance) {
                 vals.put(String.valueOf(pkPropertyType.getVal(i)), (new RootFormProperties(fieldsType)).getInstancePropsJson(i));
             }
         }
@@ -228,45 +245,68 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         return visitor.visit(this);
     }
 
-    public static class SuFormPropertiesBehaviorMeta {
-        String clickBtnLabel;
-        Map<String, SuFormPropertyGetterMeta> onClickFillData;
+//    public static class SuFormPropertiesBehaviorMeta {
+//        String clickBtnLabel;
+//        Map<String, SuFormPropertyGetterMeta> onClickFillData;
+//
+//        public String getClickBtnLabel() {
+//            return clickBtnLabel;
+//        }
+//
+//        public void setClickBtnLabel(String clickBtnLabel) {
+//            this.clickBtnLabel = clickBtnLabel;
+//        }
+//
+//        public Map<String, SuFormPropertyGetterMeta> getOnClickFillData() {
+//            return onClickFillData;
+//        }
+//
+//        public void setOnClickFillData(Map<String, SuFormPropertyGetterMeta> onClickFillData) {
+//            this.onClickFillData = onClickFillData;
+//        }
+//    }
 
-        public String getClickBtnLabel() {
-            return clickBtnLabel;
+//    public static class SuFormPropertyGetterMeta {
+//        String method;
+//        List<String> params;
+//
+//        public String getMethod() {
+//            return method;
+//        }
+//
+//        public void setMethod(String method) {
+//            this.method = method;
+//        }
+//
+//        public List<String> getParams() {
+//            return params;
+//        }
+//
+//        public void setParams(List<String> params) {
+//            this.params = params;
+//        }
+//    }
+
+    /**
+     * 子表单执行过程中与线程绑定的上下文对象
+     */
+    public static class SuFormGetterContext {
+        public static final String FIELD_SUBFORM_ID = "id";
+        public Describable plugin;
+        public UploadPluginMeta param;
+
+        private ConcurrentHashMap<String, Object> props = new ConcurrentHashMap<>();
+
+        public <T> T getContextAttr(String key, Function<String, T> func) {
+            return (T) props.computeIfAbsent(key, func);
         }
 
-        public void setClickBtnLabel(String clickBtnLabel) {
-            this.clickBtnLabel = clickBtnLabel;
-        }
-
-        public Map<String, SuFormPropertyGetterMeta> getOnClickFillData() {
-            return onClickFillData;
-        }
-
-        public void setOnClickFillData(Map<String, SuFormPropertyGetterMeta> onClickFillData) {
-            this.onClickFillData = onClickFillData;
-        }
-    }
-
-    public static class SuFormPropertyGetterMeta {
-        String method;
-        List<String> params;
-
-        public String getMethod() {
-            return method;
-        }
-
-        public void setMethod(String method) {
-            this.method = method;
-        }
-
-        public List<String> getParams() {
-            return params;
-        }
-
-        public void setParams(List<String> params) {
-            this.params = params;
+        public String getSubFormIdentityField() {
+            String id = param.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE);
+            if (StringUtils.isEmpty(id)) {
+                throw new IllegalStateException(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE + " can not be empty");
+            }
+            return id;
         }
     }
 }

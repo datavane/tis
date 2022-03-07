@@ -78,28 +78,29 @@ public class TestSuFormProperties extends TestCase {
         boolean hasExecVisitSubForm
                 = pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(Optional.of(subFormFilter)) {
             @Override
-            protected Boolean visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
-                assertNotNull("behaviorMeta can not be null", behaviorMeta);
+            public Boolean visit(//SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta,
+                                 SuFormProperties props) {
+//                assertNotNull("behaviorMeta can not be null", behaviorMeta);
                 assertNotNull("prop can not be null", props);
 
-                assertEquals("设置", behaviorMeta.getClickBtnLabel());
-                Map<String, SuFormProperties.SuFormPropertyGetterMeta>
-                        onClickFillData = behaviorMeta.getOnClickFillData();
-                assertEquals("onClickFillData.size() > 0", 2, onClickFillData.size());
+//                assertEquals("设置", behaviorMeta.getClickBtnLabel());
+//                Map<String, SuFormProperties.SuFormPropertyGetterMeta>
+//                        onClickFillData = behaviorMeta.getOnClickFillData();
+//                assertEquals("onClickFillData.size() > 0", 2, onClickFillData.size());
 
 
-                SuFormProperties.SuFormPropertyGetterMeta getterMeta = onClickFillData.get("cols");
-                assertNotNull(getterMeta);
-                assertEquals("getTableMetadata", getterMeta.getMethod());
-                assertTrue("getParams equal"
-                        , CollectionUtils.isEqualCollection(Collections.singleton("id"), getterMeta.getParams()));
-
-
-                getterMeta = onClickFillData.get("recordField");
-                assertNotNull(getterMeta);
-                assertEquals("getPrimaryKeys", getterMeta.getMethod());
-                assertTrue("getParams equal"
-                        , CollectionUtils.isEqualCollection(Collections.singleton("id"), getterMeta.getParams()));
+//                SuFormProperties.SuFormPropertyGetterMeta getterMeta = onClickFillData.get("cols");
+//                assertNotNull(getterMeta);
+//                assertEquals("getTableMetadata", getterMeta.getMethod());
+//                assertTrue("getParams equal"
+//                        , CollectionUtils.isEqualCollection(Collections.singleton("id"), getterMeta.getParams()));
+//
+//
+//                getterMeta = onClickFillData.get("recordField");
+//                assertNotNull(getterMeta);
+//                assertEquals("getPrimaryKeys", getterMeta.getMethod());
+//                assertTrue("getParams equal"
+//                        , CollectionUtils.isEqualCollection(Collections.singleton("id"), getterMeta.getParams()));
 
                 //===============================================
                 Set<Map.Entry<String, PropertyType>> kvTuples = props.getKVTuples();

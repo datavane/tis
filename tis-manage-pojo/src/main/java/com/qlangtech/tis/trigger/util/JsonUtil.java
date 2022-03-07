@@ -81,12 +81,15 @@ public class JsonUtil {
             @Override
             public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features) throws IOException {
                 try {
-                    SerializeWriter out = serializer.out;
+                  //  SerializeWriter out = serializer.out;
 
                     UnCacheString value = (UnCacheString) object;
                     Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
 
-                    out.writeString(value.getValue());
+                  //  out.writeString(value.getValue());
+
+                    serializer.write(value.getValue());
+
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
@@ -96,14 +99,14 @@ public class JsonUtil {
         SerializeConfig.globalInstance.put(UnCacheString.class, serializer);
     }
 
-    public static final class UnCacheString {
-        private final Callable<String> valGetter;
+    public static final class UnCacheString<T> {
+        private final Callable<T> valGetter;
 
-        public UnCacheString(Callable<String> valGetter) {
+        public UnCacheString(Callable<T> valGetter) {
             this.valGetter = valGetter;
         }
 
-        public String getValue() throws Exception {
+        public T getValue() throws Exception {
             return this.valGetter.call();
         }
     }

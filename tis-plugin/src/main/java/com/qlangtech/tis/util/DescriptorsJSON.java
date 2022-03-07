@@ -17,23 +17,18 @@
  */
 package com.qlangtech.tis.util;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
-import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -78,42 +73,43 @@ public class DescriptorsJSON<T extends Describable<T>> {
             this.subFormFilter = subFormFilter;
         }
 
-        @Override
-        public final <T> T visit(SuFormProperties props) {
-            SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta = null;
-            List allSuperclasses = Lists.newArrayList(props.parentClazz);
-            allSuperclasses.addAll(ClassUtils.getAllSuperclasses(props.parentClazz));
+//        @Override
+//        public final <T> T visit(SuFormProperties props) {
+//            SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta = null;
+//            List allSuperclasses = Lists.newArrayList(props.parentClazz);
+//            allSuperclasses.addAll(ClassUtils.getAllSuperclasses(props.parentClazz));
+//
+//            Class superClass = null;
+//            for (Object clazz : allSuperclasses) {
+//                superClass = (Class) clazz;
+//                String jsonMeta = IOUtils.loadResourceFromClasspath(superClass
+//                        , superClass.getSimpleName()
+//                                + "." + props.getSubFormFieldName() + ".json", false);
+//                if (jsonMeta != null) {
+//                    behaviorMeta = JSON.parseObject(jsonMeta, SuFormProperties.SuFormPropertiesBehaviorMeta.class);
+//                    break;
+//                }
+//            }
+//            try {
+//                if (this.subFormFilter.isPresent()) {
+//                    Descriptor writerDescriptor = IDataxProcessor.getWriterDescriptor(this.subFormFilter.get().uploadPluginMeta);
+//                    if (writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
+//                        behaviorMeta = ((DataxWriter.IRewriteSuFormProperties) writerDescriptor).overwriteBehaviorMeta(behaviorMeta);
+//                    }
+//                }
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
 
-            Class superClass = null;
-            for (Object clazz : allSuperclasses) {
-                superClass = (Class) clazz;
-                String jsonMeta = IOUtils.loadResourceFromClasspath(superClass
-                        , superClass.getSimpleName() + "." + props.getSubFormFieldName() + ".json", false);
-                if (jsonMeta != null) {
-                    behaviorMeta = JSON.parseObject(jsonMeta, SuFormProperties.SuFormPropertiesBehaviorMeta.class);
-                    break;
-                }
-            }
-            try {
-                if (this.subFormFilter.isPresent()) {
-                    Descriptor writerDescriptor = IDataxProcessor.getWriterDescriptor(this.subFormFilter.get().uploadPluginMeta);
-                    if (writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
-                        behaviorMeta = ((DataxWriter.IRewriteSuFormProperties) writerDescriptor).overwriteBehaviorMeta(behaviorMeta);
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
-            //   IDataxProcessor.getWriterDescriptor(this);
-            return visitSubForm(behaviorMeta, props);
-        }
+        //   IDataxProcessor.getWriterDescriptor(this);
+//            return visitSubForm(behaviorMeta, props);
+//        }
 
         /**
          * @param behaviorMeta 可能为空 结构可以查阅：com/qlangtech/tis/plugin/datax/DataxMySQLReader.selectedTabs.json
          * @param props
          */
-        protected abstract <T> T visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props);
+        // protected abstract <T> T visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props);
     }
 
 
@@ -136,17 +132,18 @@ public class DescriptorsJSON<T extends Describable<T>> {
             JSONObject des = new JSONObject();
             pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
                 @Override
-                public Void visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
+                public Void visit(SuFormProperties props) {
                     JSONObject subForm = new JSONObject();
-                    if (behaviorMeta != null) {
-                        subForm.put("behaviorMeta", behaviorMeta);
-                    }
                     subForm.put("fieldName", props.getSubFormFieldName());
                     if (subFormFilter.isPresent()) {
-                        subForm.put("idList", props.getSubFormIdListGetter().build(subFormFilter.get()));
+
+                        IPropertyType.SubFormFilter filter = subFormFilter.get();
+                        if (!filter.subformDetailView) {
+                            des.put("subForm", true);
+                            subForm.put("idList", props.getSubFormIdListGetter().build(filter));
+                        }
                     }
                     des.put("subFormMeta", subForm);
-                    des.put("subForm", true);
                     return null;
                 }
             });
@@ -188,14 +185,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     attrVal.put("eprops", extraProps);
                 }
 
-                ISelectOptionsGetter optionsCreator = null;
                 if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
-//                    if (!(d instanceof ISelectOptionsGetter)) {
-//                        throw new IllegalStateException("descriptor:" + d.getClass()
-//                                + " has a selectable field:" + key + " descriptor must be an instance of 'ISelectOptionsGetter'");
-//                    }
-//                    optionsCreator = d;
-//                    List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(key);
                     attrVal.put("options", getSelectOptions(d, val, key));
                 }
                 if (val.isDescribable()) {

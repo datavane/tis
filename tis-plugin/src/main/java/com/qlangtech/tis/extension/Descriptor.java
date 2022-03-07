@@ -18,6 +18,7 @@
 package com.qlangtech.tis.extension;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
@@ -26,10 +27,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.extension.impl.PropertyType;
-import com.qlangtech.tis.extension.impl.RootFormProperties;
-import com.qlangtech.tis.extension.impl.SuFormProperties;
-import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.extension.impl.*;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
@@ -43,8 +41,10 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
-import com.qlangtech.tis.trigger.util.JsonUtil;
-import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.ISelectOptionsGetter;
+import com.qlangtech.tis.util.XStream2;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
@@ -322,8 +322,27 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     throw new RuntimeException(e);
                 }
 
+                if (filter.subformDetailView) {
+                    final String subformDetailId = filter.subformDetailId;
+                    return new AdapterPluginFormProperties(subPluginFormPropertyTypes) {
+                        @Override
+                        public JSON getInstancePropsJson(Object instance) {
 
-                return subPluginFormPropertyTypes;
+                            Collection<IdentityName> subFormPropVal
+                                    = subPluginFormPropertyTypes.getSubFormPropVal(instance);
+                            for (IdentityName subProp : subFormPropVal) {
+                                if (StringUtils.equals(subformDetailId, subProp.identityValue())) {
+                                    return (new RootFormProperties(subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subProp)
+                                }
+                            }
+
+                            throw new IllegalStateException("subformDetailId:" + subformDetailId + " has not find subForm instance");
+                        }
+                    };
+
+                } else {
+                    return subPluginFormPropertyTypes;
+                }
             }
         }
 
@@ -397,7 +416,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                     throw new IllegalStateException("field " + f.getName()
                                             + "'s SubForm annotation descClass can not be null");
                                 }
-                                r.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(descriptor, subFromDescClass))));
+                                r.put(f.getName()
+                                        , new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(descriptor, subFromDescClass))));
                             }
 
                             formField = f.getAnnotation(FormField.class);
@@ -420,11 +440,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                                     if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
 
-                                        UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
-                                        boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
-
-                                        Callable<String> valGetter = () -> (String) GroovyShellEvaluate.eval(meta.getName());
-                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP, unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call());
+//                                        UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
+//                                        boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
+//
+//                                        Callable<String> valGetter = () -> (String) GroovyShellEvaluate.scriptEval(dftVal);
+                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP, GroovyShellEvaluate.scriptEval(dftVal));
                                     }
 
                                     if (descriptor.isPresent()
@@ -450,7 +470,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         } catch (Exception e) {
             throw new RuntimeException("parse desc:" + clazz.getName(), e);
         }
-
     }
 
 
@@ -480,18 +499,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             // ]
             try {
                 GroovyShellEvaluate.descriptorThreadLocal.set(descriptor);
-                List<Option> itEnums = GroovyShellEvaluate.eval((String) anEnum);
-
-                enums = Option.toJson(itEnums);
-//                if (itEnums != null) {
-//                    itEnums.forEach((key) -> {
-//                        JSONObject o = new JSONObject();
-//                        o.put("label", key.getName());
-//                        o.put("val", key.getValue());
-//                        enums.add(o);
-//                    });
-//                }
-                fieldExtraProps.getProps().put(KEY_ENUM_PROP, enums);
+                fieldExtraProps.getProps().put(KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, (opts) -> {
+                    return Option.toJson((List<Option>) opts);
+                }));
             } finally {
                 GroovyShellEvaluate.descriptorThreadLocal.remove();
             }

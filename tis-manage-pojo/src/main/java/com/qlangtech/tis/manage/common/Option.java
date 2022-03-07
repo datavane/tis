@@ -28,10 +28,10 @@ import java.util.List;
  */
 public class Option {
 
-    public static JSONArray toJson(List<Option> itEnums) {
+    public static JSONArray toJson(List<Option> options) {
         JSONArray enums = new JSONArray();
-        if (itEnums != null) {
-            itEnums.forEach((key) -> {
+        if (options != null) {
+            options.forEach((key) -> {
                 JSONObject o = new JSONObject();
                 o.put("label", key.getName());
                 o.put("val", key.getValue());

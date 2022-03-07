@@ -6,4 +6,5 @@
 /.settings
 /.classpath
 /.project
-/metastore_db
+metastore_db/
+log.dir*

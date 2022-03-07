@@ -42,7 +42,6 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
-import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.*;
@@ -55,10 +54,8 @@ import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ReflectionUtils;
 
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Future;
@@ -170,7 +167,8 @@ public class PluginAction extends BasicModule {
 
     PluginExtraProps.Props props = pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
       @Override
-      protected PluginExtraProps.Props visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
+      public PluginExtraProps.Props visit( //SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta  ,
+                                           SuFormProperties props) {
         PropertyType propertyType = props.fieldsType.get(descField.field);
         return propertyType.extraProp;
       }
@@ -471,62 +469,82 @@ public class PluginAction extends BasicModule {
    */
   public void doSubformDetailedClick(Context context) throws Exception {
 
-    DataSourceMeta.tableMetadataLocal.remove();
     List<UploadPluginMeta> pluginsMeta = getPluginMeta();
     List<Describable> plugins = null;
-    Map<String, String> execContext = Maps.newHashMap();
-    execContext.put("id", this.getString("id"));
+   // Map<String, String> execContext = Maps.newHashMap();
+//    execContext.put(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID
+//      , this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
 
     IPluginEnum heteroEnum = null;
-    Optional<IPropertyType.SubFormFilter> subFormFilter = null;
+    HeteroList<?> hList = null;
+    //Optional<IPropertyType.SubFormFilter> subFormFilter = null;
+    // com.alibaba.fastjson.JSONObject pluginDetail = new com.alibaba.fastjson.JSONObject();
+    // com.alibaba.fastjson.JSONArray hlist = new com.alibaba.fastjson.JSONArray();
     for (UploadPluginMeta meta : pluginsMeta) {
+      meta.putExtraParams(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE
+        , this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
       heteroEnum = meta.getHeteroEnum();
       plugins = heteroEnum.getPlugins(this, meta);
       for (Describable plugin : plugins) {
-        subFormFilter = meta.getSubFormFilter();
-        PluginFormProperties pluginFormPropertyTypes = plugin.getDescriptor().getPluginFormPropertyTypes(subFormFilter);
-        pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
-          @Override
-          protected Void visitSubForm(
-            SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props) {
 
+        SuFormProperties.SuFormGetterContext subFormContext = SuFormProperties.subFormGetterProcessThreadLocal.get();
+        subFormContext.plugin = plugin;
+        subFormContext.param = meta;
 
-            SuFormProperties.SuFormPropertyGetterMeta fieldDataGetterMeta = null;
-            List<String> params = null;
-            Map<String, SuFormProperties.SuFormPropertyGetterMeta> onClickFillData = behaviorMeta.getOnClickFillData();
-            Objects.requireNonNull(onClickFillData, "onClickFillData can not be null");
-            Map<String, Object> fillFieldsData = Maps.newHashMap();
-            for (Map.Entry<String, SuFormProperties.SuFormPropertyGetterMeta> entry : onClickFillData.entrySet()) {
-              String fillField = entry.getKey();
+        hList = meta.getHeteroList(this);
+        // hlist.add();
+        // pluginDetail.put("plugins", hlist);
 
-              fieldDataGetterMeta = entry.getValue();
-              Objects.requireNonNull(fieldDataGetterMeta, "fillField:" + fillField + " relevant behavier meta can not be null");
-              // String targetMethod = fieldDataGetterMeta.getString("method");
-              String targetMethod = fieldDataGetterMeta.getMethod();
-              //  params = fieldDataGetterMeta.getJSONArray("params");
-              params = fieldDataGetterMeta.getParams();
-              if (CollectionUtils.isEmpty(params)) {
-                throw new IllegalStateException("params can not be null");
-              }
-
-              Class<?>[] paramClass = new Class<?>[params.size()];
-              String[] paramsVals = new String[params.size()];
-              for (int index = 0; index < params.size(); index++) {
-                paramClass[index] = String.class;
-                paramsVals[index] = Objects.requireNonNull(execContext.get(params.get(index))
-                  , "param:" + params.get(index) + " can not be null in context");
-              }
-              Method method = ReflectionUtils.findMethod(plugin.getClass(), targetMethod, paramClass);
-              Objects.requireNonNull(method, "target method '" + targetMethod + "' of " + plugin.getClass() + " can not be null");
-              fillFieldsData.put(fillField, ReflectionUtils.invokeMethod(method, plugin, paramsVals));
-            }
-            // params 必须全为spring类型的
-            setBizResult(context, fillFieldsData);
-            return null;
-          }
-        });
-
+        this.setBizResult(context, hList.toJSON());
         return;
+
+//          subFormFilter = meta.getSubFormFilter();
+//          PluginFormProperties pluginFormPropertyTypes = plugin.getDescriptor().getPluginFormPropertyTypes(subFormFilter);
+//          pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
+//
+//
+//            @Override
+//            public Void visit(
+//              //SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta,
+//              SuFormProperties props) {
+
+
+        //  SuFormProperties.SuFormPropertyGetterMeta fieldDataGetterMeta = null;
+        //   List<String> params = null;
+        // Map<String, SuFormProperties.SuFormPropertyGetterMeta> onClickFillData = behaviorMeta.getOnClickFillData();
+        //Objects.requireNonNull(onClickFillData, "onClickFillData can not be null");
+        //  Map<String, Object> fillFieldsData = Maps.newHashMap();
+//              for (Map.Entry<String, SuFormProperties.SuFormPropertyGetterMeta> entry : onClickFillData.entrySet()) {
+//                String fillField = entry.getKey();
+//
+//                fieldDataGetterMeta = entry.getValue();
+//                Objects.requireNonNull(fieldDataGetterMeta, "fillField:" + fillField + " relevant behavier meta can not be null");
+//                // String targetMethod = fieldDataGetterMeta.getString("method");
+//                String targetMethod = fieldDataGetterMeta.getMethod();
+//                //  params = fieldDataGetterMeta.getJSONArray("params");
+//                params = fieldDataGetterMeta.getParams();
+//                if (CollectionUtils.isEmpty(params)) {
+//                  throw new IllegalStateException("params can not be null");
+//                }
+//
+//                Class<?>[] paramClass = new Class<?>[params.size()];
+//                String[] paramsVals = new String[params.size()];
+//                for (int index = 0; index < params.size(); index++) {
+//                  paramClass[index] = String.class;
+//                  paramsVals[index] = Objects.requireNonNull(execContext.get(params.get(index))
+//                    , "param:" + params.get(index) + " can not be null in context");
+//                }
+//                Method method = ReflectionUtils.findMethod(plugin.getClass(), targetMethod, paramClass);
+//                Objects.requireNonNull(method, "target method '" + targetMethod + "' of " + plugin.getClass() + " can not be null");
+//                fillFieldsData.put(fillField, ReflectionUtils.invokeMethod(method, plugin, paramsVals));
+//              }
+        // params 必须全为spring类型的
+//              setBizResult(context, fillFieldsData);
+//              return null;
+//            }
+//          });
+
+
       }
     }
     throw new IllegalStateException("have not set plugin meta");

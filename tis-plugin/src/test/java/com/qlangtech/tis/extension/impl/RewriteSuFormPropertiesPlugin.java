@@ -61,17 +61,17 @@ public class RewriteSuFormPropertiesPlugin implements Describable<RewriteSuFormP
             return SuFormProperties.copy(filterFieldProp(Descriptor.buildPropertyTypes(Optional.of(this), clazz)), clazz, subformProps);
         }
 
-        @Override
-        public SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception {
-
-
-            SuFormProperties.SuFormPropertyGetterMeta propProcess = new SuFormProperties.SuFormPropertyGetterMeta();
-            propProcess.setMethod("getPrimaryKeys");
-            propProcess.setParams(Collections.singletonList("id"));
-
-            behaviorMeta.onClickFillData.put("recordField", propProcess);
-
-            return behaviorMeta;
-        }
+//        @Override
+//        public SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception {
+//
+//
+//            SuFormProperties.SuFormPropertyGetterMeta propProcess = new SuFormProperties.SuFormPropertyGetterMeta();
+//            propProcess.setMethod("getPrimaryKeys");
+//            propProcess.setParams(Collections.singletonList("id"));
+//
+//            behaviorMeta.onClickFillData.put("recordField", propProcess);
+//
+//            return behaviorMeta;
+//        }
     }
 }
