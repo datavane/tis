@@ -24,7 +24,7 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
@@ -133,7 +133,7 @@ public abstract class DataXJobSubmit {
      * @param dataXfileName
      * @return
      */
-    public abstract IRemoteJobTrigger createDataXJob(IDataXJobContext taskContext
+    public abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
             , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName);
 
 
@@ -141,7 +141,7 @@ public abstract class DataXJobSubmit {
 
 
     public interface IDataXJobContext {
-        public <T> T getContextInstance();
+        // public <T> T getContextInstance();
 
         IJoinTaskContext getTaskContext();
 

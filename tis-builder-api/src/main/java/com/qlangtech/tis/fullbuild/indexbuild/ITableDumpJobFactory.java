@@ -31,5 +31,5 @@ public interface ITableDumpJobFactory extends IServerTask {
      * @param context
      * @return
      */
-    public IRemoteJobTrigger createSingleTableDumpJob(IDumpTable table, TaskContext context);
+    public IRemoteTaskTrigger createSingleTableDumpJob(IDumpTable table, TaskContext context);
 }

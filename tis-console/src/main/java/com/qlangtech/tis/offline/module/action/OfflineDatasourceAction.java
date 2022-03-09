@@ -50,6 +50,7 @@ import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
@@ -66,6 +67,7 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -1096,6 +1098,9 @@ public class OfflineDatasourceAction extends BasicModule {
       }
       pluginFormPropertyTypes = reader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
       for (Map.Entry<String, List<ColumnMetaData>> tab2cols : mapCols.entrySet()) {
+
+        SuFormProperties.setSuFormGetterContext(reader, pluginMeta, tab2cols.getKey());
+
         allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
       }
 
@@ -1112,7 +1117,8 @@ public class OfflineDatasourceAction extends BasicModule {
     bizResult.put("tabVals", pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
       @Override
       public com.alibaba.fastjson.JSONObject visit(SuFormProperties props) {
-        return props.createSubFormVals(allNewTabs);
+        return props.createSubFormVals(
+          allNewTabs.stream().map((t) -> (IdentityName) t).collect(Collectors.toList()));
       }
     }));
 
@@ -1129,6 +1135,7 @@ public class OfflineDatasourceAction extends BasicModule {
   private ISelectedTab createNewSelectedTab(
     PluginFormProperties pluginFormPropertyTypes, Map.Entry<String, List<ColumnMetaData>> tab2cols) {
     return pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+
       @Override
       public ISelectedTab visit(SuFormProperties props) {
 
@@ -1140,6 +1147,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
         ISelectedTab subForm = props.newSubDetailed();
         PropertyType pp = null;
+        ppDftValGetter:
         for (Map.Entry<String, PropertyType> pentry : props.getKVTuples()) {
           pp = pentry.getValue();
           if (pp.isIdentity()) {
@@ -1149,15 +1157,50 @@ public class OfflineDatasourceAction extends BasicModule {
           if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
             pp.setVal(subForm
               , tab2cols.getValue().stream().map((c) -> c.getName()).collect(Collectors.toList()));
-            continue;
+            continue ppDftValGetter;
           }
           if (pp.isInputRequired()) {
+
             if (StringUtils.isNotEmpty(pp.dftVal())) {
-              pp.setVal(subForm, pp.dftVal());
-              continue;
+              if (pp.isDescribable()) {
+                List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
+                for (Descriptor desc : descriptors) {
+                  if (StringUtils.equals(pp.dftVal(), desc.getDisplayName())) {
+
+//                    desc.getPluginFormPropertyTypes();
+                    pp.setVal(subForm, desc.newInstance(null, Collections.emptyMap(), Optional.empty()).instance);
+                    continue ppDftValGetter;
+                  }
+                }
+              } else {
+                pp.setVal(subForm, pp.dftVal());
+                continue ppDftValGetter;
+              }
+
+
+            } else {
+              //pp.getEnumConstants()
+              FormFieldType fieldType = pp.formField.type();
+              if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
+
+                Object enumPp = pp.getExtraProps().get(Descriptor.KEY_ENUM_PROP);
+                com.alibaba.fastjson.JSONArray enums = null;
+                if (enumPp instanceof com.alibaba.fastjson.JSONArray) {
+                  enums = (com.alibaba.fastjson.JSONArray) enumPp;
+                } else if (enumPp instanceof JsonUtil.UnCacheString) {
+                  enums = ((JsonUtil.UnCacheString<com.alibaba.fastjson.JSONArray>) enumPp).getValue();
+                } else {
+                  throw new IllegalStateException("unsupport type:" + pp.getClass().getName());
+                }
+                for (int i = 0; i < enums.size(); i++) {
+                  com.alibaba.fastjson.JSONObject opt = enums.getJSONObject(i);
+                  pp.setVal(subForm, opt.get(Option.KEY_VALUE));
+                  continue ppDftValGetter;
+                }
+              }
             }
             throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey()
-              + " creating,prop name:" + pentry.getKey() + ",subform class:" + subForm.getClass().getName());
+              + " creating,prop name:'" + pentry.getKey() + "',subform class:" + subForm.getClass().getName());
           }
         }
         return subForm;

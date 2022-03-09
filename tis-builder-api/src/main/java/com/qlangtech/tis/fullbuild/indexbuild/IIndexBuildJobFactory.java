@@ -35,5 +35,5 @@ public interface IIndexBuildJobFactory extends IServerTask {
      * @return
      * @throws Exception
      */
-    IRemoteJobTrigger createBuildJob(IJoinTaskContext execContext, String timePoint, String indexName, String groupNum, IIndexBuildParam buildParam) throws Exception;
+    IRemoteTaskTrigger createBuildJob(IJoinTaskContext execContext, String timePoint, String indexName, String groupNum, IIndexBuildParam buildParam) throws Exception;
 }

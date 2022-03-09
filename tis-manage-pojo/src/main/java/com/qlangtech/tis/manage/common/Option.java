@@ -28,13 +28,15 @@ import java.util.List;
  */
 public class Option {
 
+    public static final String KEY_VALUE = "val";
+
     public static JSONArray toJson(List<Option> options) {
         JSONArray enums = new JSONArray();
         if (options != null) {
             options.forEach((key) -> {
                 JSONObject o = new JSONObject();
                 o.put("label", key.getName());
-                o.put("val", key.getValue());
+                o.put(KEY_VALUE, key.getValue());
                 enums.add(o);
             });
         }

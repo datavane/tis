@@ -16,35 +16,22 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.fullbuild.indexbuild.impl;
+package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
- * 异步任务
- *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-06-02 18:03
+ * @create: 2022-03-09 18:23
  **/
-public abstract class AsynRemoteJobTrigger implements IRemoteTaskTrigger {
-    private final String jobName;
+public interface IGroupChildTaskIterator extends Iterator<IDataxReaderContext> {
 
-    public AsynRemoteJobTrigger(String jobName) {
-        this.jobName = jobName;
-    }
-
-    @Override
-    public String getTaskName() {
-        return this.jobName;
-    }
-
-    @Override
-    public final boolean isAsyn() {
-        return true;
-    }
-
-    @Override
-    public String getAsynJobName() {
-        return this.jobName;
-    }
+    /**
+     * 例如Mysql是分库的，对应一个表有两个子任务需要执行，那么统计信息就是Map<String, List<String>> 这样的结构 key为table名称，list<childTaskName>
+     *
+     * @return
+     */
+    Map<String, List<String>> getGroupedInfo();
 }

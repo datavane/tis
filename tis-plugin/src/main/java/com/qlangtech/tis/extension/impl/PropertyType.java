@@ -91,7 +91,7 @@ public class PropertyType implements IPropertyType {
     }
 
     public String dftVal() {
-        return formField.dftVal();
+        return this.extraProp.getDftVal();
     }
 
     public int ordinal() {

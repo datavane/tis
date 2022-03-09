@@ -52,7 +52,7 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta {
      *
      * @return
      */
-    public Iterator<IDataxReaderContext> getSubTasks();
+    public IGroupChildTaskIterator getSubTasks();
 
     /**
      * 取得配置模版

@@ -26,7 +26,7 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
 import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.RpcServiceReference;
@@ -83,9 +83,9 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
     public static class MockDataXJobSubmit extends DataXJobSubmit {
 
-        private final IRemoteJobTrigger jobTrigger;
+        private final IRemoteTaskTrigger jobTrigger;
 
-        public MockDataXJobSubmit(IRemoteJobTrigger jobTrigger) {
+        public MockDataXJobSubmit(IRemoteTaskTrigger jobTrigger) {
             this.jobTrigger = jobTrigger;
         }
 
@@ -95,7 +95,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         }
 
         @Override
-        public IRemoteJobTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName) {
+        public IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName) {
             return jobTrigger;
 //            return new IRemoteJobTrigger() {
 //                @Override

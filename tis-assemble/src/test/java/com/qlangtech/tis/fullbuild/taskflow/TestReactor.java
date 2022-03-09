@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.taskflow;
 
@@ -23,6 +23,7 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor.TaskAndMilestone;
+import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher;
 import junit.framework.TestCase;
 import org.jvnet.hudson.reactor.Reactor;
 import org.jvnet.hudson.reactor.ReactorListener;
@@ -57,6 +58,7 @@ public class TestReactor extends TestCase {
 
             @Override
             public void run() throws Exception {
+                Thread.sleep(6000);
                 System.out.println("task execute " + id);
                 successToken.put(id, true);
             }
@@ -95,25 +97,24 @@ public class TestReactor extends TestCase {
         }
     }
 
-//    public void testSequentialOrdering() throws Exception {
-//        DefaultChainContext chainContext = TestIndexSwapTaskflowLauncher.createDumpAndJoinChainContext();
-//        TISReactor tisReactor = new TISReactor(chainContext, taskMap);
-//        Reactor s = tisReactor.buildSession("->a ->b a,b->c");
-//        // Reactor s = buildSession("->t1->m1 m1->t2->m2 m2->t3->", (session, id) ->
-//        // System.out.println(id));
-//        assertEquals(3, s.size());
-//        String sw = tisReactor.execute(Executors.newCachedThreadPool(), s, new ReactorListener() {
-//        });
-//        System.out.println(sw);
-//        System.out.println("last");
-//        for (String taskname : Lists.newArrayList("a", "b", "c")) {
-//            Assert.assertNotNull("taskname:" + taskname + " shall have execute", successToken.get(taskname));
-//            Assert.assertTrue("taskname:" + taskname + " shall have execute", successToken.get(taskname));
-//        }
-//        // assertEqualsIgnoreNewlineStyle(
-//        // "Started t1\nEnded t1\nAttained m1\nStarted t2\nEnded t2\nAttained
-//        // m2\nStarted t3\nEnded t3\n", sw);
-//    }
+    public void testSequentialOrdering() throws Exception {
+        DefaultChainContext chainContext = TestIndexSwapTaskflowLauncher.createDumpAndJoinChainContext();
+        TISReactor tisReactor = new TISReactor(chainContext, taskMap);
+        Reactor s = tisReactor.buildSession("->a ->b a,b->c");
+        // Reactor s = buildSession("->t1->m1 m1->t2->m2 m2->t3->", (session, id) ->
+        // System.out.println(id));
+        assertEquals(3, s.size());
+        tisReactor.execute(Executors.newCachedThreadPool(), s, new ReactorListener() {
+        });
+        System.out.println("last");
+        for (String taskname : Lists.newArrayList("a", "b", "c")) {
+            Assert.assertNotNull("taskname:" + taskname + " shall have execute", successToken.get(taskname));
+            Assert.assertTrue("taskname:" + taskname + " shall have execute", successToken.get(taskname));
+        }
+        // assertEqualsIgnoreNewlineStyle(
+        // "Started t1\nEnded t1\nAttained m1\nStarted t2\nEnded t2\nAttained
+        // m2\nStarted t3\nEnded t3\n", sw);
+    }
 
     private static void assertEqualsIgnoreNewlineStyle(String s1, String s2) {
         assertEquals(normalizeLineEnds(s1), normalizeLineEnds(s2));

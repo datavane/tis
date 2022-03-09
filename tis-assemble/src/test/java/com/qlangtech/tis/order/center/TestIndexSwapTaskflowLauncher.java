@@ -1,3 +1,5 @@
+//import junit.framework.TestCase;
+
 ///**
 // * Licensed to the Apache Software Foundation (ASF) under one
 // * or more contributor license agreements.  See the NOTICE file
@@ -15,7 +17,24 @@
 // * See the License for the specific language governing permissions and
 // * limitations under the License.
 // */
-//package com.qlangtech.tis.order.center;
+package com.qlangtech.tis.order.center;
+
+import com.google.common.collect.Maps;
+import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.exec.ExecChainContextUtils;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
+import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.exec.impl.DefaultChainContext;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
+import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
+import com.qlangtech.tis.sql.parser.TabPartitions;
+import junit.framework.TestCase;
+import org.junit.Assert;
+
+import java.util.Map;
+
 //
 //import com.google.common.collect.Lists;
 //import com.google.common.collect.Maps;
@@ -70,11 +89,11 @@
 // * @author 百岁（baisui@qlangtech.com）
 // * @date 2019年8月22日
 // */
-//public class TestIndexSwapTaskflowLauncher extends TestCase {
+public class TestIndexSwapTaskflowLauncher extends TestCase {
 //
-//    static final int TASK_ID = 253;
-//    static final int shardCount = 1;
-//    private static final String WF_ID = "45";
+    static final int TASK_ID = 253;
+    static final int shardCount = 1;
+    private static final String WF_ID = "45";
 //
 //    private static final String TAB_TOTALPYINFO = "order.totalpayinfo";
 //
@@ -335,28 +354,29 @@
 //    }
 //
 //
-//    static final String SEARCH_APP_NAME = "search4totalpay";
+    static final String SEARCH_APP_NAME = "search4totalpay";
 //
-//    public static DefaultChainContext createRangeChainContext(FullbuildPhase start, FullbuildPhase end, String... pts) throws Exception {
-//        return createRangeChainContext(SEARCH_APP_NAME, start, end, pts);
-//    }
+    public static DefaultChainContext createRangeChainContext(FullbuildPhase start, FullbuildPhase end, String... pts) throws Exception {
+        return createRangeChainContext(SEARCH_APP_NAME, start, end, pts);
+    }
 //
-//    public static DefaultChainContext createRangeChainContext(String collectionName, FullbuildPhase start, FullbuildPhase end, String... pts) throws Exception {
-//        TestParamContext params = new TestParamContext();
-//        params.set(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(shardCount));
-//        params.set(IFullBuildContext.KEY_APP_NAME, collectionName);
-//        params.set(IFullBuildContext.KEY_WORKFLOW_NAME, "totalpay");
-//        params.set(IFullBuildContext.KEY_WORKFLOW_ID, WF_ID);
-//        params.set(IExecChainContext.COMPONENT_START, start.getName());
-//        params.set(IExecChainContext.COMPONENT_END, end.getName());
-//        final DefaultChainContext chainContext = new DefaultChainContext(params);
-//
-//        ExecutePhaseRange range = chainContext.getExecutePhaseRange();
-//        Assert.assertEquals(start, range.getStart());
-//        Assert.assertEquals(end, range.getEnd());
-//        Map<IDumpTable, ITabPartition> dateParams = Maps.newHashMap();
-//        chainContext.setAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS, new TabPartitions(dateParams));
-//        chainContext.setAttribute(IExecChainContext.KEY_TASK_ID, TASK_ID);
+    public static DefaultChainContext createRangeChainContext(String collectionName
+            , FullbuildPhase start, FullbuildPhase end, String... pts) throws Exception {
+        TestParamContext params = new TestParamContext();
+        params.set(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(shardCount));
+        params.set(IFullBuildContext.KEY_APP_NAME, collectionName);
+        params.set(IFullBuildContext.KEY_WORKFLOW_NAME, "totalpay");
+        params.set(IFullBuildContext.KEY_WORKFLOW_ID, WF_ID);
+        params.set(IExecChainContext.COMPONENT_START, start.getName());
+        params.set(IExecChainContext.COMPONENT_END, end.getName());
+        final DefaultChainContext chainContext = new DefaultChainContext(params);
+
+        ExecutePhaseRange range = chainContext.getExecutePhaseRange();
+        Assert.assertEquals(start, range.getStart());
+        Assert.assertEquals(end, range.getEnd());
+        Map<IDumpTable, ITabPartition> dateParams = Maps.newHashMap();
+        chainContext.setAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS, new TabPartitions(dateParams));
+        chainContext.setAttribute(IExecChainContext.KEY_TASK_ID, TASK_ID);
 //        final PluginStore<IndexBuilderTriggerFactory> buildTriggerFactory = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
 //        assertNotNull(buildTriggerFactory.getPlugin());
 //        if (pts.length > 0) {
@@ -366,14 +386,14 @@
 //            String pt = format.format(new Date());
 //            chainContext.setPs(pt);
 //        }
-//        chainContext.setMdcParamContext(() -> {
-//        });
-//        return chainContext;
-//    }
+        chainContext.setMdcParamContext(() -> {
+        });
+        return chainContext;
+    }
 //
-//    public static DefaultChainContext createDumpAndJoinChainContext() throws Exception {
-//        return createRangeChainContext(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
-//    }
+    public static DefaultChainContext createDumpAndJoinChainContext() throws Exception {
+        return createRangeChainContext(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
+    }
 //
 //    // b3eb0-636c-535e-044a-0d8083d6036b
 //    static final Pattern idpattern = Pattern.compile("[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+");
@@ -428,4 +448,4 @@
 //            }
 //        }
 //    }
-//}
+}

@@ -37,6 +37,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -297,17 +298,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (subFormFilter.isPresent()) {
             filter = subFormFilter.get();
             if (filter.match(this)) {
-                SuFormProperties subPluginFormPropertyTypes = (SuFormProperties) getSubPluginFormPropertyTypes(filter.subFieldName);
-
+                SuFormProperties subPluginFormPropertyTypes
+                        = (SuFormProperties) getSubPluginFormPropertyTypes(filter.subFieldName);
 
                 try {
-
                     // 类似Hudi的Writer需要覆盖Reader的subFieldName的在Reader的表设置表单中需要设置Hudi相关的属性
                     //   DataxWriter dataxWriter = DataxWriter.load(filter.uploadPluginMeta.getPluginContext(), dataXName);
                     Descriptor writerDescriptor
                             = IDataxProcessor.getWriterDescriptor(filter.uploadPluginMeta);// dataxWriter.getClass();
                     if (writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
-                        return Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor)
+                        subPluginFormPropertyTypes = Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor)
                                         .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes)
                                 , "result can not be null " + PluginFormProperties.class.getSimpleName());
                     }
@@ -324,19 +324,25 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                 if (filter.subformDetailView) {
                     final String subformDetailId = filter.subformDetailId;
+                    final SuFormProperties _subPluginFormPropertyTypes = subPluginFormPropertyTypes;
                     return new AdapterPluginFormProperties(subPluginFormPropertyTypes) {
                         @Override
                         public JSON getInstancePropsJson(Object instance) {
 
                             Collection<IdentityName> subFormPropVal
-                                    = subPluginFormPropertyTypes.getSubFormPropVal(instance);
+                                    = _subPluginFormPropertyTypes.getSubFormPropVal(instance);
                             for (IdentityName subProp : subFormPropVal) {
                                 if (StringUtils.equals(subformDetailId, subProp.identityValue())) {
-                                    return (new RootFormProperties(subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subProp)
+                                    return (new RootFormProperties(_subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subProp);
                                 }
                             }
 
-                            throw new IllegalStateException("subformDetailId:" + subformDetailId + " has not find subForm instance");
+                            ISelectedTab subDetailed = _subPluginFormPropertyTypes.newSubDetailed();
+                            _subPluginFormPropertyTypes.pkPropertyType.setVal(subDetailed, subformDetailId);
+
+                            return (new RootFormProperties(_subPluginFormPropertyTypes.fieldsType))
+                                    .getInstancePropsJson(subDetailed);
+                            // throw new IllegalStateException("subformDetailId:" + subformDetailId + " has not find subForm instance");
                         }
                     };
 
@@ -883,32 +889,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
-    // @Override
     public ParseDescribable<T> newInstance(
             IPluginContext pluginContext, //
             Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData, //
             Optional<IPropertyType.SubFormFilter> subFormFilter) {
         try {
-            //PluginFormProperties pfPropertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
-            T describable = clazz.newInstance();
-//            T describable = pfPropertyTypes.accept(new PluginFormProperties.IVisitor() {
-//                @Override
-//                public <T> T visit(RootFormProperties props) {
-//                    try {
-//                        return (T) clazz.newInstance();
-//                    } catch (Exception e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
-//
-//                @Override
-//                public <T> T visit(SuFormProperties props) {
-//                    Assert.assertTrue(subFormFilter.isPresent());
-//                    IPropertyType.SubFormFilter filter = subFormFilter.get();
-//                    return filter.getOwnerPlugin(pluginContext);
-//                }
-//            });
 
+            T describable = clazz.newInstance();
             return parseDescribable(pluginContext, describable, formData, subFormFilter);
         } catch (Exception e) {
             throw new RuntimeException("class:" + this.clazz.getName(), e);

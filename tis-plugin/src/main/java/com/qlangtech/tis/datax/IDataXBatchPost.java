@@ -16,35 +16,18 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.fullbuild.indexbuild.impl;
+package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 
 /**
- * 异步任务
+ * 当datax任务有多个子任务完成之后（例如：hive数据同步，多个子库的表导入hdfs完成），需要将执行一次hive数据同步工作
  *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-06-02 18:03
+ * @create: 2022-03-09 11:45
  **/
-public abstract class AsynRemoteJobTrigger implements IRemoteTaskTrigger {
-    private final String jobName;
+public interface IDataXBatchPost {
 
-    public AsynRemoteJobTrigger(String jobName) {
-        this.jobName = jobName;
-    }
+    public IRemoteTaskTrigger createPostTask(IDataxProcessor.TableAlias tab);
 
-    @Override
-    public String getTaskName() {
-        return this.jobName;
-    }
-
-    @Override
-    public final boolean isAsyn() {
-        return true;
-    }
-
-    @Override
-    public String getAsynJobName() {
-        return this.jobName;
-    }
 }

@@ -49,12 +49,20 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         return new SuFormGetterContext();
     });
 
+    public static SuFormGetterContext setSuFormGetterContext(Describable plugin, UploadPluginMeta pluginMeta, String subFormDetailId) {
+        SuFormProperties.SuFormGetterContext subFormContext = subFormGetterProcessThreadLocal.get();
+        subFormContext.plugin = plugin;
+        pluginMeta.putExtraParams(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, subFormDetailId);
+        subFormContext.param = pluginMeta;
+        return subFormContext;
+    }
+
     public final Map<String, /*** fieldname */PropertyType> fieldsType;
     public final Field subFormField;
     private Class desClazz;
     public final SubForm subFormFieldsAnnotation;
     public final Class<?> parentClazz;
-    private final PropertyType pkPropertyType;
+    public final PropertyType pkPropertyType;
 
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
 

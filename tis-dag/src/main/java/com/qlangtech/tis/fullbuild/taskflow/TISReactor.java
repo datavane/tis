@@ -44,9 +44,9 @@ public class TISReactor {
         this.execContext = execContext;
     }
 
-    public String execute(ExecutorService executor, Reactor s, ReactorListener... addedListeners) throws Exception {
+    public void execute(ExecutorService executor, Reactor s, ReactorListener... addedListeners) throws Exception {
         execContext.rebindLoggingMDCParams();
-        StringWriter sw = new StringWriter();
+        //StringWriter sw = new StringWriter();
         // System.out.println("----");
         ReactorListener listener = null;
 
@@ -58,7 +58,7 @@ public class TISReactor {
             throw new IllegalStateException("param addedListeners length can not small than 1");
         }
         s.execute(executor, listener);
-        return sw.toString();
+        //return sw.toString();
     }
 
 

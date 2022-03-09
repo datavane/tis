@@ -23,7 +23,7 @@ import com.qlangtech.tis.datax.IDataxGlobalCfg;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.Config;
@@ -66,7 +66,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
     public void testExecute() throws Exception {
 
 
-        IRemoteJobTrigger jobTrigger = mock("remoteJobTrigger", IRemoteJobTrigger.class);
+        IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
         //
         EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
         jobTrigger.submitJob();
@@ -77,7 +77,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
     }
 
     public void testExecuteWithExcpetionWhenSubmitJob() throws Exception {
-        IRemoteJobTrigger jobTrigger = mock("remoteJobTrigger", IRemoteJobTrigger.class);
+        IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
         //
         EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
         jobTrigger.submitJob();
@@ -94,7 +94,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
     }
 
     public void testExecuteWithGetRunningStatusFaild() throws Exception {
-        IRemoteJobTrigger jobTrigger = mock("remoteJobTrigger", IRemoteJobTrigger.class);
+        IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
         //
         EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
         jobTrigger.submitJob();
@@ -107,7 +107,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
 
     }
 
-    private void executeJobTrigger(IRemoteJobTrigger jobTrigger, boolean finalSuccess) throws Exception {
+    private void executeJobTrigger(IRemoteTaskTrigger jobTrigger, boolean finalSuccess) throws Exception {
         int testTaskId = 999;
 
         DataXJobSubmit.mockGetter = () -> new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(jobTrigger);

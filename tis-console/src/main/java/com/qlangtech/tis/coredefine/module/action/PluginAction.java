@@ -471,7 +471,7 @@ public class PluginAction extends BasicModule {
 
     List<UploadPluginMeta> pluginsMeta = getPluginMeta();
     List<Describable> plugins = null;
-   // Map<String, String> execContext = Maps.newHashMap();
+    // Map<String, String> execContext = Maps.newHashMap();
 //    execContext.put(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID
 //      , this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
 
@@ -481,15 +481,17 @@ public class PluginAction extends BasicModule {
     // com.alibaba.fastjson.JSONObject pluginDetail = new com.alibaba.fastjson.JSONObject();
     // com.alibaba.fastjson.JSONArray hlist = new com.alibaba.fastjson.JSONArray();
     for (UploadPluginMeta meta : pluginsMeta) {
-      meta.putExtraParams(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE
-        , this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
+//      meta.putExtraParams(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE
+//        , this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
       heteroEnum = meta.getHeteroEnum();
       plugins = heteroEnum.getPlugins(this, meta);
       for (Describable plugin : plugins) {
 
-        SuFormProperties.SuFormGetterContext subFormContext = SuFormProperties.subFormGetterProcessThreadLocal.get();
-        subFormContext.plugin = plugin;
-        subFormContext.param = meta;
+        SuFormProperties.setSuFormGetterContext(plugin, meta, this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
+
+//        SuFormProperties.SuFormGetterContext subFormContext = SuFormProperties.subFormGetterProcessThreadLocal.get();
+//        subFormContext.plugin = plugin;
+//        subFormContext.param = meta;
 
         hList = meta.getHeteroList(this);
         // hlist.add();

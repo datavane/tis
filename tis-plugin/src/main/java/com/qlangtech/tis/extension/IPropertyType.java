@@ -82,7 +82,8 @@ public interface IPropertyType {
             this.targetDescriptorName = targetDescriptorName;
             this.subFieldName = subFieldName;
             this.uploadPluginMeta = uploadPluginMeta;
-            this.subformDetailView = StringUtils.isNotEmpty(subformDetailId = uploadPluginMeta.getExtraParam(PLUGIN_META_SUBFORM_DETAIL_ID_VALUE));
+            this.subformDetailView = StringUtils.isNotEmpty(
+                    subformDetailId = uploadPluginMeta.getExtraParam(PLUGIN_META_SUBFORM_DETAIL_ID_VALUE));
         }
     }
 }

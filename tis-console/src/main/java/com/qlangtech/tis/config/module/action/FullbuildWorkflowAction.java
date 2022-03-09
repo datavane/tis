@@ -141,7 +141,7 @@ public class FullbuildWorkflowAction extends BasicModule {
 
   /**
    * 执行阶段结束
-   *
+   * do_task_complete
    * @param context
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
@@ -184,7 +184,8 @@ public class FullbuildWorkflowAction extends BasicModule {
     JSONObject tskStat = status.getJSONObject(jobName);
     if (tskStat == null) {
       throw new IllegalStateException("jobName:" + jobName
-        + " relevant status is not in history,now exist keys:" + status.keySet().stream().collect(Collectors.joining(",")));
+        + " relevant status is not in history,now exist keys:"
+        + status.keySet().stream().collect(Collectors.joining(",")));
     }
     tskStat.put(IParamContext.KEY_ASYN_JOB_COMPLETE, true);
     tskStat.put(IParamContext.KEY_ASYN_JOB_SUCCESS, execSuccess);

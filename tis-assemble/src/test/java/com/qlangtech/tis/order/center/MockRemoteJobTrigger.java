@@ -17,14 +17,14 @@
  */
 package com.qlangtech.tis.order.center;
 
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteJobTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-21 12:35
  */
-public class MockRemoteJobTrigger implements IRemoteJobTrigger {
+public class MockRemoteJobTrigger implements IRemoteTaskTrigger {
 
     private final boolean success;
 

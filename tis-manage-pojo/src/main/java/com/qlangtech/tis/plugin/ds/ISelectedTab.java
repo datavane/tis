@@ -45,7 +45,7 @@ public interface ISelectedTab {
 
     /**
      * TODO 考虑可以和 ColumnMetaData 合并
-     *
+     * <p>
      * //@see com.qlangtech.tis.plugin.ds.ColumnMetaData
      */
     public class ColMeta implements Serializable {

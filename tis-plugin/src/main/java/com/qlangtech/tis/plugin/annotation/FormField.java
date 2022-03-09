@@ -32,7 +32,7 @@ public @interface FormField {
      */
     boolean identity() default false;
 
-    String dftVal() default StringUtils.EMPTY;
+  //  String dftVal() default StringUtils.EMPTY;
 
     // 表单中的顺序
     int ordinal() default 0;
