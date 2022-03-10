@@ -64,17 +64,6 @@ public class DataXCfgGenerator {
         }
     }
 
-//  public final Map<String, Object> getSetting() {
-//    Map<String, Object> setting = Maps.newHashMap();
-//    Map<String, Object> speed = Maps.newHashMap();
-//    speed.put("channel", dataxProcessor.getChannel());
-//    Map<String, Object> errorLimit = Maps.newHashMap();
-//    errorLimit.put("record", dataxProcessor.getErrorLimitCount());
-//    errorLimit.put("percentage", dataxProcessor.getErrorLimitPercentage());
-//    setting.put("speed", speed);
-//    setting.put("errorLimit", errorLimit);
-//    return setting;
-//  }
 
     private final IDataxProcessor dataxProcessor;
     private final IDataxGlobalCfg globalCfg;
@@ -126,22 +115,14 @@ public class DataXCfgGenerator {
 
         //  File dataxCreateDDLDir = dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
         generateCfgs.createDDLFiles = getExistDDLFiles();
-//    Lists.newArrayList(dataxCreateDDLDir.list((dir, f) -> {
-//            return StringUtils.endsWith(f, IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX);
-//        }));
 
-        Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
-        IDataxReaderContext readerContext = null;
-        File configFile = null;
-        List<String> subTaskName = Lists.newArrayList();
-        while (subTasks.hasNext()) {
-            readerContext = subTasks.next();
-            configFile = new File(parentDir, readerContext.getTaskName() + ".json");
-            subTaskName.add(configFile.getName());
-        }
-
-        generateCfgs.genTime = Long.parseLong(FileUtils.readFileToString(genFile, TisUTF8.get()));
-        generateCfgs.dataxFiles = subTaskName;
+        GenerateCfgs cfgs = GenerateCfgs.readFromGen(parentDir);
+        generateCfgs.genTime = cfgs.getGenTime();
+        generateCfgs.dataxFiles = cfgs.getGroupedChildTask()
+                .values().stream()
+                .flatMap((tasks) -> tasks.stream())
+                .map((task) -> task + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
+                .collect(Collectors.toList());
         return generateCfgs;
     }
 
@@ -199,7 +180,7 @@ public class DataXCfgGenerator {
 
         List<String> existDDLFiles = getExistDDLFiles();
 
-        Iterator<IDataxReaderContext> subTasks = reader.getSubTasks();
+        IGroupChildTaskIterator subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
         File configFile = null;
         List<String> subTaskName = Lists.newArrayList();
@@ -267,6 +248,7 @@ public class DataXCfgGenerator {
         long current = System.currentTimeMillis();
 //        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
         cfgs.createDDLFiles = Lists.newArrayList(createDDLFiles);
+        cfgs.groupedChildTask = subTasks.getGroupedInfo();
         cfgs.dataxFiles = subTaskName;
         cfgs.genTime = current;
         return cfgs;
@@ -320,10 +302,45 @@ public class DataXCfgGenerator {
     public static class GenerateCfgs {
         private List<String> dataxFiles = Collections.emptyList();
         private List<String> createDDLFiles = Collections.emptyList();
+        private Map<String, List<String>> groupedChildTask;
         private long genTime;
 
         public List<String> getDataxFiles() {
             return this.dataxFiles;
+        }
+
+        public Map<String, List<String>> getGroupedChildTask() {
+            return groupedChildTask;
+        }
+
+        public static final String KEY_GEN_TIME = "genTime";
+        public static final String KEY_GROUP_CHILD_TASKS = "groupChildTasks";
+
+
+        public void write2GenFile(File dataxCfgDir) {
+            try {
+                JSONObject o = new JSONObject();
+                o.put(KEY_GROUP_CHILD_TASKS, this.getGroupedChildTask());
+                o.put(KEY_GEN_TIME, this.getGenTime());
+                FileUtils.write(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN)
+                        , JsonUtil.toString(o), TisUTF8.get(), false);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public static GenerateCfgs readFromGen(File dataxCfgDir) {
+            try {
+                GenerateCfgs cfgs = new GenerateCfgs();
+                JSONObject o = JSON.parseObject(
+                        FileUtils.readFileToString(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN), TisUTF8.get()));
+
+                cfgs.genTime = o.getLongValue(KEY_GEN_TIME);
+                cfgs.groupedChildTask = o.getObject(KEY_GROUP_CHILD_TASKS, Map.class);
+                return cfgs;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         /**
@@ -337,6 +354,14 @@ public class DataXCfgGenerator {
 
         public long getGenTime() {
             return genTime;
+        }
+
+        public void setGroupedChildTask(Map<String, List<String>> groupedChildTask) {
+            this.groupedChildTask = groupedChildTask;
+        }
+
+        public void setGenTime(long genTime) {
+            this.genTime = genTime;
         }
     }
 

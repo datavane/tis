@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataXBatchPost;
-import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecuteResult;
@@ -32,14 +32,15 @@ import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
 import com.qlangtech.tis.realtime.yarn.rpc.impl.AdapterStatusUmbilicalProtocol;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
-import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.collections.CollectionUtils;
 import org.jvnet.hudson.reactor.ReactorListener;
 import org.jvnet.hudson.reactor.Task;
@@ -95,15 +96,17 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
         try {
+            DumpPhaseStatus dumpStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
             for (File fileName : cfgFileNames) {
                 jobTrigger = createDataXJob(dataXJobContext, submit, expectDataXJobSumit, statusRpc, appSource, fileName.getName());
                 triggers.add(jobTrigger);
                 taskMap.put(fileName.getName()
                         , new TISReactor.TaskAndMilestone(DataflowTask.createDumpTask(jobTrigger)));
-                StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
+                //StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
                 // 将任务注册，可供页面展示
-                svc.reportDumpJobStatus(false, false, true, execChainContext.getTaskId()
-                        , fileName.getName(), 0, 0);
+//                svc.reportDumpJobStatus(false, false, true, execChainContext.getTaskId()
+//                        , fileName.getName(), 0, 0);
+                dumpStatus.getTable(fileName.getName()).setWaiting(true);
             }
 
             logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
@@ -113,20 +116,26 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 //            }
 
 
-            Map<String, IDataxProcessor.TableAlias> tabAlias = appSource.getTabAlias();
+            IDataxReader reader = appSource.getReader(null);
+
+            List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
+            // Map<String, IDataxProcessor.TableAlias> tabAlias = appSource.getTabAlias();
 
             IDataxWriter writer = appSource.getWriter(null);
 
             if (writer instanceof IDataXBatchPost) {
                 IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
-                for (Map.Entry<String, IDataxProcessor.TableAlias> entry : tabAlias.entrySet()) {
-                    IRemoteTaskTrigger postTaskTrigger = batchPostTask.createPostTask(entry.getValue());
+                JoinPhaseStatus phaseStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
+                for (ISelectedTab entry : selectedTabs) {
+                    IRemoteTaskTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entry);
                     triggers.add(postTaskTrigger);
+                    JoinPhaseStatus.JoinTaskStatus taskStatus = phaseStatus.getTaskStatus(postTaskTrigger.getTaskName());
+                    taskStatus.setWaiting(true);
                     taskMap.put(postTaskTrigger.getTaskName()
-                            , new TISReactor.TaskAndMilestone(DataflowTask.createJoinTask(postTaskTrigger)));
+                            , new TISReactor.TaskAndMilestone(createJoinTask(postTaskTrigger,taskStatus)));
+
                 }
             }
-
 
             // example: "->a ->b a,b->c"
             String dagSessionSpec = triggers.stream().map((trigger) -> {
@@ -136,57 +145,81 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             logger.info("dataX:{} of dagSessionSpec:{}", execChainContext.getIndexName(), dagSessionSpec);
 
 
-            ExecuteResult[] faildResult = new ExecuteResult[1];
+            ExecuteResult[] faildResult = new ExecuteResult[]{ExecuteResult.createSuccess()};
 
 
-            executeDAG(execChainContext, dagSessionSpec, taskMap, faildResult);
+            this.executeDAG(execChainContext, dagSessionSpec, taskMap, new ReactorListener() {
 
-            boolean faild = false;
-            boolean allComplete = false;
-            try {
-                waiting:
-                while (!allComplete) {
+                @Override
+                public void onTaskCompleted(Task t) {
+                    // dumpPhaseStatus.isComplete();
+                    // joinPhaseStatus.isComplete();
+                }
 
-                    try {
-                        faild = false;
-                        for (IRemoteTaskTrigger t : triggers) {
-                            runningStatus = t.getRunningStatus();
-                            if (runningStatus.isComplete() && !runningStatus.isSuccess()) {
-                                // faild
-                                faild = true;
-                                allComplete = true;
-                                break waiting;
-                            }
-
-                            if (!runningStatus.isComplete()) {
-                                continue waiting;
+                @Override
+                public void onTaskFailed(Task t, Throwable err, boolean fatal) {
+                    logger.error(t.getDisplayName(), err);
+                    faildResult[0] = ExecuteResult.createFaild().setMessage("status.runningStatus.isComplete():" + err.getMessage());
+                    if (err instanceof InterruptedException) {
+                        logger.warn("DataX Name:{},taskid:{} has been canceled"
+                                , execChainContext.getIndexName(), execChainContext.getTaskId());
+                        // this job has been cancel, trigger from TisServlet.doDelete()
+                        for (IRemoteTaskTrigger tt : triggers) {
+                            try {
+                                tt.cancel();
+                            } catch (Throwable ex) {
                             }
                         }
-                        allComplete = true;
-                    } finally {
-                        Thread.sleep(2000);
                     }
                 }
-            } catch (InterruptedException e) {
-                logger.warn("DataX Name:{},taskid:{} has been canceled"
-                        , execChainContext.getIndexName(), execChainContext.getTaskId());
-                // this job has been cancel, trigger from TisServlet.doDelete()
-                for (IRemoteTaskTrigger t : triggers) {
-                    try {
-                        t.cancel();
-                    } catch (Throwable ex) {
-                    }
-                }
-                throw e;
-            }
+            });
 
-            ExecuteResult result = new ExecuteResult(!faild);
+//            boolean faild = false;
+//            boolean allComplete = false;
+//            try {
+//                waiting:
+//                while (!allComplete) {
+//
+//                    try {
+//                        faild = false;
+//                        for (IRemoteTaskTrigger t : triggers) {
+//                            runningStatus = t.getRunningStatus();
+//                            if (runningStatus.isComplete() && !runningStatus.isSuccess()) {
+//                                // faild
+//                                faild = true;
+//                                allComplete = true;
+//                                break waiting;
+//                            }
+//
+//                            if (!runningStatus.isComplete()) {
+//                                continue waiting;
+//                            }
+//                        }
+//                        allComplete = true;
+//                    } finally {
+//                        Thread.sleep(2000);
+//                    }
+//                }
+//            } catch (InterruptedException e) {
+//                logger.warn("DataX Name:{},taskid:{} has been canceled"
+//                        , execChainContext.getIndexName(), execChainContext.getTaskId());
+//                // this job has been cancel, trigger from TisServlet.doDelete()
+//                for (IRemoteTaskTrigger t : triggers) {
+//                    try {
+//                        t.cancel();
+//                    } catch (Throwable ex) {
+//                    }
+//                }
+//                throw e;
+//            }
+
+            // ExecuteResult result = new ExecuteResult(!faild);
             for (IRemoteTaskTrigger trigger : triggers) {
                 if (trigger.isAsyn()) {
                     execChainContext.addAsynSubJob(new IExecChainContext.AsynSubJob(trigger.getAsynJobName()));
                 }
             }
-            return result;
+            return faildResult[0];
         } finally {
             try {
                 dataXJobContext.destroy();
@@ -198,7 +231,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
 
     private void executeDAG(IExecChainContext execChainContext, String dagSessionSpec
-            , Map<String, TISReactor.TaskAndMilestone> taskMap, ExecuteResult[] faildResult) {
+            , Map<String, TISReactor.TaskAndMilestone> taskMap, ReactorListener reactorListener) {
         try {
             TISReactor reactor = new TISReactor(execChainContext, taskMap);
             // String dagSessionSpec = topology.getDAGSessionSpec();
@@ -257,20 +290,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
             // 执行DAG地调度
             //executorService
-            reactor.execute(null, reactor.buildSession(dagSessionSpec), listener, new ReactorListener() {
-
-                @Override
-                public void onTaskCompleted(Task t) {
-                    // dumpPhaseStatus.isComplete();
-                    // joinPhaseStatus.isComplete();
-                }
-
-                @Override
-                public void onTaskFailed(Task t, Throwable err, boolean fatal) {
-                    logger.error(t.getDisplayName(), err);
-                    faildResult[0] = ExecuteResult.createFaild().setMessage("status.runningStatus.isComplete():" + err.getMessage());
-                }
-            });
+            reactor.execute(null, reactor.buildSession(dagSessionSpec), listener, reactorListener);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -314,5 +334,37 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     @Override
     public Set<FullbuildPhase> getPhase() {
         return Collections.singleton(FullbuildPhase.FullDump);
+    }
+
+    public static DataflowTask createJoinTask(IRemoteTaskTrigger jobTrigger, JoinPhaseStatus.JoinTaskStatus taskStatus) {
+        return new JoinTask(jobTrigger, taskStatus);
+    }
+
+    private static class JoinTask extends DataflowTask.DumpTask {
+        private JoinPhaseStatus.JoinTaskStatus taskStatus;
+
+        public JoinTask(IRemoteTaskTrigger jobTrigger, JoinPhaseStatus.JoinTaskStatus taskStatus) {
+            super(jobTrigger);
+            this.taskStatus = taskStatus;
+        }
+
+        @Override
+        public void run() throws Exception {
+            taskStatus.setWaiting(false);
+            boolean faild = true;
+            try {
+                super.run();
+                faild = false;
+            } finally {
+                taskStatus.setComplete(true);
+                taskStatus.setFaild(faild);
+            }
+        }
+
+        @Override
+        public FullbuildPhase phase() {
+            return FullbuildPhase.JOIN;
+        }
+
     }
 }

@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
  */
 public interface IDataxProcessor {
     public String DATAX_CREATE_DDL_FILE_NAME_SUFFIX = ".sql";
+    String DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX = ".json";
 
     static File getWriterDescFile(IPluginContext pluginContext, String dataXName) {
         File workDir = getDataXWorkDir(pluginContext, dataXName);

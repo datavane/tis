@@ -18,7 +18,9 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 /**
  * 当datax任务有多个子任务完成之后（例如：hive数据同步，多个子库的表导入hdfs完成），需要将执行一次hive数据同步工作
@@ -28,6 +30,6 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
  **/
 public interface IDataXBatchPost {
 
-    public IRemoteTaskTrigger createPostTask(IDataxProcessor.TableAlias tab);
+    public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, ISelectedTab tab);
 
 }

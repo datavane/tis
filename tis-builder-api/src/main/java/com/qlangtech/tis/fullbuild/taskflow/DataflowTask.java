@@ -36,9 +36,7 @@ public abstract class DataflowTask {
         return new DumpTask(jobTrigger);
     }
 
-    public static DataflowTask createJoinTask(IRemoteTaskTrigger jobTrigger) {
-        return new JoinTask(jobTrigger);
-    }
+
 
     protected DataflowTask(String id) {
         if (StringUtils.isEmpty(id)) {
@@ -70,7 +68,7 @@ public abstract class DataflowTask {
     }
 
 
-    private static class DumpTask extends DataflowTask {
+    public static class DumpTask extends DataflowTask {
         private IRemoteTaskTrigger jobTrigger;
 
         public DumpTask(IRemoteTaskTrigger jobTrigger) {
@@ -99,16 +97,5 @@ public abstract class DataflowTask {
         }
     }
 
-    private static class JoinTask extends DumpTask {
 
-        public JoinTask(IRemoteTaskTrigger jobTrigger) {
-            super(jobTrigger);
-        }
-
-        @Override
-        public FullbuildPhase phase() {
-            return FullbuildPhase.JOIN;
-        }
-
-    }
 }

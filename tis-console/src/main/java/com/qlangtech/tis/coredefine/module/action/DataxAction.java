@@ -56,6 +56,7 @@ import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
@@ -547,8 +548,13 @@ public class DataxAction extends BasicModule {
 
     if (!getExist) {
       Objects.requireNonNull(generateCfgs, "generateCfgs can not be null");
-      FileUtils.write(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN)
-        , String.valueOf(generateCfgs.getGenTime()), TisUTF8.get(), false);
+      generateCfgs.write2GenFile(dataxCfgDir);
+
+//      JSONObject o = new JSONObject();
+//      o.put("groupChildTasks", generateCfgs.getGroupedChildTask());
+//      o.put("genTime", generateCfgs.getGenTime());
+//      FileUtils.write(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN)
+//        , JsonUtil.toString(o), TisUTF8.get(), false);
     }
   }
 
