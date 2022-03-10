@@ -18,9 +18,11 @@
 
 package com.qlangtech.tis.datax;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -28,10 +30,27 @@ import java.util.Map;
  **/
 public interface IGroupChildTaskIterator extends Iterator<IDataxReaderContext> {
 
+    static IGroupChildTaskIterator create(IDataxReaderContext readerContext) {
+        AtomicReference<IDataxReaderContext> ref = new AtomicReference(readerContext);
+        return new IGroupChildTaskIterator() {
+            @Override
+            public boolean hasNext() {
+                return ref.get() != null;
+            }
+
+            @Override
+            public IDataxReaderContext next() {
+                return ref.getAndSet(null);
+            }
+        };
+    }
+
     /**
      * 例如Mysql是分库的，对应一个表有两个子任务需要执行，那么统计信息就是Map<String, List<String>> 这样的结构 key为table名称，list<childTaskName>
      *
      * @return
      */
-    Map<String, List<String>> getGroupedInfo();
+    default Map<String, List<String>> getGroupedInfo() {
+        return Collections.emptyMap();
+    }
 }
