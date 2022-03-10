@@ -56,7 +56,6 @@ import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
-import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
@@ -575,7 +574,7 @@ public class DataxAction extends BasicModule {
       new DataXCfgGenerator.IGenerateScriptFile() {
         @Override
         public void generateScriptFile(IDataxReader reader, IDataxWriter writer
-          , IDataxReaderContext readerContext, List<String> subTaskName
+          , IDataxReaderContext readerContext
           , Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
 
           DataXCfgGenerator.generateTabCreateDDL(

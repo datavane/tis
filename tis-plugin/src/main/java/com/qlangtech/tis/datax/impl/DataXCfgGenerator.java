@@ -106,7 +106,7 @@ public class DataXCfgGenerator {
      */
     public GenerateCfgs getExistCfg(File parentDir) throws Exception {
         GenerateCfgs generateCfgs = new GenerateCfgs();
-        IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
+        // IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
 
         File genFile = new File(parentDir, FILE_GEN);
         if (!genFile.exists()) {
@@ -118,11 +118,11 @@ public class DataXCfgGenerator {
 
         GenerateCfgs cfgs = GenerateCfgs.readFromGen(dataxCreateDDLDir);
         generateCfgs.genTime = cfgs.getGenTime();
-        generateCfgs.dataxFiles = cfgs.getGroupedChildTask()
-                .values().stream()
-                .flatMap((tasks) -> tasks.stream())
-                .map((task) -> task + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
-                .collect(Collectors.toList());
+        generateCfgs.setGroupedChildTask(cfgs.getGroupedChildTask());
+//                .values().stream()
+//                .flatMap((tasks) -> tasks.stream())
+//                .map((task) -> task + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
+//                .collect(Collectors.toList());
         return generateCfgs;
     }
 
@@ -145,9 +145,9 @@ public class DataXCfgGenerator {
         return startGenerateCfg(new IGenerateScriptFile() {
             @Override
             public void generateScriptFile(IDataxReader reader, IDataxWriter writer
-                    , IDataxReaderContext readerContext, List<String> subTaskName
+                    , IDataxReaderContext readerContext
                     , Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
-                generateDataXAndSQLDDLFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
+                generateDataXAndSQLDDLFile(dataXCfgDir, reader, writer, readerContext, createDDLFiles, tableMapper);
             }
         });
     }
@@ -183,7 +183,7 @@ public class DataXCfgGenerator {
         IGroupChildTaskIterator subTasks = reader.getSubTasks();
         IDataxReaderContext readerContext = null;
         File configFile = null;
-        List<String> subTaskName = Lists.newArrayList();
+        // List<String> subTaskName = Lists.newArrayList();
         Set<String> createDDLFiles = Sets.newHashSet();
         Optional<IDataxProcessor.TableMap> tableMapper = null;
         //StringBuffer createDDL = new StringBuffer();
@@ -233,7 +233,7 @@ public class DataXCfgGenerator {
                 // tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
                 throw new IllegalStateException("unexpect status");
             }
-            scriptFileGenerator.generateScriptFile(reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
+            scriptFileGenerator.generateScriptFile(reader, writer, readerContext, createDDLFiles, tableMapper);
             // generateScriptFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
         }
 
@@ -249,7 +249,7 @@ public class DataXCfgGenerator {
 //        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
         cfgs.createDDLFiles = Lists.newArrayList(createDDLFiles);
         cfgs.groupedChildTask = subTasks.getGroupedInfo();
-        cfgs.dataxFiles = subTaskName;
+        //  cfgs.dataxFiles = subTaskName;
         cfgs.genTime = current;
         return cfgs;
     }
@@ -257,21 +257,21 @@ public class DataXCfgGenerator {
     public interface IGenerateScriptFile {
         void generateScriptFile(IDataxReader reader
                 , IDataxWriter writer
-                , IDataxReaderContext readerContext, List<String> subTaskName, Set<String> createDDLFiles
+                , IDataxReaderContext readerContext, Set<String> createDDLFiles
                 , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException;
     }
 
 
     private void generateDataXAndSQLDDLFile(File dataXCfgDir, IDataxReader reader
             , IDataxWriter writer
-            , IDataxReaderContext readerContext, List<String> subTaskName, Set<String> createDDLFiles
+            , IDataxReaderContext readerContext, Set<String> createDDLFiles
             , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
         generateTabCreateDDL(this.pluginCtx, dataxProcessor, writer, readerContext, createDDLFiles, tableMapper, false);
 
 
         File configFile = new File(dataXCfgDir, readerContext.getTaskName() + ".json");
         FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, (tableMapper)), TisUTF8.get(), false);
-        subTaskName.add(configFile.getName());
+        // subTaskName.add(configFile.getName());
     }
 
     public static void generateTabCreateDDL(IPluginContext pluginCtx, IDataxProcessor dataxProcessor, IDataxWriter writer
@@ -300,18 +300,27 @@ public class DataXCfgGenerator {
     }
 
     public static class GenerateCfgs {
-        private List<String> dataxFiles = Collections.emptyList();
+        private List<String> _dataxFiles;
         private List<String> createDDLFiles = Collections.emptyList();
         private Map<String, List<String>> groupedChildTask;
         private long genTime;
 
         public List<String> getDataxFiles() {
-            return this.dataxFiles;
+
+            if (this._dataxFiles == null) {
+                this._dataxFiles = this.getGroupedChildTask()
+                        .values().stream()
+                        .flatMap((tasks) -> tasks.stream())
+                        .map((task) -> task + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
+                        .collect(Collectors.toList());
+            }
+            return this._dataxFiles;
         }
 
         public Map<String, List<String>> getGroupedChildTask() {
             return groupedChildTask;
         }
+
 
         public static final String KEY_GEN_TIME = "genTime";
         public static final String KEY_GROUP_CHILD_TASKS = "groupChildTasks";

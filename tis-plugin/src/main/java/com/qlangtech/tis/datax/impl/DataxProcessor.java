@@ -241,6 +241,9 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         }
 
         List<File> dataXConf = Lists.newArrayList();
+
+        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(this.getDataxCfgDir(pluginContext));
+
         for (String child : dataxCfgDir.list((d, fileName) -> {
             return !DataXCfgGenerator.FILE_GEN.equals(fileName);
         })) {
