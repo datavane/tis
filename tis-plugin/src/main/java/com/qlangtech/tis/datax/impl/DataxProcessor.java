@@ -42,16 +42,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-//import com.qlangtech.tis.plugin.ds.ISelectedTab;
-//import com.qlangtech.tis.sql.parser.DBNode;
-//import com.qlangtech.tis.sql.parser.er.ERRules;
-//import com.qlangtech.tis.sql.parser.er.IERRules;
-//import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
-//import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
-//import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-//import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
-//import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-//import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 
 /**
  * DataX任务执行方式的抽象

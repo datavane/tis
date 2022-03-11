@@ -113,10 +113,10 @@ public class DataXCfgGenerator {
             return generateCfgs;
         }
 
-        File dataxCreateDDLDir = dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
+        File dataxCfgDir = dataxProcessor.getDataxCfgDir(this.pluginCtx);
         generateCfgs.createDDLFiles = getExistDDLFiles();
 
-        GenerateCfgs cfgs = GenerateCfgs.readFromGen(dataxCreateDDLDir);
+        GenerateCfgs cfgs = GenerateCfgs.readFromGen(dataxCfgDir);
         generateCfgs.genTime = cfgs.getGenTime();
         generateCfgs.setGroupedChildTask(cfgs.getGroupedChildTask());
 //                .values().stream()
