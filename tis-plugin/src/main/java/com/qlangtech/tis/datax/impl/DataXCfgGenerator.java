@@ -29,6 +29,7 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
@@ -317,8 +318,26 @@ public class DataXCfgGenerator {
             return this._dataxFiles;
         }
 
-        public Map<String, List<String>> getGroupedChildTask() {
+        private Map<String, List<String>> getGroupedChildTask() {
             return groupedChildTask;
+        }
+
+        /**
+         * 取得一个任务组（通常是一个逻辑表）对应的子任务（导入分库分表的子任务）
+         *
+         * @param taskGroupName 通常是一个表的名称
+         * @return
+         */
+        public List<String> getDataXTaskDependencies(String taskGroupName) {
+//        File dataXWorkDir = IDataxProcessor.getDataXWorkDir(null, this.hudiWriter.dataXName);
+//        DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataXWorkDir);
+//        return generateCfgs.getGroupedChildTask().get(tableName);
+            List<String> subChildTask = null;
+            if (CollectionUtils.isEmpty(subChildTask = this.getGroupedChildTask().get(taskGroupName))) {
+                throw new IllegalStateException("taskGroupName:" + taskGroupName + " relevant childTask can not be empty");
+            }
+            return subChildTask.stream().map((childTask) -> childTask + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
+                    .collect(Collectors.toList());
         }
 
 
