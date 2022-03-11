@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -57,12 +59,14 @@ public class TestGenerateCfgs {
 
         Assert.assertEquals(timestamp, generateCfgs.getGenTime());
 
-        Map<String, List<String>> childTasks = generateCfgs.getGroupedChildTask();
+        List<String> childTasks = generateCfgs.getDataXTaskDependencies(tabName);
 
-        Assert.assertNotNull(childTasks.get(tabName));
+        Assert.assertNotNull(childTasks);
 
         Assert.assertTrue(
-                CollectionUtils.isEqualCollection(groupedChildTask.get(tabName), childTasks.get(tabName)));
+                CollectionUtils.isEqualCollection(groupedChildTask.get(tabName)
+                                .stream().map((childTsk) -> childTsk + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX).collect(Collectors.toList())
+                        , childTasks));
 
     }
 }

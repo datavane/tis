@@ -269,7 +269,7 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                 serverCallStreamObserver.request(1);
                 PhaseStatusCollection phaseStatusSet = null;
                 do {
-                    phaseStatusSet = TrackableExecuteInterceptor.taskPhaseReference.get(taskid);
+                    phaseStatusSet = TrackableExecuteInterceptor.getTaskPhaseReference(taskid);
                     if (phaseStatusSet == null) {
                         phaseStatusSet = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(taskid);
                     }

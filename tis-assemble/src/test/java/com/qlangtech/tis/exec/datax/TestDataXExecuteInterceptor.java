@@ -18,23 +18,33 @@
 
 package com.qlangtech.tis.exec.datax;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxGlobalCfg;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
 import com.qlangtech.tis.plugin.PluginStubUtils;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.test.TISTestCase;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -44,7 +54,9 @@ import java.util.Objects;
 public class TestDataXExecuteInterceptor extends TISTestCase {
     private static final String AP_NAME = "testDataxProcessor";
     private static File dataxCfgDir;
-    private static final String dataCfgFileName = "customer_order_relation_1.json";
+    private static final String tableName = "customer_order_relation";
+    private static final String dataCfgTaskName = tableName + "_1";
+    private static final String dataCfgFileName = dataCfgTaskName + ".json";
 
 
     @Override
@@ -57,30 +69,55 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         dataxCfgDir = new File(Config.getDataDir(), "/cfg_repo/tis_plugin_config/ap/" + AP_NAME + "/dataxCfg");
         FileUtils.forceMkdir(dataxCfgDir);
 
+        DataXCfgGenerator.GenerateCfgs genCfg = new DataXCfgGenerator.GenerateCfgs();
+        genCfg.setGenTime(System.currentTimeMillis());
+        Map<String, List<String>> groupedChildTask = Maps.newHashMap();
+        groupedChildTask.put(tableName, Lists.newArrayList(dataCfgTaskName));
+        genCfg.setGroupedChildTask(groupedChildTask);
+        genCfg.write2GenFile(dataxCfgDir);
+
         try (InputStream res = TestDataXExecuteInterceptor.class.getResourceAsStream(dataCfgFileName)) {
             Objects.requireNonNull(res, dataCfgFileName + " can not be null");
             FileUtils.copyInputStreamToFile(res, new File(dataxCfgDir, dataCfgFileName));
         }
+
+
     }
 
     public void testExecute() throws Exception {
 
+        DataxReader dataxReader = mock(AP_NAME + "DataXReader", DataxReader.class);
+        ISelectedTab tab = new TestSelectedTab(tableName);
+        EasyMock.expect(dataxReader.getSelectedTabs()).andReturn(Collections.singletonList(tab));
 
-        IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
+        DataxReader.dataxReaderGetter = (name) -> {
+            return dataxReader;
+        };
+        BatchPostDataXWriter dataxWriter = new BatchPostDataXWriter(Collections.singletonList(dataCfgFileName));
+        DataxWriter.dataxWriterGetter = (name) -> {
+            // DataxWriter dataxWriter = mock(name + "DataXWriter", DataxWriter.class);
+            return dataxWriter;
+        };
+
+        IRemoteTaskTrigger jobTrigger
+                = mock(dataCfgTaskName + "_" + IRemoteTaskTrigger.class.getSimpleName(), IRemoteTaskTrigger.class);
         //
-        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
-        jobTrigger.submitJob();
-        RunningStatus runningStatus = RunningStatus.SUCCESS;
-        EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
+        EasyMock.expect(jobTrigger.getTaskDependencies()).andReturn(Collections.emptyList()).anyTimes();
+        EasyMock.expect(jobTrigger.getTaskName()).andReturn(dataCfgFileName).anyTimes();
+        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false).anyTimes();
+        jobTrigger.run();
+        //   RunningStatus runningStatus = RunningStatus.SUCCESS;
+        // EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
 
         executeJobTrigger(jobTrigger, true);
+        dataxWriter.verify();
     }
 
     public void testExecuteWithExcpetionWhenSubmitJob() throws Exception {
         IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
         //
         EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
-        jobTrigger.submitJob();
+        jobTrigger.run();
         EasyMock.expectLastCall().andThrow(new RuntimeException("throw a exception"));
         RunningStatus runningStatus = RunningStatus.SUCCESS;
         EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
@@ -97,7 +134,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
         //
         EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
-        jobTrigger.submitJob();
+        jobTrigger.run();
         // EasyMock.expectLastCall().andThrow(new RuntimeException("throw a exception"));
         RunningStatus runningStatus = RunningStatus.FAILD;
         EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
@@ -109,6 +146,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
 
     private void executeJobTrigger(IRemoteTaskTrigger jobTrigger, boolean finalSuccess) throws Exception {
         int testTaskId = 999;
+        TrackableExecuteInterceptor.initialTaskPhase(testTaskId);
 
         DataXJobSubmit.mockGetter = () -> new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(jobTrigger);
 
@@ -123,7 +161,8 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         //  };
 
         IExecChainContext execChainContext = mock("execChainContext", IExecChainContext.class);
-
+        execChainContext.rebindLoggingMDCParams();
+        EasyMock.expect(execChainContext.getIndexName()).andReturn(AP_NAME);
         EasyMock.expect(execChainContext.getTaskId()).andReturn(testTaskId).anyTimes();
         //  getTaskId
 

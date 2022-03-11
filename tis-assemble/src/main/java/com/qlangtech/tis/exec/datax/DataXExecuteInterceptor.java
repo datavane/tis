@@ -132,7 +132,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
                     JoinPhaseStatus.JoinTaskStatus taskStatus = phaseStatus.getTaskStatus(postTaskTrigger.getTaskName());
                     taskStatus.setWaiting(true);
                     taskMap.put(postTaskTrigger.getTaskName()
-                            , new TISReactor.TaskAndMilestone(createJoinTask(postTaskTrigger,taskStatus)));
+                            , new TISReactor.TaskAndMilestone(createJoinTask(postTaskTrigger, taskStatus)));
 
                 }
             }
@@ -148,7 +148,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             ExecuteResult[] faildResult = new ExecuteResult[]{ExecuteResult.createSuccess()};
 
 
-            this.executeDAG(execChainContext, dagSessionSpec, taskMap, new ReactorListener() {
+            this.executeDAG(executorService, execChainContext, dagSessionSpec, taskMap, new ReactorListener() {
 
                 @Override
                 public void onTaskCompleted(Task t) {
@@ -230,7 +230,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     }
 
 
-    private void executeDAG(IExecChainContext execChainContext, String dagSessionSpec
+    private void executeDAG(ExecutorService executorService, IExecChainContext execChainContext, String dagSessionSpec
             , Map<String, TISReactor.TaskAndMilestone> taskMap, ReactorListener reactorListener) {
         try {
             TISReactor reactor = new TISReactor(execChainContext, taskMap);
@@ -290,7 +290,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
             // 执行DAG地调度
             //executorService
-            reactor.execute(null, reactor.buildSession(dagSessionSpec), listener, reactorListener);
+            reactor.execute(executorService, reactor.buildSession(dagSessionSpec), listener, reactorListener);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -24,11 +24,9 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.datax.DataXExecuteInterceptor;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
-import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.IDataFlowAppSource;
 import com.qlangtech.tis.manage.ISingleTableAppSource;
-import com.qlangtech.tis.manage.ISolrAppSource;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -124,7 +122,7 @@ public class AbstractActionInvocation implements ActionInvocation {
             });
 
             Integer taskid = chainContext.getTaskId();
-            TrackableExecuteInterceptor.taskPhaseReference.put(taskid, new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange()));
+            TrackableExecuteInterceptor.initialTaskPhase(taskid);
 
         } else {
 //            if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {

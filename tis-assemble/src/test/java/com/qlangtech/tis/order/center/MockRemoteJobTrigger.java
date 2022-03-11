@@ -33,7 +33,12 @@ public class MockRemoteJobTrigger implements IRemoteTaskTrigger {
     }
 
     @Override
-    public void submitJob() {
+    public void run() {
+    }
+
+    @Override
+    public String getTaskName() {
+        return null;
     }
 
     @Override

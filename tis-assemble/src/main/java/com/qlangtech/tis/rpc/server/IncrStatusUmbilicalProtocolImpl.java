@@ -208,7 +208,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         if (taskid == null || taskid < 1) {
             throw new IllegalArgumentException("taskid illegal:" + taskid);
         }
-        PhaseStatusCollection phaseStatusSet = TrackableExecuteInterceptor.taskPhaseReference.get(taskid);
+        PhaseStatusCollection phaseStatusSet = TrackableExecuteInterceptor.getTaskPhaseReference(taskid);
         if (phaseStatusSet == null) {
             returnEmpty(responseObserver);
             return;
@@ -247,7 +247,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         if (taskid == null) {
             throw new IllegalArgumentException("taskid can not be null");
         }
-        PhaseStatusCollection phaseStatusSet = TrackableExecuteInterceptor.taskPhaseReference.get(taskid);
+        PhaseStatusCollection phaseStatusSet = TrackableExecuteInterceptor.getTaskPhaseReference(taskid);
         if (phaseStatusSet == null) {
             log.warn("taskid:" + taskid + " relevent phaseStatusSet is null");
             returnEmpty(responseObserver);

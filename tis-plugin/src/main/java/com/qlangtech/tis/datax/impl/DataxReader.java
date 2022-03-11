@@ -171,17 +171,17 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
      */
     public static DataxReader load(IPluginContext pluginContext, boolean isDB, String appName) {
 
-        DataxReader appSource = null;
+        DataxReader reader = null;
         if (dataxReaderGetter != null) {
-            appSource = dataxReaderGetter.get(appName);
-            DataxReader.dataxReaderThreadLocal.set(appSource);
-            return appSource;
+            reader = dataxReaderGetter.get(appName);
+            DataxReader.dataxReaderThreadLocal.set(reader);
+            return reader;
         }
 
-        appSource = getPluginStore(pluginContext, isDB, appName).getPlugin();
-        Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
-        DataxReader.dataxReaderThreadLocal.set(appSource);
-        return appSource;
+        reader = getPluginStore(pluginContext, isDB, appName).getPlugin();
+        Objects.requireNonNull(reader, "appName:" + appName + " relevant appSource can not be null");
+        DataxReader.dataxReaderThreadLocal.set(reader);
+        return reader;
     }
 
     //    public static class DBKey extends KeyedPluginStore.Key<DataxReader> {

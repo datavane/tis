@@ -113,10 +113,8 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         @Override
         public IDataXJobContext createJobContext(final IJoinTaskContext parentContext) {
             return new IDataXJobContext() {
-                @Override
-                public <T> T getContextInstance() {
-                    return null;
-                }
+//                @Override
+//                IJoinTaskContext getTaskContext();
 
                 @Override
                 public IJoinTaskContext getTaskContext() {
