@@ -573,7 +573,7 @@ public class PluginAction extends BasicModule {
 
 
   /**
-   * 保存blugin配置
+   * 保存plugin配置
    *
    * @param context
    */
@@ -695,7 +695,8 @@ public class PluginAction extends BasicModule {
       if (pluginMeta.isAppend()) {
         List<IdentityName> plugins = hEnum.getPlugins(module, pluginMeta);
         for (IdentityName p : plugins) {
-          Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(new Descriptor.PostFormVals(Collections.emptyMap()), 0, 0);
+          Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(
+            new Descriptor.PostFormVals(Collections.emptyMap()), 0, 0);
           r.setDescriptor(((Describable) p).getDescriptor());
           identityUniqueMap.put(p.identityValue(), r);
         }

@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -126,13 +127,18 @@ public class DescriptorsJSON<T extends Describable<T>> {
         Map<String, Object> extractProps;
         // IPropertyType.SubFormFilter subFilter = null;
         PluginFormProperties pluginFormPropertyTypes;
-        for (Descriptor<T> d : this.descriptors) {
-            pluginFormPropertyTypes = d.getPluginFormPropertyTypes(subFormFilter);
+        for (Descriptor<T> dd : this.descriptors) {
+            pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
 
             JSONObject des = new JSONObject();
-            pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
+            Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
                 @Override
-                public Void visit(SuFormProperties props) {
+                public Descriptor visit(RootFormProperties props) {
+                    return dd;
+                }
+
+                @Override
+                public Descriptor visit(SuFormProperties props) {
                     JSONObject subForm = new JSONObject();
                     subForm.put("fieldName", props.getSubFormFieldName());
                     if (subFormFilter.isPresent()) {
@@ -144,19 +150,19 @@ public class DescriptorsJSON<T extends Describable<T>> {
                         }
                     }
                     des.put("subFormMeta", subForm);
-                    return null;
+                    return props.subFormFieldsDescriptor;
                 }
             });
 
-            des.put(KEY_EXTEND_POINT, d.getT().getName());
+            des.put(KEY_EXTEND_POINT, desc.getT().getName());
 
-            this.setDescInfo(d, des);
+            this.setDescInfo(desc, des);
 
-            des.put("veriflable", d.overWriteValidateMethod);
-            if (IdentityName.class.isAssignableFrom(d.clazz)) {
-                des.put("pkField", d.getIdentityField().displayName);
+            des.put("veriflable", desc.overWriteValidateMethod);
+            if (IdentityName.class.isAssignableFrom(desc.clazz)) {
+                des.put("pkField", desc.getIdentityField().displayName);
             }
-            extractProps = d.getExtractProps();
+            extractProps = desc.getExtractProps();
             if (!extractProps.isEmpty()) {
                 des.put("extractProps", extractProps);
             }
@@ -186,7 +192,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 }
 
                 if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
-                    attrVal.put("options", getSelectOptions(d, val, key));
+                    attrVal.put("options", getSelectOptions(desc, val, key));
                 }
                 if (val.isDescribable()) {
                     DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors());
@@ -198,7 +204,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
             // 对象拥有的属性
             des.put("attrs", attrs);
             // processor.process(attrs.keySet(), d);
-            descriptors.put(d.getId(), des);
+            descriptors.put(desc.getId(), des);
         }
         return descriptors;
     }

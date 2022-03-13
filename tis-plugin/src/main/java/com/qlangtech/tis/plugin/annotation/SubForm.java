@@ -19,6 +19,7 @@ package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -41,7 +42,7 @@ public @interface SubForm {
     String FIELD_DES_CLASS = ("desClazz");
 
     // get describe form bean class
-    Class<?> desClazz();
+    Class<? extends Describable> desClazz();
 
     /**
      * 至少选一个

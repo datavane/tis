@@ -409,7 +409,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     SubForm subFormFields = null;
                     PropertyType ptype = null;
                     PluginExtraProps.Props fieldExtraProps = null;
-                    Class<?> subFromDescClass = null;
+                    Class<? extends Describable> subFromDescClass = null;
                     try {
                         for (Field f : targetClass.getDeclaredFields()) {
                             if (!Modifier.isPublic(f.getModifiers()) || Modifier.isStatic(f.getModifiers())) {
@@ -422,8 +422,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                     throw new IllegalStateException("field " + f.getName()
                                             + "'s SubForm annotation descClass can not be null");
                                 }
+//                                if (!Describable.class.isAssignableFrom(subFromDescClass)) {
+//                                    throw new IllegalStateException("subFromDescClass:" + subFromDescClass
+//                                            + " must be a subClass of " + Describable.class.getSimpleName());
+//                                }
+
+                                final Descriptor subFormDesc = TIS.get().getDescriptor(subFromDescClass);
                                 r.put(f.getName()
-                                        , new SuFormProperties(clazz, f, subFormFields, filterFieldProp(buildPropertyTypes(descriptor, subFromDescClass))));
+                                        , new SuFormProperties(clazz, f, subFormFields
+                                                , subFormDesc
+                                                , filterFieldProp(buildPropertyTypes(Optional.of(subFormDesc), subFromDescClass))));
                             }
 
                             formField = f.getAnnotation(FormField.class);
@@ -620,23 +628,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (validateResult != null) {
                         return validateResult;
                     }
-//                    for (Map.Entry<String, JSONObject> entry : formData.entrySet()) {
-//                        subFormId = entry.getKey();
-//                        subformData = entry.getValue();
-//                        subform = Maps.newHashMap();
-//                        for (String fieldName : subformData.keySet()) {
-//                            subform.put(fieldName, subformData.getJSONObject(fieldName));
-//                        }
-//                        postFormVals = new PostFormVals(subform);
-//                        boolean valid = isValid(msgHandler, context, bizValidate, subFormFilter, propertyTypes, postFormVals);
-//                        if (!valid) {
-//                            validateResult = new PluginValidateResult(postFormVals
-//                                    , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
-//                                    , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
-//                            validateResult.valid = false;
-//                            return validateResult;
-//                        }
-//                    }
                 }
 
 

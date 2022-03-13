@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -59,6 +60,7 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
 
     public final Map<String, /*** fieldname */PropertyType> fieldsType;
     public final Field subFormField;
+    public final Descriptor subFormFieldsDescriptor;
     private Class desClazz;
     public final SubForm subFormFieldsAnnotation;
     public final Class<?> parentClazz;
@@ -66,8 +68,10 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
 
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
 
-    public static SuFormProperties copy(Map<String, /*** fieldname */PropertyType> fieldsType, Class<?> descClazz, SuFormProperties old) {
-        SuFormProperties result = new SuFormProperties(old.parentClazz, old.subFormField, old.subFormFieldsAnnotation, fieldsType);
+    public static SuFormProperties copy(Map<String, /*** fieldname */PropertyType> fieldsType
+            , Class<?> descClazz, SuFormProperties old) {
+        SuFormProperties result = new SuFormProperties(old.parentClazz, old.subFormField
+                , old.subFormFieldsAnnotation, old.subFormFieldsDescriptor, fieldsType);
         if (!old.subFormFieldsAnnotation.desClazz().isAssignableFrom(descClazz)) {
             throw new IllegalStateException("class:" + old.subFormFieldsAnnotation.desClazz() + " must be parent of " + descClazz);
         }
@@ -75,7 +79,7 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
     }
 
     public SuFormProperties(Class<?> parentClazz, Field subFormField
-            , SubForm subFormFieldsAnnotation, Map<String, PropertyType> fieldsType) {
+            , SubForm subFormFieldsAnnotation, Descriptor subFormFieldsDescriptor, Map<String, PropertyType> fieldsType) {
         Objects.requireNonNull(fieldsType, "fieldsType can not be null");
         this.parentClazz = parentClazz;
         this.fieldsType = fieldsType;
@@ -87,6 +91,7 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
             throw new IllegalArgumentException(subFormFieldsAnnotation.desClazz() + " has not define a identity prop");
         }
         this.pkPropertyType = idType.get().getValue();
+        this.subFormFieldsDescriptor = subFormFieldsDescriptor;
     }
 
     public String getSubFormFieldName() {
