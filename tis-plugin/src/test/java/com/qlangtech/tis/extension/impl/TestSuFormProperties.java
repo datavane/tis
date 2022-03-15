@@ -27,7 +27,6 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import edu.emory.mathcs.backport.java.util.Collections;
 import junit.framework.TestCase;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -68,7 +67,8 @@ public class TestSuFormProperties extends TestCase {
         UploadPluginMeta pluginMeta = UploadPluginMeta.parse(pluginName + ":require," + DataxUtils.DATAX_NAME + "_" + dataXName);
 
         IPropertyType.SubFormFilter subFormFilter
-                = new IPropertyType.SubFormFilter(pluginMeta, SubFieldContainPlugin.PLUGIN_NAME, SubFieldContainPlugin.SUB_PROP_FIELD_NAME);
+                = new IPropertyType.SubFormFilter(pluginMeta
+                , SubFieldContainPlugin.PLUGIN_NAME, SubFieldContainPlugin.class.getName(), SubFieldContainPlugin.SUB_PROP_FIELD_NAME);
 
         Descriptor<SubFieldContainPlugin> descriptor = plugin.getDescriptor();
         assertNotNull("descriptor can not be null", descriptor);

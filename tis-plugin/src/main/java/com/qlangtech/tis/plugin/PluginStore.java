@@ -182,13 +182,12 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     }
 
 
-
     public void addPluginsUpdateListener(PluginsUpdateListener consumer) {
         Objects.requireNonNull(consumer, "param consumer can not be null");
         this.pluginsUpdateListeners.add(consumer);
     }
 
-    public static abstract class PluginsUpdateListener<T extends Describable<T>> implements Consumer<PluginStore<T>>, Recyclable {
+    public static abstract class PluginsUpdateListener implements Consumer<PluginStore<Describable>>, Recyclable {
         private final Recyclable recyclable;
         public final String identity;
 
@@ -219,12 +218,14 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
         try {
             Set<XStream2.PluginMeta> pluginsMeta = Sets.newHashSet();
-            List<T> collect = dlist.stream().map((r) -> {
+            List<T> collect = dlist.stream().flatMap((r) -> {
                 pluginsMeta.addAll(r.extraPluginMetas);
-                for (IPluginProcessCallback<T> callback : pluginCreateCallback) {
-                    callback.afterDeserialize(r.instance);
+                if (!r.subFormFields) {
+                    for (IPluginProcessCallback<T> callback : pluginCreateCallback) {
+                        callback.afterDeserialize(r.getInstance());
+                    }
                 }
-                return r.instance;
+                return (r.getSubFormInstances()).stream();
             }).collect(Collectors.toList());
             if (this.plugins != null) {
                 this.plugins.forEach((plugin) -> {
@@ -247,7 +248,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                         logger.info("dirty instance:" + next.identity + " will remove from watch listeners");
                         continue;
                     }
-                    next.accept(this);
+                    next.accept((PluginStore<Describable>) this);
                 }
                 logger.info("notify pluginsUpdateListeners size:" + pluginsUpdateListeners.size());
             }

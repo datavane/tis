@@ -24,6 +24,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;
@@ -81,9 +82,9 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
                     return o;
                 }
             };
-            Descriptor.ParseDescribable<IAppSource> appSourceParseDescribable
+            Descriptor.ParseDescribable<Describable> appSourceParseDescribable
                     = pluginDescMeta.newInstance(pluginContext, formData, Optional.empty());
-            return (DataxProcessor) appSourceParseDescribable.instance;
+            return (DataxProcessor) appSourceParseDescribable.getInstance();
         }
     }
 

@@ -23,6 +23,8 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.RootFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import java.util.Objects;
@@ -58,11 +60,19 @@ public class DescribableJSON<T extends Describable<T>> {
 //        item.put(DescriptorsJSON.KEY_IMPL, descriptor.getId());
 //        item.put(DescriptorsJSON.KEY_IMPL_URL, Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.lowerCase(descriptor.clazz.getSimpleName()));
 //        item.put(DescriptorsJSON.KEY_DISPLAY_NAME, descriptor.getDisplayName());
-
-        DescriptorsJSON.setDescInfo(descriptor, item);
-
-
         PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(subFormFilter);
+
+        DescriptorsJSON.setDescInfo(pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+            @Override
+            public Descriptor visit(RootFormProperties props) {
+                return descriptor;
+            }
+            @Override
+            public Descriptor visit(SuFormProperties props) {
+                return props.subFormFieldsDescriptor;
+            }
+        }), item);
+
 
         JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance);
         item.put("vals", vals);

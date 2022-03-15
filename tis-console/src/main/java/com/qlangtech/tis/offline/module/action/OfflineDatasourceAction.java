@@ -1168,7 +1168,7 @@ public class OfflineDatasourceAction extends BasicModule {
                   if (StringUtils.equals(pp.dftVal(), desc.getDisplayName())) {
 
 //                    desc.getPluginFormPropertyTypes();
-                    pp.setVal(subForm, desc.newInstance(null, Collections.emptyMap(), Optional.empty()).instance);
+                    pp.setVal(subForm, desc.newInstance(null, Collections.emptyMap(), Optional.empty()).getInstance());
                     continue ppDftValGetter;
                   }
                 }

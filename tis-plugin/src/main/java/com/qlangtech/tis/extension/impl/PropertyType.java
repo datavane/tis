@@ -144,7 +144,7 @@ public class PropertyType implements IPropertyType {
     public Object getVal(Object instance) {
         try {
             return this.f.get(instance);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -155,7 +155,7 @@ public class PropertyType implements IPropertyType {
             prop = convertUtils.convert(val, this.clazz);
             this.f.set(instance, prop);
         } catch (Throwable e) {
-            throw new RuntimeException("\ntarget instance:" + instance.getClass() + "\nfield:" + this.f + (prop == null ? StringUtils.EMPTY : "\nprop class:" + prop.getClass()), e);
+            throw new RuntimeException("\ntarget instance:" + instance.getClass() + "\nfield:" + this.f.getName() + (prop == null ? StringUtils.EMPTY : "\nprop class:" + prop.getClass()), e);
         }
     }
 

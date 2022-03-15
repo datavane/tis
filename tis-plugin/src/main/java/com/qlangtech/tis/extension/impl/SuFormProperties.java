@@ -30,6 +30,7 @@ import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import groovy.lang.GroovyClassLoader;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.Phases;
@@ -61,7 +62,7 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
     public final Map<String, /*** fieldname */PropertyType> fieldsType;
     public final Field subFormField;
     public final Descriptor subFormFieldsDescriptor;
-    private Class desClazz;
+    public Class instClazz;
     public final SubForm subFormFieldsAnnotation;
     public final Class<?> parentClazz;
     public final PropertyType pkPropertyType;
@@ -69,13 +70,13 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
 
     public static SuFormProperties copy(Map<String, /*** fieldname */PropertyType> fieldsType
-            , Class<?> descClazz, SuFormProperties old) {
+            , Class<?> instClazz, Descriptor subFormFieldsDescriptor, SuFormProperties old) {
         SuFormProperties result = new SuFormProperties(old.parentClazz, old.subFormField
-                , old.subFormFieldsAnnotation, old.subFormFieldsDescriptor, fieldsType);
-        if (!old.subFormFieldsAnnotation.desClazz().isAssignableFrom(descClazz)) {
-            throw new IllegalStateException("class:" + old.subFormFieldsAnnotation.desClazz() + " must be parent of " + descClazz);
+                , old.subFormFieldsAnnotation, subFormFieldsDescriptor, fieldsType);
+        if (!old.subFormFieldsAnnotation.desClazz().isAssignableFrom(instClazz)) {
+            throw new IllegalStateException("class:" + old.subFormFieldsAnnotation.desClazz() + " must be parent of " + instClazz);
         }
-        return result.overWriteDesClazz(descClazz);
+        return result.overWriteInstClazz(instClazz);
     }
 
     public SuFormProperties(Class<?> parentClazz, Field subFormField
@@ -85,12 +86,19 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         this.fieldsType = fieldsType;
         this.subFormField = subFormField;
         this.subFormFieldsAnnotation = subFormFieldsAnnotation;
-        this.desClazz = subFormFieldsAnnotation.desClazz();
-        Optional<Map.Entry<String, PropertyType>> idType = fieldsType.entrySet().stream().filter((ft) -> ft.getValue().isIdentity()).findFirst();
-        if (!idType.isPresent()) {
-            throw new IllegalArgumentException(subFormFieldsAnnotation.desClazz() + " has not define a identity prop");
+        if (subFormFieldsAnnotation != null) {
+            this.instClazz = subFormFieldsAnnotation.desClazz();
         }
-        this.pkPropertyType = idType.get().getValue();
+        if (MapUtils.isNotEmpty(fieldsType)) {
+            Optional<Map.Entry<String, PropertyType>> idType = fieldsType.entrySet().stream().filter((ft) -> ft.getValue().isIdentity()).findFirst();
+            if (!idType.isPresent()) {
+                throw new IllegalArgumentException(subFormFieldsAnnotation.desClazz() + " has not define a identity prop");
+            }
+            this.pkPropertyType = idType.get().getValue();
+        } else {
+            this.pkPropertyType = null;
+        }
+
         this.subFormFieldsDescriptor = subFormFieldsDescriptor;
     }
 
@@ -105,14 +113,14 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
     public <T> T newSubDetailed() {
         try {
             // Class<?> aClass = desClazz this.subFormFieldsAnnotation.desClazz();
-            return (T) this.desClazz.newInstance();
+            return (T) this.instClazz.newInstance();
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
-    public SuFormProperties overWriteDesClazz(Class desClazz) {
-        this.desClazz = desClazz;
+    public SuFormProperties overWriteInstClazz(Class instClazz) {
+        this.instClazz = instClazz;
         return this;
     }
 
@@ -233,9 +241,7 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
 
         try {
             Object o = subFormField.get(instance);
-
-            return (Collection<IdentityName>) o;
-
+            return (o == null) ? Collections.emptyList() : (Collection<IdentityName>) o;
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }

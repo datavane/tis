@@ -44,7 +44,7 @@ public class UploadPluginMeta {
 
     private static final String KEY_JUST_GET_ITEM_RELEVANT = "justGetItemRelevant";
 
-    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w]+");
+    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w\\.]+");
 
     public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR
             = Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");
@@ -201,9 +201,11 @@ public class UploadPluginMeta {
     public Optional<IPropertyType.SubFormFilter> getSubFormFilter() {
 
         String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
+        String targetDescImpl = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION);
+
         String subFormField = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD);
         if (StringUtils.isNotEmpty(targetDesc)) {
-            return Optional.of(new IPropertyType.SubFormFilter(this, targetDesc, subFormField));
+            return Optional.of(new IPropertyType.SubFormFilter(this, targetDesc, targetDescImpl, subFormField));
         }
         return Optional.empty();
     }

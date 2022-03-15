@@ -593,7 +593,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       if (!vals.validate(context, false).isValid()) {
         return columnMeta.invalid();
       }
-      DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext).instance;
+      DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext).getInstance();
       List<ColumnMetaData> tableMetadata = dsFactory.getTableMetadata(targetTable);
       colMetas = tableMetadata.stream().collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
       break;

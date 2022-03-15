@@ -27,7 +27,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 
-import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -57,8 +57,11 @@ public class RewriteSuFormPropertiesPlugin implements Describable<RewriteSuFormP
                     , RewriteSuFormPropertiesPlugin.class.getSimpleName()
                             + "." + subformProps.getSubFormFieldName() + ".json", true);
             JSONObject subField = JSON.parseObject(overwriteSubField);
-            Class<?> clazz = RewriteSuFormPropertiesPlugin.class.getClassLoader().loadClass(subField.getString(SubForm.FIELD_DES_CLASS));
-            return SuFormProperties.copy(filterFieldProp(Descriptor.buildPropertyTypes(Optional.of(this), clazz)), clazz, subformProps);
+            Class<? extends Describable> clazz =
+                    (Class<? extends Describable>) RewriteSuFormPropertiesPlugin.class.getClassLoader().loadClass(subField.getString(SubForm.FIELD_DES_CLASS));
+            Descriptor subFormDescriptor = Objects.requireNonNull(TIS.get().getDescriptor(clazz)
+                    , "class:" + clazz + " relevant subFormDescriptor can not be null");
+            return SuFormProperties.copy(filterFieldProp(Descriptor.buildPropertyTypes(Optional.of(subFormDescriptor), clazz)), clazz, subFormDescriptor, subformProps);
         }
 
 //        @Override

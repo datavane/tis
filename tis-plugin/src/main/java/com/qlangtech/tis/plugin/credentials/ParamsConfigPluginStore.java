@@ -122,9 +122,11 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
         Map<String, List<Descriptor.ParseDescribable<ParamsConfig>>> desc2Plugin = Maps.newHashMap();
         String descName = null;
+        ParamsConfig paramCfg = null;
         List<Descriptor.ParseDescribable<ParamsConfig>> plugins = null;
         for (Descriptor.ParseDescribable<ParamsConfig> p : dlist) {
-            descName = p.instance.getDescriptor().getDisplayName();
+            paramCfg = p.getInstance();
+            descName = paramCfg.getDescriptor().getDisplayName();
             plugins = desc2Plugin.get(descName);
             if (plugins == null) {
                 plugins = Lists.newArrayList();

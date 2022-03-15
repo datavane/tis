@@ -751,7 +751,8 @@ public class PluginAction extends BasicModule {
       datasourceDb.setSyncOnline(new Byte("0"));
       datasourceDb.setCreateTime(new Date());
       datasourceDb.setOpTime(new Date());
-      datasourceDb.setExtendClass(StringUtils.lowerCase(dbDesc.instance.getDescriptor().getDisplayName()));
+      Describable plugin = dbDesc.getInstance();
+      datasourceDb.setExtendClass(StringUtils.lowerCase(plugin.getDescriptor().getDisplayName()));
 
       DatasourceDbCriteria criteria = new DatasourceDbCriteria();
       criteria.createCriteria().andNameEqualTo(dbName);

@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.extension.impl;
 
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 
@@ -29,4 +31,10 @@ public class SubFieldExtend extends SubField {
 
     @FormField(ordinal = 2, type = FormFieldType.INPUTTEXT)
     public String subProp2;
+
+
+    @TISExtension
+    public static class DftDescriptor extends Descriptor<SubField> {
+
+    }
 }

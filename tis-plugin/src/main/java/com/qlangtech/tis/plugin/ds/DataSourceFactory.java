@@ -302,8 +302,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
         @Override
         protected final boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
-            ParseDescribable<T> dsFactory = this.newInstance((IPluginContext) msgHandler, postFormVals.rawFormData, Optional.empty());
-            T instance = dsFactory.instance;
+            ParseDescribable<Describable> dsFactory = this.newInstance((IPluginContext) msgHandler, postFormVals.rawFormData, Optional.empty());
+            T instance = (T) dsFactory.getInstance();
 //            if (!msgHandler.validateBizLogic(IFieldErrorHandler.BizLogic.DB_NAME_DUPLICATE, context
 //                    , this.getIdentityField().displayName, instance.identityValue())) {
 //                return false;

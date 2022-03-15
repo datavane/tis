@@ -30,6 +30,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -104,40 +105,46 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                         pt.accept(new PluginFormProperties.IVisitor() {
                             @Override
                             public Void visit(final SuFormProperties props) {
-                                SubFieldFormAppKey<DataxReader> subFieldKey
+//                                SubFieldFormAppKey<? extends Describable> subFieldKey
+//                                        = new SubFieldFormAppKey<>(pluginContext, db, appname, props, props.subFormFieldsAnnotation.desClazz());
+
+                                SubFieldFormAppKey<? extends Describable> subFieldKey
                                         = new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
-                                KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
+
+
+                                KeyedPluginStore<? extends Describable> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
 
                                 // 子表单中的内容更新了之后，要同步父表单中的状态
                                 subFieldStore.addPluginsUpdateListener(
-                                        new PluginStore.PluginsUpdateListener<DataxReader>(subFieldKey.getSerializeFileName(), reader) {
+                                        new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
                                             @Override
-                                            public void accept(PluginStore<DataxReader> pluginStore) {
-                                                setReaderSubFormProp(props, pluginStore.getPlugin());
-
-
+                                            public void accept(PluginStore<Describable> pluginStore) {
+                                                setReaderSubFormProp(props, pluginStore.getPlugins());
                                             }
                                         });
-                                DataxReader subFieldReader = subFieldStore.getPlugin();
-                                if (subFieldReader == null) {
+                                List<? extends Describable> subItems = subFieldStore.getPlugins();
+                                if (CollectionUtils.isEmpty(subItems)) {
                                     return null;
                                 }
-
-                                setReaderSubFormProp(props, subFieldReader);
-
+                                setReaderSubFormProp(props, subItems);
                                 return null;
                             }
 
-                            private void setReaderSubFormProp(SuFormProperties props, DataxReader subFieldReader) {
-                                setReaderSubFormProp(props, reader, subFieldReader);
+                            private void setReaderSubFormProp(SuFormProperties props, List<? extends Describable> subItems) {
+                                setReaderSubFormProp(props, reader, subItems);
                             }
 
-                            private void setReaderSubFormProp(SuFormProperties props, DataxReader reader, DataxReader subFieldReader) {
+                            private void setReaderSubFormProp(SuFormProperties props, DataxReader reader, List<? extends Describable> subItems) {
                                 if (reader == null) {
                                     return;
                                 }
+                                subItems.forEach((item) -> {
+                                    if (!props.instClazz.isAssignableFrom(item.getClass())) {
+                                        throw new IllegalStateException("item[" + item.getClass().getSimpleName() + "] is not type of " + props.instClazz.getName());
+                                    }
+                                });
                                 try {
-                                    props.subFormField.set(reader, props.subFormField.get(subFieldReader));
+                                    props.subFormField.set(reader, subItems);
                                 } catch (IllegalAccessException e) {
                                     throw new RuntimeException("get subField:" + props.getSubFormFieldName(), e);
                                 }

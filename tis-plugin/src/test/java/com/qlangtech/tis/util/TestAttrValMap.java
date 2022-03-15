@@ -50,7 +50,7 @@ public class TestAttrValMap extends TestCase {
 
         Descriptor.ParseDescribable describable = attrValMap.createDescribable(pluginContext);
         assertNotNull(describable);
-        TestPluginImpl testPlugin = (TestPluginImpl) describable.instance;
+        TestPluginImpl testPlugin = (TestPluginImpl) describable.getInstance();
         assertNotNull(testPlugin);
         // 没有设置值，所以值对象应该为空，不能为0
         assertTrue("testPlugin.connectionsPerHost must be null", testPlugin.connectionsPerHost == null);

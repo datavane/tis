@@ -17,10 +17,12 @@
  */
 package com.qlangtech.tis.extension;
 
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -41,17 +43,26 @@ public interface IPropertyType {
 
         // 目标插件名称
         public static String PLUGIN_META_TARGET_DESCRIPTOR_NAME = "targetDescriptorName";
+        public static String PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION = "targetDescriptorImpl";
         public static String PLUGIN_META_SUB_FORM_FIELD = "subFormFieldName";
-        private final String targetDescriptorName;
+        public final String targetDescriptorName;
+        public final String targetDescImpl;
         public final String subFieldName;
         public final UploadPluginMeta uploadPluginMeta;
         // 是否显示子表单内容
         public final boolean subformDetailView;
         public final String subformDetailId;
 
+        public Descriptor getTargetDescriptor() {
+            Descriptor parentDesc = Objects.requireNonNull(TIS.get().getDescriptor(this.targetDescImpl)
+                    , this.targetDescriptorName + " relevant desc can not be null");
+            return parentDesc;
+        }
+
         public boolean match(Descriptor<?> desc) {
             return StringUtils.equals(desc.getDisplayName(), this.targetDescriptorName);
         }
+
 
         public final String param(String key) {
             return uploadPluginMeta.getExtraParam(key);
@@ -72,7 +83,7 @@ public interface IPropertyType {
             return (T) first.get();
         }
 
-        public SubFormFilter(UploadPluginMeta uploadPluginMeta, String targetDescriptorName, String subFieldName) {
+        public SubFormFilter(UploadPluginMeta uploadPluginMeta, String targetDescriptorName, String targetDescImpl, String subFieldName) {
             if (StringUtils.isEmpty(targetDescriptorName)) {
                 throw new IllegalArgumentException("param fieldName can not be empty");
             }
@@ -80,10 +91,21 @@ public interface IPropertyType {
                 throw new IllegalArgumentException("param subFieldName can not be empty");
             }
             this.targetDescriptorName = targetDescriptorName;
+            this.targetDescImpl = targetDescImpl;
             this.subFieldName = subFieldName;
             this.uploadPluginMeta = uploadPluginMeta;
             this.subformDetailView = StringUtils.isNotEmpty(
                     subformDetailId = uploadPluginMeta.getExtraParam(PLUGIN_META_SUBFORM_DETAIL_ID_VALUE));
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "  descName='" + targetDescriptorName + '\'' +
+                    ", targetDescImpl='" + targetDescImpl + '\'' +
+                    ", subFieldName='" + subFieldName + '\'' +
+                    ", subformDetailId='" + subformDetailId + '\'' +
+                    '}';
         }
     }
 }
