@@ -125,8 +125,8 @@ public class DataxExecutor {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        if (args.length != 7) {
-            throw new IllegalArgumentException("args length must be 7,but now is " + args.length);
+        if (args.length != 6) {
+            throw new IllegalArgumentException("args length must be 6,but now is " + args.length);
         }
         Integer jobId = Integer.parseInt(args[0]);
         String jobName = args[1];
@@ -136,8 +136,11 @@ public class DataxExecutor {
 
         final int allRows = Integer.parseInt(args[5]);
         // 任务每次执行会生成一个时间戳
-        final String execTimeStamp = args[6];
-
+       // final String execTimeStamp = args[6];
+        //configuration.set(DataxUtils.EXEC_TIMESTAMP, args.execTimeStamp);
+        if (StringUtils.isEmpty(System.getProperty(DataxUtils.EXEC_TIMESTAMP))) {
+            throw new IllegalArgumentException("system prop '" + DataxUtils.EXEC_TIMESTAMP + "' can not be empty");
+        }
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(TISCollectionUtils.KEY_COLLECTION, dataXName);
 
@@ -172,7 +175,7 @@ public class DataxExecutor {
 
         try {
             dataxExecutor.reportDataXJobStatus(false, false, false, jobId, jobName);
-            dataxExecutor.exec(jobId, jobName, dataXName, execTimeStamp);
+            dataxExecutor.exec(jobId, jobName, dataXName);
             dataxExecutor.reportDataXJobStatus(false, jobId, jobName);
         } catch (Throwable e) {
             dataxExecutor.reportDataXJobStatus(true, jobId, jobName);
@@ -223,7 +226,7 @@ public class DataxExecutor {
     }
 
 
-    public void exec(Integer jobId, String jobName, String dataxName, String execTimeStamp) throws Exception {
+    public void exec(Integer jobId, String jobName, String dataxName) throws Exception {
         boolean success = false;
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         try {
@@ -233,7 +236,7 @@ public class DataxExecutor {
 
             final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
             DataxProcessor dataxProcessor = DataxProcessor.load(null, dataxName);
-            this.startWork(dataxName, jobId, jobName, execTimeStamp, dataxProcessor, uberClassLoader);
+            this.startWork(dataxName, jobId, jobName, dataxProcessor, uberClassLoader);
             success = true;
         } finally {
             TIS.clean();
@@ -275,7 +278,7 @@ public class DataxExecutor {
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(String dataxName, Integer jobId, String jobName, String execTimeStamp, IDataxProcessor dataxProcessor
+    public void startWork(String dataxName, Integer jobId, String jobName, IDataxProcessor dataxProcessor
             , final JarLoader uberClassLoader) throws IOException, Exception {
         try {
 
@@ -303,7 +306,7 @@ public class DataxExecutor {
             initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), uberClassLoader);
 
 
-            entry(new DataXJobArgs(jobPath, jobId, "standalone", execTimeStamp), jobName);
+            entry(new DataXJobArgs(jobPath, jobId, "standalone"), jobName);
 
         } catch (Throwable e) {
             throw new Exception(e);
@@ -345,33 +348,33 @@ public class DataxExecutor {
         private final File jobPath;
         private final Integer jobId;
         private final String runtimeMode;
-        private final String execTimeStamp;
+//        private final String execTimeStamp;
 
-        public DataXJobArgs(File jobPath, Integer jobId, String runtimeMode, String execTimeStamp) {
+        public DataXJobArgs(File jobPath, Integer jobId, String runtimeMode) {
             this.jobPath = jobPath;
             this.jobId = jobId;
             this.runtimeMode = runtimeMode;
-            this.execTimeStamp = execTimeStamp;
+//            if (StringUtils.isEmpty(execTimeStamp)) {
+//                throw new IllegalArgumentException("param execTimeStamp can not be empty");
+//            }
+//            this.execTimeStamp = execTimeStamp;
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "jobPath=" + jobPath.getAbsolutePath() +
+                    ", jobId=" + jobId +
+                    ", runtimeMode='" + runtimeMode + '\'' +
+                    '}';
         }
     }
 
     public void entry(DataXJobArgs args, String jobName) throws Throwable {
-//        Options options = new Options();
-//        options.addOption("job", true, "Job config.");
-//        options.addOption("jobid", true, "Job unique id.");
-//        options.addOption("mode", true, "Job runtime mode.");
-        //BasicParser parser = new BasicParser();
-        // CommandLine cl = parser.parse(options, args);
-//        String jobPath = cl.getOptionValue("job");
-//        String jobIdString = cl.getOptionValue("jobid");
-//        String RUNTIME_MODE = cl.getOptionValue("mode");
         Configuration configuration = parse(args.jobPath.getAbsolutePath());
-        configuration.set(DataxUtils.EXEC_TIMESTAMP, args.execTimeStamp);
+        logger.info("exec params:{}", args.toString());
         Objects.requireNonNull(configuration, "configuration can not be null");
         int jobId = args.jobId;
-//        if (!"-1".equalsIgnoreCase(jobIdString)) {
-//            jobId = Integer.parseInt(jobIdString);
-//        }
 
         boolean isStandAloneMode = "standalone".equalsIgnoreCase(args.runtimeMode);
         if (!isStandAloneMode && jobId == -1L) {

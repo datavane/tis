@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.datax;
 
@@ -30,7 +30,7 @@ import java.nio.file.Paths;
  * @date 2021-04-20 14:12
  */
 public class TestDataxExecutor extends BasicDataXExecutorTestCase {
-
+    final String execTimeStamp = "20220316121256";
 
 //    @Override
 //    protected void setUp() throws Exception {
@@ -45,27 +45,19 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 
     public void testDataxJobMysql2Hdfs() throws Exception {
 
-//        executor = new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
-//            @Override
-//            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
-//                //  make skip the ex
-//            }
-//        };
-
         IDataxProcessor dataxProcessor = EasyMock.createMock("dataxProcessor", IDataxProcessor.class);
-
         String dataxNameMysql2hdfs = "mysql2hdfs";
         final String jobName = "datax_cfg.json";
 
         File path = new File("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hdfs + "/dataxCfg");
         EasyMock.expect(dataxProcessor.getDataxCfgDir(null)).andReturn(path);
-        //Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hdfs + "/dataxCfg/" + jobName);
-// tring dataxName, Integer jobId, String jobName, String jobPath
+
+
         Integer jobId = 1;
 
         final JarLoader uberClassLoader = getJarLoader();
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, dataxProcessor, uberClassLoader);
+        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, execTimeStamp, dataxProcessor, uberClassLoader);
 
         EasyMock.verify(dataxProcessor);
     }
@@ -87,6 +79,7 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 //                //  make skip the ex
 //            }
 //        };
+
         String dataxNameMysql2hive = "mysql2hive";
         final String jobName = "datax_cfg.json";
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hive + "/dataxCfg");
@@ -96,7 +89,7 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
         Integer jobId = 1;
 
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataxNameMysql2hive, jobId, jobName, dataxProcessor, getJarLoader());
+        executor.startWork(dataxNameMysql2hive, jobId, jobName, execTimeStamp, dataxProcessor, getJarLoader());
 
         EasyMock.verify(dataxProcessor);
     }
@@ -116,7 +109,7 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataXName, jobId, jobName, dataxProcessor, getJarLoader());
+        executor.startWork(dataXName, jobId, jobName, execTimeStamp, dataxProcessor, getJarLoader());
         EasyMock.verify(dataxProcessor);
     }
 

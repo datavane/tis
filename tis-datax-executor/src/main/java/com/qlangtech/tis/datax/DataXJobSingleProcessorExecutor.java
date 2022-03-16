@@ -20,6 +20,7 @@ package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.exec.*;
 import org.apache.curator.framework.CuratorFramework;
@@ -71,7 +72,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + System.getProperty(Config.KEY_LOG_DIR));
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
             cmdLine.addArgument("-D" + CuratorDataXTaskMessage.SYSTEM_KEY_LOGBACK_PATH_KEY + "=" + CuratorDataXTaskMessage.SYSTEM_KEY_LOGBACK_PATH_VALUE);
-
+            cmdLine.addArgument("-D" + DataxUtils.EXEC_TIMESTAMP + "=" + msg.getExecTimeStamp());
             for (String sysParam : this.getExtraJavaSystemPrams()) {
                 cmdLine.addArgument(sysParam);
             }
@@ -89,7 +90,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             // 估计 总记录数目
             cmdLine.addArgument(String.valueOf(allRowsApproximately));
             // 当前批次的执行时间戳
-            cmdLine.addArgument(msg.getExecTimeStamp());
+            // cmdLine.addArgument(msg.getExecTimeStamp());
 
             DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
 
