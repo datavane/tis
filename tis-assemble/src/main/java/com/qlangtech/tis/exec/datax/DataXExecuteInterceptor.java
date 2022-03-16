@@ -31,9 +31,11 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.AbstractChildProcessStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
+import com.qlangtech.tis.fullbuild.taskflow.DumpTask;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
@@ -98,15 +100,16 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         try {
             DumpPhaseStatus dumpStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
             for (File fileName : cfgFileNames) {
-                jobTrigger = createDataXJob(dataXJobContext, submit, expectDataXJobSumit, statusRpc, appSource, fileName.getName());
+                jobTrigger = createDataXJob(dataXJobContext, submit
+                        , expectDataXJobSumit, statusRpc, appSource, fileName.getName());
                 triggers.add(jobTrigger);
                 taskMap.put(fileName.getName()
-                        , new TISReactor.TaskAndMilestone(DataflowTask.createDumpTask(jobTrigger)));
+                        , new TISReactor.TaskAndMilestone(DumpTask.createDumpTask(jobTrigger, dumpStatus.getTable(fileName.getName()))));
                 //StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
                 // 将任务注册，可供页面展示
 //                svc.reportDumpJobStatus(false, false, true, execChainContext.getTaskId()
 //                        , fileName.getName(), 0, 0);
-                dumpStatus.getTable(fileName.getName()).setWaiting(true);
+
             }
 
             logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
@@ -336,30 +339,18 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         return Collections.singleton(FullbuildPhase.FullDump);
     }
 
-    public static DataflowTask createJoinTask(IRemoteTaskTrigger jobTrigger, JoinPhaseStatus.JoinTaskStatus taskStatus) {
+    public static DataflowTask createJoinTask(
+            IRemoteTaskTrigger jobTrigger, JoinPhaseStatus.JoinTaskStatus taskStatus) {
         return new JoinTask(jobTrigger, taskStatus);
     }
 
-    private static class JoinTask extends DataflowTask.DumpTask {
-        private JoinPhaseStatus.JoinTaskStatus taskStatus;
+    private static class JoinTask extends DumpTask {
 
-        public JoinTask(IRemoteTaskTrigger jobTrigger, JoinPhaseStatus.JoinTaskStatus taskStatus) {
-            super(jobTrigger);
-            this.taskStatus = taskStatus;
+
+        public JoinTask(IRemoteTaskTrigger jobTrigger, AbstractChildProcessStatus taskStatus) {
+            super(jobTrigger, taskStatus);
         }
 
-        @Override
-        public void run() throws Exception {
-            taskStatus.setWaiting(false);
-            boolean faild = true;
-            try {
-                super.run();
-                faild = false;
-            } finally {
-                taskStatus.setComplete(true);
-                taskStatus.setFaild(faild);
-            }
-        }
 
         @Override
         public FullbuildPhase phase() {

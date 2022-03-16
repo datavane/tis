@@ -18,10 +18,8 @@
 package com.qlangtech.tis.fullbuild.taskflow;
 
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -31,11 +29,6 @@ import java.util.Map;
 public abstract class DataflowTask {
 
     protected final String id;
-
-    public static DataflowTask createDumpTask(IRemoteTaskTrigger jobTrigger) {
-        return new DumpTask(jobTrigger);
-    }
-
 
 
     protected DataflowTask(String id) {
@@ -65,36 +58,6 @@ public abstract class DataflowTask {
     @Override
     public String toString() {
         return this.id;
-    }
-
-
-    public static class DumpTask extends DataflowTask {
-        private IRemoteTaskTrigger jobTrigger;
-
-        public DumpTask(IRemoteTaskTrigger jobTrigger) {
-            super(jobTrigger.getTaskName());
-            this.jobTrigger = jobTrigger;
-        }
-
-        @Override
-        public void run() throws Exception {
-            this.jobTrigger.run();
-        }
-
-        @Override
-        protected Map<String, Boolean> getTaskWorkStatus() {
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public FullbuildPhase phase() {
-            return FullbuildPhase.FullDump;
-        }
-
-        @Override
-        public String getIdentityName() {
-            return this.id;
-        }
     }
 
 

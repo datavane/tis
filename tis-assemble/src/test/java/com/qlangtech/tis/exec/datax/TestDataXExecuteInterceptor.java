@@ -20,6 +20,7 @@ package com.qlangtech.tis.exec.datax;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxGlobalCfg;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
@@ -31,6 +32,9 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
@@ -39,6 +43,7 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.test.TISTestCase;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
+import org.junit.Assert;
 
 import java.io.File;
 import java.io.InputStream;
@@ -57,6 +62,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
     private static final String tableName = "customer_order_relation";
     private static final String dataCfgTaskName = tableName + "_1";
     private static final String dataCfgFileName = dataCfgTaskName + ".json";
+    static final int testTaskId = 999;
 
 
     @Override
@@ -109,8 +115,40 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         //   RunningStatus runningStatus = RunningStatus.SUCCESS;
         // EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
 
+        /**
+         * 开始执行
+         */
         executeJobTrigger(jobTrigger, true);
+
+        /**
+         * 开始校验
+         */
         dataxWriter.verify();
+
+        PhaseStatusCollection taskPhaseRef = TrackableExecuteInterceptor.getTaskPhaseReference(testTaskId);
+        Assert.assertNotNull(taskPhaseRef);
+
+        DumpPhaseStatus dumpStatus = taskPhaseRef.getDumpPhase();
+        Assert.assertNotNull(dumpStatus);
+
+        DumpPhaseStatus.TableDumpStatus tableDumpStatus = dumpStatus.getTable(dataCfgFileName);
+        Assert.assertNotNull(tableName + "must exist", tableDumpStatus);
+        Assert.assertTrue(tableDumpStatus.isComplete());
+        Assert.assertTrue(tableDumpStatus.isSuccess());
+        Assert.assertFalse(tableDumpStatus.isWaiting());
+        Assert.assertFalse(tableDumpStatus.isFaild());
+
+        JoinPhaseStatus joinStatus = taskPhaseRef.getJoinPhase();
+        Assert.assertNotNull(joinStatus);
+        JoinPhaseStatus.JoinTaskStatus tableProcess = joinStatus.getTaskStatus(tableName);
+        Assert.assertNotNull(tableProcess);
+
+        Assert.assertTrue(tableProcess.isComplete());
+        Assert.assertTrue(tableProcess.isSuccess());
+        Assert.assertFalse(tableProcess.isWaiting());
+        Assert.assertFalse(tableProcess.isFaild());
+
+
     }
 
     public void testExecuteWithExcpetionWhenSubmitJob() throws Exception {
@@ -145,7 +183,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
     }
 
     private void executeJobTrigger(IRemoteTaskTrigger jobTrigger, boolean finalSuccess) throws Exception {
-        int testTaskId = 999;
+
         TrackableExecuteInterceptor.initialTaskPhase(testTaskId);
 
         DataXJobSubmit.mockGetter = () -> new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(jobTrigger);
@@ -171,7 +209,15 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         EasyMock.expect(execChainContext.getAppSource()).andReturn(dataxProcessor);
 
         this.replay();
+        /**
+         * ================================================================
+         * 开始执行
+         * ================================================================
+         */
         ExecuteResult executeResult = executeInterceptor.execute(execChainContext);
+
+
+        executeInterceptor.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
 
         assertEquals("execute must be " + (finalSuccess ? "success" : "faild"), finalSuccess, executeResult.isSuccess());
         this.verifyAll();
