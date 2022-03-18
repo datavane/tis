@@ -36,6 +36,9 @@ import java.util.function.Consumer;
  * @date 2020/04/13
  */
 public class Config {
+    public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
+    public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
+    public static final String SYSTEM_KEY__LOGBACK_HUDI = "logback-hudi.xml";
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
     public static final String LIB_PLUGINS_PATH = "libs/plugins";
 
