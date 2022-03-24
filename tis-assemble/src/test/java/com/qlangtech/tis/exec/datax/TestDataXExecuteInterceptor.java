@@ -138,6 +138,8 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         Assert.assertFalse(tableDumpStatus.isWaiting());
         Assert.assertFalse(tableDumpStatus.isFaild());
 
+        Assert.assertEquals(dataCfgFileName, tableDumpStatus.getName());
+
         JoinPhaseStatus joinStatus = taskPhaseRef.getJoinPhase();
         Assert.assertNotNull(joinStatus);
         JoinPhaseStatus.JoinTaskStatus tableProcess = joinStatus.getTaskStatus(tableName);
@@ -147,6 +149,8 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         Assert.assertTrue(tableProcess.isSuccess());
         Assert.assertFalse(tableProcess.isWaiting());
         Assert.assertFalse(tableProcess.isFaild());
+
+        Assert.assertEquals(tableName, tableProcess.getName());
 
 
     }

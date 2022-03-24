@@ -1082,7 +1082,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             return first.isPresent() ? (TT) first.get() : null;
         }
 
-        private ParseDescribable(List<T> instance) {
+        public ParseDescribable(List<T> instance) {
             this(instance, true);
         }
 

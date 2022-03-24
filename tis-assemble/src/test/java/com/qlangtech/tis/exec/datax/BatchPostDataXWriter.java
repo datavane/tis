@@ -51,6 +51,11 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
+    public IRemoteTaskTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab) {
+        return null;
+    }
+
+    @Override
     public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, final ISelectedTab tab) {
         return new IRemoteTaskTrigger() {
             @Override

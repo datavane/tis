@@ -30,6 +30,8 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
  **/
 public interface IDataXBatchPost {
 
+    public IRemoteTaskTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab);
+
     public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, ISelectedTab tab);
 
 }

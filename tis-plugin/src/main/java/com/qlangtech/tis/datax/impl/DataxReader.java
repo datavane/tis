@@ -94,7 +94,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     }
 
     private static TIS.DataXReaderAppKey createDataXReaderKey(IPluginContext pluginContext, boolean db, String appname) {
-        return new TIS.DataXReaderAppKey(pluginContext, db, appname, new PluginStore.IPluginProcessCallback<DataxReader>() {
+        final TIS.DataXReaderAppKey key = new TIS.DataXReaderAppKey(pluginContext, db, appname, new PluginStore.IPluginProcessCallback<DataxReader>() {
             @Override
             public void afterDeserialize(final DataxReader reader) {
 
@@ -138,9 +138,11 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                 if (reader == null) {
                                     return;
                                 }
+
                                 subItems.forEach((item) -> {
                                     if (!props.instClazz.isAssignableFrom(item.getClass())) {
-                                        throw new IllegalStateException("item[" + item.getClass().getSimpleName() + "] is not type of " + props.instClazz.getName());
+                                        throw new IllegalStateException("appname:" + appname + ",item class[" + item.getClass().getSimpleName()
+                                                + "] is not type of " + props.instClazz.getName());
                                     }
                                 });
                                 try {
@@ -154,6 +156,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                 }
             }
         });
+        return key;
     }
 
 

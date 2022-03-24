@@ -187,6 +187,7 @@ public interface IDataxProcessor {
         private final ISelectedTab tab;
 
         public TableMap(ISelectedTab tab) {
+            super(tab.getName());
             this.tab = tab;
         }
 
@@ -210,8 +211,15 @@ public interface IDataxProcessor {
                 cm.setPk(c.pk);
                 cmetas.add(cm);
             }
+            return createByColMeta(tableName, cmetas);
+//            IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(cmetas);
+//            tableMapper.setFrom(tableName);
+//            tableMapper.setTo(tableName);
+//            return tableMapper;
+        }
 
-            IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(cmetas);
+        public static TableMap createByColMeta(String tableName, List<ISelectedTab.ColMeta> colMetas) {
+            IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(colMetas);
             tableMapper.setFrom(tableName);
             tableMapper.setTo(tableName);
             return tableMapper;

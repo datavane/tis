@@ -19,11 +19,11 @@ ln -s /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-scala-compiler-depend
 
 
 #/Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency
-rm -f /opt/data/tis/libs/tis-ibatis/*
-cd /Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis
-mvn clean package -Dmaven.test.skip=true
-mvn dependency:copy-dependencies
-mkdir -p /opt/data/tis/libs/tis-ibatis
-ln -s /Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency/* /opt/data/tis/libs/tis-ibatis
-ln -s /Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/*.jar /opt/data/tis/libs/tis-ibatis
+#rm -f /opt/data/tis/libs/tis-ibatis/*
+#cd /Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis
+#mvn clean package -Dmaven.test.skip=true
+#mvn dependency:copy-dependencies
+#mkdir -p /opt/data/tis/libs/tis-ibatis
+#ln -s /Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency/* /opt/data/tis/libs/tis-ibatis
+#ln -s /Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/*.jar /opt/data/tis/libs/tis-ibatis
 

@@ -100,6 +100,20 @@ public class BlockScriptBuffer implements IBlockToString {
         return startLine(val).appendIndent();
     }
 
+    public BlockScriptBuffer appendLine(String val, Object... params) {
+        String[] p = new String[params.length];
+        Object o = null;
+        for (int i = 0; i < params.length; i++) {
+            o = params[i];
+            if (o instanceof String) {
+                p[i] = "\"" + o + "\"";
+            } else {
+                p[i] = String.valueOf(o);
+            }
+        }
+        return startLine(String.format(val, p)).appendIndent();
+    }
+
     public BlockScriptBuffer startLine(Object val) {
         if (!lastReturnChar) {
             this.returnLine();

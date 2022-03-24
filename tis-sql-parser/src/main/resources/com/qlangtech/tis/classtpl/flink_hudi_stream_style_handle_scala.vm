@@ -1,0 +1,25 @@
+package com.qlangtech.tis.realtime.transfer.${config.collection}
+
+import java.util
+import org.apache.flink.streaming.api.functions.sink.{PrintSinkFunction, SinkFunction}
+import com.qlangtech.tis.realtime.{HoodieFlinkSourceHandle}
+import org.apache.hudi.streamer.FlinkStreamerConfig
+import com.qlangtech.tis.plugin.datax.hudi.BatchOpMode
+
+class ${config.javaName}SourceHandle extends HoodieFlinkSourceHandle {
+
+override protected def createTabStreamerCfg(): Map[String,FlinkStreamerConfig] = {
+
+ var cfgs: Map[String,FlinkStreamerConfig] = Map()
+ var cfg: FlinkStreamerConfig
+
+#foreach($i in $config.dumpTables  )
+  cfg = new FlinkStreamerConfig()
+  ${config.getFlinkStreamerConfig($i.tabName)}
+  cfgs += ("${i.tabName}" -> cfg)
+
+#end
+
+  cfgs
+}
+}

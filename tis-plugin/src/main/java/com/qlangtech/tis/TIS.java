@@ -282,10 +282,21 @@ public class TIS {
 //        }
     }
 
+    public static IDataSourceFactoryPluginStoreGetter dsFactoryPluginStoreGetter;
+
     public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
+
+        if (dsFactoryPluginStoreGetter != null) {
+            return dsFactoryPluginStoreGetter.getPluginStore(dsProp);
+        }
+
         DataSourceFactoryPluginStore pluginStore
                 = databasePluginStore.get(new DSKey(DB_GROUP_NAME, dsProp.getDbType(), dsProp.getDbname(), DataSourceFactory.class));
         return pluginStore;
+    }
+
+    public interface IDataSourceFactoryPluginStoreGetter {
+        DataSourceFactoryPluginStore getPluginStore(PostedDSProp dsProp);
     }
 
     public static void deleteDB(String dbName, DbScope dbScope) {
@@ -355,7 +366,7 @@ public class TIS {
     public static final File pluginDirRoot;
 
     static {
-         String pluginRootDir = System.getProperty("plugin_dir_root");
+        String pluginRootDir = System.getProperty("plugin_dir_root");
         pluginDirRoot = StringUtils.isEmpty(pluginRootDir)
                 ? new File(Config.getLibDir(), KEY_TIS_PLUGIN_ROOT)
                 : new File(pluginRootDir);
