@@ -33,6 +33,7 @@ import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction;
 import com.qlangtech.tis.runtime.pojo.ConfigPush;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
+import com.qlangtech.tis.utils.MD5Utils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -125,14 +126,14 @@ public class AppSynAction extends BasicModule {
       pGetter = ConfigFileReader.createPropertyGetter(res.getResourceType());
       // 校验配置是否相等
       if (!newSnapshot) {
-        final String md5 = ConfigFileReader.md5file(res.getContent());
+        final String md5 = MD5Utils.md5file(res.getContent());
         if (StringUtils.equals(md5, pGetter.getMd5CodeValue(snapshotDomain))) {
           this.addErrorMessage(context, "resource " + pGetter.getFileName() + " is newest,shall not be updated");
           return;
         }
       }
       Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, res.getContent()
-        , ConfigFileReader.md5file(res.getContent()), pGetter, this, this);
+        , MD5Utils.md5file(res.getContent()), pGetter, this, this);
       snapshot = pGetter.createNewSnapshot(newResId, snapshot);
     }
     serverGroup = new ServerGroup();

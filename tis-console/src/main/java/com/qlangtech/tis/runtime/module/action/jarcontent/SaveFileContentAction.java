@@ -29,6 +29,7 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
+import com.qlangtech.tis.utils.MD5Utils;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -172,7 +173,7 @@ public class SaveFileContentAction extends BasicModule {
     , ISchemaPluginContext schemaPlugin, byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler, String memo, Long userId, String userName, boolean createNewSnapshot) throws UnsupportedEncodingException {
     CreateSnapshotResult createResult = new CreateSnapshotResult();
     try {
-      final String md5 = ConfigFileReader.md5file(uploadContent);
+      final String md5 = MD5Utils.md5file(uploadContent);
       if (StringUtils.equals(md5, fileGetter.getMd5CodeValue(domain))) {
         saveHasNotModifyMessage(context, messageHandler, domain.getSnapshot().getSnId());
         return createResult;

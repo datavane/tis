@@ -15,33 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.plugin;
 
-import com.alibaba.citrus.turbine.Context;
+package com.qlangtech.tis.util;
+
 import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.plugin.SetPluginsResult;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public interface IPluginStoreSave<T extends Describable> {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2022-03-26 14:11
+ **/
+public class ItemsSaveResult {
 
-    default SetPluginsResult setPlugins(IPluginContext pluginContext
-            , Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
-        return this.setPlugins(pluginContext, context, dlist, false);
-    }
+  public static String KEY_ITEMS_SAVE_RESULT = "items_save_result";
+  public final List<Describable> describableList;
+  public final SetPluginsResult cfgSaveResult;
 
-    /**
-     * @param context
-     * @param dlist
-     * @param update  whether the process is update or create
-     * @return
-     */
-    SetPluginsResult setPlugins(IPluginContext pluginContext
-            , Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update);
+  public ItemsSaveResult(List<Describable> describableList, SetPluginsResult cfgSaveResult) {
+    this.describableList = describableList;
+    this.cfgSaveResult = cfgSaveResult;
+  }
 }

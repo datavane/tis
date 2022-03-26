@@ -25,9 +25,9 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
 import com.qlangtech.tis.manage.common.BasicDAO;
-import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.utils.MD5Utils;
 import junit.framework.Assert;
 import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.beanutils.LazyDynaBean;
@@ -190,7 +190,7 @@ public class SnapshotViewImplDAO extends BasicDAO<SnapshotDomain, SnapshotCriter
       velocityEngine.evaluate(context, writer, resource.getResourceType(), new String(content, TisUTF8.get()));
       writer.flush();
       resource.setContent(converted.toByteArray());
-      resource.setMd5Code(ConfigFileReader.md5file(resource.getContent()));
+      resource.setMd5Code(MD5Utils.md5file(resource.getContent()));
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {

@@ -49,6 +49,7 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.pojo.ResSynManager;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
+import com.qlangtech.tis.utils.MD5Utils;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import junit.framework.Assert;
@@ -258,7 +259,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
   public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
     , ISchemaPluginContext schemaPlugin, byte[] uploadContent, BasicModule module, String memo, Long userId, String userName) {
     CreateSnapshotResult createResult = new CreateSnapshotResult();
-    final String md5 = ConfigFileReader.md5file(uploadContent);
+    final String md5 = MD5Utils.md5file(uploadContent);
     // 创建一条资源记录
     try {
 

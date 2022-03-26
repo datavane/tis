@@ -25,7 +25,7 @@ import com.qlangtech.tis.solrdao.IFieldTypeFactory;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.impl.ParseResult;
-import org.apache.commons.codec.digest.DigestUtils;
+import com.qlangtech.tis.utils.MD5Utils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -92,7 +92,7 @@ public class ConfigFileReader {
      */
     public InputStream read(PropteryGetter pGetter) throws Exception {
         byte[] content = getContent(pGetter);
-        if (!StringUtils.equalsIgnoreCase(md5file(content), pGetter.getMd5CodeValue(snapshot))) {
+        if (!StringUtils.equalsIgnoreCase(MD5Utils.md5file(content), pGetter.getMd5CodeValue(snapshot))) {
             throw new IllegalArgumentException("path：" + getPath(pGetter) + "has been modify");
         }
         return new ByteArrayInputStream(content);
@@ -163,29 +163,7 @@ public class ConfigFileReader {
             } catch (Throwable e) {
             }
         }
-        return md5file(saveFile);
-    }
-
-    public static String md5file(final File saveFile) throws IOException {
-        InputStream savedStream = null;
-        try {
-            savedStream = new FileInputStream(saveFile);
-            // 保存的文件的签名
-            return md5file(IOUtils.toByteArray(savedStream));
-        } finally {
-            try {
-                savedStream.close();
-            } catch (Throwable e) {
-            }
-        }
-    }
-
-    public static String md5file(byte[] content) {
-        // try {
-        return (DigestUtils.md5Hex(content));
-        // } catch (IOException e) {
-        // throw new RuntimeException(e);
-        // }
+        return MD5Utils.md5file(saveFile);
     }
 
     public static File getAppDomainDir(File localRepository, Integer bizid, Integer appid) {
@@ -322,7 +300,7 @@ public class ConfigFileReader {
                 return null;
             }
             // 校验文件是否被篡改
-            if (!StringUtils.equalsIgnoreCase(md5file(content), getMd5CodeValue(snapshot))) {
+            if (!StringUtils.equalsIgnoreCase(MD5Utils.md5file(content), getMd5CodeValue(snapshot))) {
                 throw new IllegalArgumentException("snapshot：" + snapshot.getSnapshot().getSnId() + " file:" + getFileName() + "has been modify");
             }
             return content;

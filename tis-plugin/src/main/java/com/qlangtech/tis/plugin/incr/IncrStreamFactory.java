@@ -19,7 +19,6 @@ package com.qlangtech.tis.plugin.incr;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
-import com.qlangtech.tis.compiler.incr.ICompileAndPackage;
 import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -36,12 +35,7 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
     public abstract IRCController getIncrSync();
 
     public abstract <StreamExecutionEnvironment> StreamExecutionEnvironment createStreamExecutionEnvironment();
-    /**
-     * 取得增量执行单元，脚本编译器
-     *
-     * @return
-     */
-    public abstract ICompileAndPackage getCompileAndPackageManager();
+
 
     @Override
     public final Descriptor<IncrStreamFactory> getDescriptor() {

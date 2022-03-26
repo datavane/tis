@@ -55,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
@@ -583,14 +584,7 @@ public class PluginAction extends BasicModule {
     }
     List<UploadPluginMeta> plugins = getPluginMeta();
     JSONObject postData = this.parseJsonPost();
-    String serverForward = postData.getString("serverForward");
-    String[] forwardParams = null;
-    if (StringUtils.isNotEmpty(serverForward)) {
-      forwardParams = StringUtils.split(serverForward, ":");
-      if (forwardParams.length != 3) {
-        throw new IllegalArgumentException("illegal forward param:" + serverForward);
-      }
-    }
+    String[] forwardParams = getActionForwardParam(postData);
 
 
     JSONArray pluginArray =
@@ -623,28 +617,41 @@ public class PluginAction extends BasicModule {
       return;
     }
 
-    List<Describable> describables = Lists.newArrayList();
+    List<ItemsSaveResult> describables = Lists.newArrayList();
 
     for (PluginItems pi : categoryPlugins) {
-      describables.addAll(pi.save(context));
+      describables.add(pi.save(context));
     }
 
     if (forwardParams != null) {
-      //  getRundata().forwardTo(getCoredefine().namespace, "core_action", "create_incr_sync_channal");
+      this.getRequest().setAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT, describables);
       getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
       return;
     }
 
-
     addActionMessage(context, "配置保存成功");
     // 成功保存的主键信息返回给客户端
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
-      this.setBizResult(context, describables.stream()
+      this.setBizResult(context, describables.stream().flatMap((itemSaveResult) -> itemSaveResult.describableList.stream())
         .filter((d) -> d instanceof IdentityName)
         .map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
     }
+  }
 
+  public static List<ItemsSaveResult> getItemsSaveResultInRequest(HttpServletRequest request) {
+    return (List<ItemsSaveResult>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
+  }
 
+  private String[] getActionForwardParam(JSONObject postData) {
+    String serverForward = postData.getString("serverForward");
+    String[] forwardParams = null;
+    if (StringUtils.isNotEmpty(serverForward)) {
+      forwardParams = StringUtils.split(serverForward, ":");
+      if (forwardParams.length != 3) {
+        throw new IllegalArgumentException("illegal forward param:" + serverForward);
+      }
+    }
+    return forwardParams;
   }
 
 

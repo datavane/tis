@@ -175,7 +175,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
 
     @Override
-    public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
+    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
         // as almost the process is process file shall not care of process model whether update or add,bu some times have
         // extra process like db process ,shall pass a bool flag form client
         return this.setPlugins(pluginContext, context, dlist, false);
@@ -212,10 +212,14 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     /**
      * save the plugin config
      *
+     * @param pluginContext
+     * @param context
      * @param dlist
+     * @param update        whether the process is update or create
+     * @return 文件更新之前和更新之后是否有变化
      */
     @Override
-    public synchronized boolean setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
+    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
         try {
             Set<XStream2.PluginMeta> pluginsMeta = Sets.newHashSet();
             List<T> collect = dlist.stream().flatMap((r) -> {
@@ -236,7 +240,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             }
             this.plugins = collect;
             // XmlFile file = Descriptor.getConfigFile(getSerializeFileName());
-            this.file.write(this, pluginsMeta);
+
+            boolean changed = this.file.write(this, pluginsMeta);
 
             if (CollectionUtils.isNotEmpty(pluginsUpdateListeners)) {
                 Iterator<PluginsUpdateListener> it = pluginsUpdateListeners.iterator();
@@ -252,7 +257,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 }
                 logger.info("notify pluginsUpdateListeners size:" + pluginsUpdateListeners.size());
             }
-            return true;
+            return new SetPluginsResult(true, changed);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

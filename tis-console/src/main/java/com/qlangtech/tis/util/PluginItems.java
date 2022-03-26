@@ -123,7 +123,7 @@ public class PluginItems {
     return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
   }
 
-  public List<Describable> save(Context context) {
+  public ItemsSaveResult save(Context context) {
     Objects.requireNonNull(this.pluginContext, "pluginContext can not be null");
     if (items == null) {
       throw new IllegalStateException("prop items can not be null");
@@ -176,21 +176,25 @@ public class PluginItems {
 
       store = new IPluginStoreSave<DataSourceFactory>() {
         @Override
-        public boolean setPlugins(IPluginContext pluginContext, Optional<Context> context
+        public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
           , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
+          SetPluginsResult finalResult = new SetPluginsResult(true, false);
           for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
 
             PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
             if (DbScope.DETAILED == dbExtraProps.getDbType()) {
               dbExtraProps.setDbname(((IdentityName) plugin.getInstance()).identityValue());
             }
-            boolean success = TIS.getDataBasePluginStore(dbExtraProps)
+            SetPluginsResult result = TIS.getDataBasePluginStore(dbExtraProps)
               .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
-            if (!success) {
-              return false;
+            if (!result.success) {
+              return result;
+            }
+            if (result.cfgChanged) {
+              finalResult.cfgChanged = true;
             }
           }
-          return true;
+          return finalResult;
         }
       };
     } else if (heteroEnum == HeteroEnum.DATAX_WRITER || heteroEnum == HeteroEnum.DATAX_READER) {
@@ -272,11 +276,12 @@ public class PluginItems {
       }
     }
     //dlist
-    if (!store.setPlugins(pluginContext, Optional.of(context), convert(dlist))) {
-      return Collections.emptyList();
+    SetPluginsResult result = store.setPlugins(pluginContext, Optional.of(context), convert(dlist));
+    if (!result.success) {
+      return new ItemsSaveResult(Collections.emptyList(), result);
     }
-    observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList));
-    return describableList;
+    observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList, result.cfgChanged));
+    return new ItemsSaveResult(describableList, result);
   }
 
   private <T extends Describable> List<Descriptor.ParseDescribable<T>> convert(List<Descriptor.ParseDescribable<?>> dlist) {
@@ -310,10 +315,13 @@ public class PluginItems {
 
     public final List<Describable> dlist;
 
-    public PluginItemsSaveEvent(IPluginContext collectionName, IPluginEnum heteroEnum, List<Describable> dlist) {
+    public final boolean cfgChanged;
+
+    public PluginItemsSaveEvent(IPluginContext collectionName, IPluginEnum heteroEnum, List<Describable> dlist, boolean cfgChanged) {
       this.collectionName = collectionName;
       this.heteroEnum = heteroEnum;
       this.dlist = dlist;
+      this.cfgChanged = cfgChanged;
     }
   }
 }

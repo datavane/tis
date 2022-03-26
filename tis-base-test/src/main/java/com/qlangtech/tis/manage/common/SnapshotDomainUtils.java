@@ -18,6 +18,7 @@
 package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
+import com.qlangtech.tis.utils.MD5Utils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
@@ -37,7 +38,7 @@ public class SnapshotDomainUtils {
             Objects.requireNonNull(i, "schema stream can not be null");
             UploadResource schema = new UploadResource();
             schema.setContent(IOUtils.toByteArray(i));
-            schema.setMd5Code(ConfigFileReader.md5file(schema.getContent()));
+            schema.setMd5Code(MD5Utils.md5file(schema.getContent()));
             snapshotDomain.setSolrSchema(schema);
         }
 
@@ -45,7 +46,7 @@ public class SnapshotDomainUtils {
             Objects.requireNonNull(i, "solrconfig stream can not be null");
             UploadResource solrCfg = new UploadResource();
             solrCfg.setContent(IOUtils.toByteArray(i));
-            solrCfg.setMd5Code(ConfigFileReader.md5file(solrCfg.getContent()));
+            solrCfg.setMd5Code(MD5Utils.md5file(solrCfg.getContent()));
             snapshotDomain.setSolrConfig(solrCfg);
         }
 

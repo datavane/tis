@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.compiler.streamcode;
 
@@ -29,17 +29,13 @@ import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
-import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.FacadeDataSource;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
-import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
+import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.FacadeContext;
-import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.ibatis.ibator.config.IbatorContext;
 
@@ -74,7 +70,7 @@ public class GenerateDAOAndIncrScript {
      */
     public void generate(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<Integer, Long> dependencyDbs) throws Exception {
         generateDAOScript(context, dependencyDbs);
-        generateIncrScript(context, incrStatus, compilerAndPackage, Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables()));
+        generateIncrScript(context, incrStatus, compilerAndPackage, Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables()), false);
     }
 
     public static boolean incrStreamCodeCompileFaild(File sourceRootDir) {
@@ -91,13 +87,15 @@ public class GenerateDAOAndIncrScript {
         return exist;
     }
 
-    public void generateIncrScript(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<DBNode, List<String>> dbNameMap) {
+    public void generateIncrScript(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<DBNode, List<String>> dbNameMap, boolean hasCfgChanged) {
         try {
             //final Map<DBNode, List<String>> dbNameMap = Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables());
             File sourceRoot = StreamContextConstant.getStreamScriptRootDir(
                     indexStreamCodeGenerator.collection, indexStreamCodeGenerator.incrScriptTimestamp);
-            if (!indexStreamCodeGenerator.isIncrScriptDirCreated() || // 检查Faild Token文件是否存在
-                    incrStreamCodeCompileFaild(sourceRoot)) {
+            if (!indexStreamCodeGenerator.isIncrScriptDirCreated()
+                    || // 检查Faild Token文件是否存在
+                    incrStreamCodeCompileFaild(sourceRoot)
+                    || hasCfgChanged) {
                 /**
                  * *********************************************************************************
                  * 自动生成scala代码
@@ -119,9 +117,10 @@ public class GenerateDAOAndIncrScript {
             // TODO 真实生产环境中需要 和 代码build阶段分成两步
             if (compilerAndPackage) {
 
-                IPluginStore pluginStore = HeteroEnum.INCR_STREAM_CONFIG.getPluginStore(
-                        IPluginContext.namedContext(this.indexStreamCodeGenerator.collection), null);
-                IncrStreamFactory streamFactory = (IncrStreamFactory) pluginStore.getPlugin();
+                TISSinkFactory streamFactory = TISSinkFactory.getIncrSinKFactory(this.indexStreamCodeGenerator.collection);
+//                 HeteroEnum.INCR_STREAM_CONFIG.getPluginStore(
+//                        IPluginContext.namedContext(this.indexStreamCodeGenerator.collection), null);
+                // (TISSinkFactory) pluginStore.getPlugin();
                 Objects.requireNonNull(streamFactory, "relevant streamFactory can not be null,collection:" + this.indexStreamCodeGenerator.collection);
 //                CompileAndPackage packager = new CompileAndPackage();
                 streamFactory.getCompileAndPackageManager().process(context, this.msgHandler, indexStreamCodeGenerator.collection
@@ -138,56 +137,6 @@ public class GenerateDAOAndIncrScript {
             throw new RuntimeException(e);
         }
     }
-
-//    private void compileAndPackage(Context context, IControlMsgHandler msgHandler, Map<DBNode, List<String>> dbNameMap, File sourceRoot) throws Exception {
-//        /**
-//         * *********************************************************************************
-//         * 编译增量脚本
-//         * ***********************************************************************************
-//         */
-//        if (this.streamScriptCompile(sourceRoot, dbNameMap.keySet())) {
-//            msgHandler.addErrorMessage(context, "增量脚本编译失败");
-//            msgHandler.addFieldError(context, "incr_script_compile_error", "error");
-//            return;
-//        }
-//        /**
-//         * *********************************************************************************
-//         * 对scala代码进行 打包
-//         * ***********************************************************************************
-//         */
-//        JavaCompilerProcess.SourceGetterStrategy getterStrategy
-//                = new JavaCompilerProcess.SourceGetterStrategy(false, "/src/main/scala", ".scala") {
-//
-//            @Override
-//            public JavaFileObject.Kind getSourceKind() {
-//                // 没有scala的类型，暂且用other替换一下
-//                return JavaFileObject.Kind.OTHER;
-//            }
-//
-//            @Override
-//            public MyJavaFileObject processMyJavaFileObject(MyJavaFileObject fileObj) {
-//                try {
-//                    try (InputStream input = FileUtils.openInputStream(fileObj.getSourceFile())) {
-//                        IOUtils.copy(input, fileObj.openOutputStream());
-//                    }
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//                return fileObj;
-//            }
-//        };
-//        //
-//        JavaCompilerProcess.FileObjectsContext fileObjects = JavaCompilerProcess.getFileObjects(sourceRoot, getterStrategy);
-//        final JavaCompilerProcess.FileObjectsContext compiledCodeContext = new JavaCompilerProcess.FileObjectsContext();
-//        File streamScriptClassesDir = new File(sourceRoot, "classes");
-//        appendClassFile(streamScriptClassesDir, compiledCodeContext, null);
-//        // 取得spring配置文件相关resourece
-//        JavaCompilerProcess.FileObjectsContext xmlConfigs = indexStreamCodeGenerator.getSpringXmlConfigsObjectsContext();
-//
-//        JavaCompilerProcess.packageJar(
-//                sourceRoot, StreamContextConstant.getIncrStreamJarName(indexStreamCodeGenerator.collection)
-//                , fileObjects, compiledCodeContext, xmlConfigs);
-//    }
 
     private void generateDAOScript(Context context, Map<Integer, Long> dependencyDbs) throws Exception {
         final Map<DBNode, List<String>> dbNameMap = Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables());

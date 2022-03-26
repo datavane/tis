@@ -67,6 +67,7 @@ import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.web.start.TisAppLaunchPort;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
@@ -258,7 +259,13 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT, sideEffect = false)
   public void doCreateIncrSyncChannal(Context context) throws Exception {
 
-    IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context);
+    // 该方法是从PluginAction:doSavePluginConfig中forward过来的
+    List<ItemsSaveResult> itemsSaveResult = PluginAction.getItemsSaveResultInRequest(this.getRequest());
+
+    Optional<ItemsSaveResult> hasCfgChanged
+      = itemsSaveResult.stream().filter((r) -> r.cfgSaveResult.cfgChanged).findFirst();
+
+    IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context, hasCfgChanged.isPresent());
     this.setBizResult(context, incrStatus);
   }
 
@@ -269,17 +276,17 @@ public class CoreAction extends BasicModule {
     this.setBizResult(context, doGetDataXReaderWriterDesc(this.getCollectionName()));
   }
 
-  public static IndexIncrStatus generateDAOAndIncrScript(BasicModule module, Context context) throws Exception {
-    return generateDAOAndIncrScript(module, context, false, false);
+  public static IndexIncrStatus generateDAOAndIncrScript(BasicModule module, Context context, boolean hasCfgChanged) throws Exception {
+    return generateDAOAndIncrScript(module, context, false, false, hasCfgChanged);
   }
 
   public static IndexIncrStatus generateDAOAndIncrScript(
-    BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage) throws Exception {
+    BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean hasCfgChanged) throws Exception {
 
     IStreamIncrGenerateStrategy appSource = IAppSource.load(null, module.getCollectionName());
 
     return generateDAOAndIncrScript(module, context
-      , validateGlobalIncrStreamFactory, compilerAndPackage, appSource.isExcludeFacadeDAOSupport());
+      , validateGlobalIncrStreamFactory, compilerAndPackage, appSource.isExcludeFacadeDAOSupport(), hasCfgChanged);
   }
 
   /**
@@ -294,7 +301,7 @@ public class CoreAction extends BasicModule {
    */
   public static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context
-    , boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean excludeFacadeDAOSupport) throws Exception {
+    , boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean excludeFacadeDAOSupport, boolean hasCfgChanged) throws Exception {
 
 
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
@@ -333,7 +340,7 @@ public class CoreAction extends BasicModule {
     }
     GenerateDAOAndIncrScript generateDAOAndIncrScript = new GenerateDAOAndIncrScript(module, indexStreamCodeGenerator);
     if (excludeFacadeDAOSupport) {
-      generateDAOAndIncrScript.generateIncrScript(context, incrStatus, compilerAndPackage, Collections.emptyMap());
+      generateDAOAndIncrScript.generateIncrScript(context, incrStatus, compilerAndPackage, Collections.emptyMap(), hasCfgChanged);
     } else {
       // 需要facadeDAO支持
       generateDAOAndIncrScript.generate(context, incrStatus
@@ -372,7 +379,7 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT)
   public void doCompileAndPackage(Context context) throws Exception {
 
-    IBasicAppSource appSource = IAppSource.load(null, this.getCollectionName());
+    // IBasicAppSource appSource = IAppSource.load(null, this.getCollectionName());
 
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
@@ -380,7 +387,7 @@ public class CoreAction extends BasicModule {
 
     // if (appSource.isExcludeFacadeDAOSupport()) {
     if (true) {
-      daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap());
+      daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap(), false);
     } else {
       Map<Integer, Long> dependencyDbs = getDependencyDbsMap(this, indexStreamCodeGenerator);
       // 需要facadeDAO支持
@@ -398,11 +405,16 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doDeployIncrSyncChannal(Context context) throws Exception {
     // 先进行打包编译
-    StringBuffer logger = new StringBuffer("flin sync app:" + this.getCollectionName());
+    StringBuffer logger = new StringBuffer("flink sync app:" + this.getCollectionName());
     try {
       TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
       k8sClient.checkUseable();
       long start = System.currentTimeMillis();
+      /**
+       * ==========================================================
+       * compile&deploy
+       * ==========================================================
+       */
       this.doCompileAndPackage(context);
       if (context.hasErrors()) {
         return;
@@ -415,7 +427,11 @@ public class CoreAction extends BasicModule {
       // https://github.com/kubernetes-client/java
 
       start = System.currentTimeMillis();
-      // 通过k8s发布
+      /**
+       * ==========================================================
+       * 通过k8s发布
+       * ==========================================================
+       */
       k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
       logger.append("\n deploy to flink cluster consume:" + (System.currentTimeMillis() - start) + "ms ");
       IndexIncrStatus incrStatus = new IndexIncrStatus();

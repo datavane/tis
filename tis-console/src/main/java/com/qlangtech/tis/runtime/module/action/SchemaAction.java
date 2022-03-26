@@ -40,7 +40,6 @@ import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
@@ -53,6 +52,7 @@ import com.qlangtech.tis.solrdao.SolrFieldsParser.SolrType;
 import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.utils.MD5Utils;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import com.yushu.tis.xmodifier.XModifier;
@@ -1035,7 +1035,7 @@ public class SchemaAction extends BasicModule {
     CreateSnapshotResult createResult = new CreateSnapshotResult();
     try {
       // final byte[] uploadContent = content.getContentBytes();
-      final String md5 = ConfigFileReader.md5file(uploadContent);
+      final String md5 = MD5Utils.md5file(uploadContent);
       // 创建一条资源记录
       try {
         Integer newResId = createNewResource(context, schemaPlugin, uploadContent, md5, fileGetter, messageHandler, runContext);

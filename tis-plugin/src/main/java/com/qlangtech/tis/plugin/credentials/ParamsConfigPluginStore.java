@@ -25,6 +25,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.SetPluginsResult;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
@@ -117,13 +118,14 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     }
 
     @Override
-    public boolean setPlugins(IPluginContext pluginContext, Optional<Context> context
+    public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
             , List<Descriptor.ParseDescribable<ParamsConfig>> dlist, boolean update) {
 
         Map<String, List<Descriptor.ParseDescribable<ParamsConfig>>> desc2Plugin = Maps.newHashMap();
         String descName = null;
         ParamsConfig paramCfg = null;
         List<Descriptor.ParseDescribable<ParamsConfig>> plugins = null;
+        boolean cfgChanged = false;
         for (Descriptor.ParseDescribable<ParamsConfig> p : dlist) {
             paramCfg = p.getInstance();
             descName = paramCfg.getDescriptor().getDisplayName();
@@ -137,10 +139,12 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
         for (Map.Entry<String, List<Descriptor.ParseDescribable<ParamsConfig>>> entry : desc2Plugin.entrySet()) {
             IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getChildPluginStore(entry.getKey());
-            childPluginStore.setPlugins(pluginContext, context, entry.getValue(), true);
+            if (childPluginStore.setPlugins(pluginContext, context, entry.getValue(), true).cfgChanged) {
+                cfgChanged = true;
+            }
         }
 
-        return true;
+        return new SetPluginsResult(true, cfgChanged);
     }
 
     @Override

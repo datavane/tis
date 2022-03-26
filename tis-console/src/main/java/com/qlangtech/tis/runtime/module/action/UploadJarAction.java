@@ -31,6 +31,7 @@ import com.qlangtech.tis.manage.servlet.DownloadResource;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
+import com.qlangtech.tis.utils.MD5Utils;
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -235,7 +236,7 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     Assert.assertNotNull("resource can not be null", resource);
     Assert.assertNotNull("resource.getContent() can not null", resource.getContent());
     Assert.assertEquals("resource type:" + resource.getResourceType() + " rid:" + rid + " is not illegal", com.qlangtech.tis.runtime.module.screen.GlobalResource.UPLOAD_RESOURCE_TYPE_GLOBAL, resource.getResourceType());
-    Assert.assertEquals(resource.getMd5Code(), ConfigFileReader.md5file(resource.getContent()));
+    Assert.assertEquals(resource.getMd5Code(), MD5Utils.md5file(resource.getContent()));
     getResponse().setContentType(DownloadResource.JAR_CONTENT_TYPE);
     DownloadServlet.setDownloadName(getResponse(), rid + "_" + (System.currentTimeMillis() / 1000) + ".jar");
     IOUtils.write(resource.getContent(), getResponse().getOutputStream());
@@ -513,7 +514,7 @@ public class UploadJarAction extends BasicModule implements ModelDriven<UploadJa
     UploadResource solrCoreDependedResource = new UploadResource();
     solrCoreDependedResource.setCreateTime(new Date());
     solrCoreDependedResource.setContent(getter.getContent());
-    solrCoreDependedResource.setMd5Code(ConfigFileReader.md5file(solrCoreDependedResource.getContent()));
+    solrCoreDependedResource.setMd5Code(MD5Utils.md5file(solrCoreDependedResource.getContent()));
     solrCoreDependedResource.setResourceType(getter.getterStrategy.getFileName());
     Integer newid = runContext.getUploadResourceDAO().insertSelective(solrCoreDependedResource);
     return getter.getterStrategy.createNewSnapshot(newid, snapshot);

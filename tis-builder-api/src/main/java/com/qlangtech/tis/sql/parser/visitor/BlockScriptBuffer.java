@@ -30,17 +30,27 @@ import java.util.regex.Pattern;
  * @create: 2022-02-19 22:43
  **/
 public class BlockScriptBuffer implements IBlockToString {
+
+    public static final int INDENT_STEP = 4;
     private static final Pattern PATTERN_LAST_RETURN = Pattern.compile("\n\\s*$");
     private final List<Object> format = new ArrayList<>();
     private int indent;
     private boolean lastReturnChar = false;
 
+    public BlockScriptBuffer() {
+        this(0);
+    }
+
+    public BlockScriptBuffer(int indent) {
+        this.indent = indent;
+    }
+
     private void addIndent() {
-        this.indent += 4;
+        this.indent += INDENT_STEP;
     }
 
     private void decreaseIndent() {
-        this.indent -= 4;
+        this.indent -= INDENT_STEP;
     }
 
     public BlockScriptBuffer methodBody(Object method, IFuncFormatCall call) {

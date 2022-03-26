@@ -1,24 +1,25 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.extension.impl;
 
 import com.qlangtech.tis.util.AtomicFileWriter;
 import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.utils.MD5Utils;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.converters.DataHolder;
@@ -112,8 +113,17 @@ public final class XmlFile {
         }
     }
 
-    public void write(Object o, Set<XStream2.PluginMeta> pluginsMeta) throws IOException {
+    /**
+     * 文件更新之前和更新之后是否有变化
+     *
+     * @param o
+     * @param pluginsMeta
+     * @return
+     * @throws IOException
+     */
+    public boolean write(Object o, Set<XStream2.PluginMeta> pluginsMeta) throws IOException {
         mkdirs();
+        String preMd5 = MD5Utils.md5file(file);
         AtomicFileWriter w = new AtomicFileWriter(file);
         try {
             w.write("<?xml version='1.0' encoding='UTF-8'?>\n");
@@ -126,6 +136,7 @@ public final class XmlFile {
             }
             // xs.toXML(o, w);
             w.commit();
+            return preMd5.equals(MD5Utils.md5file(file));
         } catch (StreamException e) {
             throw new IOException(e);
         } finally {
