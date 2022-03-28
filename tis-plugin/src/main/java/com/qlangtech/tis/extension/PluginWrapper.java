@@ -221,13 +221,13 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         // @Exported
         public final boolean optional;
 
-        public Dependency(String s) {
+        public static Dependency parse(String s) {
             int idx = s.indexOf(':');
             if (idx == -1) {
                 throw new IllegalArgumentException("Illegal dependency specifier " + s);
             }
-            this.shortName = s.substring(0, idx);
-            this.version = s.substring(idx + 1);
+            String shortName = s.substring(0, idx);
+            String version = s.substring(idx + 1);
             boolean isOptional = false;
             String[] osgiProperties = s.split(";");
             for (int i = 1; i < osgiProperties.length; i++) {
@@ -236,7 +236,14 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
                     isOptional = true;
                 }
             }
-            this.optional = isOptional;
+            return new Dependency(shortName, version, isOptional);
+        }
+
+
+        public Dependency(String shortName, String version, boolean optional) {
+            this.shortName = shortName;
+            this.version = version;
+            this.optional = optional;
         }
 
         @Override

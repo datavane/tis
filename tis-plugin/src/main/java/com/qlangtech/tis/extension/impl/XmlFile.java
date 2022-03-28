@@ -136,7 +136,7 @@ public final class XmlFile {
             }
             // xs.toXML(o, w);
             w.commit();
-            return preMd5.equals(MD5Utils.md5file(file));
+            return !preMd5.equals(MD5Utils.md5file(file));
         } catch (StreamException e) {
             throw new IOException(e);
         } finally {

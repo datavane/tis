@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.extension.PluginManager;
+import com.qlangtech.tis.extension.UberClassLoader;
 
 import java.net.URL;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class TISJarLoader extends com.alibaba.datax.core.util.container.JarLoade
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         try {
-            PluginManager.UberClassLoader classLoader = pluginManager.uberClassLoader;
+            UberClassLoader classLoader = pluginManager.uberClassLoader;
             return classLoader.findClass(name);
         } catch (Throwable e) {
             throw new RuntimeException("className:" + name + ",scan the plugins:"

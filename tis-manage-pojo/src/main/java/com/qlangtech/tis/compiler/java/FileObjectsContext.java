@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.compiler.java;
@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
@@ -42,6 +43,12 @@ import java.util.zip.CRC32;
  * @create: 2021-10-20 16:59
  **/
 public class FileObjectsContext {
+
+    public Map<String /** className **/, IOutputEntry> classMap = Maps.newHashMap();
+
+    Set<String> dirSet = Sets.newHashSet();
+
+    public List<ResourcesFile> resources = Lists.newArrayList();
 
     public static void traversingFiles(Stack<String> childPath, File parent, FileObjectsContext result, IProcessFile fileProcess) {
         if (parent == null || !parent.exists()) {
@@ -97,17 +104,21 @@ public class FileObjectsContext {
         return result;
     }
 
+    public static void packageJar(File sourceDir, String jarFileName, FileObjectsContext... fileObjectsArry) throws Exception {
+        packageJar(sourceDir, jarFileName, new Manifest(), fileObjectsArry);
+    }
+
     /**
      * @param sourceDir       Jar包保存的位置
      * @param jarFileName     Jar包的名称
      * @param fileObjectsArry 需要打包的资源文件
      * @throws Exception
      */
-    public static void packageJar(File sourceDir, String jarFileName, FileObjectsContext... fileObjectsArry) throws Exception {
+    public static void packageJar(File sourceDir, String jarFileName, Manifest man, FileObjectsContext... fileObjectsArry) throws Exception {
         try {
             final Set<String> savedEntryPaths = Sets.newHashSet();
             // 开始打包
-            try (JarOutputStream jaroutput = new JarOutputStream(FileUtils.openOutputStream(new File(sourceDir, jarFileName)))) {
+            try (JarOutputStream jaroutput = new JarOutputStream(FileUtils.openOutputStream(new File(sourceDir, jarFileName)), man)) {
                 for (FileObjectsContext fileObjects : fileObjectsArry) {
                     // 添加文件夹entry
                     fileObjects.dirSet.stream().forEach((p) -> {
@@ -178,10 +189,5 @@ public class FileObjectsContext {
         public void process(String zipPath, File child);
     }
 
-    public Map<String, IOutputEntry> /* class name */
-            classMap = Maps.newHashMap();
 
-    Set<String> dirSet = Sets.newHashSet();
-
-    public List<ResourcesFile> resources = Lists.newArrayList();
 }

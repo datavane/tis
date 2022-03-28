@@ -203,7 +203,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
         String v = atts.getValue(KEY_MANIFEST_DEPENDENCIES);
         if (v != null) {
             for (String s : v.split(",")) {
-                PluginWrapper.Dependency d = new PluginWrapper.Dependency(s);
+                PluginWrapper.Dependency d =  PluginWrapper.Dependency.parse(s);
                 if (d.optional) {
                     dependencyMeta.optionalDependencies.add(d);
                 } else {

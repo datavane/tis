@@ -44,12 +44,16 @@ public class Config {
 
     public static final String PLUGIN_LIB_DIR = "WEB-INF/lib";
 
-    public static File getPluginLibDir(String pluginName) {
+    public static File getPluginLibDir(String pluginName, boolean validateExist) {
         File libDir = new File(Config.getDataDir(), Config.LIB_PLUGINS_PATH + "/" + pluginName + "/WEB-INF/lib");
-        if (!libDir.exists() || libDir.isFile()) {
+        if (validateExist && (!libDir.exists() || libDir.isFile())) {
             throw new IllegalStateException("dir " + pluginName + " is illegal:" + libDir.getAbsolutePath());
         }
         return libDir;
+    }
+
+    public static File getPluginLibDir(String pluginName) {
+        return getPluginLibDir(pluginName, true);
     }
 
     public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/guide/plugin/plugins/#";

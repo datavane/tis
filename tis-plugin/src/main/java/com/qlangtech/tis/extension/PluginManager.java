@@ -25,7 +25,6 @@ import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
-import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.util.InitializerFinder;
@@ -43,12 +42,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -83,7 +78,7 @@ public class PluginManager {
     // private static final Logger logger = LoggerFactory.getLogger(TIS.class.getName());
     public final PluginManager.PluginInstanceStore pluginInstanceStore = new PluginManager.PluginInstanceStore();
 
-    public final UberClassLoader uberClassLoader = new UberClassLoader();
+    public final UberClassLoader uberClassLoader = new UberClassLoader(this);
 
     public File getWorkDir() {
         return workDir;
@@ -623,127 +618,4 @@ public class PluginManager {
     // !SystemProperties.getBoolean(PluginManager.class.getName()+".noFastLookup");
     public static boolean FAST_LOOKUP = true;
 
-    /**
-     * {@link ClassLoader} that can see all plugins.
-     */
-    public final class UberClassLoader extends ClassLoader {
-
-        /**
-         * Make generated types visible.
-         * Keyed by the generated class name.
-         */
-        private ConcurrentMap<String, WeakReference<Class>> generatedClasses = new ConcurrentHashMap<String, WeakReference<Class>>();
-
-        /**
-         * Cache of loaded, or known to be unloadable, classes.
-         */
-        private final Map<String, Class<?>> loaded = new HashMap<String, Class<?>>();
-
-        public UberClassLoader() {
-            super(PluginManager.class.getClassLoader());
-        }
-
-        public void addNamedClass(String className, Class c) {
-            generatedClasses.put(className, new WeakReference<Class>(c));
-        }
-
-        @Override
-        public Class<?> findClass(String name) throws ClassNotFoundException {
-            WeakReference<Class> wc = generatedClasses.get(name);
-            if (wc != null) {
-                Class c = wc.get();
-                if (c != null)
-                    return c;
-                else
-                    generatedClasses.remove(name, wc);
-            }
-            if (name.startsWith("SimpleTemplateScript")) {
-                // cf. groovy.text.SimpleTemplateEngine
-                throw new ClassNotFoundException("ignoring " + name);
-            }
-            synchronized (loaded) {
-                if (loaded.containsKey(name)) {
-                    Class<?> c = loaded.get(name);
-                    if (c != null) {
-                        return c;
-                    } else {
-                        throw new ClassNotFoundException("cached miss for " + name);
-                    }
-                }
-            }
-            if (FAST_LOOKUP) {
-                for (PluginWrapper p : activePlugins) {
-                    try {
-                        Class<?> c = ClassLoaderReflectionToolkit._findLoadedClass(p.classLoader, name);
-                        if (c != null) {
-                            synchronized (loaded) {
-                                loaded.put(name, c);
-                            }
-                            return c;
-                        }
-                        // calling findClass twice appears to cause LinkageError: duplicate class def
-                        c = ClassLoaderReflectionToolkit._findClass(p.classLoader, name);
-                        synchronized (loaded) {
-                            loaded.put(name, c);
-                        }
-                        return c;
-                    } catch (ClassNotFoundException e) {
-                        // not found. try next
-                    }
-                }
-            } else {
-                for (PluginWrapper p : activePlugins) {
-                    try {
-                        return p.classLoader.loadClass(name);
-                    } catch (ClassNotFoundException e) {
-                        // not found. try next
-                    }
-                }
-            }
-            synchronized (loaded) {
-                loaded.put(name, null);
-            }
-            // not found in any of the classloader. delegate.
-            throw new ClassNotFoundException(name);
-        }
-
-        @Override
-        protected URL findResource(String name) {
-            if (FAST_LOOKUP) {
-                for (PluginWrapper p : activePlugins) {
-                    URL url = ClassLoaderReflectionToolkit._findResource(p.classLoader, name);
-                    if (url != null)
-                        return url;
-                }
-            } else {
-                for (PluginWrapper p : activePlugins) {
-                    URL url = p.classLoader.getResource(name);
-                    if (url != null)
-                        return url;
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected Enumeration<URL> findResources(String name) throws IOException {
-            List<URL> resources = new ArrayList<URL>();
-            if (FAST_LOOKUP) {
-                for (PluginWrapper p : activePlugins) {
-                    resources.addAll(Collections.list(ClassLoaderReflectionToolkit._findResources(p.classLoader, name)));
-                }
-            } else {
-                for (PluginWrapper p : activePlugins) {
-                    resources.addAll(Collections.list(p.classLoader.getResources(name)));
-                }
-            }
-            return Collections.enumeration(resources);
-        }
-
-        @Override
-        public String toString() {
-            // only for debugging purpose
-            return "classLoader " + getClass().getName();
-        }
-    }
 }

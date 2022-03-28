@@ -4,26 +4,18 @@ import java.util
 import org.apache.flink.streaming.api.functions.sink.{PrintSinkFunction, SinkFunction}
 import com.qlangtech.tis.realtime.{HoodieFlinkSourceHandle}
 import scala.collection.JavaConverters._
-import java.util.concurrent.Callable
+import org.apache.hudi.streamer.FlinkStreamerConfig
+import org.apache.hudi.common.model.WriteOperationType
+import com.qlangtech.tis.extension.TISExtension
 
-
-
+@TISExtension()
 class ${config.javaName}SourceHandle extends HoodieFlinkSourceHandle {
 
-override protected def createTabStreamerCfg(): java.util.Map[String,Callable[Object]] = {
- import org.apache.hudi.streamer.FlinkStreamerConfig
- import org.apache.hudi.common.model.WriteOperationType
+override protected def createTabStreamerCfg(): java.util.Map[String , FlinkStreamerConfig] = {
 
- var cfgs: Map[String , Callable[Object]] = Map()
+
+ var cfgs: Map[String , FlinkStreamerConfig] = Map()
  var cfg: FlinkStreamerConfig = null
-
-
- implicit def strToOperationType(v: String) : WriteOperationType = {
-   WriteOperationType.fromValue(v)
- }
- implicit def cfgToCallable(v: FlinkStreamerConfig) : Callable[Object] = {
-  new Callable[Object]{ override def call(): Object = { v }}
- }
 
 #foreach($i in $config.dumpTables  )
   cfg = new FlinkStreamerConfig()
@@ -35,6 +27,9 @@ override protected def createTabStreamerCfg(): java.util.Map[String,Callable[Obj
   cfgs.asJava
 }
 
+implicit def strToOperationType(v: String) : WriteOperationType = {
+   WriteOperationType.fromValue(v)
+}
 
 
 }
