@@ -18,8 +18,6 @@
 
 package com.qlangtech.tis.compiler.java;
 
-import java.io.File;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-10-20 17:00
@@ -28,19 +26,19 @@ public class ResourcesFile {
 
     private final ZipPath zipPath;
 
-    private final File file;
+    private final byte[] content;
 
-    public ResourcesFile(ZipPath zipPath, File file) {
+    public ResourcesFile(ZipPath zipPath, byte[] content) {
         super();
         this.zipPath = zipPath;
-        this.file = file;
+        this.content = content;
     }
 
     public ZipPath getZipPath() {
         return zipPath;
     }
 
-    public File getFile() {
-        return file;
+    public byte[] getContent() {
+        return content;
     }
 }

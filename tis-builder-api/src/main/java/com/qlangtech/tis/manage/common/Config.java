@@ -19,6 +19,7 @@ package com.qlangtech.tis.manage.common;
 
 
 import com.qlangtech.tis.org.apache.commons.io.FileUtils;
+import com.qlangtech.tis.utils.TisMetaProps;
 import com.qlangtech.tis.web.start.TisAppLaunchPort;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -100,6 +101,10 @@ public class Config {
     public static final String KEY_DATA_DIR = "data.dir";
     public static final String KEY_LOG_DIR = "log.dir";
 
+
+    public static TisMetaProps getMetaProps() {
+        return TisMetaProps.getInstance();
+    }
 
     public static void setDataDir(String path) {
         System.setProperty(KEY_DATA_DIR, path);

@@ -60,7 +60,6 @@ public class IndexStreamCodeGenerator {
     // 自动生成的incr脚本中需要dao支持吗？
 
 
-
     public IndexStreamCodeGenerator(String collection, IBasicAppSource streamIncrGenerateStrategy, long incrScriptTimestamp
             , IDBTableNamesGetter dbTableNamesGetter) throws Exception {
         if (StringUtils.isEmpty(collection)) {
@@ -138,7 +137,7 @@ public class IndexStreamCodeGenerator {
         }
         FileObjectsContext.traversingFiles(childPath, parent, xmlConfigs, (zp, child) -> {
             ZipPath zipPath = new ZipPath(zp, child.getName(), JavaFileObject.Kind.OTHER);
-            ResourcesFile res = new ResourcesFile(zipPath, child);
+            ResourcesFile res = new ResourcesFile(zipPath, FileUtils.readFileToByteArray(child));
             xmlConfigs.resources.add(res);
         });
         return xmlConfigs;

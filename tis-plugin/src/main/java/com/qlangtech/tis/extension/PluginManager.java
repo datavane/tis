@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.extension;
 
@@ -144,25 +144,45 @@ public class PluginManager {
             p = strategy.createPluginWrapper(arc);
             sn = p.getShortName();
         }
-        PluginWrapper pw = getPlugin(sn);
+        this.dynamicLoad(sn, arc, removeExisting, batch);
+    }
+
+
+    public void dynamicLoad(String shotName, File arc, boolean removeExisting, List<PluginWrapper> batch) throws IOException, InterruptedException, RestartRequiredException {
+        // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
+
+        PluginWrapper p = null;
+
+        PluginWrapper pw = getPlugin(shotName);
         if (pw != null) {
             if (removeExisting) { // try to load disabled plugins
                 for (Iterator<PluginWrapper> i = plugins.iterator(); i.hasNext(); ) {
                     pw = i.next();
-                    if (sn.equals(pw.getShortName())) {
+                    if (shotName.equals(pw.getShortName())) {
                         i.remove();
                         break;
                     }
                 }
+                PluginWrapper aplugin = null;
+                for (Iterator<PluginWrapper> i = activePlugins.iterator(); i.hasNext(); ) {
+                    pw = i.next();
+                    if (shotName.equals(pw.getShortName())) {
+                        aplugin = pw;
+                        break;
+                    }
+                }
+                if (aplugin != null) {
+                    activePlugins.remove(aplugin);
+                }
             } else {
-                throw new RestartRequiredException("PluginIsAlreadyInstalled_RestartRequired:" + (sn));
+                throw new RestartRequiredException("PluginIsAlreadyInstalled_RestartRequired:" + (shotName));
             }
         }
         if (p == null) {
             p = strategy.createPluginWrapper(arc);
         }
         if (p.supportsDynamicLoad() == YesNoMaybe.NO) {
-            throw new RestartRequiredException("PluginDoesntSupportDynamicLoad_RestartRequired:" + (sn));
+            throw new RestartRequiredException("PluginDoesntSupportDynamicLoad_RestartRequired:" + (shotName));
         }
         // there's no need to do cyclic dependency check, because we are deploying one at a time,
         // so existing plugins can't be depending on this newly deployed one.
@@ -189,10 +209,10 @@ public class PluginManager {
             }
 
         } catch (Exception e) {
-            failedPlugins.add(new FailedPlugin(sn, e));
+            failedPlugins.add(new FailedPlugin(shotName, e));
             activePlugins.remove(p);
             plugins.remove(p);
-            throw new IOException("Failed to install " + sn + " plugin", e);
+            throw new IOException("Failed to install " + shotName + " plugin", e);
         }
 
         LOGGER.info("Plugin {}:{} dynamically {}", p.getShortName(), p.getVersion(), batch != null ? "loaded but not yet started" : "installed");

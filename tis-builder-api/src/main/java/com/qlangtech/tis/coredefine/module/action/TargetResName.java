@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.coredefine.module.action;
 
+import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -26,6 +27,10 @@ import org.apache.commons.lang.StringUtils;
  **/
 public class TargetResName {
     private final String name;
+
+    public String getStreamSourceHandlerClass() {
+        return "com.qlangtech.tis.realtime.transfer." + this.name + "." + UnderlineUtils.getJavaName(this.name) + "SourceHandle";
+    }
 
     public TargetResName(String name) {
         if (StringUtils.isEmpty(name)) {

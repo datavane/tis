@@ -237,7 +237,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
      */
     protected ClassLoader createClassLoader(List<File> paths, ClassLoader parent, Attributes atts) throws IOException {
         if (atts != null) {
-            String usePluginFirstClassLoader = atts.getValue("PluginFirstClassLoader");
+            String usePluginFirstClassLoader = atts.getValue(KEY_MANIFEST_PLUGIN_FIRST_CLASSLOADER);
             if (Boolean.valueOf(usePluginFirstClassLoader)) {
                 PluginFirstClassLoader classLoader = new PluginFirstClassLoader();
                 classLoader.setParentFirst(false);

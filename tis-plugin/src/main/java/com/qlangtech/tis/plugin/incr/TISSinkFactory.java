@@ -44,6 +44,7 @@ import java.util.Objects;
  **/
 @Public
 public abstract class TISSinkFactory implements Describable<TISSinkFactory>, KeyedPluginStore.IPluginKeyAware {
+    public static final String KEY_FLINK_STREAM_APP_NAME_PREFIX = "flink_stream_";
     private static final Logger logger = LoggerFactory.getLogger(TISSinkFactory.class);
     @TISExtension
     public static final HeteroEnum<TISSinkFactory> sinkFactory = new HeteroEnum<TISSinkFactory>(//

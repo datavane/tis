@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.compiler.java;
 
@@ -28,14 +28,9 @@ import org.slf4j.LoggerFactory;
 import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
-import java.util.zip.CRC32;
 
 /**
  * 将自动生成出来的java类进行编译 https://blog.csdn.net/lmy86263/article/details/59742557
@@ -136,7 +131,7 @@ public class JavaCompilerProcess {
             compileTask.call();
             collector.getDiagnostics().forEach(item -> System.out.println(item.toString()));
             // final Set<String> zipDirSet = Sets.newHashSet();
-            FileObjectsContext.packageJar(this.sourceDir, this.dbConfig.getDAOJarName(), fileObjects);
+            FileObjectsContext.packageJar(new File(this.sourceDir, this.dbConfig.getDAOJarName()), fileObjects);
         } finally {
             try {
                 manager.close();
@@ -159,7 +154,6 @@ public class JavaCompilerProcess {
             options.add(System.getProperty("java.class.path"));
         }
     }
-
 
 
     private static final SourceGetterStrategy //

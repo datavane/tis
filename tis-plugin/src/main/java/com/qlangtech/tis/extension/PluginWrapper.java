@@ -315,7 +315,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     public static String computeShortName(Manifest manifest, String fileName) {
         // use the name captured in the manifest, as often plugins
         // depend on the specific short name in its URLs.
-        String n = manifest.getMainAttributes().getValue("Short-Name");
+        String n = manifest.getMainAttributes().getValue(PluginStrategy.KEY_MANIFEST_SHORTNAME);
         if (n != null)
             return n;
         // maven seems to put this automatically, so good fallback to check.
@@ -422,7 +422,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     }
 
     private String getVersionOf(Manifest manifest) {
-        String v = manifest.getMainAttributes().getValue("Plugin-Version");
+        String v = manifest.getMainAttributes().getValue(PluginStrategy.KEY_MANIFEST_PLUGIN_VERSION);
         if (v != null)
             return v;
         // plugins generated before maven-hpi-plugin 1.3 should still have this attribute

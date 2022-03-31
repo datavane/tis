@@ -18,7 +18,7 @@ override protected def createTabStreamerCfg(): java.util.Map[String , FlinkStrea
  var cfg: FlinkStreamerConfig = null
 
 #foreach($i in $config.dumpTables  )
-  cfg = new FlinkStreamerConfig()
+  cfg = createHudiCfg("${config.hudiOperationType}")
   ${config.getFlinkStreamerConfig($i.tabName)}
   cfgs += ("${i.tabName}" -> cfg )
 
@@ -26,10 +26,5 @@ override protected def createTabStreamerCfg(): java.util.Map[String , FlinkStrea
 
   cfgs.asJava
 }
-
-implicit def strToOperationType(v: String) : WriteOperationType = {
-   WriteOperationType.fromValue(v)
-}
-
 
 }

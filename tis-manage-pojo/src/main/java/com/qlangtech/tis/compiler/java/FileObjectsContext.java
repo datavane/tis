@@ -51,24 +51,28 @@ public class FileObjectsContext {
     public List<ResourcesFile> resources = Lists.newArrayList();
 
     public static void traversingFiles(Stack<String> childPath, File parent, FileObjectsContext result, IProcessFile fileProcess) {
-        if (parent == null || !parent.exists()) {
-            throw new IllegalStateException("parent is not exist:" + parent.getAbsolutePath());
-        }
-        File child = null;
-        for (String c : parent.list()) {
-            child = new File(parent, c);
-            if (child.isDirectory()) {
-                childPath.push(c);
-                try {
-                    result.dirSet.add(childPath.stream().collect(Collectors.joining("/")));
-                    traversingFiles(childPath, child, result, fileProcess);
-                } finally {
-                    childPath.pop();
-                }
-            } else {
-                String zipPath = childPath.stream().collect(Collectors.joining("/"));
-                fileProcess.process(zipPath, child);
+        try {
+            if (parent == null || !parent.exists()) {
+                throw new IllegalStateException("parent is not exist:" + parent.getAbsolutePath());
             }
+            File child = null;
+            for (String c : parent.list()) {
+                child = new File(parent, c);
+                if (child.isDirectory()) {
+                    childPath.push(c);
+                    try {
+                        result.dirSet.add(childPath.stream().collect(Collectors.joining("/")));
+                        traversingFiles(childPath, child, result, fileProcess);
+                    } finally {
+                        childPath.pop();
+                    }
+                } else {
+                    String zipPath = childPath.stream().collect(Collectors.joining("/"));
+                    fileProcess.process(zipPath, child);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -97,28 +101,29 @@ public class FileObjectsContext {
                     // result.resources.add(new ResourcesFile(
                     // new ZipPath(childPath.stream().collect(Collectors.joining("/"))
                     // , child.getName(), JavaFileObject.Kind.OTHER), child));
-                    result.resources.add(new ResourcesFile(new ZipPath(zp, child.getName(), JavaFileObject.Kind.OTHER), child));
+                    result.resources.add(new ResourcesFile(new ZipPath(zp, child.getName(), JavaFileObject.Kind.OTHER), FileUtils.readFileToByteArray(child)));
                 }
             });
         }
         return result;
     }
 
-    public static void packageJar(File sourceDir, String jarFileName, FileObjectsContext... fileObjectsArry) throws Exception {
-        packageJar(sourceDir, jarFileName, new Manifest(), fileObjectsArry);
+    public static void packageJar(File targetJarFile, FileObjectsContext... fileObjectsArry) throws Exception {
+        packageJar(targetJarFile, new Manifest(), fileObjectsArry);
     }
 
     /**
-     * @param sourceDir       Jar包保存的位置
-     * @param jarFileName     Jar包的名称
+     * // @param        Jar包保存的位置
+     *
+     * @param targetJarFile   Jar包的名称
      * @param fileObjectsArry 需要打包的资源文件
      * @throws Exception
      */
-    public static void packageJar(File sourceDir, String jarFileName, Manifest man, FileObjectsContext... fileObjectsArry) throws Exception {
+    public static void packageJar(File targetJarFile, Manifest man, FileObjectsContext... fileObjectsArry) throws Exception {
         try {
             final Set<String> savedEntryPaths = Sets.newHashSet();
             // 开始打包
-            try (JarOutputStream jaroutput = new JarOutputStream(FileUtils.openOutputStream(new File(sourceDir, jarFileName)), man)) {
+            try (JarOutputStream jaroutput = new JarOutputStream(FileUtils.openOutputStream(targetJarFile), man)) {
                 for (FileObjectsContext fileObjects : fileObjectsArry) {
                     // 添加文件夹entry
                     fileObjects.dirSet.stream().forEach((p) -> {
@@ -153,7 +158,7 @@ public class FileObjectsContext {
                             continue;
                         }
                         entry.setTime(System.currentTimeMillis());
-                        byte[] data = FileUtils.readFileToByteArray(res.getFile());
+                        byte[] data = res.getContent();
                         entry.setSize(data.length);
                         CRC32 crc = new CRC32();
                         crc.update(data);
@@ -166,7 +171,7 @@ public class FileObjectsContext {
                 jaroutput.flush();
             }
         } catch (Exception e) {
-            throw new RuntimeException("jarFileName:" + jarFileName, e);
+            throw new RuntimeException("jarFileName:" + targetJarFile.getAbsolutePath(), e);
         }
     }
 
@@ -186,7 +191,7 @@ public class FileObjectsContext {
 
     public interface IProcessFile {
 
-        public void process(String zipPath, File child);
+        public void process(String zipPath, File child) throws Exception;
     }
 
 
