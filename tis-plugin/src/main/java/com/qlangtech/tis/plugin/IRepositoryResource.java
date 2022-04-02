@@ -36,4 +36,11 @@ public interface IRepositoryResource {
      * @return
      */
     File getTargetFile();
+
+    /**
+     * 最终更新时间
+     *
+     * @throws Exception
+     */
+    long getWriteLastModifyTimeStamp();
 }

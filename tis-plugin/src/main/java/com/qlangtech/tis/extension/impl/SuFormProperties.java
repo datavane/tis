@@ -251,8 +251,9 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         JSONObject vals = new JSONObject();
 
         if (subFormFieldInstance != null) {
-            for (Object i : subFormFieldInstance) {
-                vals.put(String.valueOf(pkPropertyType.getVal(i)), (new RootFormProperties(fieldsType)).getInstancePropsJson(i));
+            for (IdentityName subItem : subFormFieldInstance) {
+                vals.put(String.valueOf(pkPropertyType.getVal(subItem))
+                        , (new RootFormProperties(fieldsType)).getInstancePropsJson(subItem));
             }
         }
 

@@ -159,4 +159,10 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         return childPluginStore.getTargetFile();
     }
 
+    @Override
+    public long getWriteLastModifyTimeStamp() {
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetPluginDesc());
+        return childPluginStore.getWriteLastModifyTimeStamp();
+    }
+
 }

@@ -391,7 +391,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     }
 
     public long getLastModfiyTime() {
-        return Long.parseLong(manifest.getMainAttributes().getValue("Last-Modify-Time"));
+        return Long.parseLong(manifest.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME));
     }
 
 //    public long getArchiveFileSize() {

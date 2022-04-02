@@ -636,6 +636,6 @@ public class PluginManager {
     }
 
     // !SystemProperties.getBoolean(PluginManager.class.getName()+".noFastLookup");
-    public static boolean FAST_LOOKUP = true;
+    public static final boolean FAST_LOOKUP = true;
 
 }

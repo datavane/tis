@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.extension;
@@ -39,14 +39,21 @@ public final class UberClassLoader extends ClassLoader {
      */
     private ConcurrentMap<String, WeakReference<Class>> generatedClasses = new ConcurrentHashMap<String, WeakReference<Class>>();
 
+    private final Set<String> acceptedPlugins;
+
     /**
      * Cache of loaded, or known to be unloadable, classes.
      */
-    public  final Map<String, Class<?>> loaded = new HashMap<String, Class<?>>();
+    public final Map<String, Class<?>> loaded = new HashMap<String, Class<?>>();
 
     public UberClassLoader(PluginManager pluginManager) {
+        this(pluginManager, null);
+    }
+
+    public UberClassLoader(PluginManager pluginManager, Set<String> acceptedPlugins) {
         super(PluginManager.class.getClassLoader());
         this.pluginManager = pluginManager;
+        this.acceptedPlugins = acceptedPlugins;
     }
 
     public void addNamedClass(String className, Class c) {
@@ -79,6 +86,9 @@ public final class UberClassLoader extends ClassLoader {
         }
         if (PluginManager.FAST_LOOKUP) {
             for (PluginWrapper p : pluginManager.activePlugins) {
+                if (!accept(p)) {
+                    continue;
+                }
                 try {
                     Class<?> c = ClassLoaderReflectionToolkit._findLoadedClass(p.classLoader, name);
                     if (c != null) {
@@ -117,9 +127,13 @@ public final class UberClassLoader extends ClassLoader {
     protected URL findResource(String name) {
         if (PluginManager.FAST_LOOKUP) {
             for (PluginWrapper p : pluginManager.activePlugins) {
-                URL url = ClassLoaderReflectionToolkit._findResource(p.classLoader, name);
-                if (url != null)
+                URL url = null;
+                if (accept(p)) {
+                    url = ClassLoaderReflectionToolkit._findResource(p.classLoader, name);
+                }
+                if (url != null) {
                     return url;
+                }
             }
         } else {
             for (PluginWrapper p : pluginManager.activePlugins) {
@@ -136,7 +150,9 @@ public final class UberClassLoader extends ClassLoader {
         List<URL> resources = new ArrayList<URL>();
         if (PluginManager.FAST_LOOKUP) {
             for (PluginWrapper p : pluginManager.activePlugins) {
-                resources.addAll(Collections.list(ClassLoaderReflectionToolkit._findResources(p.classLoader, name)));
+                if (accept(p)) {
+                    resources.addAll(Collections.list(ClassLoaderReflectionToolkit._findResources(p.classLoader, name)));
+                }
             }
         } else {
             for (PluginWrapper p : pluginManager.activePlugins) {
@@ -144,6 +160,13 @@ public final class UberClassLoader extends ClassLoader {
             }
         }
         return Collections.enumeration(resources);
+    }
+
+    protected boolean accept(PluginWrapper p) {
+        if (this.acceptedPlugins == null) {
+            return true;
+        }
+        return this.acceptedPlugins.contains(p.getShortName());
     }
 
     @Override

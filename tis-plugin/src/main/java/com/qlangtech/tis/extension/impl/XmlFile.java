@@ -123,7 +123,11 @@ public final class XmlFile {
      */
     public boolean write(Object o, Set<XStream2.PluginMeta> pluginsMeta) throws IOException {
         mkdirs();
-        String preMd5 = MD5Utils.md5file(file);
+        String preMd5 = null;
+        boolean preFileExist = file.exists();
+        if (preFileExist) {
+            preMd5 = MD5Utils.md5file(file);
+        }
         AtomicFileWriter w = new AtomicFileWriter(file);
         try {
             w.write("<?xml version='1.0' encoding='UTF-8'?>\n");
@@ -136,7 +140,7 @@ public final class XmlFile {
             }
             // xs.toXML(o, w);
             w.commit();
-            return !preMd5.equals(MD5Utils.md5file(file));
+            return !preFileExist || !preMd5.equals(MD5Utils.md5file(file));
         } catch (StreamException e) {
             throw new IOException(e);
         } finally {

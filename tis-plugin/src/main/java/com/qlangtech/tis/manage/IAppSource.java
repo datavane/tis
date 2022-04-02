@@ -99,12 +99,5 @@ public interface IAppSource extends Describable<IAppSource> {
     default Descriptor<IAppSource> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }
-
-
-//    class AppKey extends KeyedPluginStore.Key<IAppSource> {
-//        public AppKey(String collection) {
-//            super(IFullBuildContext.NAME_APP_DIR, collection, IAppSource.class);
-//        }
-//    }
 }
 

@@ -27,14 +27,14 @@ import java.io.File;
 public class TisAppLaunchPort {
     public static final String KEY_TIS_LAUNCH_PORT = "tis.launch.port";
     public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
-    private final int launchPort;
+    private final Integer launchPort;
 
     static {
         //${log.dir}/assemble/task
         System.setProperty(TisAppLaunchPort.KEY_ASSEMBLE_TASK_DIR, System.getProperty("log.dir") + "/assemble/task");
     }
 
-    private static TisAppLaunchPort instance;
+    public static TisAppLaunchPort instance;
 
     private TisAppLaunchPort() {
         this.launchPort = Integer.parseInt(System.getProperty(KEY_TIS_LAUNCH_PORT, "8080"));

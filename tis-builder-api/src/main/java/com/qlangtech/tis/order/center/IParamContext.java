@@ -33,6 +33,15 @@ public interface IParamContext {
         return LocalDateTime.now().format(yyyyMMddHHmmss);
     }
 
+    public static String getCurrentMillisecTimeStamp() {
+        DateTimeFormatter yyyyMMddHHmmssMMM = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+        return LocalDateTime.now().format(yyyyMMddHHmmssMMM);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(  getCurrentMillisecTimeStamp() );
+    }
+
     public String KEY_PARTITION = "ps";
 
     public String COMPONENT_START = "component.start";

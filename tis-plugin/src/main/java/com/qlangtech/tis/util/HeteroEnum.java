@@ -127,19 +127,19 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "field-type", //
             "字段类型", //
             Selectable.Multi);
-    @TISExtension
+  //  @TISExtension
     public static final HeteroEnum<QueryParserFactory> SOLR_QP = new HeteroEnum<QueryParserFactory>(//
             QueryParserFactory.class, //
             "qp", //
             "QueryParser", //
             Selectable.Multi);
-    @TISExtension
+    //@TISExtension
     public static final HeteroEnum<SearchComponentFactory> SOLR_SEARCH_COMPONENT = new HeteroEnum<SearchComponentFactory>(//
             SearchComponentFactory.class, //
             "searchComponent", //
             "SearchComponent", //
             Selectable.Multi);
-    @TISExtension
+    //@TISExtension
     public static final HeteroEnum<TISTransformerFactory> SOLR_TRANSFORMER = new HeteroEnum<TISTransformerFactory>(//
             TISTransformerFactory.class, //
             "transformer", //

@@ -1,25 +1,26 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.PluginManager;
+import com.qlangtech.tis.extension.PluginStrategy;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.manage.common.CenterResource;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -142,6 +144,8 @@ public class XStream2 extends XStream {
 
         public final String ver;
 
+        protected Long lastModifyTimeStamp;
+
         public String getPluginPackageName() {
             return this.name + PluginManager.PACAKGE_TPI_EXTENSION;
         }
@@ -151,8 +155,13 @@ public class XStream2 extends XStream {
         }
 
         public PluginMeta(String name, String ver) {
+            this(name, ver, null);
+        }
+
+        public PluginMeta(String name, String ver, Long lastModifyTimeStamp) {
             this.name = name;
             this.ver = ver;
+            this.lastModifyTimeStamp = lastModifyTimeStamp;
         }
 
         @Override
@@ -162,7 +171,11 @@ public class XStream2 extends XStream {
 
         @Override
         public String toString() {
-            return name + NAME_VER_SPLIT + ver;
+            StringBuffer buffer = new StringBuffer(name + NAME_VER_SPLIT + ver);
+            if (lastModifyTimeStamp != null) {
+                buffer.append(NAME_VER_SPLIT).append(this.lastModifyTimeStamp);
+            }
+            return buffer.toString();
         }
 
         @Override
@@ -175,40 +188,85 @@ public class XStream2 extends XStream {
             String[] metaArray = StringUtils.split(attribute, ",");
             for (String meta : metaArray) {
                 String[] verinfo = StringUtils.split(meta, NAME_VER_SPLIT);
-                if (verinfo.length != 2) {
+                if (verinfo.length == 2) {
+                    result.add(new PluginMeta(verinfo[0], verinfo[1]));
+                } else if (verinfo.length == 3) {
+                    result.add(new PluginMeta(verinfo[0], verinfo[1], Long.parseLong(verinfo[2])) {
+                        @Override
+                        public long getLastModifyTimeStamp() {
+                            return lastModifyTimeStamp;
+                        }
+                    });
+                } else {
                     throw new IllegalArgumentException("attri is invalid:" + attribute);
                 }
-                result.add(new PluginMeta(verinfo[0], verinfo[1]));
+
             }
             return result;
         }
 
+        /**
+         * plugin的最终打包时间
+         *
+         * @return
+         */
+        public long getLastModifyTimeStamp() {
+            if (lastModifyTimeStamp != null) {
+                return this.lastModifyTimeStamp;
+            }
+            return this.lastModifyTimeStamp = processJarManifest((mfst) ->
+                    Long.parseLong(mfst.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME))
+            );
+        }
+
         private List<PluginMeta> getMetaDependencies() {
+//            File f = getPluginPackageFile();
+//            if (!f.exists()) {
+//                throw new IllegalStateException("file:" + f.getPath() + " is not exist");
+//            }
+//            try (JarFile tpiFIle = new JarFile(getPluginPackageFile(), false)) {
+//                Manifest mfst = tpiFIle.getManifest();
+//                ClassicPluginStrategy.DependencyMeta dpts = ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
+//                return dpts.dependencies.stream().map((d) -> new PluginMeta(d.shortName, d.version)).collect(Collectors.toList());
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+            return processJarManifest((mfst) -> {
+                ClassicPluginStrategy.DependencyMeta dpts = ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
+                return dpts.dependencies.stream().map((d) -> new PluginMeta(d.shortName, d.version)).collect(Collectors.toList());
+            });
+        }
+
+        private <R> R processJarManifest(Function<Manifest, R> manProcess) {
             File f = getPluginPackageFile();
             if (!f.exists()) {
                 throw new IllegalStateException("file:" + f.getPath() + " is not exist");
             }
             try (JarFile tpiFIle = new JarFile(getPluginPackageFile(), false)) {
                 Manifest mfst = tpiFIle.getManifest();
-                ClassicPluginStrategy.DependencyMeta dpts = ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
-                return dpts.dependencies.stream().map((d) -> new PluginMeta(d.shortName, d.version)).collect(Collectors.toList());
+                return manProcess.apply(mfst);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
+
         public boolean copyFromRemote() {
             return copyFromRemote(Lists.newArrayList());
+        }
+
+        public boolean copyFromRemote(List<File> pluginFileCollector) {
+            return copyFromRemote(pluginFileCollector, false);
         }
 
         /**
          * 将远端插件拷贝到本地
          */
-        public boolean copyFromRemote(List<File> pluginFileCollector) {
+        public boolean copyFromRemote(List<File> pluginFileCollector, boolean ignoreDependencies) {
             final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + TIS.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
             final File local = getPluginPackageFile();
             boolean updated = CenterResource.copyFromRemote2Local(url, local, false);
-            if (updated) {
+            if (!ignoreDependencies && updated) {
                 for (XStream2.PluginMeta d : this.getMetaDependencies()) {
                     d.copyFromRemote(pluginFileCollector);
                 }

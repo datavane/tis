@@ -43,6 +43,9 @@ import java.util.Optional;
  */
 public class CenterResource {
     private static final Logger logger = LoggerFactory.getLogger(CenterResource.class);
+
+   //public static  PluginAndCfgsSnapshot
+
     public static final String KEY_LAST_MODIFIED_EXTENDION = ".lastmodified";
 
     public static final String KEY_notFetchFromCenterRepository = "notFetchFromCenterRepository";

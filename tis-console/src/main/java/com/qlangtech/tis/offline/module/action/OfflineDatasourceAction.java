@@ -1070,18 +1070,7 @@ public class OfflineDatasourceAction extends BasicModule {
     List<String> selectedTabs
       = tabs.stream().map((tab) -> (String) tab).collect(Collectors.toList());
 
-    String pluginName = body.getString("name");
-    boolean require = body.getBooleanValue("require");
-    String extraParam = body.getString("extraParam");
-
-    UploadPluginMeta pluginMeta = null;
-    List<UploadPluginMeta> pluginMetas
-      = UploadPluginMeta.parse(new String[]{pluginName + ":" + (require ? "require" : StringUtils.EMPTY) + "," + extraParam});
-    for (UploadPluginMeta m : pluginMetas) {
-      pluginMeta = m;
-    }
-
-    Objects.requireNonNull(pluginMeta, "pluginMeta can not be null");
+    UploadPluginMeta pluginMeta = Objects.requireNonNull(getPluginMeta(body), "pluginMeta can not be null");
 
     HeteroList<DataxReader> heteroList = pluginMeta.getHeteroList(this);
     List<DataxReader> readers = heteroList.getItems();
@@ -1098,12 +1087,10 @@ public class OfflineDatasourceAction extends BasicModule {
       }
       pluginFormPropertyTypes = reader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
       for (Map.Entry<String, List<ColumnMetaData>> tab2cols : mapCols.entrySet()) {
-
         SuFormProperties.setSuFormGetterContext(reader, pluginMeta, tab2cols.getKey());
-
         allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
       }
-
+      SuFormProperties.subFormGetterProcessThreadLocal.remove();
       DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
       bizResult.put("subformDescriptor", desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()));
       break;
@@ -1123,6 +1110,20 @@ public class OfflineDatasourceAction extends BasicModule {
     }));
 
     this.setBizResult(context, bizResult);
+  }
+
+  private UploadPluginMeta getPluginMeta(com.alibaba.fastjson.JSONObject body) {
+    String pluginName = body.getString("name");
+    boolean require = body.getBooleanValue("require");
+    String extraParam = body.getString("extraParam");
+
+    List<UploadPluginMeta> pluginMetas
+      = UploadPluginMeta.parse(new String[]{pluginName + ":" + (require ? "require" : StringUtils.EMPTY) + "," + extraParam});
+    for (UploadPluginMeta m : pluginMetas) {
+      return m;
+
+    }
+    throw new IllegalStateException("has not parse meta instance pluginName:" + pluginName);
   }
 
   /**

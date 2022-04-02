@@ -49,11 +49,9 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public DescriptorsJSON(List<Descriptor<T>> descriptors) {
         this.descriptors = descriptors;
-        // descriptors.stream().findFirst();
     }
 
     public DescriptorsJSON(Descriptor<T> descriptor) {
-        //  this.descriptors = Collections.singletonList(descriptor);
         this(Collections.singletonList(descriptor));
     }
 
@@ -74,43 +72,6 @@ public class DescriptorsJSON<T extends Describable<T>> {
             this.subFormFilter = subFormFilter;
         }
 
-//        @Override
-//        public final <T> T visit(SuFormProperties props) {
-//            SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta = null;
-//            List allSuperclasses = Lists.newArrayList(props.parentClazz);
-//            allSuperclasses.addAll(ClassUtils.getAllSuperclasses(props.parentClazz));
-//
-//            Class superClass = null;
-//            for (Object clazz : allSuperclasses) {
-//                superClass = (Class) clazz;
-//                String jsonMeta = IOUtils.loadResourceFromClasspath(superClass
-//                        , superClass.getSimpleName()
-//                                + "." + props.getSubFormFieldName() + ".json", false);
-//                if (jsonMeta != null) {
-//                    behaviorMeta = JSON.parseObject(jsonMeta, SuFormProperties.SuFormPropertiesBehaviorMeta.class);
-//                    break;
-//                }
-//            }
-//            try {
-//                if (this.subFormFilter.isPresent()) {
-//                    Descriptor writerDescriptor = IDataxProcessor.getWriterDescriptor(this.subFormFilter.get().uploadPluginMeta);
-//                    if (writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
-//                        behaviorMeta = ((DataxWriter.IRewriteSuFormProperties) writerDescriptor).overwriteBehaviorMeta(behaviorMeta);
-//                    }
-//                }
-//            } catch (Exception e) {
-//                throw new RuntimeException(e);
-//            }
-
-        //   IDataxProcessor.getWriterDescriptor(this);
-//            return visitSubForm(behaviorMeta, props);
-//        }
-
-        /**
-         * @param behaviorMeta 可能为空 结构可以查阅：com/qlangtech/tis/plugin/datax/DataxMySQLReader.selectedTabs.json
-         * @param props
-         */
-        // protected abstract <T> T visitSubForm(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta, SuFormProperties props);
     }
 
 

@@ -73,6 +73,7 @@ public class Config {
     public static final String KEY_DEPLOY_MODE = "deploy.mode";
 
     public static final String KEY_TIS_HOST = "tis.host";
+    public static final String KEY_PLUGIN_METAS = "pluginMetas";
 
     public static final String KEY_RUNTIME = "runtime";
 

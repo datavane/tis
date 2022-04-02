@@ -25,10 +25,13 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.XStream2;
 import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +70,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         this.pluginCreateCallback = pluginCreateCallback;
 
     }
+
 
     /**
      * 反序列化之后需要额外从其他地方加载属性到实例对象上
@@ -242,6 +246,10 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             // XmlFile file = Descriptor.getConfigFile(getSerializeFileName());
 
             boolean changed = this.file.write(this, pluginsMeta);
+            if (changed) {
+                // 将代表组文件的更新时间戳更新
+                this.writeLastModifyTimeStamp();
+            }
 
             if (CollectionUtils.isNotEmpty(pluginsUpdateListeners)) {
                 Iterator<PluginsUpdateListener> it = pluginsUpdateListeners.iterator();
@@ -258,9 +266,34 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 logger.info("notify pluginsUpdateListeners size:" + pluginsUpdateListeners.size());
             }
             return new SetPluginsResult(true, changed);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void writeLastModifyTimeStamp() throws Exception {
+        File timestamp = getLastModifyTimeStampFile();
+        FileUtils.writeStringToFile(timestamp, IParamContext.getCurrentMillisecTimeStamp(), TisUTF8.get());
+    }
+
+    public final long getWriteLastModifyTimeStamp() {
+        try {
+            File timestamp = getLastModifyTimeStampFile();
+            return Long.parseLong(FileUtils.readFileToString(timestamp, TisUTF8.get()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 代表该配置组最后更新时间，用来和远程任务同步过程中，配置文件进行对比用
+     *
+     * @return
+     */
+
+    File getLastModifyTimeStampFile() {
+        File cfg = this.file.getFile();
+        return new File(cfg.getParentFile(), cfg.getName() + CenterResource.KEY_LAST_MODIFIED_EXTENDION);
     }
 
     protected String getSerializeFileName() {
@@ -275,6 +308,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         }
         MapBackedDataHolder dataHolder = new MapBackedDataHolder();
         try {
+            // dataX 或者flink 启动过程中应该在启动的时候已经将资源文件同步了，这里就不需要再同步了
             ComponentMeta componentMeta = new ComponentMeta(this);
             componentMeta.downloaConfig();
             if (!file.exists()) {
@@ -282,10 +316,10 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             }
             // 远程下载插件
             List<XStream2.PluginMeta> pluginMetas = componentMeta.synchronizePluginsPackageFromRemote();
-            if (CollectionUtils.isNotEmpty(pluginMetas)) {
-                // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
-                // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
-            }
+//            if (CollectionUtils.isNotEmpty(pluginMetas)) {
+//                // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
+//                // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
+//            }
 
             file.unmarshal(this, dataHolder);
             if (plugins != null) {

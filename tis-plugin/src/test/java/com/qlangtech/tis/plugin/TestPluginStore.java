@@ -1,30 +1,31 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin;
 
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.XStream2;
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +47,7 @@ public class TestPluginStore extends TestCase {
 
     public void testTableDumpFactory() {
 
-       // assertFalse(TIS.initialized);
+        // assertFalse(TIS.initialized);
         PluginStore<TestPlugin> pstore = new PluginStore<>(TestPlugin.class);
         TestPlugin p = new TestPlugin();
         p.prop1 = VALUE_PROP_1;
@@ -56,6 +57,9 @@ public class TestPluginStore extends TestCase {
         parseDescribable.extraPluginMetas.add(new XStream2.PluginMeta("testmeta", "1.0.0"));
         dlist.add(parseDescribable);
         pstore.setPlugins(null, Optional.empty(), dlist);
+        File targetFile = pstore.getTargetFile();
+        Assert.assertTrue("getLastModifyTimeStampFile must be exist", pstore.getLastModifyTimeStampFile().exists());
+        Assert.assertTrue(targetFile.exists());
         pstore.cleanPlugins();
         List<TestPlugin> plugins = pstore.getPlugins();
         assertEquals(1, plugins.size());

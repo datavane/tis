@@ -17,18 +17,27 @@
  */
 package com.qlangtech.tis.plugin;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.solr.common.DOMUtil;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.XStream2;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +55,51 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     ) {
         //  return new KeyedPluginStore(subFieldFormKey, pluginCreateCallback);
         return (KeyedPluginStore<TT>) TIS.dataXReaderSubFormPluginStore.get(subFieldFormKey);
+    }
+
+    /**
+     * 取得某个应用下面相关的插件元数据信息用于分布式任务同步用
+     *
+     * @return
+     */
+    public static PluginMetas getAppAwarePluginMetas(boolean isDB, String name) {
+        AppKey appKey = new AppKey(null, isDB, name, null);
+        File appDir = getSubPathDir(appKey);
+        File lastModify = new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
+        if (!lastModify.exists()) {
+            throw new IllegalStateException("lastModify is not exist ,path:" + lastModify.getAbsolutePath());
+        }
+        Iterator<File> files = FileUtils.iterateFiles(appDir
+                , new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
+        try {
+            return new PluginMetas(ComponentMeta.loadPluginMeta(() -> {
+                return Lists.newArrayList(files);
+            }), Long.parseLong(FileUtils.readFileToString(lastModify, TisUTF8.get())));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static class PluginMetas {
+        // 全局配置文件对应的最近更新Key
+        public static final String KEY_GLOBAL_PLUGIN_STORE = "globalPluginStore";
+        //　plugin tpi 包的最近更新时间对应的Key
+        public static final String KEY_PLUGIN_META = "pluginMetas";
+        // app应用对应的最近更新时间
+        public static final String KEY_APP_LAST_MODIFY_TIMESTAMP = "appLastModifyTimestamp";
+
+
+        public final Set<XStream2.PluginMeta> metas;
+        public final long lastModifyTimestamp;
+
+        public PluginMetas(Set<XStream2.PluginMeta> metas, long lastModifyTimestamp) {
+            this.metas = metas;
+            this.lastModifyTimestamp = lastModifyTimestamp;
+        }
+    }
+
+    private static File getSubPathDir(Key appKey) {
+        return new File(TIS.pluginCfgRoot, appKey.getSubDirPath());
     }
 
     public KeyedPluginStore(Key key, IPluginProcessCallback<T>... pluginCreateCallback) {
@@ -77,6 +131,10 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         return plugins;
     }
 
+    protected File getLastModifyTimeStampFile() {
+        return new File(getSubPathDir(this.key), CenterResource.KEY_LAST_MODIFIED_EXTENDION);
+    }
+
     @Override
     protected String getSerializeFileName() {
         return key.getSerializeFileName();
@@ -104,7 +162,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             return this.getSubDirPath() + File.separator + pluginClass.getName();
         }
 
-        public String getSubDirPath() {
+        public final String getSubDirPath() {
             return groupName + File.separator + keyVal.getKeyVal();
         }
 
