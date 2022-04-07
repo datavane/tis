@@ -58,92 +58,92 @@ public class TestSchemaResult extends TestCase {
    *
    * @throws Exception
    */
-  public void testParseSchemaResultAlreadyContainFieldPlugin() throws Exception {
-    IMessageHandler msgHandler = EasyMock.createMock("msgHandler", IMessageHandler.class);
-    Context context = EasyMock.createMock("context", Context.class);
-
-    assertEquals(FieldTypeFactory.class, HeteroEnum.SOLR_FIELD_TYPE.extensionPoint);
-
-    IPluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
-    assertNotNull(fieldTypePluginStore);
-    final String testFieldTypeName = "test";
-
-    final List<FieldTypeFactory> plugins = fieldTypePluginStore.getPlugins();
-    assertTrue(plugins.size() > 0);
-
-    FieldTypeFactory fieldType = fieldTypePluginStore.find(testFieldTypeName);
-    assertNotNull("fieldType can not be null", fieldType);
-
-    try (InputStream schema = this.getClass().getResourceAsStream("s4totalpay-schema-already-contain-fieldtype-plugin.xml")) {
-      EasyMock.replay(msgHandler, context);
-
-      SchemaResult schemaResult = SchemaAction.parseSchemaResultWithPluginCfg(collection, msgHandler, context, IOUtils.toByteArray(schema));
-
-      Collection<SolrFieldsParser.SolrType> fieldTypes = ((ParseResult) schemaResult.getParseResult()).getFieldTypes();
-      assertEquals("fieldTypes size", 2, fieldTypes.size());
-
-//      String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
-//        , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
-//      try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("s4totalpay-schema-already-contain-fieldtype-plugin-schema-result.json")) {
-//        assertNotNull(assertSchemaResultInput);
-//        FileUtils.write(new File("test.json"), content, TisUTF8.get());
-//        assertEquals(StringUtils.trim(IOUtils.toString(assertSchemaResultInput, TisUTF8.get())), content);
-//      }
-
-      JsonUtil.assertJSONEqual(this.getClass(), "s4totalpay-schema-already-contain-fieldtype-plugin-schema-result.json"
-        , schemaResult.toJSON(), (m, e, a) -> {
-          assertEquals(m, e, a);
-        });
-    }
-
-    EasyMock.verify(msgHandler, context);
-  }
-
-  /**
-   * 模拟用户刚添加fieldtype plugin，则用户第一次家在schema中要自动加入 fieldtype
-   *
-   * @throws Exception
-   */
-  public void testParseSchemaResult() throws Exception {
-    IMessageHandler msgHandler = EasyMock.createMock("msgHandler", IMessageHandler.class);
-    Context context = EasyMock.createMock("context", Context.class);
-
-    assertEquals(FieldTypeFactory.class, HeteroEnum.SOLR_FIELD_TYPE.extensionPoint);
-
-    final String collection = "search4totalpay";
-
-    IPluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
-    assertNotNull(fieldTypePluginStore);
-    final String testFieldTypeName = "test";
-
-    final List<FieldTypeFactory> plugins = fieldTypePluginStore.getPlugins();
-    assertTrue(plugins.size() > 0);
-
-    FieldTypeFactory fieldType = fieldTypePluginStore.find(testFieldTypeName);
-    assertNotNull("fieldType can not be null", fieldType);
-
-    try (InputStream schema = this.getClass().getResourceAsStream("s4totalpay-schema.xml")) {
-      EasyMock.replay(msgHandler, context);
-
-      SchemaResult schemaResult = SchemaAction.parseSchemaResultWithPluginCfg(collection, msgHandler, context, IOUtils.toByteArray(schema));
-
-      Collection<SolrFieldsParser.SolrType> fieldTypes = ((ParseResult) schemaResult.getParseResult()).getFieldTypes();
-      assertEquals("fieldTypes size", 16, fieldTypes.size());
-
-//      String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
-//        , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
+//  public void testParseSchemaResultAlreadyContainFieldPlugin() throws Exception {
+//    IMessageHandler msgHandler = EasyMock.createMock("msgHandler", IMessageHandler.class);
+//    Context context = EasyMock.createMock("context", Context.class);
 //
-//      try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("assertSchemaResult.json")) {
-//        assertNotNull(assertSchemaResultInput);
-//        assertEquals(IOUtils.toString(assertSchemaResultInput, TisUTF8.get()), content);
-//      }
+//    assertEquals(FieldTypeFactory.class, HeteroEnum.SOLR_FIELD_TYPE.extensionPoint);
+//
+//    IPluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
+//    assertNotNull(fieldTypePluginStore);
+//    final String testFieldTypeName = "test";
+//
+//    final List<FieldTypeFactory> plugins = fieldTypePluginStore.getPlugins();
+//    assertTrue(plugins.size() > 0);
+//
+//    FieldTypeFactory fieldType = fieldTypePluginStore.find(testFieldTypeName);
+//    assertNotNull("fieldType can not be null", fieldType);
+//
+//    try (InputStream schema = this.getClass().getResourceAsStream("s4totalpay-schema-already-contain-fieldtype-plugin.xml")) {
+//      EasyMock.replay(msgHandler, context);
+//
+//      SchemaResult schemaResult = SchemaAction.parseSchemaResultWithPluginCfg(collection, msgHandler, context, IOUtils.toByteArray(schema));
+//
+//      Collection<SolrFieldsParser.SolrType> fieldTypes = ((ParseResult) schemaResult.getParseResult()).getFieldTypes();
+//      assertEquals("fieldTypes size", 2, fieldTypes.size());
+//
+////      String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
+////        , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
+////      try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("s4totalpay-schema-already-contain-fieldtype-plugin-schema-result.json")) {
+////        assertNotNull(assertSchemaResultInput);
+////        FileUtils.write(new File("test.json"), content, TisUTF8.get());
+////        assertEquals(StringUtils.trim(IOUtils.toString(assertSchemaResultInput, TisUTF8.get())), content);
+////      }
+//
+//      JsonUtil.assertJSONEqual(this.getClass(), "s4totalpay-schema-already-contain-fieldtype-plugin-schema-result.json"
+//        , schemaResult.toJSON(), (m, e, a) -> {
+//          assertEquals(m, e, a);
+//        });
+//    }
+//
+//    EasyMock.verify(msgHandler, context);
+//  }
 
-      JsonUtil.assertJSONEqual(this.getClass(), "assertSchemaResult.json", schemaResult.toJSON(), (m, e, a) -> {
-        assertEquals(m, e, a);
-      });
-    }
-
-    EasyMock.verify(msgHandler, context);
-
-  }
+//  /**
+//   * 模拟用户刚添加fieldtype plugin，则用户第一次家在schema中要自动加入 fieldtype
+//   *
+//   * @throws Exception
+//   */
+//  public void testParseSchemaResult() throws Exception {
+//    IMessageHandler msgHandler = EasyMock.createMock("msgHandler", IMessageHandler.class);
+//    Context context = EasyMock.createMock("context", Context.class);
+//
+//    assertEquals(FieldTypeFactory.class, HeteroEnum.SOLR_FIELD_TYPE.extensionPoint);
+//
+//    final String collection = "search4totalpay";
+//
+//    IPluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
+//    assertNotNull(fieldTypePluginStore);
+//    final String testFieldTypeName = "test";
+//
+//    final List<FieldTypeFactory> plugins = fieldTypePluginStore.getPlugins();
+//    assertTrue(plugins.size() > 0);
+//
+//    FieldTypeFactory fieldType = fieldTypePluginStore.find(testFieldTypeName);
+//    assertNotNull("fieldType can not be null", fieldType);
+//
+//    try (InputStream schema = this.getClass().getResourceAsStream("s4totalpay-schema.xml")) {
+//      EasyMock.replay(msgHandler, context);
+//
+//      SchemaResult schemaResult = SchemaAction.parseSchemaResultWithPluginCfg(collection, msgHandler, context, IOUtils.toByteArray(schema));
+//
+//      Collection<SolrFieldsParser.SolrType> fieldTypes = ((ParseResult) schemaResult.getParseResult()).getFieldTypes();
+//      assertEquals("fieldTypes size", 16, fieldTypes.size());
+//
+////      String content = (com.alibaba.fastjson.JSON.toJSONString(schemaResult.toJSON()
+////        , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat));
+////
+////      try (InputStream assertSchemaResultInput = this.getClass().getResourceAsStream("assertSchemaResult.json")) {
+////        assertNotNull(assertSchemaResultInput);
+////        assertEquals(IOUtils.toString(assertSchemaResultInput, TisUTF8.get()), content);
+////      }
+//
+//      JsonUtil.assertJSONEqual(this.getClass(), "assertSchemaResult.json", schemaResult.toJSON(), (m, e, a) -> {
+//        assertEquals(m, e, a);
+//      });
+//    }
+//
+//    EasyMock.verify(msgHandler, context);
+//
+//  }
 }

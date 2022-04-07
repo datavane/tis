@@ -50,12 +50,16 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
 //    }
 
     public static IPluginStore<ParamsConfig> getTargetPluginStore(String targetPluginDesc) {
+        return getTargetPluginStore(targetPluginDesc, true);
+    }
 
+    public static IPluginStore<ParamsConfig> getTargetPluginStore(
+            String targetPluginDesc, boolean validateExist) {
         if (StringUtils.isEmpty(targetPluginDesc)) {
             throw new IllegalStateException("param targetPluginDesc can not be null");
         }
         IPluginStore<ParamsConfig> childPluginStore = getChildPluginStore(targetPluginDesc);
-        if (childPluginStore == null) {
+        if (validateExist && childPluginStore == null) {
             throw new IllegalStateException("targetPluginDesc:" + targetPluginDesc + " relevant childPluginStore can not be null");
         }
         return childPluginStore;

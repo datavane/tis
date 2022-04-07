@@ -383,6 +383,11 @@ public class TIS {
         globalPluginStore.clear();
         collectionPluginStore.clear();
         databasePluginStore.clear();
+        appSourcePluginStore.clear();
+        dataXReaderPluginStore.clear();
+        dataXWriterPluginStore.clear();
+        dataXReaderSubFormPluginStore.clear();
+
         initialized = false;
     }
 

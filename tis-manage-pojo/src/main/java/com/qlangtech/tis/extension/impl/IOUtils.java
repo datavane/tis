@@ -1,30 +1,34 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.extension.impl;
 
 import com.qlangtech.tis.manage.common.TisUTF8;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Adds more to commons-io.
@@ -35,6 +39,48 @@ import java.util.regex.Pattern;
  */
 public class IOUtils {
 
+    /**
+     * 将一个文件夹下面的文件全部打包成一个zip包
+     *
+     * @param targetDir
+     * @return
+     * @throws Exception
+     */
+    public static byte[] writeZip(File targetDir) throws Exception {
+        if (targetDir == null || targetDir.isFile() || !targetDir.exists()) {
+            throw new IllegalStateException("param targetDir is not illegal");
+        }
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            ZipOutputStream zipOut = new ZipOutputStream(output, TisUTF8.get());
+            iterateAllFile(targetDir, StringUtils.EMPTY, (childFile, subPath) -> {
+                zipOut.putNextEntry(new ZipEntry(subPath));
+                zipOut.write(FileUtils.readFileToByteArray(childFile));
+                zipOut.closeEntry();
+            });
+            zipOut.flush();
+            return output.toByteArray();
+        }
+    }
+
+    private static void iterateAllFile(File targetDir, final String subPath, ChildFileProcessor processor) throws Exception {
+        String[] childFiles = targetDir.list();
+        File childFile = null;
+        String sub = null;
+        for (String child : childFiles) {
+            childFile = new File(targetDir, child);
+            sub = subPath + File.separator + childFile.getName();
+            if (childFile.isFile()) {
+                processor.visit(childFile, sub);
+            } else {
+                iterateAllFile(childFile, sub, processor);
+            }
+        }
+
+    }
+
+    private interface ChildFileProcessor {
+        public void visit(File childFile, String subPath) throws Exception;
+    }
 
     public static String loadResourceFromClasspath(Class<?> clazz, String resName) {
         return loadResourceFromClasspath(clazz, resName, true);
@@ -161,7 +207,7 @@ public class IOUtils {
     }
 
     /**
-hh
+     * hh
      *
      * @param base File that represents the parent, may be null if path is absolute
      * @param path Path of the file, may not be null

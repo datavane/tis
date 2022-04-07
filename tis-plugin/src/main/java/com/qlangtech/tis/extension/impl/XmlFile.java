@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.extension.impl;
 
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.util.AtomicFileWriter;
 import com.qlangtech.tis.util.XStream2;
 import com.qlangtech.tis.utils.MD5Utils;
@@ -52,14 +53,24 @@ public final class XmlFile {
     private final XStream2 xs;
 
     private final File file;
+    public final String relativePath;
 
     public XmlFile(File file) {
         this(DEFAULT_XSTREAM, file);
     }
 
+    public XmlFile(File file, String relativePath) {
+        this(DEFAULT_XSTREAM, file, relativePath);
+    }
+
     public XmlFile(XStream2 xs, File file) {
+        this(xs, file, TIS.pluginCfgRoot.toPath().relativize(file.toPath()).toString());
+    }
+
+    public XmlFile(XStream2 xs, File file, String relativePath) {
         this.xs = xs;
         this.file = file;
+        this.relativePath = relativePath;
     }
 
     public File getFile() {

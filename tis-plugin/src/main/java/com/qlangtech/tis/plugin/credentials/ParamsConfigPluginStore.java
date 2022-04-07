@@ -24,7 +24,10 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.SetPluginsResult;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -32,10 +35,13 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -54,12 +60,34 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         }
     }
 
+//    public static void main(String[] args) {
+//        File root = new File(".");
+//        Path rootPath = root.toPath();
+//        Iterator<File> fit = FileUtils.iterateFiles(root, null, true);
+//        while (fit.hasNext()) {
+//            File f = fit.next();
+//            System.out.println(f.getAbsolutePath());
+//            System.out.println(rootPath.relativize(f.toPath()));
+//        }
+//    }
+
     private final UploadPluginMeta pluginMeta;
 
     public ParamsConfigPluginStore(UploadPluginMeta pluginMeta) {
+        if (pluginMeta == null) {
+            throw new IllegalArgumentException("param pluginMeta can not be null");
+        }
         this.pluginMeta = pluginMeta;
     }
 
+    @Override
+    public List<IRepositoryResource> getAll() {
+        ExtensionList<Descriptor<ParamsConfig>> descs
+                = TIS.get().getDescriptorList(ParamsConfig.class);
+        return descs.stream()
+                .map((desc) -> ParamsConfig.getTargetPluginStore(desc.getDisplayName(), false))
+                .filter((rr) -> rr != null && rr.getTargetFile().exists()).collect(Collectors.toList());
+    }
 
     @Override
     public List<ParamsConfig> getPlugins() {
@@ -154,7 +182,7 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     }
 
     @Override
-    public File getTargetFile() {
+    public XmlFile getTargetFile() {
         IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetPluginDesc());
         return childPluginStore.getTargetFile();
     }

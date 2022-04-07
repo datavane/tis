@@ -40,10 +40,6 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
-import com.qlangtech.tis.plugin.solr.config.QueryParserFactory;
-import com.qlangtech.tis.plugin.solr.config.SearchComponentFactory;
-import com.qlangtech.tis.plugin.solr.config.TISTransformerFactory;
-import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -92,7 +88,12 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     public static final HeteroEnum<ParamsConfig> PARAMS_CONFIG = new HeteroEnum<ParamsConfig>(//
             ParamsConfig.class, //
             "params-cfg", // },//
-            "基础配置", Selectable.Multi, false);
+            "基础配置", Selectable.Multi, false) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return new ParamsConfigPluginStore(pluginMeta);
+        }
+    };
     // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<K8sImage> K8S_IMAGES = new HeteroEnum<K8sImage>(//
@@ -120,49 +121,86 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             DataSourceFactory.class, //
             "datasource", //
             "数据源", //
-            Selectable.Single);
+            Selectable.Single, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            //return super.getPluginStore(pluginContext, pluginMeta);
+
+            if (!pluginContext.isDataSourceAware()) {
+                throw new IllegalArgumentException("pluginContext must be dataSourceAware");
+            }
+
+            PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
+            if (StringUtils.isEmpty(dsProp.getDbname())) {
+                return null;
+            }
+            return TIS.getDataBasePluginStore(dsProp);
+        }
+    };
     //    @TISExtension
-    public static final HeteroEnum<FieldTypeFactory> SOLR_FIELD_TYPE = new HeteroEnum<FieldTypeFactory>(//
-            FieldTypeFactory.class, //
-            "field-type", //
-            "字段类型", //
-            Selectable.Multi);
-  //  @TISExtension
-    public static final HeteroEnum<QueryParserFactory> SOLR_QP = new HeteroEnum<QueryParserFactory>(//
-            QueryParserFactory.class, //
-            "qp", //
-            "QueryParser", //
-            Selectable.Multi);
-    //@TISExtension
-    public static final HeteroEnum<SearchComponentFactory> SOLR_SEARCH_COMPONENT = new HeteroEnum<SearchComponentFactory>(//
-            SearchComponentFactory.class, //
-            "searchComponent", //
-            "SearchComponent", //
-            Selectable.Multi);
-    //@TISExtension
-    public static final HeteroEnum<TISTransformerFactory> SOLR_TRANSFORMER = new HeteroEnum<TISTransformerFactory>(//
-            TISTransformerFactory.class, //
-            "transformer", //
-            "Transformer", //
-            Selectable.Multi);
+//    public static final HeteroEnum<FieldTypeFactory> SOLR_FIELD_TYPE = new HeteroEnum<FieldTypeFactory>(//
+//            FieldTypeFactory.class, //
+//            "field-type", //
+//            "字段类型", //
+//            Selectable.Multi);
+//    //  @TISExtension
+//    public static final HeteroEnum<QueryParserFactory> SOLR_QP = new HeteroEnum<QueryParserFactory>(//
+//            QueryParserFactory.class, //
+//            "qp", //
+//            "QueryParser", //
+//            Selectable.Multi);
+//    //@TISExtension
+//    public static final HeteroEnum<SearchComponentFactory> SOLR_SEARCH_COMPONENT = new HeteroEnum<SearchComponentFactory>(//
+//            SearchComponentFactory.class, //
+//            "searchComponent", //
+//            "SearchComponent", //
+//            Selectable.Multi);
+//    //@TISExtension
+//    public static final HeteroEnum<TISTransformerFactory> SOLR_TRANSFORMER = new HeteroEnum<TISTransformerFactory>(//
+//            TISTransformerFactory.class, //
+//            "transformer", //
+//            "Transformer", //
+//            Selectable.Multi);
     @TISExtension
     public static final HeteroEnum<DataxReader> DATAX_READER = new HeteroEnum<DataxReader>(//
             DataxReader.class, //
             "dataxReader", //
             "DataX Reader", //
-            Selectable.Multi, true);
+            Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            //   return super.getPluginStore(pluginContext, pluginMeta);
+            return getDataXReaderAndWriterStore(pluginContext, true, pluginMeta);
+        }
+    };
     @TISExtension
     public static final HeteroEnum<DataxWriter> DATAX_WRITER = new HeteroEnum<DataxWriter>(//
             DataxWriter.class, //
             "dataxWriter", //
             "DataX Writer", //
-            Selectable.Multi, true);
+            Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return getDataXReaderAndWriterStore(pluginContext, false, pluginMeta);
+        }
+    };
+
     @TISExtension
     public static final HeteroEnum<IAppSource> APP_SOURCE = new HeteroEnum<IAppSource>(//
             IAppSource.class, //
             "appSource", //
             "App Source", //
-            Selectable.Multi, true);
+            Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
+            if (StringUtils.isEmpty(dataxName)) {
+                throw new IllegalArgumentException(
+                        "plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+            }
+            return com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
+        }
+    };
 
     public final String caption;
 
@@ -203,23 +241,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
 
     public static IPluginStore<?> getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta) {
-//        final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
-//
-//        if (StringUtils.isEmpty(dataxName)) {
-//            String saveDbName = pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
-//            if (StringUtils.isNotBlank(saveDbName)) {
-//                if (!getReader) {
-//                    throw new IllegalStateException("getReader must be true");
-//                }
-//                return DataxReader.getPluginStore(pluginContext, true, saveDbName);
-//            } else {
-//                throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
-//            }
-//        } else {
-//            KeyedPluginStore<?> keyStore = (getReader)
-//                    ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
-//            return keyStore;
-//        }
         return createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
                 , new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
                     @Override
@@ -318,30 +339,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         if (store == null) {
             return Collections.emptyList();
         }
-//        if (this == HeteroEnum.APP_SOURCE) {
-//            final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
-//            if (StringUtils.isEmpty(dataxName)) {
-//                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
-//            }
-//            store = com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
-//        } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
-//            final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
-//            if (StringUtils.isEmpty(dataxName)) {
-//                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
-//            }
-//            store = (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
-//        } else if (pluginContext.isCollectionAware()) {
-//            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
-//        } else if (pluginContext.isDataSourceAware()) {
-//            PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
-//            if (StringUtils.isEmpty(dsProp.getDbname())) {
-//                return Collections.emptyList();
-//            }
-//            store = TIS.getDataBasePluginStore(dsProp);
-//        } else {
-//            store = TIS.getPluginStore(this.extensionPoint);
-//        }
-        //Objects.requireNonNull(store, "plugin store can not be null");
         List<T> plugins = store.getPlugins();
         if (pluginMeta != null && StringUtils.isNotEmpty(pluginMeta.getTargetPluginDesc())) {
             return plugins.stream()
@@ -355,36 +352,15 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     @Override
     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
         IPluginStore store = null;
-        if (this == HeteroEnum.APP_SOURCE) {
-            final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
-            if (StringUtils.isEmpty(dataxName)) {
-                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+        if (this.isAppNameAware()) {
+            if (!pluginContext.isCollectionAware()) {
+                throw new IllegalStateException(this.getExtensionPoint().getName() + " must be collection aware");
             }
-            store = com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
-        } else if (this == HeteroEnum.DATAX_WRITER || this == HeteroEnum.DATAX_READER) {
-//            final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
-//            if (StringUtils.isEmpty(dataxName)) {
-//                throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME': '" + DataxUtils.DATAX_NAME + "' can not be null");
-//            }
-            store = getDataXReaderAndWriterStore(pluginContext, this == HeteroEnum.DATAX_READER, pluginMeta); // (this == HeteroEnum.DATAX_READER) ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
-        } else if (this == PARAMS_CONFIG) {
-            return new ParamsConfigPluginStore(pluginMeta);
-        } else if (pluginContext.isDataSourceAware()) {
-            PostedDSProp dsProp = PostedDSProp.parse(pluginMeta);
-            if (StringUtils.isEmpty(dsProp.getDbname())) {
-                return null; //Collections.emptyList();
-            }
-            store = TIS.getDataBasePluginStore(dsProp);
+            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
         } else {
-            if (this.isAppNameAware()) {
-                if (!pluginContext.isCollectionAware()) {
-                    throw new IllegalStateException(this.getExtensionPoint().getName() + " must be collection aware");
-                }
-                store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
-            } else {
-                store = TIS.getPluginStore(this.extensionPoint);
-            }
+            store = TIS.getPluginStore(this.extensionPoint);
         }
+        //}
         Objects.requireNonNull(store, "plugin store can not be null");
         return store;
     }

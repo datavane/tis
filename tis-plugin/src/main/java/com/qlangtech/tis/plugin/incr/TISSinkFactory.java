@@ -27,13 +27,17 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,8 +48,18 @@ import java.util.Objects;
  **/
 @Public
 public abstract class TISSinkFactory implements Describable<TISSinkFactory>, KeyedPluginStore.IPluginKeyAware {
-    public static final String KEY_FLINK_STREAM_APP_NAME_PREFIX = "flink_stream_";
+    // public static final String KEY_FLINK_STREAM_APP_NAME_PREFIX = "flink_stream_";
+    public static final String KEY_PLUGIN_TPI_CHILD_PATH = "flink/";
     private static final Logger logger = LoggerFactory.getLogger(TISSinkFactory.class);
+
+    public static void main(String[] args) throws Exception {
+        URL url = new URL("jar:file:/opt/data/tis/libs/plugins/flink/hudi/WEB-INF/lib/../../WEB-INF/lib/hudi-incr.jar!/META-INF/annotations/com.qlangtech.tis.extension.TISExtension");
+       // InputStream inputStream = url.openStream();
+        //Objects.requireNonNull(inputStream);
+        System.out.println( IOUtils.toString(url, TisUTF8.get()) );
+
+    }
+
     @TISExtension
     public static final HeteroEnum<TISSinkFactory> sinkFactory = new HeteroEnum<TISSinkFactory>(//
             TISSinkFactory.class, //
@@ -74,7 +88,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
      *
      * @return
      */
-    public abstract ICompileAndPackage getCompileAndPackageManager() ;
+    public abstract ICompileAndPackage getCompileAndPackageManager();
 
     @Override
     public void setKey(KeyedPluginStore.Key key) {

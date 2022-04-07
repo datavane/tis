@@ -263,7 +263,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public static XmlFile getConfigFile(String pluginId) {
-        return new XmlFile(new File(TIS.pluginCfgRoot, getPluginFileName(pluginId)));
+        String pluginFileName = getPluginFileName(pluginId);
+        return new XmlFile(new File(TIS.pluginCfgRoot, pluginFileName), pluginFileName);
     }
 
     private PluginFormProperties getSubPluginFormPropertyTypes(String subFieldName) {

@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.model.TestUpdateCenter;
 import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.TestPluginExtraProps;
 import com.qlangtech.tis.plugin.TestComponentMeta;
+import com.qlangtech.tis.plugin.TestPluginAndCfgsSnapshot;
 import com.qlangtech.tis.plugin.TestPluginStore;
 import com.qlangtech.tis.plugin.TestValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
@@ -66,6 +67,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestDescriptor.class);
         suite.addTestSuite(TestAttrValMap.class);
         suite.addTestSuite(TestDataxReader.class);
+        suite.addTestSuite(TestPluginAndCfgsSnapshot.class);
 
         return suite;
     }

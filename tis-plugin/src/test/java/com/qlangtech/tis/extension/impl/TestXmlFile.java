@@ -86,8 +86,8 @@ public class TestXmlFile extends TestCase {
         }
 
         @Override
-        public File getTargetFile() {
-            return f;
+        public XmlFile getTargetFile() {
+            return new XmlFile(f);
         }
     }
 

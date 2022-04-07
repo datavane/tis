@@ -69,13 +69,13 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     }
 
     public void deleteDB() throws Exception {
-        File targetFile = this.getTargetFile();
+        XmlFile targetFile = this.getTargetFile();
         if (getDSKey().isFacadeType()) {
             // 如果删除detail类型的数据库，则只删除facade类型
-            FileUtils.forceDelete(targetFile);
+            FileUtils.forceDelete(targetFile.getFile());
         } else {
             // 如果删除detail类型的数据库，则要把整个数据库目录删除
-            FileUtils.deleteDirectory(targetFile.getParentFile());
+            FileUtils.deleteDirectory(targetFile.getFile().getParentFile());
         }
     }
 

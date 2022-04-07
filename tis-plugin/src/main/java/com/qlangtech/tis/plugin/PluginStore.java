@@ -101,8 +101,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
      * @return
      */
     @Override
-    public File getTargetFile() {
-        return this.file.getFile();
+    public XmlFile getTargetFile() {
+        return this.file;
     }
 
     @Override
@@ -271,16 +271,26 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         }
     }
 
-    private void writeLastModifyTimeStamp() throws Exception {
+    private long writeLastModifyTimeStamp() throws Exception {
         File timestamp = getLastModifyTimeStampFile();
-        FileUtils.writeStringToFile(timestamp, IParamContext.getCurrentMillisecTimeStamp(), TisUTF8.get());
+        String millisecTimeStamp = IParamContext.getCurrentMillisecTimeStamp();
+        FileUtils.writeStringToFile(timestamp, millisecTimeStamp, TisUTF8.get());
+        return Long.parseLong(millisecTimeStamp);
     }
 
     public final long getWriteLastModifyTimeStamp() {
         try {
             File timestamp = getLastModifyTimeStampFile();
+            if (!timestamp.exists()) {
+                File cfg = this.file.getFile();
+                if (!cfg.exists()) {
+                    //  throw new IllegalArgumentException(timestamp.getName() + " is not exist,but cfg file also not exist:" + cfg.getAbsolutePath());
+                    return -1;
+                }
+                return writeLastModifyTimeStamp();
+            }
             return Long.parseLong(FileUtils.readFileToString(timestamp, TisUTF8.get()));
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -309,13 +319,13 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         MapBackedDataHolder dataHolder = new MapBackedDataHolder();
         try {
             // dataX 或者flink 启动过程中应该在启动的时候已经将资源文件同步了，这里就不需要再同步了
-            ComponentMeta componentMeta = new ComponentMeta(this);
-            componentMeta.downloaConfig();
+            //ComponentMeta componentMeta = new ComponentMeta(this);
+            //componentMeta.downloaConfig();
             if (!file.exists()) {
                 return;
             }
             // 远程下载插件
-            List<XStream2.PluginMeta> pluginMetas = componentMeta.synchronizePluginsPackageFromRemote();
+            //List<XStream2.PluginMeta> pluginMetas = componentMeta.synchronizePluginsPackageFromRemote();
 //            if (CollectionUtils.isNotEmpty(pluginMetas)) {
 //                // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
 //                // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件

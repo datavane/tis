@@ -50,7 +50,9 @@ public class ComponentMeta {
      * @return
      */
     public static Map<String, Long> getGlobalPluginStoreLastModifyTimestamp(ComponentMeta meta) {
-        return meta.resources.stream().collect(Collectors.toMap((r) -> r.getTargetFile().getName(), (r) -> {
+        return meta.resources.stream().collect(Collectors.toMap((r) -> {
+            return r.getTargetFile().relativePath;
+        }, (r) -> {
             return r.getWriteLastModifyTimeStamp();
         }));
     }
@@ -87,7 +89,7 @@ public class ComponentMeta {
         return loadPluginMeta(() -> {
             List<File> cfgs = Lists.newArrayList();
             for (IRepositoryResource res : this.resources) {
-                File targetFile = res.getTargetFile();
+                File targetFile = res.getTargetFile().getFile();
                 if (!targetFile.exists()) {
                     //  throw new IllegalStateException("file:" + targetFile.getAbsolutePath() + " is not exist");
                     continue;
@@ -144,7 +146,7 @@ public class ComponentMeta {
 //                        throw new RuntimeException(targetFile.getAbsolutePath(), e);
 //                    }
 //                }
-                return RobustReflectionConverter.usedPluginInfo.get();
+                return  RobustReflectionConverter.usedPluginInfo.get();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

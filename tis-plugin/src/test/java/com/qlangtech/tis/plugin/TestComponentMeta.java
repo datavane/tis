@@ -170,7 +170,7 @@ public class TestComponentMeta extends TestCase {
         dumpAndIndexBuilderComponent.synchronizePluginsFromRemoteRepository();
         assertEquals(3, dumpAndIndexBuilderComponent.resources.size());
         for (IRepositoryResource res : dumpAndIndexBuilderComponent.resources) {
-            File targetFile = res.getTargetFile();
+            File targetFile = res.getTargetFile().getFile();
             assertTrue(targetFile.getAbsolutePath(), targetFile.exists());
         }
         IYarnConfig yarn1 = ParamsConfig.getItem("yarn1", IYarnConfig.KEY_DISPLAY_NAME);

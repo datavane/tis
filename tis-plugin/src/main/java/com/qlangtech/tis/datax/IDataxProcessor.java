@@ -55,7 +55,7 @@ public interface IDataxProcessor {
 
     static File getDataXWorkDir(IPluginContext pluginContext, String appName) {
         KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(pluginContext, appName);
-        File targetFile = readerStore.getTargetFile();
+        File targetFile = readerStore.getTargetFile().getFile();
         return targetFile.getParentFile();
     }
 

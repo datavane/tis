@@ -40,8 +40,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -215,23 +215,20 @@ public class XStream2 extends XStream {
                 return this.lastModifyTimeStamp;
             }
             return this.lastModifyTimeStamp = processJarManifest((mfst) ->
-                    Long.parseLong(mfst.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME))
+                    (mfst == null) ? -1 : Long.parseLong(mfst.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME))
             );
         }
 
-        private List<PluginMeta> getMetaDependencies() {
-//            File f = getPluginPackageFile();
-//            if (!f.exists()) {
-//                throw new IllegalStateException("file:" + f.getPath() + " is not exist");
-//            }
-//            try (JarFile tpiFIle = new JarFile(getPluginPackageFile(), false)) {
-//                Manifest mfst = tpiFIle.getManifest();
-//                ClassicPluginStrategy.DependencyMeta dpts = ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
-//                return dpts.dependencies.stream().map((d) -> new PluginMeta(d.shortName, d.version)).collect(Collectors.toList());
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
+        public boolean isLastModifyTimeStampNull() {
+            return lastModifyTimeStamp == null;
+        }
+
+        public List<PluginMeta> getMetaDependencies() {
             return processJarManifest((mfst) -> {
+                if (mfst == null) {
+                    // throw new IllegalStateException("plugin:" + PluginMeta.this.toString() + " relevant manifest can not be null");
+                    return Collections.emptyList();
+                }
                 ClassicPluginStrategy.DependencyMeta dpts = ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
                 return dpts.dependencies.stream().map((d) -> new PluginMeta(d.shortName, d.version)).collect(Collectors.toList());
             });
@@ -240,13 +237,14 @@ public class XStream2 extends XStream {
         private <R> R processJarManifest(Function<Manifest, R> manProcess) {
             File f = getPluginPackageFile();
             if (!f.exists()) {
-                throw new IllegalStateException("file:" + f.getPath() + " is not exist");
+                // throw new IllegalStateException("file:" + f.getPath() + " is not exist");
+                return manProcess.apply(null);
             }
-            try (JarFile tpiFIle = new JarFile(getPluginPackageFile(), false)) {
+            try (JarFile tpiFIle = new JarFile(f, false)) {
                 Manifest mfst = tpiFIle.getManifest();
                 return manProcess.apply(mfst);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                throw new RuntimeException(f.getAbsolutePath(), e);
             }
         }
 
@@ -256,16 +254,16 @@ public class XStream2 extends XStream {
         }
 
         public boolean copyFromRemote(List<File> pluginFileCollector) {
-            return copyFromRemote(pluginFileCollector, false);
+            return copyFromRemote(pluginFileCollector, false, false);
         }
 
         /**
          * 将远端插件拷贝到本地
          */
-        public boolean copyFromRemote(List<File> pluginFileCollector, boolean ignoreDependencies) {
+        public boolean copyFromRemote(List<File> pluginFileCollector, boolean ignoreDependencies, boolean directDownload) {
             final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + TIS.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
             final File local = getPluginPackageFile();
-            boolean updated = CenterResource.copyFromRemote2Local(url, local, false);
+            boolean updated = CenterResource.copyFromRemote2Local(url, local, directDownload);
             if (!ignoreDependencies && updated) {
                 for (XStream2.PluginMeta d : this.getMetaDependencies()) {
                     d.copyFromRemote(pluginFileCollector);

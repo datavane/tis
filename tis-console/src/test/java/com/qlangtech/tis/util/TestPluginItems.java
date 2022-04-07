@@ -67,7 +67,7 @@ public class TestPluginItems extends TestCase {
     OfflineDatasourceAction.existDbs = opts;
     DataxAction.cleanDepsCache();
     this.readerStore = DataxReader.getPluginStore(null, dataXName);
-    File targetFile = readerStore.getTargetFile();
+    File targetFile = readerStore.getTargetFile().getFile();
     File parentDir = targetFile.getParentFile();
     FileUtils.deleteQuietly(parentDir);
   }

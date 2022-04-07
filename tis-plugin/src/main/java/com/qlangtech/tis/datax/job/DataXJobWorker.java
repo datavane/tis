@@ -146,7 +146,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     protected File getServerLaunchTokenFile() {
         TargetResName workerType = ((BasicDescriptor) this.getDescriptor()).getWorkerType();
         IPluginStore<DataXJobWorker> workerStore = getJobWorkerStore(workerType);
-        File target = workerStore.getTargetFile();
+        File target = workerStore.getTargetFile().getFile();
         return new File(target.getParentFile(), (workerType.getName() + ".launch_token"));
     }
 

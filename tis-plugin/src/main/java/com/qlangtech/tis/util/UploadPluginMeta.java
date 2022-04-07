@@ -157,19 +157,18 @@ public class UploadPluginMeta {
                 while (attrMatcher.find()) {
                     attr = attrMatcher.group();
                     switch (attr) {
-                        case KEY_REQUIRE:
+                        case KEY_REQUIRE: {
                             pmeta.required = true;
                             break;
-                        default:
+                        }
+                        default: {
                             attrKVMatcher = PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.matcher(attr);
                             if (!attrKVMatcher.matches()) {
-                                throw new IllegalStateException("attr:" + attr + " is not match:" + PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.pattern());
+                                throw new IllegalStateException("attr:" + attr + " is not match:"
+                                        + PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.pattern());
                             }
-//                            String[] pair = StringUtils.split(attr, ATTR_KEY_VALUE_SPLIT);
-//                            if (pair.length != 2) {
-//                                throw new IllegalStateException("attr:" + attr + " is illegal");
-//                            }
                             pmeta.extraParams.put(attrKVMatcher.group(1), attrKVMatcher.group(2));
+                        }
                     }
                 }
             }

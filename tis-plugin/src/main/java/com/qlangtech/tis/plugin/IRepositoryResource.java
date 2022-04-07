@@ -17,7 +17,11 @@
  */
 package com.qlangtech.tis.plugin;
 
-import java.io.File;
+import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -26,16 +30,28 @@ import java.io.File;
 public interface IRepositoryResource {
 
     /**
+     * 可能作为 @see IRepositoryResource 例如 ParamsConfigPluginStore 内嵌了多个IRepositoryResource 通过该方法一并返回
+     *
+     * @return
+     * @see ParamsConfigPluginStore
+     */
+    public default List<IRepositoryResource> getAll() {
+        return Collections.singletonList(this);
+    }
+
+
+    /**
      * 拷贝配置文件到本地
      */
     void copyConfigFromRemote();
 
+
     /**
-     * 目标文件
+     * 目标配置文件
      *
      * @return
      */
-    File getTargetFile();
+    XmlFile getTargetFile();
 
     /**
      * 最终更新时间

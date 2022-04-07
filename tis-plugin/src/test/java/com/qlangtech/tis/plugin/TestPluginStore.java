@@ -57,7 +57,7 @@ public class TestPluginStore extends TestCase {
         parseDescribable.extraPluginMetas.add(new XStream2.PluginMeta("testmeta", "1.0.0"));
         dlist.add(parseDescribable);
         pstore.setPlugins(null, Optional.empty(), dlist);
-        File targetFile = pstore.getTargetFile();
+        File targetFile = pstore.getTargetFile().getFile();
         Assert.assertTrue("getLastModifyTimeStampFile must be exist", pstore.getLastModifyTimeStampFile().exists());
         Assert.assertTrue(targetFile.exists());
         pstore.cleanPlugins();

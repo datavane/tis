@@ -34,10 +34,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,19 +63,28 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         AppKey appKey = new AppKey(null, isDB, name, null);
         File appDir = getSubPathDir(appKey);
         File lastModify = new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
-        if (!lastModify.exists()) {
-            throw new IllegalStateException("lastModify is not exist ,path:" + lastModify.getAbsolutePath());
-        }
-        Iterator<File> files = FileUtils.iterateFiles(appDir
-                , new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
+        long lastModfiyTimeStamp = -1;
+        Set<XStream2.PluginMeta> metas = Collections.emptySet();
+
+
         try {
-            return new PluginMetas(ComponentMeta.loadPluginMeta(() -> {
-                return Lists.newArrayList(files);
-            }), Long.parseLong(FileUtils.readFileToString(lastModify, TisUTF8.get())));
+            if (appDir.exists()) {
+                if (lastModify.exists()) {
+                    //throw new IllegalStateException("lastModify is not exist ,path:" + lastModify.getAbsolutePath());
+                    lastModfiyTimeStamp = Long.parseLong(FileUtils.readFileToString(lastModify, TisUTF8.get()));
+                }
+                Iterator<File> files = FileUtils.iterateFiles(appDir
+                        , new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
+                metas = ComponentMeta.loadPluginMeta(() -> {
+                    return Lists.newArrayList(files);
+                });
+            }
+            return new PluginMetas(appDir, metas, lastModfiyTimeStamp);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     public static class PluginMetas {
         // 全局配置文件对应的最近更新Key
@@ -92,9 +98,12 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         public final Set<XStream2.PluginMeta> metas;
         public final long lastModifyTimestamp;
 
-        public PluginMetas(Set<XStream2.PluginMeta> metas, long lastModifyTimestamp) {
+        public final File appDir;
+
+        public PluginMetas(File appDir, Set<XStream2.PluginMeta> metas, long lastModifyTimestamp) {
             this.metas = metas;
             this.lastModifyTimestamp = lastModifyTimestamp;
+            this.appDir = appDir;
         }
     }
 

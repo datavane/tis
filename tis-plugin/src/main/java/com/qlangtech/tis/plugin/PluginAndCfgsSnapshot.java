@@ -18,29 +18,45 @@
 
 package com.qlangtech.tis.plugin;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.extension.PluginManager;
+import com.qlangtech.tis.extension.PluginWrapper;
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.util.XStream2;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-04-02 09:15
  **/
 public class PluginAndCfgsSnapshot {
-
+    private static final Logger logger = LoggerFactory.getLogger(PluginAndCfgsSnapshot.class);
     private static PluginAndCfgsSnapshot pluginAndCfgsSnapshot;
 
     public static PluginAndCfgsSnapshot setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot snapshot) {
@@ -61,12 +77,26 @@ public class PluginAndCfgsSnapshot {
      */
     public final Long appLastModifyTimestamp;
 
+    private final Optional<KeyedPluginStore.PluginMetas> appMetas;
+
     public PluginAndCfgsSnapshot(TargetResName collection, Map<String, Long> globalPluginStoreLastModify
-            , Set<XStream2.PluginMeta> pluginMetas, Long appLastModifyTimestamp) {
+            , Set<XStream2.PluginMeta> pluginMetas, Long appLastModifyTimestamp, KeyedPluginStore.PluginMetas appMetas) {
         this.globalPluginStoreLastModify = globalPluginStoreLastModify;
+
         this.pluginMetas = pluginMetas;
         this.appLastModifyTimestamp = appLastModifyTimestamp;
         this.collection = collection;
+        this.appMetas = Optional.ofNullable(appMetas);
+    }
+
+    private static void collectAllPluginMeta(XStream2.PluginMeta meta, Set<XStream2.PluginMeta> collector) {
+        meta.getLastModifyTimeStamp();
+        collector.add(meta);
+        List<XStream2.PluginMeta> dpts = meta.getMetaDependencies();
+        collector.addAll(dpts);
+        for (XStream2.PluginMeta m : dpts) {
+            collectAllPluginMeta(m, collector);
+        }
     }
 
     public Set<String> getPluginNames() {
@@ -80,17 +110,93 @@ public class PluginAndCfgsSnapshot {
      * @param localSnaphsot
      * @return
      */
-    public Set<XStream2.PluginMeta> shallBeUpdateTpis(PluginAndCfgsSnapshot localSnaphsot) {
+    public void synchronizTpisAndConfs(PluginAndCfgsSnapshot localSnaphsot) throws Exception {
+        if (!localSnaphsot.appMetas.isPresent()) {
+            throw new IllegalArgumentException("localSnaphsot.appMetas must be present");
+        }
         Set<XStream2.PluginMeta> result = Sets.newHashSet();
-        Map<String, XStream2.PluginMeta> locals = localSnaphsot.pluginMetas.stream().collect(Collectors.toMap((m) -> m.name, (m) -> m));
+        StringBuffer updateTpisLogger = new StringBuffer("\nplugin synchronize------------------------------\n");
+        updateTpisLogger.append(">>center repository:")
+                .append(pluginMetas.stream().map((meta) -> meta.toString()).collect(Collectors.joining(",")));
+        updateTpisLogger.append("\n>>local:")
+                .append(localSnaphsot.pluginMetas.stream()
+                        .map((meta) -> meta.toString())
+                        .collect(Collectors.joining(","))).append("\n");
+        updateTpisLogger.append(">>compare result\n");
+        Map<String, XStream2.PluginMeta> locals = localSnaphsot.pluginMetas.stream()
+                .collect(Collectors.toMap((m) -> m.name, (m) -> m));
         XStream2.PluginMeta m = null;
         for (XStream2.PluginMeta meta : pluginMetas) {
             m = locals.get(meta.name);
             if (m == null || meta.getLastModifyTimeStamp() > m.getLastModifyTimeStamp()) {
                 result.add(meta);
+                updateTpisLogger.append(meta.name).append(m == null
+                        ? " local is none"
+                        : " center repository ver:" + meta.getLastModifyTimeStamp()
+                        + " > local ver:" + m.getLastModifyTimeStamp()).append("\n");
             }
         }
-        return result;
+
+        for (XStream2.PluginMeta update : result) {
+            update.copyFromRemote(Collections.emptyList(), true, true);
+        }
+        PluginManager pluginManager = TIS.get().getPluginManager();
+        Set<XStream2.PluginMeta> loaded = Sets.newHashSet();
+        List<PluginWrapper> batch = Lists.newArrayList();
+        for (XStream2.PluginMeta update : result) {
+            dynamicLoad(pluginManager, update, batch, result, loaded);
+        }
+
+        if (batch.size() > 0) {
+            pluginManager.start(batch);
+        }
+        Thread.sleep(3000l);
+        updateTpisLogger.append(">>app cfg compare:\n");
+        updateTpisLogger.append("center:").append(this.appLastModifyTimestamp)
+                .append(this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp ? " > " : " <= ").append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
+        if (this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp) {
+            // 更新app相关配置,下载并更新本地配置
+            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, false, this.collection.getName(), null);
+            URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
+
+            KeyedPluginStore.PluginMetas appMetas = localSnaphsot.appMetas.get();
+            HttpUtils.get(appCfgUrl, new ConfigFileContext.StreamProcess<Void>() {
+                @Override
+                public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                    try {
+                        // FileUtils.cleanDirectory(appMetas.appDir);
+                        FileUtils.deleteQuietly(appMetas.appDir);
+                        ZipInputStream zipInput = new ZipInputStream(stream);
+                        ZipEntry entry = null;
+                        while ((entry = zipInput.getNextEntry()) != null) {
+                            try (OutputStream output = FileUtils.openOutputStream(new File(appMetas.appDir, entry.getName()))) {
+                                IOUtils.copy(zipInput, output);
+                            }
+                            zipInput.closeEntry();
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                }
+            });
+        }
+        logger.info(updateTpisLogger.append("\n------------------------------").toString());
+        //   return result;
+    }
+
+    private void dynamicLoad(PluginManager pluginManager
+            , XStream2.PluginMeta update, List<PluginWrapper> batch, Set<XStream2.PluginMeta> shallUpdate, Set<XStream2.PluginMeta> loaded) {
+        try {
+            for (XStream2.PluginMeta dpt : update.getMetaDependencies()) {
+                this.dynamicLoad(pluginManager, dpt, batch, shallUpdate, loaded);
+            }
+            if (shallUpdate.contains(update) && loaded.add(update)) {
+                pluginManager.dynamicLoad(update.getPluginPackageFile(), true, batch);
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public TargetResName getAppName() {
@@ -117,30 +223,58 @@ public class PluginAndCfgsSnapshot {
             }
             globalPluginStoreLastModify.put(file2timestamp[0], Long.parseLong(file2timestamp[1]));
         }
-        String metas = pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META);
 
+        List<XStream2.PluginMeta> metas
+                = XStream2.PluginMeta.parse(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META));
+        metas.forEach((meta) -> {
+            if (meta.isLastModifyTimeStampNull()) {
+                throw new IllegalStateException("pluginMeta:" + meta.name + " relevant LastModify timestamp can not be null");
+            }
+        });
         return new PluginAndCfgsSnapshot(app, globalPluginStoreLastModify
-                , Sets.newHashSet(XStream2.PluginMeta.parse(metas))
-                , Long.parseLong(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP)));
+                , Sets.newHashSet(metas)
+                , Long.parseLong(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP)), null);
     }
 
-    public static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(TargetResName collection) {
+//    public static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(
+//            TargetResName collection, XStream2.PluginMeta... appendPluginMeta) {
+//        return getLocalPluginAndCfgsSnapshot(collection, true, appendPluginMeta);
+//    }
 
+    public static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(
+            TargetResName collection, XStream2.PluginMeta... appendPluginMeta) {
+
+        Set<XStream2.PluginMeta> globalPluginMetas = null;
+        Map<String, Long> gPluginStoreLastModify = Collections.emptyMap();
+        UploadPluginMeta upm = UploadPluginMeta.parse("x:require");
         ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
         List<IRepositoryResource> keyedPluginStores = hlist.stream()
                 .filter((e) -> !e.isAppNameAware())
-                .map((e) -> e.getPluginStore(null, null))
+                .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
                 .collect(Collectors.toList());
         ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
-        Set<XStream2.PluginMeta> globalPluginMetas = dataxComponentMeta.loadPluginMeta();
-        Map<String, Long> gPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
+        globalPluginMetas = dataxComponentMeta.loadPluginMeta();
 
+        // if (storeCfgAware) {
+        gPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
+        //}
 
         // 本次任务相关插件元信息
         KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(false, collection.getName());
 
+        Set<XStream2.PluginMeta> collector = Sets.newHashSet();
+        for (XStream2.PluginMeta m : pluginMetas.metas) {
+            collectAllPluginMeta(m, collector);
+        }
+        for (XStream2.PluginMeta m : globalPluginMetas) {
+            collectAllPluginMeta(m, collector);
+        }
+        for (XStream2.PluginMeta m : appendPluginMeta) {
+            collectAllPluginMeta(m, collector);
+        }
         return new PluginAndCfgsSnapshot(
-                collection, gPluginStoreLastModify, Sets.union(pluginMetas.metas, globalPluginMetas), pluginMetas.lastModifyTimestamp);
+                collection, gPluginStoreLastModify
+                , collector, pluginMetas.lastModifyTimestamp, pluginMetas);
     }
 
     public void attachPluginCfgSnapshot2Manifest(Manifest manifest) {
@@ -161,7 +295,7 @@ public class PluginAndCfgsSnapshot {
         }
 
         final Attributes pmetas = new Attributes();
-        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE), globalPluginStore);
+        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE), String.valueOf(globalPluginStore));
         // 本次任务相关插件元信息
         //KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(false, collection.getName());
         pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META)
