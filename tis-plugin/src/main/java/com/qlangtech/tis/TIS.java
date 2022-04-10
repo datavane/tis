@@ -380,6 +380,11 @@ public class TIS {
             tis.descriptorLists.clear();
             tis = null;
         }
+        cleanPluginStore();
+        initialized = false;
+    }
+
+    public static void cleanPluginStore() {
         globalPluginStore.clear();
         collectionPluginStore.clear();
         databasePluginStore.clear();
@@ -387,8 +392,6 @@ public class TIS {
         dataXReaderPluginStore.clear();
         dataXWriterPluginStore.clear();
         dataXReaderSubFormPluginStore.clear();
-
-        initialized = false;
     }
 
     // 插件运行系统是否已经初始化

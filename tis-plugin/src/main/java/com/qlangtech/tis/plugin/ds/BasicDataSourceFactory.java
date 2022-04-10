@@ -92,6 +92,10 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
         return this.password;
     }
 
+    @Override
+    public String identityValue() {
+        return this.name;
+    }
 
     @Override
     public List<ColumnMetaData> getTableMetadata(final String table) {

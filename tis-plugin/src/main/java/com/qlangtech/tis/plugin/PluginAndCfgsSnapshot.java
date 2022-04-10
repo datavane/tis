@@ -26,10 +26,7 @@ import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
-import com.qlangtech.tis.manage.common.CenterResource;
-import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.ConfigFileContext;
-import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.util.XStream2;
@@ -116,6 +113,60 @@ public class PluginAndCfgsSnapshot {
         }
         Set<XStream2.PluginMeta> result = Sets.newHashSet();
         StringBuffer updateTpisLogger = new StringBuffer("\nplugin synchronize------------------------------\n");
+
+        Long localTimestamp;
+        File cfg = null;
+        boolean cfgChanged = false;
+        // URL globalCfg = null;
+        updateTpisLogger.append(">>global cfg compare:\n");
+        for (Map.Entry<String, Long> entry : this.globalPluginStoreLastModify.entrySet()) {
+            localTimestamp = localSnaphsot.globalPluginStoreLastModify.get(entry.getKey());
+            if (localTimestamp == null || entry.getValue() > localTimestamp) {
+                // 更新本地配置文件
+                //globalCfg = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey());
+                cfg = CenterResource.copyFromRemote2Local(TIS.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey(), true);
+                FileUtils.writeStringToFile(
+                        PluginStore.getLastModifyTimeStampFile(cfg), String.valueOf(entry.getValue()), TisUTF8.get());
+                cfgChanged = true;
+                updateTpisLogger.append(entry.getKey()).append(localTimestamp == null
+                        ? "[" + entry.getValue() + "] local is none"
+                        : " center ver:" + entry.getValue()
+                        + " > local ver:" + localTimestamp).append("\n");
+            }
+        }
+
+
+        updateTpisLogger.append(">>app cfg compare:\n");
+        updateTpisLogger.append("center:").append(this.appLastModifyTimestamp)
+                .append(this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp ? " > " : " <= ").append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
+        if (this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp) {
+            // 更新app相关配置,下载并更新本地配置
+            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, false, this.collection.getName(), null);
+            URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
+
+            KeyedPluginStore.PluginMetas appMetas = localSnaphsot.appMetas.get();
+            HttpUtils.get(appCfgUrl, new ConfigFileContext.StreamProcess<Void>() {
+                @Override
+                public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                    try {
+                        FileUtils.deleteQuietly(appMetas.appDir);
+                        ZipInputStream zipInput = new ZipInputStream(stream);
+                        ZipEntry entry = null;
+                        while ((entry = zipInput.getNextEntry()) != null) {
+                            try (OutputStream output = FileUtils.openOutputStream(new File(appMetas.appDir, entry.getName()))) {
+                                IOUtils.copy(zipInput, output);
+                            }
+                            zipInput.closeEntry();
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                }
+            });
+            cfgChanged = true;
+        }
+
         updateTpisLogger.append(">>center repository:")
                 .append(pluginMetas.stream().map((meta) -> meta.toString()).collect(Collectors.joining(",")));
         updateTpisLogger.append("\n>>local:")
@@ -151,36 +202,10 @@ public class PluginAndCfgsSnapshot {
             pluginManager.start(batch);
         }
         Thread.sleep(3000l);
-        updateTpisLogger.append(">>app cfg compare:\n");
-        updateTpisLogger.append("center:").append(this.appLastModifyTimestamp)
-                .append(this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp ? " > " : " <= ").append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
-        if (this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp) {
-            // 更新app相关配置,下载并更新本地配置
-            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, false, this.collection.getName(), null);
-            URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
-
-            KeyedPluginStore.PluginMetas appMetas = localSnaphsot.appMetas.get();
-            HttpUtils.get(appCfgUrl, new ConfigFileContext.StreamProcess<Void>() {
-                @Override
-                public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                    try {
-                        // FileUtils.cleanDirectory(appMetas.appDir);
-                        FileUtils.deleteQuietly(appMetas.appDir);
-                        ZipInputStream zipInput = new ZipInputStream(stream);
-                        ZipEntry entry = null;
-                        while ((entry = zipInput.getNextEntry()) != null) {
-                            try (OutputStream output = FileUtils.openOutputStream(new File(appMetas.appDir, entry.getName()))) {
-                                IOUtils.copy(zipInput, output);
-                            }
-                            zipInput.closeEntry();
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return null;
-                }
-            });
+        if (cfgChanged) {
+            TIS.cleanPluginStore();
         }
+
         logger.info(updateTpisLogger.append("\n------------------------------").toString());
         //   return result;
     }

@@ -136,7 +136,7 @@ public class DataxExecutor {
 
         final int allRows = Integer.parseInt(args[5]);
         // 任务每次执行会生成一个时间戳
-       // final String execTimeStamp = args[6];
+        // final String execTimeStamp = args[6];
         //configuration.set(DataxUtils.EXEC_TIMESTAMP, args.execTimeStamp);
         if (StringUtils.isEmpty(System.getProperty(DataxUtils.EXEC_TIMESTAMP))) {
             throw new IllegalArgumentException("system prop '" + DataxUtils.EXEC_TIMESTAMP + "' can not be empty");
@@ -171,6 +171,7 @@ public class DataxExecutor {
             // 如果是分布式执行状态，需要通过RPC的方式来监听监工是否执行了客户端终止操作
             Object thread = monitorDistributeCommand(jobId, jobName, dataXName, statusRpc, dataxExecutor);
             Objects.requireNonNull(thread);
+            DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataXName, jobName);
         }
 
         try {
@@ -232,7 +233,6 @@ public class DataxExecutor {
         try {
             logger.info("process DataX job, dataXName:{},jobid:{},jobName:{}", dataxName, jobId, jobName);
 
-            DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataxName, jobName);
 
             final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
             DataxProcessor dataxProcessor = DataxProcessor.load(null, dataxName);

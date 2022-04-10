@@ -17,6 +17,8 @@
  */
 package com.qlangtech.tis.offline;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-12 12:21
@@ -26,4 +28,13 @@ public class DataxUtils {
     // 用于保存DB对应的 tables
     public static final String DATAX_DB_NAME = "dataxDB";
     public static final String EXEC_TIMESTAMP = "execTimeStamp";
+
+    public static String getDumpTimeStamp() {
+        String dumpTimeStamp = System.getProperty(DataxUtils.EXEC_TIMESTAMP);
+        if (StringUtils.isEmpty(dumpTimeStamp)) {
+            throw new IllegalStateException("dumpTimeStamp can not be empty");
+        }
+
+        return dumpTimeStamp;
+    }
 }

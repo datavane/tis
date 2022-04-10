@@ -68,8 +68,8 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         PluginAndCfgsSnapshot local = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, flinkPluginMeta);
         Assert.assertNotNull(local);
 
-        Set<XStream2.PluginMeta> pluginMetas = remote.shallBeUpdateTpis(local);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(pluginMetas));
+//        Set<XStream2.PluginMeta> pluginMetas = remote.shallBeUpdateTpis(local);
+//        Assert.assertTrue(CollectionUtils.isNotEmpty(pluginMetas));
     }
 
 }

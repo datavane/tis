@@ -140,7 +140,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         return plugins;
     }
 
-    protected File getLastModifyTimeStampFile() {
+    public File getLastModifyTimeStampFile() {
         return new File(getSubPathDir(this.key), CenterResource.KEY_LAST_MODIFIED_EXTENDION);
     }
 

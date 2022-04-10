@@ -272,7 +272,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     }
 
     private long writeLastModifyTimeStamp() throws Exception {
-        File timestamp = getLastModifyTimeStampFile();
+        File timestamp = getLastModifyTimeStampFile(this.file.getFile());
         String millisecTimeStamp = IParamContext.getCurrentMillisecTimeStamp();
         FileUtils.writeStringToFile(timestamp, millisecTimeStamp, TisUTF8.get());
         return Long.parseLong(millisecTimeStamp);
@@ -280,7 +280,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
     public final long getWriteLastModifyTimeStamp() {
         try {
-            File timestamp = getLastModifyTimeStampFile();
+            File timestamp = getLastModifyTimeStampFile(this.file.getFile());
             if (!timestamp.exists()) {
                 File cfg = this.file.getFile();
                 if (!cfg.exists()) {
@@ -295,14 +295,17 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         }
     }
 
+    public File getLastModifyTimeStampFile() {
+        return getLastModifyTimeStampFile(this.file.getFile());
+    }
+
     /**
      * 代表该配置组最后更新时间，用来和远程任务同步过程中，配置文件进行对比用
      *
      * @return
      */
 
-    File getLastModifyTimeStampFile() {
-        File cfg = this.file.getFile();
+    public static File getLastModifyTimeStampFile(File cfg) {
         return new File(cfg.getParentFile(), cfg.getName() + CenterResource.KEY_LAST_MODIFIED_EXTENDION);
     }
 
