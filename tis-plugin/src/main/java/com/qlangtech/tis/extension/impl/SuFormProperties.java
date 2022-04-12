@@ -40,6 +40,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -92,7 +93,9 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         if (MapUtils.isNotEmpty(fieldsType)) {
             Optional<Map.Entry<String, PropertyType>> idType = fieldsType.entrySet().stream().filter((ft) -> ft.getValue().isIdentity()).findFirst();
             if (!idType.isPresent()) {
-                throw new IllegalArgumentException(subFormFieldsAnnotation.desClazz() + " has not define a identity prop");
+                throw new IllegalArgumentException(subFormFieldsAnnotation.desClazz()
+                        + " has not define a identity prop,exist keys:"
+                        + fieldsType.keySet().stream().collect(Collectors.joining(",")));
             }
             this.pkPropertyType = idType.get().getValue();
         } else {

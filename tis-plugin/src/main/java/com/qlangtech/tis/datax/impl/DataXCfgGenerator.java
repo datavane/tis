@@ -106,7 +106,8 @@ public class DataXCfgGenerator {
      * @return
      */
     public GenerateCfgs getExistCfg(File parentDir) throws Exception {
-        GenerateCfgs generateCfgs = new GenerateCfgs();
+        File dataxCfgDir = dataxProcessor.getDataxCfgDir(this.pluginCtx);
+        GenerateCfgs generateCfgs = new GenerateCfgs(dataxCfgDir);
         // IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
 
         File genFile = new File(parentDir, FILE_GEN);
@@ -114,7 +115,7 @@ public class DataXCfgGenerator {
             return generateCfgs;
         }
 
-        File dataxCfgDir = dataxProcessor.getDataxCfgDir(this.pluginCtx);
+
         generateCfgs.createDDLFiles = getExistDDLFiles();
 
         GenerateCfgs cfgs = GenerateCfgs.readFromGen(dataxCfgDir);
@@ -154,7 +155,7 @@ public class DataXCfgGenerator {
     }
 
     public GenerateCfgs startGenerateCfg(IGenerateScriptFile scriptFileGenerator) throws Exception {
-        GenerateCfgs cfgs = new GenerateCfgs();
+
 
 //        FileUtils.forceMkdir(dataXCfgDir);
 //        // 先清空文件
@@ -245,7 +246,7 @@ public class DataXCfgGenerator {
                 FileUtils.deleteQuietly(new File(createDDLDir, oldDDLFile));
             }
         }
-
+        GenerateCfgs cfgs = new GenerateCfgs(this.dataxProcessor.getDataxCfgDir(this.pluginCtx));
         long current = System.currentTimeMillis();
 //        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
         cfgs.createDDLFiles = Lists.newArrayList(createDDLFiles);
@@ -301,22 +302,43 @@ public class DataXCfgGenerator {
     }
 
     public static class GenerateCfgs {
-        private List<String> _dataxFiles;
+        private List<File> _dataxFiles;
         private List<String> createDDLFiles = Collections.emptyList();
         private Map<String, List<String>> groupedChildTask;
         private long genTime;
 
-        public List<String> getDataxFiles() {
+        private final File dataxCfgDir;
+
+        public GenerateCfgs(File dataxCfgDir) {
+            this.dataxCfgDir = dataxCfgDir;
+        }
+
+        public List<File> getDataxFiles() {
 
             if (this._dataxFiles == null) {
                 this._dataxFiles = this.getGroupedChildTask()
                         .values().stream()
                         .flatMap((tasks) -> tasks.stream())
-                        .map((task) -> task + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
+                        .map((task) -> {
+                            File dataXCfg = new File(this.dataxCfgDir, task + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
+                            if (!dataXCfg.exists()) {
+                                throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
+                            }
+                            return dataXCfg;
+                        })
                         .collect(Collectors.toList());
             }
             return this._dataxFiles;
         }
+
+//        File dataXCfg = null;
+//        for (String child : genCfgs.getDataxFiles()) {
+//            dataXCfg = new File(dataxCfgDir, child);
+//            if (!dataXCfg.exists()) {
+//                throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
+//            }
+//            dataXConf.add(dataXCfg);
+//        }
 
         private Map<String, List<String>> getGroupedChildTask() {
             return groupedChildTask;
@@ -359,7 +381,7 @@ public class DataXCfgGenerator {
 
         public static GenerateCfgs readFromGen(File dataxCfgDir) {
             try {
-                GenerateCfgs cfgs = new GenerateCfgs();
+                GenerateCfgs cfgs = new GenerateCfgs(dataxCfgDir);
                 JSONObject o = JSON.parseObject(
                         FileUtils.readFileToString(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN), TisUTF8.get()));
 

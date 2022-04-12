@@ -30,8 +30,26 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
  **/
 public interface IDataXBatchPost {
 
+    public static String getPreExecuteTaskName(ISelectedTab tab) {
+        return "prep_" + tab.getName();
+    }
+
+    /**
+     * 在dump任务之前执行执行，例如为hudi表创建schema
+     *
+     * @param execContext
+     * @param tab
+     * @return
+     */
     public IRemoteTaskTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab);
 
+    /**
+     * 在dump任务之后执行，例如：将dump到hdfs上的数据同步到数据湖中去
+     *
+     * @param execContext
+     * @param tab
+     * @return
+     */
     public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, ISelectedTab tab);
 
 }

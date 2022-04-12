@@ -222,7 +222,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
      * @return
      */
     @Override
-    public List<File> getDataxCfgFileNames(IPluginContext pluginContext) {
+    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext) {
         File dataxCfgDir = getDataxCfgDir(pluginContext);
         if (!dataxCfgDir.exists()) {
             throw new IllegalStateException("dataxCfgDir is not exist:" + dataxCfgDir.getAbsolutePath());
@@ -231,20 +231,21 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
             throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
         }
 
-        List<File> dataXConf = Lists.newArrayList();
+        //List<File> dataXConf = Lists.newArrayList();
 
-        DataXCfgGenerator.GenerateCfgs genCfgs
-                = DataXCfgGenerator.GenerateCfgs.readFromGen(this.getDataxCfgDir(pluginContext));
-        File dataXCfg = null;
-        for (String child : genCfgs.getDataxFiles()) {
-            dataXCfg = new File(dataxCfgDir, child);
-            if (!dataXCfg.exists()) {
-                throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
-            }
-            dataXConf.add(dataXCfg);
-        }
+        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir);
 
-        return dataXConf;
+        return genCfgs;
+//        File dataXCfg = null;
+//        for (String child : genCfgs.getDataxFiles()) {
+//            dataXCfg = new File(dataxCfgDir, child);
+//            if (!dataXCfg.exists()) {
+//                throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
+//            }
+//            dataXConf.add(dataXCfg);
+//        }
+//
+//        return dataXConf;
     }
 
     public static class DataXCreateProcessMeta extends DataXBasicProcessMeta {

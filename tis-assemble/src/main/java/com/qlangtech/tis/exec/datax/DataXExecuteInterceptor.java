@@ -25,6 +25,7 @@ import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -49,7 +50,6 @@ import org.jvnet.hudson.reactor.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -82,8 +82,32 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
         List<IRemoteTaskTrigger> triggers = Lists.newArrayList();
 
-        List<File> cfgFileNames = appSource.getDataxCfgFileNames(null);
-        if (CollectionUtils.isEmpty(cfgFileNames)) {
+
+        IDataxReader reader = appSource.getReader(null);
+
+        List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
+        // Map<String, IDataxProcessor.TableAlias> tabAlias = appSource.getTabAlias();
+
+        IDataxWriter writer = appSource.getWriter(null);
+
+
+        if (writer instanceof IDataXBatchPost) {
+            IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
+
+            for (ISelectedTab entry : selectedTabs) {
+                IRemoteTaskTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entry);
+                addJoinTask(execChainContext, taskMap, triggers, postTaskTrigger);
+
+                IRemoteTaskTrigger preExec = batchPostTask.createPreExecuteTask(execChainContext, entry);
+                if (preExec != null) {
+                    addDumpTask(execChainContext, taskMap, preExec, triggers);
+                }
+            }
+        }
+
+
+        DataXCfgGenerator.GenerateCfgs cfgFileNames = appSource.getDataxCfgFileNames(null);
+        if (CollectionUtils.isEmpty(cfgFileNames.getDataxFiles())) {
             throw new IllegalStateException("dataX cfgFileNames can not be empty");
         }
 
@@ -98,47 +122,43 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
         try {
-            DumpPhaseStatus dumpStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
-            for (File fileName : cfgFileNames) {
-                jobTrigger = createDataXJob(dataXJobContext, submit
-                        , expectDataXJobSumit, statusRpc, appSource, fileName.getName());
-                triggers.add(jobTrigger);
-                taskMap.put(fileName.getName()
-                        , new TISReactor.TaskAndMilestone(DumpTask.createDumpTask(jobTrigger, dumpStatus.getTable(fileName.getName()))));
-                //StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
-                // 将任务注册，可供页面展示
+            List<String> dataXCfgsOfTab = null;
+            List<String> dptTasks = null;
+            for (ISelectedTab entry : selectedTabs) {
+
+                dataXCfgsOfTab = cfgFileNames.getDataXTaskDependencies(entry.getName());
+                dptTasks = Collections.emptyList();
+                if (taskMap.get(IDataXBatchPost.getPreExecuteTaskName(entry)) != null) {
+                    // 说明有前置任务
+                    dptTasks = Collections.singletonList(IDataXBatchPost.getPreExecuteTaskName(entry));
+                }
+
+                for (String fileName : dataXCfgsOfTab) {
+
+
+                    jobTrigger = createDataXJob(dataXJobContext, submit
+                            , expectDataXJobSumit, statusRpc, appSource, fileName, dptTasks);
+
+
+                    addDumpTask(execChainContext, taskMap, jobTrigger, triggers);
+                }
+            }
+
+            // for (File fileName : cfgFileNames) {
+
+            //StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
+            // 将任务注册，可供页面展示
 //                svc.reportDumpJobStatus(false, false, true, execChainContext.getTaskId()
 //                        , fileName.getName(), 0, 0);
 
-            }
+            //}
 
-            logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
-                    , cfgFileNames.stream().map((f) -> f.getName()).collect(Collectors.joining(",")));
+//            logger.info("trigger dataX jobs by mode:{},with:{}", this.getDataXTriggerType()
+//                    , cfgFileNames.stream().map((f) -> f.getName()).collect(Collectors.joining(",")));
 //            for (IRemoteJobTrigger t : triggers) {
 //                t.submitJob();
 //            }
 
-
-            IDataxReader reader = appSource.getReader(null);
-
-            List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
-            // Map<String, IDataxProcessor.TableAlias> tabAlias = appSource.getTabAlias();
-
-            IDataxWriter writer = appSource.getWriter(null);
-
-            if (writer instanceof IDataXBatchPost) {
-                IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
-                JoinPhaseStatus phaseStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
-                for (ISelectedTab entry : selectedTabs) {
-                    IRemoteTaskTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entry);
-                    triggers.add(postTaskTrigger);
-                    JoinPhaseStatus.JoinTaskStatus taskStatus = phaseStatus.getTaskStatus(postTaskTrigger.getTaskName());
-                    taskStatus.setWaiting(true);
-                    taskMap.put(postTaskTrigger.getTaskName()
-                            , new TISReactor.TaskAndMilestone(createJoinTask(postTaskTrigger, taskStatus)));
-
-                }
-            }
 
             // example: "->a ->b a,b->c"
             String dagSessionSpec = triggers.stream().map((trigger) -> {
@@ -232,6 +252,23 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         }
     }
 
+    private void addDumpTask(IExecChainContext execChainContext, Map<String, TISReactor.TaskAndMilestone> taskMap
+            , IRemoteTaskTrigger jobTrigger, List<IRemoteTaskTrigger> triggers) {
+        triggers.add(jobTrigger);
+        DumpPhaseStatus dumpStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
+        taskMap.put(jobTrigger.getTaskName()
+                , new TISReactor.TaskAndMilestone(DumpTask.createDumpTask(jobTrigger, dumpStatus.getTable(jobTrigger.getTaskName()))));
+    }
+
+    private void addJoinTask(IExecChainContext execChainContext, Map<String, TISReactor.TaskAndMilestone> taskMap, List<IRemoteTaskTrigger> triggers, IRemoteTaskTrigger postTaskTrigger) {
+        JoinPhaseStatus phaseStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
+        triggers.add(postTaskTrigger);
+        JoinPhaseStatus.JoinTaskStatus taskStatus = phaseStatus.getTaskStatus(postTaskTrigger.getTaskName());
+        taskStatus.setWaiting(true);
+        taskMap.put(postTaskTrigger.getTaskName()
+                , new TISReactor.TaskAndMilestone(createJoinTask(postTaskTrigger, taskStatus)));
+    }
+
 
     private void executeDAG(ExecutorService executorService, IExecChainContext execChainContext, String dagSessionSpec
             , Map<String, TISReactor.TaskAndMilestone> taskMap, ReactorListener reactorListener) {
@@ -303,14 +340,14 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     protected IRemoteTaskTrigger createDataXJob(
             DataXJobSubmit.IDataXJobContext execChainContext
             , DataXJobSubmit submit, DataXJobSubmit.InstanceType expectDataXJobSumit, RpcServiceReference statusRpc
-            , DataxProcessor appSource, String fileName) {
+            , DataxProcessor appSource, String fileName, List<String> dependencyTasks) {
 
         if (expectDataXJobSumit == DataXJobSubmit.InstanceType.DISTRIBUTE) {
             IncrStatusUmbilicalProtocolImpl statCollect = IncrStatusUmbilicalProtocolImpl.getInstance();
             // 将指标纬度统计向注册到内存中，下一步可提供给DataX终止功能使用
             statCollect.getAppSubExecNodeMetrixStatus(execChainContext.getTaskContext().getIndexName(), fileName);
         }
-        return submit.createDataXJob(execChainContext, statusRpc, appSource, fileName);
+        return submit.createDataXJob(execChainContext, statusRpc, appSource, fileName, dependencyTasks);
     }
 
     protected DataXJobSubmit.InstanceType getDataXTriggerType() {

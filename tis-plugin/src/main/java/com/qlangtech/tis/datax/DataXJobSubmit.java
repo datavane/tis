@@ -131,10 +131,11 @@ public abstract class DataXJobSubmit {
      *
      * @param taskContext
      * @param dataXfileName
+     * @param dependencyTasks 前置依赖需要执行的任务节点
      * @return
      */
     public abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
-            , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName);
+            , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName, List<String> dependencyTasks);
 
 
     public abstract IDataXJobContext createJobContext(IJoinTaskContext parentContext);

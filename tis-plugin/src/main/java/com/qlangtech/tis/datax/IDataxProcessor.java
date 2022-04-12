@@ -20,6 +20,7 @@ package com.qlangtech.tis.datax;
 import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -121,7 +122,7 @@ public interface IDataxProcessor {
      *
      * @return
      */
-    public List<File> getDataxCfgFileNames(IPluginContext pluginCtx);
+    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx);
 
     /**
      * 表映射
