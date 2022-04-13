@@ -31,7 +31,6 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
-//import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.AbstractChildProcessStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
@@ -55,6 +54,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+//import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
+
 /**
  * DataX 执行器
  *
@@ -68,13 +69,12 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
 
 
-
         final Map<String, TISReactor.TaskAndMilestone> taskMap = Maps.newHashMap();
         RpcServiceReference statusRpc = getDataXExecReporter();
 
         DataxProcessor appSource = execChainContext.getAppSource();
         IRemoteTaskTrigger jobTrigger = null;
-       // RunningStatus runningStatus = null;
+        // RunningStatus runningStatus = null;
 
         List<IRemoteTaskTrigger> triggers = Lists.newArrayList();
 
@@ -103,7 +103,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
 
         DataXCfgGenerator.GenerateCfgs cfgFileNames = appSource.getDataxCfgFileNames(null);
-        if (CollectionUtils.isEmpty(cfgFileNames.getDataxFiles())) {
+        if (CollectionUtils.isEmpty(cfgFileNames.getDataXCfgFiles())) {
             throw new IllegalStateException("dataX cfgFileNames can not be empty");
         }
 
@@ -121,7 +121,15 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         final ExecutorService executorService = new ThreadPoolExecutor(
                 nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB),
-                Executors.defaultThreadFactory());
+                new ThreadFactory() {
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        return new Thread(() -> {
+                            execChainContext.rebindLoggingMDCParams();
+                            r.run();
+                        });
+                    }
+                });
         try {
             List<String> dataXCfgsOfTab = null;
             List<String> dptTasks = null;
@@ -163,7 +171,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
             // example: "->a ->b a,b->c"
             String dagSessionSpec = triggers.stream().map((trigger) -> {
-                List<String> dpts = trigger.getTaskDependencies();
+                List<String> dpts = Objects.requireNonNull(trigger.getTaskDependencies()
+                        , "trigger:" + trigger.getTaskName() + " relevant task dependencies can not be null");
                 return dpts.stream().collect(Collectors.joining(",")) + "->" + trigger.getTaskName();
             }).collect(Collectors.joining(" "));
             logger.info("dataX:{} of dagSessionSpec:{}", execChainContext.getIndexName(), dagSessionSpec);

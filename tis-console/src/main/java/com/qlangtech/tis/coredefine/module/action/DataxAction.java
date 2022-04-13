@@ -89,7 +89,7 @@ public class DataxAction extends BasicModule {
     DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
     DataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
     DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null);
-    if (!triggerType.validate(this, context, cfgFileNames.getDataxFiles())) {
+    if (!triggerType.validate(this, context, cfgFileNames.getDataXCfgFiles())) {
       return;
     }
 

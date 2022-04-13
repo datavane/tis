@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.*;
@@ -313,7 +314,12 @@ public class DataXCfgGenerator {
             this.dataxCfgDir = dataxCfgDir;
         }
 
-        public List<File> getDataxFiles() {
+        public List<String> getDataxFiles() {
+            return getDataXCfgFiles().stream().map((file) -> file.getName()).collect(Collectors.toList());
+        }
+
+        @JSONField(serialize = false)
+        public List<File> getDataXCfgFiles() {
 
             if (this._dataxFiles == null) {
                 this._dataxFiles = this.getGroupedChildTask()
