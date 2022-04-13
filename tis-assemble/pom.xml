@@ -71,11 +71,11 @@
         </dependency>
 
         <!--TODO： 可以的话需要将tis-datax-executor 去除掉，因为加入了datax的依赖，而现在为了方便先加入吧为了启动本地datax执行，届时可以考虑放到plugin或者单独起一个VM来执行-->
-<!--        <dependency>-->
-<!--            <groupId>com.qlangtech.tis</groupId>-->
-<!--            <artifactId>tis-datax-executor</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.qlangtech.tis</groupId>-->
+        <!--            <artifactId>tis-datax-executor</artifactId>-->
+        <!--            <version>${project.version}</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-dag</artifactId>
@@ -164,22 +164,21 @@
             <artifactId>hive-exec</artifactId>
         </dependency>
 -->
-<!--        <dependency>-->
-<!--            <groupId>velocity-tools</groupId>-->
-<!--            <artifactId>velocity-tools-view</artifactId>-->
-<!--            <version>2.0-beta1</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>velocity-tools</groupId>-->
+        <!--            <artifactId>velocity-tools-view</artifactId>-->
+        <!--            <version>2.0-beta1</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-manage-pojo</artifactId>
         </dependency>
+
+        <!--for flume-ng-node log collector-->
         <dependency>
             <groupId>org.apache.flume</groupId>
             <artifactId>flume-ng-node</artifactId>
-            <!--
-            <version>1.6.0-cdh5.5.0</version>
-            -->
             <version>1.6.0</version>
             <exclusions>
                 <exclusion>
@@ -192,6 +191,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-ipc</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
+        <!--for flume-ng-node log collector stop-->
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
@@ -271,11 +281,11 @@
                 </dependency>
         -->
 
-<!--        <dependency>-->
-<!--            <groupId>org.apache.velocity</groupId>-->
-<!--            <artifactId>velocity-engine-core</artifactId>-->
-<!--            <version>2.3</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.velocity</groupId>-->
+        <!--            <artifactId>velocity-engine-core</artifactId>-->
+        <!--            <version>2.3</version>-->
+        <!--        </dependency>-->
 
         <!--        <dependency>-->
         <!--            <groupId>com.qlangtech.tis</groupId>-->
