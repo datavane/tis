@@ -20,6 +20,7 @@ package com.qlangtech.tis.exec.datax;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataXBatchPost;
@@ -384,7 +385,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
     @Override
     public Set<FullbuildPhase> getPhase() {
-        return Collections.singleton(FullbuildPhase.FullDump);
+        return Sets.newHashSet(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
     }
 
     public static DataflowTask createJoinTask(
