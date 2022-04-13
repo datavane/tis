@@ -31,7 +31,7 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
-import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
+//import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.AbstractChildProcessStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
@@ -67,18 +67,14 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     @Override
     protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
 
-        int nThreads = 2;
-        final ExecutorService executorService = new ThreadPoolExecutor(
-                nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB),
-                Executors.defaultThreadFactory());
+
 
         final Map<String, TISReactor.TaskAndMilestone> taskMap = Maps.newHashMap();
         RpcServiceReference statusRpc = getDataXExecReporter();
 
         DataxProcessor appSource = execChainContext.getAppSource();
         IRemoteTaskTrigger jobTrigger = null;
-        RunningStatus runningStatus = null;
+       // RunningStatus runningStatus = null;
 
         List<IRemoteTaskTrigger> triggers = Lists.newArrayList();
 
@@ -121,6 +117,11 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         DataXJobSubmit submit = jobSubmit.get();
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
+        int nThreads = 2;
+        final ExecutorService executorService = new ThreadPoolExecutor(
+                nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB),
+                Executors.defaultThreadFactory());
         try {
             List<String> dataXCfgsOfTab = null;
             List<String> dptTasks = null;
@@ -249,6 +250,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             } catch (Throwable e) {
                 logger.error(e.getMessage(), e);
             }
+            executorService.shutdown();
         }
     }
 

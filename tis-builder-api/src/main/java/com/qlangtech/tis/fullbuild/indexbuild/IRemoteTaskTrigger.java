@@ -63,5 +63,5 @@ public interface IRemoteTaskTrigger extends Runnable {
         throw new UnsupportedOperationException();
     }
 
-    RunningStatus getRunningStatus();
+  //  RunningStatus getRunningStatus();
 }

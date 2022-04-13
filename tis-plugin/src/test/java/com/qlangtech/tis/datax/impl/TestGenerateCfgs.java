@@ -44,7 +44,8 @@ public class TestGenerateCfgs {
 
     @Test
     public void testReadFromGen() throws Exception {
-        DataXCfgGenerator.GenerateCfgs genCfgs = new DataXCfgGenerator.GenerateCfgs();
+        File dataxCfgDir = folder.newFolder();
+        DataXCfgGenerator.GenerateCfgs genCfgs = new DataXCfgGenerator.GenerateCfgs(dataxCfgDir);
         long timestamp = System.currentTimeMillis();
         genCfgs.setGenTime(timestamp);
         Map<String, List<String>> groupedChildTask = Maps.newHashMap();
@@ -52,7 +53,7 @@ public class TestGenerateCfgs {
         groupedChildTask.put(tabName, Lists.newArrayList(tabName + "_1", tabName + "_2"));
         genCfgs.setGroupedChildTask(groupedChildTask);
 
-        File dataxCfgDir = folder.newFolder();
+
         genCfgs.write2GenFile(dataxCfgDir);
 
         DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir);

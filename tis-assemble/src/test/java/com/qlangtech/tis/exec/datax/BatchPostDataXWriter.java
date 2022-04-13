@@ -25,7 +25,6 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
-import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 import java.util.List;
@@ -38,6 +37,7 @@ import java.util.Optional;
 public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost {
     boolean runPass = false;
     boolean execGetTaskDependencies = false;
+    boolean preExecute = false;
 
     private final List<String> taskDependencies;
 
@@ -47,12 +47,24 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
 
     public void verify() {
         Assert.assertTrue("runPass must be true", runPass);
+        Assert.assertTrue("preExecute must be true", preExecute);
+
         Assert.assertTrue("execGetTaskDependencies must be true", execGetTaskDependencies);
     }
 
     @Override
     public IRemoteTaskTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab) {
-        return null;
+        return new IRemoteTaskTrigger(){
+            @Override
+            public String getTaskName() {
+                return IDataXBatchPost.getPreExecuteTaskName(tab);
+            }
+
+            @Override
+            public void run() {
+                preExecute = true;
+            }
+        };
     }
 
     @Override
@@ -68,12 +80,6 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
                 execGetTaskDependencies = true;
                 return taskDependencies;
             }
-
-            @Override
-            public RunningStatus getRunningStatus() {
-                throw new UnsupportedOperationException();
-            }
-
             @Override
             public void run() {
                 runPass = true;

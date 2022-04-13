@@ -150,7 +150,7 @@ public class TISReactor {
         }
 
         public boolean failureIsFatal() {
-            return true;
+            return false;
         }
     }
 }

@@ -32,6 +32,8 @@ import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import junit.framework.Assert;
 
+import java.util.List;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-03 20:55
@@ -95,7 +97,8 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         }
 
         @Override
-        public IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName) {
+        public IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
+                , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName, List<String> dependencyTasks) {
             return jobTrigger;
 //            return new IRemoteJobTrigger() {
 //                @Override

@@ -22,7 +22,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxGlobalCfg;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -31,7 +33,6 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
-import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
@@ -61,9 +62,11 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
     private static File dataxCfgDir;
     private static final String tableName = "customer_order_relation";
     private static final String dataCfgTaskName = tableName + "_1";
-    private static final String dataCfgFileName = dataCfgTaskName + ".json";
+    private static final String dataCfgFileName
+            = dataCfgTaskName + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX;
     static final int testTaskId = 999;
 
+    BatchPostDataXWriter dataxWriter;
 
     @Override
     protected void setUp() throws Exception {
@@ -75,7 +78,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         dataxCfgDir = new File(Config.getDataDir(), "/cfg_repo/tis_plugin_config/ap/" + AP_NAME + "/dataxCfg");
         FileUtils.forceMkdir(dataxCfgDir);
 
-        DataXCfgGenerator.GenerateCfgs genCfg = new DataXCfgGenerator.GenerateCfgs();
+        DataXCfgGenerator.GenerateCfgs genCfg = new DataXCfgGenerator.GenerateCfgs(dataxCfgDir);
         genCfg.setGenTime(System.currentTimeMillis());
         Map<String, List<String>> groupedChildTask = Maps.newHashMap();
         groupedChildTask.put(tableName, Lists.newArrayList(dataCfgTaskName));
@@ -88,27 +91,40 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         }
 
 
-    }
-
-    public void testExecute() throws Exception {
-
         DataxReader dataxReader = mock(AP_NAME + "DataXReader", DataxReader.class);
         ISelectedTab tab = new TestSelectedTab(tableName);
-        EasyMock.expect(dataxReader.getSelectedTabs()).andReturn(Collections.singletonList(tab));
+        EasyMock.expect(dataxReader.getSelectedTabs()).andReturn(Collections.singletonList(tab)).anyTimes();
 
         DataxReader.dataxReaderGetter = (name) -> {
             return dataxReader;
         };
-        BatchPostDataXWriter dataxWriter = new BatchPostDataXWriter(Collections.singletonList(dataCfgFileName));
+        dataxWriter = new BatchPostDataXWriter(Collections.singletonList(dataCfgFileName));
         DataxWriter.dataxWriterGetter = (name) -> {
             // DataxWriter dataxWriter = mock(name + "DataXWriter", DataxWriter.class);
             return dataxWriter;
         };
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        /**
+         * 开始校验
+         */
+        dataxWriter.verify();
+
+    }
+
+    public void testExecute() throws Exception {
+
 
         IRemoteTaskTrigger jobTrigger
                 = mock(dataCfgTaskName + "_" + IRemoteTaskTrigger.class.getSimpleName(), IRemoteTaskTrigger.class);
         //
-        EasyMock.expect(jobTrigger.getTaskDependencies()).andReturn(Collections.emptyList()).anyTimes();
+
+        final String preExecuteTaskName = IDataXBatchPost.getPreExecuteTaskName(new TestSelectedTab(tableName));
+        EasyMock.expect(jobTrigger.getTaskDependencies())
+                .andReturn(Collections.singletonList(preExecuteTaskName)).anyTimes();
         EasyMock.expect(jobTrigger.getTaskName()).andReturn(dataCfgFileName).anyTimes();
         EasyMock.expect(jobTrigger.isAsyn()).andReturn(false).anyTimes();
         jobTrigger.run();
@@ -120,10 +136,6 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
          */
         executeJobTrigger(jobTrigger, true);
 
-        /**
-         * 开始校验
-         */
-        dataxWriter.verify();
 
         PhaseStatusCollection taskPhaseRef = TrackableExecuteInterceptor.getTaskPhaseReference(testTaskId);
         Assert.assertNotNull(taskPhaseRef);
@@ -137,8 +149,17 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         Assert.assertTrue(tableDumpStatus.isSuccess());
         Assert.assertFalse(tableDumpStatus.isWaiting());
         Assert.assertFalse(tableDumpStatus.isFaild());
-
         Assert.assertEquals(dataCfgFileName, tableDumpStatus.getName());
+
+        DumpPhaseStatus.TableDumpStatus preExecuteStatus = dumpStatus.getTable(preExecuteTaskName);
+        Assert.assertNotNull(preExecuteTaskName + "must exist", preExecuteStatus);
+
+        Assert.assertTrue(preExecuteStatus.isComplete());
+        Assert.assertTrue(preExecuteStatus.isSuccess());
+        Assert.assertFalse(preExecuteStatus.isWaiting());
+        Assert.assertFalse(preExecuteStatus.isFaild());
+        Assert.assertEquals(preExecuteTaskName, preExecuteStatus.getName());
+
 
         JoinPhaseStatus joinStatus = taskPhaseRef.getJoinPhase();
         Assert.assertNotNull(joinStatus);
@@ -158,28 +179,33 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
     public void testExecuteWithExcpetionWhenSubmitJob() throws Exception {
         IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
         //
-        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
+        EasyMock.expect(jobTrigger.getTaskName()).andReturn(dataCfgFileName).anyTimes();
+        EasyMock.expect(jobTrigger.getTaskDependencies()).andReturn(Collections.emptyList()).anyTimes();
+        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false).anyTimes();
         jobTrigger.run();
         EasyMock.expectLastCall().andThrow(new RuntimeException("throw a exception"));
-        RunningStatus runningStatus = RunningStatus.SUCCESS;
-        EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
+        //  RunningStatus runningStatus = RunningStatus.SUCCESS;
+        // EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
 
         try {
-            executeJobTrigger(jobTrigger, true);
-            fail("shall throw an exception");
-        } catch (Exception e) {
+            executeJobTrigger(jobTrigger, false);
 
+        } catch (Exception e) {
+            fail("shall not throw an exception");
         }
     }
 
     public void testExecuteWithGetRunningStatusFaild() throws Exception {
         IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
+        EasyMock.expect(jobTrigger.getTaskName()).andReturn(dataCfgFileName).anyTimes();
+        EasyMock.expect(jobTrigger.getTaskDependencies()).andReturn(Collections.emptyList()).anyTimes();
         //
-        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false);
+        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false).anyTimes();
         jobTrigger.run();
+        EasyMock.expectLastCall().andThrow(new RuntimeException("throw a exception"));
         // EasyMock.expectLastCall().andThrow(new RuntimeException("throw a exception"));
-        RunningStatus runningStatus = RunningStatus.FAILD;
-        EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
+        // RunningStatus runningStatus = RunningStatus.FAILD;
+        // EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus).anyTimes();
 
 
         executeJobTrigger(jobTrigger, false);
