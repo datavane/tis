@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -50,6 +51,6 @@ public interface IDataXBatchPost {
      * @param tab
      * @return
      */
-    public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, ISelectedTab tab);
+    public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, ISelectedTab tab, DataXCfgGenerator.GenerateCfgs cfgFileNames);
 
 }

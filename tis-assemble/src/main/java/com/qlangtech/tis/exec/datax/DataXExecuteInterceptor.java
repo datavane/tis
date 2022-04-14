@@ -87,12 +87,16 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
         IDataxWriter writer = appSource.getWriter(null);
 
+        DataXCfgGenerator.GenerateCfgs cfgFileNames = appSource.getDataxCfgFileNames(null);
+        if (CollectionUtils.isEmpty(cfgFileNames.getDataXCfgFiles())) {
+            throw new IllegalStateException("dataX cfgFileNames can not be empty");
+        }
 
         if (writer instanceof IDataXBatchPost) {
             IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
 
             for (ISelectedTab entry : selectedTabs) {
-                IRemoteTaskTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entry);
+                IRemoteTaskTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entry, cfgFileNames);
                 addJoinTask(execChainContext, taskMap, triggers, postTaskTrigger);
 
                 IRemoteTaskTrigger preExec = batchPostTask.createPreExecuteTask(execChainContext, entry);
@@ -102,11 +106,6 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             }
         }
 
-
-        DataXCfgGenerator.GenerateCfgs cfgFileNames = appSource.getDataxCfgFileNames(null);
-        if (CollectionUtils.isEmpty(cfgFileNames.getDataXCfgFiles())) {
-            throw new IllegalStateException("dataX cfgFileNames can not be empty");
-        }
 
         DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();
         Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(expectDataXJobSumit);

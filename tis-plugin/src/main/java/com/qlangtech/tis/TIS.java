@@ -434,7 +434,7 @@ public class TIS {
             return removeCount;
         }
 
-        protected Class<Describable> getPluginClass(Map.Entry<?, ?> next) {
+        protected Class<Describable> getPluginClass(Map.Entry<?, ?> next  ) {
             KeyedPluginStore.Key key = (KeyedPluginStore.Key) next.getKey();
             return key.pluginClass;
             //   return (Class<Describable>) next.getKey();
