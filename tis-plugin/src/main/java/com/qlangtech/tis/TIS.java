@@ -51,10 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
@@ -393,6 +390,57 @@ public class TIS {
         dataXWriterPluginStore.clear();
         dataXReaderSubFormPluginStore.clear();
     }
+
+    public static int cleanPluginStore(Class<? extends Describable> descClass) {
+        MemoizerStoreProc[]
+                stores = new MemoizerStoreProc[]{
+                new MemoizerStoreProc(globalPluginStore) {
+                    @Override
+                    protected Class<Describable> getPluginClass(Map.Entry<?, ?> next) {
+                        return (Class<Describable>) next.getKey();
+                    }
+                }
+                , new MemoizerStoreProc(collectionPluginStore)
+                , new MemoizerStoreProc(databasePluginStore)
+                , new MemoizerStoreProc(appSourcePluginStore)
+                , new MemoizerStoreProc(dataXReaderPluginStore)
+                , new MemoizerStoreProc(dataXWriterPluginStore)
+                , new MemoizerStoreProc(dataXReaderSubFormPluginStore)};
+        int removeCount = 0;
+        for (MemoizerStoreProc store : stores) {
+            removeCount += store.clean(descClass);
+        }
+        return removeCount;
+    }
+
+    static class MemoizerStoreProc {
+        final Memoizer<?, ?> store;
+
+        public MemoizerStoreProc(Memoizer<?, ?> store) {
+            this.store = store;
+        }
+
+        public final int clean(Class<? extends Describable> pluginClass) {
+            Set<? extends Map.Entry<?, ?>> entries = store.getEntries();
+            Iterator<? extends Map.Entry<?, ?>> iterator = entries.iterator();
+            int removeCount = 0;
+            while (iterator.hasNext()) {
+                Class<Describable> key = getPluginClass(iterator.next());
+                if (pluginClass == key) {
+                    iterator.remove();
+                    removeCount++;
+                }
+            }
+            return removeCount;
+        }
+
+        protected Class<Describable> getPluginClass(Map.Entry<?, ?> next) {
+            KeyedPluginStore.Key key = (KeyedPluginStore.Key) next.getKey();
+            return key.pluginClass;
+            //   return (Class<Describable>) next.getKey();
+        }
+    }
+
 
     // 插件运行系统是否已经初始化
     public static boolean initialized = false;

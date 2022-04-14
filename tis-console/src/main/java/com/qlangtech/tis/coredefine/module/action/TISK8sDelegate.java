@@ -52,6 +52,9 @@ public class TISK8sDelegate {
 
       @Override
       public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
+        if (!event.cfgChanged) {
+          return;
+        }
         if (event.heteroEnum == HeteroEnum.PARAMS_CONFIG
           || event.heteroEnum == HeteroEnum.INCR_STREAM_CONFIG
         ) {

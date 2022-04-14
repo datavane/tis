@@ -301,7 +301,10 @@ public class PluginItems {
 
     @Override
     public final void update(Observable o, Object arg) {
-      this.afterSaved((PluginItemsSaveEvent) arg);
+      PluginItemsSaveEvent evt = (PluginItemsSaveEvent) arg;
+      if (evt.cfgChanged) {
+        this.afterSaved(evt);
+      }
     }
 
     public abstract void afterSaved(PluginItemsSaveEvent event);

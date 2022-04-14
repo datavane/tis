@@ -154,7 +154,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         public final KeyVal keyVal;
         protected final String groupName;
 
-        protected final Class<T> pluginClass;
+        public final Class<T> pluginClass;
 
         public Key(String groupName, String keyVal, Class<T> pluginClass) {
             this(groupName, new KeyVal(keyVal), pluginClass);

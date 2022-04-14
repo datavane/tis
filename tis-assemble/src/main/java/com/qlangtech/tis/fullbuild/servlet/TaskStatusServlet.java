@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
@@ -24,8 +24,6 @@ import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -55,9 +53,11 @@ public class TaskStatusServlet extends HttpServlet {
         String extendPoint = null;
         try {
             if (StringUtils.isNotEmpty(extendPoint = req.getParameter(DescriptorsJSON.KEY_EXTEND_POINT))) {
-                IPluginStore<Describable> pluginStore = TIS.getPluginStore((Class<Describable>) Class.forName(extendPoint));
-                pluginStore.cleanPlugins();
-                logger.info("key of '{}' pluginStore has been clean", extendPoint);
+
+                int removeCount = TIS.cleanPluginStore((Class<Describable>) Class.forName(extendPoint));
+//                IPluginStore<Describable> pluginStore = TIS.getPluginStore((Class<Describable>) Class.forName(extendPoint));
+//                pluginStore.cleanPlugins();
+                logger.info("key of '{}' pluginStore has been clean,remove count:{}", extendPoint, removeCount);
                 return;
             }
         } catch (ClassNotFoundException e) {
