@@ -292,14 +292,14 @@ public class DataxAction extends BasicModule {
 
     DataXJobWorkerStatus jobWorkerStatus = new DataXJobWorkerStatus();
     if (!firstWorker.isPresent()) {
-      jobWorkerStatus.setK8sReplicationControllerCreated(false);
+      jobWorkerStatus.setState(IFlinkIncrJobStatus.State.NONE);
       this.setBizResult(context, jobWorkerStatus);
       return;
     }
     DataXJobWorker jobWorker = firstWorker.get();
     boolean disableRcdeployment = this.getBoolean("disableRcdeployment");
-    jobWorkerStatus.setK8sReplicationControllerCreated(jobWorker.inService());
-    if (jobWorkerStatus.isK8sReplicationControllerCreated() && !disableRcdeployment) {
+    jobWorkerStatus.setState(jobWorker.inService() ? IFlinkIncrJobStatus.State.RUNNING : IFlinkIncrJobStatus.State.NONE);
+    if (jobWorkerStatus.getState() == IFlinkIncrJobStatus.State.RUNNING && !disableRcdeployment) {
       jobWorkerStatus.setRcDeployment(jobWorker.getRCDeployment());
     }
     this.setBizResult(context, jobWorkerStatus);

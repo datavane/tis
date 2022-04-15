@@ -19,6 +19,7 @@
 package com.qlangtech.tis.coredefine.module.action.impl;
 
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
+import com.qlangtech.tis.coredefine.module.action.IFlinkIncrJobStatus;
 import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
@@ -34,6 +35,11 @@ public class AdapterRCController implements IRCController {
         throw new UnsupportedOperationException();
     }
 
+//    @Override
+//    public IFlinkIncrJobStatus getIncrJobStatus(TargetResName collection) {
+//        throw new UnsupportedOperationException();
+//    }
+
     @Override
     public void checkUseable() {
         throw new UnsupportedOperationException();
@@ -44,6 +50,10 @@ public class AdapterRCController implements IRCController {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void stopInstance(TargetResName indexName) {
+        throw new UnsupportedOperationException();
+    }
 //    @Override
 //    public void relaunch(String collection) {
 //        throw new UnsupportedOperationException();

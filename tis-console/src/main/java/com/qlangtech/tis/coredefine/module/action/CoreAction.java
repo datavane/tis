@@ -196,10 +196,12 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
-    if (store.getPlugin() == null) {
+    // IncrStreamFactory incrStream = null;
+    if ((store.getPlugin()) == null) {
       incrStatus.setK8sPluginInitialized(false);
       return incrStatus;
     }
+
     incrStatus.setK8sPluginInitialized(true);
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
     StreamCodeContext streamCodeContext
@@ -207,7 +209,7 @@ public class CoreAction extends BasicModule {
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
     TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
     IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
-    incrStatus.setK8sReplicationControllerCreated(rcConfig != null);
+    incrStatus.setState(rcConfig != null ? IFlinkIncrJobStatus.State.RUNNING : IFlinkIncrJobStatus.State.NONE);
     if (rcConfig != null) {
       rcConfig.accept(new IDeploymentDetail.IDeploymentDetailVisitor() {
         @Override
@@ -218,6 +220,8 @@ public class CoreAction extends BasicModule {
         @Override
         public void visit(FlinkJobDeploymentDetails details) {
           incrStatus.setFlinkJobDetail(details);
+          // 这里有三种状态
+          incrStatus.setState(details.getIncrJobStatus().getState());
         }
       });
 
@@ -976,6 +980,24 @@ public class CoreAction extends BasicModule {
     TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
     // 删除增量实例
     k8sDelegate.removeIncrProcess();
+  }
+
+
+  /**
+   * 停止增量通道
+   *
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
+  public void doIncrStop(Context context) throws Exception {
+
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
+    indexStreamCodeGenerator.deleteScript();
+
+    TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+    // 删除增量实例
+    k8sDelegate.stopIncrProcess();
   }
 
 //  /**

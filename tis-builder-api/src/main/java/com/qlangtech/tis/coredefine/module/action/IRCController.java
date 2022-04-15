@@ -52,12 +52,23 @@ public interface IRCController {
      */
     void removeInstance(TargetResName collection) throws Exception;
 
+
+    /**
+     * 停止 增量实例，执行过程中会触发savepoint的记录
+     *
+     * @param indexName
+     * @throws Exception
+     */
+    void stopInstance(TargetResName indexName);
+
     /**
      * 重启增量节点
      *
      * @param collection
      */
     void relaunch(TargetResName collection, String... targetPod);
+
+//    IFlinkIncrJobStatus getIncrJobStatus(TargetResName collection);
 
     /**
      * 取得增量实例
@@ -74,4 +85,6 @@ public interface IRCController {
      * @param listener
      */
     WatchPodLog listPodAndWatchLog(TargetResName collection, String podName, ILogListener listener);
+
+
 }

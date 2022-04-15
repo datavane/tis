@@ -174,6 +174,23 @@ public class TISK8sDelegate {
   }
 
   /**
+   * 停止增量实例
+   */
+  public void stopIncrProcess() {
+
+    try {
+      this.incrSync.stopInstance(this.indexName);
+      this.cleanResource();
+    } catch (Exception e) {
+      if (this.incrSync.getRCDeployment(this.indexName) == null) {
+        this.cleanResource();
+      }
+      throw new RuntimeException(this.indexName.getName(), e);
+    }
+
+  }
+
+  /**
    * 删除增量实例
    */
   public void removeIncrProcess() {
@@ -223,4 +240,6 @@ public class TISK8sDelegate {
     // this.watchPodLog.close();
     // }
   }
+
+
 }
