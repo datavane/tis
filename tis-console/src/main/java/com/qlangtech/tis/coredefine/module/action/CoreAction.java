@@ -175,10 +175,14 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doRelaunchIncrProcess(Context context) throws Exception {
+    String savepointPath = this.getString("savepointPath");
+    if (StringUtils.isEmpty(savepointPath)) {
+      throw new IllegalArgumentException("param savepointPath can not be null");
+    }
     IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
     IRCController incrSync = incrStream.getIncrSync();
-    incrSync.relaunch(new TargetResName(this.getCollectionName()));
+    incrSync.relaunch(new TargetResName(this.getCollectionName()), savepointPath);
   }
 
   /**

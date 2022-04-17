@@ -48,5 +48,23 @@ public interface IFlinkIncrJobStatus {
      *
      * @return
      */
-    public List<String> getSavepointPaths();
+    public List<FlinkSavepoint> getSavepointPaths();
+
+    public class FlinkSavepoint {
+        private String path;
+        private long createTimestamp;
+
+        public FlinkSavepoint(String path, long createTimestamp) {
+            this.path = path;
+            this.createTimestamp = createTimestamp;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public long getCreateTimestamp() {
+            return createTimestamp;
+        }
+    }
 }
