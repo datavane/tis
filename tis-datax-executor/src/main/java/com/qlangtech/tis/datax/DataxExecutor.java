@@ -33,6 +33,7 @@ import com.alibaba.datax.core.util.ConfigurationValidate;
 import com.alibaba.datax.core.util.FrameworkErrorCode;
 import com.alibaba.datax.core.util.container.JarLoader;
 import com.alibaba.datax.core.util.container.LoadUtil;
+import com.gilt.logback.flume.tis.TisFlumeLogstashV1Appender;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
@@ -160,7 +161,7 @@ public class DataxExecutor {
             public void run() {
                 statusRpc.close();
                 // if (flumeAppendEnable) {
-                com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender.instance.stop();
+                TisFlumeLogstashV1Appender.instance.stop();
                 // }
             }
         });
