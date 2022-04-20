@@ -1078,7 +1078,9 @@ public class OfflineDatasourceAction extends BasicModule {
     List<ISelectedTab> allNewTabs = Lists.newArrayList();
     PluginFormProperties pluginFormPropertyTypes = null;
     Map<String, Object> bizResult = Maps.newHashMap();
+    Map<String, com.alibaba.fastjson.JSONObject> tabDesc = Maps.newHashMap();
     for (DataxReader reader : readers) {
+      DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
       mapCols = selectedTabs.stream().collect(Collectors.toMap((tab) -> tab, (tab) -> {
         return reader.getTableMetadata(tab);
       }));
@@ -1087,12 +1089,16 @@ public class OfflineDatasourceAction extends BasicModule {
       }
       pluginFormPropertyTypes = reader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
       for (Map.Entry<String, List<ColumnMetaData>> tab2cols : mapCols.entrySet()) {
-        SuFormProperties.setSuFormGetterContext(reader, pluginMeta, tab2cols.getKey());
-        allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
+        try {
+          SuFormProperties.setSuFormGetterContext(reader, pluginMeta, tab2cols.getKey());
+          allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
+          // 需要将desc中的取option列表解析一下（JsonUtil.UnCacheString）
+          tabDesc.put(tab2cols.getKey(), JSON.parseObject(desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()).toJSONString()));
+        } finally {
+          SuFormProperties.subFormGetterProcessThreadLocal.remove();
+        }
       }
-      SuFormProperties.subFormGetterProcessThreadLocal.remove();
-      DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
-      bizResult.put("subformDescriptor", desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()));
+      //  bizResult.put("subformDescriptor", desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()));
       break;
     }
 
@@ -1108,7 +1114,7 @@ public class OfflineDatasourceAction extends BasicModule {
           allNewTabs.stream().map((t) -> (IdentityName) t).collect(Collectors.toList()));
       }
     }));
-
+    bizResult.put("subformDescriptor", tabDesc);
     this.setBizResult(context, bizResult);
   }
 

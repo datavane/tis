@@ -32,7 +32,7 @@
 
 
     <appender name="datax"
-              class="com.qlangtech.tis.datax.log.TisFlumeLogstashV1Appender">
+              class="com.gilt.logback.flume.tis.TisFlumeLogstashV1Appender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
