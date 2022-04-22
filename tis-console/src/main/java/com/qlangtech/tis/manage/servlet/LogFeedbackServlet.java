@@ -44,6 +44,7 @@ import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.websocket.api.Session;
@@ -78,6 +79,11 @@ public class LogFeedbackServlet extends WebSocketServlet {
   private ZooKeeperGetter zkGetter;
 
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
+
+//  private void closeStatusRpc() {
+//    statusRpc.get().close();
+//    statusRpc = null;
+//  }
 
   private RpcServiceReference getStatusRpc() {
     if (this.statusRpc != null) {
@@ -289,6 +295,9 @@ public class LogFeedbackServlet extends WebSocketServlet {
               }
             }
             logger.info("exit buildPhraseStatus status monitor,serverSideBreak:{}", serverSideBreak);
+          } catch (StatusRuntimeException e) {
+            getStatusRpc().reConnect();
+            throw e;
           } catch (Exception e) {
             throw new RuntimeException("taskid:" + taskid, e);
           }

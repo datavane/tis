@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tis.hadoop.rpc;
 
@@ -22,7 +22,6 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
-
 import com.qlangtech.tis.realtime.yarn.rpc.*;
 import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
@@ -75,7 +74,7 @@ public class StatusRpcClient {
      * @param reConnect 是否需要重连
      * @throws Exception 异常
      */
-    private void connect2RemoteIncrStatusServer(final ITISCoordinator zookeeper, boolean reConnect, final AssembleSvcCompsiteCallback rpcCallback) throws Exception {
+    private void connect2RemoteIncrStatusServer(final ITISCoordinator zookeeper, boolean reConnect, final AssembleSvcCompsiteCallback rpcCallback) {
         // 增量状态收集节点
         final String incrStateCollectAddress = ZkUtils.getFirstChildValue(zookeeper, ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, new AbstractWatcher() {
             @Override
@@ -160,32 +159,35 @@ public class StatusRpcClient {
         final AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(AssembleSvcCompsite.MOCK_PRC);
         if (!zookeeper.shallConnect2RemoteIncrStatusServer()) {
-            return new RpcServiceReference(ref);
+            return new RpcServiceReference(ref, () -> {
+            });
         }
-
-        StatusRpcClient statusRpcClient = new StatusRpcClient();
-        statusRpcClient.connect2RemoteIncrStatusServer(zookeeper, true, /* reConnect */
-                new AssembleSvcCompsiteCallback() {
-                    @Override
-                    public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
-                        ref.compareAndSet(oldrpc, newrpc);
-                        for (AdapterAssembleSvcCompsiteCallback c : callbacks) {
-                            c.process(oldrpc, newrpc);
+        Runnable connect = () -> {
+            StatusRpcClient statusRpcClient = new StatusRpcClient();
+            statusRpcClient.connect2RemoteIncrStatusServer(zookeeper, true, /* reConnect */
+                    new AssembleSvcCompsiteCallback() {
+                        @Override
+                        public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
+                            ref.compareAndSet(oldrpc, newrpc);
+                            for (AdapterAssembleSvcCompsiteCallback c : callbacks) {
+                                c.process(oldrpc, newrpc);
+                            }
+                            return newrpc;
                         }
-                        return newrpc;
-                    }
 
-                    @Override
-                    public AssembleSvcCompsite getOld() {
-                        return ref.get().unwrap();
-                    }
+                        @Override
+                        public AssembleSvcCompsite getOld() {
+                            return ref.get().unwrap();
+                        }
 
-                    @Override
-                    public void errorOccur(AssembleSvcCompsite oldrpc, Exception e) {
-                        ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
-                    }
-                });
-        return new RpcServiceReference(ref);
+                        @Override
+                        public void errorOccur(AssembleSvcCompsite oldrpc, Exception e) {
+                            ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
+                        }
+                    });
+        };
+        connect.run();
+        return new RpcServiceReference(ref, connect);
     }
 
     public interface AssembleSvcCompsiteCallback {
