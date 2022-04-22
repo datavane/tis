@@ -166,7 +166,8 @@ public class DataxExecutor {
             }
         });
 
-        DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc)), execMode, allRows);
+        DataxExecutor dataxExecutor = new DataxExecutor(new RpcServiceReference(new AtomicReference<>(statusRpc), () -> {
+        }), execMode, allRows);
 
         if (execMode == DataXJobSubmit.InstanceType.DISTRIBUTE) {
             // 如果是分布式执行状态，需要通过RPC的方式来监听监工是否执行了客户端终止操作

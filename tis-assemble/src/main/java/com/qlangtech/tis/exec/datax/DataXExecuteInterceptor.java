@@ -379,7 +379,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         };
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(new DataXAssembleSvcCompsite(statReceiveSvc));
-        return new RpcServiceReference(ref);
+        return new RpcServiceReference(ref, () -> {
+        });
     }
 
     @Override
