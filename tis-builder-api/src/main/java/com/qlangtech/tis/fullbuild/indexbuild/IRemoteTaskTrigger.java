@@ -25,7 +25,7 @@ import java.util.List;
  * @date 2020/04/13
  */
 public interface IRemoteTaskTrigger extends Runnable {
-
+    String KEY_DELTA_STREM_DEBUG = "hudiDeltaStreamDebug";
     String getTaskName();
 
     default List<String> getTaskDependencies() {

@@ -71,16 +71,16 @@ public class TisApp {
 
         // 启动应用使用本地8080端口
 
-        TisApp tisApp = new TisApp(TisAppLaunchPort.getPort(), (context) -> {
+        TisApp tisApp = new TisApp(TisAppLaunch.getPort(TisSubModule.WEB_START), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });
         tisApp.start(args);
     }
 
-    public TisApp(String servletContext, int port, IWebAppContextSetter contextSetter) throws Exception {
+    public TisApp(TisSubModule subModule, IWebAppContextSetter contextSetter) throws Exception {
         super();
-        this.jetty = new JettyTISRunner(servletContext, port, contextSetter);
+        this.jetty = new JettyTISRunner(subModule.servletContext, TisAppLaunch.getPort(subModule), contextSetter);
     }
 
     public TisApp(int port, IWebAppContextSetter contextSetter) throws Exception {
@@ -88,6 +88,10 @@ public class TisApp {
         this.jetty = new JettyTISRunner(port, contextSetter);
         this.initContext();
     }
+
+//    public TisApp(String servletContext, int port) throws Exception {
+//        this(servletContext, port, (r) -> {});
+//    }
 
     static final String APP_CONSOLE = "root";
 
@@ -136,10 +140,7 @@ public class TisApp {
         return root;
     }
 
-    public TisApp(String servletContext, int port) throws Exception {
-        this(servletContext, port, (r) -> {
-        });
-    }
+
 
     public void start(String[] args) throws Exception {
         logger.info("start TIS with port:{}", this.jetty.getPort());

@@ -20,7 +20,8 @@ package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.org.apache.commons.io.FileUtils;
 import com.qlangtech.tis.utils.TisMetaProps;
-import com.qlangtech.tis.web.start.TisAppLaunchPort;
+import com.qlangtech.tis.web.start.TisAppLaunch;
+import com.qlangtech.tis.web.start.TisSubModule;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import java.util.function.Consumer;
  * @date 2020/04/13
  */
 public class Config {
+    public static final String KEY_ENV_TIS_HOME = "TIS_HOME";
     public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
     public static final String SYSTEM_KEY__LOGBACK_HUDI = "logback-hudi.xml";
@@ -79,9 +81,6 @@ public class Config {
 
     public static final String KEY_JAVA_RUNTIME_PROP_ENV_PROPS = "env_props";
 
-    public static final String CONTEXT_TIS = "/tjs";
-
-    public static final String CONTEXT_ASSEMBLE = "/tis-assemble";
 
     public static final String SUB_DIR_LIBS = "libs";
 
@@ -92,8 +91,6 @@ public class Config {
     private static String GENERATE_PARENT_PACKAGE = "com.qlangtech.tis.realtime.transfer";
 
     public static final int LogFlumeAddressPORT = 41414;
-
-    private static boolean test = false;
 
     public static final String DEFAULT_DATA_DIR = "/opt/data/tis";
 
@@ -110,14 +107,6 @@ public class Config {
     public static void setDataDir(String path) {
         System.setProperty(KEY_DATA_DIR, path);
         getInstance().dataDir = new File(path);
-    }
-
-    public static void setTest(boolean val) {
-        test = val;
-    }
-
-    public static boolean isTestMock() {
-        return test;
     }
 
     public static File setTestDataDir() {
@@ -165,7 +154,7 @@ public class Config {
         pairs.put(KEY_TIS_DATASOURCE_TYPE, dbCfg.dbtype);
         pairs.put(KEY_TIS_DATASOURCE_DBNAME, dbCfg.dbname);
         pairs.put(KEY_DEPLOY_MODE, this.deployMode);
-        pairs.put(TisAppLaunchPort.KEY_TIS_LAUNCH_PORT, String.valueOf(TisAppLaunchPort.getPort()));
+        pairs.put(TisAppLaunch.KEY_TIS_LAUNCH_PORT, String.valueOf(TisAppLaunch.getPort(TisSubModule.TIS_CONSOLE)));
         return pairs;
     }
 
@@ -181,7 +170,7 @@ public class Config {
      * @return
      */
     public static boolean isStandaloneMode() {
-        return isTestMock() || "standalone".equalsIgnoreCase(getInstance().deployMode);
+        return TisAppLaunch.isTestMock() || "standalone".equalsIgnoreCase(getInstance().deployMode);
     }
 
     /**
@@ -204,7 +193,8 @@ public class Config {
     }
 
     public static File getTisHome() {
-        File tisHome = new File(System.getenv("TIS_HOME"));
+        File tisHome = new File(Objects.requireNonNull(System.getenv(KEY_ENV_TIS_HOME)
+                , "env " + KEY_ENV_TIS_HOME + " has not been set"));
         if (!tisHome.exists() || !tisHome.isDirectory()) {
             throw new IllegalStateException("tisHomeDir:" + tisHome.getAbsolutePath() + " is not illegal");
         }
@@ -297,7 +287,7 @@ public class Config {
         } else {
             threadContext.remove();
         }
-        return "http://" + tisHost + ":" + TisAppLaunchPort.getPort() + CONTEXT_TIS;
+        return "http://" + tisHost + ":" + TisAppLaunch.getPort(TisSubModule.TIS_CONSOLE) + TisSubModule.TIS_CONSOLE.servletContext;
     }
 
     public static String getTisHost() {
@@ -310,7 +300,7 @@ public class Config {
 
     public static String getAssembleHttpHost() {
         return "http://" + getAssembleHost()
-                + ":" + TisAppLaunchPort.getPort() + CONTEXT_ASSEMBLE;
+                + ":" + TisAppLaunch.getPort(TisSubModule.TIS_ASSEMBLE) + TisSubModule.TIS_ASSEMBLE.servletContext;
     }
 
     public static TisDbConfig getDbCfg() {
@@ -426,7 +416,7 @@ public class Config {
                         try (InputStream input = cfgStream.propsStream) {
                             props.load(input);
                         }
-                        Config.setTest(true);
+                        TisAppLaunch.setTest(true);
                         return new P() {
                             @Override
                             protected String getProp(String key) {

@@ -18,6 +18,7 @@
 package com.qlangtech.tis.fullbuild.phasestatus.impl;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.fullbuild.phasestatus.IProcessDetailStatus;
 import org.apache.commons.lang.StringUtils;
@@ -33,7 +34,7 @@ public class BuildPhaseStatus extends BasicPhaseStatus<BuildSharedPhaseStatus> {
 
     @JSONField(serialize = false)
     public final Map<String, BuildSharedPhaseStatus> /* sharedName */
-    nodeBuildStatus = new HashMap<>();
+    nodeBuildStatus = Maps.newConcurrentMap();
 
     private final ProcessDetailStatusImpl<BuildSharedPhaseStatus> processDetailStatus;
 

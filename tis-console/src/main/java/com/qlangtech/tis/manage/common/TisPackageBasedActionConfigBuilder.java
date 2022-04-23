@@ -31,6 +31,7 @@ import com.opensymphony.xwork2.util.finder.ClassFinder.ClassInfo;
 import com.opensymphony.xwork2.util.finder.Test;
 import com.opensymphony.xwork2.util.logging.Logger;
 import com.opensymphony.xwork2.util.logging.LoggerFactory;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import junit.framework.Assert;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.convention.ConventionConstants;
@@ -102,7 +103,7 @@ public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfig
 //            }
 //        });
     // if ( targetJars == null || targetJars.length != 1) {
-    if (Config.isTestMock()) {
+    if (TisAppLaunch.isTestMock()) {
       // 在开发环境中运行
       return super.buildClassFinder(classPackageTest, urls);
     }

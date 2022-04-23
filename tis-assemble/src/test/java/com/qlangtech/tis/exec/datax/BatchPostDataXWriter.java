@@ -22,6 +22,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxContext;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
@@ -68,7 +69,7 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
-    public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, final ISelectedTab tab) {
+    public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, final ISelectedTab tab, DataXCfgGenerator.GenerateCfgs cfgFileNames) {
         return new IRemoteTaskTrigger() {
             @Override
             public String getTaskName() {

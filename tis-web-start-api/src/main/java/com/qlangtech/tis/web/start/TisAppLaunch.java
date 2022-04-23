@@ -24,31 +24,39 @@ import java.io.File;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-01-07 17:27
  **/
-public class TisAppLaunchPort {
+public class TisAppLaunch {
     public static final String KEY_TIS_LAUNCH_PORT = "tis.launch.port";
     public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
+    private static boolean test = false;
     private final Integer launchPort;
 
     static {
-        //${log.dir}/assemble/task
-        System.setProperty(TisAppLaunchPort.KEY_ASSEMBLE_TASK_DIR, System.getProperty("log.dir") + "/assemble/task");
+        System.setProperty(TisAppLaunch.KEY_ASSEMBLE_TASK_DIR, System.getProperty("log.dir") + "/assemble/task");
     }
 
-    public static TisAppLaunchPort instance;
+    public static TisAppLaunch instance;
 
-    private TisAppLaunchPort() {
+    private TisAppLaunch() {
         this.launchPort = Integer.parseInt(System.getProperty(KEY_TIS_LAUNCH_PORT, "8080"));
     }
 
 
-    public static int getPort() {
+    public static int getPort(TisSubModule context) {
         if (instance == null) {
-            instance = new TisAppLaunchPort();
+            instance = new TisAppLaunch();
         }
-        return instance.launchPort;
+        return instance.launchPort + context.portOffset;
     }
 
     public static final File getAssebleTaskDir() {
         return new File(System.getProperty(KEY_ASSEMBLE_TASK_DIR));
+    }
+
+    public static void setTest(boolean val) {
+        test = val;
+    }
+
+    public static boolean isTestMock() {
+        return test;
     }
 }

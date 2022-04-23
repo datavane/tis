@@ -18,6 +18,7 @@
 package com.qlangtech.tis.fullbuild.phasestatus.impl;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.fullbuild.phasestatus.IChildProcessStatusVisitor;
 import com.qlangtech.tis.fullbuild.phasestatus.IJoinTaskStatus;
@@ -38,7 +39,7 @@ public class JoinPhaseStatus extends BasicPhaseStatus<JoinTaskStatus> {
 
     @JSONField(serialize = false)
     public final Map<String, JoinTaskStatus> /*taskName*/
-    taskStatus = new HashMap<>();
+    taskStatus = Maps.newConcurrentMap();
 
     public JoinPhaseStatus(int taskid) {
         super(taskid);

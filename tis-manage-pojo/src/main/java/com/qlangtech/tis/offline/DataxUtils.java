@@ -30,8 +30,12 @@ public class DataxUtils {
     public static final String EXEC_TIMESTAMP = "execTimeStamp";
 
     public static String getDumpTimeStamp() {
+        return getDumpTimeStamp(true);
+    }
+
+    public static String getDumpTimeStamp(boolean validateNull) {
         String dumpTimeStamp = System.getProperty(DataxUtils.EXEC_TIMESTAMP);
-        if (StringUtils.isEmpty(dumpTimeStamp)) {
+        if (validateNull && StringUtils.isEmpty(dumpTimeStamp)) {
             throw new IllegalStateException("dumpTimeStamp can not be empty");
         }
 

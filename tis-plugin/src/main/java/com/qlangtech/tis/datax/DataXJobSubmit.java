@@ -29,6 +29,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.tis.hadoop.rpc.RpcServiceReference;
 
 import java.io.File;
@@ -49,6 +50,9 @@ public abstract class DataXJobSubmit {
     public static Callable<DataXJobSubmit> mockGetter;
 
     public static DataXJobSubmit.InstanceType getDataXTriggerType() {
+        if (TisAppLaunch.isTestMock()) {
+            return InstanceType.EMBEDDED;
+        }
         DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
         boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();//.isDataXWorkerServiceOnDuty();
         return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
@@ -74,7 +78,15 @@ public abstract class DataXJobSubmit {
             public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames) {
                 return true;
             }
-        }, LOCAL("local") {
+        },
+        EMBEDDED("embedded") {
+            @Override
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames) {
+                return true;
+            }
+        }
+        //
+        , LOCAL("local") {
             @Override
             public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames) {
                 if (cfgFileNames.size() > MAX_TABS_NUM_IN_PER_JOB) {

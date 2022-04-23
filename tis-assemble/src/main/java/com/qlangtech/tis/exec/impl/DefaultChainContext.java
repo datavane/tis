@@ -31,16 +31,14 @@ import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
-import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 //import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
@@ -178,8 +176,8 @@ public class DefaultChainContext implements IExecChainContext {
 
     public DefaultChainContext(IParamContext execContext) {
         super();
-       // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        this.ps = IParamContext.getCurrentTimeStamp();
+        // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        this.ps = StringUtils.defaultIfEmpty(DataxUtils.getDumpTimeStamp(false), IParamContext.getCurrentTimeStamp());
         this.httpExecContext = execContext;
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }

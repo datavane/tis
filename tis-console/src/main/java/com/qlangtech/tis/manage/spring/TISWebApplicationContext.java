@@ -18,6 +18,7 @@
 package com.qlangtech.tis.manage.spring;
 
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -70,7 +71,7 @@ public class TISWebApplicationContext extends XmlWebApplicationContext {
 //          throw new RuntimeException("cfg props can not be find,prop file:" + stream.getPropsFile(), e);
 //        }
         // 当前是测试模式
-        Config.setTest(true);
+        TisAppLaunch.setTest(true);
         return stream.getPropsStream();
       }
     }

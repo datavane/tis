@@ -48,9 +48,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
-import com.qlangtech.tis.manage.servlet.QueryCloudSolrClient;
-import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
-import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
+import com.qlangtech.tis.manage.servlet.*;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -68,9 +66,11 @@ import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.ItemsSaveResult;
-import com.qlangtech.tis.web.start.TisAppLaunchPort;
+import com.qlangtech.tis.web.start.TisAppLaunch;
+import com.qlangtech.tis.web.start.TisSubModule;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -83,10 +83,7 @@ import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -287,6 +284,7 @@ public class CoreAction extends BasicModule {
 //      = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
 //    incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
     TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
+    k8s.checkUseable();
     IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
     return getIndexIncrStatus(module, rcConfig);
 //    incrStatus.setState(rcConfig != null ? IFlinkIncrJobStatus.State.RUNNING : IFlinkIncrJobStatus.State.NONE);
@@ -774,7 +772,7 @@ public class CoreAction extends BasicModule {
         ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
         null, true);
     return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
-      + ":" + TisAppLaunchPort.getPort() + Config.CONTEXT_ASSEMBLE;
+      + ":" + TisAppLaunch.getPort(TisSubModule.TIS_ASSEMBLE) + TisSubModule.TIS_ASSEMBLE.servletContext;
   }
 
   public static class TriggerBuildResult {
@@ -844,6 +842,26 @@ public class CoreAction extends BasicModule {
     return histories.stream().map((r) -> {
       return new ExtendWorkFlowBuildHistory(r);
     }).collect(Collectors.toList());
+  }
+
+  /**
+   * 下载日志文件
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doDownloadTaskLog(Context context) throws Exception {
+    int taskId = this.getInt("taskid");
+    final String taskLogFileName = "full-" + taskId + ".log";
+    File logFile = new File(TisAppLaunch.getAssebleTaskDir(), taskLogFileName);
+
+    if (!logFile.exists()) {
+      throw new IllegalStateException("logfile is not exist:" + logFile.getAbsolutePath());
+    }
+    getResponse().setContentType(DownloadResource.JAR_CONTENT_TYPE);
+    DownloadServlet.setDownloadName(getResponse(), taskLogFileName);
+    // getResponse().getOutputStream()
+    FileUtils.copyFile(logFile, getResponse().getOutputStream());
   }
 
   /**

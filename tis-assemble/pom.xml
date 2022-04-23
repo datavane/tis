@@ -40,6 +40,22 @@
     </properties>
 
     <dependencies>
+
+        <!--for DataX executor-->
+        <dependency>
+            <groupId>com.alibaba.datax</groupId>
+            <artifactId>datax-core</artifactId>
+            <version>${alibaba.datax.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.datax</groupId>
+            <artifactId>datax-common</artifactId>
+            <scope>test</scope>
+            <version>${alibaba.datax.version}</version>
+        </dependency>
+        <!--for DataX executor End-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-solrconfig-parser</artifactId>
@@ -181,31 +197,31 @@
             <artifactId>tis-logback-flume-server</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.apache.flume</groupId>-->
-<!--            <artifactId>flume-ng-node</artifactId>-->
-<!--            <version>1.9.0</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>log4j</groupId>-->
-<!--                    <artifactId>apache-log4j-extras</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.slf4j</groupId>-->
-<!--                    <artifactId>slf4j-log4j12</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.avro</groupId>-->
-<!--            <artifactId>avro</artifactId>-->
-<!--            <version>${avro.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.avro</groupId>-->
-<!--            <artifactId>avro-ipc</artifactId>-->
-<!--            <version>${avro.version}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.flume</groupId>-->
+        <!--            <artifactId>flume-ng-node</artifactId>-->
+        <!--            <version>1.9.0</version>-->
+        <!--            <exclusions>-->
+        <!--                <exclusion>-->
+        <!--                    <groupId>log4j</groupId>-->
+        <!--                    <artifactId>apache-log4j-extras</artifactId>-->
+        <!--                </exclusion>-->
+        <!--                <exclusion>-->
+        <!--                    <groupId>org.slf4j</groupId>-->
+        <!--                    <artifactId>slf4j-log4j12</artifactId>-->
+        <!--                </exclusion>-->
+        <!--            </exclusions>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.avro</groupId>-->
+        <!--            <artifactId>avro</artifactId>-->
+        <!--            <version>${avro.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.avro</groupId>-->
+        <!--            <artifactId>avro-ipc</artifactId>-->
+        <!--            <version>${avro.version}</version>-->
+        <!--        </dependency>-->
         <!--for flume-ng-node log collector stop-->
         <dependency>
             <groupId>commons-collections</groupId>

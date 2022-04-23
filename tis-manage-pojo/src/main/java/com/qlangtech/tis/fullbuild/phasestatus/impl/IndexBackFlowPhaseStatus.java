@@ -18,6 +18,7 @@
 package com.qlangtech.tis.fullbuild.phasestatus.impl;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.fullbuild.phasestatus.IChildProcessStatusVisitor;
 import com.qlangtech.tis.fullbuild.phasestatus.IProcessDetailStatus;
@@ -40,7 +41,7 @@ public class IndexBackFlowPhaseStatus extends BasicPhaseStatus<NodeBackflowStatu
 
     public static final String KEY_INDEX_BACK_FLOW_STATUS = "index_back_flow_status";
     @JSONField(serialize = false)
-    public final Map<String, NodeBackflowStatus> /* nodeName */ nodesStatus = new HashMap<>();
+    public final Map<String, NodeBackflowStatus> /* nodeName */ nodesStatus = Maps.newConcurrentMap();
 
     public IndexBackFlowPhaseStatus(int taskid) {
         super(taskid);

@@ -81,8 +81,8 @@ public class TisServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         this.indexSwapTaskflowLauncher = IndexSwapTaskflowLauncher.getIndexSwapTaskflowLauncher(config.getServletContext());
-        ComponentMeta assembleComponent = TIS.getAssembleComponent();
-        assembleComponent.synchronizePluginsFromRemoteRepository();
+//        ComponentMeta assembleComponent = TIS.getAssembleComponent();
+//        assembleComponent.synchronizePluginsFromRemoteRepository();
         logger.info("synchronize Plugins FromRemoteRepository success");
     }
 

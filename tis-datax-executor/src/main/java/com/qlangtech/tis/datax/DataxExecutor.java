@@ -228,15 +228,22 @@ public class DataxExecutor {
         return overseerListener;
     }
 
-
     public void exec(Integer jobId, String jobName, String dataxName) throws Exception {
+        final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
+        this.exec(uberClassLoader, jobId, jobName, dataxName);
+    }
+
+
+    public void exec(final JarLoader uberClassLoader, Integer jobId, String jobName, String dataxName) throws Exception {
+        if (uberClassLoader == null) {
+            throw new IllegalArgumentException("param uberClassLoader can not be null");
+        }
         boolean success = false;
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
         try {
             logger.info("process DataX job, dataXName:{},jobid:{},jobName:{}", dataxName, jobId, jobName);
 
 
-            final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
             DataxProcessor dataxProcessor = DataxProcessor.load(null, dataxName);
             this.startWork(dataxName, jobId, jobName, dataxProcessor, uberClassLoader);
             success = true;
@@ -329,11 +336,11 @@ public class DataxExecutor {
         LoadUtil.initializeJarClassLoader(pluginKeys, classLoader);
     }
 
-    private void reportDataXJobStatus(boolean faild, Integer taskId, String jobName) {
+    public void reportDataXJobStatus(boolean faild, Integer taskId, String jobName) {
         reportDataXJobStatus(faild, true, false, taskId, jobName);
     }
 
-    private void reportDataXJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, String jobName) {
+    public void reportDataXJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, String jobName) {
         StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
         svc.reportDumpJobStatus(faild, complete, waiting, taskId, jobName, (int) allReadApproximately[0], this.allRowsApproximately);
 //

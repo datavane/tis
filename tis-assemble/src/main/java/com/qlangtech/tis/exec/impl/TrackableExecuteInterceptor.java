@@ -49,7 +49,7 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
 
     public static PhaseStatusCollection getTaskPhaseReference(Integer taskId) {
         PhaseStatusCollection status = taskPhaseReference.get(taskId);
-        Objects.requireNonNull(status, "taskId:" + taskId + " relevant status can not be null");
+       // Objects.requireNonNull(status, "taskId:" + taskId + " relevant status can not be null");
         return status;
     }
 

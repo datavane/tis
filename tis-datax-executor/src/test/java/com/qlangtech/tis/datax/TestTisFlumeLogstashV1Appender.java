@@ -18,9 +18,9 @@
 
 package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import junit.framework.TestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class TestTisFlumeLogstashV1Appender extends TestCase {
     private static final Logger logger = LoggerFactory.getLogger(TestTisFlumeLogstashV1Appender.class);
 
     public void testSendMsg() throws Exception {
-        Config.setTest(false);
+        TisAppLaunch.setTest(false);
         MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(999));
         MDC.put(TISCollectionUtils.KEY_COLLECTION, "baisui");
         int i = 0;

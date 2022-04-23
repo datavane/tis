@@ -19,7 +19,7 @@ package com.qlangtech.tis.log;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.FileAppender;
-import com.qlangtech.tis.web.start.TisAppLaunchPort;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 
 import java.io.File;
 import java.util.*;
@@ -120,7 +120,7 @@ public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> 
                 if (appender != null) {
                     file = new File(appender.getFile());
                 } else {
-                    file = new File(TisAppLaunchPort.getAssebleTaskDir(), targetAppenderName + ".log");
+                    file = new File(TisAppLaunch.getAssebleTaskDir(), targetAppenderName + ".log");
                 }
                 if (file.exists()) {
                     l.readLogTailer(mtarget, file);
