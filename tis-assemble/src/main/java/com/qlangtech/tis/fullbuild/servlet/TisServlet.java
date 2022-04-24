@@ -18,7 +18,6 @@
 package com.qlangtech.tis.fullbuild.servlet;
 
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
@@ -35,7 +34,6 @@ import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
-import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -194,16 +192,19 @@ public class TisServlet extends HttpServlet {
             DefaultChainContext chainContext = new DefaultChainContext(execContext);
             chainContext.setMdcParamContext(mdcContext);
             chainContext.setAppSourcePipelineController(IncrStatusUmbilicalProtocolImpl.getInstance());
-            final Integer newTaskId = createNewTask(chainContext);
 
-            lock.addTaskFuture(newTaskId, executeService.submit(() -> {
+
+            final ExecuteLock.TaskFuture future = new ExecuteLock.TaskFuture();
+
+            future.setFuture(executeService.submit(() -> {
                 // MDC.put("app", indexName);
                 getLog().info("index swap start to work");
                 try {
                     while (true) {
                         try {
                             if (lock.lock()) {
-
+                                final Integer newTaskId = createNewTask(chainContext);
+                                future.setTaskId(newTaskId);
                                 try {
                                     String msg = "trigger task" + mdcContext.getExecLockKey() + " successful";
                                     getLog().info(msg);
@@ -279,6 +280,9 @@ public class TisServlet extends HttpServlet {
                 }
                 // end run
             }));
+
+            mdcContext.getExecLock().addTaskFuture(future);
+
             try {
                 countDown.await(30, TimeUnit.SECONDS);
             } catch (InterruptedException e) {

@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.fullbuild.servlet;
@@ -58,7 +58,7 @@ public class ExecuteLock {
 
     public boolean matchTask(int taskId) {
         for (TaskFuture<?> f : futureQueue) {
-            if (f.taskId == taskId) {
+            if (f.taskId != null && f.taskId == taskId) {
                 return true;
             }
         }
@@ -72,8 +72,8 @@ public class ExecuteLock {
     }
 
 
-    public void addTaskFuture(Integer taskId, Future<?> future) {
-        this.futureQueue.add(new TaskFuture(taskId, future));
+    public void addTaskFuture(TaskFuture future) {
+        this.futureQueue.add(future);
     }
 
     public String getTaskOwnerUniqueName() {
@@ -124,13 +124,27 @@ public class ExecuteLock {
     }
 
 
-    private static class TaskFuture<T> {
-        private final Integer taskId;
-        private final Future<T> future;
+    public static class TaskFuture<T> {
+        private Integer taskId;
+        private Future<T> future;
 
-        public TaskFuture(Integer taskId, Future<T> future) {
-            this.taskId = taskId;
+        public TaskFuture() {
+        }
+
+        public Future<T> getFuture() {
+            return future;
+        }
+
+        public void setFuture(Future<T> future) {
             this.future = future;
+        }
+
+        public Integer getTaskId() {
+            return taskId;
+        }
+
+        public void setTaskId(Integer taskId) {
+            this.taskId = taskId;
         }
     }
 }

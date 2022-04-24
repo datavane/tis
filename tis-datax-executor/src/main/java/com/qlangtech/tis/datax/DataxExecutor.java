@@ -230,6 +230,7 @@ public class DataxExecutor {
 
     public void exec(Integer jobId, String jobName, String dataxName) throws Exception {
         final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
+        LoadUtil.cleanJarLoaderCenter();
         this.exec(uberClassLoader, jobId, jobName, dataxName);
     }
 

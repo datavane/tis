@@ -36,7 +36,8 @@ public class StartAssembleWeb extends TestCase {
 //        for (Map.Entry<Object, Object> e : System.getProperties().entrySet()) {
 //            System.out.println(e.getKey() + "->" + e.getValue());
 //        }
-        System.setProperty(IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
+        System.setProperty("log.dir", "/opt/logs");
+       // System.setProperty(IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
         String[] args = new String[]{};
         TisAppLaunch.setTest(true);
