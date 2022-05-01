@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -30,6 +31,8 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
  * @create: 2022-03-09 11:45
  **/
 public interface IDataXBatchPost {
+
+    ExecutePhaseRange getPhaseRange();
 
     public static String getPreExecuteTaskName(ISelectedTab tab) {
         return "prep_" + tab.getName();

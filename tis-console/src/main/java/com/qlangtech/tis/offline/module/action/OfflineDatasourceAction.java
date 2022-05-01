@@ -1093,7 +1093,8 @@ public class OfflineDatasourceAction extends BasicModule {
           SuFormProperties.setSuFormGetterContext(reader, pluginMeta, tab2cols.getKey());
           allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
           // 需要将desc中的取option列表解析一下（JsonUtil.UnCacheString）
-          tabDesc.put(tab2cols.getKey(), JSON.parseObject(desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()).toJSONString()));
+          tabDesc.put(tab2cols.getKey(), JSON.parseObject(
+            desc2Json.getDescriptorsJSON( pluginMeta.getSubFormFilter()).toJSONString()));
         } finally {
           SuFormProperties.subFormGetterProcessThreadLocal.remove();
         }
@@ -1231,7 +1232,9 @@ public class OfflineDatasourceAction extends BasicModule {
     //this.setBizResult(context, tableConfig);
 
     DataxReader dbDataxReader = OfflineManager.getDBDataxReader(this, db.getName());
-    this.setBizResult(context, new DescriptorsJSON(dbDataxReader.getDescriptor()).getDescriptorsJSON());
+    this.setBizResult(context, DescriptorsJSON.desc(dbDataxReader.getDescriptor())
+      // new DescriptorsJSON(dbDataxReader.getDescriptor()).getDescriptorsJSON()
+    );
   }
 
   /**
@@ -1371,7 +1374,9 @@ public class OfflineDatasourceAction extends BasicModule {
     }
 
 
-    result.put("readerDesc", new DescriptorsJSON(dataXReaderDesc.get()).getDescriptorsJSON());
+    result.put("readerDesc", DescriptorsJSON.desc(dataXReaderDesc.get())
+      //  new DescriptorsJSON(dataXReaderDesc.get()).getDescriptorsJSON()
+    );
     result.put("processMeta", DataxAction.getDataXBasicProcessMetaByReader(dataXReaderDesc.get()));
 
     this.setBizResult(context, result);

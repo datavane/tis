@@ -347,6 +347,9 @@ public class DataXCfgGenerator {
 //        }
 
         private Map<String, List<String>> getGroupedChildTask() {
+            if (groupedChildTask == null) {
+                throw new IllegalStateException("groupedChildTask can not be null");
+            }
             return groupedChildTask;
         }
 

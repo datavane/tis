@@ -21,6 +21,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.datax.IDataXBatchPost;
+import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -141,9 +144,17 @@ public class DefaultChainContext implements IExecChainContext {
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {
         if (this.executePhaseRange == null) {
-            String start = StringUtils.defaultIfEmpty(this.getString(COMPONENT_START), FullbuildPhase.FullDump.getName());
-            String end = StringUtils.defaultIfEmpty(this.getString(COMPONENT_END), FullbuildPhase.IndexBackFlow.getName());
-            this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.parse(start), FullbuildPhase.parse(end));
+
+            DataxProcessor appSource = this.getAppSource();
+            IDataxWriter writer = appSource.getWriter(null);
+            if (writer instanceof IDataXBatchPost) {
+                this.executePhaseRange = ((IDataXBatchPost) writer).getPhaseRange();
+            }else{
+                this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.FullDump);
+            }
+//            String start = StringUtils.defaultIfEmpty(this.getString(COMPONENT_START), FullbuildPhase.FullDump.getName());
+//            String end = StringUtils.defaultIfEmpty(this.getString(COMPONENT_END), FullbuildPhase.IndexBackFlow.getName());
+//            this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.parse(start), FullbuildPhase.parse(end));
         }
         return this.executePhaseRange;
     }

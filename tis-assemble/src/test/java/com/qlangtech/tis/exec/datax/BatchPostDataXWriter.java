@@ -18,12 +18,14 @@
 
 package com.qlangtech.tis.exec.datax;
 
+import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxContext;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -54,8 +56,13 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
+    public ExecutePhaseRange getPhaseRange() {
+        return new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
+    }
+
+    @Override
     public IRemoteTaskTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab) {
-        return new IRemoteTaskTrigger(){
+        return new IRemoteTaskTrigger() {
             @Override
             public String getTaskName() {
                 return IDataXBatchPost.getPreExecuteTaskName(tab);
@@ -81,6 +88,7 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
                 execGetTaskDependencies = true;
                 return taskDependencies;
             }
+
             @Override
             public void run() {
                 runPass = true;

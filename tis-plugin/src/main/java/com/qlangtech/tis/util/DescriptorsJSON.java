@@ -20,6 +20,7 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -40,12 +41,22 @@ import java.util.*;
  */
 public class DescriptorsJSON<T extends Describable<T>> {
 
+    //public static final int FORM_START_LEVEL = 1;
+
     public static final String KEY_DISPLAY_NAME = "displayName";
     public static final String KEY_EXTEND_POINT = "extendPoint";
     public static final String KEY_IMPL = "impl";
     public static final String KEY_IMPL_URL = "implUrl";
 
     private final List<Descriptor<T>> descriptors;
+
+    public static JSONObject desc(String requestDescId) {
+        return new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON();
+    }
+
+    public static JSONObject desc(Descriptor desc) {
+        return new DescriptorsJSON(desc).getDescriptorsJSON();
+    }
 
     public DescriptorsJSON(List<Descriptor<T>> descriptors) {
         this.descriptors = descriptors;
@@ -55,9 +66,6 @@ public class DescriptorsJSON<T extends Describable<T>> {
         this(Collections.singletonList(descriptor));
     }
 
-    public JSONObject getDescriptorsJSON() {
-        return getDescriptorsJSON(Optional.empty());
-    }
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
@@ -74,10 +82,12 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     }
 
+    public JSONObject getDescriptorsJSON() {
+        return getDescriptorsJSON( Optional.empty());
+    }
 
-    public JSONObject getDescriptorsJSON(
-            Optional<IPropertyType.SubFormFilter> subFormFilter
-    ) {
+
+    public JSONObject getDescriptorsJSON( Optional<IPropertyType.SubFormFilter> subFormFilter) {
         JSONArray attrs;
         String key;
         PropertyType val;
@@ -92,6 +102,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
             pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
 
             JSONObject des = new JSONObject();
+           // des.put("formLevel", formLevel);
             Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
                 @Override
                 public Descriptor visit(RootFormProperties props) {

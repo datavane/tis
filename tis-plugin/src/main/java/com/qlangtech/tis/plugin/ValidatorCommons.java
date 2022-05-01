@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.plugin;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -47,7 +48,7 @@ public interface ValidatorCommons {
 
     Pattern pattern_identity = Pattern.compile("[A-Z\\da-z_\\-]+");
 
-    Pattern pattern_integer = Pattern.compile("[1-9]{1}[\\d]{0,}");
+    Pattern pattern_integer = Pattern.compile("[1-9]{1}[\\d]{0,}|0");
 
     String MSG_INTEGER_ERROR = "必须是整型数字";
 
@@ -61,4 +62,15 @@ public interface ValidatorCommons {
 
     Pattern pattern_user_name = Pattern.compile("[A-Z\\da-z_\\-\\.]+");
     String MSG_USER_NAME_ERROR = "必须由小写字母，大写字母，数字、下划线、点、减号组成";
+
+    public static void main(String[] args) {
+        Matcher matcher = pattern_integer.matcher("0");
+        System.out.println(matcher.matches());
+
+        matcher = pattern_integer.matcher("1230");
+        System.out.println(matcher.matches());
+
+        matcher = pattern_integer.matcher("0123");
+        System.out.println(matcher.matches());
+    }
 }

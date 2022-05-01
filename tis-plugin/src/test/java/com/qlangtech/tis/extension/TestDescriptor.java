@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.extension;
 
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -34,17 +35,19 @@ public class TestDescriptor extends TestCase {
         GroovyShellEvaluate.eval("com.qlangtech.tis.extension.DefaultPlugin.getColsDefaultVal()");
 
         DefaultPlugin dftPlugin = new DefaultPlugin();
-        DescriptorsJSON descJson = new DescriptorsJSON(dftPlugin.getDescriptor());
+       // DescriptorsJSON descJson = new DescriptorsJSON(dftPlugin.getDescriptor());
+
+        JSONObject desc = DescriptorsJSON.desc(dftPlugin.getDescriptor());
         //descJson.getDescriptorsJSON();
 
         JsonUtil.assertJSONEqual(DefaultPlugin.class, "default-plugin-descriptor-turn-1.json"
-                , descJson.getDescriptorsJSON(), (m, e, a) -> {
+                , desc, (m, e, a) -> {
                     assertEquals(m, e, a);
                 });
 
 
         JsonUtil.assertJSONEqual(DefaultPlugin.class, "default-plugin-descriptor-turn-2.json"
-                , descJson.getDescriptorsJSON(), (m, e, a) -> {
+                , desc, (m, e, a) -> {
                     assertEquals(m, e, a);
                 });
     }

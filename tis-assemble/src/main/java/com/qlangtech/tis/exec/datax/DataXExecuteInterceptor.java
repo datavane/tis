@@ -271,7 +271,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
                 , new TISReactor.TaskAndMilestone(DumpTask.createDumpTask(jobTrigger, dumpStatus.getTable(jobTrigger.getTaskName()))));
     }
 
-    private void addJoinTask(IExecChainContext execChainContext, Map<String, TISReactor.TaskAndMilestone> taskMap, List<IRemoteTaskTrigger> triggers, IRemoteTaskTrigger postTaskTrigger) {
+    private void addJoinTask(IExecChainContext execChainContext, Map<String, TISReactor.TaskAndMilestone> taskMap
+            , List<IRemoteTaskTrigger> triggers, IRemoteTaskTrigger postTaskTrigger) {
         JoinPhaseStatus phaseStatus = this.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
         triggers.add(postTaskTrigger);
         JoinPhaseStatus.JoinTaskStatus taskStatus = phaseStatus.getTaskStatus(postTaskTrigger.getTaskName());

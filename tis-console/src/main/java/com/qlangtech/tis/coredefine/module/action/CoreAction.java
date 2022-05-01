@@ -127,6 +127,17 @@ public class CoreAction extends BasicModule {
 
 
   /**
+   * @param context
+   * @throws Exception
+   */
+  public void doGetTaskInfo(Context context) throws Exception {
+    Integer taskid = this.getInt("taskid", null, true);
+    WorkFlowBuildHistory buildHistory =
+      this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
+    this.setBizResult(context, Collections.singletonMap("task", buildHistory));
+  }
+
+  /**
    * 终止正在执行的任务
    *
    * @param context
@@ -172,6 +183,7 @@ public class CoreAction extends BasicModule {
    * @param context
    * @throws Exception
    */
+  @Func(value = PermissionConstant.APP_REBUILD)
   public void doRelaunchIncrProcess(Context context) throws Exception {
     String savepointPath = this.getString("savepointPath");
     if (StringUtils.isEmpty(savepointPath)) {
@@ -198,7 +210,8 @@ public class CoreAction extends BasicModule {
 
         @Override
         public void visit(FlinkJobDeploymentDetails details) {
-          getTargetStatus.set(details.getIncrJobStatus().getState() == targetStatus);
+          // getTargetStatus.set( (targetStatus == IFlinkIncrJobStatus.State.RUNNING ) ?  details.getIncrJobStatus().getState() == targetStatus);
+          getTargetStatus.set(!((targetStatus == IFlinkIncrJobStatus.State.RUNNING) ^ details.isRunning()));
         }
       });
       if (getTargetStatus.get()) {
@@ -436,6 +449,7 @@ public class CoreAction extends BasicModule {
 
   private static IndexIncrStatus doGetDataXReaderWriterDesc(String appName) throws Exception {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
+    incrStatus.setState(IFlinkIncrJobStatus.State.NONE);
     DataxProcessor dataxProcessor = DataxProcessor.load(null, appName);
     DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null);
     incrStatus.setWriterDesc(createDescVals(writer.getDescriptor()));
@@ -794,11 +808,13 @@ public class CoreAction extends BasicModule {
   public void doGetWorkflow(Context context) throws Exception {
     Integer wfid = this.getInt("wfid");
     Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
-    WorkFlow workFlow = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
+
     WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
     Map<String, Object> result = Maps.newHashMap();
-    result.put("workflow", workFlow);
     result.put("task", buildHistory);
+
+    WorkFlow workFlow = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
+    result.put("workflow", workFlow);
     this.setBizResult(context, result);
   }
 

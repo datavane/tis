@@ -27,7 +27,6 @@ import com.qlangtech.tis.manage.common.TisActionMapper;
 import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
 import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.struts2.ServletActionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +108,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
         List<String> errors = new ArrayList<String>();
         errors.add("服务端发生异常，请联系系统管理员");
 
-        TisException tisExcept = TisException.find(e);
+        //  TisException tisExcept = TisException.find(e);
 //        final Throwable[] throwables = ExceptionUtils.getThrowables(e);
 //        boolean findTisException = false;
 //        for (Throwable ex : throwables) {
@@ -119,11 +118,11 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
 //            break;
 //          }
 //        }
-        if (tisExcept == null) {
-          errors.add(ExceptionUtils.getRootCauseMessage(e));
-        } else {
-          errors.add(tisExcept.getMessage());
-        }
+        // if (tisExcept == null) {
+        errors.add(TisException.getErrMsg(e));
+//        } else {
+//          errors.add(tisExcept.getMessage());
+//        }
 //        execResult = MockContext.getActionExecResult();
 //        execResult.addErrorMsg(errors);
         AjaxValve.writeInfo2Client(() -> false, response, false, errors, Collections.emptyList(), Collections.emptyList(), null);

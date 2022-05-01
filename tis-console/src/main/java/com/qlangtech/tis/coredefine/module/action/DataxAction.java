@@ -103,7 +103,7 @@ public class DataxAction extends BasicModule {
     List<HttpUtils.PostParam> params = Lists.newArrayList();
     params.add(new HttpUtils.PostParam(CoreAction.KEY_APPNAME, this.getCollectionName()));
     params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
-    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
+    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase. JOIN.getName()));
 
     this.setBizResult(context, CoreAction.triggerBuild(this, context, params));
   }
@@ -176,7 +176,10 @@ public class DataxAction extends BasicModule {
       }
       pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
     }
-    pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON());
+    // pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON(DescriptorsJSON.FORM_START_LEVEL));
+
+    pluginInfo.put("desc", DescriptorsJSON.desc(requestDescId));
+
     this.setBizResult(context, pluginInfo);
   }
 
@@ -200,7 +203,8 @@ public class DataxAction extends BasicModule {
     if (reader != null && StringUtils.equals(reader.getDescriptor().getId(), requestDescId)) {
       pluginInfo.put("item", (new DescribableJSON(reader)).getItemJson());
     }
-    pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON());
+    // new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON()
+    pluginInfo.put("desc", DescriptorsJSON.desc(requestDescId));
     this.setBizResult(context, pluginInfo);
   }
 
@@ -965,12 +969,14 @@ public class DataxAction extends BasicModule {
     DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
     DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
 
-    DescriptorsJSON readerDescriptor = new DescriptorsJSON(readerDesc);
-    DescriptorsJSON writerDescriptor = new DescriptorsJSON(writerDesc);
+//    DescriptorsJSON readerDescriptor = new DescriptorsJSON(readerDesc);
+//    DescriptorsJSON writerDescriptor = new DescriptorsJSON(writerDesc);
     Map<String, Object> result = Maps.newHashMap();
     result.put("processMeta", getDataXBasicProcessMeta(readerDesc, writerDesc));
-    result.put("writerDesc", writerDescriptor.getDescriptorsJSON());
-    result.put("readerDesc", readerDescriptor.getDescriptorsJSON());
+    result.put("writerDesc", DescriptorsJSON.desc(writerDesc) //writerDescriptor.getDescriptorsJSON()
+    );
+    result.put("readerDesc", DescriptorsJSON.desc(readerDesc) //readerDescriptor.getDescriptorsJSON()
+    );
     setBizResult(context, result);
   }
 

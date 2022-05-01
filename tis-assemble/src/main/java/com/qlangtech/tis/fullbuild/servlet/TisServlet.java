@@ -210,16 +210,6 @@ public class TisServlet extends HttpServlet {
                                     getLog().info(msg);
                                     mdcContext.resetParam(newTaskId);
                                     writeResult(true, msg, res, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(newTaskId)));
-//                                    IndexBuilderTriggerFactory builderFactory = HeteroEnum.INDEX_BUILD_CONTAINER.getPlugin();
-                                    //Objects.requireNonNull(builderFactory, "builderFactory can not be null");
-                                    // chainContext.setIndexBuildFileSystem(builderFactory.getFsFactory());
-                                    // chainContext.setIndexBuilderTriggerFactory(builderFactory);
-
-                                    // IPluginStore<TableDumpFactory> tableDumpFactory = TIS.getPluginStore(TableDumpFactory.class);
-                                    // if (tableDumpFactory.getPlugin() != null) {
-                                    //  Objects.requireNonNull(tableDumpFactory.getPlugin(), "tableDumpFactory can not be null");
-//                                        chainContext.setTableDumpFactory(tableDumpFactory.getPlugin());
-//                                    }
 
                                     countDown.countDown();
                                     /************************************************************

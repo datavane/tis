@@ -26,10 +26,11 @@ import com.qlangtech.tis.coredefine.module.action.IFlinkIncrJobStatus;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-10-25 12:37
  **/
-public class FlinkJobDeploymentDetails implements IDeploymentDetail {
+public abstract class FlinkJobDeploymentDetails implements IDeploymentDetail {
     private final IFlinkClusterConfig clusterCfg;
     private final IFlinkIncrJobStatus incrJobStatus;
 
+    public abstract boolean isRunning();
 
     public FlinkJobDeploymentDetails(IFlinkClusterConfig clusterCfg, IFlinkIncrJobStatus incrJobStatus) {
         this.clusterCfg = clusterCfg;

@@ -500,54 +500,6 @@ public class PluginAction extends BasicModule {
 
         this.setBizResult(context, hList.toJSON());
         return;
-
-//          subFormFilter = meta.getSubFormFilter();
-//          PluginFormProperties pluginFormPropertyTypes = plugin.getDescriptor().getPluginFormPropertyTypes(subFormFilter);
-//          pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
-//
-//
-//            @Override
-//            public Void visit(
-//              //SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta,
-//              SuFormProperties props) {
-
-
-        //  SuFormProperties.SuFormPropertyGetterMeta fieldDataGetterMeta = null;
-        //   List<String> params = null;
-        // Map<String, SuFormProperties.SuFormPropertyGetterMeta> onClickFillData = behaviorMeta.getOnClickFillData();
-        //Objects.requireNonNull(onClickFillData, "onClickFillData can not be null");
-        //  Map<String, Object> fillFieldsData = Maps.newHashMap();
-//              for (Map.Entry<String, SuFormProperties.SuFormPropertyGetterMeta> entry : onClickFillData.entrySet()) {
-//                String fillField = entry.getKey();
-//
-//                fieldDataGetterMeta = entry.getValue();
-//                Objects.requireNonNull(fieldDataGetterMeta, "fillField:" + fillField + " relevant behavier meta can not be null");
-//                // String targetMethod = fieldDataGetterMeta.getString("method");
-//                String targetMethod = fieldDataGetterMeta.getMethod();
-//                //  params = fieldDataGetterMeta.getJSONArray("params");
-//                params = fieldDataGetterMeta.getParams();
-//                if (CollectionUtils.isEmpty(params)) {
-//                  throw new IllegalStateException("params can not be null");
-//                }
-//
-//                Class<?>[] paramClass = new Class<?>[params.size()];
-//                String[] paramsVals = new String[params.size()];
-//                for (int index = 0; index < params.size(); index++) {
-//                  paramClass[index] = String.class;
-//                  paramsVals[index] = Objects.requireNonNull(execContext.get(params.get(index))
-//                    , "param:" + params.get(index) + " can not be null in context");
-//                }
-//                Method method = ReflectionUtils.findMethod(plugin.getClass(), targetMethod, paramClass);
-//                Objects.requireNonNull(method, "target method '" + targetMethod + "' of " + plugin.getClass() + " can not be null");
-//                fillFieldsData.put(fillField, ReflectionUtils.invokeMethod(method, plugin, paramsVals));
-//              }
-        // params 必须全为spring类型的
-//              setBizResult(context, fillFieldsData);
-//              return null;
-//            }
-//          });
-
-
       }
     }
     throw new IllegalStateException("have not set plugin meta");

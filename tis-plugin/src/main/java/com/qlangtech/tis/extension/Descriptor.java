@@ -1216,11 +1216,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public PluginExtraProps fieldExtraDescs = new PluginExtraProps();
 
-    protected void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
+    public void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
         this.addFieldDescriptor(fieldName, dftVal, helperContent, Optional.empty());
     }
 
-    protected void addFieldDescriptor(String fieldName, Object dftVal
+    public void addFieldDescriptor(String fieldName, Object dftVal
             , String helperContent, Optional<List<Option>> enums) {
         JSONObject c = new JSONObject();
         c.put(PluginExtraProps.KEY_DFTVAL_PROP, dftVal);

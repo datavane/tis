@@ -123,7 +123,7 @@ public class HeteroList<T extends Describable<T>> {
             if (this.getItems().size() == 1) {
                 GroovyShellEvaluate.pluginThreadLocal.set(this.getItems().get(0));
             }
-            o.put("descriptors", desc2Json.getDescriptorsJSON(subFormFilter));
+            o.put("descriptors", desc2Json.getDescriptorsJSON( subFormFilter));
             o.put("items", createItemsJSONArray(this.getItems(), subFormFilter));
         } finally {
             GroovyShellEvaluate.pluginThreadLocal.remove();

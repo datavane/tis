@@ -27,6 +27,15 @@ import org.apache.commons.lang.exception.ExceptionUtils;
  */
 public class TisException extends RuntimeException {
 
+    public static String getErrMsg(Throwable throwable) {
+        TisException except = find(throwable);
+        if (except == null) {
+            return org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage(except);
+        } else {
+            return except.getMessage();
+        }
+    }
+
     public static TisException find(Throwable throwable) {
         final Throwable[] throwables = ExceptionUtils.getThrowables(throwable);
         for (Throwable ex : throwables) {
