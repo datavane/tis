@@ -30,7 +30,7 @@ public class TisException extends RuntimeException {
     public static String getErrMsg(Throwable throwable) {
         TisException except = find(throwable);
         if (except == null) {
-            return org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage(except);
+            return org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage(throwable);
         } else {
             return except.getMessage();
         }
