@@ -40,7 +40,7 @@
     },
     "container": {
       "job": {
-        "reportInterval": 10000,
+        "reportInterval": 3000,
         "sleepInterval": 3000
       },
       "taskGroup": {

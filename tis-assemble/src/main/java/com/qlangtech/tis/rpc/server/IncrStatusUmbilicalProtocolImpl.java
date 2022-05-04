@@ -50,7 +50,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * 服务端接收客户端发送过来的日志消息
+ * 服务端接收客户端发送过来的日志消息(服务端)
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年4月7日
@@ -166,20 +166,22 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
 
     public static ExecHook execHook = new ExecHook();
 
-    public void reportDumpTableStatusError(Integer taskid, String fullTableName) {
-        execHook.reportDumpTableStatusError(taskid, fullTableName);
-        reportDumpTableStatus(taskid, true, false, true, fullTableName);
+//    public void reportDumpTableStatusError(Integer taskid, String fullTableName) {
+//        execHook.reportDumpTableStatusError(taskid, fullTableName);
+//        reportDumpTableStatus(taskid, true, false, true, fullTableName);
+//    }
+
+    public void reportDumpTableStatus(DumpPhaseStatus.TableDumpStatus tableDumpStatus) {
+//        com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.Builder builder = com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.newBuilder();
+//        builder.setTaskid(taskid);
+//        builder.setTableName(fullTableName);
+//        builder.setFaild(faild);
+//        builder.setComplete(complete);
+//        builder.setWaiting(waiting);
+
+        this.reportDumpTableStatus(IncrStatusClient.convert(tableDumpStatus), new StatusRpcClient.NoopStreamObserver<>());
     }
 
-    public void reportDumpTableStatus(Integer taskid, boolean complete, boolean waiting, boolean faild, String fullTableName) {
-        com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.Builder builder = com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.newBuilder();
-        builder.setTaskid(taskid);
-        builder.setTableName(fullTableName);
-        builder.setFaild(faild);
-        builder.setComplete(complete);
-        builder.setWaiting(waiting);
-        this.reportDumpTableStatus(builder.build(), new StatusRpcClient.NoopStreamObserver<>());
-    }
 
     public static class ExecHook {
 

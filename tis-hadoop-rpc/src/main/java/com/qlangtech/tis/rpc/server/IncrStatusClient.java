@@ -116,6 +116,18 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
 
     @Override
     public void reportDumpTableStatus(DumpPhaseStatus.TableDumpStatus tableDumpStatus) {
+//        TableDumpStatus.Builder builder = TableDumpStatus.newBuilder();
+//        builder.setAllRows(tableDumpStatus.getAllRows());
+//        builder.setComplete(tableDumpStatus.isComplete());
+//        builder.setFaild(tableDumpStatus.isFaild());
+//        builder.setReadRows(tableDumpStatus.getReadRows());
+//        builder.setTableName(tableDumpStatus.getName());
+//        builder.setTaskid(tableDumpStatus.getTaskid());
+//        builder.setWaiting(tableDumpStatus.isWaiting());
+        blockingStub.reportDumpTableStatus(convert(tableDumpStatus));
+    }
+
+    public static com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus convert(DumpPhaseStatus.TableDumpStatus tableDumpStatus){
         TableDumpStatus.Builder builder = TableDumpStatus.newBuilder();
         builder.setAllRows(tableDumpStatus.getAllRows());
         builder.setComplete(tableDumpStatus.isComplete());
@@ -124,7 +136,7 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
         builder.setTableName(tableDumpStatus.getName());
         builder.setTaskid(tableDumpStatus.getTaskid());
         builder.setWaiting(tableDumpStatus.isWaiting());
-        blockingStub.reportDumpTableStatus(builder.build());
+        return builder.build();
     }
 
     @Override

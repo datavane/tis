@@ -317,8 +317,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
-                TisException tisExcept = TisException.find(e);
-                msgHandler.addErrorMessage(context, tisExcept != null ? tisExcept.getMessage() : e.getMessage());
+
+                msgHandler.addErrorMessage(context, TisException.getErrMsg(e));
                 return false;
             }
             return true;

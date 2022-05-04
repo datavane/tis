@@ -36,7 +36,7 @@ public class TisException extends RuntimeException {
         }
     }
 
-    public static TisException find(Throwable throwable) {
+    private static TisException find(Throwable throwable) {
         final Throwable[] throwables = ExceptionUtils.getThrowables(throwable);
         for (Throwable ex : throwables) {
             if (TisException.class.isAssignableFrom(ex.getClass())) {

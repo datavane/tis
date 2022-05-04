@@ -18,27 +18,26 @@
 
 package com.qlangtech.tis.config.hive;
 
-import com.qlangtech.tis.config.hive.meta.IHiveMetaStore;
-import com.qlangtech.tis.plugin.IdentityName;
-
-import java.util.Optional;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-05-28 10:49
+ * @create: 2022-02-07 15:14
  **/
-public interface IHiveConnGetter extends IdentityName {
-    String PLUGIN_NAME = "HiveConn";
+public interface IHiveUserToken {
+//    public final String userName;
+//    public final String password;
 
-    String HIVE2_JDBC_SCHEMA = "jdbc:hive2://";
+    public String getUserName();
+//    {
+//        return userName;
+//    }
 
-    public String getDbName();
+    public String getPassword();
+//    {
+//        return password;
+//    }
 
-    public Optional<IHiveUserToken> getUserToken();
-
-    public String getJdbcUrl();
-
-    public String getMetaStoreUrls();
-
-    public IHiveMetaStore createMetaStoreClient();
+//    public IHiveUserToken(String userName, String password) {
+//        this.userName = userName;
+//        this.password = password;
+//    }
 }

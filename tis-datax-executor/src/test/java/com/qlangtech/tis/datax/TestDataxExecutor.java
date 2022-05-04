@@ -57,7 +57,7 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 
         final JarLoader uberClassLoader = getJarLoader();
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, execTimeStamp, dataxProcessor, uberClassLoader);
+        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, dataxProcessor, uberClassLoader);
 
         EasyMock.verify(dataxProcessor);
     }
@@ -89,7 +89,7 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
         Integer jobId = 1;
 
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataxNameMysql2hive, jobId, jobName, execTimeStamp, dataxProcessor, getJarLoader());
+        executor.startWork(dataxNameMysql2hive, jobId, jobName, dataxProcessor, getJarLoader());
 
         EasyMock.verify(dataxProcessor);
     }
@@ -109,7 +109,7 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataXName, jobId, jobName, execTimeStamp, dataxProcessor, getJarLoader());
+        executor.startWork(dataXName, jobId, jobName, dataxProcessor, getJarLoader());
         EasyMock.verify(dataxProcessor);
     }
 

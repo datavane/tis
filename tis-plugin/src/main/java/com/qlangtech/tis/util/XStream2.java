@@ -248,6 +248,13 @@ public class XStream2 extends XStream {
             }
         }
 
+        public static void main(String[] args) throws Exception {
+            File f = new File("/Users/mozhenghua/j2ee_solution/project/plugins/tis-datax/tis-datax-hudi-plugin/target/tis-datax-hudi-plugin.tpi");
+            try (JarFile tpiFIle = new JarFile(f, false)) {
+                tpiFIle.stream().forEach((e) -> System.out.println(e.getName()));
+            }
+        }
+
 
         public boolean copyFromRemote() {
             return copyFromRemote(Lists.newArrayList());

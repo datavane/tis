@@ -32,6 +32,11 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
  **/
 public interface IDataXBatchPost {
 
+    /**
+     * 本次批次操作会涉及到的阶段区间
+     *
+     * @return
+     */
     ExecutePhaseRange getPhaseRange();
 
     public static String getPreExecuteTaskName(ISelectedTab tab) {

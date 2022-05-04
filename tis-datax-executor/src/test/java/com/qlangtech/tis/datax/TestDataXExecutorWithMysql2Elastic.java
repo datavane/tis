@@ -44,7 +44,7 @@ public class TestDataXExecutorWithMysql2Elastic extends BasicDataXExecutorTestCa
      */
     public void testResourceSync() throws Exception {
         final String execTimeStamp = "20220316121256";
-        this.executor.exec(jobId, jobName, dataxName, execTimeStamp);
+        this.executor.exec(jobId, jobName, dataxName);
         assertTrue("hasExecuteStartEngine", hasExecuteStartEngine);
     }
 

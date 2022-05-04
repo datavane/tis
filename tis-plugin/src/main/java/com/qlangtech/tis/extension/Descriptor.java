@@ -67,6 +67,9 @@ import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandle
  */
 public abstract class Descriptor<T extends Describable> implements Saveable, ISelectOptionsGetter {
 
+    public static final String SWITCH_OFF = "off";
+    public static final String SWITCH_ON = "on";
+
     public static final String KEY_ENUM_PROP = "enum";
 
     public static final String KEY_primaryVal = "_primaryVal";
@@ -1202,6 +1205,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public static class PostFormVals {
         public final Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> rawFormData;
+
+        public <T extends Describable> T newInstance(Descriptor<T> desc, IControlMsgHandler msgHandler) {
+            ParseDescribable<Describable> plugin = desc.newInstance((IPluginContext) msgHandler, this.rawFormData, Optional.empty());
+            return plugin.getInstance();
+        }
+
 
         public PostFormVals(Map<String, JSONObject> rawFormData) {
             this.rawFormData = rawFormData;
