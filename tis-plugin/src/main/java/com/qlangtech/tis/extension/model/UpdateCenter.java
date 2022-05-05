@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.install.InstallUtil;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.util.PersistedList;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.exec.AtmostOneThreadExecutor;
@@ -1149,7 +1150,8 @@ public class UpdateCenter implements Saveable {
 
                 if (dynamicLoad) {
                     try {
-                        pm.dynamicLoad(getDestination(), false, batch);
+                        pm.dynamicLoad(getDestination(), false
+                                , new PluginAndCfgsSnapshot.PluginWrapperList(batch));
                     } catch (RestartRequiredException e) {
                         throw new SuccessButRequiresRestart(e.getMessage());
                     } catch (Exception e) {
@@ -1274,7 +1276,7 @@ public class UpdateCenter implements Saveable {
             LOGGER.info("Completing installing of plugin batch…");
             status = new Running();
             try {
-                TIS.get().getPluginManager().start(batch);
+                TIS.get().getPluginManager().start(new PluginAndCfgsSnapshot.PluginWrapperList(batch));
                 status = new Success();
             } catch (Exception x) {
                 status = new Failure(x);

@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.util.InitializerFinder;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.YesNoMaybe;
@@ -132,7 +133,7 @@ public class PluginManager {
     /**
      * Try the dynamicLoad, removeExisting to attempt to dynamic load disabled plugins
      */
-    public void dynamicLoad(File arc, boolean removeExisting, List<PluginWrapper> batch) throws IOException, InterruptedException, RestartRequiredException {
+    public void dynamicLoad(File arc, boolean removeExisting, PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
         // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
         LOGGER.info("Attempting to dynamic load {}", arc);
         PluginWrapper p = null;
@@ -148,7 +149,7 @@ public class PluginManager {
     }
 
 
-    public void dynamicLoad(String shotName, File arc, boolean removeExisting, List<PluginWrapper> batch) throws IOException, InterruptedException, RestartRequiredException {
+    public void dynamicLoad(String shotName, File arc, boolean removeExisting, PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
         // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
 
         PluginWrapper p = null;
@@ -205,7 +206,7 @@ public class PluginManager {
             if (batch != null) {
                 batch.add(p);
             } else {
-                start(Collections.singletonList(p));
+                start(new PluginAndCfgsSnapshot.PluginWrapperList(p));
             }
 
         } catch (Exception e) {
@@ -220,8 +221,8 @@ public class PluginManager {
     }
 
 
-    public void start(List<PluginWrapper> plugins) throws Exception {
-        Map<String, PluginWrapper> pluginsByName = plugins.stream().collect(Collectors.toMap(PluginWrapper::getShortName, p -> p));
+    public void start(PluginAndCfgsSnapshot.PluginWrapperList plugins) throws Exception {
+        Map<String, PluginWrapper> pluginsByName = plugins.getPluginsByName(); //plugins.stream().collect(Collectors.toMap(PluginWrapper::getShortName, p -> p));
 
         // recalculate dependencies of plugins optionally depending the newly deployed ones.
         for (PluginWrapper depender : this.plugins) {
@@ -248,7 +249,7 @@ public class PluginManager {
         } catch (ExtensionRefreshException e) {
             throw new IOException("Failed to refresh extensions after installing some plugins", e);
         }
-        for (PluginWrapper p : plugins) {
+        for (PluginWrapper p : plugins.getPlugins()) {
             //TODO:According to the postInitialize() documentation, one may expect that
             //p.getPluginOrFail() NPE will continue the initialization. Keeping the original behavior ATM
             p.getPluginOrFail().postInitialize();
@@ -256,7 +257,7 @@ public class PluginManager {
 
         // run initializers in the added plugins
         Reactor r = new Reactor(InitMilestone.ordering());
-        Set<ClassLoader> loaders = plugins.stream().map(p -> p.classLoader).collect(Collectors.toSet());
+        Set<ClassLoader> loaders = plugins.getLoaders(); //plugins.stream().map(p -> p.classLoader).collect(Collectors.toSet());
         r.addAll(new InitializerFinder(uberClassLoader) {
             @Override
             protected boolean filter(Method e) {

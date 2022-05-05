@@ -193,7 +193,7 @@ public class PluginAndCfgsSnapshot {
         }
         PluginManager pluginManager = TIS.get().getPluginManager();
         Set<XStream2.PluginMeta> loaded = Sets.newHashSet();
-        List<PluginWrapper> batch = Lists.newArrayList();
+        PluginWrapperList batch = new PluginWrapperList();
         for (XStream2.PluginMeta update : result) {
             dynamicLoad(pluginManager, update, batch, result, loaded);
         }
@@ -210,8 +210,61 @@ public class PluginAndCfgsSnapshot {
         //   return result;
     }
 
+    /**
+     * 为了去除batch plugin中的重复机器，用一个List包裹一下
+     */
+    public static class PluginWrapperList {
+        List<PluginWrapper> batch = Lists.newArrayList();
+        Set<String> addPluginNams = Sets.newHashSet();
+
+        public PluginWrapperList() {
+        }
+
+        public PluginWrapperList(PluginWrapper pluginWrapper) {
+            this.add(pluginWrapper);
+        }
+
+        public PluginWrapperList(List<PluginWrapper> plugins) {
+            plugins.forEach((p) -> {
+                add(p);
+            });
+        }
+
+        public void add(PluginWrapper plugin) {
+            if (addPluginNams.add(plugin.getShortName())) {
+                batch.add(plugin);
+            }
+        }
+
+        public List<PluginWrapper> getPlugins() {
+            return this.batch;
+        }
+
+        public Map<String, PluginWrapper> getPluginsByName() {
+            return batch.stream().collect(Collectors.toMap(PluginWrapper::getShortName, p -> p));
+        }
+
+        public Set<ClassLoader> getLoaders() {
+            return batch.stream().map(p -> p.classLoader).collect(Collectors.toSet());
+        }
+
+        public int size() {
+            return batch.size();
+        }
+
+        public boolean contains(PluginWrapper depender) {
+            for (PluginWrapper wrapper : batch) {
+                if (StringUtils.equals(wrapper.getShortName(), depender.getShortName())) {
+                    return true;
+                }
+            }
+            return false;
+//            return batch.contains( depender);
+        }
+    }
+
     private void dynamicLoad(PluginManager pluginManager
-            , XStream2.PluginMeta update, List<PluginWrapper> batch, Set<XStream2.PluginMeta> shallUpdate, Set<XStream2.PluginMeta> loaded) {
+            , XStream2.PluginMeta update, PluginWrapperList batch, Set<XStream2.PluginMeta> shallUpdate, Set<XStream2.PluginMeta> loaded) {
         try {
             for (XStream2.PluginMeta dpt : update.getMetaDependencies()) {
                 this.dynamicLoad(pluginManager, dpt, batch, shallUpdate, loaded);
