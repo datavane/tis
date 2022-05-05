@@ -26,6 +26,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * {@link ClassLoader} that can see all plugins.
@@ -120,7 +121,8 @@ public final class UberClassLoader extends ClassLoader {
             loaded.put(name, null);
         }
         // not found in any of the classloader. delegate.
-        throw new ClassNotFoundException(name);
+        throw new ClassNotFoundException(name + ",scan plugins:"
+                + pluginManager.activePlugins.stream().map((p) -> p.getShortName()).collect(Collectors.joining(",")));
     }
 
     @Override
