@@ -69,7 +69,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             CommandLine cmdLine = new CommandLine("java");
             cmdLine.addArgument("-D" + Config.KEY_DATA_DIR + "=" + Config.getDataDir().getAbsolutePath());
             cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=" + this.useRuntimePropEnvProps());
-            cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + System.getProperty(Config.KEY_LOG_DIR));
+            cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + Config.getLogDir().getAbsolutePath());
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
             cmdLine.addArgument("-D" + Config.SYSTEM_KEY_LOGBACK_PATH_KEY + "=" + Config.SYSTEM_KEY_LOGBACK_PATH_VALUE);
             cmdLine.addArgument("-D" + DataxUtils.EXEC_TIMESTAMP + "=" + msg.getExecTimeStamp());

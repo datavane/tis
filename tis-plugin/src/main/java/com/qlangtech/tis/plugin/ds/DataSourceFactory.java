@@ -318,7 +318,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
 
-                msgHandler.addErrorMessage(context, TisException.getErrMsg(e));
+                msgHandler.addErrorMessage(context, TisException.getErrMsg(e).getMessage());
                 return false;
             }
             return true;

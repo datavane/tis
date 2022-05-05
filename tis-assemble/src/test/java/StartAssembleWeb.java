@@ -17,6 +17,7 @@
  */
 
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.web.start.TisApp;
@@ -36,7 +37,8 @@ public class StartAssembleWeb extends TestCase {
 //        for (Map.Entry<Object, Object> e : System.getProperties().entrySet()) {
 //            System.out.println(e.getKey() + "->" + e.getValue());
 //        }
-        System.setProperty("log.dir", "/opt/logs");
+
+        System.setProperty(Config.KEY_LOG_DIR, "/opt/logs");
        // System.setProperty(IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
         String[] args = new String[]{};

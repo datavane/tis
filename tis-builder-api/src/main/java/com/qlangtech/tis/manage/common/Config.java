@@ -99,6 +99,10 @@ public class Config {
     public static final String KEY_DATA_DIR = "data.dir";
     public static final String KEY_LOG_DIR = "log.dir";
 
+    public static File getLogDir() {
+        return new File(System.getProperty(Config.KEY_LOG_DIR, "/opt/logs/tis"));
+    }
+
 
     public static TisMetaProps getMetaProps() {
         return TisMetaProps.getInstance();

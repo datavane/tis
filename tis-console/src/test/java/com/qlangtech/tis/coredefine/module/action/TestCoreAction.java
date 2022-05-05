@@ -117,7 +117,7 @@ public class TestCoreAction extends BasicActionTestCase {
 //    });
     triggerFullbuildTask(tableMeta, (aResult) -> {
       assertFalse(aResult.isSuccess());
-      List<String> errorMsgs = aResult.getErrorMsgs();
+      List<Object> errorMsgs = aResult.getErrorMsgs();
       assertNotNull(errorMsgs);
       assertTrue(errorMsgs.size() > 0);
     });
@@ -137,7 +137,7 @@ public class TestCoreAction extends BasicActionTestCase {
 //    });
     triggerFullbuildTask(null, (aResult) -> {
       assertFalse(aResult.isSuccess());
-      List<String> errorMsgs = aResult.getErrorMsgs();
+      List<Object> errorMsgs = aResult.getErrorMsgs();
       assertNotNull(errorMsgs);
       assertTrue(errorMsgs.size() > 0);
     });

@@ -22,6 +22,7 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisActionMapper;
 import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
@@ -37,6 +38,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -102,30 +104,14 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
       if (!disableTransaction && !status.isCompleted()) {
         transactionManager.rollback(status);
       }
-//if (TisActionMapper.REQUEST_EXTENDSION_AJAX.equals(mapping.getExtension())) {
-      if (StringUtils.endsWith(proxy.getNamespace(), TisActionMapper.ACTION_TOKEN)) {
-        // logger.error(e.getMessage(), e);
-        List<String> errors = new ArrayList<String>();
-        errors.add("服务端发生异常，请联系系统管理员");
 
-        //  TisException tisExcept = TisException.find(e);
-//        final Throwable[] throwables = ExceptionUtils.getThrowables(e);
-//        boolean findTisException = false;
-//        for (Throwable ex : throwables) {
-//          if (TisException.class.isAssignableFrom(ex.getClass())) {
-//            errors.add(ex.getMessage());
-//            findTisException = true;
-//            break;
-//          }
-//        }
-        // if (tisExcept == null) {
-        errors.add(TisException.getErrMsg(e));
-//        } else {
-//          errors.add(tisExcept.getMessage());
-//        }
-//        execResult = MockContext.getActionExecResult();
-//        execResult.addErrorMsg(errors);
-        AjaxValve.writeInfo2Client(() -> false, response, false, errors, Collections.emptyList(), Collections.emptyList(), null);
+      if (StringUtils.endsWith(proxy.getNamespace(), TisActionMapper.ACTION_TOKEN)) {
+        List<Object> errors = new ArrayList<>();
+        errors.add("服务端发生异常，请联系系统管理员");
+        TisException.ErrMsg errMsg = TisException.getErrMsg(e);
+        errors.add(errMsg.writeLogErr());
+        AjaxValve.writeInfo2Client(() -> false, response, false
+          , errors, Collections.emptyList(), Collections.emptyList(), null);
         return Action.NONE;
       } else {
         throw e;
