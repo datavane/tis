@@ -140,7 +140,7 @@ public class XStream2 extends XStream {
 
         public static final String NAME_VER_SPLIT = "@";
 
-        public final String name;
+        private final String name;
 
         public final String ver;
 
@@ -171,11 +171,15 @@ public class XStream2 extends XStream {
 
         @Override
         public String toString() {
-            StringBuffer buffer = new StringBuffer(name + NAME_VER_SPLIT + ver);
+            StringBuffer buffer = new StringBuffer(getKey());
             if (lastModifyTimeStamp != null) {
                 buffer.append(NAME_VER_SPLIT).append(this.lastModifyTimeStamp);
             }
             return buffer.toString();
+        }
+
+        public String getKey() {
+            return (new StringBuffer(name + NAME_VER_SPLIT + ver)).toString();
         }
 
         @Override

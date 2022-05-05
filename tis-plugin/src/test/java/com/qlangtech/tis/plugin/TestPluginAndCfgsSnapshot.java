@@ -25,7 +25,6 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.util.XStream2;
 import junit.framework.TestCase;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Set;
 

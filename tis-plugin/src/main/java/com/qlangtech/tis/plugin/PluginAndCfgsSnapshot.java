@@ -97,7 +97,7 @@ public class PluginAndCfgsSnapshot {
     }
 
     public Set<String> getPluginNames() {
-        return pluginMetas.stream().map((m) -> m.name).collect(Collectors.toSet());
+        return pluginMetas.stream().map((m) -> m.getKey()).collect(Collectors.toSet());
     }
 
 
@@ -175,13 +175,13 @@ public class PluginAndCfgsSnapshot {
                         .collect(Collectors.joining(","))).append("\n");
         updateTpisLogger.append(">>compare result\n");
         Map<String, XStream2.PluginMeta> locals = localSnaphsot.pluginMetas.stream()
-                .collect(Collectors.toMap((m) -> m.name, (m) -> m));
+                .collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
         XStream2.PluginMeta m = null;
         for (XStream2.PluginMeta meta : pluginMetas) {
-            m = locals.get(meta.name);
+            m = locals.get(meta.getKey());
             if (m == null || meta.getLastModifyTimeStamp() > m.getLastModifyTimeStamp()) {
                 result.add(meta);
-                updateTpisLogger.append(meta.name).append(m == null
+                updateTpisLogger.append(meta.getKey()).append(m == null
                         ? " local is none"
                         : " center repository ver:" + meta.getLastModifyTimeStamp()
                         + " > local ver:" + m.getLastModifyTimeStamp()).append("\n");
@@ -306,7 +306,7 @@ public class PluginAndCfgsSnapshot {
                 = XStream2.PluginMeta.parse(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META));
         metas.forEach((meta) -> {
             if (meta.isLastModifyTimeStampNull()) {
-                throw new IllegalStateException("pluginMeta:" + meta.name + " relevant LastModify timestamp can not be null");
+                throw new IllegalStateException("pluginMeta:" + meta.getKey() + " relevant LastModify timestamp can not be null");
             }
         });
         return new PluginAndCfgsSnapshot(app, globalPluginStoreLastModify
