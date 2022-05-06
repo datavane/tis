@@ -19,6 +19,7 @@
 package com.qlangtech.tis.extension;
 
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -121,7 +122,11 @@ public final class UberClassLoader extends ClassLoader {
             loaded.put(name, null);
         }
         // not found in any of the classloader. delegate.
-        throw new ClassNotFoundException(name + ",scan plugins:"
+        throw new ClassNotFoundException(name
+                + (acceptedPlugins != null
+                ? "\naccepted plugins:" + acceptedPlugins.stream().collect(Collectors.joining(","))
+                : StringUtils.EMPTY)
+                + "\n,scan plugins:"
                 + pluginManager.activePlugins.stream().map((p) -> p.getShortName()).collect(Collectors.joining(",")));
     }
 

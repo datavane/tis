@@ -52,6 +52,9 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
             System.out.println(meta.toString());
 
         }
+
+
+        snapshot.getPluginNames();
     }
 
     public void testShallBeUpdateTpis() {

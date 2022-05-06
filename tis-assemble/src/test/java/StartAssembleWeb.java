@@ -38,7 +38,7 @@ public class StartAssembleWeb extends TestCase {
 //            System.out.println(e.getKey() + "->" + e.getValue());
 //        }
 
-        System.setProperty(Config.KEY_LOG_DIR, "/opt/logs");
+        System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
        // System.setProperty(IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
         String[] args = new String[]{};

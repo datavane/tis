@@ -182,6 +182,10 @@ public class XStream2 extends XStream {
             return (new StringBuffer(name + NAME_VER_SPLIT + ver)).toString();
         }
 
+        public String getPluginName() {
+            return this.name;
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(name, ver);

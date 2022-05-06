@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.web.start.TisApp;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
@@ -28,6 +29,7 @@ public class ConsoleStart {
 
   public static void main(String[] args) throws Exception {
     TisAppLaunch.setTest(true);
+    System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
     TisApp app = new TisApp(TisSubModule.TIS_CONSOLE, (context) -> {
       context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
       context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");

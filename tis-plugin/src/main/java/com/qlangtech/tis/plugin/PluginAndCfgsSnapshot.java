@@ -97,7 +97,7 @@ public class PluginAndCfgsSnapshot {
     }
 
     public Set<String> getPluginNames() {
-        return pluginMetas.stream().map((m) -> m.getKey()).collect(Collectors.toSet());
+        return pluginMetas.stream().map((m) -> m.getPluginName()).collect(Collectors.toSet());
     }
 
 
