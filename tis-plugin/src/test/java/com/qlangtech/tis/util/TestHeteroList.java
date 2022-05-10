@@ -59,7 +59,7 @@ public class TestHeteroList extends TestCase {
 
     public static void setTISField() throws Exception {
         Field pluginCfgRootField = TIS.class.getField("pluginCfgRoot");
-        setFinalStatic(pluginCfgRootField, new File(Config.getMetaCfgDir(), TIS.KEY_TIS_PLUGIN_CONFIG));
+        setFinalStatic(pluginCfgRootField, new File(Config.getMetaCfgDir(), Config.KEY_TIS_PLUGIN_CONFIG));
 
         Field pluginDirRootField = TIS.class.getDeclaredField("pluginDirRoot");
         setFinalStatic(pluginDirRootField, new File(Config.getLibDir(), TIS.KEY_TIS_PLUGIN_ROOT));

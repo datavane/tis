@@ -27,6 +27,8 @@ import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.util.XStream2;
@@ -53,8 +55,23 @@ import java.util.zip.ZipInputStream;
  * @create: 2022-04-02 09:15
  **/
 public class PluginAndCfgsSnapshot {
+    public static final String TIS_APP_NAME = "tis_app_name";
     private static final Logger logger = LoggerFactory.getLogger(PluginAndCfgsSnapshot.class);
     private static PluginAndCfgsSnapshot pluginAndCfgsSnapshot;
+
+    public static String getTaskEntryName(int taskId) {
+        if (taskId < 1) {
+            throw new IllegalArgumentException("taskId shall be set");
+        }
+        return "task" + taskId;
+    }
+
+
+    public static String convertCfgPropertyKey(String key, boolean serialize) {
+        return serialize ?
+                org.apache.commons.lang3.StringUtils.replace(key, ".", "_")
+                : org.apache.commons.lang3.StringUtils.replace(key, "_", ".");
+    }
 
     public static PluginAndCfgsSnapshot setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot snapshot) {
         return pluginAndCfgsSnapshot = snapshot;
@@ -84,6 +101,43 @@ public class PluginAndCfgsSnapshot {
         this.appLastModifyTimestamp = appLastModifyTimestamp;
         this.collection = collection;
         this.appMetas = Optional.ofNullable(appMetas);
+    }
+
+    public static Manifest createManifestCfgAttrs(TargetResName collection, long timestamp) throws Exception {
+
+        Manifest manifest = new Manifest();
+        Map<String, Attributes> entries = manifest.getEntries();
+        Attributes attrs = new Attributes();
+        attrs.put(new Attributes.Name(collection.getName()), String.valueOf(timestamp));
+        // 传递App名称
+        entries.put(TIS_APP_NAME, attrs);
+
+        final Attributes cfgAttrs = new Attributes();
+        // 传递Config变量
+        Config.getInstance().visitKeyValPair((e) -> {
+            if (Config.KEY_TIS_HOST.equals(e.getKey())) {
+                // tishost为127.0.0.1会出错
+                return;
+            }
+            cfgAttrs.put(new Attributes.Name(convertCfgPropertyKey(e.getKey(), true)), e.getValue());
+        });
+        cfgAttrs.put(new Attributes.Name(
+                convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), NetUtils.getHost());
+        entries.put(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, cfgAttrs);
+
+        //=====================================================================
+        if (!CenterResource.notFetchFromCenterRepository()) {
+            throw new IllegalStateException("must not fetchFromCenterRepository");
+        }
+        //"globalPluginStore"  "pluginMetas"  "appLastModifyTimestamp"
+        XStream2.PluginMeta flinkPluginMeta
+                = new XStream2.PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + collection.getName()
+                , Config.getMetaProps().getVersion());
+        PluginAndCfgsSnapshot localSnapshot
+                = getLocalPluginAndCfgsSnapshot(collection, flinkPluginMeta);
+
+        localSnapshot.attachPluginCfgSnapshot2Manifest(manifest);
+        return manifest;
     }
 
     private static void collectAllPluginMeta(XStream2.PluginMeta meta, Set<XStream2.PluginMeta> collector) {
@@ -124,7 +178,7 @@ public class PluginAndCfgsSnapshot {
             if (localTimestamp == null || entry.getValue() > localTimestamp) {
                 // 更新本地配置文件
                 //globalCfg = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey());
-                cfg = CenterResource.copyFromRemote2Local(TIS.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey(), true);
+                cfg = CenterResource.copyFromRemote2Local(Config.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey(), true);
                 FileUtils.writeStringToFile(
                         PluginStore.getLastModifyTimeStampFile(cfg), String.valueOf(entry.getValue()), TisUTF8.get());
                 cfgChanged = true;
@@ -142,7 +196,7 @@ public class PluginAndCfgsSnapshot {
         if (this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp) {
             // 更新app相关配置,下载并更新本地配置
             KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, false, this.collection.getName(), null);
-            URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
+            URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, Config.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
 
             KeyedPluginStore.PluginMetas appMetas = localSnaphsot.appMetas.get();
             HttpUtils.get(appCfgUrl, new ConfigFileContext.StreamProcess<Void>() {

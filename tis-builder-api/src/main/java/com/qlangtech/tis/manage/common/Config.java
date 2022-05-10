@@ -42,6 +42,7 @@ public class Config {
     public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
     public static final String SYSTEM_KEY__LOGBACK_HUDI = "logback-hudi.xml";
+    public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
     public static final String LIB_PLUGINS_PATH = "libs/plugins";
 
@@ -185,6 +186,10 @@ public class Config {
     public static File getMetaCfgDir() {
         File dir = getDataDir();
         return new File(dir, SUB_DIR_CFG_REPO);
+    }
+
+    public static File getPluginCfgDir() {
+        return new File(Config.getMetaCfgDir(), KEY_TIS_PLUGIN_CONFIG);
     }
 
     public static File getLibDir() {

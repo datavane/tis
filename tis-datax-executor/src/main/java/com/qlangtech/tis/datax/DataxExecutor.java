@@ -45,6 +45,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.DataxUtils;
@@ -109,11 +110,11 @@ public class DataxExecutor {
             dataxComponentMeta.synchronizePluginsFromRemoteRepository();
 
             CenterResource.copyFromRemote2Local(
-                    TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath()
+                    Config.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath()
                             + "/" + DataxProcessor.DATAX_CFG_DIR_NAME + "/" + jobName, true);
 
             CenterResource.synchronizeSubFiles(
-                    TIS.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath() + "/" + DataxProcessor.DATAX_CREATE_DDL_DIR_NAME);
+                    Config.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath() + "/" + DataxProcessor.DATAX_CREATE_DDL_DIR_NAME);
 
         } finally {
             TIS.permitInitialize = true;

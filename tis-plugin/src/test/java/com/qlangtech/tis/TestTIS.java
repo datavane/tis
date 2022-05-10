@@ -45,7 +45,7 @@ public class TestTIS extends TestCase {
     }
 
     public void testReadPluginInfo() throws Exception {
-        final String collectionRelativePath = TIS.KEY_TIS_PLUGIN_CONFIG + "/" + collection;
+        final String collectionRelativePath = Config.KEY_TIS_PLUGIN_CONFIG + "/" + collection;
         List<String> subFiles = CenterResource.getSubFiles(collectionRelativePath, false, true);
         List<File> subs = Lists.newArrayList();
         for (String f : subFiles) {

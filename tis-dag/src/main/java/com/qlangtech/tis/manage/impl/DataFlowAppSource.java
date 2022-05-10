@@ -69,7 +69,7 @@ import java.util.concurrent.Executors;
  */
 public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     private static final Logger logger = LoggerFactory.getLogger("fullbuild");
-    public static final File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_APP_DIR);
+    public static final File parent = new File(Config.getPluginCfgDir(), IFullBuildContext.NAME_APP_DIR);
     private final String dataflowName;
     private final WorkFlow dataflow;
     protected static final ExecutorService executorService = Executors.newCachedThreadPool();

@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.util.IPluginContext;
@@ -92,7 +93,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     @Override
     public void copyConfigFromRemote() {
         CenterResource.copyFromRemote2Local(
-                TIS.KEY_TIS_PLUGIN_CONFIG + "/" + Descriptor.getPluginFileName(getSerializeFileName()), true);
+                Config.KEY_TIS_PLUGIN_CONFIG + "/" + Descriptor.getPluginFileName(getSerializeFileName()), true);
     }
 
     /**

@@ -79,7 +79,6 @@ public class TIS {
 
     private static final Logger logger = LoggerFactory.getLogger(TIS.class);
     public static final String DB_GROUP_NAME = "db";
-    public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
 
     public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
     public static final String KEY_ACTION_CLEAN_TIS = "cleanTis";
@@ -358,7 +357,7 @@ public class TIS {
 
     public final transient PluginManager pluginManager;
 
-    public static final File pluginCfgRoot = new File(Config.getMetaCfgDir(), KEY_TIS_PLUGIN_CONFIG);
+    public static final File pluginCfgRoot = new File(Config.getMetaCfgDir(), Config.KEY_TIS_PLUGIN_CONFIG);
 
     public static final File pluginDirRoot;
 

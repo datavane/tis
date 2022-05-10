@@ -18,10 +18,10 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.SetPluginsResult;
 import com.qlangtech.tis.util.IPluginContext;
@@ -83,10 +83,10 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     public void copyConfigFromRemote() {
         List<String> subFiles
                 = CenterResource.getSubFiles(
-                TIS.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath(), false, true);
+                Config.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath(), false, true);
         for (String f : subFiles) {
             CenterResource.copyFromRemote2Local(
-                    TIS.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath() + File.separator + f, true);
+                    Config.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath() + File.separator + f, true);
         }
     }
 
