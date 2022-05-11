@@ -60,10 +60,11 @@ public class PluginAndCfgsSnapshot {
     private static PluginAndCfgsSnapshot pluginAndCfgsSnapshot;
 
     public static String getTaskEntryName(int taskId) {
-        if (taskId < 1) {
-            throw new IllegalArgumentException("taskId shall be set");
-        }
-        return "task" + taskId;
+//        if (taskId < 1) {
+//            throw new IllegalArgumentException("taskId shall be set");
+//        }
+      //  return "task_xxxx" + taskId;
+        return "task_xxxx";
     }
 
 
