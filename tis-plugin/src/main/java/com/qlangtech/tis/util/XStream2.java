@@ -35,6 +35,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.xml.XppDriver;
 import com.thoughtworks.xstream.security.AnyTypePermission;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
@@ -248,7 +250,7 @@ public class XStream2 extends XStream {
                 // throw new IllegalStateException("file:" + f.getPath() + " is not exist");
                 return manProcess.apply(null);
             }
-            try (JarFile tpiFIle = new JarFile(f, false)) {
+            try (JarInputStream tpiFIle = new JarInputStream(FileUtils.openInputStream(f), false)) {
                 Manifest mfst = tpiFIle.getManifest();
                 return manProcess.apply(mfst);
             } catch (Exception e) {
