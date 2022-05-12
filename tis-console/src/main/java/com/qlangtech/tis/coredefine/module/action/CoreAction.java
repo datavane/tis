@@ -874,7 +874,7 @@ public class CoreAction extends BasicModule {
     if (!logFile.exists()) {
       throw new IllegalStateException("logfile is not exist:" + logFile.getAbsolutePath());
     }
-    getResponse().setContentType(DownloadResource.JAR_CONTENT_TYPE);
+    getResponse().setContentType(DownloadResource.XML_CONTENT_TYPE);
     DownloadServlet.setDownloadName(getResponse(), taskLogFileName);
     // getResponse().getOutputStream()
     FileUtils.copyFile(logFile, getResponse().getOutputStream());
