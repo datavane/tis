@@ -254,7 +254,7 @@ public class XStream2 extends XStream {
                 Manifest mfst = tpiFIle.getManifest();
                 return manProcess.apply(mfst);
             } catch (Exception e) {
-                throw new RuntimeException(f.getAbsolutePath(), e);
+                throw new RuntimeException("tpi path:" + f.getAbsolutePath(), e);
             }
         }
 
