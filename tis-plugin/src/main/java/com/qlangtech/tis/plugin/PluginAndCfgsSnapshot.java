@@ -46,8 +46,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
+import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -62,7 +64,7 @@ public class PluginAndCfgsSnapshot {
     private static final Logger logger = LoggerFactory.getLogger(PluginAndCfgsSnapshot.class);
     private static PluginAndCfgsSnapshot pluginAndCfgsSnapshot;
 
-    public static String getTaskEntryName(int taskId) {
+    public static String getTaskEntryName() {
 //        if (taskId < 1) {
 //            throw new IllegalArgumentException("taskId shall be set");
 //        }
@@ -179,7 +181,23 @@ public class PluginAndCfgsSnapshot {
         this.appMetas = Optional.ofNullable(appMetas);
     }
 
-    public static Manifest createManifestCfgAttrs(TargetResName collection, long timestamp) throws Exception {
+    public static void createManifestCfgAttrs2File
+            (File manifestJar, TargetResName collection, long timestamp
+                    , Optional<Predicate<XStream2.PluginMeta>> pluginMetasFilter) throws Exception {
+        Manifest manifest = createManifestCfgAttrs(collection, timestamp, pluginMetasFilter);
+        try (JarOutputStream jaroutput = new JarOutputStream(
+                FileUtils.openOutputStream(manifestJar, false), manifest)) {
+            jaroutput.putNextEntry(new ZipEntry(getTaskEntryName()));
+            jaroutput.flush();
+        }
+    }
+
+    public static Manifest createManifestCfgAttrs(TargetResName collection, long timestamp, Optional<Predicate<XStream2.PluginMeta>> pluginMetasFilter) throws Exception {
+
+        //=====================================================================
+        if (!CenterResource.notFetchFromCenterRepository()) {
+            throw new IllegalStateException("must not fetchFromCenterRepository");
+        }
 
         Manifest manifest = new Manifest();
         Map<String, Attributes> entries = manifest.getEntries();
@@ -201,16 +219,13 @@ public class PluginAndCfgsSnapshot {
                 convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), NetUtils.getHost());
         entries.put(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, cfgAttrs);
 
-        //=====================================================================
-        if (!CenterResource.notFetchFromCenterRepository()) {
-            throw new IllegalStateException("must not fetchFromCenterRepository");
-        }
+
         //"globalPluginStore"  "pluginMetas"  "appLastModifyTimestamp"
         XStream2.PluginMeta flinkPluginMeta
                 = new XStream2.PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + collection.getName()
                 , Config.getMetaProps().getVersion());
         PluginAndCfgsSnapshot localSnapshot
-                = getLocalPluginAndCfgsSnapshot(collection, flinkPluginMeta);
+                = getLocalPluginAndCfgsSnapshot(collection, pluginMetasFilter, flinkPluginMeta);
 
         localSnapshot.attachPluginCfgSnapshot2Manifest(manifest);
         return manifest;
@@ -449,8 +464,15 @@ public class PluginAndCfgsSnapshot {
 //        return getLocalPluginAndCfgsSnapshot(collection, true, appendPluginMeta);
 //    }
 
+    /**
+     * @param collection
+     * @param pluginMetasFilter pluginMetas 有plugin tpi 不需要同步（属于特例）
+     * @param appendPluginMeta
+     * @return
+     */
     public static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(
-            TargetResName collection, XStream2.PluginMeta... appendPluginMeta) {
+            TargetResName collection, Optional<Predicate<XStream2.PluginMeta>> pluginMetasFilter
+            , XStream2.PluginMeta... appendPluginMeta) {
 
         Set<XStream2.PluginMeta> globalPluginMetas = null;
         Map<String, Long> gPluginStoreLastModify = Collections.emptyMap();
@@ -482,7 +504,10 @@ public class PluginAndCfgsSnapshot {
         }
         return new PluginAndCfgsSnapshot(
                 collection, gPluginStoreLastModify
-                , collector, pluginMetas.lastModifyTimestamp, pluginMetas);
+                , (pluginMetasFilter.isPresent()
+                ? collector.stream().filter(pluginMetasFilter.get()).collect(Collectors.toSet())
+                : collector)
+                , pluginMetas.lastModifyTimestamp, pluginMetas);
     }
 
     public void attachPluginCfgSnapshot2Manifest(Manifest manifest) {
