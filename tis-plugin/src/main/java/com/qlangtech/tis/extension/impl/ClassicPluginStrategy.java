@@ -48,6 +48,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
 import static org.apache.commons.io.FilenameUtils.getBaseName;
@@ -85,12 +86,15 @@ public class ClassicPluginStrategy implements PluginStrategy {
         if (isLinked(archive)) {
             manifest = loadLinkedManifest(archive);
         } else {
-            JarFile jf = new JarFile(archive, false);
-            try {
+            try (JarInputStream jf = new JarInputStream(FileUtils.openInputStream(archive), false)) {
                 manifest = jf.getManifest();
-            } finally {
-                jf.close();
             }
+//            JarFile jf = new JarFile(archive, false);
+//            try {
+//                manifest = jf.getManifest();
+//            } finally {
+//                jf.close();
+//            }
         }
         return PluginWrapper.computeShortName(manifest, archive.getName());
     }
