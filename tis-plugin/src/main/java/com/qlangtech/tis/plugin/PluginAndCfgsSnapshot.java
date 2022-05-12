@@ -32,6 +32,8 @@ import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.web.start.TisAppLaunch;
+import com.qlangtech.tis.web.start.TisSubModule;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -45,6 +47,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.jar.Attributes;
+import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -63,8 +66,80 @@ public class PluginAndCfgsSnapshot {
 //        if (taskId < 1) {
 //            throw new IllegalArgumentException("taskId shall be set");
 //        }
-      //  return "task_xxxx" + taskId;
+        //  return "task_xxxx" + taskId;
         return "task_xxxx";
+    }
+
+    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar
+                                                                  //URL[] libraryURLs
+    ) throws IOException {
+//        if (libraryURLs.length != 1) {
+//            throw new IllegalStateException("length of libraryURLs must be 1 , but now is:" + libraryURLs.length);
+//        }
+        PluginAndCfgsSnapshot pluginAndCfgsSnapshot = null;
+        String appName = null;
+        // for (URL lib : libraryURLs) {
+        //try (
+        JarInputStream jarReader = new JarInputStream(manifestJar);
+        //) {
+        Manifest manifest = jarReader.getManifest();
+        appName = getRepositoryCfgsSnapshot(resName, manifest);
+
+        // KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE;
+        //Attributes pluginMetas = manifest.getAttributes(Config.KEY_PLUGIN_METAS);
+        // processPluginMetas(pluginMetas);
+
+        pluginAndCfgsSnapshot = PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), manifest));
+
+        Attributes sysProps = manifest.getAttributes(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS);
+        Config.setConfig(null);
+        // @see TISFlinkCDCStreamFactory 在这个类中进行配置信息的加载
+        System.setProperty(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, String.valueOf(true));
+        StringBuffer sysPropsDesc = new StringBuffer();
+        for (Map.Entry<Object, Object> pluginDesc : sysProps.entrySet()) {
+            Attributes.Name name = (Attributes.Name) pluginDesc.getKey();
+            String val = (String) pluginDesc.getValue();
+            String key = PluginAndCfgsSnapshot.convertCfgPropertyKey(name.toString(), false);
+            System.setProperty(key, val);
+            sysPropsDesc.append("\n").append(key).append("->").append(val);
+        }
+        logger.info("sysProps details:" + sysPropsDesc.toString());
+        // shall not have any exception here.
+        TisAppLaunch.getPort(TisSubModule.TIS_CONSOLE);
+        Config.getInstance();
+
+        //}
+        if (pluginAndCfgsSnapshot == null) {
+            throw new IllegalStateException("param appName can not be null,in res name:" + resName);
+        }
+        //  }
+
+        return pluginAndCfgsSnapshot;
+    }
+
+//    private static void processPluginMetas(Attributes pluginMetas) {
+//        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE);
+//        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META);
+//        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP);
+//    }
+
+    public static String getRepositoryCfgsSnapshot(String resName, Manifest manifest) {
+        Attributes tisAppName = manifest.getAttributes(PluginAndCfgsSnapshot.TIS_APP_NAME);
+        String appName = null;
+        //  Attributes pluginInventory = manifest.getAttributes("plugin_inventory");
+        if (tisAppName == null) {
+            throw new IllegalStateException("tisAppName can not be empty in lib:" + resName);
+        }
+
+        aa:
+        for (Map.Entry<Object, Object> pluginDesc : tisAppName.entrySet()) {
+            Attributes.Name name = (Attributes.Name) pluginDesc.getKey();
+            String val = (String) pluginDesc.getValue();
+            appName = name.toString();
+            break aa;
+            //  pluginManager.dynamicLoadPlugin(String.valueOf(pluginDesc.getKey()));
+        }
+        return appName;
     }
 
 
