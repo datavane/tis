@@ -168,8 +168,7 @@ public class PluginAction extends BasicModule {
 
     PluginExtraProps.Props props = pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
       @Override
-      public PluginExtraProps.Props visit( //SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta  ,
-                                           SuFormProperties props) {
+      public PluginExtraProps.Props visit(SuFormProperties props) {
         PropertyType propertyType = props.fieldsType.get(descField.field);
         return propertyType.extraProp;
       }

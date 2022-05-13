@@ -70,7 +70,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
                 if ((indexOf = StringUtils.indexOf(line, "##")) > -1) {
                     propHelp = new StringBuffer();
-                    propHelps.put(StringUtils.trimToNull(StringUtils.substring(line, indexOf + 2)), propHelp);
+                    String fieldKey = StringUtils.trimToNull(StringUtils.substring(line, indexOf + 2));
+                    if (propHelps.put(fieldKey, propHelp) != null) {
+                        throw new IllegalStateException("field:" + fieldKey + " relevant propHelp can not be add twice");
+                    }
                 } else {
                     Objects.requireNonNull(propHelp, "propHelp can not be null");
                     propHelp.append(line).append("\n");
