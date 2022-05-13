@@ -164,9 +164,11 @@ public class PluginAction extends BasicModule {
     }
 
 
-    PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
+    PluginFormProperties pluginFormPropertyTypes
+      = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
 
-    PluginExtraProps.Props props = pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
+    PluginExtraProps.Props props = pluginFormPropertyTypes.accept(
+      new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
       @Override
       public PluginExtraProps.Props visit(SuFormProperties props) {
         PropertyType propertyType = props.fieldsType.get(descField.field);
@@ -179,9 +181,11 @@ public class PluginAction extends BasicModule {
       }
     });
 
-    // PluginExtraProps.Props props = descField.getFieldPropType().extraProp;
+
     if (!props.isAsynHelp()) {
-      throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not support async help content fecthing");
+      throw new IllegalStateException("plugin:"
+        + descField.pluginImpl + ",field:"
+        + descField.field + " is not support async help content fecthing");
     }
     this.setBizResult(context, props.getAsynHelp());
   }

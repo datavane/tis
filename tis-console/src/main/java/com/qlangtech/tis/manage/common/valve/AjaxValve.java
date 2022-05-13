@@ -156,7 +156,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       if (extendVal instanceof org.json.JSONObject) {
         result.append(((org.json.JSONObject) extendVal).toString(1));
       } else if (extendVal instanceof JSONArray) {
-        result.append(((org.json.JSONArray) extendVal).toString(1));
+        result.append(JsonUtil.toString((JSONArray) extendVal));
       } else {
         //com.alibaba.fastjson.JSON.toJSONString(extendVal, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat)
         result.append(JsonUtil.toString(extendVal));
