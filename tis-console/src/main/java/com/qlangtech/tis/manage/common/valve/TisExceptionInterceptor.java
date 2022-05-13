@@ -22,7 +22,6 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.lang.TisException;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisActionMapper;
 import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
@@ -38,7 +37,6 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

@@ -32,28 +32,11 @@ import java.util.Objects;
  */
 public class TisApp {
 
-
     static {
-        // System.setProperty("logback.ContextSelector", "com.qlangtech.tis.web.start.TISContextSelector");
         System.setProperty("logback.ContextSelector", "JNDI");
     }
 
     public static final String KEY_WEB_ROOT_DIR = "web.root.dir";
-
-//    public static void setWebRootDir(File webRootDir) {
-//        org.eclipse.jetty.client.api.Request.BeginListener b = new org.eclipse.jetty.client.api.Request.BeginListener() {
-//
-//            @Override
-//            public void onBegin(org.eclipse.jetty.client.api.Request request) {
-//                System.out.println("hahah");
-//            }
-//        };
-//        b.onBegin(null);
-//        if (!webRootDir.exists()) {
-//            throw new IllegalStateException("root dir not exist:" + webRootDir.getAbsolutePath());
-//        }
-//        System.setProperty(KEY_WEB_ROOT_DIR, webRootDir.getAbsolutePath());
-//    }
 
     private static Logger logger = LoggerFactory.getLogger(TisApp.class);
 
@@ -70,7 +53,6 @@ public class TisApp {
         }
 
         // 启动应用使用本地8080端口
-
         TisApp tisApp = new TisApp(TisAppLaunch.getPort(TisSubModule.WEB_START), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
@@ -88,10 +70,6 @@ public class TisApp {
         this.jetty = new JettyTISRunner(port, contextSetter);
         this.initContext();
     }
-
-//    public TisApp(String servletContext, int port) throws Exception {
-//        this(servletContext, port, (r) -> {});
-//    }
 
     static final String APP_CONSOLE = "root";
 

@@ -52,7 +52,7 @@ public class OperationLogAction extends BasicModule {
 
   public void doGetErrorLogList(Context context) {
     Pager pager = this.createPager();
-    pager.setRowsPerPage(20);
+    pager.setRowsPerPage(10);
     List<TisException.ErrMsg> errorLogs = TisException.getErrorLogs();
     pager.setTotalCount(errorLogs.size());
 

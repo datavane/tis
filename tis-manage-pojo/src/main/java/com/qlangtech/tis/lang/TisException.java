@@ -20,6 +20,7 @@ package com.qlangtech.tis.lang;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -35,11 +36,11 @@ import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * 底层运行时异常运行时可直达web，届时可添加一些格式化处理
@@ -87,6 +88,8 @@ public class TisException extends RuntimeException {
             }
         };
 
+        static final AtomicReference<ErrMsg> preErr = new AtomicReference<>();
+
         private final String message;
         @JSONField(serialize = false)
         private final Throwable ex;
@@ -125,26 +128,38 @@ public class TisException extends RuntimeException {
             return this.message;
         }
 
+        @Override
+        public String toString() {
+            return logFileName + "/" + message;
+        }
+
         public ErrMsg writeLogErr() {
             Objects.requireNonNull(ex, "exception can not be null");
             this.logFileName = Long.parseLong(IParamContext.getCurrentMillisecTimeStamp());
-            File errLog = getErrLogFile(String.valueOf(this.logFileName));
-            StringWriter errWriter = new StringWriter();
-            // FileUtils.openOutputStream(errLog)
-            try (PrintWriter print = new PrintWriter(errWriter)) {
-                ex.printStackTrace(print);
-            } catch (Exception e) {
-                throw new RuntimeException(errLog.getAbsolutePath(), e);
-            }
-            JSONObject err = new JSONObject();
-            err.put(KEY_ABSTRACT, ex.getMessage());
-            err.put(KEY_DETAIL, errWriter.toString());
-            try {
-                FileUtils.write(errLog, JsonUtil.toString(err), TisUTF8.get());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return this;
+            final ErrMsg currError = this;
+            // 将相同的异常合并成一条，以免屏幕上相同的异常显示n条
+            return preErr.updateAndGet((pre) -> {
+                try {
+                    if (pre != null && StringUtils.equals(pre.getMessage(), currError.ex.getMessage())) {
+                        return pre;
+                    }
+                    File errLog = getErrLogFile(String.valueOf(this.logFileName));
+                    StringWriter errWriter = new StringWriter();
+                    try (PrintWriter print = new PrintWriter(errWriter)) {
+                        ex.printStackTrace(print);
+                    } catch (Exception e) {
+                        throw new RuntimeException(errLog.getAbsolutePath(), e);
+                    }
+                    final String detail = errWriter.toString();
+                    JSONObject err = new JSONObject();
+                    err.put(KEY_ABSTRACT, ex.getMessage());
+                    err.put(KEY_DETAIL, detail);
+                    FileUtils.write(errLog, JsonUtil.toString(err), TisUTF8.get());
+                    return currError;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
     }
 
@@ -157,13 +172,15 @@ public class TisException extends RuntimeException {
         File errLogDir = getErrLogDir();
         String[] logs = errLogDir.list();
 
-        return Arrays.stream(logs).filter((l) ->
+        List<ErrMsg> result = Lists.newArrayList(Arrays.stream(logs).filter((l) ->
                 p.matcher(l).matches()
         ).map((l) -> {
             ErrMsg errMsg = new ErrMsg(null, null);
             errMsg.logFileName = Long.parseLong(l);
             return errMsg;
-        }).sorted((a, b) -> (int) (b.logFileName - a.logFileName)).collect(Collectors.toList());
+        }).iterator());
+        Collections.sort(result, ((a, b) -> (a.logFileName >= b.logFileName) ? -1 : 1));
+        return result;
     }
 
     private static File getErrLogFile(String logFileName) {
@@ -187,6 +204,7 @@ public class TisException extends RuntimeException {
             public String getDetail() {
                 return getPersisObj().getString(KEY_DETAIL);
             }
+
             private JSONObject getPersisObj() {
                 return error.updateAndGet((pre) -> {
                     try {
@@ -199,6 +217,7 @@ public class TisException extends RuntimeException {
                     return pre;
                 });
             }
+
             @Override
             public String getAbstractInfo() {
                 return getPersisObj().getString(KEY_ABSTRACT);

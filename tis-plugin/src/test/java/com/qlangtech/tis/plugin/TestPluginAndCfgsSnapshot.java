@@ -26,6 +26,7 @@ import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.util.XStream2;
 import junit.framework.TestCase;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -40,7 +41,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         XStream2.PluginMeta flinkPluginMeta
                 = new XStream2.PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + datax.getName()
                 , Config.getMetaProps().getVersion());
-        PluginAndCfgsSnapshot snapshot = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, flinkPluginMeta);
+        PluginAndCfgsSnapshot snapshot = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, Optional.empty(), flinkPluginMeta);
         Assert.assertNotNull(snapshot);
 
         Assert.assertEquals(datax.getName(), snapshot.getAppName().getName());
@@ -61,13 +62,13 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         XStream2.PluginMeta flinkPluginMeta
                 = new XStream2.PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + datax.getName()
                 , Config.getMetaProps().getVersion());
-        PluginAndCfgsSnapshot remote = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, flinkPluginMeta);
+        PluginAndCfgsSnapshot remote = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, Optional.empty(), flinkPluginMeta);
         Assert.assertNotNull(remote);
 
         Config.setTestDataDir();
         TIS.clean();
 
-        PluginAndCfgsSnapshot local = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, flinkPluginMeta);
+        PluginAndCfgsSnapshot local = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, Optional.empty(), flinkPluginMeta);
         Assert.assertNotNull(local);
 
 //        Set<XStream2.PluginMeta> pluginMetas = remote.shallBeUpdateTpis(local);
