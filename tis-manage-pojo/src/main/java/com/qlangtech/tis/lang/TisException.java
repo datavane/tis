@@ -140,7 +140,7 @@ public class TisException extends RuntimeException {
             // 将相同的异常合并成一条，以免屏幕上相同的异常显示n条
             return preErr.updateAndGet((pre) -> {
                 try {
-                    if (pre != null && StringUtils.equals(pre.getMessage(), currError.ex.getMessage())) {
+                    if (pre != null && StringUtils.equals(pre.getMessage(), currError.getMessage())) {
                         return pre;
                     }
                     File errLog = getErrLogFile(String.valueOf(this.logFileName));

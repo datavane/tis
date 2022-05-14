@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DataxUtils;
@@ -32,15 +31,22 @@ import junit.framework.TestCase;
  */
 public class StartAssembleWeb extends TestCase {
 
+
+    static {
+        System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
+        System.setProperty(Config.SYSTEM_KEY_LOGBACK_PATH_KEY, "logback-assemble.xml");
+        CenterResource.setNotFetchFromCenterRepository();
+    }
+
     public void testStart() throws Exception {
 
 
 //        for (Map.Entry<Object, Object> e : System.getProperties().entrySet()) {
 //            System.out.println(e.getKey() + "->" + e.getValue());
 //        }
-        CenterResource.setNotFetchFromCenterRepository();
-        System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
-       // System.setProperty(IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
+
+
+        // System.setProperty(IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
         String[] args = new String[]{};
         TisAppLaunch.setTest(true);
