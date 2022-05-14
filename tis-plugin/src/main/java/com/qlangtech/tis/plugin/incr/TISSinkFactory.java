@@ -36,7 +36,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -54,9 +53,9 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
 
     public static void main(String[] args) throws Exception {
         URL url = new URL("jar:file:/opt/data/tis/libs/plugins/flink/hudi/WEB-INF/lib/../../WEB-INF/lib/hudi-incr.jar!/META-INF/annotations/com.qlangtech.tis.extension.TISExtension");
-       // InputStream inputStream = url.openStream();
+        // InputStream inputStream = url.openStream();
         //Objects.requireNonNull(inputStream);
-        System.out.println( IOUtils.toString(url, TisUTF8.get()) );
+        System.out.println(IOUtils.toString(url, TisUTF8.get()));
 
     }
 

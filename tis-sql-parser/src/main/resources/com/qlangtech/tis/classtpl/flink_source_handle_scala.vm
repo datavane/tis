@@ -9,7 +9,7 @@ import com.qlangtech.tis.extension.TISExtension
 
 @TISExtension()
 class ${config.javaName}SourceHandle extends DefaultFlinkSourceHandle {
-    override protected def processTableStream(streamMap: util.Map[String, DataStream[DTO]], sinkFunction: SinkFuncs): Unit = {
+    override protected def processTableStream(streamMap: util.Map[String, DataStream[DTO]], sinkFunction: SinkFuncs[DTO]): Unit = {
 
 #foreach($i in $config.dumpTables  )
 ##    ${i.tabName}Stream.addSink(sinkFunction)

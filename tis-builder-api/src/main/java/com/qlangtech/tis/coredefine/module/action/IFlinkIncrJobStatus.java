@@ -28,6 +28,8 @@ public interface IFlinkIncrJobStatus {
     String KEY_SAVEPOINT_DIR_PREFIX = "savepoint_";
 
     enum State {
+        // 之前运行着，突然flink-cluster被终止（可能因为机房断电），job与服务端失联
+        DISAPPEAR,
         // 实例还未创建
         NONE
         // 实例已经停止
