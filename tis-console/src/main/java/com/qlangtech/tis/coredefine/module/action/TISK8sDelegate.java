@@ -237,9 +237,6 @@ public class TISK8sDelegate {
     this.watchPodLogMap.values().forEach((r) -> {
       r.close();
     });
-    // if (this.watchPodLog != null) {
-    // this.watchPodLog.close();
-    // }
   }
 
 
