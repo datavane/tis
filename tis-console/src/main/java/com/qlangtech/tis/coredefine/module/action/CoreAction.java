@@ -138,6 +138,62 @@ public class CoreAction extends BasicModule {
   }
 
   /**
+   * 创建新新的Savepoint
+   *
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
+  public void doCreateNewSavepoint(Context context) throws Exception {
+    IRCController incrSync = getRCController();
+
+    incrSync.triggerSavePoint(new TargetResName(this.getCollectionName()));
+    IndexIncrStatus incrStatus = getIndexIncrStatus(this, false);
+    this.setBizResult(context, incrStatus);
+  }
+
+  private IRCController getRCController() {
+    IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
+    IncrStreamFactory incrStream = incrStreamStore.getPlugin();
+    return incrStream.getIncrSync();
+  }
+
+  /**
+   * 删除已有的 Savepoint
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
+  public void doDiscardSavepoint(Context context) throws Exception {
+    String savepointPath = this.getString("savepointPath");
+    if (StringUtils.isEmpty(savepointPath)) {
+      throw new IllegalArgumentException("param savepointPath can not be null");
+    }
+    IRCController incrSync = getRCController();
+
+    incrSync.discardSavepoint(new TargetResName(this.getCollectionName()) ,savepointPath);
+    IndexIncrStatus incrStatus = getIndexIncrStatus(this, false);
+    this.setBizResult(context, incrStatus);
+  }
+
+  /**
+   * 重新启动增量执行进程
+   *
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.APP_REBUILD)
+  public void doRelaunchIncrProcess(Context context) throws Exception {
+    String savepointPath = this.getString("savepointPath");
+    if (StringUtils.isEmpty(savepointPath)) {
+      throw new IllegalArgumentException("param savepointPath can not be null");
+    }
+    IRCController incrSync = getRCController();
+    incrSync.relaunch(new TargetResName(this.getCollectionName()), savepointPath);
+    waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
+  }
+
+  /**
    * 终止正在执行的任务
    *
    * @param context
@@ -177,24 +233,6 @@ public class CoreAction extends BasicModule {
       this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(triggerResult.getTaskid())));
   }
 
-  /**
-   * 重新启动增量执行进程
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.APP_REBUILD)
-  public void doRelaunchIncrProcess(Context context) throws Exception {
-    String savepointPath = this.getString("savepointPath");
-    if (StringUtils.isEmpty(savepointPath)) {
-      throw new IllegalArgumentException("param savepointPath can not be null");
-    }
-    IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
-    IncrStreamFactory incrStream = incrStreamStore.getPlugin();
-    IRCController incrSync = incrStream.getIncrSync();
-    incrSync.relaunch(new TargetResName(this.getCollectionName()), savepointPath);
-    waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
-  }
 
   private void waittingiIntendedStatus(Context context, IFlinkIncrJobStatus.State targetStatus) throws Exception {
     int tryCount = 0;

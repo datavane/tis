@@ -35,10 +35,20 @@ public class AdapterRCController implements IRCController {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void triggerSavePoint(TargetResName collection) {
+        throw new UnsupportedOperationException();
+    }
 //    @Override
 //    public IFlinkIncrJobStatus getIncrJobStatus(TargetResName collection) {
 //        throw new UnsupportedOperationException();
 //    }
+
+
+    @Override
+    public void discardSavepoint(TargetResName resName, String savepointPath) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public void checkUseable() {

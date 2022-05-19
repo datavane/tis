@@ -67,7 +67,8 @@ import java.util.regex.Pattern;
 
 /**
  * 添加应用
- *order2
+ * order2
+ *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2012-4-1
  */
@@ -618,7 +619,16 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
 //      return false;
 //    }
 //    return true;
-    return Validator.identity.validate(msgHandler, context, fieldKey, form.getProjectName());
+    boolean valid = Validator.identity.validate(msgHandler, context, fieldKey, form.getProjectName());
+    if (!valid) {
+      return false;
+    }
+    if (StringUtils.indexOf(form.getProjectName(), "-") > -1) {
+      msgHandler.addFieldError(context, fieldKey, "名称中不能有'-'字符");
+      return false;
+    }
+
+    return true;
   }
 
   private boolean validateAppForm(Context context, Application app) {

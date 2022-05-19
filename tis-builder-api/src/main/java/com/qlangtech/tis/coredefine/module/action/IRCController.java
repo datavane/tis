@@ -62,6 +62,14 @@ public interface IRCController {
     void stopInstance(TargetResName indexName);
 
     /**
+     * 创建一个Savepoint
+     *
+     * @param collection
+     */
+
+    void triggerSavePoint(TargetResName collection);
+
+    /**
      * 重启增量节点
      *
      * @param collection
@@ -86,5 +94,11 @@ public interface IRCController {
      */
     WatchPodLog listPodAndWatchLog(TargetResName collection, String podName, ILogListener listener);
 
-
+    /**
+     * 将已经存在Savepoint删除
+     *
+     * @param resName
+     * @param savepointPath
+     */
+    void discardSavepoint(TargetResName resName, String savepointPath);
 }
