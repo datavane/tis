@@ -28,6 +28,7 @@ import com.qlangtech.tis.web.start.TisSubModule;
  */
 public class ConsoleStart {
   static {
+    System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
     System.setProperty(Config.SYSTEM_KEY_LOGBACK_PATH_KEY, "logback-console.xml");
   }
 
@@ -35,7 +36,7 @@ public class ConsoleStart {
     TisAppLaunch.setTest(true);
     CenterResource.setNotFetchFromCenterRepository();
 
-    System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
+
     TisApp app = new TisApp(TisSubModule.TIS_CONSOLE, (context) -> {
       context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
       context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
