@@ -159,6 +159,7 @@ public class Config {
         pairs.put(KEY_TIS_DATASOURCE_TYPE, dbCfg.dbtype);
         pairs.put(KEY_TIS_DATASOURCE_DBNAME, dbCfg.dbname);
         pairs.put(KEY_DEPLOY_MODE, this.deployMode);
+        pairs.put(KEY_LOG_DIR, getLogDir().getAbsolutePath());
         pairs.put(TisAppLaunch.KEY_TIS_LAUNCH_PORT, String.valueOf(TisAppLaunch.getPort(TisSubModule.TIS_CONSOLE)));
         return pairs;
     }
