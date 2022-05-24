@@ -73,6 +73,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static final String KEY_ENUM_PROP = "enum";
 
     public static final String KEY_primaryVal = "_primaryVal";
+    public static final String KEY_DESC_VAL = "descVal";
 
     public static final String KEY_OPTIONS = "options";
 
@@ -688,8 +689,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 valJ = new JSONObject();
             }
             if (attrDesc.isDescribable()) {
-                JSONObject descVal = valJ.getJSONObject("descVal");
-                impl = descVal.getString("impl");
+                JSONObject descVal = valJ.getJSONObject(KEY_DESC_VAL);
+                impl = descVal.getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
                 if (StringUtils.isBlank(impl)) {
                     addFieldRequiredError(msgHandler, context, attr);
                     valid = false;
@@ -899,6 +900,20 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             body.put(key, o);
             return o;
         }
+
+        public JSONObject addSubForm(String key, String formImpl, FormData form) {
+            JSONObject o = new JSONObject();
+            JSONObject vals = new JSONObject();
+            if (StringUtils.isEmpty(formImpl)) {
+                throw new IllegalArgumentException("parm formImpl can not empty");
+            }
+            vals.put(AttrValMap.PLUGIN_EXTENSION_VALS, form.body);
+            vals.put(AttrValMap.PLUGIN_EXTENSION_IMPL, formImpl);
+
+            o.put(KEY_DESC_VAL, vals);
+            body.put(key, o);
+            return o;
+        }
     }
 
     public ParseDescribable<Describable> newInstance(
@@ -993,8 +1008,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 valJ = new JSONObject();
             }
             if (attrDesc.isDescribable()) {
-                JSONObject descVal = valJ.getJSONObject("descVal");
-                impl = descVal.getString("impl");
+                JSONObject descVal = valJ.getJSONObject(KEY_DESC_VAL);
+                impl = descVal.getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
                 descriptor = TIS.get().getDescriptor(impl);
                 if (descriptor == null) {
                     throw new IllegalStateException("impl:" + impl + " relevant descripotor can not be null");

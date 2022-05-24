@@ -29,13 +29,15 @@ import java.util.concurrent.ThreadFactory;
  * @author Kohsuke Kawaguchi
  */
 public class DaemonThreadFactory implements ThreadFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DaemonThreadFactory.class.getName());
+    private static final Logger LOGGER
+            = LoggerFactory.getLogger(DaemonThreadFactory.class.getName());
 
     @Override
     public Thread newThread(@Nonnull Runnable r) {
         Thread thread = new Thread(r);
         thread.setDaemon(true);
-        thread.setUncaughtExceptionHandler((t, e) -> LOGGER.error("Unhandled exception in thread " + t, e));
+        thread.setUncaughtExceptionHandler(
+                (t, e) -> LOGGER.error("Unhandled exception in thread " + t, e));
         return thread;
     }
 }

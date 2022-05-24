@@ -29,14 +29,19 @@ public class TisAppLaunch {
     public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
     private static boolean test = false;
     private final Integer launchPort;
+    private static final String logDir;
 
     static {
-        System.setProperty(TisAppLaunch.KEY_ASSEMBLE_TASK_DIR, System.getProperty("log.dir") + "/assemble/task");
+        logDir = System.getProperty("log.dir");
+        System.setProperty(TisAppLaunch.KEY_ASSEMBLE_TASK_DIR, logDir + "/assemble/task");
     }
 
     public static TisAppLaunch instance;
 
     private TisAppLaunch() {
+        if (logDir == null) {
+            throw new IllegalStateException("logDir can not be null");
+        }
         this.launchPort = Integer.parseInt(System.getProperty(KEY_TIS_LAUNCH_PORT, "8080"));
     }
 
