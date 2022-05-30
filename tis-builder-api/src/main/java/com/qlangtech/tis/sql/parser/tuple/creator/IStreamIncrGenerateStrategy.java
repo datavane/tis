@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.sql.parser.tuple.creator;
 
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 
 import java.util.List;
@@ -59,6 +60,15 @@ public interface IStreamIncrGenerateStrategy {
     interface IStreamTemplateData {
 
         String KEY_STREAM_SOURCE_TABLE_SUFFIX = "_source";
+
+        /**
+         * 该标签可以在生成的类上打印标签，该标签内容可以打印的日志输出内容之中用于比对 该份执行代码是否就是TIS中生成的那份脚本内容
+         *
+         * @return
+         */
+        public default String getCurrentTimestamp() {
+            return IParamContext.getCurrentMillisecTimeStamp();
+        }
 
         /**
          * TIS App 应用名称

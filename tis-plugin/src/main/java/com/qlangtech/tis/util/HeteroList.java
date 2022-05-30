@@ -28,10 +28,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.lang.StringUtils;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -119,15 +116,19 @@ public class HeteroList<T extends Describable<T>> {
         Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
         DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors);
 
-        try {
-            if (this.getItems().size() == 1) {
-                GroovyShellEvaluate.pluginThreadLocal.set(this.getItems().get(0));
+
+        if (this.getItems().size() == 1) {
+            for (T plugin : this.getItems()) {
+                Map<Class<? extends Descriptor>, Describable> pluginThreadLocal
+                        = GroovyShellEvaluate.pluginThreadLocal.get();
+                pluginThreadLocal.put(plugin.getDescriptor().getClass(), plugin);
+                break;
             }
-            o.put("descriptors", desc2Json.getDescriptorsJSON( subFormFilter));
-            o.put("items", createItemsJSONArray(this.getItems(), subFormFilter));
-        } finally {
-            GroovyShellEvaluate.pluginThreadLocal.remove();
+            // GroovyShellEvaluate.pluginThreadLocal.set(this.getItems().get(0));
         }
+        o.put("descriptors", desc2Json.getDescriptorsJSON(subFormFilter));
+        o.put("items", createItemsJSONArray(this.getItems(), subFormFilter));
+
         return o;
     }
 

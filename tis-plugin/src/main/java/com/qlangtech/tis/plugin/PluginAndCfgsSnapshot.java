@@ -336,7 +336,8 @@ public class PluginAndCfgsSnapshot {
         for (XStream2.PluginMeta update : result) {
             update.copyFromRemote(Collections.emptyList(), true, true);
         }
-        PluginManager pluginManager = TIS.get().getPluginManager();
+        TIS tis = TIS.get();
+        PluginManager pluginManager = tis.getPluginManager();
         Set<XStream2.PluginMeta> loaded = Sets.newHashSet();
         PluginWrapperList batch = new PluginWrapperList();
         for (XStream2.PluginMeta update : result) {
@@ -345,10 +346,12 @@ public class PluginAndCfgsSnapshot {
 
         if (batch.size() > 0) {
             pluginManager.start(batch);
+            updateTpisLogger.append("\ndynamic reload plugins:" + batch.getBatchNames());
         }
         Thread.sleep(3000l);
         if (cfgChanged) {
             TIS.cleanPluginStore();
+            tis.cleanExtensionCache();
         }
 
         logger.info(updateTpisLogger.append("\n------------------------------").toString());
@@ -395,6 +398,10 @@ public class PluginAndCfgsSnapshot {
 
         public int size() {
             return batch.size();
+        }
+
+        public String getBatchNames() {
+            return this.batch.stream().map(p -> p.getShortName()).collect(Collectors.joining(","));
         }
 
         public boolean contains(PluginWrapper depender) {

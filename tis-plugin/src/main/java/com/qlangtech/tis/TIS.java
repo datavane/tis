@@ -255,14 +255,14 @@ public class TIS {
         ExtensionComponentSet delta = ExtensionComponentSet.union(fragments).filtered();
 
         // if we find a new ExtensionFinder, we need it to list up all the extension points as well
-        List<ExtensionComponent<ExtensionFinder>> newFinders = new ArrayList<>(delta.find(ExtensionFinder.class));
-        while (!newFinders.isEmpty()) {
-            ExtensionFinder f = newFinders.remove(newFinders.size() - 1).getInstance();
-
-            ExtensionComponentSet ecs = ExtensionComponentSet.allOf(f).filtered();
-            newFinders.addAll(ecs.find(ExtensionFinder.class));
-            delta = ExtensionComponentSet.union(delta, ecs);
-        }
+//        List<ExtensionComponent<ExtensionFinder>> newFinders = new ArrayList<>(delta.find(ExtensionFinder.class));
+//        while (!newFinders.isEmpty()) {
+//            ExtensionFinder f = newFinders.remove(newFinders.size() - 1).getInstance();
+//
+//            ExtensionComponentSet ecs = ExtensionComponentSet.allOf(f).filtered();
+//            newFinders.addAll(ecs.find(ExtensionFinder.class));
+//            delta = ExtensionComponentSet.union(delta, ecs);
+//        }
 
         for (ExtensionList el : extensionLists.values()) {
             el.refresh(delta);
@@ -372,12 +372,16 @@ public class TIS {
 
     public static void clean() {
         if (tis != null) {
-            tis.extensionLists.clear();
-            tis.descriptorLists.clear();
+            tis.cleanExtensionCache();
             tis = null;
         }
         cleanPluginStore();
         initialized = false;
+    }
+
+    public void cleanExtensionCache(){
+        this.extensionLists.clear();
+        this.descriptorLists.clear();
     }
 
     public static void cleanPluginStore() {

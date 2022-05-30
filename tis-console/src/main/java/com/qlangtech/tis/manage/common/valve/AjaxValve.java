@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.IAjaxResult;
 import com.qlangtech.tis.manage.common.MockContext;
@@ -76,6 +77,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       this.writeExecuteResult(request, response);
     } finally {
       SuFormProperties.subFormGetterProcessThreadLocal.remove();
+      GroovyShellEvaluate.pluginThreadLocal.remove();
     }
   }
 

@@ -649,9 +649,13 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
     }
 
     public final File getIncrScriptMainFile() {
-        return new File(this.incrScriptDir, (UnderlineUtils.getJavaName(this.collectionName)) + "Listener.scala");
+        return new File(this.incrScriptDir, getIncrScriptClassName(this.collectionName) + ".scala");
     }
 
+
+    public static String getIncrScriptClassName(String appname) {
+        return (UnderlineUtils.getJavaName(appname)) + "Listener";
+    }
 
     private static final VelocityEngine velocityEngine;
 

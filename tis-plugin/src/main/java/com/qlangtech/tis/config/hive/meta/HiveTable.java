@@ -22,8 +22,14 @@ package com.qlangtech.tis.config.hive.meta;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-03-12 13:19
  **/
-public class HiveTable {
+public abstract class HiveTable {
     private final String name;
+
+    /**
+     * example: hdfs://namenode/user/admin/default/2022 0530 1539 50/instancedetail/hudi
+     * @return
+     */
+    public abstract String getStorageLocation();
 
     public HiveTable(String name) {
         this.name = name;

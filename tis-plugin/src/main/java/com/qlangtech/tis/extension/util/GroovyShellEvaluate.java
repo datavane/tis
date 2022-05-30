@@ -28,7 +28,9 @@ import com.qlangtech.tis.util.UploadPluginMeta;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -48,7 +50,13 @@ public class GroovyShellEvaluate {
 
     public final static ThreadLocal<Descriptor> descriptorThreadLocal = new ThreadLocal<>();
 
-    public final static ThreadLocal<Describable> pluginThreadLocal = new ThreadLocal<>();
+    public final static ThreadLocal<Map<Class<? extends Descriptor>, Describable>> pluginThreadLocal
+            = new ThreadLocal<Map<Class<? extends Descriptor>, Describable>>() {
+        @Override
+        protected Map<Class<? extends Descriptor>, Describable> initialValue() {
+            return new ConcurrentHashMap<>();
+        }
+    };
 
     final static GroovyShell shell = new GroovyShell(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
         @Override
