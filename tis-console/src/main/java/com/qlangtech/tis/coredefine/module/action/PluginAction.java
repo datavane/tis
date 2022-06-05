@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
+import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.*;
@@ -51,6 +52,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
+import org.apache.struts2.dispatcher.HttpParameters;
+import org.apache.struts2.dispatcher.Parameter;
+import org.apache.struts2.dispatcher.multipart.UploadedFile;
+import org.apache.struts2.interceptor.FileUploadInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +102,32 @@ public class PluginAction extends BasicModule {
     } catch (Exception e) {
       logger.warn("apply clean " + targetResource + " cache faild " + e.getMessage());
     }
+  }
+
+  /**
+   * 为表单中提交临时文件
+   *
+   * @param context
+   * @see FileUploadInterceptor
+   */
+  public void doUploadFile(Context context) {
+    final String inputName = "file";
+    final String fileNameName = inputName + "FileName";
+    ActionContext ac = ActionContext.getContext();
+    HttpParameters parameters = ac.getParameters();
+
+//    newParams.put(inputName, new Parameter.File(inputName, acceptedFiles.toArray(new UploadedFile[acceptedFiles.size()])));
+//    newParams.put(contentTypeName, new Parameter.File(contentTypeName, acceptedContentTypes.toArray(new String[acceptedContentTypes.size()])));
+//    newParams.put(fileNameName, new Parameter.File(fileNameName, acceptedFileNames.toArray(new String[acceptedFileNames.size()])));
+
+    Parameter.File file = (Parameter.File) parameters.get(inputName);
+    UploadedFile[] uploades = (UploadedFile[]) file.getObject();
+    for (UploadedFile f : uploades) {
+      this.setBizResult(context, Collections.singletonMap(inputName, f.getAbsolutePath()));
+      return;
+    }
+
+    throw new IllegalStateException(" have not receive any upload file,inputName:" + inputName);
   }
 
   /**
@@ -169,17 +200,17 @@ public class PluginAction extends BasicModule {
 
     PluginExtraProps.Props props = pluginFormPropertyTypes.accept(
       new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
-      @Override
-      public PluginExtraProps.Props visit(SuFormProperties props) {
-        PropertyType propertyType = props.fieldsType.get(descField.field);
-        return propertyType.extraProp;
-      }
+        @Override
+        public PluginExtraProps.Props visit(SuFormProperties props) {
+          PropertyType propertyType = props.fieldsType.get(descField.field);
+          return propertyType.extraProp;
+        }
 
-      @Override
-      public PluginExtraProps.Props visit(RootFormProperties props) {
-        return descField.getFieldPropType().extraProp;
-      }
-    });
+        @Override
+        public PluginExtraProps.Props visit(RootFormProperties props) {
+          return descField.getFieldPropType().extraProp;
+        }
+      });
 
 
     if (!props.isAsynHelp()) {

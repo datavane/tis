@@ -299,6 +299,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+
         IPropertyType.SubFormFilter filter = null;
         SuFormProperties subPluginFormPropertyTypes;
         if (subFormFilter.isPresent()) {
@@ -836,7 +837,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
 
         public PostFormVals getItemForm() {
-            return itemForm;
+            return this.itemForm;
+        }
+
+        public <T extends Describable> T newInstance(IControlMsgHandler msgHandler) {
+            if (this.descriptor == null) {
+                throw new IllegalStateException("descriptor can not be null");
+            }
+            Describable describable = this.itemForm.newInstance(this.descriptor, msgHandler);
+            return (T) describable;
         }
 
         public boolean isValid() {

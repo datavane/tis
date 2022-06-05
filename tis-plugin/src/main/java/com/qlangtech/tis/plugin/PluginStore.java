@@ -30,7 +30,6 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.XStream2;
-import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -69,7 +68,6 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         this.pluginClass = pluginClass;
         this.file = file;
         this.pluginCreateCallback = pluginCreateCallback;
-
     }
 
 
@@ -147,11 +145,15 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         if (this.getPlugins().size() > 1) {
             throw new IllegalStateException("plugin size can not much than 1");
         }
-        Optional<T> first = this.getPlugins().stream().findFirst();
-        if (!first.isPresent()) {
-            return null;
+        for (T plugin : this.getPlugins()) {
+            return plugin;
         }
-        return first.get();
+//        Optional<T> first = this.getPlugins().stream().findFirst();
+//        if (!first.isPresent()) {
+//            return null;
+//        }
+//        return first.get();
+        throw new IllegalStateException(" have not find any plugin,plugin size:" + this.getPlugins().size());
     }
 
     /**
@@ -320,7 +322,9 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         if (this.loaded) {
             return;
         }
-        MapBackedDataHolder dataHolder = new MapBackedDataHolder();
+        // MapBackedDataHolder dataHolder = new MapBackedDataHolder();
+
+        XmlFile.DefaultDataHolder dataHolder = new XmlFile.DefaultDataHolder(Collections.emptySet(), this.file);
         try {
             // dataX 或者flink 启动过程中应该在启动的时候已经将资源文件同步了，这里就不需要再同步了
             //ComponentMeta componentMeta = new ComponentMeta(this);

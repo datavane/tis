@@ -24,7 +24,6 @@ import com.qlangtech.tis.utils.MD5Utils;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.converters.DataHolder;
-import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -111,7 +110,7 @@ public final class XmlFile {
      * @return The unmarshalled object. Usually the same as <tt>o</tt>, but would be different
      * if the XML representation is completely new.
      */
-    public Object unmarshal(Object o, MapBackedDataHolder dataHolder) throws IOException {
+    public Object unmarshal(Object o, DataHolder dataHolder) throws IOException {
         InputStream in = new BufferedInputStream(new FileInputStream(file));
         try {
             // TODO: expose XStream the driver from XStream
@@ -142,7 +141,7 @@ public final class XmlFile {
         AtomicFileWriter w = new AtomicFileWriter(file);
         try {
             w.write("<?xml version='1.0' encoding='UTF-8'?>\n");
-            DefaultDataHolder dataHolder = new DefaultDataHolder(pluginsMeta);
+            DefaultDataHolder dataHolder = new DefaultDataHolder(pluginsMeta, this);
             HierarchicalStreamWriter writer = xs.createHierarchicalStreamWriter(w);
             try {
                 xs.marshal(o, writer, dataHolder);
@@ -159,20 +158,24 @@ public final class XmlFile {
         }
     }
 
-    private static class DefaultDataHolder implements DataHolder {
+    public static class DefaultDataHolder implements DataHolder {
 
         // Map<Object, Object> map = new HashMap<>();
         private final Set<XStream2.PluginMeta> pluginsMeta;
+        private final XmlFile xmlFile;
 
-        public DefaultDataHolder(Set<XStream2.PluginMeta> pluginsMeta) {
+        public DefaultDataHolder(Set<XStream2.PluginMeta> pluginsMeta, XmlFile xmlFile) {
             this.pluginsMeta = pluginsMeta;
+            this.xmlFile = xmlFile;
         }
 
         @Override
         public Object get(Object key) {
-            // return map.get(key);
             if (key == XStream2.PluginMeta.class) {
                 return pluginsMeta;
+            }
+            if (key == XmlFile.class) {
+                return xmlFile;
             }
             return null;
         }

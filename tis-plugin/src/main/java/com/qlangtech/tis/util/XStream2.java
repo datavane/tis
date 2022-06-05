@@ -23,17 +23,23 @@ import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginStrategy;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.plugin.annotation.ITmpFileStore;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.DataHolder;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.converters.reflection.AbstractReflectionConverter;
 import com.thoughtworks.xstream.converters.reflection.ReflectionConverter;
 import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
 import com.thoughtworks.xstream.core.JVM;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.xml.XppDriver;
+import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.security.AnyTypePermission;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -82,6 +88,7 @@ public class XStream2 extends XStream {
     protected void setupConverters() {
         reflectionConverter = new RobustReflectionConverter(getMapper(), createReflectionProvider(), new PluginClassOwnership());
         this.registerConverter(reflectionConverter, PRIORITY_VERY_LOW);
+        this.registerConverter(new TempFileConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
         super.setupConverters();
     }
 
@@ -307,5 +314,47 @@ public class XStream2 extends XStream {
 //                throw new RuntimeException(e);
 //            }
 //        }
+    }
+
+    /**
+     * TIS 前端提交的临时文件转化，将临时文件保存到plugin的save目录中去
+     */
+    private static class TempFileConvert extends AbstractReflectionConverter {
+
+        public TempFileConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
+            super(mapper, reflectionProvider);
+        }
+
+        @Override
+        public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+            ITmpFileStore tmpFileStore = (ITmpFileStore) source;
+            XmlFile xmlFile = (XmlFile) context.get(XmlFile.class);
+            Objects.requireNonNull(xmlFile, "xmlFile can not be null");
+            tmpFileStore.save(xmlFile.getFile().getParentFile());
+
+            doMarshal(source, writer, context);
+        }
+
+//        @Override
+//        public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+//
+//            this.doUnmarshal(reader,context);
+//            return null;
+//        }
+
+
+        @Override
+        public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+            ITmpFileStore tmpFileStore = (ITmpFileStore) super.doUnmarshal(result, reader, context);
+            XmlFile xmlFile = (XmlFile) context.get(XmlFile.class);
+            Objects.requireNonNull(xmlFile, "xmlFile can not be null");
+            tmpFileStore.setTmpeFile((new ITmpFileStore.TmpFile(new File(xmlFile.getFile().getParentFile(), tmpFileStore.getStoreFileName()))));
+            return tmpFileStore;
+        }
+
+        @Override
+        public boolean canConvert(Class type) {
+            return ITmpFileStore.class.isAssignableFrom(type);
+        }
     }
 }

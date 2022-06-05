@@ -51,7 +51,7 @@ public class UploadFileServlet extends HttpServlet {
 
     static {
         DiskFileItemFactory itemFactory = new DiskFileItemFactory();
-        itemFactory.setRepository(new File("/home/admin/uploadtmpDir"));
+        itemFactory.setRepository(new File("/tmp"));
         fileUpload = new ServletFileUpload(itemFactory);
     }
 

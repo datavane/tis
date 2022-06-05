@@ -16,29 +16,21 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.config.hive;
-
-import com.qlangtech.tis.config.hive.meta.IHiveMetaStore;
-import com.qlangtech.tis.plugin.IdentityName;
-
-import java.util.Optional;
+package com.qlangtech.tis.config.kerberos;
 
 /**
+ * 为HDFS，Hive 提供Kerberos 认证
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-05-28 10:49
+ * @create: 2022-06-01 09:54
  **/
-public interface IHiveConnGetter extends IdentityName {
-    String PLUGIN_NAME = "HiveConn";
+public interface IKerberos {
+    static final String IDENTITY = "kerberos";
 
-    String HIVE2_JDBC_SCHEMA = "jdbc:hive2://";
-
-    public String getDbName();
-
-    public Optional<HiveUserToken> getUserToken();
-
-    public String getJdbcUrl();
-
-    public String getMetaStoreUrls();
-
-    public IHiveMetaStore createMetaStoreClient();
+    /**
+     * must be type of: org.apache.hadoop.hive.conf.Configuration
+     *
+     * @param config
+     */
+    public <Configuration> void setConfiguration(Configuration config);
 }

@@ -16,29 +16,31 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.config.hive;
+package com.qlangtech.tis.config.hive.impl;
 
-import com.qlangtech.tis.config.hive.meta.IHiveMetaStore;
-import com.qlangtech.tis.plugin.IdentityName;
-
-import java.util.Optional;
+import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.config.hive.HiveUserToken;
+import com.qlangtech.tis.config.hive.IHiveUserTokenVisitor;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.TISExtension;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-05-28 10:49
+ * @create: 2022-05-03 09:33
  **/
-public interface IHiveConnGetter extends IdentityName {
-    String PLUGIN_NAME = "HiveConn";
+@Public
+public class OffHiveUserToken extends HiveUserToken {
 
-    String HIVE2_JDBC_SCHEMA = "jdbc:hive2://";
+    @Override
+    public void accept(IHiveUserTokenVisitor visitor) {
+        visitor.visit(this);
+    }
 
-    public String getDbName();
-
-    public Optional<HiveUserToken> getUserToken();
-
-    public String getJdbcUrl();
-
-    public String getMetaStoreUrls();
-
-    public IHiveMetaStore createMetaStoreClient();
+    @TISExtension
+    public static class DefaultDesc extends Descriptor<HiveUserToken> {
+        @Override
+        public String getDisplayName() {
+            return SWITCH_OFF;
+        }
+    }
 }
