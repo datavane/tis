@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.extension.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
@@ -26,6 +27,7 @@ import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import org.apache.commons.beanutils.ConvertUtilsBean;
+import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
 
@@ -41,6 +43,21 @@ import java.util.List;
  */
 public class PropertyType implements IPropertyType {
     private static final ConvertUtilsBean convertUtils = new ConvertUtilsBean();
+
+    static {
+        convertUtils.register(new Converter() {
+            @Override
+            public <T> T convert(Class<T> type, Object value) {
+                if (value instanceof String) {
+                    JSONArray array = JSONArray.parseArray(String.valueOf(value));
+                    List<String> convert = array.toJavaList(String.class);
+                    return (T) convert;
+                } else {
+                    return (T) value;
+                }
+            }
+        }, List.class);
+    }
 
     public final Class clazz;
 

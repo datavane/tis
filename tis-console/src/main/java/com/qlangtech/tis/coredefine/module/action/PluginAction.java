@@ -123,7 +123,10 @@ public class PluginAction extends BasicModule {
     Parameter.File file = (Parameter.File) parameters.get(inputName);
     UploadedFile[] uploades = (UploadedFile[]) file.getObject();
     for (UploadedFile f : uploades) {
-      this.setBizResult(context, Collections.singletonMap(inputName, f.getAbsolutePath()));
+      java.io.File tmpFile = new java.io.File(f.getAbsolutePath());
+      java.io.File renameTo = new java.io.File(tmpFile.getParentFile(), f.getName() + "_tmp");
+      tmpFile.renameTo(renameTo);
+      this.setBizResult(context, Collections.singletonMap(inputName, renameTo.getAbsolutePath()));
       return;
     }
 
