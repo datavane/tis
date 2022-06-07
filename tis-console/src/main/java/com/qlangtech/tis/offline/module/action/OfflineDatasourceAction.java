@@ -1094,7 +1094,7 @@ public class OfflineDatasourceAction extends BasicModule {
           allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
           // 需要将desc中的取option列表解析一下（JsonUtil.UnCacheString）
           tabDesc.put(tab2cols.getKey(), JSON.parseObject(
-            desc2Json.getDescriptorsJSON( pluginMeta.getSubFormFilter()).toJSONString()));
+            desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()).toJSONString()));
         } finally {
           SuFormProperties.subFormGetterProcessThreadLocal.remove();
         }
@@ -1169,11 +1169,11 @@ public class OfflineDatasourceAction extends BasicModule {
           }
           if (pp.isInputRequired()) {
 
-            if (StringUtils.isNotEmpty(pp.dftVal())) {
+            if (pp.dftVal() != null) {
               if (pp.isDescribable()) {
                 List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
                 for (Descriptor desc : descriptors) {
-                  if (StringUtils.equals(pp.dftVal(), desc.getDisplayName())) {
+                  if (StringUtils.equals(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
 
 //                    desc.getPluginFormPropertyTypes();
                     pp.setVal(subForm, desc.newInstance(null, Collections.emptyMap(), Optional.empty()).getInstance());

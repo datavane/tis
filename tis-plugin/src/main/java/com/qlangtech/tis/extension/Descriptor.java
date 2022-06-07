@@ -460,7 +460,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 ptype = new PropertyType(f, formField);
                                 if (extraProps.isPresent()
                                         && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
-                                    String dftVal = fieldExtraProps.getDftVal();
+                                    Object dftVal = fieldExtraProps.getDftVal();
                                     String help = fieldExtraProps.getHelpContent();
 
                                     if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
@@ -473,13 +473,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                         props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellEvaluate.eval(help));
                                     }
 
-                                    if (StringUtils.isNotEmpty(dftVal) && StringUtils.startsWith(dftVal, IMessageHandler.TSEARCH_PACKAGE)) {
+                                    if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal), IMessageHandler.TSEARCH_PACKAGE)) {
 
 //                                        UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
 //                                        boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
 //
 //                                        Callable<String> valGetter = () -> (String) GroovyShellEvaluate.scriptEval(dftVal);
-                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP, GroovyShellEvaluate.scriptEval(dftVal));
+                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP, GroovyShellEvaluate.scriptEval(String.valueOf(dftVal)));
                                     }
 
                                     if (descriptor.isPresent()
@@ -747,11 +747,26 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 } else {
                     // single value
                     boolean containVal = valJ.containsKey(KEY_primaryVal);
+
                     if (!containVal && attrDesc.isInputRequired()) {
                         addFieldRequiredError(msgHandler, context, attr);
                         valid = false;
                         continue;
                     }
+
+                    if (containVal) {
+                        PropertyType.EnumFieldMode m = null;
+                        // 如果是多选列组件
+                        if ((m = attrDesc.getEnumFieldMode()) != null && m == PropertyType.EnumFieldMode.MULTIPLE) {
+                            JSONArray multiSelected = valJ.getJSONArray(KEY_primaryVal);
+                            if (multiSelected.size() < 1) {
+                                addFieldRequiredError(msgHandler, context, attr);
+                                valid = false;
+                                continue;
+                            }
+                        }
+                    }
+
                     if (containVal) {
                         attrVal = valJ.getString(KEY_primaryVal);
                         postFormVals.fieldVals.put(attr, attrVal);
@@ -1005,7 +1020,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         JSONObject valJ;
         String impl;
         Descriptor descriptor;
-        String attrVal;
+        Object attrVal;
         for (Map.Entry<String, PropertyType> entry : propertyTypes.getKVTuples()) {
             attr = entry.getKey();
             attrDesc = entry.getValue();
@@ -1043,7 +1058,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         throw new IllegalStateException("prop:" + attr + " can not be empty");
                     }
                     if (containVal) {
-                        attrVal = valJ.getString(KEY_primaryVal);
+                        attrVal = valJ.get(KEY_primaryVal);
                         attrDesc.setVal(describable, attrVal);
                         if (valJ.containsKey(KEY_OPTIONS)) {
                             JSONArray options = valJ.getJSONArray(KEY_OPTIONS);
@@ -1052,7 +1067,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 opt = options.getJSONObject(i);
                                 try {
                                     // 将options中的选中的插件来源记录下来，后续在集群中各组件中传输插件可以用
-                                    if (StringUtils.equals(attrVal, opt.getString("name"))) {
+                                    if (StringUtils.equals((String) attrVal, opt.getString("name"))) {
                                         Class<?> implClass = TIS.get().pluginManager.uberClassLoader.loadClass(opt.getString("impl"));
                                         PluginWrapper pluginWrapper = TIS.get().pluginManager.whichPlugin(implClass);
                                         XStream2.PluginMeta pluginMeta = pluginWrapper.getDesc();

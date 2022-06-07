@@ -177,7 +177,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
 
             dataSource.setDriverClassName("com.mysql.jdbc.Driver");
             dataSource.setUrl("jdbc:mysql://" + dbCfg.url + ":" + dbCfg.port + (useDBName ? ("/" + dbCfg.dbname) : StringUtils.EMPTY)
-                    + "?useUnicode=yes&amp;characterEncoding=utf8");
+                    + "?useSSL=false&useUnicode=yes&characterEncoding=utf8");
             if (StringUtils.isBlank(dbCfg.dbname)) {
                 throw new IllegalStateException("dbCfg.dbname in config.properites can not be null");
             }

@@ -288,9 +288,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
 
         @JSONField(serialize = false)
-        public String getDftVal() {
+        public Object getDftVal() {
             Object o = props.get(KEY_DFTVAL_PROP);
-            return o == null ? null : String.valueOf(o);
+            return o == null ? null : o;
         }
 
         /**

@@ -19,13 +19,16 @@ package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang.StringUtils;
@@ -48,8 +51,10 @@ public class PropertyType implements IPropertyType {
         convertUtils.register(new Converter() {
             @Override
             public <T> T convert(Class<T> type, Object value) {
-                if (value instanceof String) {
-                    JSONArray array = JSONArray.parseArray(String.valueOf(value));
+                if (value instanceof JsonUtil.UnCacheString) {
+                    return (T) ((JsonUtil.UnCacheString) value).getValue();
+                } else if (value instanceof JSONArray) {
+                    JSONArray array = (JSONArray) value;
                     List<String> convert = array.toJavaList(String.class);
                     return (T) convert;
                 } else {
@@ -103,11 +108,37 @@ public class PropertyType implements IPropertyType {
         return this.extraProp.getProps();
     }
 
+    @JSONField(serialize = false)
+    public EnumFieldMode getEnumFieldMode() {
+        if (this.formField.type() != FormFieldType.ENUM) {
+            return null;
+        }
+        return EnumFieldMode.parse(this.extraProp != null ? getExtraProps().getString("enumMode") : null);
+    }
+
+    public enum EnumFieldMode {
+        MULTIPLE("multiple"), DEFAULT("default");
+        public final String val;
+
+        public static EnumFieldMode parse(String val) {
+            for (EnumFieldMode mode : EnumFieldMode.values()) {
+                if (mode.val.equals(val)) {
+                    return mode;
+                }
+            }
+            return EnumFieldMode.DEFAULT;
+        }
+
+        private EnumFieldMode(String val) {
+            this.val = val;
+        }
+    }
+
     public void setExtraProp(PluginExtraProps.Props extraProp) {
         this.extraProp = extraProp;
     }
 
-    public String dftVal() {
+    public Object dftVal() {
         return this.extraProp.getDftVal();
     }
 
