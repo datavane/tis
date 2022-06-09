@@ -146,6 +146,10 @@ public class PropertyType implements IPropertyType {
         return formField.ordinal();
     }
 
+    public boolean advance() {
+        return formField.advance();
+    }
+
     public int typeIdentity() {
         return formField.type().getIdentity();
     }

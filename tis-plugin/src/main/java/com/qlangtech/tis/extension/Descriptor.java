@@ -1268,7 +1268,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         this.addFieldDescriptor(fieldName, dftVal, helperContent, Optional.empty());
     }
 
-    public void addFieldDescriptor(String fieldName, Object dftVal
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal
             , String helperContent, Optional<List<Option>> enums) {
         JSONObject c = new JSONObject();
         c.put(PluginExtraProps.KEY_DFTVAL_PROP, dftVal);
@@ -1278,6 +1278,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             c.put(KEY_ENUM_PROP, Option.toJson(enums.get()));
         }
         this.fieldExtraDescs.put(fieldName, props);
+        return props;
     }
 
 

@@ -21,6 +21,7 @@ import com.qlangtech.tis.datax.impl.TestDataxReader;
 import com.qlangtech.tis.datax.impl.TestTableAlias;
 import com.qlangtech.tis.db.parser.TestDBConfigParser;
 import com.qlangtech.tis.db.parser.TestScannerPatterns;
+import com.qlangtech.tis.extension.TestContainAdvanceFieldPlugin;
 import com.qlangtech.tis.extension.TestDescriptor;
 import com.qlangtech.tis.extension.impl.TestSuFormProperties;
 import com.qlangtech.tis.extension.impl.TestXmlFile;
@@ -68,6 +69,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestAttrValMap.class);
         suite.addTestSuite(TestDataxReader.class);
         suite.addTestSuite(TestPluginAndCfgsSnapshot.class);
+        suite.addTestSuite(TestContainAdvanceFieldPlugin.class);
 
         return suite;
     }

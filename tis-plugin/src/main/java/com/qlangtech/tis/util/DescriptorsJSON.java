@@ -83,11 +83,11 @@ public class DescriptorsJSON<T extends Describable<T>> {
     }
 
     public JSONObject getDescriptorsJSON() {
-        return getDescriptorsJSON( Optional.empty());
+        return getDescriptorsJSON(Optional.empty());
     }
 
 
-    public JSONObject getDescriptorsJSON( Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    public JSONObject getDescriptorsJSON(Optional<IPropertyType.SubFormFilter> subFormFilter) {
         JSONArray attrs;
         String key;
         PropertyType val;
@@ -102,7 +102,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
             pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
 
             JSONObject des = new JSONObject();
-           // des.put("formLevel", formLevel);
+            // des.put("formLevel", formLevel);
             Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
                 @Override
                 public Descriptor visit(RootFormProperties props) {
@@ -144,6 +144,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     = Lists.newArrayList(pluginFormPropertyTypes.getKVTuples());
 
             entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
+            boolean containAdvanceField = false;
             for (Map.Entry<String, PropertyType> pp : entries) {
                 key = pp.getKey();
                 val = pp.getValue();
@@ -156,7 +157,11 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 attrVal.put("type", val.typeIdentity());
                 attrVal.put("required", val.isInputRequired());
                 attrVal.put("ord", val.ordinal());
-
+                // 是否是高级组
+                if (val.advance()) {
+                    containAdvanceField = true;
+                    attrVal.put("advance", true);
+                }
                 extraProps = val.getExtraProps();
                 if (extraProps != null) {
                     // 额外属性
@@ -175,6 +180,8 @@ public class DescriptorsJSON<T extends Describable<T>> {
             }
             // 对象拥有的属性
             des.put("attrs", attrs);
+            // 包含高级字段
+            des.put("containAdvance", containAdvanceField);
             // processor.process(attrs.keySet(), d);
             descriptors.put(desc.getId(), des);
         }
