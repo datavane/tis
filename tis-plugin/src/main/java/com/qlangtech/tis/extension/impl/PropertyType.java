@@ -78,7 +78,7 @@ public class PropertyType implements IPropertyType {
 
     private Boolean inputRequired;
 
-    public PluginExtraProps.Props extraProp;
+    public PluginExtraProps.Props extraProp ;
 
     PropertyType(Field f, Class clazz, Type type, String displayName, FormField formField) {
         this.f = f;
@@ -139,6 +139,9 @@ public class PropertyType implements IPropertyType {
     }
 
     public Object dftVal() {
+        if (this.extraProp == null) {
+            return null;
+        }
         return this.extraProp.getDftVal();
     }
 

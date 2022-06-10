@@ -21,6 +21,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
@@ -1144,29 +1145,56 @@ public class OfflineDatasourceAction extends BasicModule {
     PluginFormProperties pluginFormPropertyTypes, Map.Entry<String, List<ColumnMetaData>> tab2cols) {
     return pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
 
+
       @Override
       public ISelectedTab visit(SuFormProperties props) {
+        try {
+          ISelectedTab subForm = props.newSubDetailed();
 
-//            try {
-//            } catch (Exception e) {
-//              throw new RuntimeException("create subform,table:" + tab2cols.getKey()
-//                + ",cols size:" + tab2cols.getValue().size(), e);
-//            }
+          Set<Map.Entry<String, PropertyType>> kvs = props.getKVTuples();
+          PropertyType pp = null;
 
-        ISelectedTab subForm = props.newSubDetailed();
+          final Set<String> skipProps = Sets.newHashSet();
+          ppDftValGetter:
+          for (Map.Entry<String, PropertyType> pentry : kvs) {
+            pp = pentry.getValue();
+            if (pp.isIdentity()) {
+              pp.setVal(subForm, tab2cols.getKey());
+              skipProps.add(pentry.getKey());
+              continue;
+            }
+            if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+              skipProps.add(pentry.getKey());
+              pp.setVal(subForm
+                , tab2cols.getValue().stream().map((c) -> c.getName()).collect(Collectors.toList()));
+              continue ppDftValGetter;
+            }
+          }
+
+          return createPluginByDefaultVals(new StringBuffer(props.instClazz.getName()), skipProps, kvs, subForm);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+
+      }
+
+      private <T> T createPluginByDefaultVals(StringBuffer propPath, final Set<String> skipProps, Set<Map.Entry<String, PropertyType>> kvTuples, T plugin) throws Exception {
         PropertyType pp = null;
         ppDftValGetter:
-        for (Map.Entry<String, PropertyType> pentry : props.getKVTuples()) {
+        for (Map.Entry<String, PropertyType> pentry : kvTuples) {
           pp = pentry.getValue();
-          if (pp.isIdentity()) {
-            pp.setVal(subForm, tab2cols.getKey());
+          if (skipProps.contains(pentry.getKey())) {
             continue;
           }
-          if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-            pp.setVal(subForm
-              , tab2cols.getValue().stream().map((c) -> c.getName()).collect(Collectors.toList()));
-            continue ppDftValGetter;
-          }
+//          if (pp.isIdentity()) {
+//            pp.setVal(subForm, tab2cols.getKey());
+//            continue;
+//          }
+//          if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+//            pp.setVal(subForm
+//              , tab2cols.getValue().stream().map((c) -> c.getName()).collect(Collectors.toList()));
+//            continue ppDftValGetter;
+//          }
           if (pp.isInputRequired()) {
 
             if (pp.dftVal() != null) {
@@ -1174,14 +1202,14 @@ public class OfflineDatasourceAction extends BasicModule {
                 List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
                 for (Descriptor desc : descriptors) {
                   if (StringUtils.equals(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
-
-//                    desc.getPluginFormPropertyTypes();
-                    pp.setVal(subForm, desc.newInstance(null, Collections.emptyMap(), Optional.empty()).getInstance());
+                    pp.setVal(plugin
+                      , createPluginByDefaultVals((new StringBuffer(propPath)).append("->").append(pentry.getKey()).append(":").append(pp.clazz.getName())
+                        , Sets.newHashSet(), desc.getPluginFormPropertyTypes().getKVTuples(), desc.clazz.newInstance()));
                     continue ppDftValGetter;
                   }
                 }
               } else {
-                pp.setVal(subForm, pp.dftVal());
+                pp.setVal(plugin, pp.dftVal());
                 continue ppDftValGetter;
               }
 
@@ -1202,17 +1230,16 @@ public class OfflineDatasourceAction extends BasicModule {
                 }
                 for (int i = 0; i < enums.size(); i++) {
                   com.alibaba.fastjson.JSONObject opt = enums.getJSONObject(i);
-                  pp.setVal(subForm, opt.get(Option.KEY_VALUE));
+                  pp.setVal(plugin, opt.get(Option.KEY_VALUE));
                   continue ppDftValGetter;
                 }
               }
             }
             throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey()
-              + " creating,prop name:'" + pentry.getKey() + "',subform class:" + subForm.getClass().getName());
+              + " creating:" + propPath + ",prop name:'" + pentry.getKey() + "',subform class:" + plugin.getClass().getName());
           }
         }
-        return subForm;
-
+        return (T) plugin;
       }
     });
   }

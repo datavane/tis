@@ -1025,6 +1025,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             attr = entry.getKey();
             attrDesc = entry.getValue();
             valJ = keyValMap.get(attr);
+           // attrDesc.getExtraProps(PluginExtraProps.KEY_DISABLE);
             if (valJ == null && attrDesc.isInputRequired()) {
                 throw new IllegalStateException("prop:" + attr + " can not be empty");
             }
