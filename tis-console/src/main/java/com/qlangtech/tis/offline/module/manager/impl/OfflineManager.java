@@ -466,8 +466,8 @@ public class OfflineManager {
     DataSourceFactoryPluginStore facadeStore
       = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.FACADE));
 
-    if (facadeStore.getPlugin() != null) {
-      dbSuit.setFacade(facadeStore.getPlugin());
+    if ((dsPlugin = facadeStore.getPlugin()) != null) {
+      dbSuit.setFacade(dsPlugin);
     }
     return dbSuit;
   }

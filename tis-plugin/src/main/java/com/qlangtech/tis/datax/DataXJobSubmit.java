@@ -28,6 +28,9 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.tis.hadoop.rpc.RpcServiceReference;
@@ -49,12 +52,15 @@ public abstract class DataXJobSubmit {
 
     public static Callable<DataXJobSubmit> mockGetter;
 
+    @FormField(ordinal = 0, type = FormFieldType.INT_NUMBER, validate = {Validator.require})
+    public Integer parallelism;
+
     public static DataXJobSubmit.InstanceType getDataXTriggerType() {
         if (TisAppLaunch.isTestMock()) {
             return InstanceType.EMBEDDED;
         }
         DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
-        boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();//.isDataXWorkerServiceOnDuty();
+        boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();
         return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
     }
 

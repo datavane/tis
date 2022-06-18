@@ -148,12 +148,13 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         for (T plugin : this.getPlugins()) {
             return plugin;
         }
+        return null;
 //        Optional<T> first = this.getPlugins().stream().findFirst();
 //        if (!first.isPresent()) {
 //            return null;
 //        }
 //        return first.get();
-        throw new IllegalStateException(" have not find any plugin,plugin size:" + this.getPlugins().size());
+        // throw new IllegalStateException(" have not find any plugin,plugin size:" + this.getPlugins().size());
     }
 
     /**
@@ -182,7 +183,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
 
     @Override
-    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {
+    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
+            , List<Descriptor.ParseDescribable<T>> dlist) {
         // as almost the process is process file shall not care of process model whether update or add,bu some times have
         // extra process like db process ,shall pass a bool flag form client
         return this.setPlugins(pluginContext, context, dlist, false);
@@ -226,7 +228,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
      * @return 文件更新之前和更新之后是否有变化
      */
     @Override
-    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
+    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
+            , List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
         try {
             Set<XStream2.PluginMeta> pluginsMeta = Sets.newHashSet();
             List<T> collect = dlist.stream().flatMap((r) -> {
@@ -246,12 +249,11 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 });
             }
             this.plugins = collect;
-            // XmlFile file = Descriptor.getConfigFile(getSerializeFileName());
-
             boolean changed = this.file.write(this, pluginsMeta);
+            long lastModifyTimestamp = -1;
             if (changed) {
                 // 将代表组文件的更新时间戳更新
-                this.writeLastModifyTimeStamp();
+                lastModifyTimestamp = this.writeLastModifyTimeStamp();
             }
 
             if (CollectionUtils.isNotEmpty(pluginsUpdateListeners)) {
@@ -268,17 +270,33 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 }
                 logger.info("notify pluginsUpdateListeners size:" + pluginsUpdateListeners.size());
             }
-            return new SetPluginsResult(true, changed);
+            SetPluginsResult pluginsResult = new SetPluginsResult(true, changed);
+            if (changed) {
+                pluginsResult.lastModifyTimeStamp = lastModifyTimestamp;
+            }
+            return pluginsResult;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private long writeLastModifyTimeStamp() throws Exception {
+    private long writeLastModifyTimeStamp() {
         File timestamp = getLastModifyTimeStampFile(this.file.getFile());
-        String millisecTimeStamp = IParamContext.getCurrentMillisecTimeStamp();
-        FileUtils.writeStringToFile(timestamp, millisecTimeStamp, TisUTF8.get());
-        return Long.parseLong(millisecTimeStamp);
+//        String millisecTimeStamp = IParamContext.getCurrentMillisecTimeStamp();
+//        FileUtils.writeStringToFile(timestamp, millisecTimeStamp, TisUTF8.get());
+//        return Long.parseLong(millisecTimeStamp);
+        return writeLastModifyTimeStamp(timestamp);
+    }
+
+    protected long writeLastModifyTimeStamp(File timestamp) {
+        // File timestamp = getLastModifyTimeStampFile(this.file.getFile());
+        try {
+            String millisecTimeStamp = IParamContext.getCurrentMillisecTimeStamp();
+            FileUtils.writeStringToFile(timestamp, millisecTimeStamp, TisUTF8.get());
+            return Long.parseLong(millisecTimeStamp);
+        } catch (IOException e) {
+            throw new RuntimeException(timestamp.getAbsolutePath(), e);
+        }
     }
 
     public final long getWriteLastModifyTimeStamp() {

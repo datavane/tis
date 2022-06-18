@@ -37,6 +37,8 @@ import com.qlangtech.tis.web.start.TisSubModule;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,15 +186,32 @@ public class PluginAndCfgsSnapshot {
     public static void createManifestCfgAttrs2File
             (File manifestJar, TargetResName collection, long timestamp
                     , Optional<Predicate<XStream2.PluginMeta>> pluginMetasFilter) throws Exception {
-        Manifest manifest = createManifestCfgAttrs(collection, timestamp, pluginMetasFilter);
+        createManifestCfgAttrs2File(manifestJar, collection, timestamp, pluginMetasFilter, Collections.emptyMap());
+    }
+
+
+    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs2File
+            (File manifestJar, TargetResName collection, long timestamp
+                    , Optional<Predicate<XStream2.PluginMeta>> pluginMetasFilter
+                    , Map<String, String> extraEnvProps) throws Exception {
+        Pair<PluginAndCfgsSnapshot, Manifest> manifestCfgAttrs
+                = createManifestCfgAttrs(collection, timestamp, extraEnvProps, pluginMetasFilter);
         try (JarOutputStream jaroutput = new JarOutputStream(
-                FileUtils.openOutputStream(manifestJar, false), manifest)) {
+                FileUtils.openOutputStream(manifestJar, false), manifestCfgAttrs.getRight())) {
             jaroutput.putNextEntry(new ZipEntry(getTaskEntryName()));
             jaroutput.flush();
         }
+        return manifestCfgAttrs;
     }
 
-    public static Manifest createManifestCfgAttrs(TargetResName collection, long timestamp, Optional<Predicate<XStream2.PluginMeta>> pluginMetasFilter) throws Exception {
+    public static Manifest createManifestCfgAttrs(
+            TargetResName collection, long timestamp, Optional<Predicate<XStream2.PluginMeta>> pluginMetasFilter) throws Exception {
+        return createManifestCfgAttrs(collection, timestamp, Collections.emptyMap(), pluginMetasFilter).getRight();
+    }
+
+    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs(
+            TargetResName collection, long timestamp, Map<String, String> extraEnvProps
+            , Optional<Predicate<XStream2.PluginMeta>> pluginMetasFilter) throws Exception {
 
         //=====================================================================
         if (!CenterResource.notFetchFromCenterRepository()) {
@@ -213,8 +232,11 @@ public class PluginAndCfgsSnapshot {
                 // tishost为127.0.0.1会出错
                 return;
             }
-            cfgAttrs.put(new Attributes.Name(convertCfgPropertyKey(e.getKey(), true)), e.getValue());
+            addCfgAttrs(cfgAttrs, e);
         });
+        for (Map.Entry<String, String> e : extraEnvProps.entrySet()) {
+            addCfgAttrs(cfgAttrs, e);
+        }
         cfgAttrs.put(new Attributes.Name(
                 convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), NetUtils.getHost());
         entries.put(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, cfgAttrs);
@@ -228,7 +250,11 @@ public class PluginAndCfgsSnapshot {
                 = getLocalPluginAndCfgsSnapshot(collection, pluginMetasFilter, flinkPluginMeta);
 
         localSnapshot.attachPluginCfgSnapshot2Manifest(manifest);
-        return manifest;
+        return ImmutablePair.of(localSnapshot, manifest);
+    }
+
+    private static void addCfgAttrs(Attributes cfgAttrs, Map.Entry<String, String> e) {
+        cfgAttrs.put(new Attributes.Name(convertCfgPropertyKey(e.getKey(), true)), e.getValue());
     }
 
     private static void collectAllPluginMeta(XStream2.PluginMeta meta, Set<XStream2.PluginMeta> collector) {

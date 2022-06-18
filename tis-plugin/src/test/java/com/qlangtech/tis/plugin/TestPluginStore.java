@@ -24,6 +24,7 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.XStream2;
 import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.List;
@@ -49,14 +50,17 @@ public class TestPluginStore extends TestCase {
 
         // assertFalse(TIS.initialized);
         PluginStore<TestPlugin> pstore = new PluginStore<>(TestPlugin.class);
-        TestPlugin p = new TestPlugin();
-        p.prop1 = VALUE_PROP_1;
-        p.prop2 = VALUE_PROP_2;
-        List<Descriptor.ParseDescribable<TestPlugin>> dlist = Lists.newArrayList();
-        Descriptor.ParseDescribable parseDescribable = new Descriptor.ParseDescribable(p);
-        parseDescribable.extraPluginMetas.add(new XStream2.PluginMeta("testmeta", "1.0.0"));
-        dlist.add(parseDescribable);
-        pstore.setPlugins(null, Optional.empty(), dlist);
+
+        File storeFile = pstore.getTargetFile().getFile();
+        FileUtils.deleteQuietly(storeFile);
+        List<Descriptor.ParseDescribable<TestPlugin>> dlist = createTestPlugin();
+        SetPluginsResult updateResult = pstore.setPlugins(null, Optional.empty(), dlist);
+
+        Assert.assertTrue(updateResult.success);
+        Assert.assertTrue("cfgChanged must have change", updateResult.cfgChanged);
+        Assert.assertTrue(updateResult.lastModifyTimeStamp > 0);
+
+
         File targetFile = pstore.getTargetFile().getFile();
         Assert.assertTrue("getLastModifyTimeStampFile must be exist", pstore.getLastModifyTimeStampFile().exists());
         Assert.assertTrue(targetFile.exists());
@@ -67,5 +71,16 @@ public class TestPluginStore extends TestCase {
         assertNotNull(plugin);
         assertEquals(VALUE_PROP_1, plugin.prop1);
         assertEquals(VALUE_PROP_2, plugin.prop2);
+    }
+
+    public static List<Descriptor.ParseDescribable<TestPlugin>> createTestPlugin() {
+        TestPlugin p = new TestPlugin();
+        p.prop1 = VALUE_PROP_1;
+        p.prop2 = VALUE_PROP_2;
+        List<Descriptor.ParseDescribable<TestPlugin>> dlist = Lists.newArrayList();
+        Descriptor.ParseDescribable parseDescribable = new Descriptor.ParseDescribable(p);
+        parseDescribable.extraPluginMetas.add(new XStream2.PluginMeta("testmeta", "1.0.0"));
+        dlist.add(parseDescribable);
+        return dlist;
     }
 }

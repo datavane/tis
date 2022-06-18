@@ -25,6 +25,8 @@ import com.qlangtech.tis.fs.ITISFileSystemFactory;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 
+import java.io.File;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
@@ -33,6 +35,13 @@ import com.qlangtech.tis.plugin.IdentityName;
 public abstract class FileSystemFactory implements Describable<FileSystemFactory>, ITISFileSystemFactory, IdentityName {
 
     public abstract <Configuration> Configuration getConfiguration();
+
+    /**
+     * 需要向本地默认的 配置文件夹中方式hdfs-site.xml配置文件
+     *
+     * @param cfgDir
+     */
+    public abstract void setConfigFile(File cfgDir);
 
     public static FileSystemFactory getFsFactory(String fsName) {
         IPluginStore<FileSystemFactory> pluginStore = TIS.getPluginStore(FileSystemFactory.class);

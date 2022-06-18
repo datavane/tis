@@ -34,7 +34,7 @@ public interface IHiveConnGetter extends IdentityName {
 
     public String getDbName();
 
-    public Optional<HiveUserToken> getUserToken();
+    public HiveUserToken getUserToken();
 
     public String getJdbcUrl();
 

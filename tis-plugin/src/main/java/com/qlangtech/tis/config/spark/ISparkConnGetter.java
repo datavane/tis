@@ -21,6 +21,8 @@ package com.qlangtech.tis.config.spark;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.plugin.IdentityName;
 
+import java.io.File;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-01-28 09:57
@@ -33,10 +35,13 @@ public interface ISparkConnGetter extends IdentityName {
 
     String PLUGIN_NAME = "SparkConn";
 
+    String KEY_CONN_YARN = "yarn";
+
     /**
      * example: spark://192.168.28.201:7077
      *
+     * @param cfgDir
      * @return
      */
-    public String getSparkMaster();
+    public String getSparkMaster(File cfgDir);
 }

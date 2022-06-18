@@ -32,11 +32,10 @@ import com.qlangtech.tis.plugin.SetPluginsResult;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -104,6 +103,9 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         String[] childFiles = paramsCfgDir.list();
         TT result = null;
         for (String childFile : childFiles) {
+            if (!StringUtils.equals(this.pluginMeta.getTargetPluginDesc(), childFile)) {
+                continue;
+            }
             IPluginStore<ParamsConfig> pluginStore = ParamsConfig.getChildPluginStore(childFile);
             result = func.apply(pluginStore);
             if (result != null) {

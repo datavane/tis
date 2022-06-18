@@ -25,6 +25,7 @@ package com.qlangtech.tis.plugin;
 public class SetPluginsResult {
   public boolean success;
   public boolean cfgChanged;
+  public long lastModifyTimeStamp;
 
   public SetPluginsResult(boolean success, boolean cfgChanged) {
     this.success = success;

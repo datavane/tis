@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.plugin;
 
+import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -54,6 +55,12 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         return (KeyedPluginStore<TT>) TIS.dataXReaderSubFormPluginStore.get(subFieldFormKey);
     }
 
+    static File getLastModifyToken(Key appKey) {
+        File appDir = getSubPathDir(appKey);
+        File lastModify = new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
+        return lastModify;
+    }
+
     /**
      * 取得某个应用下面相关的插件元数据信息用于分布式任务同步用
      *
@@ -62,7 +69,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     public static PluginMetas getAppAwarePluginMetas(boolean isDB, String name) {
         AppKey appKey = new AppKey(null, isDB, name, null);
         File appDir = getSubPathDir(appKey);
-        File lastModify = new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
+        File lastModify = getLastModifyToken(appKey);// new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
         long lastModfiyTimeStamp = -1;
         Set<XStream2.PluginMeta> metas = Collections.emptySet();
 
@@ -78,6 +85,9 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
                 metas = ComponentMeta.loadPluginMeta(() -> {
                     return Lists.newArrayList(files);
                 });
+//                if (lastModfiyTimeStamp < 0) {
+//                    throw new IllegalStateException("please check lastModify file:" + lastModify.getAbsolutePath());
+//                }
             }
             return new PluginMetas(appDir, metas, lastModfiyTimeStamp);
         } catch (IOException e) {
@@ -140,6 +150,19 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         return plugins;
     }
 
+    @Override
+    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext
+            , Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
+        SetPluginsResult updateResult = super.setPlugins(pluginContext, context, dlist, update);
+        if (updateResult.success && updateResult.cfgChanged) {
+            // 本地写入时间戳文件，以备分布式文件同步之用
+            updateResult.lastModifyTimeStamp
+                    = writeLastModifyTimeStamp(getLastModifyToken(this.key));
+        }
+        return updateResult;
+    }
+
+    @Override
     public File getLastModifyTimeStampFile() {
         return new File(getSubPathDir(this.key), CenterResource.KEY_LAST_MODIFIED_EXTENDION);
     }

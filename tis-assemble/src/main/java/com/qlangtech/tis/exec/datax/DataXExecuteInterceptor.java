@@ -117,17 +117,21 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         DataXJobSubmit submit = jobSubmit.get();
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
-        int nThreads = 2;
+        int nThreads = 1;
         final ExecutorService executorService = new ThreadPoolExecutor(
                 nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB),
                 new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(() -> {
+                        Thread t = new Thread(() -> {
                             execChainContext.rebindLoggingMDCParams();
                             r.run();
                         });
+                        t.setUncaughtExceptionHandler((thread, ex) -> {
+                            logger.error("DataX Name:{},taskid:{} has been canceled");
+                        });
+                        return t;
                     }
                 });
         try {
@@ -207,46 +211,6 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
                 }
             });
 
-//            boolean faild = false;
-//            boolean allComplete = false;
-//            try {
-//                waiting:
-//                while (!allComplete) {
-//
-//                    try {
-//                        faild = false;
-//                        for (IRemoteTaskTrigger t : triggers) {
-//                            runningStatus = t.getRunningStatus();
-//                            if (runningStatus.isComplete() && !runningStatus.isSuccess()) {
-//                                // faild
-//                                faild = true;
-//                                allComplete = true;
-//                                break waiting;
-//                            }
-//
-//                            if (!runningStatus.isComplete()) {
-//                                continue waiting;
-//                            }
-//                        }
-//                        allComplete = true;
-//                    } finally {
-//                        Thread.sleep(2000);
-//                    }
-//                }
-//            } catch (InterruptedException e) {
-//                logger.warn("DataX Name:{},taskid:{} has been canceled"
-//                        , execChainContext.getIndexName(), execChainContext.getTaskId());
-//                // this job has been cancel, trigger from TisServlet.doDelete()
-//                for (IRemoteTaskTrigger t : triggers) {
-//                    try {
-//                        t.cancel();
-//                    } catch (Throwable ex) {
-//                    }
-//                }
-//                throw e;
-//            }
-
-            // ExecuteResult result = new ExecuteResult(!faild);
             for (IRemoteTaskTrigger trigger : triggers) {
                 if (trigger.isAsyn()) {
                     execChainContext.addAsynSubJob(new IExecChainContext.AsynSubJob(trigger.getAsynJobName()));
@@ -314,23 +278,6 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
                 @Override
                 public synchronized void onTaskFailed(Task t, Throwable err, boolean fatal) {
                     // w.println("Failed " + t.getDisplayName() + " with " + err);
-//                    processTaskResult(execChainContext, (TISReactor.TaskImpl) t, new ITaskResultProcessor() {
-//
-//                        @Override
-//                        public void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task) {
-//                            IncrStatusUmbilicalProtocolImpl statReceiver = IncrStatusUmbilicalProtocolImpl.getInstance();
-//                            statReceiver.reportDumpTableStatusError(execChainContext.getTaskId(), task.getIdentityName());
-//                        }
-//
-//                        @Override
-//                        public void process(JoinPhaseStatus joinPhase, TISReactor.TaskImpl task) {
-//                            JoinPhaseStatus.JoinTaskStatus stat = joinPhase.getTaskStatus(task.getIdentityName());
-//                            // statReceiver.reportBuildIndexStatErr(execContext.getTaskId(),task.getIdentityName());
-//                            stat.setWaiting(false);
-//                            stat.setFaild(true);
-//                            stat.setComplete(true);
-//                        }
-//                    });
                 }
 //
 //                @Override

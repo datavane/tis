@@ -25,4 +25,8 @@ import com.qlangtech.tis.plugin.IdentityName;
  */
 public interface IYarnConfig extends IdentityName {
     public String KEY_DISPLAY_NAME = "yarn";
+
+    public String FILE_NAME_YARN_SITE = "yarn-site.xml";
+    public String ENV_YARN_CONF_DIR = "YARN_CONF_DIR";
+
 }
