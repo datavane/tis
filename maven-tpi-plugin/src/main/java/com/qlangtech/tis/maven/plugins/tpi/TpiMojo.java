@@ -24,6 +24,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.*;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
@@ -33,6 +34,8 @@ import org.codehaus.plexus.archiver.jar.ManifestException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * Build a war/webapp.
@@ -80,7 +83,21 @@ public class TpiMojo extends AbstractTISManifestMojo {
     // Implementation
     // ----------------------------------------------------------------------
     protected File getOutputFile(String extension) {
-        return new File(new File(outputDirectory), tpiName + extension);
+
+        Optional<PluginClassifier> classifier = getPluginClassifier(this.project);
+        String pkgName = tpiName + extension;
+        if (classifier.isPresent()) {
+            pkgName = classifier.get().getTPIPluginName(tpiName, extension);// tpiName + "_" + StringUtils.replace(classifier, ";", "_") + extension;
+        }
+
+        return new File(new File(outputDirectory), pkgName);
+    }
+
+    public static Optional<PluginClassifier> getPluginClassifier(MavenProject project) {
+        Properties props = project.getProperties();
+        String classifier = props.getProperty("classifier");
+
+        return StringUtils.isNotEmpty(classifier) ? Optional.of(new PluginClassifier(classifier)) : Optional.empty();
     }
 
     /**

@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -112,11 +113,22 @@ public abstract class AbstractTISManifestMojo extends AbstractHpiMojo {
         mainSection.addAttributeAndCheck(new Manifest.Attribute("Short-Name", project.getArtifactId()));
         mainSection.addAttributeAndCheck(new Manifest.Attribute("Long-Name", pluginName));
         mainSection.addAttributeAndCheck(new Manifest.Attribute("Last-Modify-Time", String.valueOf((new Date()).getTime())));
+
+
+        Optional<PluginClassifier> pluginClassifier = TpiMojo.getPluginClassifier(this.project);
+        if (pluginClassifier.isPresent()) {
+            mainSection.addAttributeAndCheck(
+                    new Manifest.Attribute("classifier", pluginClassifier.get().getClassifier()));
+        }
+
+
         String url = project.getUrl();
-        if (url != null)
+        if (url != null) {
             mainSection.addAttributeAndCheck(new Manifest.Attribute("Url", url));
-        if (compatibleSinceVersion != null)
+        }
+        if (compatibleSinceVersion != null) {
             mainSection.addAttributeAndCheck(new Manifest.Attribute("Compatible-Since-Version", compatibleSinceVersion));
+        }
         if (this.minimumJavaVersion == null) {
             throw new MojoExecutionException("minimumJavaVersion attribute must be set starting from version 2.8");
         }

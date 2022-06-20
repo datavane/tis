@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.web.start.TisApp;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
@@ -34,6 +34,7 @@ public class StartAssembleWeb extends TestCase {
 
 
     static {
+        System.setProperty(NetUtils.TIS_PREFERRED_NETWORK_INTERFACE, "en0");
         System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
         System.setProperty(Config.SYSTEM_KEY_LOGBACK_PATH_KEY, "logback-assemble.xml");
         CenterResource.setNotFetchFromCenterRepository();
@@ -47,7 +48,7 @@ public class StartAssembleWeb extends TestCase {
 //        }
 
 
-       // System.setProperty(com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
+        // System.setProperty(com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
         String[] args = new String[]{};
         TisAppLaunch.setTest(true);

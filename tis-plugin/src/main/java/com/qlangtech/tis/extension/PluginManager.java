@@ -56,6 +56,7 @@ import static com.qlangtech.tis.extension.init.InitMilestone.*;
  */
 public class PluginManager {
 
+    public static final String PACAKGE_CLASSIFIER = "classifier";
     public static final String PACAKGE_TPI_EXTENSION_NAME = "tpi";
     public static final String PACAKGE_TPI_EXTENSION = "." + PACAKGE_TPI_EXTENSION_NAME;
 

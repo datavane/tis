@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
@@ -292,36 +293,22 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         return plugin;
     }
 
-    // public Api getApi() {
-    // Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
-    // return new Api(this);
-    // }
-    // /**
-    // * Returns the URL of the index page jelly script.
-    // */
-    // public URL getIndexPage() {
-    // // In the current impl dependencies are checked first, so the plugin itself
-    // // will add the last entry in the getResources result.
-    // URL idx = null;
-    // try {
-    // Enumeration<URL> en = classLoader.getResources("index.jelly");
-    // while (en.hasMoreElements())
-    // idx = en.nextElement();
-    // } catch (IOException ignore) { }
-    // // In case plugin has dependencies but is missing its own index.jelly,
-    // // check that result has this plugin's artifactId in it:
-    // return idx != null && idx.toString().contains(shortName) ? idx : null;
-    // }
     public static String computeShortName(Manifest manifest, String fileName) {
         // use the name captured in the manifest, as often plugins
         // depend on the specific short name in its URLs.
-        String n = manifest.getMainAttributes().getValue(PluginStrategy.KEY_MANIFEST_SHORTNAME);
+        Attributes attrs = manifest.getMainAttributes();
+        if (attrs == null) {
+            throw new IllegalStateException(
+                    "fileName:" + fileName + " relevant MainAttributes can not be null");
+        }
+        String n = attrs.getValue(PluginStrategy.KEY_MANIFEST_SHORTNAME);
         if (n != null)
             return n;
         // maven seems to put this automatically, so good fallback to check.
-        n = manifest.getMainAttributes().getValue("Extension-Name");
-        if (n != null)
+        n = attrs.getValue("Extension-Name");
+        if (n != null) {
             return n;
+        }
         // this entry.
         return getBaseName(fileName);
     }

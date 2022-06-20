@@ -31,7 +31,7 @@
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis</artifactId>
     <!--https://maven.apache.org/maven-ci-friendly.html-->
-    <version>3.5.0</version>
+    <version>3.6.0</version>
     <packaging>pom</packaging>
     <name>tis</name>
     <url>http://maven.apache.org</url>

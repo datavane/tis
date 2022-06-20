@@ -61,7 +61,7 @@ public class NetUtils {
     /**
      * net system properties
      */
-    private static final String TIS_PREFERRED_NETWORK_INTERFACE = "tis.network.interface.preferred";
+    public static final String TIS_PREFERRED_NETWORK_INTERFACE = "tis.network.interface.preferred";
 
     /**
      * Return a free port number. There is no guarantee it will remain free, so
