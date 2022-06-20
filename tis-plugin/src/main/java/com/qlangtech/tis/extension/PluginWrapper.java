@@ -31,10 +31,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -137,6 +134,8 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     private final List<Dependency> dependencies;
 
     private final List<Dependency> optionalDependencies;
+
+    private final Optional<String> classifier;
 
     /**
      * Is this plugin bundled in jenkins.war?
@@ -274,6 +273,13 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         this.dependencies = dependencies;
         this.optionalDependencies = optionalDependencies;
         this.archive = archive;
+
+        this.classifier = Optional.ofNullable(
+                manifest.getMainAttributes().getValue(PluginManager.PACAKGE_CLASSIFIER));
+    }
+
+    public final Optional<String> getClassifier() {
+        return this.classifier;
     }
 
     public String getDisplayName() {
