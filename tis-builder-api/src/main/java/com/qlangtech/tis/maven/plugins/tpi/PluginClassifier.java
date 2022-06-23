@@ -20,10 +20,7 @@ package com.qlangtech.tis.maven.plugins.tpi;
 
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -35,6 +32,24 @@ public class PluginClassifier {
     private final String classifier;
 
     private Map<String, String> dimension;
+
+    public static final NoneClassifier NONE_CLASSIFIER = new NoneClassifier();
+
+    public static boolean isNoneClassifier(PluginClassifier classifier) {
+        return classifier instanceof NoneClassifier;
+    }
+
+    private static final class NoneClassifier extends PluginClassifier {
+        public NoneClassifier() {
+            super(null);
+        }
+    }
+
+    public static final Comparator<PluginClassifier> DESCENDING = new Comparator<PluginClassifier>() {
+        public int compare(PluginClassifier o1, PluginClassifier o2) {
+            return o2.classifier.compareTo(o2.classifier);
+        }
+    };
 
     public PluginClassifier(String classifier) {
         this.classifier = classifier;
