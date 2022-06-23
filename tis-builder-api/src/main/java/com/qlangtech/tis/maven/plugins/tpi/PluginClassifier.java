@@ -41,13 +41,13 @@ public class PluginClassifier {
 
     private static final class NoneClassifier extends PluginClassifier {
         public NoneClassifier() {
-            super(null);
+            super(StringUtils.EMPTY);
         }
     }
 
     public static final Comparator<PluginClassifier> DESCENDING = new Comparator<PluginClassifier>() {
         public int compare(PluginClassifier o1, PluginClassifier o2) {
-            return o2.classifier.compareTo(o2.classifier);
+            return o1.classifier.compareTo(o2.classifier);
         }
     };
 
