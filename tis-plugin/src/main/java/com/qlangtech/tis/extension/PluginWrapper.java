@@ -22,6 +22,7 @@ import com.qlangtech.tis.extension.impl.MissingDependencyException;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.VersionNumber;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.util.XStream2;
 import com.qlangtech.tis.util.YesNoMaybe;
 import org.apache.commons.io.FileUtils;
@@ -64,7 +65,7 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
+public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, ITPIArtifact {
 
     /**
      * List of plugins that depend on this plugin.
@@ -135,7 +136,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
 
     private final List<Dependency> optionalDependencies;
 
-    private final Optional<String> classifier;
+    private final Optional<PluginClassifier> classifier;
 
     /**
      * Is this plugin bundled in jenkins.war?
@@ -143,6 +144,10 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     /*package*/
     boolean isBundled;
 
+    @Override
+    public String getIdentityName() {
+        return this.shortName;
+    }
 
     /**
      * The core can depend on a plugin if it is bundled. Sometimes it's the only thing that
@@ -221,6 +226,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         // @Exported
         public final boolean optional;
 
+
         public static Dependency parse(String s) {
             int idx = s.indexOf(':');
             if (idx == -1) {
@@ -273,12 +279,17 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
         this.dependencies = dependencies;
         this.optionalDependencies = optionalDependencies;
         this.archive = archive;
-
-        this.classifier = Optional.ofNullable(
-                manifest.getMainAttributes().getValue(PluginManager.PACAKGE_CLASSIFIER));
+        // String attrClazzier = manifest.getMainAttributes().getValue(PluginManager.PACAKGE_CLASSIFIER);
+        this.classifier = parseClassifier(manifest); //Optional.ofNullable(StringUtils.isEmpty(attrClazzier) ? null : new PluginClassifier(attrClazzier));
     }
 
-    public final Optional<String> getClassifier() {
+    public static Optional<PluginClassifier> parseClassifier(Manifest manifest) {
+        String attrClazzier = manifest.getMainAttributes().getValue(PluginManager.PACAKGE_CLASSIFIER);
+        return Optional.ofNullable(StringUtils.isEmpty(attrClazzier) ? null : new PluginClassifier(attrClazzier));
+    }
+
+    @Override
+    public final Optional<PluginClassifier> getClassifier() {
         return this.classifier;
     }
 
@@ -557,21 +568,34 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject {
     /*package*/
     void resolvePluginDependencies() throws IOException {
         List<Dependency> missingDependencies = new ArrayList<>();
+        //  ITPIArtifactMatch match = ITPIArtifact.match(this.classifier);
+
+        ITPIArtifact.matchDependency(parent, dependencies, this, (p) -> {
+        }, (missDep) -> {
+            missingDependencies.add(missDep);
+        });
         // make sure dependencies exist
-        for (Dependency d : dependencies) {
-            if (parent.getPlugin(d.shortName) == null) {
-                missingDependencies.add(d);
-            }
-        }
+//        for (Dependency d : dependencies) {
+//            match.setIdentityName(d.shortName);
+//            if (parent.getPlugin(match) == null) {
+//                missingDependencies.add(d);
+//            }
+//        }
         if (!missingDependencies.isEmpty()) {
             throw new MissingDependencyException(this.shortName, missingDependencies);
         }
         // add the optional dependencies that exists
-        for (Dependency d : optionalDependencies) {
-            if (parent.getPlugin(d.shortName) != null) {
-                dependencies.add(d);
-            }
-        }
+
+        ITPIArtifact.matchDependency(parent, optionalDependencies, this, (p) -> {
+            dependencies.add(p.getRight());
+        });
+
+//        for (Dependency d : optionalDependencies) {
+//            match.setIdentityName(d.shortName);
+//            if (parent.getPlugin(match) != null) {
+//                dependencies.add(d);
+//            }
+//        }
     }
 
     // /**

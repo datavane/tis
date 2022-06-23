@@ -29,9 +29,14 @@
                     <lifecycle>
                         <id>default</id>
                         <phases>
-                            <!--
-                            <validate>org.jenkins-ci.tools:maven-hpi-plugin:validate</validate>
-                            -->
+
+                            <!---->
+
+
+                            <validate>com.qlangtech.tis:maven-tpi-plugin:validate</validate>
+
+<!--                            <generate-sources>com.qlangtech.tis:maven-tpi-plugin:validate</generate-sources>-->
+
                             <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources
                             </process-resources>
                             <compile>org.apache.maven.plugins:maven-compiler-plugin:compile</compile>

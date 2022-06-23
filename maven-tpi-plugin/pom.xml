@@ -64,6 +64,11 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-builder-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!--
 

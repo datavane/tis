@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.extension.model;
 
@@ -24,6 +24,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.ITPIArtifact;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.plugins.DetachedPluginsUtil;
@@ -33,6 +34,7 @@ import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.util.Util;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -55,6 +57,7 @@ import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.util.MemoryReductionUtil.*;
 
@@ -239,7 +242,7 @@ public class UpdateSite {
         return dt.connectionCheckUrl;
     }
 
-    public static class Entry {
+    public static class Entry implements ITPIArtifact {
         public final String sourceId;
         /**
          * Artifact ID.
@@ -260,8 +263,11 @@ public class UpdateSite {
 
         /* final */ String sha512;
 
-        Entry(String sourceId, JSONObject o, String baseURL) {
+        private final Optional<PluginClassifier> classifier;
+
+        Entry(String sourceId, Optional<PluginClassifier> classifier, JSONObject o, String baseURL) {
             this.sourceId = sourceId;
+            this.classifier = Objects.requireNonNull(classifier, "classifier can not be null");
             this.name = Util.intern(o.getString("name"));
             this.version = Util.intern(o.getString("version"));
 
@@ -279,6 +285,16 @@ public class UpdateSite {
                 url = URI.create(baseURL).resolve(url).toString();
             }
             this.url = url;
+        }
+
+        @Override
+        public String getIdentityName() {
+            return this.name;
+        }
+
+        @Override
+        public Optional<PluginClassifier> getClassifier() {
+            return this.classifier;
         }
 
         /**
@@ -441,8 +457,8 @@ public class UpdateSite {
          */
         public String latest;
 
-        public Plugin(String sourceId, JSONObject o) {
-            super(sourceId, o, UpdateSite.this.url);
+        public Plugin(String sourceId, Optional<PluginClassifier> classifier, JSONObject o) {
+            super(sourceId, classifier, o, UpdateSite.this.url);
             this.size = o.getLongValue("size");
             this.sizeLiteral = FileUtils.byteCountToDisplaySize(this.size);
             this.wiki = get(o, "wiki");
@@ -638,7 +654,7 @@ public class UpdateSite {
         @JSONField(serialize = false)
         public PluginWrapper getInstalled() {
             PluginManager pm = TIS.get().getPluginManager();
-            return pm.getPlugin(name);
+            return pm.getPlugin(ITPIArtifact.matchh(this));
         }
 
 
@@ -708,7 +724,7 @@ public class UpdateSite {
             this.sourceId = Util.intern((String) o.get("id"));
             JSONObject c = o.getJSONObject("core");
             if (c != null) {
-                core = new Entry(sourceId, c, url);
+                core = new Entry(sourceId, Optional.empty(), c, url);
             } else {
                 core = null;
             }
@@ -743,25 +759,36 @@ public class UpdateSite {
             }
 
             JSONObject plugins = o.getJSONObject("plugins");
-
+            JSONObject pluginMeta = null;
+            List<Optional<PluginClassifier>> classifiers = null;
             for (Map.Entry<String, Object> e : plugins.entrySet()) {
-                Plugin p = new Plugin(sourceId, (JSONObject) e.getValue());
-                // JENKINS-33308 - include implied dependencies for older plugins that may need them
-                List<PluginWrapper.Dependency> implicitDeps = DetachedPluginsUtil.getImpliedDependencies(p.name, p.requiredCore);
-                if (!implicitDeps.isEmpty()) {
-                    for (PluginWrapper.Dependency dep : implicitDeps) {
-                        if (!p.dependencies.containsKey(dep.shortName)) {
-                            p.dependencies.put(dep.shortName, dep.version);
+                pluginMeta = (JSONObject) e.getValue();
+                classifiers = Lists.newArrayList(Optional.empty());
+                JSONArray classifierInfo = pluginMeta.getJSONArray(PluginManager.PACAKGE_CLASSIFIER);
+                if (classifierInfo != null || classifierInfo.size() > 0) {
+                    classifiers = classifierInfo.stream()
+                            .map((i) -> Optional.of(new PluginClassifier((String) i))).collect(Collectors.toList());
+                }
+
+                for (Optional<PluginClassifier> classifier : classifiers) {
+                    Plugin p = new Plugin(sourceId, classifier, pluginMeta);
+                    // JENKINS-33308 - include implied dependencies for older plugins that may need them
+                    List<PluginWrapper.Dependency> implicitDeps = DetachedPluginsUtil.getImpliedDependencies(p.name, p.requiredCore);
+                    if (!implicitDeps.isEmpty()) {
+                        for (PluginWrapper.Dependency dep : implicitDeps) {
+                            if (!p.dependencies.containsKey(dep.shortName)) {
+                                p.dependencies.put(dep.shortName, dep.version);
+                            }
                         }
                     }
-                }
-                this.plugins.put(Util.intern(e.getKey()), p);
+                    this.plugins.put(Util.intern(e.getKey()), p);
 
-                // compatibility with update sites that have no separate 'deprecated' top-level entry.
-                // Also do this even if there are deprecations to potentially allow limiting the top-level entry to overridden URLs.
-                if (p.hasCategory("deprecated")) {
-                    if (!this.deprecations.containsKey(p.name)) {
-                        this.deprecations.put(p.name, new Deprecation(p.wiki));
+                    // compatibility with update sites that have no separate 'deprecated' top-level entry.
+                    // Also do this even if there are deprecations to potentially allow limiting the top-level entry to overridden URLs.
+                    if (p.hasCategory("deprecated")) {
+                        if (!this.deprecations.containsKey(p.name)) {
+                            this.deprecations.put(p.name, new Deprecation(p.wiki));
+                        }
                     }
                 }
             }
@@ -932,7 +959,7 @@ public class UpdateSite {
                 case PLUGIN:
 
                     // check whether plugin is installed
-                    PluginWrapper plugin = com.qlangtech.tis.TIS.get().getPluginManager().getPlugin(this.component);
+                    PluginWrapper plugin = com.qlangtech.tis.TIS.get().getPluginManager().getPlugin(ITPIArtifact.create(this.component));
                     if (plugin == null) {
                         return false;
                     }

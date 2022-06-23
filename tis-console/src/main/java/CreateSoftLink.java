@@ -17,7 +17,7 @@
  */
 
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.PluginManager;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -44,7 +44,7 @@ public class CreateSoftLink {
     File targetPluginDir = TIS.pluginDirRoot;
     FileUtils.forceMkdir(targetPluginDir);
     FileUtils.cleanDirectory(targetPluginDir);
-    Iterator<File> fileIt = FileUtils.iterateFiles(pluginModuleDir, new String[]{PluginManager.PACAKGE_TPI_EXTENSION_NAME}, true);
+    Iterator<File> fileIt = FileUtils.iterateFiles(pluginModuleDir, new String[]{PluginClassifier.PACAKGE_TPI_EXTENSION_NAME}, true);
     File tpiFile = null;
     int fileCount = 0;
     while (fileIt.hasNext()) {

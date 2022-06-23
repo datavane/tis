@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.util.InitializerFinder;
 import com.qlangtech.tis.util.Util;
@@ -57,8 +58,7 @@ import static com.qlangtech.tis.extension.init.InitMilestone.*;
 public class PluginManager {
 
     public static final String PACAKGE_CLASSIFIER = "classifier";
-    public static final String PACAKGE_TPI_EXTENSION_NAME = "tpi";
-    public static final String PACAKGE_TPI_EXTENSION = "." + PACAKGE_TPI_EXTENSION_NAME;
+    public static final String PACAKGE_TPI_EXTENSION = "." + PluginClassifier.PACAKGE_TPI_EXTENSION_NAME;
 
     private static final Logger logger = LoggerFactory.getLogger(PluginManager.class);
 
@@ -134,7 +134,8 @@ public class PluginManager {
     /**
      * Try the dynamicLoad, removeExisting to attempt to dynamic load disabled plugins
      */
-    public void dynamicLoad(File arc, boolean removeExisting, PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
+    public void dynamicLoad(File arc, boolean removeExisting
+            , PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
         // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
         LOGGER.info("Attempting to dynamic load {}", arc);
         PluginWrapper p = null;
@@ -150,12 +151,14 @@ public class PluginManager {
     }
 
 
-    public void dynamicLoad(String shotName, File arc, boolean removeExisting, PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
+    public void dynamicLoad(String shotName, File arc, boolean removeExisting
+            , PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
         // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
 
+        ITPIArtifactMatch art = ITPIArtifact.create(shotName);
         PluginWrapper p = null;
 
-        PluginWrapper pw = getPlugin(shotName);
+        PluginWrapper pw = getPlugin(art);
         if (pw != null) {
             if (removeExisting) { // try to load disabled plugins
                 for (Iterator<PluginWrapper> i = plugins.iterator(); i.hasNext(); ) {
@@ -378,17 +381,26 @@ public class PluginManager {
                                             @Override
                                             protected List<PluginWrapper> getEdges(PluginWrapper p) {
                                                 List<PluginWrapper> next = new ArrayList<PluginWrapper>();
-                                                addTo(p.getDependencies(), next);
-                                                addTo(p.getOptionalDependencies(), next);
+                                                addTo(p, p.getDependencies(), next);
+                                                addTo(p, p.getOptionalDependencies(), next);
                                                 return next;
                                             }
 
-                                            private void addTo(List<PluginWrapper.Dependency> dependencies, List<PluginWrapper> r) {
-                                                for (PluginWrapper.Dependency d : dependencies) {
-                                                    PluginWrapper p = getPlugin(d.shortName);
-                                                    if (p != null)
-                                                        r.add(p);
-                                                }
+                                            private void addTo(PluginWrapper plugin, List<PluginWrapper.Dependency> dependencies, List<PluginWrapper> r) {
+
+                                                ITPIArtifact.matchDependency(PluginManager.this, dependencies, plugin, (p) -> {
+                                                    r.add(p.getLeft());
+                                                });
+
+//                                                Optional<PluginClassifier> classifier = plugin.getClassifier();
+//                                                ITPIArtifactMatch match = ITPIArtifact.match(classifier);
+//                                                for (PluginWrapper.Dependency d : dependencies) {
+//                                                    match.setIdentityName(d.shortName);
+//                                                    PluginWrapper p = getPlugin(match);
+//                                                    if (p != null) {
+//                                                        r.add(p);
+//                                                    }
+//                                                }
                                             }
 
                                             @Override
@@ -600,12 +612,12 @@ public class PluginManager {
     /**
      * Get the plugin instance with the given short name.
      *
-     * @param shortName the short name of the plugin
+     * @param tpi the short name of the plugin
      * @return The plugin singleton or <code>null</code> if a plugin with the given short name does not exist.
      */
-    public PluginWrapper getPlugin(String shortName) {
+    public PluginWrapper getPlugin( ITPIArtifactMatch  tpi) {
         for (PluginWrapper p : getPlugins()) {
-            if (p.getShortName().equals(shortName)) {
+            if (ITPIArtifact.isEquals(p, tpi)) {
                 return p;
             }
         }

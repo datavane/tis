@@ -89,7 +89,9 @@ public class Config {
     public static final String DB_TYPE_MYSQL = "mysql";
     public static final String DB_TYPE_DERBY = "derby";
 
-    private static String GENERATE_PARENT_PACKAGE = "com.qlangtech.tis.realtime.transfer";
+    public static final String QLANGTECH_PACKAGE = "com.qlangtech";
+
+    private static final String GENERATE_PARENT_PACKAGE = QLANGTECH_PACKAGE + ".tis.realtime.transfer";
 
     public static final int LogFlumeAddressPORT = 41414;
 

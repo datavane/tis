@@ -87,7 +87,7 @@ public class TpiMojo extends AbstractTISManifestMojo {
         Optional<PluginClassifier> classifier = getPluginClassifier(this.project);
         String pkgName = tpiName + extension;
         if (classifier.isPresent()) {
-            pkgName = classifier.get().getTPIPluginName(tpiName, extension);// tpiName + "_" + StringUtils.replace(classifier, ";", "_") + extension;
+            pkgName = classifier.get().getTPIPluginName(tpiName, extension);
         }
 
         return new File(new File(outputDirectory), pkgName);
@@ -138,6 +138,7 @@ public class TpiMojo extends AbstractTISManifestMojo {
         generateManifest(archive, manifestFile);
         Manifest manifest = loadManifest(manifestFile);
         getLog().info("Checking for attached .jar artifact " + (StringUtils.isBlank(jarClassifier) ? "..." : "with classifier " + jarClassifier + "..."));
+        //project.getDependencies()
         File jarFile = null;
         for (Artifact artifact : (List<Artifact>) project.getAttachedArtifacts()) {
             if (StringUtils.equals(project.getGroupId(), artifact.getGroupId())

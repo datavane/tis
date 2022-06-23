@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Expand;
@@ -202,7 +203,7 @@ public class ClassicPluginStrategy implements PluginStrategy {
         if (masked != null) {
             for (String pkg : masked.trim().split("[ \t\r\n]+")) coreClassLoader.add(pkg);
         }
-        ClassLoader dependencyLoader = new DependencyClassLoader(coreClassLoader, archive, Util.join(dependencyMeta.dependencies, dependencyMeta.optionalDependencies));
+        ClassLoader dependencyLoader = new DependencyClassLoader(coreClassLoader, archive, manifest, Util.join(dependencyMeta.dependencies, dependencyMeta.optionalDependencies));
         dependencyLoader = getBaseClassLoader(atts, dependencyLoader);
         return new PluginWrapper(pluginManager, archive, manifest, baseResourceURL, createClassLoader(paths, dependencyLoader, atts)
                 , disableFile, dependencyMeta.dependencies, dependencyMeta.optionalDependencies);
@@ -506,16 +507,18 @@ public class ClassicPluginStrategy implements PluginStrategy {
         private final File _for;
 
         private List<PluginWrapper.Dependency> dependencies;
+        private final Manifest manifest;
 
         /**
          * Topologically sorted list of transient dependencies.
          */
         private volatile List<PluginWrapper> transientDependencies;
 
-        public DependencyClassLoader(ClassLoader parent, File archive, List<PluginWrapper.Dependency> dependencies) {
+        public DependencyClassLoader(ClassLoader parent, File archive, Manifest manifest, List<PluginWrapper.Dependency> dependencies) {
             super(parent);
             this._for = archive;
             this.dependencies = dependencies;
+            this.manifest = manifest;
         }
 
         private void updateTransientDependencies() {
@@ -526,28 +529,54 @@ public class ClassicPluginStrategy implements PluginStrategy {
         private List<PluginWrapper> getTransitiveDependencies() {
             if (transientDependencies == null) {
                 CyclicGraphDetector<PluginWrapper> cgd = new CyclicGraphDetector<PluginWrapper>() {
-
                     @Override
                     protected List<PluginWrapper> getEdges(PluginWrapper pw) {
                         List<PluginWrapper> dep = new ArrayList<PluginWrapper>();
-                        for (PluginWrapper.Dependency d : pw.getDependencies()) {
-                            PluginWrapper p = pluginManager.getPlugin(d.shortName);
-                            if (p != null && p.isActive())
+                        ITPIArtifact.matchDependency(pluginManager, pw.getDependencies(), pw, (pair) -> {
+                            PluginWrapper p = pair.getLeft();
+                            if (p.isActive()) {
                                 dep.add(p);
-                        }
+                            }
+                        });
+
+
+//                        ITPIArtifactMatch match = ITPIArtifact.match(pw.getClassifier());
+//
+//                        for (PluginWrapper.Dependency d : pw.getDependencies()) {
+//                            match.setIdentityName(d.shortName);
+//                            PluginWrapper p = pluginManager.getPlugin(match);
+//                            if (p != null && p.isActive()) {
+//                                dep.add(p);
+//                            }
+//                        }
                         return dep;
                     }
                 };
-                try {
-                    for (PluginWrapper.Dependency d : dependencies) {
-                        PluginWrapper p = pluginManager.getPlugin(d.shortName);
-                        if (p != null && p.isActive())
+                // try {
+                String requiredFrom = PluginWrapper.computeShortName(this.manifest, StringUtils.EMPTY);
+                ITPIArtifact.matchDependency(pluginManager, dependencies, requiredFrom, PluginWrapper.parseClassifier(this.manifest), (pair) -> {
+                    try {
+                        PluginWrapper p = pair.getLeft();
+                        if (p.isActive()) {
                             cgd.run(Collections.singleton(p));
+                        }
+                    } catch (CyclicGraphDetector.CycleDetectedException e) {
+                        throw new AssertionError(e);
                     }
-                } catch (CyclicGraphDetector.CycleDetectedException e) {
-                    // such error should have been reported earlier
-                    throw new AssertionError(e);
-                }
+                });
+
+//                    ITPIArtifactMatch match = ITPIArtifact.match(PluginWrapper.parseClassifier(this.manifest));
+//                    for (PluginWrapper.Dependency d : dependencies) {
+//                        match.setIdentityName(d.shortName);
+//                        PluginWrapper p = pluginManager.getPlugin(match);
+//                        if (p != null && p.isActive()) {
+//                            cgd.run(Collections.singleton(p));
+//                        }
+//                    }
+//                } catch (CyclicGraphDetector.CycleDetectedException e) {
+//                    // such error should have been reported earlier
+//                    throw new AssertionError(e);
+//                }
                 transientDependencies = cgd.getSorted();
             }
             return transientDependencies;
@@ -575,15 +604,15 @@ public class ClassicPluginStrategy implements PluginStrategy {
                     }
                 }
             } else {
-                for (PluginWrapper.Dependency dep : dependencies) {
-                    PluginWrapper p = pluginManager.getPlugin(dep.shortName);
-                    if (p != null)
-                        try {
-                            return p.classLoader.loadClass(name);
-                        } catch (ClassNotFoundException _) {
-                            // try next
-                        }
-                }
+//                for (PluginWrapper.Dependency dep : dependencies) {
+//                    PluginWrapper p = pluginManager.getPlugin(dep);
+//                    if (p != null)
+//                        try {
+//                            return p.classLoader.loadClass(name);
+//                        } catch (ClassNotFoundException _) {
+//                            // try next
+//                        }
+//                }
             }
 
             throw new ClassNotFoundException("by " + this._for.getName() + ",for:" + name);
@@ -598,13 +627,13 @@ public class ClassicPluginStrategy implements PluginStrategy {
                     while (urls != null && urls.hasMoreElements()) result.add(urls.nextElement());
                 }
             } else {
-                for (PluginWrapper.Dependency dep : dependencies) {
-                    PluginWrapper p = pluginManager.getPlugin(dep.shortName);
-                    if (p != null) {
-                        Enumeration<URL> urls = p.classLoader.getResources(name);
-                        while (urls != null && urls.hasMoreElements()) result.add(urls.nextElement());
-                    }
-                }
+//                for (PluginWrapper.Dependency dep : dependencies) {
+//                    PluginWrapper p = pluginManager.getPlugin(dep);
+//                    if (p != null) {
+//                        Enumeration<URL> urls = p.classLoader.getResources(name);
+//                        while (urls != null && urls.hasMoreElements()) result.add(urls.nextElement());
+//                    }
+//                }
             }
             return Collections.enumeration(result);
         }
@@ -618,14 +647,14 @@ public class ClassicPluginStrategy implements PluginStrategy {
                         return url;
                 }
             } else {
-                for (PluginWrapper.Dependency dep : dependencies) {
-                    PluginWrapper p = pluginManager.getPlugin(dep.shortName);
-                    if (p != null) {
-                        URL url = p.classLoader.getResource(name);
-                        if (url != null)
-                            return url;
-                    }
-                }
+//                for (PluginWrapper.Dependency dep : dependencies) {
+//                    PluginWrapper p = pluginManager.getPlugin(dep);
+//                    if (p != null) {
+//                        URL url = p.classLoader.getResource(name);
+//                        if (url != null)
+//                            return url;
+//                    }
+//                }
             }
             return null;
         }
