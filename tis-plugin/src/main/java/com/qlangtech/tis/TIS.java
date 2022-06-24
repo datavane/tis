@@ -80,6 +80,7 @@ public class TIS {
     private static final Logger logger = LoggerFactory.getLogger(TIS.class);
     public static final String DB_GROUP_NAME = "db";
 
+    public static final String KEY_ALT_SYSTEM_PROP_TIS_PLUGIN_ROOT = "plugin_dir_root";
     public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
     public static final String KEY_ACTION_CLEAN_TIS = "cleanTis";
 
@@ -362,7 +363,7 @@ public class TIS {
     public static final File pluginDirRoot;
 
     static {
-        String pluginRootDir = System.getProperty("plugin_dir_root");
+        String pluginRootDir = System.getProperty(KEY_ALT_SYSTEM_PROP_TIS_PLUGIN_ROOT);
         pluginDirRoot = StringUtils.isEmpty(pluginRootDir)
                 ? new File(Config.getLibDir(), KEY_TIS_PLUGIN_ROOT)
                 : new File(pluginRootDir);

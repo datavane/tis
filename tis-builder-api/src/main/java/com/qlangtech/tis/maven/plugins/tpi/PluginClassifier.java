@@ -56,7 +56,11 @@ public class PluginClassifier {
     }
 
     public String getTPIPluginName(String tpiName, String extension) {
-        return tpiName + "_" + StringUtils.replace(classifier, DIMENSION_SPLIT, "_") + extension;
+        return getTPIPluginName(tpiName) + extension;
+    }
+
+    public String getTPIPluginName(String tpiName) {
+        return tpiName + "_" + StringUtils.replace(classifier, DIMENSION_SPLIT, "_");
     }
 
 
