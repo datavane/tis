@@ -50,7 +50,7 @@
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
         <scala.version>2.11.12</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
-        <tisasm-maven-plugin.version>1.0.4</tisasm-maven-plugin.version>
+        <tisasm-maven-plugin.version>1.0.6</tisasm-maven-plugin.version>
         <tis.release.repository.host>http://tis-release.oss-cn-beijing.aliyuncs.com</tis.release.repository.host>
         <avro.version>1.11.0</avro.version>
     </properties>
