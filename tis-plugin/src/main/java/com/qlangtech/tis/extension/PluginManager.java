@@ -106,7 +106,8 @@ public class PluginManager {
     protected final List<FailedPlugin> failedPlugins = new ArrayList<FailedPlugin>();
 
     public String getFaildPluginsDesc() {
-        return failedPlugins.stream().map((f) -> "plugin:" + f.name + ",cause:" + ExceptionUtils.getMessage(f.cause)).collect(Collectors.joining(","));
+        return failedPlugins.stream().map((f) -> "plugin:" + f.name + ",cause:"
+                + ExceptionUtils.getMessage(f.cause)).collect(Collectors.joining(","));
     }
 
     public PluginManager(File rootDir) {
@@ -152,7 +153,8 @@ public class PluginManager {
 
 
     public void dynamicLoad(String shotName, File arc, boolean removeExisting
-            , PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
+            , PluginAndCfgsSnapshot.PluginWrapperList batch)
+            throws IOException, InterruptedException, RestartRequiredException {
         // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
 
         ITPIArtifactMatch art = ITPIArtifact.create(shotName);
@@ -220,7 +222,8 @@ public class PluginManager {
             throw new IOException("Failed to install " + shotName + " plugin", e);
         }
 
-        LOGGER.info("Plugin {}:{} dynamically {}", p.getShortName(), p.getVersion(), batch != null ? "loaded but not yet started" : "installed");
+        LOGGER.info("Plugin {}:{} dynamically {}", p.getShortName(), p.getVersion()
+                , batch != null ? "loaded but not yet started" : "installed");
         //}
     }
 

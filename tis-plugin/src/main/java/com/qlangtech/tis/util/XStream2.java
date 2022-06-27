@@ -20,9 +20,9 @@ package com.qlangtech.tis.util;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.PluginManager;
-import com.qlangtech.tis.extension.PluginStrategy;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
+import com.qlangtech.tis.extension.impl.PluginManifest;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
@@ -41,7 +41,6 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.xml.XppDriver;
 import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.security.AnyTypePermission;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,8 +52,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 /**
@@ -232,7 +229,7 @@ public class XStream2 extends XStream {
                 return this.lastModifyTimeStamp;
             }
             return this.lastModifyTimeStamp = processJarManifest((mfst) ->
-                    (mfst == null) ? -1 : Long.parseLong(mfst.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME))
+                    (mfst == null) ? -1 : mfst.getLastModfiyTime()// Long.parseLong(.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME))
             );
         }
 
@@ -246,23 +243,30 @@ public class XStream2 extends XStream {
                     // throw new IllegalStateException("plugin:" + PluginMeta.this.toString() + " relevant manifest can not be null");
                     return Collections.emptyList();
                 }
-                ClassicPluginStrategy.DependencyMeta dpts = ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
+                ClassicPluginStrategy.DependencyMeta dpts = mfst.getDependencyMeta();// ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
                 return dpts.dependencies.stream().map((d) -> new PluginMeta(d.shortName, d.version)).collect(Collectors.toList());
             });
         }
 
-        private <R> R processJarManifest(Function<Manifest, R> manProcess) {
+        private <R> R processJarManifest(Function<PluginManifest, R> manProcess) {
             File f = getPluginPackageFile();
-            if (!f.exists()) {
-                // throw new IllegalStateException("file:" + f.getPath() + " is not exist");
+//            if (!f.exists()) {
+//                // throw new IllegalStateException("file:" + f.getPath() + " is not exist");
+//                return manProcess.apply(null);
+//            }
+            PluginManifest manifest = PluginManifest.create(f);
+            if (manifest == null) {
                 return manProcess.apply(null);
             }
-            try (JarInputStream tpiFIle = new JarInputStream(FileUtils.openInputStream(f), false)) {
-                Manifest mfst = tpiFIle.getManifest();
-                return manProcess.apply(mfst);
-            } catch (Exception e) {
-                throw new RuntimeException("tpi path:" + f.getAbsolutePath(), e);
-            }
+
+            return manProcess.apply(manifest);
+
+//            try (JarInputStream tpiFIle = new JarInputStream(FileUtils.openInputStream(f), false)) {
+//                Manifest mfst = tpiFIle.getManifest();
+//                return manProcess.apply(mfst);
+//            } catch (Exception e) {
+//                throw new RuntimeException("tpi path:" + f.getAbsolutePath(), e);
+//            }
         }
 
         public static void main(String[] args) throws Exception {

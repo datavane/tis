@@ -19,6 +19,7 @@ package com.qlangtech.tis.extension;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
+import com.qlangtech.tis.extension.impl.PluginManifest;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.VersionNumber;
@@ -33,14 +34,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.jar.Attributes;
 import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.WARNING;
-import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 /**
  * port org.kohsuke.stapler.export.Exported;
@@ -90,7 +88,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
      * Plugin manifest.
      * Contains description of the plugin.
      */
-    private final Manifest manifest;
+    private final PluginManifest manifest;
 
     /**
      * {@link ClassLoader} for loading classes from this plugin.
@@ -198,9 +196,10 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
     }
 
     public YesNoMaybe supportsDynamicLoad() {
-        String v = manifest.getMainAttributes().getValue("Support-Dynamic-Loading");
-        if (v == null) { return YesNoMaybe.MAYBE;}
-        return Boolean.parseBoolean(v) ? YesNoMaybe.YES : YesNoMaybe.NO;
+//        String v = manifest.getMainAttributes().getValue("Support-Dynamic-Loading");
+//        if (v == null) { return YesNoMaybe.MAYBE;}
+//        return Boolean.parseBoolean(v) ? YesNoMaybe.YES : YesNoMaybe.NO;
+        return manifest.supportsDynamicLoad();
     }
 
 
@@ -267,11 +266,11 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
      * @param dependencies         a list of mandatory dependencies
      * @param optionalDependencies a list of optional dependencies
      */
-    public PluginWrapper(PluginManager parent, File archive, Manifest manifest, URL baseResourceURL, ClassLoader classLoader
+    public PluginWrapper(PluginManager parent, File archive, PluginManifest manifest, URL baseResourceURL, ClassLoader classLoader
             , File disableFile, List<Dependency> dependencies, List<Dependency> optionalDependencies) {
         this.parent = parent;
         this.manifest = manifest;
-        this.shortName = computeShortName(manifest, archive.getName());
+        this.shortName = manifest.computeShortName(archive.getName());
         this.baseResourceURL = baseResourceURL;
         this.classLoader = classLoader;
         this.disableFile = disableFile;
@@ -280,12 +279,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
         this.optionalDependencies = optionalDependencies;
         this.archive = archive;
         // String attrClazzier = manifest.getMainAttributes().getValue(PluginManager.PACAKGE_CLASSIFIER);
-        this.classifier = parseClassifier(manifest); //Optional.ofNullable(StringUtils.isEmpty(attrClazzier) ? null : new PluginClassifier(attrClazzier));
-    }
-
-    public static Optional<PluginClassifier> parseClassifier(Manifest manifest) {
-        String attrClazzier = manifest.getMainAttributes().getValue(PluginManager.PACAKGE_CLASSIFIER);
-        return Optional.ofNullable(StringUtils.isEmpty(attrClazzier) ? null : new PluginClassifier(attrClazzier));
+        this.classifier = manifest.parseClassifier(); //Optional.ofNullable(StringUtils.isEmpty(attrClazzier) ? null : new PluginClassifier(attrClazzier));
     }
 
     @Override
@@ -308,26 +302,6 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
             throw new Exception("Cannot find the plugin instance: " + shortName);
         }
         return plugin;
-    }
-
-    public static String computeShortName(Manifest manifest, String fileName) {
-        // use the name captured in the manifest, as often plugins
-        // depend on the specific short name in its URLs.
-        Attributes attrs = manifest.getMainAttributes();
-        if (attrs == null) {
-            throw new IllegalStateException(
-                    "fileName:" + fileName + " relevant MainAttributes can not be null");
-        }
-        String n = attrs.getValue(PluginStrategy.KEY_MANIFEST_SHORTNAME);
-        if (n != null)
-            return n;
-        // maven seems to put this automatically, so good fallback to check.
-        n = attrs.getValue("Extension-Name");
-        if (n != null) {
-            return n;
-        }
-        // this entry.
-        return getBaseName(fileName);
     }
 
     public List<Dependency> getDependencies() {
@@ -365,8 +339,10 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
     // @Exported
     public String getUrl() {
         // first look for the manifest entry. This is new in maven-hpi-plugin 1.30
-        String url = manifest.getMainAttributes().getValue("Url");
-        if (url != null) return url;
+        String url = manifest.getURL();//.getValue("Url");
+        if (url != null) {
+            return url;
+        }
         // fallback to update center metadata
 //        UpdateSite.Plugin ui = getInfo();
 //        if (ui != null) return ui.wiki;
@@ -384,18 +360,18 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
      */
     // @Exported
     public String getLongName() {
-        String name = manifest.getMainAttributes().getValue("Long-Name");
-        if (name != null)
-            return name;
-        return shortName;
+        return StringUtils.defaultIfBlank(manifest.getLongName(), shortName);//.getMainAttributes().getValue("Long-Name");
+//        if (name != null)
+//            return name;
+//        return shortName;
     }
 
     public String getGroupId() {
-        return manifest.getMainAttributes().getValue("Group-Id");
+        return manifest.getGroupId();//.getMainAttributes().getValue("Group-Id");
     }
 
     public long getLastModfiyTime() {
-        return Long.parseLong(manifest.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME));
+        return manifest.getLastModfiyTime();// Long.parseLong(manifest.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME));
     }
 
 //    public long getArchiveFileSize() {
@@ -422,19 +398,9 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
      */
     // @Exported
     public String getVersion() {
-        return getVersionOf(manifest);
+        return manifest.getVersionOf();// getVersionOf(manifest);
     }
 
-    private String getVersionOf(Manifest manifest) {
-        String v = manifest.getMainAttributes().getValue(PluginStrategy.KEY_MANIFEST_PLUGIN_VERSION);
-        if (v != null)
-            return v;
-        // plugins generated before maven-hpi-plugin 1.3 should still have this attribute
-        v = manifest.getMainAttributes().getValue("Implementation-Version");
-        if (v != null)
-            return v;
-        return "???";
-    }
 
     /**
      * Returns the version number of this plugin
@@ -537,9 +503,9 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
         return !disableFile.exists();
     }
 
-    public Manifest getManifest() {
-        return manifest;
-    }
+//    public Manifest getManifest() {
+//        return manifest;
+//    }
 
     public void setPlugin(Plugin plugin) {
         this.parent.pluginInstanceStore.store.put(this, plugin);
@@ -547,7 +513,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
     }
 
     public String getPluginClass() {
-        return manifest.getMainAttributes().getValue("Plugin-Class");
+        return manifest.getPluginClass(); //manifest.getMainAttributes().getValue("Plugin-Class");
     }
 
     public boolean hasLicensesXml() {
