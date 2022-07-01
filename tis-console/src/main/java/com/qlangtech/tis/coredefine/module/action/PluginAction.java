@@ -39,6 +39,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -50,6 +51,7 @@ import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.apache.struts2.dispatcher.HttpParameters;
@@ -236,6 +238,11 @@ public class PluginAction extends BasicModule {
       // 保证最新的安装job排列在最上面
       return b.id - a.id;
     });
+    jobs.forEach((job) -> {
+      if (job instanceof UpdateCenter.DownloadJob) {
+        ((UpdateCenter.DownloadJob) job).status.setUsed();
+      }
+    });
     setBizResult(context, jobs);
   }
 
@@ -275,6 +282,11 @@ public class PluginAction extends BasicModule {
 
       if (filterPlugin(plugin)) {
         continue;
+      }
+
+      Optional<PluginClassifier> classifier = plugin.getClassifier();
+      if (classifier.isPresent()) {
+        pluginInfo.put(PluginManager.PACAKGE_CLASSIFIER, classifier.get().getClassifier());
       }
 
       pluginInfo.put("name", plugin.getShortName());
@@ -353,17 +365,40 @@ public class PluginAction extends BasicModule {
     JSONObject willInstall = null;
     String pluginName = null;
     UpdateSite.Plugin plugin = null;
+    List<Pair<UpdateSite.Plugin, Optional<PluginClassifier>>> coords = Lists.newArrayList();
+    Optional<PluginClassifier> classifier = null;
+    String c = null;
     List<PluginWrapper> batch = new ArrayList<>();
     for (int i = 0; i < pluginsInstall.size(); i++) {
       willInstall = pluginsInstall.getJSONObject(i);
       pluginName = willInstall.getString("name");
+      classifier = Optional.empty();
+      if (StringUtils.isNotEmpty(c = willInstall.getString("selectedClassifier"))) {
+        classifier = Optional.of(new PluginClassifier(c));
+      }
+      if (willInstall.getBooleanValue("multiClassifier") && !classifier.isPresent()) {
+        // throw new IllegalStateException("willInstall is illegal:" + willInstall.toJSONString());
+        this.addFieldError(context, pluginName, "请阿选择安装的版本");
+        continue;
+      }
+
       if (StringUtils.isEmpty(pluginName)) {
         throw new IllegalStateException("plugin name can not empty");
       }
       plugin = updateCenter.getPlugin(pluginName);
-      Future<UpdateCenter.UpdateCenterJob> installJob = plugin.deploy(dynamicLoad, correlationId, batch);
+
+      coords.add(Pair.of(plugin, classifier));
+    }
+
+    if (this.hasErrors(context)) {
+      return;
+    }
+
+    for (Pair<UpdateSite.Plugin, Optional<PluginClassifier>> coord : coords) {
+      Future<UpdateCenter.UpdateCenterJob> installJob = coord.getLeft().deploy(dynamicLoad, correlationId, coord.getRight(), batch);
       installJobs.add(installJob);
     }
+
     if (dynamicLoad) {
       installJobs.add(updateCenter.addJob(updateCenter.new CompleteBatchJob(batch, start, correlationId)));
     }

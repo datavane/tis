@@ -1,32 +1,35 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.extension.model;
 
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.util.TestHeteroList;
+import com.qlangtech.tis.utils.TisMetaProps;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -36,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -111,7 +115,8 @@ public class TestUpdateCenter extends TestCase {
         /** ==========================================================================
          * 开始安装
          * ==========================================================================*/
-        Future<UpdateCenter.UpdateCenterJob> job = mysqlDSPlugin.deploy(true);
+        Optional<PluginClassifier> classifier = Optional.empty();
+        Future<UpdateCenter.UpdateCenterJob> job = mysqlDSPlugin.deploy(true, classifier);
         UpdateCenter.DownloadJob downloadJob = (UpdateCenter.DownloadJob) job.get();
         System.out.println(downloadJob.status);
         // 安装成功
@@ -128,7 +133,11 @@ public class TestUpdateCenter extends TestCase {
         if (HttpUtils.mockConnMaker != null) {
             // HttpUtils.mockConnMaker.clearStubs();
         }
-        return HttpUtils.addMockApply(0, "http://mirror.qlangtech.com/update-site/default.json", "default-update-site.json", TestUpdateCenter.class);
+        //http://mirror.qlangtech.com/3.6.0/update-site/default.json?id=default&version=%3F
+
+        return HttpUtils.addMockApply(0
+                , "http://mirror.qlangtech.com/" + TisMetaProps.getInstance().getVersion()
+                        + "/update-site/default.json", "default-update-site.json", TestUpdateCenter.class);
     }
 
     public void testLoad() throws Exception {
@@ -150,7 +159,33 @@ public class TestUpdateCenter extends TestCase {
 
 
         List<UpdateSite.Plugin> availables = updateCenter.getAvailables();
-        assertTrue(availables.size() > 0);
+        assertEquals(37, availables.size());
+
+        Map<String, UpdateSite.Plugin> plugins = availables.stream().collect(Collectors.toMap((p) -> p.getDisplayName(), (p) -> p));
+
+        final String dataxHudiPlugin = "tis-datax-hudi-plugin";
+        UpdateSite.Plugin dataxHudi = plugins.get(dataxHudiPlugin);
+        Assert.assertNotNull("dataxHudi can not be null", dataxHudi);
+
+        Assert.assertTrue(dataxHudi.getArts().size() == 2);
+
+        Set<String> assertClassifies = Sets.newHashSet("hudi_0.10.1;spark_3.2.1;hive_3.1.2;hadoop_3.2.1"
+                , "hudi_0.10.1;spark_2.4.4;hive_2.3.1;hadoop_2.7.3");
+
+        List<IPluginCoord> arts = dataxHudi.getArts();
+        Optional<PluginClassifier> classifier = null;
+        PluginClassifier c = null;
+        for (IPluginCoord coord : arts) {
+            Assert.assertEquals(dataxHudiPlugin, coord.getIdentityName());
+
+            Assert.assertNotNull(coord.getDownloadUrl());
+            Assert.assertTrue(coord.getSize() > 0);
+
+            classifier = coord.getClassifier();
+            Assert.assertTrue(classifier.isPresent());
+            c = classifier.get();
+            Assert.assertTrue("must contain in set:" + c.getClassifier(), assertClassifies.contains(c.getClassifier()));
+        }
     }
 
 }

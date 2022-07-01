@@ -36,6 +36,7 @@ import com.qlangtech.tis.util.exec.NamingThreadFactory;
 import com.qlangtech.tis.utils.TisMetaProps;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.io.output.NullOutputStream;
@@ -55,6 +56,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -73,6 +75,17 @@ public class UpdateCenter implements Saveable {
      */
     protected static final ExecutorService updateService = Executors.newCachedThreadPool(
             new NamingThreadFactory(new DaemonThreadFactory(), "Update site data downloader"));
+
+    public static void main(String[] args) {
+        long total = 688877996;
+        long count = 46847443;
+        //  (int) (((double) cin.getByteCount() / total) * 100);
+        int percentage = (int) (((double) count / total) * 100);
+        System.out.println(percentage);
+
+
+        System.out.println(percentage);
+    }
 
     /**
      * Read timeout when downloading plugins, defaults to 1 minute
@@ -519,12 +532,20 @@ public class UpdateCenter implements Saveable {
             File tmp = new File(dst.getPath() + ".tmp");
             // URLConnection con = null;
             //  try {
+            long total = job.getSize();
 
-            int total = HttpUtils.get(src, new ConfigFileContext.StreamProcess<Integer>() {
+            if (total < 1) {
+                // don't know exactly how this happens, but report like
+                // http://www.ashlux.com/wordpress/2009/08/14/hudson-and-the-sonar-plugin-fail-maveninstallation-nosuchmethoderror/
+                // indicates that this kind of inconsistency can happen. So let's be defensive
+                throw new IllegalStateException("Inconsistent file length: expected " + total);
+            }
+
+            HttpUtils.get(src, new ConfigFileContext.StreamProcess<Void>() {
                 @Override
-                public Integer p(HttpURLConnection con, InputStream stream) throws IOException {
+                public Void p(HttpURLConnection con, InputStream stream) throws IOException {
 
-                    int total = con.getContentLength();
+                    // con.getContentLength();
                     byte[] buf = new byte[8192];
                     int len;
 
@@ -534,23 +555,31 @@ public class UpdateCenter implements Saveable {
                         Thread t = Thread.currentThread();
                         String oldName = t.getName();
                         t.setName(oldName + ": " + src);
+                        int percentage;
                         try (OutputStream _out = Files.newOutputStream(tmp.toPath());
                              OutputStream out =
                                      sha1 != null ? new DigestOutputStream(
                                              sha256 != null ? new DigestOutputStream(
                                                      sha512 != null ? new DigestOutputStream(_out, sha512) : _out, sha256) : _out, sha1) : _out;
-                             InputStream in = con.getInputStream();
-                             CountingInputStream cin = new CountingInputStream(in)) {
+                             //InputStream in = con.getInputStream();
+                             CountingInputStream cin = new CountingInputStream(stream)) {
                             while ((len = cin.read(buf)) >= 0) {
                                 out.write(buf, 0, len);
-                                job.status = job.new Installing(total == -1 ? -1 : cin.getCount() * 100 / total);
+
+                                //
+                                if(job.status == null || job.status.used.get()){
+                                    percentage = (int) (((double) cin.getByteCount() / total) * 100);
+                                  //  System.out.println("---------cin.getCount():" + cin.getByteCount() + ",total:" + total + ",percentage:" + percentage);
+                                    job.status = job.new Installing(percentage, cin.getByteCount());
+                                }
+
                             }
                         } catch (IOException | InvalidPathException e) {
                             throw new IOException("Failed to load " + src + " to " + tmp, e);
                         } finally {
                             t.setName(oldName);
                         }
-                        return total;
+                        //  return total;
                     } catch (IOException e) {
                         // assist troubleshooting in case of e.g. "too many redirects" by printing actual URL
                         String extraMessage = "";
@@ -562,10 +591,11 @@ public class UpdateCenter implements Saveable {
                         }
                         throw new RuntimeException("Failed to download from " + src + extraMessage, e);
                     }
+                    return null;
                 }
 
                 @Override
-                public Integer p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
                     throw new UnsupportedOperationException();
                 }
             });
@@ -577,13 +607,6 @@ public class UpdateCenter implements Saveable {
 //                // many plugins
 //                con.setReadTimeout(PLUGIN_DOWNLOAD_READ_TIMEOUT);
 
-
-            if (total != -1 && total != tmp.length()) {
-                // don't know exactly how this happens, but report like
-                // http://www.ashlux.com/wordpress/2009/08/14/hudson-and-the-sonar-plugin-fail-maveninstallation-nosuchmethoderror/
-                // indicates that this kind of inconsistency can happen. So let's be defensive
-                throw new IOException("Inconsistent file length: expected " + total + " but only got " + tmp.length());
-            }
 
             if (sha1 != null) {
                 byte[] digest = sha1.digest();
@@ -851,6 +874,13 @@ public class UpdateCenter implements Saveable {
         public abstract String getName();
 
         /**
+         * 下载内容体积
+         *
+         * @return
+         */
+        public abstract long getSize();
+
+        /**
          * Display name used for the GUI.
          *
          * @since 2.189
@@ -974,6 +1004,12 @@ public class UpdateCenter implements Saveable {
         public abstract class InstallationStatus extends Throwable {
             public final int id = iota.incrementAndGet();
 
+            private final AtomicBoolean used = new AtomicBoolean(false);
+
+            public void setUsed() {
+                used.set(true);
+            }
+
             public boolean isSuccess() {
                 return false;
             }
@@ -1066,9 +1102,15 @@ public class UpdateCenter implements Saveable {
              * % completed download, or -1 if the percentage is not known.
              */
             public final int percentage;
+            private final long downloadSize;
 
-            public Installing(int percentage) {
+            public Installing(int percentage, long downloadSize) {
                 this.percentage = percentage;
+                this.downloadSize = downloadSize;
+            }
+
+            public String getDownload() {
+                return FileUtils.byteCountToDisplaySize(downloadSize);
             }
         }
     }
@@ -1079,6 +1121,7 @@ public class UpdateCenter implements Saveable {
          */
         @JSONField(serialize = false)
         public final UpdateSite.Plugin plugin;
+        private final IPluginCoord coord;
 
         protected final PluginManager pm = TIS.get().getPluginManager();
 
@@ -1089,23 +1132,40 @@ public class UpdateCenter implements Saveable {
 
         List<PluginWrapper> batch;
 
+        @Override
+        public final long getSize() {
+            try {
+                return coord.getSize();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         /**
          * @deprecated as of 1.442
          */
-        public InstallationJob(UpdateSite.Plugin plugin, UpdateSite site) {
-            this(plugin, site, false);
+        public InstallationJob(UpdateSite.Plugin plugin, IPluginCoord coord, UpdateSite site) {
+            this(plugin, coord, site, false);
         }
 
-
-        public InstallationJob(UpdateSite.Plugin plugin, UpdateSite site, boolean dynamicLoad) {
+        public InstallationJob(UpdateSite.Plugin plugin, IPluginCoord coord, UpdateSite site, boolean dynamicLoad) {
             super(site);
             this.plugin = plugin;
             this.dynamicLoad = dynamicLoad;
+            this.coord = coord;
+        }
+
+        public boolean isContainClassifier() {
+            return plugin.isMultiClassifier();
+        }
+
+        public String getClassifier() {
+            return this.coord.getGav();
         }
 
         @Override
         protected URL getURL() throws MalformedURLException {
-            return new URL(plugin.url);
+            return coord.getDownloadUrl(); //new URL(plugin.url);
         }
 
         @Override
@@ -1313,8 +1373,8 @@ public class UpdateCenter implements Saveable {
      * Enables a required plugin, provides feedback in the update center
      */
     public class EnableJob extends UpdateCenter.InstallationJob {
-        public EnableJob(UpdateSite site, UpdateSite.Plugin plugin, boolean dynamicLoad) {
-            super(plugin, site, dynamicLoad);
+        public EnableJob(UpdateSite site, UpdateSite.Plugin plugin, IPluginCoord coord, boolean dynamicLoad) {
+            super(plugin, coord, site, dynamicLoad);
         }
 
         public UpdateSite.Plugin getPlugin() {
@@ -1376,8 +1436,8 @@ public class UpdateCenter implements Saveable {
      * A no-op, e.g. this plugin is already installed
      */
     public class NoOpJob extends EnableJob {
-        public NoOpJob(UpdateSite site, UpdateSite.Plugin plugin) {
-            super(site, plugin, false);
+        public NoOpJob(UpdateSite site, UpdateSite.Plugin plugin, IPluginCoord coord) {
+            super(site, plugin, coord, false);
         }
 
         @Override

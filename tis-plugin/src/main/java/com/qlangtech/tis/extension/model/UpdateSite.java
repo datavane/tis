@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.ITPIArtifact;
+import com.qlangtech.tis.extension.ITPIArtifactMatch;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.plugins.DetachedPluginsUtil;
@@ -39,6 +40,7 @@ import com.qlangtech.tis.util.Util;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -48,7 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
@@ -242,7 +244,7 @@ public class UpdateSite {
         return dt.connectionCheckUrl;
     }
 
-    public static class Entry implements ITPIArtifact {
+    public static class Entry {
         public final String sourceId;
         /**
          * Artifact ID.
@@ -252,50 +254,27 @@ public class UpdateSite {
          * The version.
          */
         public final String version;
-        /**
-         * Download URL.
-         */
-        public final String url;
-        // non-private, non-final for test
-        /* final */ String sha1;
 
-        /* final */ String sha256;
 
-        /* final */ String sha512;
+        //  private final Optional<PluginClassifier> classifier;
 
-        private final Optional<PluginClassifier> classifier;
-
-        Entry(String sourceId, Optional<PluginClassifier> classifier, JSONObject o, String baseURL) {
+        Entry(String sourceId //, Optional<PluginClassifier> classifier
+                , JSONObject o, String baseURL) {
             this.sourceId = sourceId;
-            this.classifier = Objects.requireNonNull(classifier, "classifier can not be null");
+            // this.classifier = Objects.requireNonNull(classifier, "classifier can not be null");
             this.name = Util.intern(o.getString("name"));
             this.version = Util.intern(o.getString("version"));
-
-            // Trim this to prevent issues when the other end used Base64.encodeBase64String that added newlines
-            // to the end in old commons-codec. Not the case on updates.jenkins-ci.org, but let's be safe.
-            this.sha1 = Util.fixEmptyAndTrim(o.getString("sha1"));
-            this.sha256 = Util.fixEmptyAndTrim(o.getString("sha256"));
-            this.sha512 = Util.fixEmptyAndTrim(o.getString("sha512"));
-
-            String url = o.getString("url");
-            if (!URI.create(url).isAbsolute()) {
-                if (baseURL == null) {
-                    throw new IllegalArgumentException("Cannot resolve " + url + " without a base URL");
-                }
-                url = URI.create(baseURL).resolve(url).toString();
-            }
-            this.url = url;
         }
 
-        @Override
-        public String getIdentityName() {
-            return this.name;
-        }
+//        @Override
+//        public String getIdentityName() {
+//            return this.name;
+//        }
 
-        @Override
-        public Optional<PluginClassifier> getClassifier() {
-            return this.classifier;
-        }
+//        @Override
+//        public Optional<PluginClassifier> getClassifier() {
+//            return this.classifier;
+//        }
 
         /**
          * Checks if the specified "current version" is older than the version of this entry.
@@ -371,9 +350,8 @@ public class UpdateSite {
     static final Predicate<Object> IS_DEP_PREDICATE = x -> x instanceof JSONObject && get(((JSONObject) x), "name") != null;
     static final Predicate<Object> IS_NOT_OPTIONAL = x -> "false".equals(get(((JSONObject) x), "optional"));
 
-    public final class Plugin extends Entry {
-        public final String sizeLiteral;
-        public final long size;
+    public abstract class Plugin extends Entry {
+
         /**
          * Optional URL to the Wiki page that discusses this plugin.
          */
@@ -425,6 +403,10 @@ public class UpdateSite {
             return opts;
         }
 
+        public abstract boolean isMultiClassifier();
+
+        public abstract List<IPluginCoord> getArts();
+
         /**
          * Optional dependencies of this plugin.
          */
@@ -457,10 +439,9 @@ public class UpdateSite {
          */
         public String latest;
 
-        public Plugin(String sourceId, Optional<PluginClassifier> classifier, JSONObject o) {
-            super(sourceId, classifier, o, UpdateSite.this.url);
-            this.size = o.getLongValue("size");
-            this.sizeLiteral = FileUtils.byteCountToDisplaySize(this.size);
+        public Plugin(String sourceId, JSONObject o) {
+            super(sourceId, o, UpdateSite.this.url);
+
             this.wiki = get(o, "wiki");
             this.title = get(o, "title");
             this.excerpt = StringUtils.trimToNull(get(o, "excerpt"));
@@ -535,12 +516,12 @@ public class UpdateSite {
                     '}';
         }
 
-        public Future<UpdateCenter.UpdateCenterJob> deploy() {
-            return deploy(false);
+        public Future<UpdateCenter.UpdateCenterJob> deploy(Optional<PluginClassifier> classifier) {
+            return deploy(false, classifier);
         }
 
-        public Future<UpdateCenter.UpdateCenterJob> deploy(boolean dynamicLoad) {
-            return deploy(dynamicLoad, null, null);
+        public Future<UpdateCenter.UpdateCenterJob> deploy(boolean dynamicLoad, Optional<PluginClassifier> classifier) {
+            return deploy(dynamicLoad, null, classifier, null);
         }
 
         /**
@@ -557,31 +538,35 @@ public class UpdateSite {
          * @param correlationId A correlation ID to be set on the job.
          * @param batch         if defined, a list of plugins to add to, which will be started later
          */
-        public Future<UpdateCenter.UpdateCenterJob> deploy(boolean dynamicLoad, UUID correlationId, List<PluginWrapper> batch) {
+        public Future<UpdateCenter.UpdateCenterJob> deploy(boolean dynamicLoad, UUID correlationId
+                , Optional<PluginClassifier> classifier, List<PluginWrapper> batch) {
 
             UpdateCenter uc = TIS.get().getUpdateCenter();
             for (Plugin dep : getNeededDependencies()) {
                 UpdateCenter.InstallationJob job = uc.getJob(dep);
                 if (job == null || job.status instanceof UpdateCenter.DownloadJob.Failure) {
                     LOGGER.info("Adding dependent install of " + dep.name + " for plugin " + name);
-                    dep.deploy(dynamicLoad, /* UpdateCenterPluginInstallTest.test_installKnownPlugins specifically asks that these not be correlated */ null, batch);
+                    dep.deploy(dynamicLoad
+                            , /* UpdateCenterPluginInstallTest.test_installKnownPlugins specifically asks that these not be correlated */ null
+                            , classifier, batch);
                 } else {
                     LOGGER.info("Dependent install of {} for plugin {} already added, skipping", dep.name, name);
                 }
             }
+            IPluginCoord coord = getTargetCoord(this, classifier);
             PluginWrapper pw = getInstalled();
             if (pw != null) { // JENKINS-34494 - check for this plugin being disabled
                 Future<UpdateCenter.UpdateCenterJob> enableJob = null;
                 if (!pw.isEnabled()) {
-                    UpdateCenter.EnableJob job = uc.new EnableJob(UpdateSite.this, this, dynamicLoad);
+                    UpdateCenter.EnableJob job = uc.new EnableJob(UpdateSite.this, this, coord, dynamicLoad);
                     job.setCorrelationId(correlationId);
                     enableJob = uc.addJob(job);
                 }
                 if (pw.getVersionNumber().equals(new VersionNumber(version))) {
-                    return enableJob != null ? enableJob : uc.addJob(uc.new NoOpJob(UpdateSite.this, this));
+                    return enableJob != null ? enableJob : uc.addJob(uc.new NoOpJob(UpdateSite.this, this, coord));
                 }
             }
-            UpdateCenter.InstallationJob job = createInstallationJob(this, uc, dynamicLoad);
+            UpdateCenter.InstallationJob job = createInstallationJob(this, coord, uc, dynamicLoad);
             job.setCorrelationId(correlationId);
             job.setBatch(batch);
             return uc.addJob(job);
@@ -654,7 +639,15 @@ public class UpdateSite {
         @JSONField(serialize = false)
         public PluginWrapper getInstalled() {
             PluginManager pm = TIS.get().getPluginManager();
-            return pm.getPlugin(ITPIArtifact.matchh(this));
+            PluginWrapper plugin = null;
+            for (ITPIArtifact art : this.getArts()) {
+                plugin = pm.getPlugin(ITPIArtifact.matchh(art));
+                if (plugin != null) {
+                    return plugin;
+                }
+            }
+
+            return null;
         }
 
 
@@ -670,8 +663,32 @@ public class UpdateSite {
     }
 
 
-    protected UpdateCenter.InstallationJob createInstallationJob(Plugin plugin, UpdateCenter uc, boolean dynamicLoad) {
-        return uc.new InstallationJob(plugin, this, dynamicLoad);
+    protected UpdateCenter.InstallationJob createInstallationJob(Plugin plugin
+            , IPluginCoord coord, UpdateCenter uc, boolean dynamicLoad) {
+        // IPluginCoord coord = getTargetCoord(plugin, classifier);
+        return uc.new InstallationJob(plugin, coord, this, dynamicLoad);
+    }
+
+    private IPluginCoord getTargetCoord(Plugin plugin, Optional<PluginClassifier> classifier) {
+        List<IPluginCoord> arts = plugin.getArts();
+        IPluginCoord coord = null;
+        if (classifier.isPresent()) {
+            ITPIArtifactMatch match = ITPIArtifact.matchh(plugin.getDisplayName(), classifier);
+            match.setIdentityName(plugin.getDisplayName());
+            for (IPluginCoord c : arts) {
+                if (ITPIArtifact.isEquals(c, match)) {
+                    coord = c;
+                    break;
+                }
+            }
+        } else {
+            for (IPluginCoord c : arts) {
+                coord = c;
+                break;
+            }
+        }
+        Objects.requireNonNull(coord, "coord can not be null");
+        return coord;
     }
 
     private static String get(JSONObject o, String prop) {
@@ -681,6 +698,208 @@ public class UpdateSite {
 //                return o.getString(prop);
 //            else
 //                return null;
+    }
+
+    public Plugin createPlugin(final String sourceId, boolean supportMultiClassifier
+            , JSONObject pluginMeta, List<DftCoord> classifiers) {
+
+        if (supportMultiClassifier) {
+            return new MultiClassifierPlugin(sourceId, classifiers, pluginMeta);
+        } else {
+            return new NoneClassifierPlugin(sourceId, pluginMeta);
+        }
+    }
+
+    private static class DftCoord implements IPluginCoord {
+        private final URL downloadUrl;
+        private final String sha1;
+        private final String sha256;
+        private final long size;
+
+        private final PluginClassifier classifier;
+        private final String pluginName;
+        private final String sizeLiteral;
+
+        public DftCoord(String pluginName, JSONObject meta) {
+
+//            {
+//                "classifier":"hadoop_2.7.3",
+//                    "gav":"com.qlangtech.tis.plugins:tis-datax-hdfs-plugin_hadoop_2.7.3:3.6.0",
+//                    "sha1":"",
+//                    "sha256":"",
+//                    "size":49873753,
+//                    "url":"http://mirror.qlangtech.com/3.6.0/tis-plugin/tis-datax-hdfs-plugin/tis-datax-hdfs-plugin_hadoop_2.7.3.tpi"
+//            },
+            this.pluginName = pluginName;
+            this.classifier = new PluginClassifier(meta.getString("classifier"));
+            this.sha1 = meta.getString("sha1");
+            this.sha256 = meta.getString("sha256");
+            this.size = meta.getLongValue("size");
+
+            this.sizeLiteral = FileUtils.byteCountToDisplaySize(this.size);
+
+            try {
+                this.downloadUrl = new URL(meta.getString("url"));
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public String getSizeLiteral() {
+            return this.sizeLiteral;
+        }
+
+        @Override
+        @JSONField(serialize = false)
+        public String getIdentityName() {
+            //  throw new UnsupportedOperationException();
+            return this.pluginName;
+        }
+
+        @Override
+        @JSONField(serialize = false)
+        public Optional<PluginClassifier> getClassifier() {
+            return Optional.of(this.classifier);
+        }
+
+        public String getClassifierName() {
+            return this.classifier.getClassifier();
+        }
+
+
+        @Override
+        public URL getDownloadUrl() throws MalformedURLException {
+            return this.downloadUrl;
+        }
+
+        @Override
+        public String getSha1() throws IOException {
+            return this.sha1;
+        }
+
+        @Override
+        public String getSha256() throws IOException {
+            return this.sha256;
+        }
+
+        @Override
+        public long getSize() throws IOException {
+            return this.size;
+        }
+
+        @Override
+        public String getGav() {
+            return getClassifierName();
+        }
+    }
+
+    private class NoneClassifierPlugin extends Plugin implements IPluginCoord {
+
+        /**
+         * Download URL.
+         */
+        public final URL url;
+        // non-private, non-final for test
+        /* final */ String sha1;
+
+        /* final */ String sha256;
+
+        /* final */ String sha512;
+
+        public final String sizeLiteral;
+        public final long size;
+
+        public NoneClassifierPlugin(String sourceId, JSONObject o) {
+            super(sourceId, o);
+            String baseURL = UpdateSite.this.url;
+            // Trim this to prevent issues when the other end used Base64.encodeBase64String that added newlines
+            // to the end in old commons-codec. Not the case on updates.jenkins-ci.org, but let's be safe.
+            this.sha1 = Util.fixEmptyAndTrim(o.getString("sha1"));
+            this.sha256 = Util.fixEmptyAndTrim(o.getString("sha256"));
+            this.sha512 = Util.fixEmptyAndTrim(o.getString("sha512"));
+
+            try {
+                this.url = new URL(o.getString("url"));
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+            this.size = o.getLongValue("size");
+            this.sizeLiteral = FileUtils.byteCountToDisplaySize(this.size);
+//            if (!URI.create(url).isAbsolute()) {
+//                if (baseURL == null) {
+//                    throw new IllegalArgumentException("Cannot resolve " + url + " without a base URL");
+//                }
+//                url = URI.create(baseURL).resolve(url).toString();
+//            }
+            // this.url = url;
+        }
+
+        @Override
+        public List<IPluginCoord> getArts() {
+            return Collections.singletonList(this);
+        }
+
+        @Override
+        public boolean isMultiClassifier() {
+            return false;
+        }
+
+        @Override
+        public String getIdentityName() {
+            //throw new UnsupportedOperationException();
+            return this.name;
+        }
+
+        @Override
+        public URL getDownloadUrl() throws MalformedURLException {
+            return this.url; //new URL(this.url);
+        }
+
+        @Override
+        public String getSha1() throws IOException {
+            return this.sha1;
+        }
+
+        @Override
+        public String getSha256() throws IOException {
+            return this.sha256;
+        }
+
+        @Override
+        public long getSize() throws IOException {
+            return size;
+        }
+
+        @Override
+        public String getGav() {
+            return null;
+        }
+    }
+
+    private class MultiClassifierPlugin extends Plugin {
+
+        private final List<DftCoord> coords;
+
+        public MultiClassifierPlugin(String sourceId, List<DftCoord> coords, JSONObject o) {
+            super(sourceId, o);
+            if (CollectionUtils.isEmpty(coords)) {
+                throw new IllegalArgumentException("param coords can not be empty");
+            }
+            this.coords = coords;
+        }
+
+        @Override
+        public boolean isMultiClassifier() {
+            return true;
+        }
+
+        @Override
+        public List<IPluginCoord> getArts() {
+//            @Override
+//            List<ITPIArtifact> getArts() {
+            return coords.stream().map((c) -> c).collect(Collectors.toList());
+            //}
+        }
     }
 
     /**
@@ -724,7 +943,7 @@ public class UpdateSite {
             this.sourceId = Util.intern((String) o.get("id"));
             JSONObject c = o.getJSONObject("core");
             if (c != null) {
-                core = new Entry(sourceId, Optional.empty(), c, url);
+                core = new Entry(sourceId, c, url);
             } else {
                 core = null;
             }
@@ -760,41 +979,48 @@ public class UpdateSite {
 
             JSONObject plugins = o.getJSONObject("plugins");
             JSONObject pluginMeta = null;
-            List<Optional<PluginClassifier>> classifiers = null;
+            List<DftCoord> classifiers = null;
+            boolean supportMultiClassifier;
             for (Map.Entry<String, Object> e : plugins.entrySet()) {
                 pluginMeta = (JSONObject) e.getValue();
-                classifiers = Lists.newArrayList(Optional.empty());
+                classifiers = Lists.newArrayList();
+
+                supportMultiClassifier = pluginMeta.getBooleanValue("supportMultiClassifier");
                 JSONArray classifierInfo = pluginMeta.getJSONArray(PluginManager.PACAKGE_CLASSIFIER);
-                if (classifierInfo != null || classifierInfo.size() > 0) {
+                if (supportMultiClassifier && classifierInfo != null && classifierInfo.size() > 0) {
                     classifiers = classifierInfo.stream()
-                            .map((i) -> Optional.of(new PluginClassifier((String) i))).collect(Collectors.toList());
+                            .map((i) -> {
+                                return (new DftCoord(e.getKey(), (JSONObject) i));
+                            }).collect(Collectors.toList());
                 }
 
-                for (Optional<PluginClassifier> classifier : classifiers) {
-                    Plugin p = new Plugin(sourceId, classifier, pluginMeta);
-                    // JENKINS-33308 - include implied dependencies for older plugins that may need them
-                    List<PluginWrapper.Dependency> implicitDeps = DetachedPluginsUtil.getImpliedDependencies(p.name, p.requiredCore);
-                    if (!implicitDeps.isEmpty()) {
-                        for (PluginWrapper.Dependency dep : implicitDeps) {
-                            if (!p.dependencies.containsKey(dep.shortName)) {
-                                p.dependencies.put(dep.shortName, dep.version);
-                            }
-                        }
-                    }
-                    this.plugins.put(Util.intern(e.getKey()), p);
-
-                    // compatibility with update sites that have no separate 'deprecated' top-level entry.
-                    // Also do this even if there are deprecations to potentially allow limiting the top-level entry to overridden URLs.
-                    if (p.hasCategory("deprecated")) {
-                        if (!this.deprecations.containsKey(p.name)) {
-                            this.deprecations.put(p.name, new Deprecation(p.wiki));
+                // for (Optional<PluginClassifier> classifier : classifiers) {
+                // new Plugin(sourceId, classifier, pluginMeta);
+                Plugin p = createPlugin(sourceId, supportMultiClassifier, pluginMeta, classifiers);
+                // JENKINS-33308 - include implied dependencies for older plugins that may need them
+                List<PluginWrapper.Dependency> implicitDeps = DetachedPluginsUtil.getImpliedDependencies(p.name, p.requiredCore);
+                if (!implicitDeps.isEmpty()) {
+                    for (PluginWrapper.Dependency dep : implicitDeps) {
+                        if (!p.dependencies.containsKey(dep.shortName)) {
+                            p.dependencies.put(dep.shortName, dep.version);
                         }
                     }
                 }
+                this.plugins.put(Util.intern(e.getKey()), p);
+
+                // compatibility with update sites that have no separate 'deprecated' top-level entry.
+                // Also do this even if there are deprecations to potentially allow limiting the top-level entry to overridden URLs.
+                if (p.hasCategory("deprecated")) {
+                    if (!this.deprecations.containsKey(p.name)) {
+                        this.deprecations.put(p.name, new Deprecation(p.wiki));
+                    }
+                }
+                //}
             }
 
             connectionCheckUrl = (String) o.get("connectionCheckUrl");
         }
+
 
         /**
          * Returns the set of warnings

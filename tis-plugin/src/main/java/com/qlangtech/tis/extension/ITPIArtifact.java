@@ -43,14 +43,14 @@ public interface ITPIArtifact {
 
     static void matchDependency(PluginManager pluginManager, List<PluginWrapper.Dependency> dependencies
             , PluginWrapper pw, Consumer<Pair<PluginWrapper, PluginWrapper.Dependency>> pluginConsumer
-            , Consumer<PluginWrapper.Dependency>... missConsumer) {
+            , Consumer<Pair< PluginWrapper.Dependency , ITPIArtifactMatch>>... missConsumer) {
         matchDependency(pluginManager, dependencies, pw.getShortName(), pw.getClassifier(), pluginConsumer, missConsumer);
     }
 
 
     static void matchDependency(PluginManager pluginManager, List<PluginWrapper.Dependency> dependencies
             , String requiredFrom, Optional<PluginClassifier> classifier, Consumer<Pair<PluginWrapper, PluginWrapper.Dependency>> pluginConsumer
-            , Consumer<PluginWrapper.Dependency>... missConsumer) {
+            , Consumer<Pair<PluginWrapper.Dependency, ITPIArtifactMatch>>... missConsumer) {
         //Optional<PluginClassifier> classifier = pw.getClassifier();
         ITPIArtifactMatch match = ITPIArtifact.matchh(requiredFrom, classifier);
         for (PluginWrapper.Dependency d : dependencies) {
@@ -59,8 +59,8 @@ public interface ITPIArtifact {
             if (p != null) {
                 pluginConsumer.accept(Pair.of(p, d));
             } else {
-                for (Consumer<PluginWrapper.Dependency> c : missConsumer) {
-                    c.accept(d);
+                for (Consumer<Pair<PluginWrapper.Dependency, ITPIArtifactMatch>> c : missConsumer) {
+                    c.accept(Pair.of(d, match));
                 }
             }
         }

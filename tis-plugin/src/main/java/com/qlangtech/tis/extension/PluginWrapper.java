@@ -28,6 +28,7 @@ import com.qlangtech.tis.util.XStream2;
 import com.qlangtech.tis.util.YesNoMaybe;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Closeable;
 import java.io.File;
@@ -533,7 +534,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
      */
     /*package*/
     void resolvePluginDependencies() throws IOException {
-        List<Dependency> missingDependencies = new ArrayList<>();
+        List<Pair<Dependency, ITPIArtifactMatch>> missingDependencies = new ArrayList<>();
         //  ITPIArtifactMatch match = ITPIArtifact.match(this.classifier);
 
         ITPIArtifact.matchDependency(parent, dependencies, this, (p) -> {

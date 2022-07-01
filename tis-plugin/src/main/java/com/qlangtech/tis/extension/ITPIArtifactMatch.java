@@ -56,6 +56,15 @@ public class ITPIArtifactMatch implements ITPIArtifact {
     }
 
     @Override
+    public String toString() {
+        return "{" +
+                "classifier=" + (classifier.isPresent() ? classifier.get().getClassifier() : "not Present") +
+                ", identityName='" + identityName + '\'' +
+                ", requiredFrom='" + requiredFrom + '\'' +
+                '}';
+    }
+
+    @Override
     public Optional<PluginClassifier> getClassifier() {
         return this.classifier;
     }
