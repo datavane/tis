@@ -20,8 +20,8 @@ package com.qlangtech.tis.plugin;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter;
-import com.qlangtech.tis.util.XStream2;
 import com.qlangtech.tis.util.XStream2PluginInfoReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +84,7 @@ public class ComponentMeta {
      *
      * @return
      */
-    public Set<XStream2.PluginMeta> loadPluginMeta() {
+    public Set<PluginMeta> loadPluginMeta() {
 
         return loadPluginMeta(() -> {
             List<File> cfgs = Lists.newArrayList();
@@ -120,7 +120,7 @@ public class ComponentMeta {
     }
 
 
-    public static Set<XStream2.PluginMeta> loadPluginMeta(Callable<List<File>> xstreamFilesProvider) {
+    public static Set<PluginMeta> loadPluginMeta(Callable<List<File>> xstreamFilesProvider) {
 
         try {
             synchronized (RobustReflectionConverter.usedPluginInfo) {
@@ -175,11 +175,11 @@ public class ComponentMeta {
      *
      * @return 本地被更新的插件包
      */
-    public List<XStream2.PluginMeta> synchronizePluginsPackageFromRemote() {
-        List<XStream2.PluginMeta> updateTpiPkgs = Lists.newArrayList();
-        Set<XStream2.PluginMeta> pluginMetas = loadPluginMeta();
+    public List<PluginMeta> synchronizePluginsPackageFromRemote() {
+        List<PluginMeta> updateTpiPkgs = Lists.newArrayList();
+        Set<PluginMeta> pluginMetas = loadPluginMeta();
         try {
-            for (XStream2.PluginMeta m : pluginMetas) {
+            for (PluginMeta m : pluginMetas) {
                 List<File> pluginFileCollector = Lists.newArrayList();
                 if (m.copyFromRemote(pluginFileCollector)) {
                     // 本地包已经被更新

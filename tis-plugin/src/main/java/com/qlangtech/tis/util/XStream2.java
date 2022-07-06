@@ -24,8 +24,10 @@ import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.extension.impl.PluginManifest;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.annotation.ITmpFileStore;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
@@ -50,8 +52,11 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -140,184 +145,6 @@ public class XStream2 extends XStream {
             PluginWrapper p = pm.whichPlugin(clazz);
             return p != null ? p.getDesc().toString() : null;
         }
-    }
-
-    public static class PluginMeta {
-
-        public static final String NAME_VER_SPLIT = "@";
-
-        private final String name;
-
-        public final String ver;
-
-        protected Long lastModifyTimeStamp;
-
-        public String getPluginPackageName() {
-            return this.name + PluginManager.PACAKGE_TPI_EXTENSION;
-        }
-
-        public File getPluginPackageFile() {
-            return new File(TIS.pluginDirRoot, this.getPluginPackageName());
-        }
-
-        public PluginMeta(String name, String ver) {
-            this(name, ver, null);
-        }
-
-        public PluginMeta(String name, String ver, Long lastModifyTimeStamp) {
-            this.name = name;
-            this.ver = ver;
-            this.lastModifyTimeStamp = lastModifyTimeStamp;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return this.hashCode() == o.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            StringBuffer buffer = new StringBuffer(getKey());
-            if (lastModifyTimeStamp != null) {
-                buffer.append(NAME_VER_SPLIT).append(this.lastModifyTimeStamp);
-            }
-            return buffer.toString();
-        }
-
-        public String getKey() {
-            return (new StringBuffer(name + NAME_VER_SPLIT + ver)).toString();
-        }
-
-        public String getPluginName() {
-            return this.name;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, ver);
-        }
-
-        public static List<PluginMeta> parse(String attribute) {
-            List<PluginMeta> result = Lists.newArrayList();
-            String[] metaArray = StringUtils.split(attribute, ",");
-            for (String meta : metaArray) {
-                String[] verinfo = StringUtils.split(meta, NAME_VER_SPLIT);
-                if (verinfo.length == 2) {
-                    result.add(new PluginMeta(verinfo[0], verinfo[1]));
-                } else if (verinfo.length == 3) {
-                    result.add(new PluginMeta(verinfo[0], verinfo[1], Long.parseLong(verinfo[2])) {
-                        @Override
-                        public long getLastModifyTimeStamp() {
-                            return lastModifyTimeStamp;
-                        }
-                    });
-                } else {
-                    throw new IllegalArgumentException("attri is invalid:" + attribute);
-                }
-
-            }
-            return result;
-        }
-
-        /**
-         * plugin的最终打包时间
-         *
-         * @return
-         */
-        public long getLastModifyTimeStamp() {
-            if (lastModifyTimeStamp != null) {
-                return this.lastModifyTimeStamp;
-            }
-            return this.lastModifyTimeStamp = processJarManifest((mfst) ->
-                    (mfst == null) ? -1 : mfst.getLastModfiyTime()// Long.parseLong(.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME))
-            );
-        }
-
-        public boolean isLastModifyTimeStampNull() {
-            return lastModifyTimeStamp == null;
-        }
-
-        public List<PluginMeta> getMetaDependencies() {
-            return processJarManifest((mfst) -> {
-                if (mfst == null) {
-                    // throw new IllegalStateException("plugin:" + PluginMeta.this.toString() + " relevant manifest can not be null");
-                    return Collections.emptyList();
-                }
-                ClassicPluginStrategy.DependencyMeta dpts = mfst.getDependencyMeta();// ClassicPluginStrategy.getDependencyMeta(mfst.getMainAttributes());
-                return dpts.dependencies.stream().map((d) -> new PluginMeta(d.shortName, d.version)).collect(Collectors.toList());
-            });
-        }
-
-        private <R> R processJarManifest(Function<PluginManifest, R> manProcess) {
-            File f = getPluginPackageFile();
-//            if (!f.exists()) {
-//                // throw new IllegalStateException("file:" + f.getPath() + " is not exist");
-//                return manProcess.apply(null);
-//            }
-            PluginManifest manifest = PluginManifest.create(f);
-            if (manifest == null) {
-                return manProcess.apply(null);
-            }
-
-            return manProcess.apply(manifest);
-
-//            try (JarInputStream tpiFIle = new JarInputStream(FileUtils.openInputStream(f), false)) {
-//                Manifest mfst = tpiFIle.getManifest();
-//                return manProcess.apply(mfst);
-//            } catch (Exception e) {
-//                throw new RuntimeException("tpi path:" + f.getAbsolutePath(), e);
-//            }
-        }
-
-        public static void main(String[] args) throws Exception {
-            File f = new File("/Users/mozhenghua/j2ee_solution/project/plugins/tis-datax/tis-datax-hudi-plugin/target/tis-datax-hudi-plugin.tpi");
-            try (JarFile tpiFIle = new JarFile(f, false)) {
-                tpiFIle.stream().forEach((e) -> System.out.println(e.getName()));
-            }
-        }
-
-
-        public boolean copyFromRemote() {
-            return copyFromRemote(Lists.newArrayList());
-        }
-
-        public boolean copyFromRemote(List<File> pluginFileCollector) {
-            return copyFromRemote(pluginFileCollector, false, false);
-        }
-
-        /**
-         * 将远端插件拷贝到本地
-         */
-        public boolean copyFromRemote(List<File> pluginFileCollector, boolean ignoreDependencies, boolean directDownload) {
-            final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + TIS.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
-            final File local = getPluginPackageFile();
-            boolean updated = CenterResource.copyFromRemote2Local(url, local, directDownload);
-            if (!ignoreDependencies && updated) {
-                for (XStream2.PluginMeta d : this.getMetaDependencies()) {
-                    d.copyFromRemote(pluginFileCollector);
-                }
-                pluginFileCollector.add(local);
-            }
-            return updated;
-        }
-
-//        public void install() {
-//            try {
-//                if (!TIS.permitInitialize) {
-//                    return;
-//                }
-//                logger.info("dyanc install:{} to classloader ", this.toString());
-//                PluginManager pluginManager = TIS.get().getPluginManager();
-//                File pluginFile = getPluginPackageFile();
-//                List<PluginWrapper> plugins = Lists.newArrayList(
-//                        pluginManager.getPluginStrategy().createPluginWrapper(pluginFile));
-//
-//                pluginManager.dynamicLoad(pluginFile, false, null);
-//                pluginManager.start(plugins);
-//            } catch (Throwable e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
     }
 
     /**

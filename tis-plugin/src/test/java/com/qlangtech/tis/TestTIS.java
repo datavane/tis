@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.util.PluginMeta;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -51,10 +51,10 @@ public class TestTIS extends TestCase {
         for (String f : subFiles) {
             subs.add(CenterResource.copyFromRemote2Local(CenterResource.getPath(collectionRelativePath, f), true));
         }
-        Set<XStream2.PluginMeta> pluginMetas = TIS.loadIncrComponentUsedPlugin(collection, subs, true);
+        Set<PluginMeta> pluginMetas = TIS.loadIncrComponentUsedPlugin(collection, subs, true);
 
         assertEquals(2, pluginMetas.size());
-        for (XStream2.PluginMeta pluginName : pluginMetas) {
+        for (PluginMeta pluginName : pluginMetas) {
             System.out.println("used plugin:" + pluginName);
         }
     }

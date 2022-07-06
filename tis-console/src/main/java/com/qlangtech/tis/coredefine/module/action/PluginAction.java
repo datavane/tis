@@ -92,7 +92,9 @@ public class PluginAction extends BasicModule {
   }
 
   private static void notifyPluginUpdate2AssembleNode(String applyParams, String targetResource) {
+    long start = System.currentTimeMillis();
     try {
+
       URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + applyParams);
       HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
         @Override
@@ -102,7 +104,7 @@ public class PluginAction extends BasicModule {
         }
       });
     } catch (Exception e) {
-      logger.warn("apply clean " + targetResource + " cache faild " + e.getMessage());
+      logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms, cache faild " + e.getMessage());
     }
   }
 
@@ -378,7 +380,7 @@ public class PluginAction extends BasicModule {
       }
       if (willInstall.getBooleanValue("multiClassifier") && !classifier.isPresent()) {
         // throw new IllegalStateException("willInstall is illegal:" + willInstall.toJSONString());
-        this.addFieldError(context, pluginName, "请阿选择安装的版本");
+        this.addFieldError(context, pluginName, "请选择安装的版本");
         continue;
       }
 

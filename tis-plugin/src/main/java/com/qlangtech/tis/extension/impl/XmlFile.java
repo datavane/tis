@@ -19,6 +19,7 @@ package com.qlangtech.tis.extension.impl;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.util.AtomicFileWriter;
+import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.XStream2;
 import com.qlangtech.tis.utils.MD5Utils;
 import com.thoughtworks.xstream.XStream;
@@ -131,7 +132,7 @@ public final class XmlFile {
      * @return
      * @throws IOException
      */
-    public boolean write(Object o, Set<XStream2.PluginMeta> pluginsMeta) throws IOException {
+    public boolean write(Object o, Set<PluginMeta> pluginsMeta) throws IOException {
         mkdirs();
         String preMd5 = null;
         boolean preFileExist = file.exists();
@@ -161,17 +162,17 @@ public final class XmlFile {
     public static class DefaultDataHolder implements DataHolder {
 
         // Map<Object, Object> map = new HashMap<>();
-        private final Set<XStream2.PluginMeta> pluginsMeta;
+        private final Set<PluginMeta> pluginsMeta;
         private final XmlFile xmlFile;
 
-        public DefaultDataHolder(Set<XStream2.PluginMeta> pluginsMeta, XmlFile xmlFile) {
+        public DefaultDataHolder(Set<PluginMeta> pluginsMeta, XmlFile xmlFile) {
             this.pluginsMeta = pluginsMeta;
             this.xmlFile = xmlFile;
         }
 
         @Override
         public Object get(Object key) {
-            if (key == XStream2.PluginMeta.class) {
+            if (key == PluginMeta.class) {
                 return pluginsMeta;
             }
             if (key == XmlFile.class) {

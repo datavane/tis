@@ -22,13 +22,15 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
+import com.qlangtech.tis.util.PluginMeta;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -71,7 +73,22 @@ public class TestPluginStore extends TestCase {
         assertNotNull(plugin);
         assertEquals(VALUE_PROP_1, plugin.prop1);
         assertEquals(VALUE_PROP_2, plugin.prop2);
+
+
+        ComponentMeta componentMeta = new ComponentMeta(pstore);
+        Set<PluginMeta> pluginMetas = componentMeta.loadPluginMeta();
+        Assert.assertTrue("pluginMetas.size() > 0", pluginMetas.size() == 1);
+        Optional<PluginMeta> f = pluginMetas.stream().findFirst();
+        PluginMeta meta = f.get();
+        assertEquals(testMeta.getPluginName(), meta.getPluginName());
+        assertEquals(testMeta.ver, meta.ver);
+        Optional<PluginClassifier> classifier = meta.classifier;
+        Assert.assertTrue(classifier.isPresent());
+        assertEquals(classifier_hdfs, classifier.get().getClassifier());
     }
+
+    final static String classifier_hdfs = "hdfs_2.1.3";
+    private static final PluginMeta testMeta = new PluginMeta("testmeta", "1.0.0", Optional.of(new PluginClassifier(classifier_hdfs)));
 
     public static List<Descriptor.ParseDescribable<TestPlugin>> createTestPlugin() {
         TestPlugin p = new TestPlugin();
@@ -79,7 +96,8 @@ public class TestPluginStore extends TestCase {
         p.prop2 = VALUE_PROP_2;
         List<Descriptor.ParseDescribable<TestPlugin>> dlist = Lists.newArrayList();
         Descriptor.ParseDescribable parseDescribable = new Descriptor.ParseDescribable(p);
-        parseDescribable.extraPluginMetas.add(new XStream2.PluginMeta("testmeta", "1.0.0"));
+
+        parseDescribable.extraPluginMetas.add(testMeta);
         dlist.add(parseDescribable);
         return dlist;
     }

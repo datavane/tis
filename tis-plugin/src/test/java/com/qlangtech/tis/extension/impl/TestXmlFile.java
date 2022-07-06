@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
-import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.util.PluginMeta;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
@@ -53,16 +53,16 @@ public class TestXmlFile extends TestCase {
         plugins.add(new TestBean("baisui"));
         plugins.add(new TestBean("dabao"));
         plugins.add(new TestBean("xiaobao"));
-        Set<XStream2.PluginMeta> pluginsMeta = Sets.newHashSet();
-        pluginsMeta.addAll(XStream2.PluginMeta.parse("test1@1.1"));
-        pluginsMeta.addAll(XStream2.PluginMeta.parse("mock2@1.2"));
+        Set<PluginMeta> pluginsMeta = Sets.newHashSet();
+        pluginsMeta.addAll(PluginMeta.parse("test1@1.1"));
+        pluginsMeta.addAll(PluginMeta.parse("mock2@1.2"));
         xmlFile.write(plugins, pluginsMeta);
         List<IRepositoryResource> resources = Lists.newArrayList();
         resources.add(new FileRepositoryResource(testFile));
         ComponentMeta componentMeta = new ComponentMeta(resources);
-        Set<XStream2.PluginMeta> pluginMetaSet = componentMeta.loadPluginMeta();
+        Set<PluginMeta> pluginMetaSet = componentMeta.loadPluginMeta();
         assertEquals(2, pluginMetaSet.size());
-        for (XStream2.PluginMeta pm : pluginsMeta) {
+        for (PluginMeta pm : pluginsMeta) {
             assertTrue(pm.toString(), pluginMetaSet.contains(pm));
         }
         FileUtils.deleteQuietly(testFile);

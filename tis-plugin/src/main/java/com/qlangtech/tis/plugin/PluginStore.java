@@ -29,7 +29,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.util.PluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -231,7 +231,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
             , List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
         try {
-            Set<XStream2.PluginMeta> pluginsMeta = Sets.newHashSet();
+            Set<PluginMeta> pluginsMeta = Sets.newHashSet();
             List<T> collect = dlist.stream().flatMap((r) -> {
                 pluginsMeta.addAll(r.extraPluginMetas);
                 if (!r.subFormFields) {

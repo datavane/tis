@@ -21,6 +21,7 @@ package com.qlangtech.tis.maven.plugins.tpi;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -29,6 +30,7 @@ import java.util.*;
 public class PluginClassifier {
     public static final String PACAKGE_TPI_EXTENSION_NAME = "tpi";
     private static final String DIMENSION_SPLIT = ";";
+    private static final String TUPLE_SPLIT = "_";
     private final String classifier;
 
     private Map<String, String> dimension;
@@ -52,7 +54,20 @@ public class PluginClassifier {
     };
 
     public PluginClassifier(String classifier) {
-        this.classifier = classifier;
+        this.classifier = Objects.requireNonNull(classifier, "param classifier can not be empty");
+    }
+
+    public PluginClassifier(Map<String, String> dimension) {
+        this(validateDimension(dimension).entrySet().stream()
+                .map((d) -> d.getKey() + TUPLE_SPLIT + d.getValue())
+                .collect(Collectors.joining(DIMENSION_SPLIT)));
+    }
+
+    public static Map<String, String> validateDimension(Map<String, String> dimension) {
+        if (dimension == null || dimension.isEmpty()) {
+            throw new IllegalArgumentException("param dimension can not be empty");
+        }
+        return dimension;
     }
 
     public String getTPIPluginName(String tpiName, String extension) {
@@ -83,12 +98,13 @@ public class PluginClassifier {
         return this.classifier;
     }
 
-    private Map<String, String> getDimension() {
+
+    public Map<String, String> dimensionMap() {
 
         if (dimension == null) {
             dimension = new HashMap<>();
             for (String dim : StringUtils.split(this.classifier, DIMENSION_SPLIT)) {
-                String[] tuple = StringUtils.split(dim, "_");
+                String[] tuple = StringUtils.split(dim, TUPLE_SPLIT);
                 if (tuple.length != 2) {
                     throw new IllegalStateException("the format of classifier is illegal:" + this.classifier);
                 }
@@ -120,9 +136,9 @@ public class PluginClassifier {
      * @return
      */
     public boolean match(String requiredFrom, PluginClassifier candidateClassifier) {
-        Map<String, String> dimension = this.getDimension();
+        Map<String, String> dimension = this.dimensionMap();
 
-        for (Map.Entry<String, String> candidateDim : candidateClassifier.getDimension().entrySet()) {
+        for (Map.Entry<String, String> candidateDim : candidateClassifier.dimensionMap().entrySet()) {
             String dimVal = dimension.get(candidateDim.getKey());
             if (StringUtils.isEmpty(dimVal)) {
                 throw new IllegalStateException("requiredFrom:" + requiredFrom + " candidate dim:" + candidateDim.getKey()
@@ -133,5 +149,10 @@ public class PluginClassifier {
             }
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return this.classifier;
     }
 }

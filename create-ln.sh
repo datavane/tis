@@ -1,7 +1,7 @@
 # https://blog.csdn.net/qq_38425719/article/details/102515854
 # relevant java code in CreateSoftLink.java
-rm -f /opt/data/tis/libs/plugins/*.jpi
-rm -f /opt/data/tis/libs/plugins/*.tpi
+rm -rf /opt/data/tis/libs/plugins/*
+#rm -f /opt/data/tis/libs/plugins/*.tpi
 
 
 for f in `find /Users/mozhenghua/j2ee_solution/project/plugins  -name '*.tpi' -print`
@@ -11,11 +11,11 @@ do
 done ;
 
 #for tis-scala-compiler-dependencies
-rm -f /opt/data/tis/libs/tis-scala-compiler-dependencies/*
-cd ./tis-scala-compiler-dependencies
-mvn dependency:copy-dependencies
-mkdir -p /opt/data/tis/libs/tis-scala-compiler-dependencies
-ln -s /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-scala-compiler-dependencies/target/dependency/* /opt/data/tis/libs/tis-scala-compiler-dependencies
+#rm -f /opt/data/tis/libs/tis-scala-compiler-dependencies/*
+#cd ./tis-scala-compiler-dependencies
+#mvn dependency:copy-dependencies
+#mkdir -p /opt/data/tis/libs/tis-scala-compiler-dependencies
+#ln -s /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-scala-compiler-dependencies/target/dependency/* /opt/data/tis/libs/tis-scala-compiler-dependencies
 
 
 #/Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency

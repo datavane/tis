@@ -29,7 +29,7 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solr.common.DOMUtil;
 import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.util.PluginMeta;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -71,7 +71,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         File appDir = getSubPathDir(appKey);
         File lastModify = getLastModifyToken(appKey);// new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
         long lastModfiyTimeStamp = -1;
-        Set<XStream2.PluginMeta> metas = Collections.emptySet();
+        Set<PluginMeta> metas = Collections.emptySet();
 
 
         try {
@@ -105,12 +105,12 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         public static final String KEY_APP_LAST_MODIFY_TIMESTAMP = "appLastModifyTimestamp";
 
 
-        public final Set<XStream2.PluginMeta> metas;
+        public final Set<PluginMeta> metas;
         public final long lastModifyTimestamp;
 
         public final File appDir;
 
-        public PluginMetas(File appDir, Set<XStream2.PluginMeta> metas, long lastModifyTimestamp) {
+        public PluginMetas(File appDir, Set<PluginMeta> metas, long lastModifyTimestamp) {
             this.metas = metas;
             this.lastModifyTimestamp = lastModifyTimestamp;
             this.appDir = appDir;

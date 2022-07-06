@@ -44,6 +44,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +56,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -573,12 +575,9 @@ public class UpdateSite {
         }
 
 
-        /**
-         * Returns a list of dependent plugins which need to be installed or upgraded for this plugin to work.
-         */
-        public List<Plugin> getNeededDependencies() {
-            List<Plugin> deps = new ArrayList<>();
-
+        @JSONField(serialize = false)
+        public List<Pair<Plugin, VersionNumber>> getDependencyPlugins() {
+            List<Pair<Plugin, VersionNumber>> deps = new ArrayList<>();
             for (Map.Entry<String, String> e : dependencies.entrySet()) {
                 VersionNumber requiredVersion = e.getValue() != null ? new VersionNumber(e.getValue()) : null;
                 Plugin depPlugin = TIS.get().getUpdateCenter().getPlugin(e.getKey(), requiredVersion);
@@ -588,20 +587,66 @@ public class UpdateSite {
                 }
 
                 // Is the plugin installed already? If not, add it.
-                PluginWrapper current = depPlugin.getInstalled();
+                deps.add(Pair.of(depPlugin, requiredVersion));
+//                if (depPlugin.needInstall(requiredVersion)) {
+//                    deps.add(depPlugin);
+//                }
 
-                if (current == null) {
-                    deps.add(depPlugin);
+//                PluginWrapper current = depPlugin.getInstalled();
+//
+//                if (current == null) {
+//                    deps.add(depPlugin);
+//                }
+//                // If the dependency plugin is installed, is the version we depend on newer than
+//                // what's installed? If so, upgrade.
+//                else if (current.isOlderThan(requiredVersion)) {
+//                    deps.add(depPlugin);
+//                }
+//                // JENKINS-34494 - or if the plugin is disabled, this will allow us to enable it
+//                else if (!current.isEnabled()) {
+//                    deps.add(depPlugin);
+//                }
+            }
+            return deps;
+        }
+
+        /**
+         * Returns a list of dependent plugins which need to be installed or upgraded for this plugin to work.
+         */
+        public List<Plugin> getNeededDependencies() {
+            List<Plugin> deps = new ArrayList<>();
+
+
+            for (Pair<Plugin, VersionNumber> depPlugin : getDependencyPlugins()) {
+
+
+//                VersionNumber requiredVersion = e.getValue() != null ? new VersionNumber(e.getValue()) : null;
+//                Plugin depPlugin = TIS.get().getUpdateCenter().getPlugin(e.getKey(), requiredVersion);
+//                if (depPlugin == null) {
+//                    LOGGER.warn("Could not find dependency {} of {}", e.getKey(), name);
+//                    continue;
+//                }
+
+                // Is the plugin installed already? If not, add it.
+
+                if (depPlugin.getLeft().needInstall(depPlugin.getRight())) {
+                    deps.add(depPlugin.getLeft());
                 }
-                // If the dependency plugin is installed, is the version we depend on newer than
-                // what's installed? If so, upgrade.
-                else if (current.isOlderThan(requiredVersion)) {
-                    deps.add(depPlugin);
-                }
-                // JENKINS-34494 - or if the plugin is disabled, this will allow us to enable it
-                else if (!current.isEnabled()) {
-                    deps.add(depPlugin);
-                }
+
+//                PluginWrapper current = depPlugin.getInstalled();
+//
+//                if (current == null) {
+//                    deps.add(depPlugin);
+//                }
+//                // If the dependency plugin is installed, is the version we depend on newer than
+//                // what's installed? If so, upgrade.
+//                else if (current.isOlderThan(requiredVersion)) {
+//                    deps.add(depPlugin);
+//                }
+//                // JENKINS-34494 - or if the plugin is disabled, this will allow us to enable it
+//                else if (!current.isEnabled()) {
+//                    deps.add(depPlugin);
+//                }
             }
 
             for (Map.Entry<String, String> e : optionalDependencies.entrySet()) {
@@ -650,6 +695,25 @@ public class UpdateSite {
             return null;
         }
 
+        private boolean needInstall(VersionNumber requiredVersion) {
+            PluginWrapper current = this.getInstalled();
+
+            if (current == null) {
+                return true;
+            }
+            // If the dependency plugin is installed, is the version we depend on newer than
+            // what's installed? If so, upgrade.
+            else if (current.isOlderThan(requiredVersion)) {
+                return true;
+            }
+            // JENKINS-34494 - or if the plugin is disabled, this will allow us to enable it
+            else if (!current.isEnabled()) {
+                return true;
+            }
+
+            return false;
+        }
+
 
         public String getDisplayName() {
             String displayName;
@@ -687,7 +751,8 @@ public class UpdateSite {
                 break;
             }
         }
-        Objects.requireNonNull(coord, "coord can not be null");
+        Objects.requireNonNull(coord, "plugin:" + plugin.getDisplayName()
+                + (classifier.isPresent() ? ",for classifier:" + classifier.get().getClassifier() : StringUtils.EMPTY) + ",coord can not be null");
         return coord;
     }
 
@@ -835,6 +900,7 @@ public class UpdateSite {
         }
 
         @Override
+        @JSONField(serialize = false)
         public List<IPluginCoord> getArts() {
             return Collections.singletonList(this);
         }
@@ -876,9 +942,17 @@ public class UpdateSite {
         }
     }
 
+    public static ThreadLocal<ConcurrentHashMap<String, List<IPluginCoord>>> pluginArts = new ThreadLocal<ConcurrentHashMap<String, List<IPluginCoord>>>() {
+        @Override
+        protected ConcurrentHashMap<String, List<IPluginCoord>> initialValue() {
+            return new ConcurrentHashMap<>();
+        }
+    };
+
     private class MultiClassifierPlugin extends Plugin {
 
         private final List<DftCoord> coords;
+
 
         public MultiClassifierPlugin(String sourceId, List<DftCoord> coords, JSONObject o) {
             super(sourceId, o);
@@ -893,12 +967,69 @@ public class UpdateSite {
             return true;
         }
 
+
         @Override
+        @JSONField(serialize = true)
         public List<IPluginCoord> getArts() {
-//            @Override
-//            List<ITPIArtifact> getArts() {
-            return coords.stream().map((c) -> c).collect(Collectors.toList());
-            //}
+            return pluginArts.get().computeIfAbsent(this.getDisplayName(), (key) -> {
+                Plugin plugin = null;
+                // 如果被依赖的插件已经先安装上上了，那么，新加的差价必须要和被依赖的插件的 classifier相一致
+                // PluginWrapper installed = null;
+                List<ITPIArtifact> installCoords = Lists.newArrayList();
+                getDepInstallCoords(installCoords, MultiClassifierPlugin.this);
+
+                Optional<ITPIArtifact> containClassifier
+                        = installCoords.stream().filter((c) -> c.getClassifier().isPresent()).findAny();
+
+                if (CollectionUtils.isEmpty(installCoords) || !containClassifier.isPresent()) {
+                    return coords.stream().collect(Collectors.toList());
+                } else {
+                    final String id = "merge";
+                    Optional<PluginClassifier> depClassifier = null;
+                    PluginClassifier c = null;
+                    Map<String, String> dimension = Maps.newHashMap();
+                    for (ITPIArtifact dep : installCoords) {
+                        depClassifier = dep.getClassifier();
+                        if (depClassifier.isPresent()) {
+                            c = depClassifier.get();
+                            dimension.putAll(c.dimensionMap());
+                        }
+                    }
+                    PluginClassifier.validateDimension(dimension);
+
+                    ITPIArtifact merge = new ITPIArtifact() {
+                        @Override
+                        public String getIdentityName() {
+                            return id;
+                        }
+
+                        @Override
+                        public Optional<PluginClassifier> getClassifier() {
+                            return Optional.of(new PluginClassifier(dimension));
+                        }
+                    };
+
+                    return coords.stream().filter((coord) -> {
+                        ITPIArtifactMatch matchh = ITPIArtifact.matchh(this.getDisplayName(), coord.getClassifier());
+                        matchh.setIdentityName(id);
+                        return ITPIArtifact.isEquals(merge, matchh);
+                    }).collect(Collectors.toList());
+                }
+            });
+
+
+        }
+
+        private void getDepInstallCoords(List<ITPIArtifact> installCoords, Plugin p) {
+            Plugin plugin = null;
+            for (Pair<Plugin, VersionNumber> depPlugin : p.getDependencyPlugins()) {
+                // Is the plugin installed already? If not, add it.
+                plugin = depPlugin.getLeft();
+                if (!plugin.needInstall(depPlugin.getRight())) {
+                    installCoords.add(plugin.getInstalled());
+                }
+                getDepInstallCoords(installCoords, plugin);
+            }
         }
     }
 

@@ -42,10 +42,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
-import com.qlangtech.tis.util.AttrValMap;
-import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.ISelectOptionsGetter;
-import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.util.*;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
@@ -1071,7 +1068,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                     if (StringUtils.equals((String) attrVal, opt.getString("name"))) {
                                         Class<?> implClass = TIS.get().pluginManager.uberClassLoader.loadClass(opt.getString("impl"));
                                         PluginWrapper pluginWrapper = TIS.get().pluginManager.whichPlugin(implClass);
-                                        XStream2.PluginMeta pluginMeta = pluginWrapper.getDesc();
+                                        PluginMeta pluginMeta = pluginWrapper.getDesc();
                                         result.extraPluginMetas.add(pluginMeta);
                                         break;
                                     }
@@ -1106,7 +1103,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         private final List<T> instance;
         public final boolean subFormFields;
 
-        public final List<XStream2.PluginMeta> extraPluginMetas = Lists.newArrayList();
+        public final List<PluginMeta> extraPluginMetas = Lists.newArrayList();
 
         public ParseDescribable(T instance) {
             this(Collections.singletonList(instance), false);

@@ -664,7 +664,7 @@ public class TIS {
      * @param incrPluginConfigSet 增量相关的插件配置集合
      * @return
      */
-    public static Set<XStream2.PluginMeta> loadIncrComponentUsedPlugin(String collection, List<File> incrPluginConfigSet, boolean clearThreadholder) {
+    public static Set<PluginMeta> loadIncrComponentUsedPlugin(String collection, List<File> incrPluginConfigSet, boolean clearThreadholder) {
         try {
             synchronized (RobustReflectionConverter.usedPluginInfo) {
                 if (clearThreadholder) {

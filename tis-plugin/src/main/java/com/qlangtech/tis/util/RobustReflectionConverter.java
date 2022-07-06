@@ -55,10 +55,10 @@ public class RobustReflectionConverter implements Converter {
 
     public static final String KEY_ATT_PLUGIN = "plugin";
 
-    public static ThreadLocal<Set<XStream2.PluginMeta>> usedPluginInfo = new ThreadLocal<Set<XStream2.PluginMeta>>() {
+    public static ThreadLocal<Set<PluginMeta>> usedPluginInfo = new ThreadLocal<Set<PluginMeta>>() {
         @Override
-        protected Set<XStream2.PluginMeta> initialValue() {
-            return new HashSet<XStream2.PluginMeta>();
+        protected Set<PluginMeta> initialValue() {
+            return new HashSet<PluginMeta>();
         }
     };
 
@@ -138,12 +138,12 @@ public class RobustReflectionConverter implements Converter {
         }
         OwnerContext oc = OwnerContext.find(context);
         // oc.startVisiting(writer, classOwnership.ownerOf(original.getClass()));
-        Set<XStream2.PluginMeta> pluginMeta = (Set<XStream2.PluginMeta>) context.get(XStream2.PluginMeta.class);
+        Set<PluginMeta> pluginMeta = (Set<PluginMeta>) context.get(PluginMeta.class);
         List<String> owners = Lists.newArrayList();
         owners.add(classOwnership.ownerOf(original.getClass()));
         if (pluginMeta != null && pluginMeta.size() > 0) {
             try {
-                for (XStream2.PluginMeta pmeta : pluginMeta) {
+                for (PluginMeta pmeta : pluginMeta) {
                     // oc.startVisiting(writer, pmeta.toString());
                     owners.add(pmeta.toString());
                 }
@@ -303,7 +303,7 @@ public class RobustReflectionConverter implements Converter {
             boolean fieldExistsInClass = fieldDefinedInClass(result, attrName);
             // baisui add for get plugin name&ver 2020/4/2 start
             if (KEY_ATT_PLUGIN.equals(attrAlias) && !fieldExistsInClass) {
-                usedPluginInfo.get().addAll(XStream2.PluginMeta.parse(reader.getAttribute(attrAlias)));
+                usedPluginInfo.get().addAll(PluginMeta.parse(reader.getAttribute(attrAlias)));
             }
             // baisui add for get plugin name&ver 2020/4/2 end
             if (fieldExistsInClass) {

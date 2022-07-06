@@ -24,7 +24,7 @@ import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
-import com.qlangtech.tis.util.XStream2;
+import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.YesNoMaybe;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -671,8 +671,9 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
      *
      * @return
      */
-    public XStream2.PluginMeta getDesc() {
-        return new XStream2.PluginMeta(this.getShortName(), trimVersion(this.getVersion()));
+    public PluginMeta getDesc() {
+
+        return new PluginMeta(this.getShortName(), trimVersion(this.getVersion()), this.getClassifier());
         // return this.getShortName() + XStream2.PluginMeta.NAME_VER_SPLIT + trimVersion(this.getVersion()); // : null;
     }
 

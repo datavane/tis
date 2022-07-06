@@ -22,6 +22,7 @@ import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginStrategy;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
+import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.YesNoMaybe;
 import org.apache.commons.io.FileUtils;
@@ -82,6 +83,7 @@ public class PluginManifest {
 
         try (JarInputStream tpiFIle = new JarInputStream(FileUtils.openInputStream(tpi), false)) {
             Manifest mfst = tpiFIle.getManifest();
+            Objects.requireNonNull(mfst, "tpi relevant manifest can not be null:" + tpi.getAbsolutePath());
             return new PluginManifest(mfst.getMainAttributes(), null, Collections.emptyList()) {
                 @Override
                 public List<File> getLibs() {
@@ -193,6 +195,11 @@ public class PluginManifest {
     public String getLongName() {
         String name = this.atts.getValue("Long-Name");
         return name;
+    }
+
+    public PluginMeta getPluginMeta() {
+        // String name, String ver, Optional<PluginClassifier> classifier, Long lastModifyTimeStamp
+        return new PluginMeta(this.computeShortName(StringUtils.EMPTY), this.getVersionOf(), this.parseClassifier(), this.getLastModfiyTime());
     }
 
 

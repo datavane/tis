@@ -26,8 +26,8 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import com.qlangtech.tis.util.XStream2;
 import junit.framework.TestCase;
 
 import java.util.List;
@@ -53,13 +53,13 @@ public class TestParamsConfigPluginStore extends TestCase {
         Test1ParamsConfig cfg1 = new Test1ParamsConfig();
         cfg1.name = "id1";
         Descriptor.ParseDescribable<ParamsConfig> pluginDesc1 = new Descriptor.ParseDescribable<>(cfg1);
-        pluginDesc1.extraPluginMetas.add(new XStream2.PluginMeta("test1meta", "1.0.0"));
+        pluginDesc1.extraPluginMetas.add(new PluginMeta("test1meta", "1.0.0", Optional.empty()));
         dlist.add(pluginDesc1);
 
         Test2ParamsConfig cfg2 = new Test2ParamsConfig();
         cfg2.name = "id1";
         Descriptor.ParseDescribable<ParamsConfig> pluginDesc2 = new Descriptor.ParseDescribable<>(cfg2);
-        pluginDesc2.extraPluginMetas.add(new XStream2.PluginMeta("test2meta", "1.0.0"));
+        pluginDesc2.extraPluginMetas.add(new PluginMeta("test2meta", "1.0.0", Optional.empty()));
         dlist.add(pluginDesc2);
 
         paramsCfgPluginStore.setPlugins(null, Optional.empty(), dlist);
@@ -71,7 +71,7 @@ public class TestParamsConfigPluginStore extends TestCase {
         cfg2 = new Test2ParamsConfig();
         cfg2.name = "id1";
         pluginDesc2 = new Descriptor.ParseDescribable<>(cfg2);
-        pluginDesc2.extraPluginMetas.add(new XStream2.PluginMeta("test2meta", "1.0.0"));
+        pluginDesc2.extraPluginMetas.add(new PluginMeta("test2meta", "1.0.0", Optional.empty()));
         dlist.add(pluginDesc2);
 
         // 保存应该是要出错的，因为cfg2存在Id重复的问题

@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin;
 
@@ -25,11 +25,8 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.FlatTableBuilder;
-//import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-//import com.qlangtech.tis.offline.TableDumpFactory;
-import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.TestHeteroList;
-import com.qlangtech.tis.util.XStream2;
 import edu.emory.mathcs.backport.java.util.Collections;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
@@ -38,7 +35,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Optional;
 import java.util.Set;
+
+//import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
+//import com.qlangtech.tis.offline.TableDumpFactory;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -129,8 +130,8 @@ public class TestComponentMeta extends TestCase {
 
         }
         ComponentMeta componentMeta = new ComponentMeta(Collections.emptyList()) {
-            public Set<XStream2.PluginMeta> loadPluginMeta() {
-                XStream2.PluginMeta pluginMeta = new XStream2.PluginMeta("tis-ds-mysql-v5-plugin", "2.3.0");
+            public Set<PluginMeta> loadPluginMeta() {
+                PluginMeta pluginMeta = new PluginMeta("tis-ds-mysql-v5-plugin", "2.3.0", Optional.empty());
                 return Collections.singleton(pluginMeta);
             }
         };

@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.install.InstallUtil;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.util.PersistedList;
 import com.qlangtech.tis.util.Util;
@@ -567,9 +568,9 @@ public class UpdateCenter implements Saveable {
                                 out.write(buf, 0, len);
 
                                 //
-                                if(job.status == null || job.status.used.get()){
+                                if (job.status == null || job.status.used.get()) {
                                     percentage = (int) (((double) cin.getByteCount() / total) * 100);
-                                  //  System.out.println("---------cin.getCount():" + cin.getByteCount() + ",total:" + total + ",percentage:" + percentage);
+                                    //  System.out.println("---------cin.getCount():" + cin.getByteCount() + ",total:" + total + ",percentage:" + percentage);
                                     job.status = job.new Installing(percentage, cin.getByteCount());
                                 }
 
@@ -1171,7 +1172,12 @@ public class UpdateCenter implements Saveable {
         @Override
         protected File getDestination() {
             File baseDir = pm.rootDir;
-            return new File(baseDir, plugin.name + PluginManager.PACAKGE_TPI_EXTENSION);
+            Optional<PluginClassifier> classifier = coord.getClassifier();
+            String tpiName = plugin.name + PluginManager.PACAKGE_TPI_EXTENSION;
+            if (classifier.isPresent()) {
+                tpiName = classifier.get().getTPIPluginName(plugin.name, PluginManager.PACAKGE_TPI_EXTENSION);
+            }
+            return new File(baseDir, tpiName);
         }
 
 //        private File getLegacyDestination() {

@@ -103,6 +103,10 @@ public class PluginManager {
      */
     public final List<PluginWrapper> activePlugins = new CopyOnWriteArrayList<PluginWrapper>();
 
+    public Map<String, PluginWrapper> getActivePluginsMap() {
+        return activePlugins.stream().collect(Collectors.toMap((p) -> p.getShortName(), (p) -> p));
+    }
+
     protected final List<FailedPlugin> failedPlugins = new ArrayList<FailedPlugin>();
 
     public String getFaildPluginsDesc() {
@@ -618,7 +622,7 @@ public class PluginManager {
      * @param tpi the short name of the plugin
      * @return The plugin singleton or <code>null</code> if a plugin with the given short name does not exist.
      */
-    public PluginWrapper getPlugin( ITPIArtifactMatch  tpi) {
+    public PluginWrapper getPlugin(ITPIArtifactMatch tpi) {
         for (PluginWrapper p : getPlugins()) {
             if (ITPIArtifact.isEquals(p, tpi)) {
                 return p;
