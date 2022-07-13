@@ -21,6 +21,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.extension.impl.ExtensionRefreshException;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
+import com.qlangtech.tis.extension.impl.PluginManifest;
 import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
@@ -33,6 +34,7 @@ import com.qlangtech.tis.util.InitializerFinder;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.YesNoMaybe;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jvnet.hudson.reactor.Executable;
 import org.jvnet.hudson.reactor.Reactor;
@@ -143,25 +145,28 @@ public class PluginManager {
             , PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
         // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
         LOGGER.info("Attempting to dynamic load {}", arc);
-        PluginWrapper p = null;
-        String sn;
-        try {
-            sn = strategy.getShortName(arc);
-        } catch (AbstractMethodError x) {
-            LOGGER.info("JENKINS-12753 fix not active: {}", x.getMessage());
-            p = strategy.createPluginWrapper(arc);
-            sn = p.getShortName();
-        }
-        this.dynamicLoad(sn, arc, removeExisting, batch);
+        PluginManifest manifest = PluginManifest.create(arc);
+//        PluginWrapper p = null;
+//        String sn;
+//        try {
+//            sn = strategy.getShortName(arc);
+//        } catch (AbstractMethodError x) {
+//            LOGGER.info("JENKINS-12753 fix not active: {}", x.getMessage());
+//            p = strategy.createPluginWrapper(arc);
+//            sn = p.getShortName();
+//        }
+        ITPIArtifactMatch install = ITPIArtifact.create(
+                manifest.computeShortName(StringUtils.EMPTY), manifest.parseClassifier());
+        this.dynamicLoad(install, arc, removeExisting, batch);
     }
 
 
-    public void dynamicLoad(String shotName, File arc, boolean removeExisting
+    public void dynamicLoad(ITPIArtifactMatch art, File arc, boolean removeExisting
             , PluginAndCfgsSnapshot.PluginWrapperList batch)
             throws IOException, InterruptedException, RestartRequiredException {
         // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
 
-        ITPIArtifactMatch art = ITPIArtifact.create(shotName);
+
         PluginWrapper p = null;
 
         PluginWrapper pw = getPlugin(art);
@@ -169,7 +174,7 @@ public class PluginManager {
             if (removeExisting) { // try to load disabled plugins
                 for (Iterator<PluginWrapper> i = plugins.iterator(); i.hasNext(); ) {
                     pw = i.next();
-                    if (shotName.equals(pw.getShortName())) {
+                    if (art.getIdentityName().equals(pw.getShortName())) {
                         i.remove();
                         break;
                     }
@@ -177,7 +182,7 @@ public class PluginManager {
                 PluginWrapper aplugin = null;
                 for (Iterator<PluginWrapper> i = activePlugins.iterator(); i.hasNext(); ) {
                     pw = i.next();
-                    if (shotName.equals(pw.getShortName())) {
+                    if (art.getIdentityName().equals(pw.getShortName())) {
                         aplugin = pw;
                         break;
                     }
@@ -186,14 +191,14 @@ public class PluginManager {
                     activePlugins.remove(aplugin);
                 }
             } else {
-                throw new RestartRequiredException("PluginIsAlreadyInstalled_RestartRequired:" + (shotName));
+                throw new RestartRequiredException("PluginIsAlreadyInstalled_RestartRequired:" + (art.getIdentityName()));
             }
         }
         if (p == null) {
             p = strategy.createPluginWrapper(arc);
         }
         if (p.supportsDynamicLoad() == YesNoMaybe.NO) {
-            throw new RestartRequiredException("PluginDoesntSupportDynamicLoad_RestartRequired:" + (shotName));
+            throw new RestartRequiredException("PluginDoesntSupportDynamicLoad_RestartRequired:" + (art.getIdentityName()));
         }
         // there's no need to do cyclic dependency check, because we are deploying one at a time,
         // so existing plugins can't be depending on this newly deployed one.
@@ -220,10 +225,10 @@ public class PluginManager {
             }
 
         } catch (Exception e) {
-            failedPlugins.add(new FailedPlugin(shotName, e));
+            failedPlugins.add(new FailedPlugin(art.getIdentityName(), e));
             activePlugins.remove(p);
             plugins.remove(p);
-            throw new IOException("Failed to install " + shotName + " plugin", e);
+            throw new IOException("Failed to install " + art.getIdentityName() + " plugin", e);
         }
 
         LOGGER.info("Plugin {}:{} dynamically {}", p.getShortName(), p.getVersion()

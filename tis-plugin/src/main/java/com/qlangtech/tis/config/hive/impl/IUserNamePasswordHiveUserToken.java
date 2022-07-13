@@ -18,29 +18,12 @@
 
 package com.qlangtech.tis.config.hive.impl;
 
-import com.qlangtech.tis.annotation.Public;
-import com.qlangtech.tis.config.hive.HiveUserToken;
-import com.qlangtech.tis.config.hive.IHiveUserTokenVisitor;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.TISExtension;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-05-03 09:33
+ * @create: 2022-07-11 16:30
  **/
-@Public
-public class OffHiveUserToken extends HiveUserToken {
+public interface IUserNamePasswordHiveUserToken {
+    public String getUserName();
 
-    @Override
-    public void accept(IHiveUserTokenVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    @TISExtension
-    public static class DefaultDesc extends Descriptor<HiveUserToken> {
-        @Override
-        public String getDisplayName() {
-            return SWITCH_OFF;
-        }
-    }
+    public String getPassword();
 }

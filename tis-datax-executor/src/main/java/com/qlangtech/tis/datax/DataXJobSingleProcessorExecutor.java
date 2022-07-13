@@ -22,6 +22,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.exec.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
@@ -69,7 +70,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             CommandLine cmdLine = new CommandLine("java");
             cmdLine.addArgument("-D" + Config.KEY_DATA_DIR + "=" + Config.getDataDir().getAbsolutePath());
             cmdLine.addArgument("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=" + this.useRuntimePropEnvProps());
-            cmdLine.addArgument("-D" + Config.KEY_LOG_DIR + "=" + Config.getLogDir().getAbsolutePath());
+            cmdLine.addArgument("-D" + TisAppLaunch.KEY_LOG_DIR + "=" + TisAppLaunch.getLogDir().getAbsolutePath());
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
             cmdLine.addArgument("-D" + Config.SYSTEM_KEY_LOGBACK_PATH_KEY + "=" + Config.SYSTEM_KEY_LOGBACK_PATH_VALUE);
             cmdLine.addArgument("-D" + DataxUtils.EXEC_TIMESTAMP + "=" + msg.getExecTimeStamp());

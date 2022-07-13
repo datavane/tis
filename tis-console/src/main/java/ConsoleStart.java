@@ -28,7 +28,7 @@ import com.qlangtech.tis.web.start.TisSubModule;
  */
 public class ConsoleStart {
   static {
-    System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
+   // System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
     System.setProperty(Config.SYSTEM_KEY_LOGBACK_PATH_KEY, "logback-console.xml");
   }
 

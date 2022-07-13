@@ -43,7 +43,7 @@ public interface ITPIArtifact {
 
     static void matchDependency(PluginManager pluginManager, List<PluginWrapper.Dependency> dependencies
             , PluginWrapper pw, Consumer<Pair<PluginWrapper, PluginWrapper.Dependency>> pluginConsumer
-            , Consumer<Pair< PluginWrapper.Dependency , ITPIArtifactMatch>>... missConsumer) {
+            , Consumer<Pair<PluginWrapper.Dependency, ITPIArtifactMatch>>... missConsumer) {
         matchDependency(pluginManager, dependencies, pw.getShortName(), pw.getClassifier(), pluginConsumer, missConsumer);
     }
 
@@ -66,7 +66,6 @@ public interface ITPIArtifact {
         }
     }
 
-
     public static ITPIArtifactMatch create(final String idName) {
 //        return new ITPIArtifact() {
 //            @Override
@@ -74,7 +73,24 @@ public interface ITPIArtifact {
 //                return idName;
 //            }
 //        };
-        ITPIArtifactMatch match = matchh("", Optional.empty());
+//        ITPIArtifactMatch match = matchh("", Optional.empty());
+//        match.setIdentityName(idName);
+//        return match;
+        return create(idName, Optional.empty());
+    }
+
+
+    public static ITPIArtifactMatch create(final String idName, Optional<PluginClassifier> classifier) {
+//        return new ITPIArtifact() {
+//            @Override
+//            public String getIdentityName() {
+//                return idName;
+//            }
+//        };
+        if (StringUtils.isEmpty(idName)) {
+            throw new IllegalArgumentException("param idName can not be empty");
+        }
+        ITPIArtifactMatch match = matchh("", classifier);
         match.setIdentityName(idName);
         return match;
     }

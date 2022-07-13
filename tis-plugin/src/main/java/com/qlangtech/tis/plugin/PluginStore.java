@@ -337,6 +337,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     private transient boolean loaded = false;
 
     private synchronized void load() {
+        logger.info("load:" + this.file.getFile().getAbsolutePath() + ",this.loaded:" + this.loaded);
         if (this.loaded) {
             return;
         }
@@ -348,6 +349,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             //ComponentMeta componentMeta = new ComponentMeta(this);
             //componentMeta.downloaConfig();
             if (!file.exists()) {
+                logger.warn("target xstream file is not exist:" + file.getFile().getAbsolutePath());
                 return;
             }
             // 远程下载插件

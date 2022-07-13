@@ -86,8 +86,8 @@ public class PluginClassifier {
 
         if (dptCandidate.isPresent() ^ ba.isPresent()) {
             if (dptCandidate.isPresent()) {
-                throw new IllegalStateException("\nrequired from " + requiredFrom + " for " + dependencyForPlugin
-                        + " of Candidate classifier[" + dptCandidate.get().getClassifier() + "] present status:"
+                throw new IllegalStateException("\nrequired from [" + requiredFrom + "] for [" + dependencyForPlugin
+                        + "] of Candidate classifier[" + dptCandidate.get().getClassifier() + "] present status:"
                         + dptCandidate.isPresent() + " must same with Owner classifier prestent status:" + ba.isPresent());
             }
         }

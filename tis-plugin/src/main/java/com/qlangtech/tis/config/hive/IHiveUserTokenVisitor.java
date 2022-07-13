@@ -18,9 +18,9 @@
 
 package com.qlangtech.tis.config.hive;
 
-import com.qlangtech.tis.config.hive.impl.DefaultHiveUserToken;
-import com.qlangtech.tis.config.hive.impl.KerberosUserToken;
-import com.qlangtech.tis.config.hive.impl.OffHiveUserToken;
+import com.qlangtech.tis.config.hive.impl.IKerberosUserToken;
+import com.qlangtech.tis.config.hive.impl.IOffHiveUserToken;
+import com.qlangtech.tis.config.hive.impl.IUserNamePasswordHiveUserToken;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -30,12 +30,12 @@ public interface IHiveUserTokenVisitor {
     /**
      * @param token
      */
-    public default void visit(DefaultHiveUserToken token) {
+    public default void visit(IUserNamePasswordHiveUserToken token) {
 
     }
 
-    public void visit(KerberosUserToken token);
+    public void visit(IKerberosUserToken token);
 
-    public default void visit(OffHiveUserToken token) {
+    public default void visit(IOffHiveUserToken token) {
     }
 }

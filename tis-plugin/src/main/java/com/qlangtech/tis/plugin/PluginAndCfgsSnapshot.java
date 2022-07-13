@@ -77,6 +77,14 @@ public class PluginAndCfgsSnapshot {
         return "task_xxxx";
     }
 
+    /**
+     * 远程传输过来的资源快照信息
+     *
+     * @param resName
+     * @param manifestJar
+     * @return
+     * @throws IOException
+     */
     public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar
                                                                   //URL[] libraryURLs
     ) throws IOException {
@@ -96,7 +104,8 @@ public class PluginAndCfgsSnapshot {
         //Attributes pluginMetas = manifest.getAttributes(Config.KEY_PLUGIN_METAS);
         // processPluginMetas(pluginMetas);
 
-        pluginAndCfgsSnapshot = PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), manifest));
+        pluginAndCfgsSnapshot = PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(
+                PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), manifest));
 
         Attributes sysProps = manifest.getAttributes(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS);
         Config.setConfig(null);
@@ -482,7 +491,14 @@ public class PluginAndCfgsSnapshot {
             }
             globalPluginStoreLastModify.put(file2timestamp[0], Long.parseLong(file2timestamp[1]));
         }
-        JSONArray ms = JSONArray.parseArray(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META));
+        JSONArray ms = null;
+        String metsAttr = null;
+        try {
+            metsAttr = pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META);
+            ms = JSONArray.parseArray(metsAttr);
+        } catch (Exception e) {
+            throw new RuntimeException("illegal metaAttr:" + metsAttr, e);
+        }
         List<PluginMeta> metas
                 = PluginMeta.parse(ms.toArray(new String[ms.size()]));
         metas.forEach((meta) -> {

@@ -35,7 +35,7 @@ public class StartAssembleWeb extends TestCase {
 
     static {
         System.setProperty(NetUtils.TIS_PREFERRED_NETWORK_INTERFACE, "en0");
-        System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
+        System.setProperty(TisAppLaunch.KEY_LOG_DIR, "/opt/logs/tis");
         System.setProperty(Config.SYSTEM_KEY_LOGBACK_PATH_KEY, "logback-assemble.xml");
         CenterResource.setNotFetchFromCenterRepository();
     }
@@ -48,7 +48,7 @@ public class StartAssembleWeb extends TestCase {
 //        }
 
 
-        // System.setProperty(com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
+       // System.setProperty(com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
         String[] args = new String[]{};
         TisAppLaunch.setTest(true);

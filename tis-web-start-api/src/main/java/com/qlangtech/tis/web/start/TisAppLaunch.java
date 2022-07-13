@@ -27,13 +27,18 @@ import java.io.File;
 public class TisAppLaunch {
     public static final String KEY_TIS_LAUNCH_PORT = "tis.launch.port";
     public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
+    public static final String KEY_LOG_DIR = "log.dir";
     private static boolean test = false;
     private final Integer launchPort;
     private static final String logDir;
 
     static {
-        logDir = System.getProperty("log.dir");
+        logDir = System.getProperty(KEY_LOG_DIR, "/opt/logs/tis");
         System.setProperty(TisAppLaunch.KEY_ASSEMBLE_TASK_DIR, logDir + "/assemble/task");
+    }
+
+    public static File getLogDir() {
+        return new File(logDir);
     }
 
     public static TisAppLaunch instance;

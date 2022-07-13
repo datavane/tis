@@ -140,7 +140,8 @@ public class TIS {
         }
     };
 
-    public static final transient Memoizer<DataxReader.SubFieldFormAppKey<? extends Describable>, KeyedPluginStore<? extends Describable>> dataXReaderSubFormPluginStore
+    public static final transient Memoizer<DataxReader.SubFieldFormAppKey<? extends Describable>, KeyedPluginStore<? extends Describable>>
+            dataXReaderSubFormPluginStore
             = new Memoizer<DataxReader.SubFieldFormAppKey<? extends Describable>, KeyedPluginStore<? extends Describable>>() {
         @Override
         public KeyedPluginStore<? extends Describable> compute(DataxReader.SubFieldFormAppKey<? extends Describable> key) {

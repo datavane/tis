@@ -46,12 +46,13 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         CenterResource.setNotFetchFromCenterRepository();
     }
 
+
     public void testGetLocalPluginAndCfgsSnapshot() {
 
         PluginMeta flinkPluginMeta
                 = new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + datax.getName()
                 , Config.getMetaProps().getVersion(), Optional.empty(), null);
-        PluginAndCfgsSnapshot snapshot = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, Optional.empty(), flinkPluginMeta);
+        PluginAndCfgsSnapshot snapshot = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(datax, flinkPluginMeta);
         Assert.assertNotNull(snapshot);
 
         Assert.assertEquals(datax.getName(), snapshot.getAppName().getName());
@@ -90,13 +91,13 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         PluginMeta flinkPluginMeta
                 = new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + datax.getName()
                 , Config.getMetaProps().getVersion(), Optional.empty());
-        PluginAndCfgsSnapshot remote = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, Optional.empty(), flinkPluginMeta);
+        PluginAndCfgsSnapshot remote = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(datax, flinkPluginMeta);
         Assert.assertNotNull(remote);
 
         Config.setTestDataDir();
         TIS.clean();
 
-        PluginAndCfgsSnapshot local = PluginAndCfgsSnapshot.getLocalPluginAndCfgsSnapshot(datax, Optional.empty(), flinkPluginMeta);
+        PluginAndCfgsSnapshot local = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(datax, flinkPluginMeta);
         Assert.assertNotNull(local);
 
 //        Set<XStream2.PluginMeta> pluginMetas = remote.shallBeUpdateTpis(local);

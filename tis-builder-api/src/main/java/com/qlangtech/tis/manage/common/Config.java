@@ -100,11 +100,6 @@ public class Config {
     private static Config config;
 
     public static final String KEY_DATA_DIR = "data.dir";
-    public static final String KEY_LOG_DIR = "log.dir";
-
-    public static File getLogDir() {
-        return new File(System.getProperty(Config.KEY_LOG_DIR, "/opt/logs/tis"));
-    }
 
 
     public static TisMetaProps getMetaProps() {
@@ -161,7 +156,7 @@ public class Config {
         pairs.put(KEY_TIS_DATASOURCE_TYPE, dbCfg.dbtype);
         pairs.put(KEY_TIS_DATASOURCE_DBNAME, dbCfg.dbname);
         pairs.put(KEY_DEPLOY_MODE, this.deployMode);
-        pairs.put(KEY_LOG_DIR, getLogDir().getAbsolutePath());
+        pairs.put(TisAppLaunch.KEY_LOG_DIR, TisAppLaunch.getLogDir().getAbsolutePath());
         pairs.put(TisAppLaunch.KEY_TIS_LAUNCH_PORT, String.valueOf(TisAppLaunch.getPort(TisSubModule.TIS_CONSOLE)));
         return pairs;
     }

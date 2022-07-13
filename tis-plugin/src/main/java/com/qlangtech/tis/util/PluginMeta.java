@@ -19,6 +19,7 @@
 package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.ITPIArtifact;
 import com.qlangtech.tis.extension.ITPIArtifactMatch;
@@ -123,14 +124,18 @@ public class PluginMeta {
 
     public static List<PluginMeta> parse(String attribute) {
         String[] metaArray = StringUtils.split(attribute, ",");
-        return parse(metaArray);
+        return parse(metaArray, true);
     }
 
     public static List<PluginMeta> parse(String[] metaArray) {
+        return parse(metaArray, false);
+    }
+
+    private static List<PluginMeta> parse(String[] metaArray, final boolean resolveDependencyFromPluginCenter) {
         if (metaArray == null) {
             throw new IllegalArgumentException("param metaArray can not be null");
         }
-        List<PluginMeta> result = Lists.newArrayList();
+        final Map<String, PluginMeta> result = Maps.newHashMap();
         // String[] metaArray = StringUtils.split(attribute, ",");
         Optional<PluginClassifier> classifier = null;
         Matcher match = null;
@@ -149,7 +154,6 @@ public class PluginMeta {
                 if (StringUtils.isNotEmpty(l = match.group(4))) {
                     lastModify = Long.parseLong(l);
                 }
-
                 if (StringUtils.isNotEmpty(c = match.group(6))) {
                     classifier = Optional.of(new PluginClassifier(c));
                 } else {
@@ -158,12 +162,41 @@ public class PluginMeta {
                         classifier = pw.getClassifier();
                     }
                 }
-                result.add(new PluginMeta(pluginName, ver, classifier, lastModify));
+                result.put(pluginName, new PluginMeta(pluginName, ver, classifier, lastModify) {
+                    @Override
+                    public List<PluginMeta> getMetaDependencies() {
+                        if (resolveDependencyFromPluginCenter) {
+                            return super.getMetaDependencies();
+                        } else {
+                            return processJarManifest((mfst) -> {
+                                if (mfst == null) {
+                                    return Collections.emptyList();
+                                }
+                                ClassicPluginStrategy.DependencyMeta dpts = mfst.getDependencyMeta();
+                                return dpts.dependencies.stream()
+                                        .map((d) -> {
+                                            // PluginClassifier c = null;
+                                            PluginMeta mt = result.get(d.shortName);
+                                            //return Objects.requireNonNull(, "pluginName:" + d.shortName + " relevant pluginMeta shall not be empty");
+                                            if (mt == null) {
+                                                throw new IllegalStateException("pluginName:" + d.shortName
+                                                        + " relevant pluginMeta shall not be empty, all:"
+                                                        + result.keySet().stream().collect(Collectors.joining(",")));
+                                            }
+                                            return mt;
+                                            //return new PluginMeta(d.shortName, d.version, dc);
+                                        })
+                                        .collect(Collectors.toList());
+                            });
+                        }
+                    }
+                });
+                // result.add(new PluginMeta(pluginName, ver, classifier, lastModify));
             } else {
                 throw new IllegalArgumentException("attri is invalid:" + Arrays.stream(metaArray).collect(Collectors.joining(",")));
             }
         }
-        return result;
+        return Lists.newArrayList(result.values());
     }
 
     /**
@@ -222,7 +255,7 @@ public class PluginMeta {
         });
     }
 
-    private <R> R processJarManifest(Function<PluginManifest, R> manProcess) {
+    protected <R> R processJarManifest(Function<PluginManifest, R> manProcess) {
         File f = getPluginPackageFile();
 //            if (!f.exists()) {
 //                // throw new IllegalStateException("file:" + f.getPath() + " is not exist");

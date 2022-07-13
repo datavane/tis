@@ -21,10 +21,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -188,7 +188,7 @@ public class TisException extends RuntimeException {
     }
 
     private static File getErrLogDir() {
-        return new File(Config.getLogDir(), "syserrs");
+        return new File(TisAppLaunch.getLogDir(), "syserrs");
     }
 
     public static ILogErrorDetail getLogError(String logFileName) {

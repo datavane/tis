@@ -39,7 +39,7 @@ public abstract class BaseTestCase extends TestCase {
             File assembleLogdir = new File(logDir, "assemble");
             FileUtils.forceMkdir(logDir);
             FileUtils.cleanDirectory(logDir);
-            System.setProperty(Config.KEY_LOG_DIR, logDir.getAbsolutePath());
+            System.setProperty(TisAppLaunch.KEY_LOG_DIR, logDir.getAbsolutePath());
             System.setProperty(TisAppLaunch.KEY_ASSEMBLE_TASK_DIR, assembleLogdir.getAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException(e);

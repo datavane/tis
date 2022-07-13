@@ -35,7 +35,7 @@ public interface ISparkConnGetter extends IdentityName {
 
     String PLUGIN_NAME = "SparkConn";
 
-    String KEY_CONN_YARN = "yarn";
+  //  String KEY_CONN_YARN = "yarn";
 
     /**
      * example: spark://192.168.28.201:7077
