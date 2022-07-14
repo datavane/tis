@@ -289,6 +289,9 @@ public class PluginManifest {
 
     public Optional<PluginClassifier> parseClassifier() {
         String attrClazzier = this.atts.getValue(PluginManager.PACAKGE_CLASSIFIER);
+        if (PluginClassifier.MATCH_ALL_CLASSIFIER.getClassifier().equals(attrClazzier)) {
+            return Optional.of(PluginClassifier.MATCH_ALL_CLASSIFIER);
+        }
         return Optional.ofNullable(StringUtils.isEmpty(attrClazzier) ? null : new PluginClassifier(attrClazzier));
     }
 

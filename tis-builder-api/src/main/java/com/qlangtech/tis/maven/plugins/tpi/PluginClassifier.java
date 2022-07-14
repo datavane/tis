@@ -42,10 +42,13 @@ public class PluginClassifier {
      */
     public static final PluginClassifier MATCH_ALL_CLASSIFIER = new PluginClassifier("*") {
         @Override
-        public boolean match(String requiredFrom, PluginClassifier candidateClassifier) {
+        public final boolean match(String requiredFrom, PluginClassifier candidateClassifier) {
             return true;
         }
-
+        @Override
+        public Map<String, String> dimensionMap() {
+            throw new UnsupportedOperationException();
+        }
         @Override
         public String getTPIPluginName(String tpiName) {
             return tpiName;
