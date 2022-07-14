@@ -79,7 +79,14 @@ public class PluginClassifier {
         }
     };
 
-    public PluginClassifier(String classifier) {
+    public static PluginClassifier create(String classifier) {
+        if (MATCH_ALL_CLASSIFIER_VAL.equals(classifier)) {
+            return MATCH_ALL_CLASSIFIER;
+        }
+        return new PluginClassifier(classifier);
+    }
+
+    private PluginClassifier(String classifier) {
         this.classifier = Objects.requireNonNull(classifier, "param classifier can not be empty");
         this.validate();
     }

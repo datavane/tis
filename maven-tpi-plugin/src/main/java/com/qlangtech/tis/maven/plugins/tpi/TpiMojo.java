@@ -97,7 +97,7 @@ public class TpiMojo extends AbstractTISManifestMojo {
         Properties props = project.getProperties();
         String classifier = props.getProperty("classifier");
 
-        return StringUtils.isNotEmpty(classifier) ? Optional.of(new PluginClassifier(classifier)) : Optional.empty();
+        return StringUtils.isNotEmpty(classifier) ? Optional.of( PluginClassifier.create(classifier)) : Optional.empty();
     }
 
     /**

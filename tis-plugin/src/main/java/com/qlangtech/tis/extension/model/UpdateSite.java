@@ -796,7 +796,7 @@ public class UpdateSite {
 //                    "url":"http://mirror.qlangtech.com/3.6.0/tis-plugin/tis-datax-hdfs-plugin/tis-datax-hdfs-plugin_hadoop_2.7.3.tpi"
 //            },
             this.pluginName = pluginName;
-            this.classifier = new PluginClassifier(meta.getString("classifier"));
+            this.classifier =  PluginClassifier.create(meta.getString("classifier"));
             this.sha1 = meta.getString("sha1");
             this.sha256 = meta.getString("sha256");
             this.size = meta.getLongValue("size");

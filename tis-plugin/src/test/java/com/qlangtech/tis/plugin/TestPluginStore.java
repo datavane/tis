@@ -93,7 +93,7 @@ public class TestPluginStore extends TestCase {
     }
 
     final static String classifier_hdfs = "hdfs_2.1.3";
-    private static final PluginMeta testMeta = new PluginMeta("testmeta", "1.0.0", Optional.of(new PluginClassifier(classifier_hdfs)));
+    private static final PluginMeta testMeta = new PluginMeta("testmeta", "1.0.0", Optional.of( PluginClassifier.create(classifier_hdfs)));
 
     public static List<Descriptor.ParseDescribable<TestPlugin>> createTestPlugin() {
         TestPlugin p = new TestPlugin();

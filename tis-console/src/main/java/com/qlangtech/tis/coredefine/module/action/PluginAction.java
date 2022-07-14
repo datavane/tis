@@ -376,7 +376,7 @@ public class PluginAction extends BasicModule {
       pluginName = willInstall.getString("name");
       classifier = Optional.empty();
       if (StringUtils.isNotEmpty(c = willInstall.getString("selectedClassifier"))) {
-        classifier = Optional.of(new PluginClassifier(c));
+        classifier = Optional.of( PluginClassifier.create(c));
       }
       if (willInstall.getBooleanValue("multiClassifier") && !classifier.isPresent()) {
         // throw new IllegalStateException("willInstall is illegal:" + willInstall.toJSONString());

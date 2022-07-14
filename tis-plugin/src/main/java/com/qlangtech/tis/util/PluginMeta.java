@@ -155,7 +155,7 @@ public class PluginMeta {
                     lastModify = Long.parseLong(l);
                 }
                 if (StringUtils.isNotEmpty(c = match.group(6))) {
-                    classifier = Optional.of(new PluginClassifier(c));
+                    classifier = Optional.of(PluginClassifier.create(c));
                 } else {
                     Map<String, PluginWrapper> plugins = TIS.get().getPluginManager().getActivePluginsMap();
                     if ((pw = plugins.get(pluginName)) != null) {
