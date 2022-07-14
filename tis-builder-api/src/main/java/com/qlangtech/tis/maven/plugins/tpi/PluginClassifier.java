@@ -45,10 +45,17 @@ public class PluginClassifier {
         public final boolean match(String requiredFrom, PluginClassifier candidateClassifier) {
             return true;
         }
+
+        @Override
+        protected void validate() {
+
+        }
+
         @Override
         public Map<String, String> dimensionMap() {
             throw new UnsupportedOperationException();
         }
+
         @Override
         public String getTPIPluginName(String tpiName) {
             return tpiName;
@@ -73,6 +80,13 @@ public class PluginClassifier {
 
     public PluginClassifier(String classifier) {
         this.classifier = Objects.requireNonNull(classifier, "param classifier can not be empty");
+        this.validate();
+    }
+
+    protected void validate() {
+        if (MATCH_ALL_CLASSIFIER.getClassifier().equals(this.classifier)) {
+            throw new IllegalStateException("prop classifier is illegal:" + classifier);
+        }
     }
 
     public PluginClassifier(Map<String, String> dimension) {
