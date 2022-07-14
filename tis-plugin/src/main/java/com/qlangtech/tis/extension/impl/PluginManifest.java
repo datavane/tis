@@ -21,6 +21,7 @@ package com.qlangtech.tis.extension.impl;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginStrategy;
 import com.qlangtech.tis.extension.PluginWrapper;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.Util;
@@ -44,15 +45,15 @@ import org.apache.tools.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
@@ -66,6 +67,61 @@ public class PluginManifest {
     public final URL baseResourceURL;
     private final Attributes atts;
     private final List<File> libs;
+
+    /**
+     * 获得运行时已经解压的PluginMetaData信息
+     *
+     * @param classInPlugin
+     * @return
+     */
+    public static ExplodePluginManifest create(Class<?> classInPlugin) {
+        if (classInPlugin == null) {
+            throw new IllegalArgumentException("classInPlugin can not be null");
+        }
+        String clazz = classInPlugin.getName();
+
+        URL location = classInPlugin.getResource("/" + StringUtils.replace(clazz, ".", "/") + ".class");
+
+        if (location != null) {
+            final Pattern p = Pattern.compile("^.*file:(.+?)/" + Config.PLUGIN_LIB_DIR + ".+?!.*$");
+            Matcher m = p.matcher(location.toString());
+            if (m.find()) {
+                //   return URLDecoder.decode(, "UTF-8");
+                File pluginDir = new File(m.group(1));
+                if (!pluginDir.exists()) {
+                    throw new IllegalStateException("plugin Dir is not exist:" + pluginDir.getAbsolutePath());
+                }
+                File manifest = new File(pluginDir, JarFile.MANIFEST_NAME);
+                if (!manifest.exists()) {
+                    throw new IllegalStateException(JarFile.MANIFEST_NAME + " is not exist :" + manifest.getAbsolutePath());
+                }
+                Manifest mfst = new Manifest();
+                try (InputStream in = FileUtils.openInputStream(manifest)) {
+                    mfst.read(in);
+                    return new ExplodePluginManifest(mfst.getMainAttributes(), pluginDir); //createPluginManifest(mfst);
+                } catch (Exception e) {
+                    throw new RuntimeException(manifest.getAbsolutePath(), e);
+                }
+            } else {
+                throw new IllegalStateException("location is illegal:" + location);
+            }
+            //   throw new ClassNotFoundException("Cannot parse location of '" + location + "'.  Probably not loaded from a Jar");
+        }
+        throw new IllegalStateException("Cannot find class '" + classInPlugin.getName() + " using the classloader");
+    }
+
+    public static class ExplodePluginManifest extends PluginManifest {
+        private final File pluginDir;
+
+        public ExplodePluginManifest(Attributes atts, File pluginDir) {
+            super(atts, null, Collections.emptyList());
+            this.pluginDir = pluginDir;
+        }
+
+        public File getPluginLibDir() {
+            return new File(this.pluginDir, Config.PLUGIN_LIB_DIR);
+        }
+    }
 
     /**
      * 不需要将tpi包解压
@@ -84,17 +140,21 @@ public class PluginManifest {
         try (JarInputStream tpiFIle = new JarInputStream(FileUtils.openInputStream(tpi), false)) {
             Manifest mfst = tpiFIle.getManifest();
             Objects.requireNonNull(mfst, "tpi relevant manifest can not be null:" + tpi.getAbsolutePath());
-            return new PluginManifest(mfst.getMainAttributes(), null, Collections.emptyList()) {
-                @Override
-                public List<File> getLibs() {
-                    // return super.getLibs();
-                    throw new UnsupportedOperationException();
-                }
-            };
+            return createPluginManifest(mfst);
         } catch (Exception e) {
             throw new RuntimeException("tpi path:" + tpi.getAbsolutePath(), e);
         }
 
+    }
+
+    private static PluginManifest createPluginManifest(Manifest mfst) {
+        return new PluginManifest(mfst.getMainAttributes(), null, Collections.emptyList()) {
+            @Override
+            public List<File> getLibs() {
+                // return super.getLibs();
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
 

@@ -18,9 +18,12 @@
 package com.qlangtech.tis.plugin;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.UberClassLoader;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.util.PluginMeta;
@@ -47,6 +50,8 @@ public class TestPluginStore extends TestCase {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
     }
+
+
 
     public void testTableDumpFactory() {
 

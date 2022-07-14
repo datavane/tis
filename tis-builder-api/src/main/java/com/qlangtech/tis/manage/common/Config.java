@@ -32,6 +32,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -49,7 +51,7 @@ public class Config {
     public static final String PLUGIN_LIB_DIR = "WEB-INF/lib";
 
     public static File getPluginLibDir(String pluginName, boolean validateExist) {
-        File libDir = new File(Config.getDataDir(), Config.LIB_PLUGINS_PATH + "/" + pluginName + "/WEB-INF/lib");
+        File libDir = new File(Config.getDataDir(), Config.LIB_PLUGINS_PATH + "/" + pluginName + "/" + PLUGIN_LIB_DIR);
         if (validateExist && (!libDir.exists() || libDir.isFile())) {
             throw new IllegalStateException("dir " + pluginName + " is illegal:" + libDir.getAbsolutePath());
         }
@@ -59,6 +61,38 @@ public class Config {
     public static File getPluginLibDir(String pluginName) {
         return getPluginLibDir(pluginName, true);
     }
+
+
+//    /**
+//     * 通过在插件中的一个类找到插件的 WEB—INFO/lib 目录
+//     *
+//     * @param classInPlugin
+//     * @return
+//     */
+//    public static File getPluginLibDir(Class<?> classInPlugin)  {
+//        if (classInPlugin == null) {
+//            throw new IllegalArgumentException("classInPlugin can not be null");
+//        }
+//        String clazz = classInPlugin.getName();
+//
+//        URL location = classInPlugin.getResource("/" + StringUtils.replace(clazz, ".", "/") + ".class");
+//
+//        if (location != null) {
+//            final Pattern p = Pattern.compile("^.*file:(.+?" + PLUGIN_LIB_DIR + ").+?!.*$");
+//            Matcher m = p.matcher(location.toString());
+//            if (m.find()) {
+//                //   return URLDecoder.decode(, "UTF-8");
+//                return new File(m.group(1));
+//            } else {
+//                throw new IllegalStateException("location is illegal:" + location);
+//            }
+//            //   throw new ClassNotFoundException("Cannot parse location of '" + location + "'.  Probably not loaded from a Jar");
+//        }
+//        throw new IllegalStateException("Cannot find class '" + classInPlugin.getName() + " using the classloader");
+//
+//        // return getPluginLibDir(pluginName, true);
+//    }
+
 
     public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/guide/plugin/plugins/#";
 
