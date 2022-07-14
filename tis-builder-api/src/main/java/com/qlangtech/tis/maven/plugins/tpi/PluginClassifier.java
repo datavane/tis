@@ -36,11 +36,12 @@ public class PluginClassifier {
     private Map<String, String> dimension;
 
     public static final NoneClassifier NONE_CLASSIFIER = new NoneClassifier();
-
+    private static final String MATCH_ALL_CLASSIFIER_VAL = "*";
     /**
      * 例如Flink Job任务打出来的包虽然依赖了hudi插件（拥有classifier）但 Flink Job任务插件本省不需要指定classifier
      */
-    public static final PluginClassifier MATCH_ALL_CLASSIFIER = new PluginClassifier("*") {
+    public static final PluginClassifier MATCH_ALL_CLASSIFIER
+            = new PluginClassifier(MATCH_ALL_CLASSIFIER_VAL) {
         @Override
         public final boolean match(String requiredFrom, PluginClassifier candidateClassifier) {
             return true;
@@ -84,7 +85,7 @@ public class PluginClassifier {
     }
 
     protected void validate() {
-        if (MATCH_ALL_CLASSIFIER.getClassifier().equals(this.classifier)) {
+        if (MATCH_ALL_CLASSIFIER_VAL.equals(this.classifier)) {
             throw new IllegalStateException("prop classifier is illegal:" + classifier);
         }
     }
