@@ -109,6 +109,11 @@ public class PluginMeta {
         return buffer.toString();
     }
 
+    public ITPIArtifactMatch createPluginMatcher() {
+        ITPIArtifactMatch match = ITPIArtifact.create(this.getPluginName(), this.classifier);
+        return match;
+    }
+
     public String getKey() {
         return (new StringBuffer(name + NAME_VER_SPLIT + ver)).toString();
     }

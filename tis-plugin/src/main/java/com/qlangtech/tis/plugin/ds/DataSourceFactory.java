@@ -150,6 +150,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             ResultSet columns1 = null;
             ColumnMetaData colMeta = null;
             String comment = null;
+            String typeName = null;
             try {
                 metaData1 = conn.getMetaData();
                 primaryKeys = getPrimaryKeys(table, metaData1);
@@ -230,7 +231,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     protected DataType getDataType(String colName, ResultSet cols) throws SQLException {
         // decimal 的小数位长度
         int decimalDigits = cols.getInt("DECIMAL_DIGITS");
-        DataType colType = createColDataType(colName
+        //数据如果是INT类型，但如果是UNSIGNED，那实际类型需要转换成Long,INT UNSIGNED
+        String typeName = cols.getString("TYPE_NAME");
+        DataType colType = createColDataType(colName, typeName
                 , cols.getInt("DATA_TYPE"), cols.getInt("COLUMN_SIZE"));
         if (decimalDigits > 0) {
             colType.setDecimalDigits(decimalDigits);
@@ -238,9 +241,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return colType;
     }
 
-    protected DataType createColDataType(String colName, int dbColType, int colSize) throws SQLException {
+    protected DataType createColDataType(String colName, String typeName, int dbColType, int colSize) throws SQLException {
         // 类似oracle驱动内部有一套独立的类型 oracle.jdbc.OracleTypes,有需要可以在具体的实现类里面去实现
-        return new DataType(dbColType, colSize);
+        return new DataType(dbColType, typeName, colSize);
     }
 
     protected void closeResultSet(ResultSet rs) {
