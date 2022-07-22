@@ -72,7 +72,6 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     private final List<FacadeContext> daoFacadeList;
 
 
-
     public StreamComponentCodeGeneratorFlink(String collectionName, long timestamp,
                                              List<FacadeContext> daoFacadeList, IBasicAppSource streamIncrGenerateStrategy) {
         super(collectionName, timestamp);
@@ -129,7 +128,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 //            PropGetter last = null;
 //            PropGetter first = null;
 //            Optional<TableRelation> firstParent = null;
-           // Map<IEntityNameGetter, List<IValChain>> tabTriggers = getTabTriggerLinker();
+            // Map<IEntityNameGetter, List<IValChain>> tabTriggers = getTabTriggerLinker();
 
             FuncFormat aliasListBuffer = new FuncFormat();
 
@@ -580,9 +579,12 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     }
 
     private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData) {
-
+        String tplFileName = this.streamIncrGenerateStrategy.getFlinkStreamGenerateTemplateFileName();
+        if (StringUtils.isEmpty(tplFileName)) {
+            throw new IllegalStateException("tplFileName can not be empty");
+        }
         this.mergeGenerate(mergeData, "/com/qlangtech/tis/classtpl/"
-                + this.streamIncrGenerateStrategy.getFlinkStreamGenerateTemplateFileName(), getIncrScriptMainFile());
+                + tplFileName, getIncrScriptMainFile());
 //        OutputStreamWriter writer = null;
 //        // Reader tplReader = null;
 //        try {

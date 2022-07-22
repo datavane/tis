@@ -1201,7 +1201,7 @@ public class OfflineDatasourceAction extends BasicModule {
               if (pp.isDescribable()) {
                 List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
                 for (Descriptor desc : descriptors) {
-                  if (StringUtils.equals(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
+                  if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
                     pp.setVal(plugin
                       , createPluginByDefaultVals((new StringBuffer(propPath)).append("->").append(pentry.getKey()).append(":").append(pp.clazz.getName())
                         , Sets.newHashSet(), desc.getPluginFormPropertyTypes().getKVTuples(), desc.clazz.newInstance()));

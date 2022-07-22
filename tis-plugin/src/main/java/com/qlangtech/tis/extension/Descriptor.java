@@ -42,7 +42,10 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
-import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.ISelectOptionsGetter;
+import com.qlangtech.tis.util.PluginMeta;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
@@ -1022,7 +1025,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             attr = entry.getKey();
             attrDesc = entry.getValue();
             valJ = keyValMap.get(attr);
-           // attrDesc.getExtraProps(PluginExtraProps.KEY_DISABLE);
+            // attrDesc.getExtraProps(PluginExtraProps.KEY_DISABLE);
             if (valJ == null && attrDesc.isInputRequired()) {
                 throw new IllegalStateException("prop:" + attr + " can not be empty");
             }
