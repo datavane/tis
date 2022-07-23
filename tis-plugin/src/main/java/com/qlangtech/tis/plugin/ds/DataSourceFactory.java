@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.sql.*;
 import java.util.*;
 
@@ -42,7 +43,7 @@ import java.util.*;
  * @create: 2020-11-24 10:40
  **/
 @Public
-public abstract class DataSourceFactory implements Describable<DataSourceFactory>, IdentityName, DataSourceMeta, Wrapper {
+public abstract class DataSourceFactory implements Describable<DataSourceFactory>, Serializable, IdentityName, DataSourceMeta, Wrapper {
 
     public static final String DS_TYPE_MYSQL = "MySQL";
 

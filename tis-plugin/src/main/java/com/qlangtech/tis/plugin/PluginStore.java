@@ -30,6 +30,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginMeta;
+import com.qlangtech.tis.util.RobustReflectionConverter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -54,6 +55,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     private final transient Class<T> pluginClass;
 
     private List<T> plugins = Lists.newArrayList();
+    private transient Set<PluginMeta> pluginMetas;
     // 在plugin 从xstream中反序列化之后再进行一下额外的处理
     private final transient IPluginProcessCallback<T>[] pluginCreateCallback;
     private transient final List<PluginsUpdateListener> pluginsUpdateListeners = Lists.newArrayList();
@@ -107,6 +109,9 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     @Override
     public List<T> getPlugins() {
         this.load();
+        if (pluginMetas != null) {
+            RobustReflectionConverter.usedPluginInfo.get().addAll(pluginMetas);
+        }
         return plugins;
     }
 
@@ -342,8 +347,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             return;
         }
         // MapBackedDataHolder dataHolder = new MapBackedDataHolder();
-
-        XmlFile.DefaultDataHolder dataHolder = new XmlFile.DefaultDataHolder(Collections.emptySet(), this.file);
+        Set<PluginMeta> pluginMetas = Sets.newHashSet();
+        XmlFile.DefaultDataHolder dataHolder = new XmlFile.DefaultDataHolder(pluginMetas, this.file);
         try {
             // dataX 或者flink 启动过程中应该在启动的时候已经将资源文件同步了，这里就不需要再同步了
             //ComponentMeta componentMeta = new ComponentMeta(this);
@@ -378,5 +383,6 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 throw new RuntimeException(file.getFile().getAbsolutePath() + "\n" + TIS.get().getPluginManager().getFaildPluginsDesc(), t);
             }
         }
+        this.pluginMetas = pluginMetas;
     }
 }

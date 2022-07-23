@@ -25,6 +25,7 @@ import com.qlangtech.tis.utils.MD5Utils;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.converters.DataHolder;
+import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -159,13 +160,14 @@ public final class XmlFile {
         }
     }
 
-    public static class DefaultDataHolder implements DataHolder {
+    public static class DefaultDataHolder extends MapBackedDataHolder {
 
         // Map<Object, Object> map = new HashMap<>();
         private final Set<PluginMeta> pluginsMeta;
         private final XmlFile xmlFile;
 
         public DefaultDataHolder(Set<PluginMeta> pluginsMeta, XmlFile xmlFile) {
+            super();
             this.pluginsMeta = pluginsMeta;
             this.xmlFile = xmlFile;
         }
@@ -178,19 +180,19 @@ public final class XmlFile {
             if (key == XmlFile.class) {
                 return xmlFile;
             }
-            return null;
+            return super.get(key);
         }
 
-        @Override
-        public void put(Object key, Object value) {
-            // map.put(key, value);
-        }
-
-        @Override
-        public Iterator keys() {
-            // return map.keySet().iterator();
-            return null;
-        }
+//        @Override
+//        public void put(Object key, Object value) {
+//            // map.put(key, value);
+//        }
+//
+//        @Override
+//        public Iterator keys() {
+//            // return map.keySet().iterator();
+//            return null;
+//        }
     }
 
     public boolean exists() {
