@@ -39,7 +39,7 @@ public interface IDataXPluginMeta {
      */
     public enum EndType {
         MySQL("mysql"), Postgres("pg"), Oracle("oracle") //
-        , ElasticSearch("es"), MongoDB("mongo"), StarRocks("starRocks") //
+        , ElasticSearch("es"), MongoDB("mongo"), StarRocks("starRocks"), Doris("doris") //
         , Clickhouse("clickhouse"), Hudi("hudi");
         private final String val;
 

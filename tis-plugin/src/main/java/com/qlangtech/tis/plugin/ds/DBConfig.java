@@ -171,12 +171,13 @@ public class DBConfig implements IDbMeta {
                 for (String dbName : entry.getValue()) {
                     // TODO 访问mysql的方式，将来如果有其他数据库可以再扩展一下
                     // String jdbcUrl = "jdbc:mysql://" + (resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey()) + ":" + this.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
-                    String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey(), dbName);
+                    String dbHost = resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey();
+                    String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, dbHost, dbName);
                     hostCount++;
                     fixedThreadPool.execute(() -> {
                         try {
                             fjdbcUrl.set(jdbcUrl);
-                            urlProcess.visit((facade ? name : dbName), jdbcUrl);
+                            urlProcess.visit((facade ? name : dbName), dbHost, jdbcUrl);
                         } finally {
                             countDownLatch.countDown();
                         }
@@ -189,7 +190,7 @@ public class DBConfig implements IDbMeta {
             try {
                 final int expireSec = 15;
                 if (!countDownLatch.await(expireSec, TimeUnit.SECONDS)) {
-                    msgHandler.addErrorMessage(context, "连接"+expireSec+"秒,超时:" + fjdbcUrl.get());
+                    msgHandler.addErrorMessage(context, "连接" + expireSec + "秒,超时:" + fjdbcUrl.get());
                     return false;
                 }
             } catch (InterruptedException e) {
@@ -296,7 +297,7 @@ public class DBConfig implements IDbMeta {
          * @param dbName
          * @return
          */
-        void visit(String dbName, String jdbcUrl);
+        void visit(String dbName, String dbHost, String jdbcUrl);
     }
 
 //    @Override

@@ -24,7 +24,7 @@ import com.qlangtech.tis.datax.IDataxProcessor;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IConsumerHandle<SOURCE,FLINK_RESULT> {
+public interface IConsumerHandle<SOURCE, FLINK_RESULT> {
 
     /**
      * 处理消息Handle，业务逻辑在此处理

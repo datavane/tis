@@ -80,7 +80,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "fs", "存储");
     // ////////////////////////////////////////////////////////
     @TISExtension
-    public static final HeteroEnum<MQListenerFactory> MQ = new HeteroEnum<MQListenerFactory>(//
+    public static final HeteroEnum<MQListenerFactory> MQ = new HeteroEnum<>(//
             MQListenerFactory.class, //
             "mq", "Source Factory", Selectable.Multi, true);
     // ////////////////////////////////////////////////////////
@@ -219,7 +219,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         this(extensionPoint, identity, caption, selectable, false);
     }
 
-    public static MQListenerFactory getIncrSourceListenerFactory(String dataXName) {
+    public static  MQListenerFactory getIncrSourceListenerFactory(String dataXName) {
         IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
         List<MQListenerFactory> mqFactories = MQ.getPlugins(pluginContext, null);
         MQListenerFactory mqFactory = null;

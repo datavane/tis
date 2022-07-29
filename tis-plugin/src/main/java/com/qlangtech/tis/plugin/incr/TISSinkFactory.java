@@ -80,7 +80,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
         return sinkFactory;
     }
 
-    protected transient String dataXName;
+    public transient String dataXName;
 
     /**
      * 取得增量执行单元，脚本编译器
