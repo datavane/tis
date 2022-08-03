@@ -79,7 +79,7 @@ public class TestHeteroList extends TestCase {
     public void testSubFormFieldToJson() throws Exception {
 
         HeteroEnum dataxReader = HeteroEnum.DATAX_READER;
-        String pluginMeta = dataxReader.identity + ":require," + IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME
+        String pluginMeta = dataxReader.identity + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME
                 + "_MySQL," + IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + DataxUtils.DATAX_NAME + "_" + DATAX_INSTANCE_NAME;
 
         UploadPluginMeta meta = UploadPluginMeta.parse(pluginMeta);

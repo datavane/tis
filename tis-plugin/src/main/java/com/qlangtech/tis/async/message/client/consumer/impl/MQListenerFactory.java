@@ -25,6 +25,8 @@ import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
+import com.qlangtech.tis.util.HeteroEnum;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +42,23 @@ import java.util.Optional;
 public abstract class MQListenerFactory
         implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
 
+    public static Descriptor<IncrSourceSelectedTabExtend> getIncrSourceSelectedTabExtendDescriptor(String dataXName) {
+        MQListenerFactory incrSourceFactory = HeteroEnum.getIncrSourceListenerFactory(dataXName);
+
+        Descriptor<MQListenerFactory> descriptor = incrSourceFactory.getDescriptor();
+        if (!(descriptor instanceof IIncrSourceSelectedTabExtendFactory)) {
+            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must be instance of "
+                    + IIncrSourceSelectedTabExtendFactory.class.getName());
+        }
+        // Field subFormField, Class instClazz, Descriptor subFormFieldsDescriptor
+        Descriptor<IncrSourceSelectedTabExtend> selectedTableExtendDesc
+                = ((IIncrSourceSelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
+        if (selectedTableExtendDesc == null) {
+            throw new IllegalStateException("selectedTableExtendDesc can not be null,relevant desc:" + descriptor.getClass().getName());
+        }
+        return selectedTableExtendDesc;
+    }
+
     @Override
     public Descriptor<MQListenerFactory> getDescriptor() {
         Descriptor<MQListenerFactory> descriptor = TIS.get().getDescriptor(this.getClass());
@@ -54,10 +73,13 @@ public abstract class MQListenerFactory
         return (Class<TT>) BaseDescriptor.class;
     }
 
-    public  void setConsumerHandle(IConsumerHandle consumerHandle) {
+    public void setConsumerHandle(IConsumerHandle consumerHandle) {
         throw new UnsupportedOperationException();
     }
 
+    public interface IIncrSourceSelectedTabExtendFactory {
+        public Descriptor<IncrSourceSelectedTabExtend> getSelectedTableExtendDescriptor();
+    }
 
     public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> {
 
@@ -66,8 +88,13 @@ public abstract class MQListenerFactory
             Map<String, Object> eprops = new HashMap<>();
             Optional<IDataXPluginMeta.EndType> targetType = this.getTargetType();
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
+            eprops.put("extendSelectedTabProp", (this instanceof IIncrSourceSelectedTabExtendFactory));
             return eprops;
         }
+
+//        protected Boolean isExtendSelectedTabProp() {
+//            return false;
+//        }
 
         /**
          * 取得服务对象，如果这个Plugin是MySqlCDC的话,则返回 EndType.MySQL, 如果全部匹配的话，则返回empty

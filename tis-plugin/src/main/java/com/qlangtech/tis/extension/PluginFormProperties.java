@@ -18,6 +18,7 @@
 package com.qlangtech.tis.extension;
 
 import com.alibaba.fastjson.JSON;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -42,7 +43,7 @@ public abstract class PluginFormProperties {
             return null;
         }
 
-        default <T> T visit(SuFormProperties props) {
+        default <T> T visit(BaseSubFormProperties props) {
             return null;
             //throw new UnsupportedOperationException("process SuFormProperties");
         }

@@ -21,6 +21,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 
@@ -59,7 +60,7 @@ public @interface SubForm {
     String idListGetScript();
 
     interface ISubFormItemValidate {
-        public boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context, SuFormProperties props
+        public boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context, BaseSubFormProperties props
                 , IPropertyType.SubFormFilter subFormFilter, Map<String, /*** attr key */JSONObject> formData);
     }
 }

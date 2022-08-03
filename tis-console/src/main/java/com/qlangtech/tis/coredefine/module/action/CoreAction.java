@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
@@ -65,6 +66,7 @@ import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
@@ -160,6 +162,7 @@ public class CoreAction extends BasicModule {
 
   /**
    * 删除已有的 Savepoint
+   *
    * @param context
    * @throws Exception
    */
@@ -171,7 +174,7 @@ public class CoreAction extends BasicModule {
     }
     IRCController incrSync = getRCController();
 
-    incrSync.discardSavepoint(new TargetResName(this.getCollectionName()) ,savepointPath);
+    incrSync.discardSavepoint(new TargetResName(this.getCollectionName()), savepointPath);
     IndexIncrStatus incrStatus = getIndexIncrStatus(this, false);
     this.setBizResult(context, incrStatus);
   }
@@ -399,6 +402,8 @@ public class CoreAction extends BasicModule {
       = itemsSaveResult.stream().filter((r) -> r.cfgSaveResult.cfgChanged).findFirst();
 
     IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context, hasCfgChanged.isPresent());
+    MQListenerFactory incrFactory = HeteroEnum.getIncrSourceListenerFactory(this.getCollectionName());
+    incrStatus.setIncrSourceDesc(createDescVals(incrFactory.getDescriptor()));
     this.setBizResult(context, incrStatus);
   }
 
@@ -500,6 +505,7 @@ public class CoreAction extends BasicModule {
   private static HashMap<String, Object> createDescVals(Descriptor writerDesc) {
     HashMap<String, Object> newExtraProps = Maps.newHashMap(writerDesc.getExtractProps());
     newExtraProps.put(DescriptorsJSON.KEY_IMPL, writerDesc.getId());
+    newExtraProps.put(DescriptorsJSON.KEY_DISPLAY_NAME, writerDesc.getDisplayName());
     newExtraProps.put(DescriptorsJSON.KEY_EXTEND_POINT, writerDesc.getT().getName());
     return newExtraProps;
   }

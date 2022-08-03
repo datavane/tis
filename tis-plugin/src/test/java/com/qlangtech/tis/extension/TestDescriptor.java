@@ -30,6 +30,9 @@ import junit.framework.TestCase;
  **/
 public class TestDescriptor extends TestCase {
 
+
+
+
     public void testGetPluginFormPropertyTypes() {
 
         GroovyShellEvaluate.eval("com.qlangtech.tis.extension.DefaultPlugin.getColsDefaultVal()");

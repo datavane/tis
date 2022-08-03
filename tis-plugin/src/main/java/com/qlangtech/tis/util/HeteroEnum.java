@@ -24,15 +24,14 @@ import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
-import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.ExtensionList;
-import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
@@ -45,6 +44,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 //import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
@@ -170,7 +170,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             //   return super.getPluginStore(pluginContext, pluginMeta);
-            return getDataXReaderAndWriterStore(pluginContext, true, pluginMeta);
+            return getDataXReaderAndWriterStore(pluginContext, true, pluginMeta, Optional.empty());
         }
     };
     @TISExtension
@@ -193,11 +193,11 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             Selectable.Multi, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            final String dataxName = (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
-            if (StringUtils.isEmpty(dataxName)) {
-                throw new IllegalArgumentException(
-                        "plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
-            }
+            final String dataxName = pluginMeta.getDataXName();// (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
+//            if (StringUtils.isEmpty(dataxName)) {
+//                throw new IllegalArgumentException(
+//                        "plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+//            }
             return com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
         }
     };
@@ -219,14 +219,14 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         this(extensionPoint, identity, caption, selectable, false);
     }
 
-    public static  MQListenerFactory getIncrSourceListenerFactory(String dataXName) {
+    public static MQListenerFactory getIncrSourceListenerFactory(String dataXName) {
         IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
         List<MQListenerFactory> mqFactories = MQ.getPlugins(pluginContext, null);
         MQListenerFactory mqFactory = null;
         for (MQListenerFactory factory : mqFactories) {
             mqFactory = factory;
         }
-        Objects.requireNonNull(mqFactory, "mqFactory can not be null, mqFactories size:" + mqFactories.size());
+        Objects.requireNonNull(mqFactory, "mqFactory can not be null, dataXName:" + dataXName + " mqFactories size:" + mqFactories.size());
         return mqFactory;
     }
 
@@ -239,9 +239,14 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         throw new IllegalStateException("stream app:" + dataxName + " incrController can not not be null");
     }
 
-
     public static IPluginStore<?> getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta) {
-        return createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
+        return getDataXReaderAndWriterStore(pluginContext, getReader, pluginMeta, Optional.empty());
+    }
+
+    public static IPluginStore<?> getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta,
+                                                               Optional<IPropertyType.SubFormFilter> subFormFilter
+    ) {
+        IPluginStore<?> store = createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
                 , new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
                     @Override
                     public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
@@ -258,11 +263,48 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                         return keyStore;
                     }
                 });
+
+        if (subFormFilter.isPresent()) {
+            IPropertyType.SubFormFilter filter = subFormFilter.get();
+            Descriptor targetDescriptor = filter.getTargetDescriptor();
+            final Class<Describable> clazz = targetDescriptor.getT();
+//            Optional<Descriptor> firstDesc = heteroEnum.descriptors().stream()
+//                    .filter((des) -> filter.match((Descriptor) des)).map((des) -> (Descriptor) des).findFirst();
+//            if (!firstDesc.isPresent()) {
+//                throw new IllegalStateException("can not find relevant descriptor:" + filter.uploadPluginMeta.toString());
+//            }
+
+            PluginFormProperties pluginProps = targetDescriptor.getPluginFormPropertyTypes(subFormFilter);
+
+            store = pluginProps.accept(new PluginFormProperties.IVisitor() {
+                @Override
+                public IPluginStoreSave<?> visit(BaseSubFormProperties props) {
+                    // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
+                    //   Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
+
+                    DataxReader.SubFieldFormAppKey<Describable> key = HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
+                            , new HeteroEnum.DataXReaderAndWriterRelevantCreator<DataxReader.SubFieldFormAppKey<Describable>>() {
+                                @Override
+                                public DataxReader.SubFieldFormAppKey<Describable> dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                                    return new DataxReader.SubFieldFormAppKey<>(pluginContext, true, saveDbName, props, clazz);
+                                }
+
+                                @Override
+                                public DataxReader.SubFieldFormAppKey<Describable> appRelevant(IPluginContext pluginContext, String dataxName) {
+                                    return new DataxReader.SubFieldFormAppKey<>(pluginContext, false, dataxName, props, clazz);
+                                }
+                            });
+
+                    return KeyedPluginStore.getPluginStore(key);
+                }
+            });
+        }
+        return store;
     }
 
     public static <T> T createDataXReaderAndWriterRelevant(
             IPluginContext pluginContext, UploadPluginMeta pluginMeta, DataXReaderAndWriterRelevantCreator<T> creator) {
-        final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+        final String dataxName = pluginMeta.getDataXName();//.getExtraParam(DataxUtils.DATAX_NAME);
 
         if (StringUtils.isEmpty(dataxName)) {
             String saveDbName = pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
@@ -340,9 +382,11 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             return Collections.emptyList();
         }
         List<T> plugins = store.getPlugins();
-        if (pluginMeta != null && StringUtils.isNotEmpty(pluginMeta.getTargetPluginDesc())) {
+        UploadPluginMeta.TargetDesc targetDesc = null;
+        if (pluginMeta != null && (targetDesc = pluginMeta.getTargetDesc()).shallMatchTargetDesc()) {
+            final UploadPluginMeta.TargetDesc finalDesc = targetDesc;
             return plugins.stream()
-                    .filter((p) -> StringUtils.equals(p.getDescriptor().getDisplayName(), pluginMeta.getTargetPluginDesc()))
+                    .filter((p) -> finalDesc.isNameMatch(p.getDescriptor().getDisplayName()))
                     .collect(Collectors.toList());
         }
 

@@ -37,7 +37,9 @@ public interface AsyncMsg<SOURCE> extends Serializable {
      * com.qlangtech.plugins.incr.flink.cdc.FlinkCol
      * @return
      */
-    <DTOStream> Map<String, DTOStream> getTab2OutputTag();
+   default  <DTOStream> Map<String, DTOStream> getTab2OutputTag(){
+       throw new UnsupportedOperationException();
+   }
 
     /**
      * 关注的表,原始表表名

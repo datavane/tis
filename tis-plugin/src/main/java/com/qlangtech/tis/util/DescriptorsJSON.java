@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -110,7 +111,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 }
 
                 @Override
-                public Descriptor visit(SuFormProperties props) {
+                public Descriptor visit(BaseSubFormProperties props) {
                     JSONObject subForm = new JSONObject();
                     subForm.put("fieldName", props.getSubFormFieldName());
                     if (subFormFilter.isPresent()) {

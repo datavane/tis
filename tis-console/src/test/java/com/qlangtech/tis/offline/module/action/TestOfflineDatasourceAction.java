@@ -24,6 +24,7 @@ import com.qlangtech.tis.extension.IPropertyType.SubFormFilter;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.util.UploadPluginMeta;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -46,7 +47,8 @@ public class TestOfflineDatasourceAction extends BasicActionTestCase {
       "    ],\n" +
       "    \"name\":\"dataxReader\",\n" +
       "    \"require\":true,\n" +
-      "    \"extraParam\":\"" + SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_MySQL," + SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + DataxUtils.DATAX_DB_NAME + "_order,maxReaderTableCount_9999\"\n" +
+      "    \"extraParam\":\"" + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_MySQL,"
+      + SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + DataxUtils.DATAX_DB_NAME + "_order,maxReaderTableCount_9999\"\n" +
       "}";
     request.setContent(postContent.getBytes(TisUTF8.get()));
 

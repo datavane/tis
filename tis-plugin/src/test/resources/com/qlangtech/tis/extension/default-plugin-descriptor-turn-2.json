@@ -3,6 +3,10 @@
     "attrs":[
       {
         "describable":false,
+        "eprops":{
+          "asyncHelp":true,
+          "dftVal":"baisui"
+        },
         "key":"name",
         "ord":0,
         "pk":false,
@@ -21,9 +25,11 @@
         "type":2
       }
     ],
+    "containAdvance":false,
     "displayName":"DefaultPlugin",
     "extendPoint":"com.qlangtech.tis.extension.DefaultPlugin",
     "impl":"com.qlangtech.tis.extension.DefaultPlugin",
+    "implUrl":"http://tis.pub/docs/guide/plugin/plugins/#defaultplugin",
     "veriflable":false
   }
 }

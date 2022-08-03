@@ -46,7 +46,7 @@ public class TestParamsConfigPluginStore extends TestCase {
     }
 
     public void testWriteAndGet() {
-        UploadPluginMeta pluginMeta = UploadPluginMeta.parse(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC + "_test1");
+        UploadPluginMeta pluginMeta = UploadPluginMeta.parse(UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_test1");
         ParamsConfigPluginStore paramsCfgPluginStore = new ParamsConfigPluginStore(pluginMeta);
 
         List<Descriptor.ParseDescribable<ParamsConfig>> dlist = Lists.newArrayList();

@@ -36,17 +36,17 @@ public interface IPropertyType {
      */
     public class SubFormFilter {
 
+        public static final String KEY_INCR_PROCESS_EXTEND = "incr_process_extend";
+
         /**
          * 表明点击进入子表单显示
          */
         public static String PLUGIN_META_SUBFORM_DETAIL_ID_VALUE = "subformDetailIdValue";
 
-        // 目标插件名称
-        public static String PLUGIN_META_TARGET_DESCRIPTOR_NAME = "targetDescriptorName";
-        public static String PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION = "targetDescriptorImpl";
+
         public static String PLUGIN_META_SUB_FORM_FIELD = "subFormFieldName";
-        public final String targetDescriptorName;
-        public final String targetDescImpl;
+        public final UploadPluginMeta.TargetDesc targetDesc;
+        //public final String targetDescImpl;
         public final String subFieldName;
         public final UploadPluginMeta uploadPluginMeta;
         // 是否显示子表单内容
@@ -54,13 +54,24 @@ public interface IPropertyType {
         public final String subformDetailId;
 
         public Descriptor getTargetDescriptor() {
-            Descriptor parentDesc = Objects.requireNonNull(TIS.get().getDescriptor(this.targetDescImpl)
-                    , this.targetDescriptorName + " relevant desc can not be null");
+            Descriptor parentDesc = Objects.requireNonNull(TIS.get().getDescriptor(this.targetDesc.impl)
+                    , this.targetDesc + "->" + this.targetDesc.impl + " relevant desc can not be null");
             return parentDesc;
         }
 
+        /**
+         * 增量流程中需要对
+         *
+         * @return
+         */
+        public boolean isIncrProcessExtend() {
+            return this.targetDesc.isNameMatch(KEY_INCR_PROCESS_EXTEND);// .equals(this.targetDescriptorName);
+        }
+
         public boolean match(Descriptor<?> desc) {
-            return StringUtils.equals(desc.getDisplayName(), this.targetDescriptorName);
+            //return targetDesc.descDisplayName(desc.getDisplayName());
+            return StringUtils.equals(desc.getDisplayName(), this.targetDesc.descDisplayName);
+            // return StringUtils.equals(desc.getDisplayName(), this.targetDescriptorName.getName());
         }
 
 
@@ -83,15 +94,16 @@ public interface IPropertyType {
             return (T) first.get();
         }
 
-        public SubFormFilter(UploadPluginMeta uploadPluginMeta, String targetDescriptorName, String targetDescImpl, String subFieldName) {
-            if (StringUtils.isEmpty(targetDescriptorName)) {
+        public SubFormFilter(UploadPluginMeta uploadPluginMeta, UploadPluginMeta.TargetDesc targetDescriptorName //, String targetDescImpl
+                , String subFieldName) {
+            if ((targetDescriptorName) == null) {
                 throw new IllegalArgumentException("param fieldName can not be empty");
             }
             if (StringUtils.isEmpty(subFieldName)) {
                 throw new IllegalArgumentException("param subFieldName can not be empty");
             }
-            this.targetDescriptorName = targetDescriptorName;
-            this.targetDescImpl = targetDescImpl;
+            this.targetDesc = targetDescriptorName;
+            //this.targetDescImpl = targetDescImpl;
             this.subFieldName = subFieldName;
             this.uploadPluginMeta = uploadPluginMeta;
             this.subformDetailView = StringUtils.isNotEmpty(
@@ -101,8 +113,7 @@ public interface IPropertyType {
         @Override
         public String toString() {
             return "{" +
-                    "  descName='" + targetDescriptorName + '\'' +
-                    ", targetDescImpl='" + targetDescImpl + '\'' +
+                    "  descName='" + targetDesc + '\'' +
                     ", subFieldName='" + subFieldName + '\'' +
                     ", subformDetailId='" + subformDetailId + '\'' +
                     '}';

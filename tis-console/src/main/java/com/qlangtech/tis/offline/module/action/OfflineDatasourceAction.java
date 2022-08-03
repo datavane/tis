@@ -34,6 +34,7 @@ import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
@@ -1111,7 +1112,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
     bizResult.put("tabVals", pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
       @Override
-      public com.alibaba.fastjson.JSONObject visit(SuFormProperties props) {
+      public com.alibaba.fastjson.JSONObject visit(BaseSubFormProperties props) {
         return props.createSubFormVals(
           allNewTabs.stream().map((t) -> (IdentityName) t).collect(Collectors.toList()));
       }
@@ -1147,7 +1148,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
 
       @Override
-      public ISelectedTab visit(SuFormProperties props) {
+      public ISelectedTab visit(BaseSubFormProperties props) {
         try {
           ISelectedTab subForm = props.newSubDetailed();
 

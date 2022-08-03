@@ -95,9 +95,9 @@ public class TestUploadPluginMeta extends TestCase {
 
         // dataxReader:require,targetDescriptorImpl_com.qlangtech.tis.plugin.datax.DataxMySQLReader,targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_hudi,maxReaderTableCount_9999
 
-        plugins = new String[]{pluginName + ":" + IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME
+        plugins = new String[]{pluginName + ":" + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME
                 + "_" + targetDescriptor
-                + "," + IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + targetDescriptorImpl
+                + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + targetDescriptorImpl
                 + "," + IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_" + subFieldName + ",require"};
 
         pluginMetas = UploadPluginMeta.parse(plugins);
@@ -109,8 +109,8 @@ public class TestUploadPluginMeta extends TestCase {
         assertTrue(subFormFilter.isPresent());
         IPropertyType.SubFormFilter filter = subFormFilter.get();
 
-        assertEquals(targetDescriptor, filter.targetDescriptorName);
-        assertEquals(targetDescriptorImpl, filter.targetDescImpl);
+        assertEquals(targetDescriptor, filter.targetDesc.descDisplayName);
+        assertEquals(targetDescriptorImpl, filter.targetDesc.impl);
         assertEquals(subFieldName, filter.subFieldName);
         Descriptor descriptor = EasyMock.createMock("descriptor", Descriptor.class);
         EasyMock.expect(descriptor.getDisplayName()).andReturn(targetDescriptor);

@@ -25,6 +25,7 @@ import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -104,7 +105,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                     subFieldFormPropertyTypes.forEach((pt) -> {
                         pt.accept(new PluginFormProperties.IVisitor() {
                             @Override
-                            public Void visit(final SuFormProperties props) {
+                            public Void visit(final BaseSubFormProperties props) {
 //                                SubFieldFormAppKey<? extends Describable> subFieldKey
 //                                        = new SubFieldFormAppKey<>(pluginContext, db, appname, props, props.subFormFieldsAnnotation.desClazz());
 
@@ -130,11 +131,11 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                 return null;
                             }
 
-                            private void setReaderSubFormProp(SuFormProperties props, List<? extends Describable> subItems) {
+                            private void setReaderSubFormProp(BaseSubFormProperties props, List<? extends Describable> subItems) {
                                 setReaderSubFormProp(props, reader, subItems);
                             }
 
-                            private void setReaderSubFormProp(SuFormProperties props, DataxReader reader, List<? extends Describable> subItems) {
+                            private void setReaderSubFormProp(BaseSubFormProperties props, DataxReader reader, List<? extends Describable> subItems) {
                                 if (reader == null) {
                                     return;
                                 }
@@ -201,9 +202,9 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 //    }
 
     public static class SubFieldFormAppKey<TT extends Describable> extends KeyedPluginStore.AppKey<TT> {
-        public final SuFormProperties subfieldForm;
+        public final BaseSubFormProperties subfieldForm;
 
-        public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname, SuFormProperties subfieldForm, Class<TT> clazz) {
+        public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname, BaseSubFormProperties subfieldForm, Class<TT> clazz) {
             super(pluginContext, isDB, Objects.requireNonNull(appname, "appname can not be empty"), clazz);
             this.subfieldForm = subfieldForm;
         }

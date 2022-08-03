@@ -17,14 +17,12 @@
  */
 package com.qlangtech.tis.extension.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -46,7 +44,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-11 13:22
  */
-public class SuFormProperties extends PluginFormProperties implements IPropertyType {
+public class SuFormProperties extends BaseSubFormProperties {
 
     public static final ThreadLocal<SuFormGetterContext> subFormGetterProcessThreadLocal = ThreadLocal.withInitial(() -> {
         return new SuFormGetterContext();
@@ -61,14 +59,30 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
     }
 
     public final Map<String, /*** fieldname */PropertyType> fieldsType;
-    public final Field subFormField;
-    public final Descriptor subFormFieldsDescriptor;
-    public Class instClazz;
+
+
     public final SubForm subFormFieldsAnnotation;
     public final Class<?> parentClazz;
     public final PropertyType pkPropertyType;
 
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
+
+    @Override
+    public PropertyType getPropertyType(String fieldName) {
+        PropertyType propertyType = this.fieldsType.get(fieldName);
+        return propertyType;
+    }
+    //
+
+    /**
+     * 至少选一个
+     *
+     * @return
+     */
+    @Override
+    public boolean atLeastOne() {
+        return this.subFormFieldsAnnotation.atLeastOne();
+    }
 
     public static SuFormProperties copy(Map<String, /*** fieldname */PropertyType> fieldsType
             , Class<?> instClazz, Descriptor subFormFieldsDescriptor, SuFormProperties old) {
@@ -80,18 +94,27 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         return result.overWriteInstClazz(instClazz);
     }
 
+    /**
+     * @param parentClazz
+     * @param subFormField
+     * @param subFormFieldsAnnotation
+     * @param subFormFieldsDescriptor Example: SelectedTable.DefaultDescriptor
+     * @param fieldsType              Example: SelectedTable.DefaultDescriptor 对应plugin的 props
+     */
     public SuFormProperties(Class<?> parentClazz, Field subFormField
             , SubForm subFormFieldsAnnotation, Descriptor subFormFieldsDescriptor, Map<String, PropertyType> fieldsType) {
+        super(subFormField, subFormFieldsAnnotation != null ? subFormFieldsAnnotation.desClazz() : null, subFormFieldsDescriptor);
         Objects.requireNonNull(fieldsType, "fieldsType can not be null");
         this.parentClazz = parentClazz;
         this.fieldsType = fieldsType;
-        this.subFormField = subFormField;
+        // this.subFormField = subFormField;
         this.subFormFieldsAnnotation = subFormFieldsAnnotation;
-        if (subFormFieldsAnnotation != null) {
-            this.instClazz = subFormFieldsAnnotation.desClazz();
-        }
+//        if () {
+//            this.instClazz = ;
+//        }
         if (MapUtils.isNotEmpty(fieldsType)) {
-            Optional<Map.Entry<String, PropertyType>> idType = fieldsType.entrySet().stream().filter((ft) -> ft.getValue().isIdentity()).findFirst();
+            Optional<Map.Entry<String, PropertyType>> idType
+                    = fieldsType.entrySet().stream().filter((ft) -> ft.getValue().isIdentity()).findFirst();
             if (!idType.isPresent()) {
                 throw new IllegalArgumentException(subFormFieldsAnnotation.desClazz()
                         + " has not define a identity prop,exist keys:"
@@ -102,25 +125,14 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
             this.pkPropertyType = null;
         }
 
-        this.subFormFieldsDescriptor = subFormFieldsDescriptor;
+        //this.subFormFieldsDescriptor = subFormFieldsDescriptor;
     }
 
-    public String getSubFormFieldName() {
-        return this.subFormField.getName();
-    }
 
     private String getIdListGetScript() {
         return this.subFormFieldsAnnotation.idListGetScript();
     }
 
-    public <T> T newSubDetailed() {
-        try {
-            // Class<?> aClass = desClazz this.subFormFieldsAnnotation.desClazz();
-            return (T) this.instClazz.newInstance();
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public SuFormProperties overWriteInstClazz(Class instClazz) {
         this.instClazz = instClazz;
@@ -215,40 +227,6 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         return fieldsType.entrySet();
     }
 
-    @Override
-    public JSON getInstancePropsJson(Object instance) {
-//        Class<?> fieldType = subFormField.getType();
-//        if (!Collection.class.isAssignableFrom(fieldType)) {
-//            // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
-//            throw new UnsupportedOperationException("sub form field:" + subFormField.getName()
-//                    + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
-//        }
-//        getSubFormPropVal(instance);
-//        try {
-//            Object o = subFormField.get(instance);
-
-        return createSubFormVals(getSubFormPropVal(instance));
-
-//        } catch (IllegalAccessException e) {
-//            throw new RuntimeException(e);
-//        }
-    }
-
-    public Collection<IdentityName> getSubFormPropVal(Object instance) {
-        Class<?> fieldType = subFormField.getType();
-        if (!Collection.class.isAssignableFrom(fieldType)) {
-            // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
-            throw new UnsupportedOperationException("sub form field:" + subFormField.getName()
-                    + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
-        }
-
-        try {
-            Object o = subFormField.get(instance);
-            return (o == null) ? Collections.emptyList() : (Collection<IdentityName>) o;
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
         JSONObject vals = new JSONObject();
@@ -263,52 +241,6 @@ public class SuFormProperties extends PluginFormProperties implements IPropertyT
         return vals;
     }
 
-    @Override
-    public <T> T accept(IVisitor visitor) {
-        return visitor.visit(this);
-    }
-
-//    public static class SuFormPropertiesBehaviorMeta {
-//        String clickBtnLabel;
-//        Map<String, SuFormPropertyGetterMeta> onClickFillData;
-//
-//        public String getClickBtnLabel() {
-//            return clickBtnLabel;
-//        }
-//
-//        public void setClickBtnLabel(String clickBtnLabel) {
-//            this.clickBtnLabel = clickBtnLabel;
-//        }
-//
-//        public Map<String, SuFormPropertyGetterMeta> getOnClickFillData() {
-//            return onClickFillData;
-//        }
-//
-//        public void setOnClickFillData(Map<String, SuFormPropertyGetterMeta> onClickFillData) {
-//            this.onClickFillData = onClickFillData;
-//        }
-//    }
-
-//    public static class SuFormPropertyGetterMeta {
-//        String method;
-//        List<String> params;
-//
-//        public String getMethod() {
-//            return method;
-//        }
-//
-//        public void setMethod(String method) {
-//            this.method = method;
-//        }
-//
-//        public List<String> getParams() {
-//            return params;
-//        }
-//
-//        public void setParams(List<String> params) {
-//            this.params = params;
-//        }
-//    }
 
     /**
      * 子表单执行过程中与线程绑定的上下文对象

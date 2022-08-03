@@ -103,7 +103,7 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         String[] childFiles = paramsCfgDir.list();
         TT result = null;
         for (String childFile : childFiles) {
-            if (!StringUtils.equals(this.pluginMeta.getTargetPluginDesc(), childFile)) {
+            if (!StringUtils.equals(this.pluginMeta.getTargetDesc().impl, childFile)) {
                 continue;
             }
             IPluginStore<ParamsConfig> pluginStore = ParamsConfig.getChildPluginStore(childFile);
@@ -179,19 +179,19 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
     @Override
     public void copyConfigFromRemote() {
-        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetPluginDesc());
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc().impl);
         childPluginStore.copyConfigFromRemote();
     }
 
     @Override
     public XmlFile getTargetFile() {
-        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetPluginDesc());
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc().impl);
         return childPluginStore.getTargetFile();
     }
 
     @Override
     public long getWriteLastModifyTimeStamp() {
-        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetPluginDesc());
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc().impl);
         return childPluginStore.getWriteLastModifyTimeStamp();
     }
 

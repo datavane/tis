@@ -27,6 +27,7 @@ import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -208,8 +209,8 @@ public class PluginAction extends BasicModule {
     PluginExtraProps.Props props = pluginFormPropertyTypes.accept(
       new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
         @Override
-        public PluginExtraProps.Props visit(SuFormProperties props) {
-          PropertyType propertyType = props.fieldsType.get(descField.field);
+        public PluginExtraProps.Props visit(BaseSubFormProperties props) {
+          PropertyType propertyType = props.getPropertyType(descField.field);
           return propertyType.extraProp;
         }
 
@@ -376,7 +377,7 @@ public class PluginAction extends BasicModule {
       pluginName = willInstall.getString("name");
       classifier = Optional.empty();
       if (StringUtils.isNotEmpty(c = willInstall.getString("selectedClassifier"))) {
-        classifier = Optional.of( PluginClassifier.create(c));
+        classifier = Optional.of(PluginClassifier.create(c));
       }
       if (willInstall.getBooleanValue("multiClassifier") && !classifier.isPresent()) {
         // throw new IllegalStateException("willInstall is illegal:" + willInstall.toJSONString());
@@ -570,6 +571,7 @@ public class PluginAction extends BasicModule {
   public void doGetPluginConfigInfo(Context context) throws Exception {
 
     HeteroList<?> hList = null;
+
     List<UploadPluginMeta> plugins = getPluginMeta();
 
     if (plugins == null || plugins.size() < 1) {
@@ -579,13 +581,17 @@ public class PluginAction extends BasicModule {
     com.alibaba.fastjson.JSONArray hlist = new com.alibaba.fastjson.JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta pmeta : plugins) {
-      hList = pmeta.getHeteroList(this);
+
+      hList = this.createHeteroList(pmeta);// pmeta.getHeteroList(this);
       hlist.add(hList.toJSON());
     }
     pluginDetail.put("plugins", hlist);
     this.setBizResult(context, pluginDetail);
   }
 
+  private HeteroList<?> createHeteroList(UploadPluginMeta pmeta) {
+    return pmeta.getHeteroList(this);
+  }
 
   /**
    * 保存plugin配置

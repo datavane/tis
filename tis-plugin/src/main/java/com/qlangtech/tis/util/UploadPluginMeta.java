@@ -19,9 +19,11 @@ package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.IPluginEnum;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
 
@@ -57,12 +59,15 @@ public class UploadPluginMeta {
 
     //纯添加类型，更新之前需要将之前的类型plugin先load出来再更新
     public static final String KEY_APPEND = "append";
-
+    // "targetDescriptorImpl"
     // 服务端对目标插件的Desc进行过滤
     public static final String KEY_TARGET_PLUGIN_DESC = "targetItemDesc";
-
+    // 目标插件名称
+    public static String PLUGIN_META_TARGET_DESCRIPTOR_NAME = "targetDescriptorName";
+    public static String PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION = "targetDescriptorImpl";
     // 禁止向context中写入biz状态
     public static final String KEY_DISABLE_BIZ_SET = "disableBizStore";
+
 
     private final String name;
 
@@ -90,9 +95,9 @@ public class UploadPluginMeta {
         return this.getBoolean(KEY_APPEND);
     }
 
-    public String getTargetPluginDesc() {
-        return this.getExtraParam(KEY_TARGET_PLUGIN_DESC);
-    }
+//    public String getTargetPluginDesc() {
+//
+//    }
 
     public boolean isDisableBizSet() {
         return this.getBoolean(KEY_DISABLE_BIZ_SET);
@@ -180,6 +185,37 @@ public class UploadPluginMeta {
     }
 
     public IPluginEnum getHeteroEnum() {
+
+        Optional<IPropertyType.SubFormFilter> subFormFilter = null;
+        IPropertyType.SubFormFilter subFilter = null;
+
+        subFormFilter = this.getSubFormFilter();
+        if (subFormFilter.isPresent()) {
+            subFilter = subFormFilter.get();
+            if (subFilter.isIncrProcessExtend()) {
+                HeteroEnum<MQListenerFactory> mq = HeteroEnum.MQ;
+                List<Descriptor> descs = Collections.singletonList(MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(this.getDataXName()));
+//                Class<T> extensionPoint,
+//                String identity, String caption, Selectable selectable, boolean appNameAware
+                return new HeteroEnum(mq.extensionPoint, mq.identity, mq.caption, mq.selectable, mq.isAppNameAware()) {
+                    @Override
+                    public List getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+                        // return super.getPlugins(pluginContext, pluginMeta);
+
+                        return DATAX_READER.getPlugins(pluginContext
+                                , UploadPluginMeta.parse(pluginContext, pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName()));
+
+                        //  return DATAX_READER.getPlugins(pluginContext, pluginMeta);
+                    }
+
+                    @Override
+                    public List<Descriptor> descriptors() {
+                        return descs;
+                    }
+                };
+            }
+        }
+
         return HeteroEnum.of(this.getName());
     }
 
@@ -199,18 +235,83 @@ public class UploadPluginMeta {
 
     public Optional<IPropertyType.SubFormFilter> getSubFormFilter() {
 
-        String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
-        String targetDescImpl = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION);
+        TargetDesc targetDesc = this.getTargetDesc();
+        // String targetDescImpl = this.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION);
 
         String subFormField = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD);
-        if (StringUtils.isNotEmpty(targetDesc)) {
-            return Optional.of(new IPropertyType.SubFormFilter(this, targetDesc, targetDescImpl, subFormField));
+        if (StringUtils.isNotEmpty(targetDesc.descDisplayName) && StringUtils.isNotEmpty(subFormField)) {
+            return Optional.of(new IPropertyType.SubFormFilter(this, targetDesc //, targetDescImpl
+                    , subFormField));
         }
         return Optional.empty();
     }
 
+    public static class TargetDesc {
+        public final String descDisplayName;
+        public final String impl;
+
+        public final String matchTargetPluginDescName;
+
+
+        public static TargetDesc create(UploadPluginMeta meta) {
+            return new TargetDesc(meta.getExtraParam(KEY_TARGET_PLUGIN_DESC), meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_NAME)
+                    , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION));
+        }
+
+        private TargetDesc(String matchTargetPluginDescName, String name, String impl) {
+            this.descDisplayName = name;
+            this.impl = impl;
+            this.matchTargetPluginDescName = matchTargetPluginDescName;
+        }
+
+        public boolean shallMatchTargetDesc() {
+            return StringUtils.isNotEmpty(this.matchTargetPluginDescName);
+        }
+
+        public boolean isNameMatch(String displayName) {
+            return IPropertyType.SubFormFilter.KEY_INCR_PROCESS_EXTEND.equals(matchTargetPluginDescName)
+                    || StringUtils.equals(displayName, this.matchTargetPluginDescName);
+        }
+
+//        public String getName() {
+//            return name;
+//        }
+
+        @Override
+        public String toString() {
+            return "TargetDesc{" +
+                    "descDisplayName='" + descDisplayName + '\'' +
+                    ", impl='" + impl + '\'' +
+                    ", matchTargetPluginDescName='" + matchTargetPluginDescName + '\'' +
+                    '}';
+        }
+
+//        @Override
+//        public String toString() {
+//            return this.descDisplayName;
+//        }
+    }
+
+    public TargetDesc getTargetDesc() {
+//        String targetDesc = getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_NAME);
+//        if (StringUtils.isNotEmpty(targetDesc)) {
+        return TargetDesc.create(this);
+        //  return new TargetDesc();
+        //}
+        //return null;
+    }
+
     public String getExtraParam(String key) {
         return this.extraParams.get(key);
+    }
+
+    public String getDataXName() {
+        final String dataxName = (this.getExtraParam(DataxUtils.DATAX_NAME));
+        if (StringUtils.isEmpty(dataxName)) {
+            throw new IllegalArgumentException(
+                    "plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+        }
+        return dataxName;
     }
 
     public boolean getBoolean(String key) {
@@ -238,18 +339,23 @@ public class UploadPluginMeta {
         hList.setItems(items);
 
         List<Descriptor<T>> descriptors = hEnum.descriptors();
-        if (StringUtils.isNotEmpty(this.getTargetPluginDesc())) {
+        final TargetDesc targetDesc = this.getTargetDesc();
+        //if (StringUtils.isNotEmpty(this.getTargetPluginDesc())) {
+        if (targetDesc.shallMatchTargetDesc()) {
+//            descriptors = descriptors.stream()
+//                    .filter((desc) -> this.getTargetPluginDesc().equals(desc.getDisplayName()))
+//                    .collect(Collectors.toList());
             descriptors = descriptors.stream()
-                    .filter((desc) -> this.getTargetPluginDesc().equals(desc.getDisplayName()))
+                    .filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName()))
                     .collect(Collectors.toList());
-        }
-        String targetDesc = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_TARGET_DESCRIPTOR_NAME);
-        boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
-        if (justGetItemRelevant) {
-            Set<String> itemRelevantDescNames = items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
-            descriptors = descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
-        } else if (StringUtils.isNotEmpty(targetDesc)) {
-            descriptors = descriptors.stream().filter((d) -> targetDesc.equals(d.getDisplayName())).collect(Collectors.toList());
+        } else {
+            boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
+            if (justGetItemRelevant) {
+                Set<String> itemRelevantDescNames = items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
+                descriptors = descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
+            } else if (StringUtils.isNotEmpty(targetDesc.descDisplayName)) {
+                descriptors = descriptors.stream().filter((d) -> targetDesc.descDisplayName.equals(d.getDisplayName())).collect(Collectors.toList());
+            }
         }
         hList.setDescriptors(descriptors);
 

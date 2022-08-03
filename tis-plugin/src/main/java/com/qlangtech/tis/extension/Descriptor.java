@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.*;
@@ -37,15 +38,13 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
-import com.qlangtech.tis.util.AttrValMap;
-import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.ISelectOptionsGetter;
-import com.qlangtech.tis.util.PluginMeta;
+import com.qlangtech.tis.util.*;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
@@ -304,6 +303,28 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         SuFormProperties subPluginFormPropertyTypes;
         if (subFormFilter.isPresent()) {
             filter = subFormFilter.get();
+            if (filter.isIncrProcessExtend()) {
+
+                Descriptor<IncrSourceSelectedTabExtend> selectedTableExtendDesc
+                        = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(filter.uploadPluginMeta.getDataXName());
+
+                SuFormProperties subProps = null;
+                if (filter.subformDetailView) {
+                    final String subformDetailId = filter.subformDetailId;
+                    Memoizer<String, IncrSourceSelectedTabExtend> tabsExtend = IncrSourceExtendSelected.getTabExtend(filter.uploadPluginMeta, selectedTableExtendDesc);
+                    return new RootFormProperties(filterFieldProp(selectedTableExtendDesc)) {
+                        @Override
+                        public JSON getInstancePropsJson(Object instance) {
+                            return super.getInstancePropsJson(tabsExtend.get(subformDetailId));
+                        }
+                    };
+                } else {
+                    Descriptor parentDesc = filter.getTargetDescriptor();
+                    subProps = (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
+                    return new IncrSourceExtendSelected(filter.uploadPluginMeta, subProps.subFormField, selectedTableExtendDesc.clazz, selectedTableExtendDesc);
+
+                }
+            }
             if (!filter.match(this)) {
                 /**
                  *保存子表单聚合内容
@@ -373,6 +394,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
 
         return new RootFormProperties(filterFieldProp(getPropertyTypes()));
+    }
+
+    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Descriptor descriptor) {
+        return filterFieldProp(descriptor.getPropertyTypes());
     }
 
     public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String, /*** fieldname*/IPropertyType> props) {
@@ -591,7 +616,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
 
             @Override
-            public PluginValidateResult visit(SuFormProperties props) {
+            public PluginValidateResult visit(BaseSubFormProperties props) {
                 PluginValidateResult validateResult = null;
 //                String subFormId = null;
 //                JSONObject subformData = null;
@@ -614,7 +639,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     }
                 } else {
 
-                    if (props.subFormFieldsAnnotation.atLeastOne() && (formData.size() < 1)) {
+                    if (props.atLeastOne() && (formData.size() < 1)) {
                         // 是否至少要选一个以上的校验
                         msgHandler.addErrorMessage(context, "请至少选择一个");
                         validateResult = new PluginValidateResult(null, 0, 0);
@@ -908,6 +933,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         msgHandler.addFieldError(context, attrKey, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
     }
 
+
+    public ParseDescribable<Describable> newInstance(
+            IPluginContext pluginContext, //
+            FormData formData //
+    ) {
+        return newInstance(pluginContext, formData.body, Optional.empty());
+    }
+
+
     public ParseDescribable<Describable> newInstance(
             String appName, //
             FormData formData //
@@ -977,7 +1011,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
 
             @Override
-            public ParseDescribable<Describable> visit(SuFormProperties props) {
+            public ParseDescribable<Describable> visit(BaseSubFormProperties props) {
 
                 if (!subFormFilter.isPresent()) {
                     throw new IllegalStateException("subFormFilter must be present");

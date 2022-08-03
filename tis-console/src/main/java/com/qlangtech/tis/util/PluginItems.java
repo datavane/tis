@@ -29,7 +29,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
-import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
@@ -218,45 +218,44 @@ public class PluginItems {
 //          pluginContext.setBizResult(context, sourceMeta.getTablesInDB());
 //        }
 //      }
-      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext, this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta);
+      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext
+        , this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta, pluginMeta.getSubFormFilter());
 
-      Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+      //Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
-      if (subFormFilter.isPresent()) {
-        IPropertyType.SubFormFilter filter = subFormFilter.get();
-        Optional<Descriptor> firstDesc = heteroEnum.descriptors().stream()
-          .filter((des) -> filter.match((Descriptor) des)).map((des) -> (Descriptor) des).findFirst();
-        if (!firstDesc.isPresent()) {
-          throw new IllegalStateException("can not find relevant descriptor:" + filter.uploadPluginMeta.toString());
-        }
-
-        PluginFormProperties pluginProps = firstDesc.get().getPluginFormPropertyTypes(subFormFilter);
-
-        store = pluginProps.accept(new PluginFormProperties.IVisitor() {
-          @Override
-          public IPluginStoreSave<?> visit(SuFormProperties props) {
-            // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
-            Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
-
-            DataxReader.SubFieldFormAppKey<Describable> key = HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
-              , new HeteroEnum.DataXReaderAndWriterRelevantCreator<DataxReader.SubFieldFormAppKey<Describable>>() {
-                @Override
-                public DataxReader.SubFieldFormAppKey<Describable> dbRelevant(IPluginContext pluginContext, String saveDbName) {
-                  return new DataxReader.SubFieldFormAppKey<>(pluginContext, true, saveDbName, props, clazz);
-                }
-
-                @Override
-                public DataxReader.SubFieldFormAppKey<Describable> appRelevant(IPluginContext pluginContext, String dataxName) {
-                  return new DataxReader.SubFieldFormAppKey<>(pluginContext, false, dataxName, props, clazz);
-                }
-              });
-
-            return KeyedPluginStore.getPluginStore(key);
-          }
-
-          ;
-        });
-      }
+//      if (subFormFilter.isPresent()) {
+//        IPropertyType.SubFormFilter filter = subFormFilter.get();
+//        Optional<Descriptor> firstDesc = heteroEnum.descriptors().stream()
+//          .filter((des) -> filter.match((Descriptor) des)).map((des) -> (Descriptor) des).findFirst();
+//        if (!firstDesc.isPresent()) {
+//          throw new IllegalStateException("can not find relevant descriptor:" + filter.uploadPluginMeta.toString());
+//        }
+//
+//        PluginFormProperties pluginProps = firstDesc.get().getPluginFormPropertyTypes(subFormFilter);
+//
+//        store = pluginProps.accept(new PluginFormProperties.IVisitor() {
+//          @Override
+//          public IPluginStoreSave<?> visit(BaseSubFormProperties props) {
+//            // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
+//            Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
+//
+//            DataxReader.SubFieldFormAppKey<Describable> key = HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
+//              , new HeteroEnum.DataXReaderAndWriterRelevantCreator<DataxReader.SubFieldFormAppKey<Describable>>() {
+//                @Override
+//                public DataxReader.SubFieldFormAppKey<Describable> dbRelevant(IPluginContext pluginContext, String saveDbName) {
+//                  return new DataxReader.SubFieldFormAppKey<>(pluginContext, true, saveDbName, props, clazz);
+//                }
+//
+//                @Override
+//                public DataxReader.SubFieldFormAppKey<Describable> appRelevant(IPluginContext pluginContext, String dataxName) {
+//                  return new DataxReader.SubFieldFormAppKey<>(pluginContext, false, dataxName, props, clazz);
+//                }
+//              });
+//
+//            return KeyedPluginStore.getPluginStore(key);
+//          }
+//        });
+//      }
 
     } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG) {
       store = new ParamsConfigPluginStore(this.pluginMeta);
