@@ -48,7 +48,7 @@
         <curator.version>2.13.0</curator.version>
         <jetty.version>9.4.27.v20200227</jetty.version>
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
-<!--        <scala.version>2.11.12</scala.version>-->
+        <!--        <scala.version>2.11.12</scala.version>-->
 
         <tisasm-maven-plugin.version>1.0.6</tisasm-maven-plugin.version>
         <tis.release.repository.host>http://tis-release.oss-cn-beijing.aliyuncs.com</tis.release.repository.host>
@@ -780,7 +780,8 @@
                     <classpathDependencyExcludes>
                         <classpathDependencyExclude>log4j:log4j</classpathDependencyExclude>
                         <classpathDependencyExclude>org.slf4j:slf4j-log4j12</classpathDependencyExclude>
-                        <classpathDependencyExclude>org.apache.logging.log4j:log4j-slf4j-impl</classpathDependencyExclude>
+                        <classpathDependencyExclude>org.apache.logging.log4j:log4j-slf4j-impl
+                        </classpathDependencyExclude>
 
                         <classpathDependencyExclude>commons-logging:commons-logging</classpathDependencyExclude>
                         <!--
@@ -865,53 +866,61 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
     </build>
 
-    <repositories>
-        <repository>
-            <id>rdc-releases</id>
-            <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>rdc-snapshots</id>
-            <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+    <profiles>
+        <profile>
+            <id>aliyun-repo</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>rdc-releases</id>
+                    <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>rdc-snapshots</id>
+                    <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>rdc-releases</id>
-            <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-        <pluginRepository>
-            <id>rdc-snapshots</id>
-            <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>rdc-releases</id>
+                    <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>rdc-snapshots</id>
+                    <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
 
-    </pluginRepositories>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
 </project>

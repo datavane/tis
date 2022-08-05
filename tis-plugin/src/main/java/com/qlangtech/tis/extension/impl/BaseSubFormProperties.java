@@ -20,6 +20,7 @@ package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -119,7 +120,30 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 
     public abstract JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance);
 
-    public abstract <T> T visitAllSubDetailed(
-            Map<String, /*** attr key */JSONObject> formData
-            , SuFormProperties.ISubDetailedProcess<T> subDetailedProcess);
+//    public abstract <T> T visitAllSubDetailed(
+//            Map<String, /*** attr key */JSONObject> formData
+//            , SuFormProperties.ISubDetailedProcess<T> subDetailedProcess);
+
+    public final <T> T visitAllSubDetailed(Map<String, /*** attr key */JSONObject> formData, ISubDetailedProcess<T> subDetailedProcess) {
+        String subFormId = null;
+        JSONObject subformData = null;
+        Map<String, JSONObject> subform = null;
+        for (Map.Entry<String, JSONObject> entry : formData.entrySet()) {
+            subFormId = entry.getKey();
+            subformData = entry.getValue();
+            subform = Maps.newHashMap();
+            for (String fieldName : subformData.keySet()) {
+                subform.put(fieldName, subformData.getJSONObject(fieldName));
+            }
+            T result = subDetailedProcess.process(subFormId, subform);
+            if (result != null) {
+                return result;
+            }
+        }
+        return null;
+    }
+
+    public interface ISubDetailedProcess<T> {
+        T process(String subFormId, Map<String, JSONObject> subform);
+    }
 }

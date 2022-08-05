@@ -235,14 +235,21 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     @Override
     public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
             , List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
+
         try {
             Set<PluginMeta> pluginsMeta = Sets.newHashSet();
             List<T> collect = dlist.stream().flatMap((r) -> {
                 pluginsMeta.addAll(r.extraPluginMetas);
                 if (!r.subFormFields) {
-                    for (IPluginProcessCallback<T> callback : pluginCreateCallback) {
-                        callback.afterDeserialize(r.getInstance());
+                    T instance = r.getInstance();
+                    if (!this.pluginClass.isAssignableFrom(instance.getClass())) {
+                        throw new IllegalStateException("plugin must be type of "
+                                + this.pluginClass.getName() + ", but now is " + instance.getClass().getName());
                     }
+                    for (IPluginProcessCallback<T> callback : pluginCreateCallback) {
+                        callback.afterDeserialize(instance);
+                    }
+
                 }
                 return (r.getSubFormInstances()).stream();
             }).collect(Collectors.toList());
@@ -253,6 +260,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                     }
                 });
             }
+
+
             this.plugins = collect;
             boolean changed = this.file.write(this, pluginsMeta);
             long lastModifyTimestamp = -1;

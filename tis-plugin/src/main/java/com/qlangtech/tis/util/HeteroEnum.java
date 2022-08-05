@@ -21,6 +21,7 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
@@ -80,9 +81,14 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "fs", "存储");
     // ////////////////////////////////////////////////////////
     @TISExtension
-    public static final HeteroEnum<MQListenerFactory> MQ = new HeteroEnum<>(//
+    public static final HeteroEnum<MQListenerFactory> MQ = new HeteroEnum<MQListenerFactory>(//
             MQListenerFactory.class, //
-            "mq", "Source Factory", Selectable.Multi, true);
+            "mq", "Source Factory", Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return super.getPluginStore(pluginContext, pluginMeta);
+        }
+    };
     // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<ParamsConfig> PARAMS_CONFIG = new HeteroEnum<ParamsConfig>(//
@@ -106,7 +112,18 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     public static final HeteroEnum<DataXJobWorker> DATAX_WORKER = new HeteroEnum<DataXJobWorker>(//
             DataXJobWorker.class, //
             "datax-worker", // },//
-            "DataX Worker", Selectable.Single, true);
+            "DataX Worker", Selectable.Single, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+
+            if (!pluginContext.isCollectionAware()) {
+                throw new IllegalStateException("must be collection aware");
+            }
+            return DataXJobWorker.getJobWorkerStore(new TargetResName(pluginContext.getCollectionName()));
+
+            //return super.getPluginStore(pluginContext, pluginMeta);
+        }
+    };
     // ////////////////////////////////////////////////////////
 
     @TISExtension
@@ -246,23 +263,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     public static IPluginStore<?> getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta,
                                                                Optional<IPropertyType.SubFormFilter> subFormFilter
     ) {
-        IPluginStore<?> store = createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
-                , new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
-                    @Override
-                    public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
-                        if (!getReader) {
-                            throw new IllegalStateException("getReader must be true");
-                        }
-                        return DataxReader.getPluginStore(pluginContext, true, saveDbName);
-                    }
-
-                    @Override
-                    public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
-                        KeyedPluginStore<?> keyStore = (getReader)
-                                ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
-                        return keyStore;
-                    }
-                });
+        IPluginStore<?> store = null;
 
         if (subFormFilter.isPresent()) {
             IPropertyType.SubFormFilter filter = subFormFilter.get();
@@ -282,6 +283,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                     // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
                     //   Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
 
+
                     DataxReader.SubFieldFormAppKey<Describable> key = HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
                             , new HeteroEnum.DataXReaderAndWriterRelevantCreator<DataxReader.SubFieldFormAppKey<Describable>>() {
                                 @Override
@@ -298,6 +300,24 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                     return KeyedPluginStore.getPluginStore(key);
                 }
             });
+        } else {
+            store = createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
+                    , new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
+                        @Override
+                        public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                            if (!getReader) {
+                                throw new IllegalStateException("getReader must be true");
+                            }
+                            return DataxReader.getPluginStore(pluginContext, true, saveDbName);
+                        }
+
+                        @Override
+                        public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
+                            KeyedPluginStore<?> keyStore = (getReader)
+                                    ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+                            return keyStore;
+                        }
+                    });
         }
         return store;
     }

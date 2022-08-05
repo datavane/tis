@@ -23,11 +23,13 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.util.*;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 在增量构建流程中针对 SelectedTab 属性进行扩展
@@ -42,6 +44,31 @@ public abstract class IncrSourceSelectedTabExtend implements Describable<IncrSou
 
     @FormField(identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String tabName;
+
+    public static Map<String, IncrSourceSelectedTabExtend> getTabExtend(UploadPluginMeta uploadPluginMeta) {
+        IPluginStore<IncrSourceSelectedTabExtend> tabExtendStore = INCR_SELECTED_TAB_EXTEND
+                .getPluginStore(uploadPluginMeta.getPluginContext(), uploadPluginMeta);
+
+        Map<String, IncrSourceSelectedTabExtend> exist = tabExtendStore.getPlugins().stream().collect(Collectors.toMap((t) -> t.identityValue(), (t) -> t));
+//        Memoizer<String, IncrSourceSelectedTabExtend> result = new Memoizer<String, IncrSourceSelectedTabExtend>() {
+//            @Override
+//            public IncrSourceSelectedTabExtend compute(String key) {
+//                try {
+//                    IncrSourceSelectedTabExtend tabExtend = exist.get(key);
+//                    if (tabExtend == null) {
+//                        tabExtend = (IncrSourceSelectedTabExtend) subFormFieldsDescriptor.clazz.newInstance();
+//                        tabExtend.setName(key);
+//                    }
+//                    return tabExtend;
+//                } catch (Exception e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//        };
+
+        return exist;
+
+    }
 
     @Override
     public String identityValue() {
@@ -70,7 +97,7 @@ public abstract class IncrSourceSelectedTabExtend implements Describable<IncrSou
         }
     };
 
-    private static PluginStore<IncrSourceSelectedTabExtend> getPluginStore(IPluginContext pluginContext, String appname) {
+    public static KeyedPluginStore<IncrSourceSelectedTabExtend> getPluginStore(IPluginContext pluginContext, String appname) {
         KeyedPluginStore.AppKey key = new KeyedPluginStore.AppKey(pluginContext, false, appname, IncrSourceSelectedTabExtend.class);
         return pluginStore.get(key);
     }

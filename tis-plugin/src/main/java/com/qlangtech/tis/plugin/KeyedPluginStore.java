@@ -190,7 +190,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             this.groupName = groupName;
         }
 
-        protected String getSerializeFileName() {
+        public String getSerializeFileName() {
             return this.getSubDirPath() + File.separator + pluginClass.getName();
         }
 

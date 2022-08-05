@@ -58,6 +58,14 @@ public class TestSuFormProperties extends TestCase {
     String pluginName = "test_plugin";
     File writerDescFile;
 
+    final String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" + SubFieldContainPlugin.PLUGIN_NAME
+            + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION
+            + "_" + SubFieldContainPlugin.class.getName()
+            + "," + UploadPluginMeta.KEY_TARGET_PLUGIN_DESC + "_incr_process_extend,subFormFieldName_"
+            + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
+
+    final UploadPluginMeta pluginMeta = UploadPluginMeta.parse(meta);
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -71,16 +79,150 @@ public class TestSuFormProperties extends TestCase {
         FileUtils.deleteQuietly(writerDescFile);
     }
 
+    public void testSubformDetailedClick() throws Exception {
+        buildSourceExtendSelectedTestEnvironment((pluginContext,pluginMeta, subReader, extendTabProps, tabId) -> {
+            HeteroList<?> heteroList = pluginMeta.getHeteroList(pluginContext);
+            Assert.assertNotNull(heteroList);
+            //test subform_detailed_click=============================
+            SuFormProperties.setSuFormGetterContext(extendTabProps, pluginMeta, tabId);
+            heteroList = pluginMeta.getHeteroList(pluginContext);
+            System.out.println(JsonUtil.toString(heteroList.toJSON()));
+        });
+    }
+
     public void testGetPluginFormPropertyTypesWithIncrSourceExtendSelected() throws Exception {
 
-        final String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" + SubFieldContainPlugin.PLUGIN_NAME
-                + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION
-                + "_" + SubFieldContainPlugin.class.getName()
-                + "," + UploadPluginMeta.KEY_TARGET_PLUGIN_DESC + "_incr_process_extend,subFormFieldName_"
-                + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
 
-        final UploadPluginMeta pluginMeta = UploadPluginMeta.parse(meta);
+        buildSourceExtendSelectedTestEnvironment((pluginContext,pluginMeta, subReader, extendTabProps, tabId) -> {
 
+            PluginFormProperties formPropertyTypes = subReader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
+
+            Assert.assertTrue("formPropertyTypes:" + formPropertyTypes.getClass(), formPropertyTypes instanceof IncrSourceExtendSelected);
+            formPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+                @Override
+                public <T> T visit(RootFormProperties props) {
+                    Assert.fail("shall not execute");
+                    return null;
+                }
+
+                @Override
+                public <T> T visit(BaseSubFormProperties props) {
+
+                    Field subFormField = props.subFormField;
+                    Assert.assertEquals(SubFieldContainPlugin.SUB_PROP_FIELD_NAME, subFormField.getName());
+                    Class instClazz = props.instClazz;
+                    Assert.assertEquals(TestIncrSourceSelectedTabExtend.class, instClazz);
+                    Descriptor subFormFieldsDescriptor = props.subFormFieldsDescriptor;
+                    Assert.assertEquals(TIS.get().getDescriptor(TestIncrSourceSelectedTabExtend.class), subFormFieldsDescriptor);
+                    return null;
+                }
+            });
+
+
+            //=============================
+
+            HeteroList<?> heteroList = pluginMeta.getHeteroList(pluginContext);
+            Assert.assertNotNull(heteroList);
+
+            Assert.assertEquals(1, heteroList.getDescriptors().size());
+            System.out.println(JsonUtil.toString(heteroList.toJSON()));
+        });
+
+//        IPluginContext pluginContext = EasyMock.mock("pluginContext", IPluginContext.class);
+//        EasyMock.expect(pluginContext.isCollectionAware()).andReturn(true).anyTimes();
+//        EasyMock.expect(pluginContext.getCollectionName()).andReturn(dataXName).anyTimes();
+//        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("").anyTimes();
+//        EasyMock.replay(pluginContext);
+//
+//        IPluginStore pluginStore = HeteroEnum.MQ.getPluginStore(pluginContext, null);
+//        TestMQListenerFactory mqFactory = new TestMQListenerFactory();
+//        List<Descriptor.ParseDescribable<?>> dlist = Lists.newArrayList(new Descriptor.ParseDescribable(mqFactory));
+//        pluginStore.setPlugins(pluginContext, Optional.empty(), dlist);
+//
+//        final String tabId = "record1";
+//
+//        SubFieldContainPlugin subReader = new SubFieldContainPlugin();
+//        subReader.prop2 = "testProp2";
+//        subReader.prop3 = "testProp3";
+//        List<SelectedTab> tabs = Lists.newArrayList();
+//        SelectedTab tab = new SelectedTab();
+//        tab.cols = Lists.newArrayList("col1", "clo2", "col3");
+//        tab.name = tabId;
+//        tab.setWhere("1=1");
+//        tabs.add(tab);
+//        subReader.selectedTabs = tabs;
+//
+//        pluginStore = HeteroEnum.DATAX_READER.getPluginStore(pluginContext, pluginMeta);
+//        pluginStore.setPlugins(pluginContext, Optional.empty()
+//                , Lists.newArrayList(new Descriptor.ParseDescribable(tabs)));
+//
+//        dlist = Lists.newArrayList(new Descriptor.ParseDescribable(subReader));
+//        String metaWithOutSubfield = pluginName + ":require," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
+//        pluginStore = HeteroEnum.DATAX_READER.getPluginStore(pluginContext, UploadPluginMeta.parse(metaWithOutSubfield));
+//        pluginStore.setPlugins(pluginContext, Optional.empty(), dlist);
+//
+//
+//        IPluginEnum<IncrSourceSelectedTabExtend> incrTabExtendPluginEnum = HeteroEnum.of(IncrSourceSelectedTabExtend.HETERO_ENUM_IDENTITY);
+//        Assert.assertNotNull(incrTabExtendPluginEnum);
+//        IPluginStore incrTabExtendPluginStore = incrTabExtendPluginEnum.getPluginStore(pluginContext, pluginMeta);
+//        Assert.assertNotNull(incrTabExtendPluginStore);
+//       final  TestIncrSourceSelectedTabExtend extendTabProps = new TestIncrSourceSelectedTabExtend();
+//        extendTabProps.testPorop = "IncrSourceSelectedTabExtendProp";
+//        extendTabProps.setName(tabId);
+//        incrTabExtendPluginStore.setPlugins(pluginContext, Optional.empty(), Lists.newArrayList(new Descriptor.ParseDescribable(extendTabProps)));
+//
+//        IPropertyType.SubFormFilter subFormFilter = pluginMeta.getSubFormFilter().get();
+////                = new IPropertyType.SubFormFilter(pluginMeta
+////                , IPropertyType.SubFormFilter.KEY_INCR_PROCESS_EXTEND, SubFieldContainPlugin.class.getName(), SubFieldContainPlugin.SUB_PROP_FIELD_NAME);
+//
+//        PluginFormProperties formPropertyTypes = subReader.getDescriptor().getPluginFormPropertyTypes(Optional.of(subFormFilter));
+//
+//        Assert.assertTrue("formPropertyTypes:" + formPropertyTypes.getClass(), formPropertyTypes instanceof IncrSourceExtendSelected);
+//        formPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+//            @Override
+//            public <T> T visit(RootFormProperties props) {
+//                Assert.fail("shall not execute");
+//                return null;
+//            }
+//
+//            @Override
+//            public <T> T visit(BaseSubFormProperties props) {
+//
+//                Field subFormField = props.subFormField;
+//                Assert.assertEquals(SubFieldContainPlugin.SUB_PROP_FIELD_NAME, subFormField.getName());
+//                Class instClazz = props.instClazz;
+//                Assert.assertEquals(TestIncrSourceSelectedTabExtend.class, instClazz);
+//                Descriptor subFormFieldsDescriptor = props.subFormFieldsDescriptor;
+//                Assert.assertEquals(TIS.get().getDescriptor(TestIncrSourceSelectedTabExtend.class), subFormFieldsDescriptor);
+//                return null;
+//            }
+//        });
+//
+//
+//        //=============================
+//
+//        HeteroList<?> heteroList = pluginMeta.getHeteroList(pluginContext);
+//        Assert.assertNotNull(heteroList);
+//
+//        Assert.assertEquals(1, heteroList.getDescriptors().size());
+//        System.out.println(JsonUtil.toString(heteroList.toJSON()));
+//
+//
+//        //test subform_detailed_click=============================
+//        SuFormProperties.setSuFormGetterContext(extendTabProps, pluginMeta, tabId);
+//        heteroList = pluginMeta.getHeteroList(pluginContext);
+//        System.out.println(JsonUtil.toString(heteroList.toJSON()));
+//
+//        EasyMock.verify(pluginContext);
+    }
+
+    interface IStartSourceExtendSelectedTestEnvironment {
+
+        void apply(IPluginContext pluginContext, UploadPluginMeta pluginMeta
+                , SubFieldContainPlugin subReader, TestIncrSourceSelectedTabExtend extendTabProps, String tabId) throws Exception;
+    }
+
+    private void buildSourceExtendSelectedTestEnvironment(IStartSourceExtendSelectedTestEnvironment tester) throws Exception {
         IPluginContext pluginContext = EasyMock.mock("pluginContext", IPluginContext.class);
         EasyMock.expect(pluginContext.isCollectionAware()).andReturn(true).anyTimes();
         EasyMock.expect(pluginContext.getCollectionName()).andReturn(dataXName).anyTimes();
@@ -119,50 +261,55 @@ public class TestSuFormProperties extends TestCase {
         Assert.assertNotNull(incrTabExtendPluginEnum);
         IPluginStore incrTabExtendPluginStore = incrTabExtendPluginEnum.getPluginStore(pluginContext, pluginMeta);
         Assert.assertNotNull(incrTabExtendPluginStore);
-        TestIncrSourceSelectedTabExtend extendTabProps = new TestIncrSourceSelectedTabExtend();
+        final TestIncrSourceSelectedTabExtend extendTabProps = new TestIncrSourceSelectedTabExtend();
         extendTabProps.testPorop = "IncrSourceSelectedTabExtendProp";
         extendTabProps.setName(tabId);
         incrTabExtendPluginStore.setPlugins(pluginContext, Optional.empty(), Lists.newArrayList(new Descriptor.ParseDescribable(extendTabProps)));
 
-        IPropertyType.SubFormFilter subFormFilter = pluginMeta.getSubFormFilter().get();
+        //  IPropertyType.SubFormFilter subFormFilter = pluginMeta.getSubFormFilter().get();
 //                = new IPropertyType.SubFormFilter(pluginMeta
 //                , IPropertyType.SubFormFilter.KEY_INCR_PROCESS_EXTEND, SubFieldContainPlugin.class.getName(), SubFieldContainPlugin.SUB_PROP_FIELD_NAME);
+        tester.apply(pluginContext, pluginMeta, subReader, extendTabProps, tabId);
+//        PluginFormProperties formPropertyTypes = subReader.getDescriptor().getPluginFormPropertyTypes(Optional.of(subFormFilter));
+//
+//        Assert.assertTrue("formPropertyTypes:" + formPropertyTypes.getClass(), formPropertyTypes instanceof IncrSourceExtendSelected);
+//        formPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+//            @Override
+//            public <T> T visit(RootFormProperties props) {
+//                Assert.fail("shall not execute");
+//                return null;
+//            }
+//
+//            @Override
+//            public <T> T visit(BaseSubFormProperties props) {
+//
+//                Field subFormField = props.subFormField;
+//                Assert.assertEquals(SubFieldContainPlugin.SUB_PROP_FIELD_NAME, subFormField.getName());
+//                Class instClazz = props.instClazz;
+//                Assert.assertEquals(TestIncrSourceSelectedTabExtend.class, instClazz);
+//                Descriptor subFormFieldsDescriptor = props.subFormFieldsDescriptor;
+//                Assert.assertEquals(TIS.get().getDescriptor(TestIncrSourceSelectedTabExtend.class), subFormFieldsDescriptor);
+//                return null;
+//            }
+//        });
+//
+//
+//        //=============================
+//
+//        HeteroList<?> heteroList = pluginMeta.getHeteroList(pluginContext);
+//        Assert.assertNotNull(heteroList);
+//
+//        Assert.assertEquals(1, heteroList.getDescriptors().size());
+//        System.out.println(JsonUtil.toString(heteroList.toJSON()));
 
-        PluginFormProperties formPropertyTypes = subReader.getDescriptor().getPluginFormPropertyTypes(Optional.of(subFormFilter));
-
-        Assert.assertTrue("formPropertyTypes:" + formPropertyTypes.getClass(), formPropertyTypes instanceof IncrSourceExtendSelected);
-        formPropertyTypes.accept(new PluginFormProperties.IVisitor() {
-            @Override
-            public <T> T visit(RootFormProperties props) {
-                Assert.fail("shall not execute");
-                return null;
-            }
-
-            @Override
-            public <T> T visit(BaseSubFormProperties props) {
-
-                Field subFormField = props.subFormField;
-                Assert.assertEquals(SubFieldContainPlugin.SUB_PROP_FIELD_NAME, subFormField.getName());
-                Class instClazz = props.instClazz;
-                Assert.assertEquals(TestIncrSourceSelectedTabExtend.class, instClazz);
-                Descriptor subFormFieldsDescriptor = props.subFormFieldsDescriptor;
-                Assert.assertEquals(TIS.get().getDescriptor(TestIncrSourceSelectedTabExtend.class), subFormFieldsDescriptor);
-                return null;
-            }
-        });
 
 
-        //=============================
-
-        HeteroList<?> heteroList = pluginMeta.getHeteroList(pluginContext);
-        Assert.assertNotNull(heteroList);
-
-        Assert.assertEquals(1, heteroList.getDescriptors().size());
-
-        System.out.println(JsonUtil.toString(heteroList.toJSON()));
 
         EasyMock.verify(pluginContext);
     }
+
+
+
 
     public void testVisitSubForm() {
         SubFieldContainPlugin plugin = new SubFieldContainPlugin();

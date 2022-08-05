@@ -25,7 +25,6 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.Memoizer;
 import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.lang.reflect.Field;
@@ -65,17 +64,19 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
         };
     }
 
-    @Override
-    public <T> T visitAllSubDetailed(Map<String, JSONObject> formData, SuFormProperties.ISubDetailedProcess<T> subDetailedProcess) {
-        throw new UnsupportedOperationException();
-    }
+//    @Override
+//    public <T> T visitAllSubDetailed(Map<String, JSONObject> formData, SuFormProperties.ISubDetailedProcess<T> subDetailedProcess) {
+//        //  throw new UnsupportedOperationException();
+//        Descriptor.PluginValidateResult validateResult = null;
+//        return null;
+//    }
 
     @Override
     public JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
         //  throw new UnsupportedOperationException(subFormFieldInstance.stream().map((i) -> i.identityValue()).collect(Collectors.joining(",")));
         // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
         // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
-        Memoizer<String, IncrSourceSelectedTabExtend> tabExtends = getTabExtend(this.uploadPluginMeta, subFormFieldsDescriptor);
+        Map<String, IncrSourceSelectedTabExtend> tabExtends = IncrSourceSelectedTabExtend.getTabExtend(this.uploadPluginMeta);
         JSONObject vals = null;
         try {
 
@@ -84,8 +85,14 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
             RootFormProperties props = (new RootFormProperties(getPropertyType()));
             if (subFormFieldInstance != null) {
                 for (IdentityName subItem : subFormFieldInstance) {
-                    ext = Objects.requireNonNull(tabExtends.get(subItem.identityValue())
-                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
+                    ext = tabExtends.get(subItem.identityValue());
+//                    Objects.requireNonNull(tabExtends.get(subItem.identityValue())
+//                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
+//                    ext = Objects.requireNonNull(tabExtends.get(subItem.identityValue())
+//                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
+                    if (ext == null) {
+                        continue;
+                    }
                     vals.put(subItem.identityValue(), props.getInstancePropsJson(ext));
                 }
             }
@@ -94,31 +101,6 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
         }
 
         return vals;
-    }
-
-    public static Memoizer<String, IncrSourceSelectedTabExtend> getTabExtend(UploadPluginMeta uploadPluginMeta, Descriptor subFormFieldsDescriptor) {
-        IPluginStore<IncrSourceSelectedTabExtend> tabExtendStore = IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND
-                .getPluginStore(uploadPluginMeta.getPluginContext(), uploadPluginMeta);
-
-        Map<String, IncrSourceSelectedTabExtend> exist = tabExtendStore.getPlugins().stream().collect(Collectors.toMap((t) -> t.identityValue(), (t) -> t));
-        Memoizer<String, IncrSourceSelectedTabExtend> result = new Memoizer<String, IncrSourceSelectedTabExtend>() {
-            @Override
-            public IncrSourceSelectedTabExtend compute(String key) {
-                try {
-                    IncrSourceSelectedTabExtend tabExtend = exist.get(key);
-                    if (tabExtend == null) {
-                        tabExtend = (IncrSourceSelectedTabExtend) subFormFieldsDescriptor.clazz.newInstance();
-                        tabExtend.setName(key);
-                    }
-                    return tabExtend;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-
-        return result;
-
     }
 
     @Override

@@ -22,14 +22,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.coredefine.module.action.TargetResName;
-import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.PluginFormProperties;
-import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
@@ -37,7 +31,6 @@ import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.*;
-import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -258,18 +251,19 @@ public class PluginItems {
 //      }
 
     } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG) {
-      store = new ParamsConfigPluginStore(this.pluginMeta);
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);// new ParamsConfigPluginStore(this.pluginMeta);
     } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
-      if (!this.pluginContext.isCollectionAware()) {
-        throw new IllegalStateException("must be collection aware");
-      }
-      store = DataXJobWorker.getJobWorkerStore(new TargetResName(this.pluginContext.getCollectionName()));
+//      if (!this.pluginContext.isCollectionAware()) {
+//        throw new IllegalStateException("must be collection aware");
+//      }
+//      store = DataXJobWorker.getJobWorkerStore(new TargetResName(this.pluginContext.getCollectionName()));
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else {
       if (heteroEnum.isAppNameAware()) {
         if (!this.pluginContext.isCollectionAware()) {
           throw new IllegalStateException(heteroEnum.getExtensionPoint().getName() + " must be collection aware");
         }
-        store = TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.getExtensionPoint());
+        store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);// TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.getExtensionPoint());
       } else {
         store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
       }

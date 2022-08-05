@@ -198,28 +198,7 @@ public class SuFormProperties extends BaseSubFormProperties {
         return subFormFieldsEnumGetter;
     }
 
-    public <T> T visitAllSubDetailed(Map<String, /*** attr key */JSONObject> formData, ISubDetailedProcess<T> subDetailedProcess) {
-        String subFormId = null;
-        JSONObject subformData = null;
-        Map<String, JSONObject> subform = null;
-        for (Map.Entry<String, JSONObject> entry : formData.entrySet()) {
-            subFormId = entry.getKey();
-            subformData = entry.getValue();
-            subform = Maps.newHashMap();
-            for (String fieldName : subformData.keySet()) {
-                subform.put(fieldName, subformData.getJSONObject(fieldName));
-            }
-            T result = subDetailedProcess.process(subFormId, subform);
-            if (result != null) {
-                return result;
-            }
-        }
-        return null;
-    }
 
-    public interface ISubDetailedProcess<T> {
-        T process(String subFormId, Map<String, JSONObject> subform);
-    }
 
 
     @Override

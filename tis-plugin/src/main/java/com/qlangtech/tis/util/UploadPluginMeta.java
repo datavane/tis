@@ -24,6 +24,8 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
 
@@ -187,20 +189,31 @@ public class UploadPluginMeta {
     public IPluginEnum getHeteroEnum() {
 
         Optional<IPropertyType.SubFormFilter> subFormFilter = null;
-        IPropertyType.SubFormFilter subFilter = null;
+
 
         subFormFilter = this.getSubFormFilter();
         if (subFormFilter.isPresent()) {
-            subFilter = subFormFilter.get();
+            IPropertyType.SubFormFilter subFilter = subFormFilter.get();
             if (subFilter.isIncrProcessExtend()) {
                 HeteroEnum<MQListenerFactory> mq = HeteroEnum.MQ;
-                List<Descriptor> descs = Collections.singletonList(MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(this.getDataXName()));
+                Descriptor selectedTableExtendDesc = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(this.getDataXName());
 //                Class<T> extensionPoint,
 //                String identity, String caption, Selectable selectable, boolean appNameAware
                 return new HeteroEnum(mq.extensionPoint, mq.identity, mq.caption, mq.selectable, mq.isAppNameAware()) {
                     @Override
                     public List getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
                         // return super.getPlugins(pluginContext, pluginMeta);
+
+                        if (subFilter.subformDetailView) {
+                            IncrSourceSelectedTabExtend ext = null;
+                            Map<String, IncrSourceSelectedTabExtend> tabsExtend = IncrSourceSelectedTabExtend.getTabExtend(pluginMeta);
+                            final String subformDetailId = subFilter.subformDetailId;
+                            ext = tabsExtend.get(subformDetailId);
+                            if (ext == null) {
+                                return Collections.emptyList();
+                            }
+                            return Collections.singletonList(ext);
+                        }
 
                         return DATAX_READER.getPlugins(pluginContext
                                 , UploadPluginMeta.parse(pluginContext, pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName()));
@@ -209,8 +222,14 @@ public class UploadPluginMeta {
                     }
 
                     @Override
+                    public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+                        // return super.getPluginStore(pluginContext, pluginMeta);
+                        return IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
+                    }
+
+                    @Override
                     public List<Descriptor> descriptors() {
-                        return descs;
+                        return Collections.singletonList(selectedTableExtendDesc);
                     }
                 };
             }
