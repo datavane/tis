@@ -214,7 +214,7 @@ public class PluginMeta {
             return this.lastModifyTimeStamp;
         }
         return this.lastModifyTimeStamp = processJarManifest((mfst) ->
-                (mfst == null) ? -1 : mfst.getLastModfiyTime()// Long.parseLong(.getMainAttributes().getValue(PluginStrategy.KEY_LAST_MODIFY_TIME))
+                (mfst == null) ? -1 : mfst.getLastModfiyTime()
         );
     }
 
@@ -228,7 +228,8 @@ public class PluginMeta {
             if (mfst == null) {
                 return Collections.emptyList();
             }
-            ITPIArtifactMatch from = ITPIArtifact.matchh(this.getPluginName(), classifier);
+            String pluginName = this.getPluginName();
+            ITPIArtifactMatch from = ITPIArtifact.matchh(pluginName, classifier);
             ClassicPluginStrategy.DependencyMeta dpts = mfst.getDependencyMeta();
             return dpts.dependencies.stream()
                     .map((d) -> {
@@ -238,7 +239,8 @@ public class PluginMeta {
                             //   c = classifier.get();
                             from.setIdentityName(d.shortName);
                             UpdateSite.Plugin depPlugin = TIS.get().getUpdateCenter().getPlugin(d.shortName);
-                            Objects.requireNonNull(depPlugin, "plugin:" + d.shortName + " relevant plugin meta can not be null");
+                            Objects.requireNonNull(depPlugin, "plugin:" + d.shortName
+                                    + " from " + pluginName + ",classifier:" + classifier.get().getClassifier() + " relevant plugin meta can not be null");
                             if (depPlugin.isMultiClassifier()) {
                                 boolean found = false;
                                 for (IPluginCoord coord : depPlugin.getArts()) {
