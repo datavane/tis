@@ -895,9 +895,29 @@
                         <enabled>true</enabled>
                     </snapshots>
                 </repository>
+                <repository>
+                    <id>jenkins-release</id>
+                    <url>https://repo.jenkins-ci.org/releases/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
             </repositories>
 
             <pluginRepositories>
+                <pluginRepository>
+                    <id>jenkins-plugin-release</id>
+                    <url>https://repo.jenkins-ci.org/releases/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
                 <pluginRepository>
                     <id>rdc-releases</id>
                     <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
