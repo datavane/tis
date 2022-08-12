@@ -25,7 +25,8 @@ import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.incr.IIncrSelectedTabExtendFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 
 import java.util.HashMap;
@@ -42,21 +43,23 @@ import java.util.Optional;
 public abstract class MQListenerFactory
         implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
 
-    public static Descriptor<IncrSourceSelectedTabExtend> getIncrSourceSelectedTabExtendDescriptor(String dataXName) {
+    public static Optional<Descriptor<IncrSelectedTabExtend>> getIncrSourceSelectedTabExtendDescriptor(String dataXName) {
         MQListenerFactory incrSourceFactory = HeteroEnum.getIncrSourceListenerFactory(dataXName);
 
         Descriptor<MQListenerFactory> descriptor = incrSourceFactory.getDescriptor();
-        if (!(descriptor instanceof IIncrSourceSelectedTabExtendFactory)) {
-            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must be instance of "
-                    + IIncrSourceSelectedTabExtendFactory.class.getName());
+        if (!(descriptor instanceof IIncrSelectedTabExtendFactory)) {
+//            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must be instance of "
+//                    + IIncrSourceSelectedTabExtendFactory.class.getName());
+            return Optional.empty();
         }
         // Field subFormField, Class instClazz, Descriptor subFormFieldsDescriptor
-        Descriptor<IncrSourceSelectedTabExtend> selectedTableExtendDesc
-                = ((IIncrSourceSelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
-        if (selectedTableExtendDesc == null) {
-            throw new IllegalStateException("selectedTableExtendDesc can not be null,relevant desc:" + descriptor.getClass().getName());
-        }
-        return selectedTableExtendDesc;
+        Descriptor<IncrSelectedTabExtend> selectedTableExtendDesc
+                = ((IIncrSelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
+        return Optional.of(selectedTableExtendDesc);
+//        if (selectedTableExtendDesc == null) {
+//           // throw new IllegalStateException("selectedTableExtendDesc can not be null,relevant desc:" + descriptor.getClass().getName());
+//        }
+//        return Optional.of(selectedTableExtendDesc);
     }
 
     @Override
@@ -77,10 +80,6 @@ public abstract class MQListenerFactory
         throw new UnsupportedOperationException();
     }
 
-    public interface IIncrSourceSelectedTabExtendFactory {
-        public Descriptor<IncrSourceSelectedTabExtend> getSelectedTableExtendDescriptor();
-    }
-
     public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> {
 
         @Override
@@ -88,7 +87,7 @@ public abstract class MQListenerFactory
             Map<String, Object> eprops = new HashMap<>();
             Optional<IDataXPluginMeta.EndType> targetType = this.getTargetType();
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
-            eprops.put("extendSelectedTabProp", (this instanceof IIncrSourceSelectedTabExtendFactory));
+            eprops.put("extendSelectedTabProp", (this instanceof IIncrSelectedTabExtendFactory));
             return eprops;
         }
 

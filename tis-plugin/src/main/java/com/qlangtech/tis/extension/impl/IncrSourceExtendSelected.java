@@ -18,11 +18,14 @@
 
 package com.qlangtech.tis.extension.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -39,8 +42,8 @@ import java.util.stream.Collectors;
 public class IncrSourceExtendSelected extends BaseSubFormProperties {
     private final UploadPluginMeta uploadPluginMeta;
 
-    public IncrSourceExtendSelected(UploadPluginMeta uploadPluginMeta, Field subFormField, Class instClazz, Descriptor subFormFieldsDescriptor) {
-        super(subFormField, instClazz, subFormFieldsDescriptor);
+    public IncrSourceExtendSelected(UploadPluginMeta uploadPluginMeta, Field subFormField) {
+        super(subFormField, SelectedTab.class, TIS.get().getDescriptor(SelectedTab.class));
         this.uploadPluginMeta = uploadPluginMeta;
     }
 
@@ -76,13 +79,15 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
         //  throw new UnsupportedOperationException(subFormFieldInstance.stream().map((i) -> i.identityValue()).collect(Collectors.joining(",")));
         // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
         // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
-        Map<String, IncrSourceSelectedTabExtend> tabExtends = IncrSourceSelectedTabExtend.getTabExtend(this.uploadPluginMeta);
+        Map<String, SelectedTab> tabExtends = IncrSelectedTabExtend.getTabExtend(this.uploadPluginMeta);
         JSONObject vals = null;
         try {
 
-            IncrSourceSelectedTabExtend ext = null;
+            SelectedTab ext = null;
             vals = new JSONObject();
-            RootFormProperties props = (new RootFormProperties(getPropertyType()));
+            JSONArray pair = null;
+            DescribableJSON itemJson = null;
+            // RootFormProperties props = (new RootFormProperties(getPropertyType()));
             if (subFormFieldInstance != null) {
                 for (IdentityName subItem : subFormFieldInstance) {
                     ext = tabExtends.get(subItem.identityValue());
@@ -93,7 +98,15 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
                     if (ext == null) {
                         continue;
                     }
-                    vals.put(subItem.identityValue(), props.getInstancePropsJson(ext));
+                    pair = new JSONArray();
+                    addExt(ext.getIncrSourceProps(), pair);
+                    addExt(ext.getIncrSinkProps(), pair);
+
+//                    if (ext.getIncrSinkProps() != null) {
+//                        itemJson = new DescribableJSON(ext.getIncrSinkProps());
+//                        pair.add(itemJson.getItemJson());
+//                    }
+                    vals.put(subItem.identityValue(), pair);
                 }
             }
         } catch (Exception e) {
@@ -103,17 +116,27 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
         return vals;
     }
 
+    public void addExt(IncrSelectedTabExtend ext, JSONArray pair) throws Exception {
+        DescribableJSON itemJson;
+        if (ext != null) {
+            itemJson = new DescribableJSON(ext);
+            pair.add(itemJson.getItemJson());
+        }
+    }
+
     @Override
     public Set<Map.Entry<String, PropertyType>> getKVTuples() {
-        return getPropertyType().entrySet();
+      //  return getPropertyType().entrySet();
+     throw new UnsupportedOperationException();
     }
 
-    private Map<String, PropertyType> props = null;
+    // private Map<String, PropertyType> props = null;
 
-    public Map<String, PropertyType> getPropertyType() {
-        if (props == null) {
-            props = Descriptor.filterFieldProp(subFormFieldsDescriptor);
-        }
-        return props;
-    }
+
+//    public Map<String, PropertyType> getPropertyType() {
+////        if (props == null) {
+////            props = Descriptor.filterFieldProp(subFormFieldsDescriptor);
+////        }
+////        return props;
+//    }
 }

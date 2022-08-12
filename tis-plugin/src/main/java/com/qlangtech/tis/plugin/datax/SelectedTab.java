@@ -57,7 +57,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     private static final Logger logger = LoggerFactory.getLogger(SelectedTab.class);
 
     // 针对增量构建流程中的属性扩展
-    private IncrSourceSelectedTabExtend incrProps;
+    private IncrSelectedTabExtend incrSourceProps;
+    private IncrSelectedTabExtend incrSinkProps;
 
     // 表名称
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
@@ -80,12 +81,20 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return this.name;
     }
 
-    public <T extends IncrSourceSelectedTabExtend> T getIncrProps() {
-        return (T) this.incrProps;
+    public <T extends IncrSelectedTabExtend> T getIncrSinkProps() {
+        return (T)incrSinkProps;
     }
 
-    public void setIncrProps(IncrSourceSelectedTabExtend incrProps) {
-        this.incrProps = incrProps;
+    public void setIncrSinkProps(IncrSelectedTabExtend incrSinkProps) {
+        this.incrSinkProps = incrSinkProps;
+    }
+
+    public <T extends IncrSelectedTabExtend> T getIncrSourceProps() {
+        return (T) this.incrSourceProps;
+    }
+
+    public void setIncrSourceProps(IncrSelectedTabExtend incrProps) {
+        this.incrSourceProps = incrProps;
     }
 
     public static List<Option> getColsCandidate() {

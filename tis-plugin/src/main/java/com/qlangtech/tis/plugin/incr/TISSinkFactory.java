@@ -29,6 +29,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
@@ -40,6 +41,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -50,6 +52,32 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
     // public static final String KEY_FLINK_STREAM_APP_NAME_PREFIX = "flink_stream_";
     public static final String KEY_PLUGIN_TPI_CHILD_PATH = "flink/";
     private static final Logger logger = LoggerFactory.getLogger(TISSinkFactory.class);
+
+    public static Optional<Descriptor<IncrSelectedTabExtend>> getIncrSinkSelectedTabExtendDescriptor(String dataXName) {
+        //MQListenerFactory incrSourceFactory = HeteroEnum.getIncrSourceListenerFactory(dataXName);
+        //  sinkFactory.getPlugin()
+        IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
+        List<TISSinkFactory> sinkFactories = sinkFactory.getPlugins(pluginContext, null);
+        TISSinkFactory sinkFactory = null;
+        for (TISSinkFactory factory : sinkFactories) {
+            sinkFactory = factory;
+        }
+        Objects.requireNonNull(sinkFactory, "sinkFactory can not be null, dataXName:" + dataXName + " sinkFactories size:" + sinkFactories.size());
+        Descriptor<TISSinkFactory> descriptor = sinkFactory.getDescriptor();
+        if (!(descriptor instanceof IIncrSelectedTabExtendFactory)) {
+//            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must be instance of "
+//                    + IIncrSourceSelectedTabExtendFactory.class.getName());
+            return Optional.empty();
+        }
+        // Field subFormField, Class instClazz, Descriptor subFormFieldsDescriptor
+        Descriptor<IncrSelectedTabExtend> selectedTableExtendDesc
+                = ((IIncrSelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
+        return Optional.ofNullable(selectedTableExtendDesc);
+//        if (selectedTableExtendDesc == null) {
+//           // throw new IllegalStateException("selectedTableExtendDesc can not be null,relevant desc:" + descriptor.getClass().getName());
+//        }
+//        return Optional.of(selectedTableExtendDesc);
+    }
 
     public static void main(String[] args) throws Exception {
         URL url = new URL("jar:file:/opt/data/tis/libs/plugins/flink/hudi/WEB-INF/lib/../../WEB-INF/lib/hudi-incr.jar!/META-INF/annotations/com.qlangtech.tis.extension.TISExtension");

@@ -23,7 +23,8 @@ import com.qlangtech.tis.async.message.client.consumer.IMQListener;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.incr.IIncrSelectedTabExtendFactory;
 
 import java.util.Optional;
 
@@ -38,10 +39,10 @@ public class TestMQListenerFactory extends MQListenerFactory {
     }
 
     @TISExtension
-    public static class DefaultDesc extends BaseDescriptor implements IIncrSourceSelectedTabExtendFactory {
+    public static class DefaultDesc extends BaseDescriptor implements IIncrSelectedTabExtendFactory {
 
         @Override
-        public Descriptor<IncrSourceSelectedTabExtend> getSelectedTableExtendDescriptor() {
+        public Descriptor<IncrSelectedTabExtend> getSelectedTableExtendDescriptor() {
             return TIS.get().getDescriptor(TestIncrSourceSelectedTabExtend.class);
         }
 

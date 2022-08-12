@@ -381,7 +381,7 @@ public class TIS {
         initialized = false;
     }
 
-    public void cleanExtensionCache(){
+    public void cleanExtensionCache() {
         this.extensionLists.clear();
         this.descriptorLists.clear();
     }
@@ -439,7 +439,7 @@ public class TIS {
             return removeCount;
         }
 
-        protected Class<Describable> getPluginClass(Map.Entry<?, ?> next  ) {
+        protected Class<Describable> getPluginClass(Map.Entry<?, ?> next) {
             KeyedPluginStore.Key key = (KeyedPluginStore.Key) next.getKey();
             return key.pluginClass;
             //   return (Class<Describable>) next.getKey();
@@ -599,6 +599,9 @@ public class TIS {
      * you'll get the same instance that this method returns.
      */
     public Descriptor getDescriptor(Class<? extends Describable> type) {
+        if (java.lang.reflect.Modifier.isAbstract(type.getModifiers())) {
+            throw new IllegalArgumentException("class can not be abstract:" + type.getName());
+        }
         for (Descriptor d : getExtensionList(Descriptor.class)) {
             if (d.clazz == type)
                 return d;

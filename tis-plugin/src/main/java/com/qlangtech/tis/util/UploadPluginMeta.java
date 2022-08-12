@@ -25,7 +25,8 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
 
@@ -195,8 +196,12 @@ public class UploadPluginMeta {
         if (subFormFilter.isPresent()) {
             IPropertyType.SubFormFilter subFilter = subFormFilter.get();
             if (subFilter.isIncrProcessExtend()) {
+
+                IncrSelectedTabExtend.IncrTabExtendSuit incrTabExtendSuit = IncrSelectedTabExtend.getIncrTabExtendSuit(this);
+
                 HeteroEnum<MQListenerFactory> mq = HeteroEnum.MQ;
-                Descriptor selectedTableExtendDesc = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(this.getDataXName());
+//                Optional<Descriptor<IncrSelectedTabExtend>> selectedTableExtendDesc
+//                        = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(this.getDataXName());
 //                Class<T> extensionPoint,
 //                String identity, String caption, Selectable selectable, boolean appNameAware
                 return new HeteroEnum(mq.extensionPoint, mq.identity, mq.caption, mq.selectable, mq.isAppNameAware()) {
@@ -205,8 +210,8 @@ public class UploadPluginMeta {
                         // return super.getPlugins(pluginContext, pluginMeta);
 
                         if (subFilter.subformDetailView) {
-                            IncrSourceSelectedTabExtend ext = null;
-                            Map<String, IncrSourceSelectedTabExtend> tabsExtend = IncrSourceSelectedTabExtend.getTabExtend(pluginMeta);
+                            SelectedTab ext = null;
+                            Map<String, SelectedTab> tabsExtend = IncrSelectedTabExtend.getTabExtend(pluginMeta);
                             final String subformDetailId = subFilter.subformDetailId;
                             ext = tabsExtend.get(subformDetailId);
                             if (ext == null) {
@@ -224,12 +229,12 @@ public class UploadPluginMeta {
                     @Override
                     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
                         // return super.getPluginStore(pluginContext, pluginMeta);
-                        return IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
+                        return IncrSelectedTabExtend.INCR_SOURCE_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
                     }
 
                     @Override
                     public List<Descriptor> descriptors() {
-                        return Collections.singletonList(selectedTableExtendDesc);
+                        return incrTabExtendSuit.getDescriptors();
                     }
                 };
             }

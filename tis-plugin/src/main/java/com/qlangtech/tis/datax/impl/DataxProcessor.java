@@ -19,7 +19,6 @@ package com.qlangtech.tis.datax.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
@@ -34,6 +33,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -83,7 +83,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
                 }
             };
             Descriptor.ParseDescribable<Describable> appSourceParseDescribable
-                    = pluginDescMeta.newInstance(pluginContext, formData, Optional.empty());
+                    = pluginDescMeta.newInstance(pluginContext, AttrValMap.IAttrVals.rootForm(formData), Optional.empty());
             return (DataxProcessor) appSourceParseDescribable.getInstance();
         }
     }

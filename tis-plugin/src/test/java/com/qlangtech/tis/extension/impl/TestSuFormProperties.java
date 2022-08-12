@@ -32,7 +32,7 @@ import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.*;
@@ -257,7 +257,7 @@ public class TestSuFormProperties extends TestCase {
         pluginStore.setPlugins(pluginContext, Optional.empty(), dlist);
 
 
-        IPluginEnum<IncrSourceSelectedTabExtend> incrTabExtendPluginEnum = HeteroEnum.of(IncrSourceSelectedTabExtend.HETERO_ENUM_IDENTITY);
+        IPluginEnum<IncrSelectedTabExtend> incrTabExtendPluginEnum = HeteroEnum.of(IncrSelectedTabExtend.HETERO_SOURCE_ENUM_IDENTITY);
         Assert.assertNotNull(incrTabExtendPluginEnum);
         IPluginStore incrTabExtendPluginStore = incrTabExtendPluginEnum.getPluginStore(pluginContext, pluginMeta);
         Assert.assertNotNull(incrTabExtendPluginStore);

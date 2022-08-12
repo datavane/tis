@@ -18,14 +18,12 @@
 
 package com.qlangtech.tis.extension.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.plugin.annotation.SubForm;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -52,15 +50,28 @@ public class RewriteSuFormPropertiesPlugin implements Describable<RewriteSuFormP
         }
 
         @Override
-        public SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception {
-            String overwriteSubField = IOUtils.loadResourceFromClasspath(RewriteSuFormPropertiesPlugin.class
-                    , RewriteSuFormPropertiesPlugin.class.getSimpleName()
-                            + "." + subformProps.getSubFormFieldName() + ".json", true);
-            JSONObject subField = JSON.parseObject(overwriteSubField);
-            Class<? extends Describable> clazz =
-                    (Class<? extends Describable>) RewriteSuFormPropertiesPlugin.class.getClassLoader().loadClass(subField.getString(SubForm.FIELD_DES_CLASS));
-            Descriptor subFormDescriptor = Objects.requireNonNull(TIS.get().getDescriptor(clazz)
+        public Descriptor<SelectedTab> getRewriterSelectTabDescriptor() {
+//            String overwriteSubField = IOUtils.loadResourceFromClasspath(RewriteSuFormPropertiesPlugin.class
+//                    , RewriteSuFormPropertiesPlugin.class.getSimpleName()
+//                            + "." + subformProps.getSubFormFieldName() + ".json", true);
+//            JSONObject subField = JSON.parseObject(overwriteSubField);
+//            Class<? extends Describable> clazz =
+//                    (Class<? extends Describable>) RewriteSuFormPropertiesPlugin.class.getClassLoader().loadClass(subField.getString(SubForm.FIELD_DES_CLASS));
+            Descriptor<SelectedTab> subFormDescriptor = Objects.requireNonNull(TIS.get().getDescriptor(com.qlangtech.tis.extension.impl.SubFieldExtend.class)
                     , "class:" + clazz + " relevant subFormDescriptor can not be null");
+
+            return subFormDescriptor;
+        }
+
+        @Override
+        public SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception {
+//            String overwriteSubField = IOUtils.loadResourceFromClasspath(RewriteSuFormPropertiesPlugin.class
+//                    , RewriteSuFormPropertiesPlugin.class.getSimpleName()
+//                            + "." + subformProps.getSubFormFieldName() + ".json", true);
+//            JSONObject subField = JSON.parseObject(overwriteSubField);
+//            Class<? extends Describable> clazz =
+//                    (Class<? extends Describable>) RewriteSuFormPropertiesPlugin.class.getClassLoader().loadClass(subField.getString(SubForm.FIELD_DES_CLASS));
+            Descriptor subFormDescriptor = getRewriterSelectTabDescriptor();
             return SuFormProperties.copy(filterFieldProp(Descriptor.buildPropertyTypes(Optional.of(subFormDescriptor), clazz)), clazz, subFormDescriptor, subformProps);
         }
 

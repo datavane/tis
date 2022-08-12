@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
@@ -116,6 +117,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * Hudi 需要rewrite SelectTab的prop
      */
     public interface IRewriteSuFormProperties {
+        public <TAB extends SelectedTab> Descriptor<TAB> getRewriterSelectTabDescriptor();
         SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception;
 
      //   SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception;

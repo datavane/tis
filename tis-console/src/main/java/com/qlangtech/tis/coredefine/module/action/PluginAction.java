@@ -568,9 +568,13 @@ public class PluginAction extends BasicModule {
     throw new IllegalStateException("have not set plugin meta");
   }
 
+  /**
+   * @param context
+   * @throws Exception
+   */
   public void doGetPluginConfigInfo(Context context) throws Exception {
 
-    HeteroList<?> hList = null;
+    HeteroList<?> hetero = null;
 
     List<UploadPluginMeta> plugins = getPluginMeta();
 
@@ -582,8 +586,8 @@ public class PluginAction extends BasicModule {
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta pmeta : plugins) {
 
-      hList = this.createHeteroList(pmeta);// pmeta.getHeteroList(this);
-      hlist.add(hList.toJSON());
+      hetero = this.createHeteroList(pmeta);// pmeta.getHeteroList(this);
+      hlist.add(hetero.toJSON());
     }
     pluginDetail.put("plugins", hlist);
     this.setBizResult(context, pluginDetail);
@@ -723,7 +727,7 @@ public class PluginAction extends BasicModule {
         List<IdentityName> plugins = hEnum.getPlugins(module, pluginMeta);
         for (IdentityName p : plugins) {
           Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(
-            new Descriptor.PostFormVals(Collections.emptyMap()), 0, 0);
+            new Descriptor.PostFormVals(AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), 0, 0);
           r.setDescriptor(((Describable) p).getDescriptor());
           identityUniqueMap.put(p.identityValue(), r);
         }

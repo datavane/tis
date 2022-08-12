@@ -29,7 +29,7 @@ import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.datax.IncrSourceSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
@@ -115,8 +115,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                         = new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
 
 
-                                KeyedPluginStore<IncrSourceSelectedTabExtend> extendTabStore
-                                        = IncrSourceSelectedTabExtend.getPluginStore(pluginContext, appname);
+                                KeyedPluginStore<IncrSelectedTabExtend> extendTabStore
+                                        = IncrSelectedTabExtend.getPluginStore(pluginContext, true, appname);
 
 
                                 KeyedPluginStore<? extends Describable> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
@@ -124,7 +124,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                     @Override
                                     public void accept(PluginStore<Describable> store) {
                                         setReaderSubFormProp(props, subFieldStore.getPlugins()
-                                                , store.getPlugins().stream().map((p) -> (IncrSourceSelectedTabExtend) p).collect(Collectors.toList()));
+                                                , store.getPlugins().stream().map((p) -> (IncrSelectedTabExtend) p).collect(Collectors.toList()));
                                     }
                                 });
                                 // 子表单中的内容更新了之后，要同步父表单中的状态
@@ -143,15 +143,15 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                 return null;
                             }
 
-                            private void setReaderSubFormProp(BaseSubFormProperties props, List<? extends Describable> subItems, List<IncrSourceSelectedTabExtend> subItemsExtend) {
+                            private void setReaderSubFormProp(BaseSubFormProperties props, List<? extends Describable> subItems, List<IncrSelectedTabExtend> subItemsExtend) {
                                 setReaderSubFormProp(props, reader, subItems, subItemsExtend);
                             }
 
-                            private void setReaderSubFormProp(BaseSubFormProperties props, DataxReader reader, List<? extends Describable> subItems, List<IncrSourceSelectedTabExtend> subItemsExtend) {
+                            private void setReaderSubFormProp(BaseSubFormProperties props, DataxReader reader, List<? extends Describable> subItems, List<IncrSelectedTabExtend> subItemsExtend) {
                                 if (reader == null) {
                                     return;
                                 }
-                                Map<String, IncrSourceSelectedTabExtend> subItemsExtendMap
+                                Map<String, IncrSelectedTabExtend> subItemsExtendMap
                                         = subItemsExtend.stream().collect(Collectors.toMap((e) -> e.identityValue(), (e) -> e));
 
                                 subItems.forEach((item) -> {
@@ -161,7 +161,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                     }
                                     if (item instanceof SelectedTab) {
                                         SelectedTab tab = ((SelectedTab) item);
-                                        tab.setIncrProps(subItemsExtendMap.get(tab.identityValue()));
+                                        tab.setIncrSourceProps(subItemsExtendMap.get(tab.identityValue()));
                                     }
                                 });
                                 try {

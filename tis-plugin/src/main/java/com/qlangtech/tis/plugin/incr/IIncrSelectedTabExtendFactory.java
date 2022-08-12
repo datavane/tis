@@ -16,30 +16,20 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.extension.impl;
+package com.qlangtech.tis.plugin.incr;
 
-import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.plugin.annotation.FormField;
-import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 
 /**
+ * 增量Source 或 Sink对表属性扩展
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-02-01 10:52
+ * @create: 2022-08-10 17:12
+ * @see MQListenerFactory
+ * @see TISSinkFactory
  **/
-public class SubField implements Describable<SubField> {
-
-    @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
-    public String name;
-
-    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT)
-    public String subProp1;
-
-
-    @TISExtension
-    public static class DftDescriptor extends Descriptor<SubField> {
-
-    }
+public interface IIncrSelectedTabExtendFactory {
+    public Descriptor<IncrSelectedTabExtend> getSelectedTableExtendDescriptor();
 }
