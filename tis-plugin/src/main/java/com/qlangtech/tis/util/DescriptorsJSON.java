@@ -119,7 +119,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                         IPropertyType.SubFormFilter filter = subFormFilter.get();
                         if (!filter.subformDetailView) {
                             des.put("subForm", true);
-                            subForm.put("idList", props.getSubFormIdListGetter().build(filter));
+                            subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
                         }
                     }
                     des.put("subFormMeta", subForm);

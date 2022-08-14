@@ -21,9 +21,8 @@ package com.qlangtech.tis.plugin.datax;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.impl.AdapterPluginFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -82,7 +81,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public <T extends IncrSelectedTabExtend> T getIncrSinkProps() {
-        return (T)incrSinkProps;
+        return (T) incrSinkProps;
     }
 
     public void setIncrSinkProps(IncrSelectedTabExtend incrSinkProps) {
@@ -207,6 +206,11 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                 return false;
             }
             return this.validateAll(msgHandler, context, tab);
+        }
+
+        public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+
+            return super.getPluginFormPropertyTypes(subFormFilter);
         }
 
         protected boolean validateAll(IControlMsgHandler msgHandler, Context context, SelectedTab postFormVals) {

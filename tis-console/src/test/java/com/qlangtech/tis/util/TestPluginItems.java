@@ -174,7 +174,7 @@ public class TestPluginItems extends TestCase {
 
     JSONArray itemsArray = jsonArray.getJSONArray(0);
     // Optional.empty();
-    List<AttrValMap> items = AttrValMap.describableAttrValMapList(fieldErrorHandler, itemsArray, subFormFilter);
+    List<AttrValMap> items = AttrValMap.describableAttrValMapList( itemsArray, subFormFilter);
     pluginItems.items = items;
 
     EasyMock.replay(pluginContext, context, fieldErrorHandler);
@@ -204,7 +204,7 @@ public class TestPluginItems extends TestCase {
     JSONArray itemsArray = jsonArray.getJSONArray(0);
     Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
     assertFalse("subFormFilter.isPresent():false", subFormFilter.isPresent());
-    List<AttrValMap> items = AttrValMap.describableAttrValMapList(fieldErrorHandler, itemsArray, subFormFilter);
+    List<AttrValMap> items = AttrValMap.describableAttrValMapList( itemsArray, subFormFilter);
     pluginItems.items = items;
 
     EasyMock.replay(pluginContext, context, fieldErrorHandler);

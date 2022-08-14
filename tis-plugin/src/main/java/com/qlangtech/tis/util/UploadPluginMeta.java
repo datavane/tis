@@ -19,10 +19,12 @@ package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.IPluginEnum;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
@@ -217,7 +219,7 @@ public class UploadPluginMeta {
                             if (ext == null) {
                                 return Collections.emptyList();
                             }
-                            return Collections.singletonList(ext);
+                            return Lists.newArrayList(ext.getIncrSourceProps(), ext.getIncrSinkProps());
                         }
 
                         return DATAX_READER.getPlugins(pluginContext
@@ -229,13 +231,17 @@ public class UploadPluginMeta {
                     @Override
                     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
                         // return super.getPluginStore(pluginContext, pluginMeta);
-                        return IncrSelectedTabExtend.INCR_SOURCE_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
+                        return IncrSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
                     }
 
                     @Override
                     public List<Descriptor> descriptors() {
-                        return incrTabExtendSuit.getDescriptors();
+                        // incrTabExtendSuit.getDescriptors();
+                        Descriptor selectedTabClassDesc = TIS.get().getDescriptor(IncrSourceExtendSelected.selectedTabClass);
+                        return subFilter.subformDetailView ? incrTabExtendSuit.getDescriptors()
+                                : incrTabExtendSuit.getDescriptorsWithAppendDesc(selectedTabClassDesc);
                     }
+
                 };
             }
         }

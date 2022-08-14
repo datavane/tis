@@ -689,7 +689,7 @@ public class PluginAction extends BasicModule {
     IPluginEnum hEnum = pluginMeta.getHeteroEnum();
     //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
     PluginItems pluginItems = new PluginItems(module, pluginMeta);
-    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(module, itemsArray, subFormFilter);
+    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList( itemsArray, subFormFilter);
     if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
       module.addErrorMessage(context, "请设置'" + hEnum.getCaption() + "'表单内容");
     }
@@ -704,7 +704,7 @@ public class PluginAction extends BasicModule {
     for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
       attrValMap = describableAttrValMapList.get(itemIndex);
       Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-      if (!(validateResult = attrValMap.validate(context, verify)).isValid()) {
+      if (!(validateResult = attrValMap.validate(module, context, verify)).isValid()) {
         parseResult.faild = true;
       } else {
         validateResult.setDescriptor(attrValMap.descriptor);

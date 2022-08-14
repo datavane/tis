@@ -257,7 +257,7 @@ public class TestSuFormProperties extends TestCase {
         pluginStore.setPlugins(pluginContext, Optional.empty(), dlist);
 
 
-        IPluginEnum<IncrSelectedTabExtend> incrTabExtendPluginEnum = HeteroEnum.of(IncrSelectedTabExtend.HETERO_SOURCE_ENUM_IDENTITY);
+        IPluginEnum<IncrSelectedTabExtend> incrTabExtendPluginEnum = HeteroEnum.of(IncrSelectedTabExtend.HETERO_ENUM_IDENTITY);
         Assert.assertNotNull(incrTabExtendPluginEnum);
         IPluginStore incrTabExtendPluginStore = incrTabExtendPluginEnum.getPluginStore(pluginContext, pluginMeta);
         Assert.assertNotNull(incrTabExtendPluginStore);

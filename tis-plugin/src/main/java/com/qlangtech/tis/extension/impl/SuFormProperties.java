@@ -17,15 +17,18 @@
  */
 package com.qlangtech.tis.extension.impl;
 
-import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Maps;
+import com.alibaba.fastjson.JSONArray;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.SubForm;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import groovy.lang.GroovyClassLoader;
 import org.apache.commons.collections.MapUtils;
@@ -51,6 +54,9 @@ public class SuFormProperties extends BaseSubFormProperties {
     });
 
     public static SuFormGetterContext setSuFormGetterContext(Describable plugin, UploadPluginMeta pluginMeta, String subFormDetailId) {
+        if (StringUtils.isEmpty(subFormDetailId)) {
+            throw new IllegalArgumentException("param subFormDetailId can not be empty");
+        }
         SuFormProperties.SuFormGetterContext subFormContext = subFormGetterProcessThreadLocal.get();
         subFormContext.plugin = plugin;
         pluginMeta.putExtraParams(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, subFormDetailId);
@@ -170,7 +176,18 @@ public class SuFormProperties extends BaseSubFormProperties {
     }
 
 
-    public DescriptorsJSON.IPropGetter getSubFormIdListGetter() {
+    @Override
+    public DescriptorsJSON.IPropGetter getSubFormIdListGetter(IPropertyType.SubFormFilter filter) {
+
+        if (filter.isIncrProcessExtend()) {
+            return (f) -> {
+                IPluginStore<?> readerSubFieldStore
+                        = HeteroEnum.getDataXReaderAndWriterStore(f.uploadPluginMeta.getPluginContext(), true, f.uploadPluginMeta, Optional.of(f));
+                List<?> plugins = readerSubFieldStore.getPlugins();
+                return plugins.stream().map((p) -> ((IdentityName) p).identityValue()).collect(Collectors.toList());
+            };
+        }
+
         try {
             if (subFormFieldsEnumGetter == null) {
                 synchronized (this) {
@@ -199,27 +216,39 @@ public class SuFormProperties extends BaseSubFormProperties {
     }
 
 
-
-
     @Override
     public Set<Map.Entry<String, PropertyType>> getKVTuples() {
         return fieldsType.entrySet();
     }
 
 
-    public JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
-        JSONObject vals = new JSONObject();
+//    public JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
+//        JSONObject vals = new JSONObject();
+//
+//        if (CollectionUtils.isNotEmpty( subFormFieldInstance)) {
+//            for (IdentityName subItem : subFormFieldInstance) {
+//                vals.put(String.valueOf(pkPropertyType.getVal(subItem))
+//                        , (new RootFormProperties(fieldsType)).getInstancePropsJson(subItem));
+//            }
+//        }
+//
+//        return vals;
+//    }
 
-        if (subFormFieldInstance != null) {
-            for (IdentityName subItem : subFormFieldInstance) {
-                vals.put(String.valueOf(pkPropertyType.getVal(subItem))
-                        , (new RootFormProperties(fieldsType)).getInstancePropsJson(subItem));
-            }
-        }
-
-        return vals;
+    @Override
+    protected Map<String, SelectedTab> getSelectedTabs(Collection<IdentityName> subFormFieldInstance) {
+        return subFormFieldInstance.stream().collect(
+                Collectors.toMap((id) -> id.identityValue(), (tab) -> (SelectedTab) tab));
     }
 
+    @Override
+    protected void addSubItems(SelectedTab ext, JSONArray pair) throws Exception {
+        DescribableJSON itemJson = null;
+        if (ext != null) {
+            itemJson = new DescribableJSON(ext);
+            pair.add(itemJson.getItemJson());
+        }
+    }
 
     /**
      * 子表单执行过程中与线程绑定的上下文对象

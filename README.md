@@ -6,7 +6,7 @@
 ![](https://tokei.rs/b1/github/qlangtech/tis)
 ## TIS介绍
 
-TIS快速为您构建企业级实时数仓库服务，**基于批(DataX)流(Flink-CDC)一体数据中台，提供简单易用的操作界面，降低用户实施各端（MySQL、PostgreSQL、Oracle、ElasticSearch、ClickHouse、Doris等）
+TIS快速为您构建企业级实时数仓库服务，**基于批(DataX)流(Flink-CDC、Chunjun)一体数据中台，提供简单易用的操作界面，降低用户实施各端（MySQL、PostgreSQL、Oracle、ElasticSearch、ClickHouse、Doris等）
 之间数据同步的实施门槛，缩短任务配置时间，避免配置过程中出错，使数据同步变得简单、有趣且容易上手** [详细介绍](http://tis.pub/docs/) 
 <!--
 TIS平台是一套为企业级用户提供大数据多维、实时、查询的搜索中台产品。用户可以在TIS上自助快速构建搜索服务，它大大降低了搜索技术的门槛 [详细说明](http://tis.pub/docs/) 
@@ -73,6 +73,7 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 - DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
 - tis-logback-flume-appender [https://github.com/baisui1981/tis-logback-flume-appender](https://github.com/baisui1981/tis-logback-flume-appender)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)
+- Chunjun [https://github.com/qlangtech/chunjun](https://github.com/qlangtech/chunjun)
 
 ## 如何开发
 
@@ -84,4 +85,4 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
  
 ## 反馈
  
-  您在使用过程中对TIS有任何不满或者批评都请不惜斧正，您提出的宝贵意见是对我们最大的支持和鼓励，[我要提意见](https://github.com/qlangtech/tis-solr/issues/new)
+  您在使用过程中对TIS有任何不满或者批评都请不惜斧正，您提出的宝贵意见是对我们最大的支持和鼓励，[我要提建议](https://github.com/qlangtech/tis-solr/issues/new)

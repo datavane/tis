@@ -34,6 +34,10 @@ public class TestIncrSourceSelectedTabExtend extends IncrSelectedTabExtend {
     @FormField(ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String testPorop;
 
+    @Override
+    public boolean isSource() {
+        return true;
+    }
 
     @TISExtension
     public static class DftDesc extends Descriptor<IncrSelectedTabExtend> {

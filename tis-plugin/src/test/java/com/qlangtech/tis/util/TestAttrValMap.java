@@ -46,7 +46,7 @@ public class TestAttrValMap extends TestCase {
                 });
 
         EasyMock.replay(fieldErrorHandler, pluginContext);
-        AttrValMap attrValMap = AttrValMap.parseDescribableMap(fieldErrorHandler, Optional.empty(), jsonObject);
+        AttrValMap attrValMap = AttrValMap.parseDescribableMap( Optional.empty(), jsonObject);
 
         Descriptor.ParseDescribable describable = attrValMap.createDescribable(pluginContext);
         assertNotNull(describable);

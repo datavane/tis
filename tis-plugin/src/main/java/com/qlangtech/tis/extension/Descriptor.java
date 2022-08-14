@@ -37,7 +37,6 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -273,7 +272,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return new XmlFile(new File(TIS.pluginCfgRoot, pluginFileName), pluginFileName);
     }
 
-    private PluginFormProperties getSubPluginFormPropertyTypes(String subFieldName) {
+    public PluginFormProperties getSubPluginFormPropertyTypes(String subFieldName) {
         IPropertyType propertyType = getPropertyTypes().get(subFieldName);
         if (propertyType == null) {
             throw new IllegalStateException(this.clazz.getName() + "'s prop subField:" + subFieldName + " relevant prop can not be null,exist prop keys:"
@@ -321,23 +320,25 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 //                    throw new IllegalStateException("neither selectedTableSourceExtendDesc nor selectedTabSinkExtendDesc is present");
 //                }
 
-                SuFormProperties subProps = null;
-                if (filter.subformDetailView) {
-                    return new RootFormProperties(filterFieldProp(this)) {
-                        @Override
-                        public JSON getInstancePropsJson(Object instance) {
-                            if (!(instance instanceof IncrSelectedTabExtend)) {
-                                throw new IllegalStateException("instance must be type of "
-                                        + IncrSelectedTabExtend.class.getName() + " but now is " + instance.getClass().getName());
-                            }
-                            return super.getInstancePropsJson(instance);
-                        }
-                    };
-                } else {
-                    Descriptor parentDesc = filter.getTargetDescriptor();
-                    subProps = (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
-                    return new IncrSourceExtendSelected(filter.uploadPluginMeta, subProps.subFormField);
-                }
+//                SuFormProperties subProps = null;
+//                if (filter.subformDetailView) {
+//                    return new RootFormProperties(filterFieldProp(this)) {
+//                        @Override
+//                        public JSON getInstancePropsJson(Object instance) {
+//                            if (!(instance instanceof IncrSelectedTabExtend)) {
+//                                throw new IllegalStateException("instance must be type of "
+//                                        + IncrSelectedTabExtend.class.getName() + " but now is " + instance.getClass().getName());
+//                            }
+//                            return super.getInstancePropsJson(instance);
+//                        }
+//                    };
+//                } else {
+//                    Descriptor parentDesc = filter.getTargetDescriptor();
+//                    subProps = (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
+//                    return new IncrSourceExtendSelected(filter.uploadPluginMeta, subProps.subFormField);
+//                }
+
+                //  throw new UnsupportedOperationException("desc class:" + this.clazz.getName());
             }
             if (!filter.match(this)) {
                 /**
@@ -674,16 +675,22 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     // 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
                     validateResult = props.visitAllSubDetailed(formData, new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
                         @Override
-                        public PluginValidateResult process(String subFormId, Map<String, JSONObject> sform) {
-                            PostFormVals pfv = new PostFormVals(AttrValMap.IAttrVals.rootForm(sform));
-                            boolean valid = isValid(msgHandler, context, verify, Optional.empty(), propertyTypes, pfv);
-                            if (!valid) {
-                                PluginValidateResult vResult = new PluginValidateResult(pfv
-                                        , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
-                                        , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
-                                vResult.valid = false;
+                        public PluginValidateResult process(String subFormId, AttrValMap sform) {
+//IControlMsgHandler msgHandler, Context context, boolean verify
+                            PluginValidateResult vResult = sform.validate(msgHandler, context, verify);
+                            if (!vResult.isValid()) {
                                 return vResult;
                             }
+
+                            // PostFormVals pfv = new PostFormVals(AttrValMap.IAttrVals.rootForm(sform));
+//                            boolean valid = isValid(msgHandler, context, verify, Optional.empty(), propertyTypes, pfv);
+//                            if (!valid) {
+//                                PluginValidateResult vResult = new PluginValidateResult(pfv
+//                                        , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
+//                                        , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
+//                                vResult.valid = false;
+//                                return vResult;
+//                            }
                             return (PluginValidateResult) null;
                         }
                     });
@@ -736,10 +743,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     valid = false;
                     continue;
                 }
-                AttrValMap attrValMap = AttrValMap.parseDescribableMap(msgHandler, Optional.empty(), descVal);
+                AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), descVal);
                 pushFieldStack(context, attr, 0);
                 try {
-                    if (!attrValMap.validate(context, bizValidate).isValid()) {
+                    if (!attrValMap.validate(msgHandler, context, bizValidate).isValid()) {
                         valid = false;
                         continue;
                     }
@@ -1047,9 +1054,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         // 保存子form detail list
                         List<Describable> subDetailedList = Lists.newArrayList();
                         props.visitAllSubDetailed(keyValMap, new SuFormProperties.ISubDetailedProcess<Void>() {
-                            public Void process(String subFormId, Map<String, JSONObject> subform) {
-                                ParseDescribable<Describable> r = new ParseDescribable<>((Describable) props.newSubDetailed());
-                                subDetailedList.add(buildPluginInstance(pluginContext, subform, r, propertyTypes));
+                            public Void process(String subFormId, AttrValMap attrVals) {
+
+                                ParseDescribable<Describable> r = attrVals.createDescribable(pluginContext);
+
+                                // new ParseDescribable<>((Describable) props.newSubDetailed());
+                                //  subDetailedList.add(buildPluginInstance(pluginContext, subform, r, propertyTypes));
+                                subDetailedList.add(r.getInstance());
                                 return null;
                             }
                         });

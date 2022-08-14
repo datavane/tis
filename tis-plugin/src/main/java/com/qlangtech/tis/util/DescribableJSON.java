@@ -75,7 +75,7 @@ public class DescribableJSON<T extends Describable<T>> {
         }), item);
 
 
-        JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance);
+        final JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance);
         item.put("vals", vals);
         if (instance instanceof IdentityName) {
             item.put("identityName", ((IdentityName) instance).identityValue());

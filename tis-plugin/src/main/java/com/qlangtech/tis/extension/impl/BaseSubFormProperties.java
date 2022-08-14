@@ -21,19 +21,19 @@ package com.qlangtech.tis.extension.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.util.AttrValMap;
-import com.qlangtech.tis.util.impl.AttrVals;
 import com.qlangtech.tis.util.DescriptorsJSON;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -89,7 +89,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 //        }
     }
 
-    public abstract DescriptorsJSON.IPropGetter getSubFormIdListGetter();
+    public abstract DescriptorsJSON.IPropGetter getSubFormIdListGetter(IPropertyType.SubFormFilter filter);
 
     public Collection<IdentityName> getSubFormPropVal(Object instance) {
         Class<?> fieldType = subFormField.getType();
@@ -121,7 +121,50 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         return visitor.visit(this);
     }
 
-    public abstract JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance);
+   // public abstract JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance);
+
+    protected abstract Map<String, SelectedTab> getSelectedTabs(Collection<IdentityName> subFormFieldInstance);
+    protected abstract void addSubItems(SelectedTab ext, JSONArray pair) throws Exception ;
+//    @Override
+    public final  JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
+        //  throw new UnsupportedOperationException(subFormFieldInstance.stream().map((i) -> i.identityValue()).collect(Collectors.joining(",")));
+        // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
+        // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
+        Map<String, SelectedTab> tabExtends = getSelectedTabs(subFormFieldInstance);
+        JSONObject vals = null;
+        try {
+
+            SelectedTab ext = null;
+            vals = new JSONObject();
+            JSONArray pair = null;
+            // DescribableJSON itemJson = null;
+            // RootFormProperties props = (new RootFormProperties(getPropertyType()));
+            if (subFormFieldInstance != null) {
+                for (IdentityName subItem : subFormFieldInstance) {
+                    ext = tabExtends.get(subItem.identityValue());
+//                    Objects.requireNonNull(tabExtends.get(subItem.identityValue())
+//                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
+//                    ext = Objects.requireNonNull(tabExtends.get(subItem.identityValue())
+//                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
+                    if (ext == null) {
+                        continue;
+                    }
+                    pair = new JSONArray();
+                    addSubItems(ext, pair);
+
+//                    if (ext.getIncrSinkProps() != null) {
+//                        itemJson = new DescribableJSON(ext.getIncrSinkProps());
+//                        pair.add(itemJson.getItemJson());
+//                    }
+                    vals.put(subItem.identityValue(), pair);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return vals;
+    }
 
 //    public abstract <T> T visitAllSubDetailed(
 //            Map<String, /*** attr key */JSONObject> formData
@@ -132,19 +175,23 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
             AttrValMap.IAttrVals formData
             , ISubDetailedProcess<T> subDetailedProcess) {
         String subFormId = null;
-        JSONObject subformData = null;
-        Map<String, JSONObject> subform = null;
+        //JSONObject subformData = null;
+        AttrValMap attrVals = null;
+        //  Map<String, JSONObject> subform = null;
+
         for (Map.Entry<String, JSONArray> entry : formData.asSubFormDetails().entrySet()) {
             subFormId = entry.getKey();
 
-            subform = Maps.newHashMap();
+            //  subform = Maps.newHashMap();
 
             for (Object o : entry.getValue()) {
-                subformData = (JSONObject) o;
-                for (String fieldName : subformData.keySet()) {
-                    subform.put(fieldName, subformData.getJSONObject(fieldName));
-                }
-                T result = subDetailedProcess.process(subFormId, subform);
+
+                attrVals = AttrValMap.parseDescribableMap(Optional.empty(), (JSONObject) o);
+
+//                for (String fieldName : subformData.keySet()) {
+//                    subform.put(fieldName, subformData.getJSONObject(fieldName));
+//                }
+                T result = subDetailedProcess.process(subFormId, attrVals);
                 if (result != null) {
                     return result;
                 }
@@ -155,6 +202,6 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     }
 
     public interface ISubDetailedProcess<T> {
-        T process(String subFormId, Map<String, JSONObject> subform);
+        T process(String subFormId, AttrValMap attrVals);
     }
 }

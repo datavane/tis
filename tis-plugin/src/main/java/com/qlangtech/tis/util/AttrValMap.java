@@ -47,24 +47,24 @@ public class AttrValMap {
 
     public final Descriptor descriptor;
 
-    private IControlMsgHandler msgHandler;
+    //private IControlMsgHandler msgHandler;
     private final Optional<IPropertyType.SubFormFilter> subFormFilter;
 
-    public static List<AttrValMap> describableAttrValMapList(IControlMsgHandler fieldErrorHandler
-            , JSONArray itemsArray, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    public static List<AttrValMap> describableAttrValMapList(
+             JSONArray itemsArray, Optional<IPropertyType.SubFormFilter> subFormFilter) {
         List<AttrValMap> describableAttrValMapList = Lists.newArrayList();
         AttrValMap describableAttrValMap = null;
         JSONObject itemObj = null;
         for (int i = 0; i < itemsArray.size(); i++) {
             itemObj = itemsArray.getJSONObject(i);
-            describableAttrValMap = parseDescribableMap(fieldErrorHandler, subFormFilter, itemObj);
+            describableAttrValMap = parseDescribableMap(subFormFilter, itemObj);
             describableAttrValMapList.add(describableAttrValMap);
         }
         return describableAttrValMapList;
     }
 
-    public static AttrValMap parseDescribableMap(IControlMsgHandler fieldErrorHandler
-            , Optional<IPropertyType.SubFormFilter> subFormFilter, com.alibaba.fastjson.JSONObject jsonObject) {
+    public static AttrValMap parseDescribableMap( //IControlMsgHandler fieldErrorHandler
+          Optional<IPropertyType.SubFormFilter> subFormFilter, com.alibaba.fastjson.JSONObject jsonObject) {
         String impl = null;
         Descriptor descriptor;
         impl = jsonObject.getString(PLUGIN_EXTENSION_IMPL);
@@ -75,14 +75,15 @@ public class AttrValMap {
         Object vals = jsonObject.get(PLUGIN_EXTENSION_VALS);
         AttrVals attrValMap = Descriptor.parseAttrValMap(vals);
         // return descriptor.newInstance(attrValMap);
-        return new AttrValMap(fieldErrorHandler, attrValMap, subFormFilter, descriptor);
+        return new AttrValMap(attrValMap, subFormFilter, descriptor);
     }
 
-    public AttrValMap(IControlMsgHandler msgHandler, AttrVals attrValMap
+    public AttrValMap(//IControlMsgHandler msgHandler,
+                      AttrVals attrValMap
             , Optional<IPropertyType.SubFormFilter> subFormFilter, Descriptor descriptor) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
-        this.msgHandler = msgHandler;
+        //  this.msgHandler = msgHandler;
         this.subFormFilter = subFormFilter;
     }
 
@@ -94,7 +95,7 @@ public class AttrValMap {
      * @param verify  是否进行业务逻辑校验
      * @return true：校验没有错误 false：校验有错误
      */
-    public Descriptor.PluginValidateResult validate(Context context, boolean verify) {
+    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, boolean verify) {
         return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
     }
 

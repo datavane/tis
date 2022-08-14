@@ -60,7 +60,7 @@ public interface IPropertyType {
         }
 
         /**
-         * 增量流程中需要对
+         * 增量流程中需要对已经选的表进程属性设置？
          *
          * @return
          */

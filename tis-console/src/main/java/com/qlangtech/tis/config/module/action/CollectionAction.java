@@ -586,7 +586,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     TargetColumnMeta columnMeta = new TargetColumnMeta(targetTable);
     Map<String, ColumnMetaData> colMetas = null;
     for (AttrValMap vals : dataSourceItems.items) {
-      if (!vals.validate(context, false).isValid()) {
+      if (!vals.validate(this, context, false).isValid()) {
         return columnMeta.invalid();
       }
       DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext).getInstance();
@@ -844,7 +844,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
 
     for (AttrValMap vals : incrPluginItems.items) {
-      if (!vals.validate(context, false).isValid()) {
+      if (!vals.validate(this, context, false).isValid()) {
         // return columnMeta.invalid();
         return false;
       }
@@ -925,7 +925,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     item.put(AttrValMap.PLUGIN_EXTENSION_IMPL, dsDescriptpr.getId());
     item.put(AttrValMap.PLUGIN_EXTENSION_VALS, vals);
     itemsArray.add(item);
-    items.items = AttrValMap.describableAttrValMapList(this, itemsArray, pluginMeta.getSubFormFilter());
+    items.items = AttrValMap.describableAttrValMapList(itemsArray, pluginMeta.getSubFormFilter());
     return items;
   }
 
