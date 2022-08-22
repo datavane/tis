@@ -36,7 +36,7 @@
     <name>tis</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <testcontainers.version>1.15.3</testcontainers.version>
+        <testcontainers.version>1.17.3</testcontainers.version>
         <flink.version>tis-1.13.1</flink.version>
         <alibaba.datax.version>${project.version}</alibaba.datax.version>
         <tisasm.oss.put.skip>true</tisasm.oss.put.skip>

@@ -1,23 +1,24 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.realtime.transfer;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Maps;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -89,10 +90,20 @@ public class DTO {
         this.eventType = eventType;
     }
 
+    public DTO colone() {
+        DTO d = new DTO();
+        d.setBefore(Maps.newHashMap(this.getBefore()));
+        d.setAfter(Maps.newHashMap(this.getAfter()));
+        d.setTableName(this.tableName);
+        d.setEventType(this.eventType);
+        d.setDbName(this.dbName);
+        return d;
+    }
+
 
     public enum EventType {
 
-        UPDATE("UPDATE"), ADD("INSERT"), DELETE("DELETE");
+        UPDATE_BEFORE("UPDATE_BEFORE"), UPDATE_AFTER("UPDATE_AFTER"), ADD("INSERT"), DELETE("DELETE");
 
         private final String type;
 
@@ -101,13 +112,19 @@ public class DTO {
         }
 
         public static EventType parse(String eventType) {
-            if (UPDATE.type.equalsIgnoreCase(eventType)) {
-                return UPDATE;
-            } else if (ADD.type.equalsIgnoreCase(eventType)) {
-                return ADD;
-            } else if (DELETE.type.equalsIgnoreCase(eventType)) {
-                return DELETE;
+            for (EventType e : EventType.values()) {
+                if (e.type.equalsIgnoreCase(eventType)) {
+                    return e;
+                }
             }
+
+//            if (UPDATE.type.equalsIgnoreCase(eventType)) {
+//                return UPDATE;
+//            } else if (ADD.type.equalsIgnoreCase(eventType)) {
+//                return ADD;
+//            } else if (DELETE.type.equalsIgnoreCase(eventType)) {
+//                return DELETE;
+//            }
             throw new IllegalStateException("eventType:" + eventType + " is illegal");
         }
 
@@ -120,6 +137,7 @@ public class DTO {
     public String toString() {
         return "DTO{" +
                 "after=" + after.entrySet().stream().map((e) -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",")) +
+                ", execType='" + String.valueOf(eventType) + '\'' +
                 ", dbName='" + dbName + '\'' +
                 ", tableName='" + tableName + '\'' +
                 '}';

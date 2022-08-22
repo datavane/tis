@@ -119,7 +119,7 @@ public class IOUtils {
         try {
             try (InputStream input = clazz.getResourceAsStream(resName)) {
                 if (throwErr) {
-                    Objects.requireNonNull(input, "resource:" + resName + " can not find relevant content");
+                    Objects.requireNonNull(input, "resource:" + (resName) + " can not find relevant content");
                 }
                 if (input == null) {
                     return null;
@@ -130,7 +130,7 @@ public class IOUtils {
                 // return org.apache.commons.io.IOUtils.toString(input, TisUTF8.get());
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("resource path:" + resName, e);
         }
     }
 

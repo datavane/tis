@@ -153,9 +153,9 @@ public class DBConfig implements IDbMeta {
     public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess, boolean facade, IMessageHandler msgHandler, Context context) {
         final ExecutorService fixedThreadPool = Executors.newCachedThreadPool((runnable) -> {
             Thread t = new Thread(runnable);
-            t.setUncaughtExceptionHandler((tt, e) -> {
-                logger.error(e.getMessage(), e);
-            });
+//            t.setUncaughtExceptionHandler((tt, e) -> {
+//                logger.error(e.getMessage(), e);
+//            });
             return t;
         });
         try {
@@ -166,6 +166,7 @@ public class DBConfig implements IDbMeta {
             final CountDownLatch countDownLatch = new CountDownLatch(facade ? 1 : dbCount);
             int hostCount = 0;
             AtomicReference<String> fjdbcUrl = new AtomicReference<>();
+            AtomicReference<Throwable> exceptionCollect = new AtomicReference<Throwable>();
             outer:
             for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
                 for (String dbName : entry.getValue()) {
@@ -178,6 +179,8 @@ public class DBConfig implements IDbMeta {
                         try {
                             fjdbcUrl.set(jdbcUrl);
                             urlProcess.visit((facade ? name : dbName), dbHost, jdbcUrl);
+                        } catch (Throwable e) {
+                            exceptionCollect.set(e);
                         } finally {
                             countDownLatch.countDown();
                         }
@@ -195,6 +198,9 @@ public class DBConfig implements IDbMeta {
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
+            }
+            if (exceptionCollect.get() != null) {
+                throw new RuntimeException(exceptionCollect.get());
             }
             return true;
         } finally {
