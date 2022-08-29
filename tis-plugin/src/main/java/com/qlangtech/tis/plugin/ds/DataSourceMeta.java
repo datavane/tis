@@ -17,9 +17,8 @@
  */
 package com.qlangtech.tis.plugin.ds;
 
-import java.util.HashMap;
+import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 数据源meta信息获取
@@ -52,6 +51,16 @@ public interface DataSourceMeta {
      * @return
      */
     default List<ColumnMetaData> getTableMetadata(String table) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Get table column metaData list
+     *
+     * @param table
+     * @return
+     */
+    default List<ColumnMetaData> getTableMetadata(Connection conn, String table) {
         throw new UnsupportedOperationException();
     }
 }

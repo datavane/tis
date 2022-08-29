@@ -120,6 +120,15 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
         }
     }
 
+    @Override
+    public List<ColumnMetaData> getTableMetadata(Connection conn, String table) {
+        try {
+            return parseTableColMeta(conn, table);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private List<ColumnMetaData> parseTableColMeta(String table, DBConfig config, String ip, String dbname) throws Exception {
         // List<ColumnMetaData> columns = Lists.newArrayList();
         String jdbcUrl = buidJdbcUrl(config, ip, dbname);
@@ -221,7 +230,7 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
     public List<String> getJdbcUrls() {
         final DBConfig dbLinkMetaData = this.getDbConfig();
         List<String> jdbcUrls = Lists.newArrayList();
-        dbLinkMetaData.vistDbURL(true, (dbName, dbHost ,jdbcUrl) -> {
+        dbLinkMetaData.vistDbURL(true, (dbName, dbHost, jdbcUrl) -> {
             jdbcUrls.add(jdbcUrl);
         }, false);
         return jdbcUrls;

@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
@@ -292,11 +293,11 @@ public class DataXCfgGenerator {
             IDataxProcessor.TableMap mapper = tableMapper.get();
             String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
             if (!createDDLFiles.contains(sqlFileName)) {
-                StringBuffer createDDL = writer.generateCreateDDL(mapper);
+                CreateTableSqlBuilder.CreateDDL createDDL = writer.generateCreateDDL(mapper);
                 if (createDDL != null) {
                     createDDLFiles.add(sqlFileName);
                     // 由于用户可能已经手动改动过生成的DDL文件，所以不能强行覆盖已经存在的DDL文件，overWrite参数应该为false
-                    dataxProcessor.saveCreateTableDDL(pluginCtx, createDDL, sqlFileName, overWrite);
+                    dataxProcessor.saveCreateTableDDL(pluginCtx, createDDL.getDDLScript(), sqlFileName, overWrite);
                 }
             }
         }

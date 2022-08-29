@@ -18,6 +18,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 
 import java.util.Optional;
 
@@ -50,7 +51,7 @@ public interface IDataxWriter extends IDataXPluginMeta {
     /**
      * 生成创建table的脚本
      */
-    default StringBuffer generateCreateDDL(IDataxProcessor.TableMap tableMapper) {
+    default CreateTableSqlBuilder.CreateDDL generateCreateDDL(IDataxProcessor.TableMap tableMapper) {
         throw new UnsupportedOperationException();
     }
 }

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @create: 2021-08-07 13:45
  **/
 public abstract class CreateTableSqlBuilder {
-    private final IDataxProcessor.TableMap tableMapper;
+    protected final IDataxProcessor.TableMap tableMapper;
     public BlockScriptBuffer script;
     protected final List<ColWrapper> pks;
     public int maxColNameLength;
@@ -64,9 +64,9 @@ public abstract class CreateTableSqlBuilder {
     }
 
 
-    public StringBuffer build() {
+    public CreateDDL build() {
 
-        script.append("CREATE TABLE ").append(getCreateTableName()).append("\n");
+        script.append("CREATE TABLE ").append(wrapWithEscape(getCreateTableName())).append("\n");
         script.append("(\n");
 
 
@@ -110,7 +110,25 @@ public abstract class CreateTableSqlBuilder {
 //        ENGINE = CollapsingMergeTree(__cc_ck_sign)
 //        ORDER BY customerregister_id
 //        SETTINGS index_granularity = 8192
-        return script.getContent();
+        return new CreateDDL(script.getContent(), this);
+    }
+
+    public static class CreateDDL {
+        private final StringBuffer script;
+        private final CreateTableSqlBuilder builder;
+
+        public CreateDDL(StringBuffer script, CreateTableSqlBuilder builder) {
+            this.script = script;
+            this.builder = builder;
+        }
+
+        public StringBuffer getDDLScript() {
+            return this.script;
+        }
+
+        public String getSelectAllScript() {
+            return "SELECT * FROM " + builder.wrapWithEscape(builder.getCreateTableName());
+        }
     }
 
     public void appendColName(String col) {
@@ -118,6 +136,9 @@ public abstract class CreateTableSqlBuilder {
                 .append(String.format("%-" + (maxColNameLength) + "s", col + (escapeChar)));
     }
 
+    protected String wrapWithEscape(String val) {
+        return this.escapeChar + val + this.escapeChar;
+    }
 
     /**
      * 在打印之前先对cols进行预处理，比如排序等
