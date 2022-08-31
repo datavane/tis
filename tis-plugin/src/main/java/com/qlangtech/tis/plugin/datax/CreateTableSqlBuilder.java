@@ -66,7 +66,7 @@ public abstract class CreateTableSqlBuilder {
 
     public CreateDDL build() {
 
-        script.append("CREATE TABLE ").append(wrapWithEscape(getCreateTableName())).append("\n");
+        script.append("CREATE TABLE ").append((getCreateTableName().getEntityName())).append("\n");
         script.append("(\n");
 
 
@@ -127,7 +127,7 @@ public abstract class CreateTableSqlBuilder {
         }
 
         public String getSelectAllScript() {
-            return "SELECT * FROM " + builder.wrapWithEscape(builder.getCreateTableName());
+            return "SELECT * FROM " + (builder.getCreateTableName().getEntityName());
         }
     }
 
@@ -181,11 +181,40 @@ public abstract class CreateTableSqlBuilder {
         return true;
     }
 
-    protected String getCreateTableName() {
-        return tableMapper.getTo();
+    protected CreateTableName getCreateTableName() {
+        return new CreateTableName(tableMapper.getTo(), this);
     }
 
     protected List<ISelectedTab.ColMeta> getCols() {
         return tableMapper.getSourceCols();
+    }
+
+
+    public static class CreateTableName {
+        private final String schema;
+        private final String tabName;
+        final CreateTableSqlBuilder sqlBuilder;
+
+        public CreateTableName(String tabName, CreateTableSqlBuilder sqlBuilder) {
+            this(StringUtils.EMPTY, tabName, sqlBuilder);
+        }
+
+        public CreateTableName(String schema, String tabName, CreateTableSqlBuilder sqlBuilder) {
+            if (StringUtils.isEmpty(tabName)) {
+                throw new IllegalArgumentException("param tabName can not be empty");
+            }
+            this.schema = schema;
+            this.tabName = tabName;
+            this.sqlBuilder = sqlBuilder;
+        }
+
+        public final String getEntityName() {
+            StringBuffer entityName = new StringBuffer();
+            if (StringUtils.isNotEmpty(schema)) {
+                entityName.append(sqlBuilder.wrapWithEscape(schema)).append(".");
+            }
+            entityName.append(sqlBuilder.wrapWithEscape(tabName));
+            return entityName.toString();
+        }
     }
 }
