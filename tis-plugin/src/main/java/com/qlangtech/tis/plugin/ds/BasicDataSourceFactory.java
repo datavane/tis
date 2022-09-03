@@ -200,8 +200,8 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
         ResultSet resultSet = null;
         try {
             statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            statement.execute(getRefectTablesSql());
-            resultSet = statement.getResultSet();
+            resultSet = statement.executeQuery(getRefectTablesSql());
+            //   resultSet = statement.getResultSet();
             while (resultSet.next()) {
                 tabs.add(resultSet.getString(1));
             }
@@ -221,8 +221,8 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
 
     public final DBConfig getDbConfig() {
         final DBConfig dbConfig = new DBConfig(this);
-        dbConfig.setName(this.dbName);
-        dbConfig.setDbEnum(DBConfigParser.parseDBEnum(dbName, this.nodeDesc));
+        dbConfig.setName(this.getDbName());
+        dbConfig.setDbEnum(DBConfigParser.parseDBEnum(getDbName(), this.nodeDesc));
         return dbConfig;
     }
 
@@ -279,6 +279,10 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
     @Override
     protected Class<BasicRdbmsDataSourceFactoryDescriptor> getExpectDesClass() {
         return BasicRdbmsDataSourceFactoryDescriptor.class;
+    }
+
+    public String getDbName() {
+        return this.dbName;
     }
 
     public interface IConnProcessor {

@@ -127,7 +127,10 @@ public abstract class CreateTableSqlBuilder {
         }
 
         public String getSelectAllScript() {
-            return "SELECT * FROM " + (builder.getCreateTableName().getEntityName());
+            return "SELECT " + builder.getCols().stream()
+                    .map((c) -> builder.wrapWithEscape(c.getName()))
+                    .collect(Collectors.joining(","))
+                    + " FROM " + (builder.getCreateTableName().getEntityName());
         }
     }
 
