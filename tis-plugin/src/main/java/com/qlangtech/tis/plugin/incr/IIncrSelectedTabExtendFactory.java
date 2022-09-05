@@ -31,5 +31,8 @@ import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
  * @see TISSinkFactory
  **/
 public interface IIncrSelectedTabExtendFactory {
+
+    String KEY_EXTEND_SELECTED_TAB_PROP = "extendSelectedTabProp";
+
     public Descriptor<IncrSelectedTabExtend> getSelectedTableExtendDescriptor();
 }

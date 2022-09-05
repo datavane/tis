@@ -36,8 +36,20 @@ public class IndexIncrStatus extends K8SControllerStatus {
      * @see MQListenerFactory 的desc Props
      */
     private Map<String, Object> incrSourceDesc;
+    /**
+     * 增量sink的元数据
+     */
+    private Map<String, Object> incrSinkDesc;
 
     public IndexIncrStatus() {
+    }
+
+    public Map<String, Object> getIncrSinkDesc() {
+        return incrSinkDesc;
+    }
+
+    public void setIncrSinkDesc(Map<String, Object> incrSinkDesc) {
+        this.incrSinkDesc = incrSinkDesc;
     }
 
     public Map<String, Object> getIncrSourceDesc() {

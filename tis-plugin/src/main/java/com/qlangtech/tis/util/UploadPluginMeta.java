@@ -219,7 +219,8 @@ public class UploadPluginMeta {
                             if (ext == null) {
                                 return Collections.emptyList();
                             }
-                            return Lists.newArrayList(ext.getIncrSourceProps(), ext.getIncrSinkProps());
+                            return ext.getIncrExtProp();
+                            //  return Lists.newArrayList(ext.getIncrSourceProps(), ext.getIncrSinkProps());
                         }
 
                         return DATAX_READER.getPlugins(pluginContext

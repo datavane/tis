@@ -87,7 +87,7 @@ public abstract class MQListenerFactory
             Map<String, Object> eprops = new HashMap<>();
             Optional<IDataXPluginMeta.EndType> targetType = this.getTargetType();
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
-            eprops.put("extendSelectedTabProp", (this instanceof IIncrSelectedTabExtendFactory));
+            eprops.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP, (this instanceof IIncrSelectedTabExtendFactory));
             return eprops;
         }
 

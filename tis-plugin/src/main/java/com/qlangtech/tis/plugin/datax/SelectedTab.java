@@ -22,7 +22,6 @@ import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.*;
-import com.qlangtech.tis.extension.impl.AdapterPluginFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -90,6 +89,17 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
     public <T extends IncrSelectedTabExtend> T getIncrSourceProps() {
         return (T) this.incrSourceProps;
+    }
+
+    public <T extends IncrSelectedTabExtend> List<T> getIncrExtProp() {
+        List<T> result = Lists.newArrayList();
+        if (this.getIncrSourceProps() != null) {
+            result.add(this.getIncrSourceProps());
+        }
+        if (this.getIncrSinkProps() != null) {
+            result.add(this.getIncrSinkProps());
+        }
+        return result;
     }
 
     public void setIncrSourceProps(IncrSelectedTabExtend incrProps) {

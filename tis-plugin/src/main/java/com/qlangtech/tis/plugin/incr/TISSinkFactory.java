@@ -61,6 +61,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
         TISSinkFactory sinkFactory = null;
         for (TISSinkFactory factory : sinkFactories) {
             sinkFactory = factory;
+            break;
         }
         Objects.requireNonNull(sinkFactory, "sinkFactory can not be null, dataXName:" + dataXName + " sinkFactories size:" + sinkFactories.size());
         Descriptor<TISSinkFactory> descriptor = sinkFactory.getDescriptor();
@@ -151,6 +152,8 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
             Map<String, Object> vals = Maps.newHashMap();
             IDataXPluginMeta.EndType targetType = this.getTargetType();
             vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
+            vals.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
+                    , (this instanceof IIncrSelectedTabExtendFactory));
             return vals;
         }
 

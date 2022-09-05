@@ -55,6 +55,7 @@ import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
+import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.ClusterStateCollectAction;
@@ -403,7 +404,9 @@ public class CoreAction extends BasicModule {
 
     IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context, hasCfgChanged.isPresent());
     MQListenerFactory incrFactory = HeteroEnum.getIncrSourceListenerFactory(this.getCollectionName());
+    TISSinkFactory sinkFactory = TISSinkFactory.getIncrSinKFactory(this.getCollectionName());
     incrStatus.setIncrSourceDesc(createDescVals(incrFactory.getDescriptor()));
+    incrStatus.setIncrSinkDesc(createDescVals(sinkFactory.getDescriptor()));
     this.setBizResult(context, incrStatus);
   }
 
@@ -502,11 +505,11 @@ public class CoreAction extends BasicModule {
     return incrStatus;
   }
 
-  private static HashMap<String, Object> createDescVals(Descriptor writerDesc) {
-    HashMap<String, Object> newExtraProps = Maps.newHashMap(writerDesc.getExtractProps());
-    newExtraProps.put(DescriptorsJSON.KEY_IMPL, writerDesc.getId());
-    newExtraProps.put(DescriptorsJSON.KEY_DISPLAY_NAME, writerDesc.getDisplayName());
-    newExtraProps.put(DescriptorsJSON.KEY_EXTEND_POINT, writerDesc.getT().getName());
+  private static HashMap<String, Object> createDescVals(Descriptor desc) {
+    HashMap<String, Object> newExtraProps = Maps.newHashMap(desc.getExtractProps());
+    newExtraProps.put(DescriptorsJSON.KEY_IMPL, desc.getId());
+    newExtraProps.put(DescriptorsJSON.KEY_DISPLAY_NAME, desc.getDisplayName());
+    newExtraProps.put(DescriptorsJSON.KEY_EXTEND_POINT, desc.getT().getName());
     return newExtraProps;
   }
 

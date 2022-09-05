@@ -25,7 +25,6 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
-import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import java.util.Objects;
@@ -48,7 +47,8 @@ public class DescribableJSON<T extends Describable<T>> {
     }
 
     public DescribableJSON(T instance) {
-        this(instance, instance.getDescriptor());
+        this(Objects.requireNonNull(instance, "param instance can not be null")
+                , instance.getDescriptor());
     }
 
     public JSONObject getItemJson() throws Exception {
@@ -68,6 +68,7 @@ public class DescribableJSON<T extends Describable<T>> {
             public Descriptor visit(RootFormProperties props) {
                 return descriptor;
             }
+
             @Override
             public Descriptor visit(BaseSubFormProperties props) {
                 return props.subFormFieldsDescriptor;
