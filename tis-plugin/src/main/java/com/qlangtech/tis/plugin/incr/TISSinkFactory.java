@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -146,17 +147,22 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
     }
 
 
-    public static abstract class BaseSinkFunctionDescriptor extends Descriptor<TISSinkFactory> {
+    public static abstract class BaseSinkFunctionDescriptor extends Descriptor<TISSinkFactory> implements IEndTypeGetter {
         @Override
         public Map<String, Object> getExtractProps() {
             Map<String, Object> vals = Maps.newHashMap();
-            IDataXPluginMeta.EndType targetType = this.getTargetType();
+            EndType targetType = this.getTargetType();
             vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
             vals.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
                     , (this instanceof IIncrSelectedTabExtendFactory));
             return vals;
         }
 
-        protected abstract IDataXPluginMeta.EndType getTargetType();
+        @Override
+        public final EndType getEndType() {
+            return Objects.requireNonNull(this.getTargetType(), "targetType can not be null");
+        }
+
+        protected abstract EndType getTargetType();
     }
 }

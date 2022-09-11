@@ -34,24 +34,6 @@ public interface IDataXPluginMeta {
 
     String END_TARGET_TYPE = "targetType";
 
-    /**
-     * 端类型
-     */
-    public enum EndType {
-        Greenplum("greenplum"), MySQL("mysql"), Postgres("pg"), Oracle("oracle") //
-        , ElasticSearch("es"), MongoDB("mongo"), StarRocks("starRocks"), Doris("doris") //
-        , Clickhouse("clickhouse"), Hudi("hudi");
-        private final String val;
-
-        EndType(String val) {
-            this.val = val;
-        }
-
-        public String getVal() {
-            return this.val;
-        }
-    }
-
     default DataXMeta getDataxMeta() {
         Class<?> clazz = this.getOwnerClass();
         return IOUtils.loadResourceFromClasspath(clazz, clazz.getSimpleName() + "_plugin.json", true

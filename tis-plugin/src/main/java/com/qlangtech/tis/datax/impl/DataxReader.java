@@ -20,7 +20,6 @@ package com.qlangtech.tis.datax.impl;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
-import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -30,6 +29,7 @@ import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -286,7 +286,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         return (Class<TT>) BaseDataxReaderDescriptor.class;
     }
 
-    public static abstract class BaseDataxReaderDescriptor extends Descriptor<DataxReader> {
+    public static abstract class BaseDataxReaderDescriptor extends Descriptor<DataxReader> implements IEndTypeGetter {
         @Override
         public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
             IPropertyType.SubFormFilter filter = null;
@@ -303,12 +303,18 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         }
 
         @Override
+        public final PluginVender getVender() {
+            return PluginVender.DATAX;
+        }
+
+        @Override
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = new HashMap<>();
             eprops.put("rdbms", this.isRdbms());
-            if (this.getEndType() != null) {
-                eprops.put("endType", this.getEndType().getVal());
-            }
+            eprops.put("supportIncr", this.isSupportIncr());
+            // if (this.getEndType() != null) {
+            eprops.put("endType", this.getEndType().getVal());
+            //}
             return eprops;
         }
 
@@ -317,9 +323,12 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
          *
          * @return
          */
-        protected IDataXPluginMeta.EndType getEndType() {
-            return null;
-        }
+        protected abstract boolean isSupportIncr();
+
+
+//        protected IDataXPluginMeta.EndType getEndType() {
+//            return null;
+//        }
 
 
         /**

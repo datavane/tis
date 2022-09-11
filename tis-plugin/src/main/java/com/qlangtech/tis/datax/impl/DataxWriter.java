@@ -19,11 +19,11 @@ package com.qlangtech.tis.datax.impl;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
-import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
@@ -118,13 +118,19 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      */
     public interface IRewriteSuFormProperties {
         public <TAB extends SelectedTab> Descriptor<TAB> getRewriterSelectTabDescriptor();
+
         SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception;
 
-     //   SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception;
+        //   SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception;
     }
 
 
-    public static abstract class BaseDataxWriterDescriptor extends Descriptor<DataxWriter> {
+    public static abstract class BaseDataxWriterDescriptor extends Descriptor<DataxWriter> implements IEndTypeGetter {
+
+        @Override
+        public PluginVender getVender() {
+            return PluginVender.DATAX;
+        }
 
         @Override
         public final Map<String, Object> getExtractProps() {
@@ -132,9 +138,10 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             eprops.put("supportMultiTable", this.isSupportMultiTable());
             eprops.put("rdbms", this.isRdbms());
             eprops.put("createDDL", this.isSupportTabCreate());
-            if (this.getEndType() != null) {
-                eprops.put("endType", this.getEndType().getVal());
-            }
+            eprops.put("supportIncr", this.isSupportIncr());
+            // if (this.getEndType() != null) {
+            eprops.put("endType", this.getEndType().getVal());
+            //}
             return eprops;
         }
 
@@ -143,9 +150,16 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
          *
          * @return
          */
-        protected IDataXPluginMeta.EndType getEndType() {
-            return null;
-        }
+        protected abstract boolean isSupportIncr();
+
+//        /**
+//         * 如果返回null则说明不支持增量同步功能
+//         *
+//         * @return
+//         */
+//        protected IDataXPluginMeta.EndType getEndType() {
+//            return null;
+//        }
 
         /**
          * reader 中是否可以选择多个表，例如像elastic这样的writer中对于column的设置比较复杂，

@@ -20,7 +20,6 @@ package com.qlangtech.tis.async.message.client.consumer.impl;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.IMQListener;
-import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
@@ -47,7 +46,7 @@ public class TestMQListenerFactory extends MQListenerFactory {
         }
 
         @Override
-        public Optional<IDataXPluginMeta.EndType> getTargetType() {
+        public Optional<EndType> getTargetType() {
             return Optional.empty();
         }
     }

@@ -17,359 +17,82 @@
  */
 package com.qlangtech.tis.extension.util;
 
+
 import java.math.BigInteger;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Immutable representation of a version number based on the Mercury version numbering scheme.
- * <p>
- * {@link VersionNumber}s are {@link Comparable}.
- * <h2>Special tokens</h2>
- * <p>
- * We allow a component to be not just a number, but also "ea", "ea1", "ea2".
- * "ea" is treated as "ea0", and eaN &lt; M for any M > 0.
- * <p>
- * '*' is also allowed as a component, and '*' > M for any M > 0.
- * <p>
- * 'SNAPSHOT' is also allowed as a component, and "N.SNAPSHOT" is interpreted as "N-1.*"
- * <pre>
- * 2.0.* > 2.0.1 > 2.0.1-SNAPSHOT > 2.0.0.99 > 2.0.0 > 2.0.ea > 2.0
- * </pre>
- * <p>
- * This class is re-implemented in 1.415. The class was originally introduced in 1.139
- *
  * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
+ * @date 2020/09/25
  */
 public class VersionNumber implements Comparable<VersionNumber> {
 
+    private static final Pattern SNAPSHOT = Pattern.compile("^.*((?:-\\d{8}\\.\\d{6}-\\d+)|-SNAPSHOT)( \\(.*\\))?$");
+
     private String value;
+
+    private String snapshot;
 
     private String canonical;
 
-    private ListItem items;
+    private VersionNumber.ListItem items;
 
-    private interface Item {
+    public static final Comparator<VersionNumber> DESCENDING = new Comparator<VersionNumber>() {
 
-        int INTEGER_ITEM = 0;
-
-        int STRING_ITEM = 1;
-
-        int LIST_ITEM = 2;
-
-        int WILDCARD_ITEM = 3;
-
-        int compareTo(Item item);
-
-        int getType();
-
-        boolean isNull();
-    }
-
-    /**
-     * Represents a wild-card item in the version item list.
-     */
-    private static class WildCardItem implements Item {
-
-        public int compareTo(Item item) {
-            if (// 1.* ( > 1.99) > 1
-            item == null)
-                return 1;
-            switch(item.getType()) {
-                case INTEGER_ITEM:
-                case LIST_ITEM:
-                case STRING_ITEM:
-                    return 1;
-                case WILDCARD_ITEM:
-                    return 0;
-                default:
-                    return 1;
-            }
+        public int compare(VersionNumber o1, VersionNumber o2) {
+            return o2.compareTo(o1);
         }
-
-        public int getType() {
-            return WILDCARD_ITEM;
-        }
-
-        public boolean isNull() {
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return "*";
-        }
-    }
-
-    /**
-     * Represents a numeric item in the version item list.
-     */
-    private static class IntegerItem implements Item {
-
-        private static final BigInteger BigInteger_ZERO = new BigInteger("0");
-
-        private final BigInteger value;
-
-        public static final IntegerItem ZERO = new IntegerItem();
-
-        private IntegerItem() {
-            this.value = BigInteger_ZERO;
-        }
-
-        public IntegerItem(String str) {
-            this.value = new BigInteger(str);
-        }
-
-        public int getType() {
-            return INTEGER_ITEM;
-        }
-
-        public boolean isNull() {
-            return BigInteger_ZERO.equals(value);
-        }
-
-        public int compareTo(Item item) {
-            if (item == null) {
-                // 1.0 == 1, 1.1 > 1
-                return BigInteger_ZERO.equals(value) ? 0 : 1;
-            }
-            switch(item.getType()) {
-                case INTEGER_ITEM:
-                    return value.compareTo(((IntegerItem) item).value);
-                case STRING_ITEM:
-                    // 1.1 > 1-sp
-                    return 1;
-                case LIST_ITEM:
-                    // 1.1 > 1-1
-                    return 1;
-                case WILDCARD_ITEM:
-                    return 0;
-                default:
-                    throw new RuntimeException("invalid item: " + item.getClass());
-            }
-        }
-
-        public String toString() {
-            return value.toString();
-        }
-    }
-
-    /**
-     * Represents a string in the version item list, usually a qualifier.
-     */
-    private static class StringItem implements Item {
-
-        private static final String[] QUALIFIERS = { "snapshot", "alpha", "beta", "milestone", "rc", "", "sp" };
-
-        private static final List<String> _QUALIFIERS = Arrays.asList(QUALIFIERS);
-
-        private static final Properties ALIASES = new Properties();
-
-        static {
-            ALIASES.put("ga", "");
-            ALIASES.put("final", "");
-            ALIASES.put("cr", "rc");
-            ALIASES.put("ea", "rc");
-        }
-
-        /**
-         * A comparable for the empty-string qualifier. This one is used to determine if a given qualifier makes the
-         * version older than one without a qualifier, or more recent.
-         */
-        private static String RELEASE_VERSION_INDEX = String.valueOf(_QUALIFIERS.indexOf(""));
-
-        private String value;
-
-        public StringItem(String value, boolean followedByDigit) {
-            if (followedByDigit && value.length() == 1) {
-                // a1 = alpha-1, b1 = beta-1, m1 = milestone-1
-                switch(value.charAt(0)) {
-                    case 'a':
-                        value = "alpha";
-                        break;
-                    case 'b':
-                        value = "beta";
-                        break;
-                    case 'm':
-                        value = "milestone";
-                        break;
-                }
-            }
-            this.value = ALIASES.getProperty(value, value);
-        }
-
-        public int getType() {
-            return STRING_ITEM;
-        }
-
-        public boolean isNull() {
-            return (comparableQualifier(value).compareTo(RELEASE_VERSION_INDEX) == 0);
-        }
-
-        /**
-         * Returns a comparable for a qualifier.
-         * <p/>
-         * This method both takes into account the ordering of known qualifiers as well as lexical ordering for unknown
-         * qualifiers.
-         * <p/>
-         * just returning an Integer with the index here is faster, but requires a lot of if/then/else to check for -1
-         * or QUALIFIERS.size and then resort to lexical ordering. Most comparisons are decided by the first character,
-         * so this is still fast. If more characters are needed then it requires a lexical sort anyway.
-         *
-         * @param qualifier
-         * @return
-         */
-        public static String comparableQualifier(String qualifier) {
-            int i = _QUALIFIERS.indexOf(qualifier);
-            return i == -1 ? _QUALIFIERS.size() + "-" + qualifier : String.valueOf(i);
-        }
-
-        public int compareTo(Item item) {
-            if (item == null) {
-                // 1-rc < 1, 1-ga > 1
-                return comparableQualifier(value).compareTo(RELEASE_VERSION_INDEX);
-            }
-            switch(item.getType()) {
-                case INTEGER_ITEM:
-                    // 1.any < 1.1 ?
-                    return -1;
-                case STRING_ITEM:
-                    return comparableQualifier(value).compareTo(comparableQualifier(((StringItem) item).value));
-                case LIST_ITEM:
-                    // 1.any < 1-1
-                    return -1;
-                case WILDCARD_ITEM:
-                    return -1;
-                default:
-                    throw new RuntimeException("invalid item: " + item.getClass());
-            }
-        }
-
-        public String toString() {
-            return value;
-        }
-    }
-
-    /**
-     * Represents a version list item. This class is used both for the global item list and for sub-lists (which start
-     * with '-(number)' in the version specification).
-     */
-    private static class ListItem extends ArrayList<Item> implements Item {
-
-        public int getType() {
-            return LIST_ITEM;
-        }
-
-        public boolean isNull() {
-            return (size() == 0);
-        }
-
-        void normalize() {
-            for (ListIterator iterator = listIterator(size()); iterator.hasPrevious(); ) {
-                Item item = (Item) iterator.previous();
-                if (item.isNull()) {
-                    // remove null trailing items: 0, "", empty list
-                    iterator.remove();
-                } else {
-                    break;
-                }
-            }
-        }
-
-        public int compareTo(Item item) {
-            if (item == null) {
-                if (size() == 0) {
-                    // 1-0 = 1- (normalize) = 1
-                    return 0;
-                }
-                Item first = get(0);
-                return first.compareTo(null);
-            }
-            switch(item.getType()) {
-                case INTEGER_ITEM:
-                    // 1-1 < 1.0.x
-                    return -1;
-                case STRING_ITEM:
-                    // 1-1 > 1-sp
-                    return 1;
-                case LIST_ITEM:
-                    Iterator left = iterator();
-                    Iterator right = ((ListItem) item).iterator();
-                    while (left.hasNext() || right.hasNext()) {
-                        Item l = left.hasNext() ? (Item) left.next() : null;
-                        Item r = right.hasNext() ? (Item) right.next() : null;
-                        // if this is shorter, then invert the compare and mul with -1
-                        int result = l == null ? -1 * r.compareTo(l) : l.compareTo(r);
-                        if (result != 0) {
-                            return result;
-                        }
-                    }
-                    return 0;
-                case WILDCARD_ITEM:
-                    return -1;
-                default:
-                    throw new RuntimeException("invalid item: " + item.getClass());
-            }
-        }
-
-        public String toString() {
-            StringBuilder buffer = new StringBuilder("(");
-            for (Iterator<Item> iter = iterator(); iter.hasNext(); ) {
-                buffer.append(iter.next());
-                if (iter.hasNext()) {
-                    buffer.append(',');
-                }
-            }
-            buffer.append(')');
-            return buffer.toString();
-        }
-    }
+    };
 
     public VersionNumber(String version) {
-        parseVersion(version);
+        this.parseVersion(version);
     }
 
     private void parseVersion(String version) {
         this.value = version;
-        items = new ListItem();
+        this.items = new VersionNumber.ListItem();
+        Matcher matcher = SNAPSHOT.matcher(version);
+        if (matcher.matches()) {
+            this.snapshot = matcher.group(1);
+            version = version.substring(0, matcher.start(1)) + "-SNAPSHOT";
+        }
         version = version.toLowerCase(Locale.ENGLISH);
-        ListItem list = items;
-        Stack<Item> stack = new Stack<Item>();
+        VersionNumber.ListItem list = this.items;
+        Stack<VersionNumber.Item> stack = new Stack();
         stack.push(list);
         boolean isDigit = false;
         int startIndex = 0;
-        for (int i = 0; i < version.length(); i++) {
+        for (int i = 0; i < version.length(); ++i) {
             char c = version.charAt(i);
             if (c == '.') {
                 if (i == startIndex) {
-                    list.add(IntegerItem.ZERO);
+                    list.add(VersionNumber.IntegerItem.ZERO);
                 } else {
                     list.add(parseItem(isDigit, version.substring(startIndex, i)));
                 }
                 startIndex = i + 1;
             } else if (c == '-') {
                 if (i == startIndex) {
-                    list.add(IntegerItem.ZERO);
+                    list.add(VersionNumber.IntegerItem.ZERO);
                 } else {
                     list.add(parseItem(isDigit, version.substring(startIndex, i)));
                 }
                 startIndex = i + 1;
                 if (isDigit) {
-                    // 1.0-* = 1-*
                     list.normalize();
-                    if ((i + 1 < version.length()) && Character.isDigit(version.charAt(i + 1))) {
-                        // new ListItem only if previous were digits and new char is a digit,
-                        // ie need to differentiate only 1.1 from 1-1
-                        list.add(list = new ListItem());
+                    if (i + 1 < version.length() && Character.isDigit(version.charAt(i + 1))) {
+                        list.add(list = new VersionNumber.ListItem());
                         stack.push(list);
                     }
                 }
             } else if (c == '*') {
-                list.add(new WildCardItem());
+                list.add(new VersionNumber.WildCardItem());
                 startIndex = i + 1;
             } else if (Character.isDigit(c)) {
                 if (!isDigit && i > startIndex) {
-                    list.add(new StringItem(version.substring(startIndex, i), true));
+                    list.add(new VersionNumber.StringItem(version.substring(startIndex, i), true));
                     startIndex = i;
                 }
                 isDigit = true;
@@ -378,7 +101,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
                     if (isDigit) {
                         list.add(parseItem(true, version.substring(startIndex, i)));
                     } else {
-                        list.add(new StringItem(version.substring(startIndex, i), true));
+                        list.add(new VersionNumber.StringItem(version.substring(startIndex, i), true));
                     }
                     startIndex = i;
                 }
@@ -395,56 +118,361 @@ public class VersionNumber implements Comparable<VersionNumber> {
             list.add(parseItem(isDigit, version.substring(startIndex)));
         }
         while (!stack.isEmpty()) {
-            list = (ListItem) stack.pop();
+            list = (VersionNumber.ListItem) stack.pop();
             list.normalize();
         }
-        canonical = items.toString();
+        this.canonical = this.items.toString();
     }
 
-    private static Item parseItem(boolean isDigit, String buf) {
-        return isDigit ? new IntegerItem(buf) : new StringItem(buf, false);
+    private static VersionNumber.Item parseItem(boolean isDigit, String buf) {
+        return (VersionNumber.Item) (isDigit ? new VersionNumber.IntegerItem(buf) : new VersionNumber.StringItem(buf, false));
     }
 
     public int compareTo(VersionNumber o) {
-        return items.compareTo(o.items);
+        int result = this.items.compareTo(o.items);
+        if (result != 0) {
+            return result;
+        } else if (this.snapshot == null) {
+            return o.snapshot == null ? 0 : -1;
+        } else if (o.snapshot == null) {
+            return 1;
+        } else if (!"-SNAPSHOT".equals(this.snapshot) && !"-SNAPSHOT".equals(o.snapshot)) {
+            result = this.snapshot.substring(1, 16).compareTo(o.snapshot.substring(1, 16));
+            if (result != 0) {
+                return result;
+            } else {
+                int i1 = Integer.parseInt(this.snapshot.substring(17));
+                int i2 = Integer.parseInt(o.snapshot.substring(17));
+                return i1 < i2 ? -1 : (i1 == i2 ? 0 : 1);
+            }
+        } else {
+            return 0;
+        }
     }
 
     public String toString() {
-        return value;
+        return this.value;
     }
 
     public boolean equals(Object o) {
-        return (o instanceof VersionNumber) && canonical.equals(((VersionNumber) o).canonical);
+        if (!(o instanceof VersionNumber)) {
+            return false;
+        } else {
+            VersionNumber that = (VersionNumber) o;
+            if (!this.canonical.equals(that.canonical)) {
+                return false;
+            } else if (this.snapshot == null) {
+                return that.snapshot == null;
+            } else {
+                return !"-SNAPSHOT".equals(this.snapshot) && !"-SNAPSHOT".equals(that.snapshot) ? this.snapshot.equals(that.snapshot) : true;
+            }
+        }
     }
 
     public int hashCode() {
-        return canonical.hashCode();
+        return this.canonical.hashCode();
     }
 
     public boolean isOlderThan(VersionNumber rhs) {
-        return compareTo(rhs) < 0;
+        return this.compareTo(rhs) < 0;
     }
 
     public boolean isNewerThan(VersionNumber rhs) {
-        return compareTo(rhs) > 0;
+        return this.compareTo(rhs) > 0;
     }
 
+    public boolean isOlderThanOrEqualTo(VersionNumber rhs) {
+        return this.compareTo(rhs) <= 0;
+    }
+
+    public boolean isNewerThanOrEqualTo(VersionNumber rhs) {
+        return this.compareTo(rhs) >= 0;
+    }
+
+    /**
+     * @deprecated
+     */
     public int digit(int idx) {
-        Iterator i = items.iterator();
-        Item item = (Item) i.next();
-        while (idx > 0 && i.hasNext()) {
-            if (item instanceof IntegerItem) {
-                idx--;
+        Iterator i = this.items.iterator();
+        VersionNumber.Item item;
+        for (item = (VersionNumber.Item) i.next(); idx > 0 && i.hasNext(); i.next()) {
+            if (item instanceof VersionNumber.IntegerItem) {
+                --idx;
             }
-            i.next();
         }
-        return ((IntegerItem) item).value.intValue();
+        return ((VersionNumber.IntegerItem) item).value.intValue();
     }
 
-    public static final Comparator<VersionNumber> DESCENDING = new Comparator<VersionNumber>() {
-
-        public int compare(VersionNumber o1, VersionNumber o2) {
-            return o2.compareTo(o1);
+    public int getDigitAt(int idx) {
+        if (idx < 0) {
+            return -1;
+        } else {
+            Iterator it = this.items.iterator();
+            int i = 0;
+            VersionNumber.Item item;
+            for (item = null; i <= idx && it.hasNext(); ++i) {
+                item = (VersionNumber.Item) it.next();
+                if (!(item instanceof VersionNumber.IntegerItem)) {
+                    return -1;
+                }
+            }
+            return idx - i >= 0 ? -1 : ((VersionNumber.IntegerItem) item).value.intValue();
         }
-    };
+    }
+
+    private static class ListItem extends ArrayList<VersionNumber.Item> implements VersionNumber.Item {
+
+        private ListItem() {
+        }
+
+        public int getType() {
+            return 2;
+        }
+
+        public boolean isNull() {
+            return this.size() == 0;
+        }
+
+        void normalize() {
+            ListIterator iterator = this.listIterator(this.size());
+            while (iterator.hasPrevious()) {
+                VersionNumber.Item item = (VersionNumber.Item) iterator.previous();
+                if (!item.isNull()) {
+                    break;
+                }
+                iterator.remove();
+            }
+        }
+
+        public int compareTo(VersionNumber.Item item) {
+            if (item == null) {
+                if (this.size() == 0) {
+                    return 0;
+                } else {
+                    VersionNumber.Item first = (VersionNumber.Item) this.get(0);
+                    return first.compareTo((VersionNumber.Item) null);
+                }
+            } else {
+                switch(item.getType()) {
+                    case 0:
+                        return -1;
+                    case 1:
+                        return 1;
+                    case 2:
+                        Iterator left = this.iterator();
+                        Iterator right = ((VersionNumber.ListItem) item).iterator();
+                        int result;
+                        do {
+                            if (!left.hasNext() && !right.hasNext()) {
+                                return 0;
+                            }
+                            VersionNumber.Item l = left.hasNext() ? (VersionNumber.Item) left.next() : null;
+                            VersionNumber.Item r = right.hasNext() ? (VersionNumber.Item) right.next() : null;
+                            if (l == null) {
+                                if (r == null) {
+                                    result = 0;
+                                } else {
+                                    result = -1 * r.compareTo((VersionNumber.Item) null);
+                                }
+                            } else {
+                                result = l.compareTo(r);
+                            }
+                        } while (result == 0);
+                        return result;
+                    case 3:
+                        return -1;
+                    default:
+                        throw new RuntimeException("invalid item: " + item.getClass());
+                }
+            }
+        }
+
+        public String toString() {
+            StringBuilder buffer = new StringBuilder("(");
+            Iterator iter = this.iterator();
+            while (iter.hasNext()) {
+                buffer.append(iter.next());
+                if (iter.hasNext()) {
+                    buffer.append(',');
+                }
+            }
+            buffer.append(')');
+            return buffer.toString();
+        }
+    }
+
+    private static class StringItem implements VersionNumber.Item {
+
+        private static final String[] QUALIFIERS = new String[] { "snapshot", "alpha", "beta", "milestone", "rc", "", "sp" };
+
+        private static final List<String> _QUALIFIERS;
+
+        private static final Properties ALIASES;
+
+        private static String RELEASE_VERSION_INDEX;
+
+        private String value;
+
+        public StringItem(String value, boolean followedByDigit) {
+            if (followedByDigit && value.length() == 1) {
+                switch(value.charAt(0)) {
+                    case 'a':
+                        value = "alpha";
+                        break;
+                    case 'b':
+                        value = "beta";
+                        break;
+                    case 'm':
+                        value = "milestone";
+                }
+            }
+            this.value = ALIASES.getProperty(value, value);
+        }
+
+        public int getType() {
+            return 1;
+        }
+
+        public boolean isNull() {
+            return comparableQualifier(this.value).compareTo(RELEASE_VERSION_INDEX) == 0;
+        }
+
+        public static String comparableQualifier(String qualifier) {
+            int i = _QUALIFIERS.indexOf(qualifier);
+            return i == -1 ? _QUALIFIERS.size() + "-" + qualifier : String.valueOf(i);
+        }
+
+        public int compareTo(VersionNumber.Item item) {
+            if (item == null) {
+                return comparableQualifier(this.value).compareTo(RELEASE_VERSION_INDEX);
+            } else {
+                switch(item.getType()) {
+                    case 0:
+                        return -1;
+                    case 1:
+                        return comparableQualifier(this.value).compareTo(comparableQualifier(((VersionNumber.StringItem) item).value));
+                    case 2:
+                        return -1;
+                    case 3:
+                        return -1;
+                    default:
+                        throw new RuntimeException("invalid item: " + item.getClass());
+                }
+            }
+        }
+
+        public String toString() {
+            return this.value;
+        }
+
+        static {
+            _QUALIFIERS = Arrays.asList(QUALIFIERS);
+            ALIASES = new Properties();
+            ALIASES.put("ga", "");
+            ALIASES.put("final", "");
+            ALIASES.put("cr", "rc");
+            ALIASES.put("ea", "rc");
+            RELEASE_VERSION_INDEX = String.valueOf(_QUALIFIERS.indexOf(""));
+        }
+    }
+
+    private static class IntegerItem implements VersionNumber.Item {
+
+        private static final BigInteger BigInteger_ZERO = new BigInteger("0");
+
+        private final BigInteger value;
+
+        public static final VersionNumber.IntegerItem ZERO = new VersionNumber.IntegerItem();
+
+        private IntegerItem() {
+            this.value = BigInteger_ZERO;
+        }
+
+        public IntegerItem(String str) {
+            this.value = new BigInteger(str);
+        }
+
+        public int getType() {
+            return 0;
+        }
+
+        public boolean isNull() {
+            return BigInteger_ZERO.equals(this.value);
+        }
+
+        public int compareTo(VersionNumber.Item item) {
+            if (item == null) {
+                return BigInteger_ZERO.equals(this.value) ? 0 : 1;
+            } else {
+                switch(item.getType()) {
+                    case 0:
+                        return this.value.compareTo(((VersionNumber.IntegerItem) item).value);
+                    case 1:
+                        return 1;
+                    case 2:
+                        return 1;
+                    case 3:
+                        return 0;
+                    default:
+                        throw new RuntimeException("invalid item: " + item.getClass());
+                }
+            }
+        }
+
+        public String toString() {
+            return this.value.toString();
+        }
+    }
+
+    private static class WildCardItem implements VersionNumber.Item {
+
+        private WildCardItem() {
+        }
+
+        public int compareTo(VersionNumber.Item item) {
+            if (item == null) {
+                return 1;
+            } else {
+                switch(item.getType()) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        return 1;
+                    case 3:
+                        return 0;
+                    default:
+                        return 1;
+                }
+            }
+        }
+
+        public int getType() {
+            return 3;
+        }
+
+        public boolean isNull() {
+            return false;
+        }
+
+        public String toString() {
+            return "*";
+        }
+    }
+
+    private interface Item {
+
+        int INTEGER_ITEM = 0;
+
+        int STRING_ITEM = 1;
+
+        int LIST_ITEM = 2;
+
+        int WILDCARD_ITEM = 3;
+
+        int compareTo(VersionNumber.Item var1);
+
+        int getType();
+
+        boolean isNull();
+    }
 }

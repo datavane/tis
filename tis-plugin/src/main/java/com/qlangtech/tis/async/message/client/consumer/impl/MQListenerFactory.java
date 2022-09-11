@@ -25,6 +25,7 @@ import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.incr.IIncrSelectedTabExtendFactory;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -80,12 +81,12 @@ public abstract class MQListenerFactory
         throw new UnsupportedOperationException();
     }
 
-    public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> {
+    public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> implements IEndTypeGetter {
 
         @Override
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = new HashMap<>();
-            Optional<IDataXPluginMeta.EndType> targetType = this.getTargetType();
+            Optional<EndType> targetType = this.getTargetType();
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
             eprops.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP, (this instanceof IIncrSelectedTabExtendFactory));
             return eprops;
@@ -94,12 +95,18 @@ public abstract class MQListenerFactory
 //        protected Boolean isExtendSelectedTabProp() {
 //            return false;
 //        }
+//        @Override
+//        public IDataXPluginMeta.EndType getEndType() {
+//            return null;
+//        }
 
         /**
          * 取得服务对象，如果这个Plugin是MySqlCDC的话,则返回 EndType.MySQL, 如果全部匹配的话，则返回empty
          *
          * @return
          */
-        public abstract Optional<IDataXPluginMeta.EndType> getTargetType();
+        public Optional<EndType> getTargetType() {
+            return Optional.of(this.getEndType());
+        }
     }
 }
