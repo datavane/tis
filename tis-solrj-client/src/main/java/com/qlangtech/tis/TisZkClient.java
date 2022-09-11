@@ -64,60 +64,6 @@ public class TisZkClient implements ITISCoordinator {
         }
     }
 
-    public static ITISCoordinator create() {
-        if (Config.isStandaloneMode()) {
-            logger.info("create ITISCoordinator with Standalone Mode");
-            return new ITISCoordinator() {
-                private final String DEFAULT_CHILD1_PATH = "child001";
-
-                @Override
-                public boolean shallConnect2RemoteIncrStatusServer() {
-                    return true;
-                }
-
-                @Override
-                public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
-                    if (ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH.equals(zkPath)) {
-                        return Collections.singletonList(DEFAULT_CHILD1_PATH);
-                    }
-                    throw new IllegalStateException("zkPath:" + zkPath + " is illegal");
-                }
-
-                @Override
-                public void addOnReconnect(IOnReconnect onReconnect) {
-
-                }
-
-                @Override
-                public byte[] getData(String s, Watcher o, Stat stat, boolean b) {
-                    if (StringUtils.equals(s
-                            , ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + ZkUtils.PATH_SPLIT + DEFAULT_CHILD1_PATH)) {
-                        return (Config.getAssembleHost() + ":" + ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT).getBytes(TisUTF8.get());
-                    }
-                    throw new IllegalStateException("zkPath:" + s + " is illegal");
-                }
-
-                @Override
-                public void create(String path, byte[] data, boolean persistent, boolean sequential) {
-
-                }
-
-                @Override
-                public boolean exists(String path, boolean watch) {
-                    return true;
-                }
-
-                @Override
-                public <T> T unwrap() {
-                    return null;
-                }
-            };
-        } else {
-            logger.info("create ITISCoordinator with Distribute Mode");
-            return new TisZkClient(Config.getZKHost(), 60000);
-        }
-    }
-
     @Override
     public boolean shallConnect2RemoteIncrStatusServer() {
         return true;

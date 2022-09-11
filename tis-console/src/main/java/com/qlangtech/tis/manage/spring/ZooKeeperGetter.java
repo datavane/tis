@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.manage.spring;
 
-import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.slf4j.Logger;
@@ -42,7 +41,7 @@ public class ZooKeeperGetter extends EnvironmentBindService<ITISCoordinator> {
 
   @Override
   protected ITISCoordinator createSerivce(final RunEnvironment runtime) {
-    return TisZkClient.create();
+    return ITISCoordinator.create();
 
 //        final String zkAddress = Config.getZKHost();
 //        validateMultiServerIsReachable(zkAddress);

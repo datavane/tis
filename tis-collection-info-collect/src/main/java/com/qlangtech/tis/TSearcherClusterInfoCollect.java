@@ -17,7 +17,7 @@
  */
 package com.qlangtech.tis;
 
-import com.qlangtech.tis.collectinfo.CoreStatisticsReport;
+//import com.qlangtech.tis.collectinfo.CoreStatisticsReport;
 import com.qlangtech.tis.collectinfo.api.ICoreService;
 import com.qlangtech.tis.collectinfo.api.ICoreStatistics;
 import com.qlangtech.tis.dataplatform.dao.IClusterSnapshotDAO;
@@ -29,7 +29,7 @@ import com.qlangtech.tis.manage.common.SendSMSUtils;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.tis.zookeeper.ZkPathUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.cloud.*;
+//import org.apache.solr.common.cloud.*;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.SessionExpiredException;
 import org.json.JSONException;
@@ -155,8 +155,8 @@ public class TSearcherClusterInfoCollect implements // Daemon
     }
 
     // boolean flag = false;
-    protected void writeCoreInfoToTair(CoreStatisticsReport report) {
-    }
+//    protected void writeCoreInfoToTair(CoreStatisticsReport report) {
+//    }
 
     /**
      * 创建当前集群状态生成快照
@@ -165,70 +165,62 @@ public class TSearcherClusterInfoCollect implements // Daemon
      * @throws IOException
      */
     private List<ClusterSnapshot> createNewSnapshot() throws IOException {
-        synchronized (coreStatisticsReportHistory) {
-            final ZkStateReader cloudState = this.getCloudState();
-            ClusterState clusterState = cloudState.getClusterState();
-            Map<String, DocCollection> collectionMap = clusterState.getCollectionsMap();
-            Map<String, CoreStatisticsReport> coreStatisticsReportMap = new HashMap<String, CoreStatisticsReport>(32);
-            DocCollection c = null;
-            for (Map.Entry<String, DocCollection> entry : collectionMap.entrySet()) {
-                c = entry.getValue();
-                for (Slice slice : c.getActiveSlices()) {
-                    CoreStatisticsReport report = coreStatisticsReportMap.get(entry.getKey());
-                    if (report == null) {
-                        report = new CoreStatisticsReport(entry.getKey());
-                        coreStatisticsReportMap.put(entry.getKey(), report);
-                    }
-                    report.addClusterCoreInfo(slice);
-                }
-            }
-            final List<ClusterSnapshot> insertList = new ArrayList<>();
-            int coreCount = 0;
-            Map<Integer, ICoreStatistics> preCollectInfo = getPreCollectStatisticsReport();
-            coreStatisticsReportHistory.clear();
-            CoreStatisticsReport preReport = null;
-            boolean preSnapshotNull = false;
-            for (Map.Entry<String, CoreStatisticsReport> reportEntry : coreStatisticsReportMap.entrySet()) {
-                String serviceName = reportEntry.getKey();
-                CoreStatisticsReport report = reportEntry.getValue();
-                if (!clusterContainApp(serviceName)) {
-                    String msg = "collection:" + serviceName + " is not exist tis metadata,have been delete?";
-                    SendSMSUtils.send(msg, SendSMSUtils.BAISUI_PHONE);
-                    log.warn(msg);
-                    continue;
-                }
-                ICoreStatistics pre = preCollectInfo.get(getAppId(serviceName));
-                if (pre == null) {
-                    preSnapshotNull = true;
-                    coreCount++;
-                    // 前一个如果没有的话就退出，这次就先不记录了
-                    coreStatisticsReportHistory.put(this.getAppId(serviceName), report);
-                    continue;
-                }
-                preReport = ((CoreStatisticsReport) pre);
-                final long incrRequest = preReport.getRequestIncreasement(report);
-                insertList.add(createCollectPoint(serviceName, RecordExecType.QUERY, incrRequest));
-                insertList.add(createCollectPoint(serviceName, RecordExecType.UPDATE, preReport.getUpdateCountIncreasement(report)));
-                insertList.add(createCollectPoint(serviceName, RecordExecType.QUERY_ERROR, preReport.getQueryErrorCountIncreasement(report)));
-                insertList.add(this.createCollectPoint(serviceName, RecordExecType.UPDATE_ERROR, preReport.getUpdateErrorCountIncreasement(report)));
-                // if (snapshot.getRequestCount() > 0) {
-                // 先向list中添加，后边并将这批数据提交到数据库中
-                coreCount++;
-                coreStatisticsReportHistory.putIfAbsent(this.getAppId(serviceName), report);
-            }
-            coreStatisticsReportHistory.setAllCoreCount(coreCount);
-//            try {
-//                if (!preSnapshotNull) {
-//                    log.info("start vaildateUpdateCount");
-//                    vaildateUpdateCount(collectionMap.keySet(), insertList);
-//                } else {
-//                    log.info("preSnapshotNull is true,so ignor this validate");
+        throw new UnsupportedOperationException();
+//        synchronized (coreStatisticsReportHistory) {
+//            final ZkStateReader cloudState = this.getCloudState();
+//            ClusterState clusterState = cloudState.getClusterState();
+//            Map<String, DocCollection> collectionMap = clusterState.getCollectionsMap();
+//            Map<String, CoreStatisticsReport> coreStatisticsReportMap = new HashMap<String, CoreStatisticsReport>(32);
+//            DocCollection c = null;
+//            for (Map.Entry<String, DocCollection> entry : collectionMap.entrySet()) {
+//                c = entry.getValue();
+//                for (Slice slice : c.getActiveSlices()) {
+//                    CoreStatisticsReport report = coreStatisticsReportMap.get(entry.getKey());
+//                    if (report == null) {
+//                        report = new CoreStatisticsReport(entry.getKey());
+//                        coreStatisticsReportMap.put(entry.getKey(), report);
+//                    }
+//                    report.addClusterCoreInfo(slice);
 //                }
-//            } catch (Throwable e) {
-//                log.error(e.getMessage(), e);
 //            }
-            return insertList;
-        }
+//            final List<ClusterSnapshot> insertList = new ArrayList<>();
+//            int coreCount = 0;
+//            Map<Integer, ICoreStatistics> preCollectInfo = getPreCollectStatisticsReport();
+//            coreStatisticsReportHistory.clear();
+//            CoreStatisticsReport preReport = null;
+//            boolean preSnapshotNull = false;
+//            for (Map.Entry<String, CoreStatisticsReport> reportEntry : coreStatisticsReportMap.entrySet()) {
+//                String serviceName = reportEntry.getKey();
+//                CoreStatisticsReport report = reportEntry.getValue();
+//                if (!clusterContainApp(serviceName)) {
+//                    String msg = "collection:" + serviceName + " is not exist tis metadata,have been delete?";
+//                    SendSMSUtils.send(msg, SendSMSUtils.BAISUI_PHONE);
+//                    log.warn(msg);
+//                    continue;
+//                }
+//                ICoreStatistics pre = preCollectInfo.get(getAppId(serviceName));
+//                if (pre == null) {
+//                    preSnapshotNull = true;
+//                    coreCount++;
+//                    // 前一个如果没有的话就退出，这次就先不记录了
+//                    coreStatisticsReportHistory.put(this.getAppId(serviceName), report);
+//                    continue;
+//                }
+//                preReport = ((CoreStatisticsReport) pre);
+//                final long incrRequest = preReport.getRequestIncreasement(report);
+//                insertList.add(createCollectPoint(serviceName, RecordExecType.QUERY, incrRequest));
+//                insertList.add(createCollectPoint(serviceName, RecordExecType.UPDATE, preReport.getUpdateCountIncreasement(report)));
+//                insertList.add(createCollectPoint(serviceName, RecordExecType.QUERY_ERROR, preReport.getQueryErrorCountIncreasement(report)));
+//                insertList.add(this.createCollectPoint(serviceName, RecordExecType.UPDATE_ERROR, preReport.getUpdateErrorCountIncreasement(report)));
+//                // if (snapshot.getRequestCount() > 0) {
+//                // 先向list中添加，后边并将这批数据提交到数据库中
+//                coreCount++;
+//                coreStatisticsReportHistory.putIfAbsent(this.getAppId(serviceName), report);
+//            }
+//            coreStatisticsReportHistory.setAllCoreCount(coreCount);
+//
+//            return insertList;
+//        }
     }
 
 //    /**
@@ -310,33 +302,34 @@ public class TSearcherClusterInfoCollect implements // Daemon
      * @throws InterruptedException
      */
     protected boolean isInIndexBackFlowState(String collection) {
-        try {
-            final SolrZkClient zk = this.getZookeeper();
-            if (!zk.exists(ZkPathUtils.getIndexBackflowSignalPath(collection), true)) {
-                return false;
-            }
-            List<String> children = Collections.emptyList();
-            try {
-                children = zk.getChildren(ZkPathUtils.getIndexBackflowSignalPath(collection), null, true);
-            } catch (Throwable e) {
-                log.error(e.getMessage(), e);
-            }
-            long maxTimestamp = 0;
-            long tmp;
-            for (String c : children) {
-                tmp = Long.parseLong(StringUtils.substringAfter(c, ZkPathUtils.INDEX_BACKFLOW_SIGNAL_PATH_SEQNODE_NAME));
-                if (tmp > maxTimestamp) {
-                    maxTimestamp = tmp;
-                }
-            }
-            boolean isInIndexBackFlowState = !(System.currentTimeMillis() > (maxTimestamp + 1000 * 60 * 300));
-            log.info("collection:" + collection + ",index backflow:" + maxTimestamp + ",isInIndexBackFlowState:" + isInIndexBackFlowState);
-            // 回流最多一个半小时,超过半小时则视为不在回流状态中
-            return isInIndexBackFlowState;
-        } catch (Throwable e) {
-            log.error(e.getMessage(), e);
-        }
-        return false;
+        throw new UnsupportedOperationException();
+//        try {
+//            final SolrZkClient zk = this.getZookeeper();
+//            if (!zk.exists(ZkPathUtils.getIndexBackflowSignalPath(collection), true)) {
+//                return false;
+//            }
+//            List<String> children = Collections.emptyList();
+//            try {
+//                children = zk.getChildren(ZkPathUtils.getIndexBackflowSignalPath(collection), null, true);
+//            } catch (Throwable e) {
+//                log.error(e.getMessage(), e);
+//            }
+//            long maxTimestamp = 0;
+//            long tmp;
+//            for (String c : children) {
+//                tmp = Long.parseLong(StringUtils.substringAfter(c, ZkPathUtils.INDEX_BACKFLOW_SIGNAL_PATH_SEQNODE_NAME));
+//                if (tmp > maxTimestamp) {
+//                    maxTimestamp = tmp;
+//                }
+//            }
+//            boolean isInIndexBackFlowState = !(System.currentTimeMillis() > (maxTimestamp + 1000 * 60 * 300));
+//            log.info("collection:" + collection + ",index backflow:" + maxTimestamp + ",isInIndexBackFlowState:" + isInIndexBackFlowState);
+//            // 回流最多一个半小时,超过半小时则视为不在回流状态中
+//            return isInIndexBackFlowState;
+//        } catch (Throwable e) {
+//            log.error(e.getMessage(), e);
+//        }
+//        return false;
     }
 
     private static final int MONITOR_TIMERANGE = 4;
@@ -500,9 +493,9 @@ public class TSearcherClusterInfoCollect implements // Daemon
     // /**
     // * @return
     // */
-    private SolrZkClient getZookeeper() {
-        return this.zkStateReader.getZkClient();
-    }
+//    private SolrZkClient getZookeeper() {
+//        return this.zkStateReader.getZkClient();
+//    }
 
     private final String TIMESTAMP_PROPERTY = "timestamp";
 
@@ -566,18 +559,18 @@ public class TSearcherClusterInfoCollect implements // Daemon
     }
 
     // private CloudSolrClient solrClient;
-    private ZkStateReader zkStateReader;
-
-    public ZkStateReader getCloudState() {
-        if (zkStateReader == null) {
-            throw new IllegalStateException("zkStateReader can not be null");
-        }
-        return zkStateReader;
-    }
-
-    public void setZkStateReader(ZkStateReader zkStateReader) {
-        this.zkStateReader = zkStateReader;
-    }
+//    private ZkStateReader zkStateReader;
+//
+//    public ZkStateReader getCloudState() {
+//        if (zkStateReader == null) {
+//            throw new IllegalStateException("zkStateReader can not be null");
+//        }
+//        return zkStateReader;
+//    }
+//
+//    public void setZkStateReader(ZkStateReader zkStateReader) {
+//        this.zkStateReader = zkStateReader;
+//    }
 
     private int getMonitorTimerange(String collection) {
         // 凌晨0~7 timerange 应该是8,因为半夜的时候更新量比较少，所以不要误报报警

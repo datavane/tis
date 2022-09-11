@@ -19,8 +19,8 @@
 package com.qlangtech.tis.trigger;
 
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.ajax.AjaxResult;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -34,7 +34,6 @@ import com.qlangtech.tis.trigger.biz.dal.dao.JobConstant;
 import com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJob;
 import com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJobCriteria;
 import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.SessionExpiredException;
 import org.apache.zookeeper.data.Stat;
@@ -56,6 +55,8 @@ import java.rmi.RemoteException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+//import com.qlangtech.tis.TisZkClient;
 
 public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(TriggerJobManage.class);
@@ -92,7 +93,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     // this.triggerServerRegister = triggerServerRegister;
     // }
     //
-    public TisZkClient getZookeeper() {
+    public ITISCoordinator getZookeeper() {
         // return this.zkClientGetter.getSolrZkClient().unwrap();
         return null;
     }
@@ -310,7 +311,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     private static final MessageFormat GRANTED_LOCK_CLIENT_IP = new MessageFormat(
             "/tis-lock/dumpindex/{0}/dumper");
 
-    public static LockResult getFullDumpNode(TisZkClient zk, String collection) throws Exception {
+    public static LockResult getFullDumpNode(ITISCoordinator zk, String collection) throws Exception {
         final String ipLockPath = GRANTED_LOCK_CLIENT_IP.format(new Object[]{collection});
         if (!zk.exists(ipLockPath, true)) {
             return null;
@@ -325,13 +326,13 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
         return lock;
     }
 
-    public static LockResult getNodeInfo(TisZkClient zk, boolean hasChild, String path,
+    public static LockResult getNodeInfo(ITISCoordinator zk, boolean hasChild, String path,
                                          boolean editable, String desc)
             throws KeeperException, InterruptedException, UnsupportedEncodingException {
 
         return getNodeInfo(zk, hasChild/* haChild */, path, editable, new PathValueProcess() {
             @Override
-            public String process(String path, TisZkClient zk, LockResult lock)
+            public String process(String path, ITISCoordinator zk, LockResult lock)
                     throws KeeperException, InterruptedException {
                 lock.stat = new Stat();
                 String child = new String(zk.getData(path, null, lock.stat, true));
@@ -348,13 +349,13 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
         NULL_LOCK.setContent("不存在。。");
     }
 
-    public static LockResult getNodeInfo(TisZkClient zk, boolean haChild, String path,
+    public static LockResult getNodeInfo(ITISCoordinator zk, boolean haChild, String path,
                                          boolean editable, PathValueProcess process, String desc)
             throws KeeperException, InterruptedException, UnsupportedEncodingException {
 
         LockResult lock = new LockResult(editable);
         lock.setPath(path);
-        lock.setZkAddress(String.valueOf(zk.getZkServerAddress()));
+        // lock.setZkAddress(String.valueOf(zk.getZkServerAddress()));
         lock.setDesc(desc);
 
         if (zk.exists(path, true)) {
@@ -375,7 +376,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     public interface PathValueProcess {
-        String process(String path, TisZkClient zk, LockResult lock)
+        String process(String path, ITISCoordinator zk, LockResult lock)
                 throws KeeperException, InterruptedException;
     }
 
@@ -531,59 +532,58 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
     }
 
     /**
-     * @param indexName
-     *            索引名称
+     * @param indexName 索引名称
      * @return
      * @throws SessionExpiredException
      */
     private boolean hasGrantCollectLock(String indexName) throws SessionExpiredException {
-
-        // 睡一个随机数
-        try {
-            Thread.sleep((long) (Math.random() * 1000));
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-
-        try {
-            String COLLECT_STATE_PATH = "/terminator-lock/jst_full_dump_trigger_lock/" + indexName;
-            TisZkClient zokeeper = this.getZookeeper();
-
-            // 判断是否要执行收集流程
-            final Date now = new Date();
-            if (!zokeeper.exists(COLLECT_STATE_PATH, false)) {
-                // 当前节点为空，创建节点立即返回
-                zokeeper.create(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), CreateMode.EPHEMERAL, true);
-                log.info("create new lock path:" + COLLECT_STATE_PATH);
-                return true;
-            }
-            final Stat stat = new Stat();
-
-            final byte[] content = zokeeper.getData(COLLECT_STATE_PATH, null, stat, true);
-
-            final long lastExecuteTimeStamp = parseLatestExecuteTimeStamp(content);
-
-            if ((lastExecuteTimeStamp + (COLLECT_STATE_INTERVAL * 30 * 1000)) <= now.getTime()) {
-
-                // 取得锁，将现在的时间写回锁
-                zokeeper.setData(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), stat.getVersion(),
-                        true);
-
-                log.info("update the lock path:" + COLLECT_STATE_PATH);
-                return true;
-            }
-
-            return false;
-
-        } catch (SessionExpiredException e) {
-            // zookeeper客户端会话超时
-            throw e;
-        } catch (KeeperException e) {
-            log.warn("zookeeper error", e);
-            return false;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        throw new UnsupportedOperationException("indexName:" + indexName);
+//        // 睡一个随机数
+//        try {
+//            Thread.sleep((long) (Math.random() * 1000));
+//        } catch (InterruptedException e1) {
+//            e1.printStackTrace();
+//        }
+//
+//        try {
+//            String COLLECT_STATE_PATH = "/terminator-lock/jst_full_dump_trigger_lock/" + indexName;
+//            ITISCoordinator zokeeper = this.getZookeeper();
+//
+//            // 判断是否要执行收集流程
+//            final Date now = new Date();
+//            if (!zokeeper.exists(COLLECT_STATE_PATH, false)) {
+//                // 当前节点为空，创建节点立即返回
+//                zokeeper.create(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), CreateMode.EPHEMERAL, true);
+//                log.info("create new lock path:" + COLLECT_STATE_PATH);
+//                return true;
+//            }
+//            final Stat stat = new Stat();
+//
+//            final byte[] content = zokeeper.getData(COLLECT_STATE_PATH, null, stat, true);
+//
+//            final long lastExecuteTimeStamp = parseLatestExecuteTimeStamp(content);
+//
+//            if ((lastExecuteTimeStamp + (COLLECT_STATE_INTERVAL * 30 * 1000)) <= now.getTime()) {
+//
+//                // 取得锁，将现在的时间写回锁
+//                zokeeper.setData(COLLECT_STATE_PATH, parseCurrnetTimeStamp(now), stat.getVersion(),
+//                        true);
+//
+//                log.info("update the lock path:" + COLLECT_STATE_PATH);
+//                return true;
+//            }
+//
+//            return false;
+//
+//        } catch (SessionExpiredException e) {
+//            // zookeeper客户端会话超时
+//            throw e;
+//        } catch (KeeperException e) {
+//            log.warn("zookeeper error", e);
+//            return false;
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     public static class Crontab {

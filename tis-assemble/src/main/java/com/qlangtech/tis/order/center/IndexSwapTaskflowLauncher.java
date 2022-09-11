@@ -17,7 +17,7 @@
  */
 package com.qlangtech.tis.order.center;
 
-import com.qlangtech.tis.TisZkClient;
+//import com.qlangtech.tis.TisZkClient;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.AbstractActionInvocation;
@@ -133,7 +133,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
             // this.setZkClient(new TisZkClient(Config.getZKHost(), 60000));
             // return
 
-            this.setZkClient(TisZkClient.create());
+            this.setZkClient(ITISCoordinator.create());
         } catch (Exception e) {
             throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
         }

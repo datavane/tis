@@ -46,10 +46,10 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-plugin</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-solrj-client</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.qlangtech.tis</groupId>-->
+<!--            <artifactId>tis-solrj-client</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-common</artifactId>

@@ -65,10 +65,10 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>com.qlangtech.tis</groupId>
-            <artifactId>tis-solrj-client</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.qlangtech.tis</groupId>-->
+<!--            <artifactId>tis-solrj-client</artifactId>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.apache.solr</groupId>

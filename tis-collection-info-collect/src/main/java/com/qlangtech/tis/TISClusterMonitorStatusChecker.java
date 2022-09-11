@@ -1,36 +1,32 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis;
 
 import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.Mode;
-import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ServletContextAware;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+
 import javax.servlet.ServletContext;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
+
 
 /**
  * 判断tis集群增量统计工作是否正常进行中
@@ -46,7 +42,7 @@ public class TISClusterMonitorStatusChecker implements IStatusChecker, ServletCo
 
     private TSearcherClusterInfoCollect tisClusterInfoCollect;
 
-    private ZkStateReader zkStateReader;
+    // private ZkStateReader zkStateReader;
 
     @Override
     public void setServletContext(ServletContext servletContext) {
@@ -55,38 +51,40 @@ public class TISClusterMonitorStatusChecker implements IStatusChecker, ServletCo
 
     @Override
     public StatusModel check() {
-        logger.info("do check_health");
-        StatusModel stateModel = new StatusModel();
-        stateModel.level = StatusLevel.OK;
-        try {
-            zkStateReader.getZkClient().getChildren("/", null, true);
-            logger.info("zk is regular");
-        } catch (Exception e) {
-            logger.error("zk is unhealth!!!!!!", e);
-            stateModel.level = StatusLevel.FAIL;
-            stateModel.message = ExceptionUtils.getMessage(e);
-            return stateModel;
-        }
-        // ////////////////////////////////////////////////////////////////
-        final long lastCollectTimeStamp = tisClusterInfoCollect.getLastCollectTimeStamp();
-        if (System.currentTimeMillis() > (lastCollectTimeStamp + (TSearcherClusterInfoCollect.COLLECT_STATE_INTERVAL * 2 * 1000))) {
-            stateModel.level = StatusLevel.FAIL;
-            SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-            stateModel.message = "from:" + timeFormat.format(new Date(lastCollectTimeStamp)) + " have not collect cluster status";
-            logger.info("cluster collect has error:" + stateModel.message);
-            logger.info("System.currentTimeMillis():" + System.currentTimeMillis());
-            logger.info("lastCollectTimeStamp:" + lastCollectTimeStamp);
-        } else {
-            logger.info("cluster collect is regular");
-        }
-        return stateModel;
+        throw new UnsupportedOperationException();
+//        logger.info("do check_health");
+//        StatusModel stateModel = new StatusModel();
+//        stateModel.level = StatusLevel.OK;
+//        try {
+//            zkStateReader.getZkClient().getChildren("/", null, true);
+//            logger.info("zk is regular");
+//        } catch (Exception e) {
+//            logger.error("zk is unhealth!!!!!!", e);
+//            stateModel.level = StatusLevel.FAIL;
+//            stateModel.message = ExceptionUtils.getMessage(e);
+//            return stateModel;
+//        }
+//        // ////////////////////////////////////////////////////////////////
+//        final long lastCollectTimeStamp = tisClusterInfoCollect.getLastCollectTimeStamp();
+//        if (System.currentTimeMillis() > (lastCollectTimeStamp + (TSearcherClusterInfoCollect.COLLECT_STATE_INTERVAL * 2 * 1000))) {
+//            stateModel.level = StatusLevel.FAIL;
+//            SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+//            stateModel.message = "from:" + timeFormat.format(new Date(lastCollectTimeStamp)) + " have not collect cluster status";
+//            logger.info("cluster collect has error:" + stateModel.message);
+//            logger.info("System.currentTimeMillis():" + System.currentTimeMillis());
+//            logger.info("lastCollectTimeStamp:" + lastCollectTimeStamp);
+//        } else {
+//            logger.info("cluster collect is regular");
+//        }
+//        return stateModel;
     }
 
     @Override
     public void init() {
-        ApplicationContext appContext = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext);
-        this.tisClusterInfoCollect = appContext.getBean("clusterInfoCollect", TSearcherClusterInfoCollect.class);
-        this.zkStateReader = appContext.getBean("solrClient", ZkStateReader.class);
+        throw new UnsupportedOperationException();
+//        ApplicationContext appContext = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext);
+//        this.tisClusterInfoCollect = appContext.getBean("clusterInfoCollect", TSearcherClusterInfoCollect.class);
+//        this.zkStateReader = appContext.getBean("solrClient", ZkStateReader.class);
     }
 
     @Override
