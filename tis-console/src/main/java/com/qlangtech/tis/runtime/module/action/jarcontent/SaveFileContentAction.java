@@ -27,10 +27,8 @@ import com.qlangtech.tis.pubhook.common.ConfigConstant;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.runtime.pojo.ResSynManager;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.utils.MD5Utils;
-import junit.framework.Assert;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -87,118 +85,118 @@ public class SaveFileContentAction extends BasicModule {
     basicModule.setBizResult(context, editModel ? content : StringEscapeUtils.escapeHtml(content));
   }
 
-  /**
-   * 将日常的文件同步到线上<br>
-   * 这段逻辑原先应该是在线上执行的，现在要放在日常上执行，日常连线上肯定是可以执行的
-   *
-   * @param context
-   */
-  @Func(PermissionConstant.CONFIG_SYNCHRONIZE_FROM_DAILY)
-  public void doSyncDailyConfig(Context context) throws Exception {
-    AppDomainInfo app = this.getAppDomain();
-    Assert.assertEquals(this.getInt("appid"), app.getAppid());
-    // 配置文件同步控制器
-    final ResSynManager synManager = ResSynManager.createSynManagerOnlineFromDaily(app.getAppName(), this);
-    if (!synManager.shallSynchronize()) {
-      this.addErrorMessage(context, "DAILY环境配置文件已经同步到线上，不需要再同步了");
-      return;
-    }
-    // final Snapshot snapshot =
-    if (synManager.getSynchronizedOnlineSnapshot(context, this)) {
-      this.addActionMessage(context, "已经将日常的配置成功发布到线上生产环境");
-    }
-    // 创建新SNAPSHOT
-    // this.addActionMessage(
-    // context,
-    // "同步文件成功,最新snapshot:"
-    // + createNewSnapshot(snapshot, "synchronize from daily",
-    // this, new Long(this.getUserId()),
-    // this.getLoginUserName()));
-  }
+//  /**
+//   * 将日常的文件同步到线上<br>
+//   * 这段逻辑原先应该是在线上执行的，现在要放在日常上执行，日常连线上肯定是可以执行的
+//   *
+//   * @param context
+//   */
+//  @Func(PermissionConstant.CONFIG_SYNCHRONIZE_FROM_DAILY)
+//  public void doSyncDailyConfig(Context context) throws Exception {
+//    AppDomainInfo app = this.getAppDomain();
+//    Assert.assertEquals(this.getInt("appid"), app.getAppid());
+//    // 配置文件同步控制器
+//    final ResSynManager synManager = ResSynManager.createSynManagerOnlineFromDaily(app.getAppName(), this);
+//    if (!synManager.shallSynchronize()) {
+//      this.addErrorMessage(context, "DAILY环境配置文件已经同步到线上，不需要再同步了");
+//      return;
+//    }
+//    // final Snapshot snapshot =
+//    if (synManager.getSynchronizedOnlineSnapshot(context, this)) {
+//      this.addActionMessage(context, "已经将日常的配置成功发布到线上生产环境");
+//    }
+//    // 创建新SNAPSHOT
+//    // this.addActionMessage(
+//    // context,
+//    // "同步文件成功,最新snapshot:"
+//    // + createNewSnapshot(snapshot, "synchronize from daily",
+//    // this, new Long(this.getUserId()),
+//    // this.getLoginUserName()));
+//  }
 
-  /**
-   * 保存文本内容
-   */
-  @Func(PermissionConstant.CONFIG_EDIT)
-  public void doSaveContent(Context context) throws Exception {
-    if (!RunEnvironment.isDevelopMode()) {
-      this.addErrorMessage(context, "请先更新日常环境中的配置文件，然后同步到线上环境!");
-      return;
-    }
-    Savefilecontent xmlContent = this.parseJsonPost(Savefilecontent.class);
-    Integer snapshotid = xmlContent.getSnapshotid();
-    String fileName = xmlContent.getFilename();
-    // if (isEditSchemaApply(context, fileName)) return;
-    PropteryGetter propertyGetter = createConfigFileGetter(fileName);
-    Long userid = 999l;
-    try {
-      userid = new Long(this.getUserId());
-    } catch (Throwable e) {
-    }
-    ISchemaPluginContext schemaPlugin = SchemaAction.createSchemaPlugin(this.getCollectionName());
-    CreateSnapshotResult createResult = createNewSnapshot(context
-      , this.getSnapshotViewDAO().getView(snapshotid, false), propertyGetter, schemaPlugin, xmlContent.getContentBytes()
-      , this, this, xmlContent.getMemo(), userid, this.getLoginUserName());
+//  /**
+//   * 保存文本内容
+//   */
+//  @Func(PermissionConstant.CONFIG_EDIT)
+//  public void doSaveContent(Context context) throws Exception {
+//    if (!RunEnvironment.isDevelopMode()) {
+//      this.addErrorMessage(context, "请先更新日常环境中的配置文件，然后同步到线上环境!");
+//      return;
+//    }
+//    Savefilecontent xmlContent = this.parseJsonPost(Savefilecontent.class);
+//    Integer snapshotid = xmlContent.getSnapshotid();
+//    String fileName = xmlContent.getFilename();
+//    // if (isEditSchemaApply(context, fileName)) return;
+//    PropteryGetter propertyGetter = createConfigFileGetter(fileName);
+//    Long userid = 999l;
+//    try {
+//      userid = new Long(this.getUserId());
+//    } catch (Throwable e) {
+//    }
+//    ISchemaPluginContext schemaPlugin = SchemaAction.createSchemaPlugin(this.getCollectionName());
+//    CreateSnapshotResult createResult = createNewSnapshot(context
+//      , this.getSnapshotViewDAO().getView(snapshotid, false), propertyGetter, schemaPlugin, xmlContent.getContentBytes()
+//      , this, this, xmlContent.getMemo(), userid, this.getLoginUserName());
+//
+//    if (!createResult.isSuccess()) {
+//      // forward("edit_" + BasicContentScreen.getResourceName(propertyGetter));
+//      return;
+//    }
+//    this.setBizResult(context, createResult);
+//    this.addActionMessage(context, "保存文件成功,最新snapshot:" + createResult.getNewId());
+//  }
 
-    if (!createResult.isSuccess()) {
-      // forward("edit_" + BasicContentScreen.getResourceName(propertyGetter));
-      return;
-    }
-    this.setBizResult(context, createResult);
-    this.addActionMessage(context, "保存文件成功,最新snapshot:" + createResult.getNewId());
-  }
+//  /**
+//   * @param context
+//   * @param domain         原有对象
+//   * @param fileGetter
+//   * @param uploadContent
+//   * @param runContext
+//   * @param messageHandler
+//   * @param memo
+//   * @param userId
+//   * @param userName
+//   * @return
+//   * @throws UnsupportedEncodingException
+//   */
+//  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain
+//    , PropteryGetter fileGetter, ISchemaPluginContext schemaPlugin
+//    , byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler
+//    , String memo, Long userId, String userName) throws UnsupportedEncodingException {
+//    return createNewSnapshot(context, domain, fileGetter, schemaPlugin, uploadContent, runContext
+//      , messageHandler, memo, userId, userName, true);
+//  }
 
-  /**
-   * @param context
-   * @param domain         原有对象
-   * @param fileGetter
-   * @param uploadContent
-   * @param runContext
-   * @param messageHandler
-   * @param memo
-   * @param userId
-   * @param userName
-   * @return
-   * @throws UnsupportedEncodingException
-   */
-  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain
-    , PropteryGetter fileGetter, ISchemaPluginContext schemaPlugin
-    , byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler
-    , String memo, Long userId, String userName) throws UnsupportedEncodingException {
-    return createNewSnapshot(context, domain, fileGetter, schemaPlugin, uploadContent, runContext
-      , messageHandler, memo, userId, userName, true);
-  }
-
-  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
-    , ISchemaPluginContext schemaPlugin, byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler, String memo, Long userId, String userName, boolean createNewSnapshot) throws UnsupportedEncodingException {
-    CreateSnapshotResult createResult = new CreateSnapshotResult();
-    try {
-      final String md5 = MD5Utils.md5file(uploadContent);
-      if (StringUtils.equals(md5, fileGetter.getMd5CodeValue(domain))) {
-        saveHasNotModifyMessage(context, messageHandler, domain.getSnapshot().getSnId());
-        return createResult;
-      }
-      // 创建一条资源记录
-      try {
-        Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, uploadContent, md5, fileGetter, messageHandler, runContext);
-        final Snapshot snapshot = fileGetter.createNewSnapshot(newResId, domain.getSnapshot());
-        if (createNewSnapshot) {
-          snapshot.setMemo(memo);
-          createResult.setNewSnapshotId(createNewSnapshot(snapshot, memo, runContext, userId, userName));
-          snapshot.setSnId(createResult.getNewId());
-        }
-        createResult.setSnapshot(snapshot);
-        context.put("snapshot", snapshot);
-      } catch (SchemaFileInvalidException e) {
-        logger.error(e.getMessage(), e);
-        return createResult;
-      }
-    } finally {
-
-    }
-    createResult.setSuccess(true);
-    return createResult;
-  }
+//  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
+//    , ISchemaPluginContext schemaPlugin, byte[] uploadContent, RunContext runContext, IMessageHandler messageHandler, String memo, Long userId, String userName, boolean createNewSnapshot) throws UnsupportedEncodingException {
+//    CreateSnapshotResult createResult = new CreateSnapshotResult();
+//    try {
+//      final String md5 = MD5Utils.md5file(uploadContent);
+//      if (StringUtils.equals(md5, fileGetter.getMd5CodeValue(domain))) {
+//        saveHasNotModifyMessage(context, messageHandler, domain.getSnapshot().getSnId());
+//        return createResult;
+//      }
+//      // 创建一条资源记录
+//      try {
+//        Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, uploadContent, md5, fileGetter, messageHandler, runContext);
+//        final Snapshot snapshot = fileGetter.createNewSnapshot(newResId, domain.getSnapshot());
+//        if (createNewSnapshot) {
+//          snapshot.setMemo(memo);
+//          createResult.setNewSnapshotId(createNewSnapshot(snapshot, memo, runContext, userId, userName));
+//          snapshot.setSnId(createResult.getNewId());
+//        }
+//        createResult.setSnapshot(snapshot);
+//        context.put("snapshot", snapshot);
+//      } catch (SchemaFileInvalidException e) {
+//        logger.error(e.getMessage(), e);
+//        return createResult;
+//      }
+//    } finally {
+//
+//    }
+//    createResult.setSuccess(true);
+//    return createResult;
+//  }
 
   public static class CreateSnapshotResult {
 

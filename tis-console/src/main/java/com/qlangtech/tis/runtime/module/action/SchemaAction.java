@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.runtime.module.action;
 
@@ -27,8 +27,6 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
-import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
@@ -40,8 +38,9 @@ import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
 import com.qlangtech.tis.plugin.solr.schema.FieldTypeFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -1059,66 +1058,67 @@ public class SchemaAction extends BasicModule {
 
   protected CreateAppResult createNewApp(Context context, AddAppAction.ExtendApp app
     , int publishSnapshotId, byte[] schemaContent, boolean justValidate) throws Exception {
-    IAfterApplicationCreate afterAppCreate = null;
-    if (justValidate) {
-      afterAppCreate = (newAppid) -> {
-        throw new UnsupportedOperationException();
-      };
-    } else {
-      afterAppCreate = (newAppid) -> {
-        IUser loginUser = getUser();
-        //if (schemaContent != null) {
-        Objects.requireNonNull(schemaContent, "schemaContent can not be null");
-        SnapshotDomain domain = getSnapshotViewDAO().getView(publishSnapshotId);
-        domain.getSnapshot().setAppId(newAppid);
-        CreateSnapshotResult snapshotResult = AddAppAction.createNewSnapshot(
-          context, // Long.parseLong(loginUser.getId())
-          domain, // Long.parseLong(loginUser.getId())
-          ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
-          ISchemaPluginContext.NULL,
-          schemaContent, // Long.parseLong(loginUser.getId())
-          SchemaAction.this, // Long.parseLong(loginUser.getId())
-          StringUtils.EMPTY, -1l, loginUser.getName());
-        snapshotResult.setNewAppId(newAppid);
-        // if (!snapshotResult.isSuccess()) {
-        if (snapshotResult.isSuccess()) {
-          GroupAction.createGroup(RunEnvironment.DAILY, AddAppAction.FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), getServerGroupDAO());
-          GroupAction.createGroup(RunEnvironment.ONLINE, AddAppAction.FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), getServerGroupDAO());
-        }
-        return snapshotResult;
-        //}
-        //}
-      };
-    }
-
-    return createNewApp(context, app, justValidate, afterAppCreate
-      , SchemaAction.FIELD_DS_TYPE, new Validator.FieldValidators(Validator.require) {
-      }, //
-      new Validator.IFieldValidator() {
-        @Override
-        public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-
-          if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(app.getDsType())) {
-            String[] tabCascadervalues = app.getTabCascadervalues();
-            if (tabCascadervalues == null) {
-              msgHandler.addFieldError(context, fieldKey, "请选择数据数据表");
-              return false;
-            }
-          } else if (AddAppAction.SOURCE_TYPE_DF.equals(app.getDsType())) {
-            String workflowName = app.getWorkflow();
-            if (StringUtils.isEmpty(workflowName)) {
-              msgHandler.addFieldError(context, fieldKey, "请选择数据流名称");
-              return false;
-            }
-          } else {
-            msgHandler.addFieldError(context, fieldKey, "dsType:" + app.getDsType() + " is not illegal");
-            return false;
-            // throw new IllegalStateException("dsType:" + app.getDsType() + " is not illegal");
-          }
-
-          return true;
-        }
-      });
+    throw new UnsupportedOperationException();
+//    IAfterApplicationCreate afterAppCreate = null;
+//    if (justValidate) {
+//      afterAppCreate = (newAppid) -> {
+//        throw new UnsupportedOperationException();
+//      };
+//    } else {
+//      afterAppCreate = (newAppid) -> {
+//        IUser loginUser = getUser();
+//        //if (schemaContent != null) {
+//        Objects.requireNonNull(schemaContent, "schemaContent can not be null");
+//        SnapshotDomain domain = getSnapshotViewDAO().getView(publishSnapshotId);
+//        domain.getSnapshot().setAppId(newAppid);
+//        CreateSnapshotResult snapshotResult = AddAppAction.createNewSnapshot(
+//          context, // Long.parseLong(loginUser.getId())
+//          domain, // Long.parseLong(loginUser.getId())
+//          ConfigFileReader.FILE_SCHEMA, // Long.parseLong(loginUser.getId())
+//          ISchemaPluginContext.NULL,
+//          schemaContent, // Long.parseLong(loginUser.getId())
+//          SchemaAction.this, // Long.parseLong(loginUser.getId())
+//          StringUtils.EMPTY, -1l, loginUser.getName());
+//        snapshotResult.setNewAppId(newAppid);
+//        // if (!snapshotResult.isSuccess()) {
+//        if (snapshotResult.isSuccess()) {
+//          GroupAction.createGroup(RunEnvironment.DAILY, AddAppAction.FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), getServerGroupDAO());
+//          GroupAction.createGroup(RunEnvironment.ONLINE, AddAppAction.FIRST_GROUP_INDEX, newAppid, snapshotResult.getNewId(), getServerGroupDAO());
+//        }
+//        return snapshotResult;
+//        //}
+//        //}
+//      };
+//    }
+//
+//    return createNewApp(context, app, justValidate, afterAppCreate
+//      , SchemaAction.FIELD_DS_TYPE, new Validator.FieldValidators(Validator.require) {
+//      }, //
+//      new Validator.IFieldValidator() {
+//        @Override
+//        public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+//
+//          if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(app.getDsType())) {
+//            String[] tabCascadervalues = app.getTabCascadervalues();
+//            if (tabCascadervalues == null) {
+//              msgHandler.addFieldError(context, fieldKey, "请选择数据数据表");
+//              return false;
+//            }
+//          } else if (AddAppAction.SOURCE_TYPE_DF.equals(app.getDsType())) {
+//            String workflowName = app.getWorkflow();
+//            if (StringUtils.isEmpty(workflowName)) {
+//              msgHandler.addFieldError(context, fieldKey, "请选择数据流名称");
+//              return false;
+//            }
+//          } else {
+//            msgHandler.addFieldError(context, fieldKey, "dsType:" + app.getDsType() + " is not illegal");
+//            return false;
+//            // throw new IllegalStateException("dsType:" + app.getDsType() + " is not illegal");
+//          }
+//
+//          return true;
+//        }
+//      });
   }
 
   private static // BasicModule module

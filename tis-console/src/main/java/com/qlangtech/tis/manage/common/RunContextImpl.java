@@ -1,28 +1,27 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
-import com.qlangtech.tis.manage.spring.ClusterStateReader;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
-import org.apache.solr.common.cloud.TISZkStateReader;
+//import org.apache.solr.common.cloud.TISZkStateReader;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -57,7 +56,7 @@ public class RunContextImpl implements RunContext {
 
   private final ZooKeeperGetter zooKeeperGetter;
 
-  private final ClusterStateReader clusterStateReader;
+  // private final ClusterStateReader clusterStateReader;
 
   private final IWorkflowDAOFacade comDfireTisWorkflowDAOFacade;
 
@@ -84,7 +83,7 @@ public class RunContextImpl implements RunContext {
     IRoleDAO roleDAO, // IIsvDAO isvDAO,
     IResourceParametersDAO resourceParametersDAO, // IIsvDAO isvDAO,
     ZooKeeperGetter zooKeeperGetter //
-    , ClusterStateReader clusterStateReader, IWorkflowDAOFacade workflowDAOFacade) {
+    , IWorkflowDAOFacade workflowDAOFacade) {
     super();
 
     this.applicationDAO = applicationDAO;
@@ -104,14 +103,14 @@ public class RunContextImpl implements RunContext {
     this.roleDAO = roleDAO;
     this.resourceParametersDAO = resourceParametersDAO;
     this.zooKeeperGetter = zooKeeperGetter;
-    this.clusterStateReader = clusterStateReader;
+    // this.clusterStateReader = clusterStateReader;
     this.comDfireTisWorkflowDAOFacade = workflowDAOFacade;
   }
 
-  @Override
-  public TISZkStateReader getZkStateReader() {
-    return this.clusterStateReader.getInstance();
-  }
+//  @Override
+//  public TISZkStateReader getZkStateReader() {
+//    return this.clusterStateReader.getInstance();
+//  }
 
   @Override
   public ITISCoordinator getSolrZkClient() {

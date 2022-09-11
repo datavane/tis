@@ -32,13 +32,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
-import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
-import com.qlangtech.tis.manage.servlet.QueryCloudSolrClient;
-import com.qlangtech.tis.manage.servlet.QueryIndexServlet;
-import com.qlangtech.tis.manage.servlet.QueryResutStrategy;
-import com.qlangtech.tis.manage.servlet.ServerJoinGroup;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -50,13 +44,9 @@ import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.runtime.module.screen.IndexQuery;
-import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
-import com.qlangtech.tis.solrdao.SolrFieldsParser;
-import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
@@ -72,12 +62,6 @@ import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrRequest;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.params.CommonParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,76 +125,76 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     this.transactionManager = transactionManager;
   }
 
-  /**
-   * @param context
-   * @throws Exception
-   */
-  public void doGetIndexTopology(Context context) throws Exception {
-    this.getIndexWithPost();
-    JSONObject biz = new JSONObject();
+//  /**
+//   * @param context
+//   * @throws Exception
+//   */
+//  public void doGetIndexTopology(Context context) throws Exception {
+//    this.getIndexWithPost();
+//    JSONObject biz = new JSONObject();
+//
+//    CollectionTopology topology = CoreAction.getCollectionTopology(this);
+//
+//    JSONArray shards = new JSONArray();
+//    JSONObject shard = null;
+//    JSONArray replics = null;
+//    JSONObject replic = null;
+//    for (CollectionTopology.Shared s : topology.getShareds()) {
+//      shard = new JSONObject();
+//      replics = new JSONArray();
+//      shard.put(KEY_SHARD_NAME, s.getName());
+//      for (Replica r : s.getReplics()) {
+//        replic = new JSONObject();
+//        replic.put(KEY_CORE_URL, r.getCoreUrl());
+//        replic.put(KEY_IS_ACTIVE, r.getState() == Replica.State.ACTIVE);
+//        replics.add(replic);
+//      }
+//      shard.put(KEY_REPLICS, replics);
+//      shards.add(shard);
+//    }
+//
+//
+//    biz.put(SqlTaskNodeMeta.KEY_PROFILE_TOPOLOGY, shards);
+//    SnapshotDomain snapshot = ViewPojo.getSnapshotDoamin(this, this.getAppDomain());
+//    ParseResult parseResult = SolrFieldsParser.parse(() -> {
+//      return snapshot.getSolrSchema().getContent();
+//    }).getSchemaParseResult();
+//
+//    biz.put(KEY_PK, parseResult.getUniqueKey());
+//
+//
+//    QueryResutStrategy queryStrategy = QueryIndexServlet.createQueryResutStrategy(
+//      this.getAppDomain(), new IndexQuery.QueryRequestWrapper(getRequest(), context), getResponse(), getDaoContext());
+//    List<ServerJoinGroup> nodes = queryStrategy.queryProcess();
+//    List<PSchemaField> sfields = IndexQuery.getSfields(this.getRequest(), queryStrategy, nodes);
+//    JSONArray colsMeta = new JSONArray();
+//    JSONObject colmeta = null;
+//    for (PSchemaField field : sfields) {
+//      colmeta = new JSONObject();
+//      colmeta.put("name", field.getName());
+//      colmeta.put("typeName", field.getType().getJavaType().getSimpleName());
+//      colmeta.put("typeCode", field.getType().getJavaType().getTypeCode());
+//      colmeta.put("docval", field.isDocValue());
+//      colmeta.put("indexd", field.isIndexed());
+//      colmeta.put("stored", field.isStored());
+//      colmeta.put("dynamic", field.isDynamic());
+//      colsMeta.add(colmeta);
+//    }
+//    biz.put(KEY_COLS_META, colsMeta);
+//
+//    this.setBizResult(context, biz);
+//  }
 
-    CollectionTopology topology = CoreAction.getCollectionTopology(this);
-
-    JSONArray shards = new JSONArray();
-    JSONObject shard = null;
-    JSONArray replics = null;
-    JSONObject replic = null;
-    for (CollectionTopology.Shared s : topology.getShareds()) {
-      shard = new JSONObject();
-      replics = new JSONArray();
-      shard.put(KEY_SHARD_NAME, s.getName());
-      for (Replica r : s.getReplics()) {
-        replic = new JSONObject();
-        replic.put(KEY_CORE_URL, r.getCoreUrl());
-        replic.put(KEY_IS_ACTIVE, r.getState() == Replica.State.ACTIVE);
-        replics.add(replic);
-      }
-      shard.put(KEY_REPLICS, replics);
-      shards.add(shard);
-    }
-
-
-    biz.put(SqlTaskNodeMeta.KEY_PROFILE_TOPOLOGY, shards);
-    SnapshotDomain snapshot = ViewPojo.getSnapshotDoamin(this, this.getAppDomain());
-    ParseResult parseResult = SolrFieldsParser.parse(() -> {
-      return snapshot.getSolrSchema().getContent();
-    }).getSchemaParseResult();
-
-    biz.put(KEY_PK, parseResult.getUniqueKey());
-
-
-    QueryResutStrategy queryStrategy = QueryIndexServlet.createQueryResutStrategy(
-      this.getAppDomain(), new IndexQuery.QueryRequestWrapper(getRequest(), context), getResponse(), getDaoContext());
-    List<ServerJoinGroup> nodes = queryStrategy.queryProcess();
-    List<PSchemaField> sfields = IndexQuery.getSfields(this.getRequest(), queryStrategy, nodes);
-    JSONArray colsMeta = new JSONArray();
-    JSONObject colmeta = null;
-    for (PSchemaField field : sfields) {
-      colmeta = new JSONObject();
-      colmeta.put("name", field.getName());
-      colmeta.put("typeName", field.getType().getJavaType().getSimpleName());
-      colmeta.put("typeCode", field.getType().getJavaType().getTypeCode());
-      colmeta.put("docval", field.isDocValue());
-      colmeta.put("indexd", field.isIndexed());
-      colmeta.put("stored", field.isStored());
-      colmeta.put("dynamic", field.isDynamic());
-      colsMeta.add(colmeta);
-    }
-    biz.put(KEY_COLS_META, colsMeta);
-
-    this.setBizResult(context, biz);
-  }
-
-  /**
-   * 回调获取索引当前状态
-   *
-   * @param context
-   * @throws Exception
-   */
-  public void doGetIndexStatus(Context context) throws Exception {
-    this.getIndexWithPost();
-    this.setBizResult(context, CoreAction.getCollectionStatus(this));
-  }
+//  /**
+//   * 回调获取索引当前状态
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  public void doGetIndexStatus(Context context) throws Exception {
+//    this.getIndexWithPost();
+//    this.setBizResult(context, CoreAction.getCollectionStatus(this));
+//  }
 
   /**
    * 取得增量执行状态
@@ -465,105 +449,105 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //    }
   }
 
-  /**
-   * 利用solr的disMax QP进行查询
-   *
-   * @param context
-   * @throws Exception
-   */
-  public void doQuery(Context context) throws Exception {
-    JSONObject post = getIndexWithPost();//this.parseJsonPost();
-
-//    if (StringUtils.isEmpty(post.getString(KEY_INDEX_NAME))) {
-//      throw new IllegalArgumentException("indexName can not be null");
+//  /**
+//   * 利用solr的disMax QP进行查询
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  public void doQuery(Context context) throws Exception {
+//    JSONObject post = getIndexWithPost();//this.parseJsonPost();
+//
+////    if (StringUtils.isEmpty(post.getString(KEY_INDEX_NAME))) {
+////      throw new IllegalArgumentException("indexName can not be null");
+////    }
+//    // this.indexName = TISCollectionUtils.NAME_PREFIX + post.getString(KEY_INDEX_NAME);
+//
+//    JSONArray searchFields = post.getJSONArray(KEY_QUERY_SEARCH_FIELDS);
+//    Objects.requireNonNull(searchFields, "param " + KEY_QUERY_SEARCH_FIELDS + " can not be null ");
+//    if (searchFields.size() < 1) {
+//      throw new IllegalArgumentException(KEY_QUERY_SEARCH_FIELDS + " relevant field can not be empty");
 //    }
-    // this.indexName = TISCollectionUtils.NAME_PREFIX + post.getString(KEY_INDEX_NAME);
-
-    JSONArray searchFields = post.getJSONArray(KEY_QUERY_SEARCH_FIELDS);
-    Objects.requireNonNull(searchFields, "param " + KEY_QUERY_SEARCH_FIELDS + " can not be null ");
-    if (searchFields.size() < 1) {
-      throw new IllegalArgumentException(KEY_QUERY_SEARCH_FIELDS + " relevant field can not be empty");
-    }
-    final List<SubCriteria> andQueryCriteria = Lists.newArrayList();
-    searchFields.forEach((f) -> {
-      SubCriteria subCriteria = new SubCriteria();
-      JSONObject o = (JSONObject) f;
-      Option opt = null;
-      String word = null;
-      for (String key : o.keySet()) {
-        word = o.getString(key);
-        if (StringUtils.isEmpty(word)) {
-          throw new IllegalArgumentException("query field:" + key + ",relevant:" + word + ",val can not be null");
-        }
-        opt = new Option(key, word);
-        subCriteria.addOr(opt);
-      }
-      andQueryCriteria.add(subCriteria);
-    });
-
-    JSONArray storedFields = post.getJSONArray(KEY_QUERY_FIELDS);
-    if (storedFields == null) {
-      throw new IllegalArgumentException("param 'fields' can not be null");
-    }
-    storedFields.stream().map((r) -> (String) r).collect(Collectors.toList());
-
-//    final String fields = post.getString(KEY_QUERY_FIELDS);
-//    if (StringUtils.isEmpty(fields)) {
+//    final List<SubCriteria> andQueryCriteria = Lists.newArrayList();
+//    searchFields.forEach((f) -> {
+//      SubCriteria subCriteria = new SubCriteria();
+//      JSONObject o = (JSONObject) f;
+//      Option opt = null;
+//      String word = null;
+//      for (String key : o.keySet()) {
+//        word = o.getString(key);
+//        if (StringUtils.isEmpty(word)) {
+//          throw new IllegalArgumentException("query field:" + key + ",relevant:" + word + ",val can not be null");
+//        }
+//        opt = new Option(key, word);
+//        subCriteria.addOr(opt);
+//      }
+//      andQueryCriteria.add(subCriteria);
+//    });
+//
+//    JSONArray storedFields = post.getJSONArray(KEY_QUERY_FIELDS);
+//    if (storedFields == null) {
 //      throw new IllegalArgumentException("param 'fields' can not be null");
 //    }
-    final Integer limit = post.getInteger(KEY_QUERY_LIMIT);
-    if (limit == null) {
-      throw new IllegalArgumentException("param limit can not be null");
-    }
-//    final String queryFields = post.getString(KEY_QUERY_QUERY_FIELDS);
-//    if (StringUtils.isEmpty(queryFields)) {
-//      throw new IllegalArgumentException("'queryFields' can not be null");
+//    storedFields.stream().map((r) -> (String) r).collect(Collectors.toList());
+//
+////    final String fields = post.getString(KEY_QUERY_FIELDS);
+////    if (StringUtils.isEmpty(fields)) {
+////      throw new IllegalArgumentException("param 'fields' can not be null");
+////    }
+//    final Integer limit = post.getInteger(KEY_QUERY_LIMIT);
+//    if (limit == null) {
+//      throw new IllegalArgumentException("param limit can not be null");
 //    }
-    final String orderBy = post.getString(KEY_QUERY_ORDER_BY);
-    Integer rowsOffset = post.getInteger(KEY_QUERY_ROWS_OFFSET);
-
-    AppDomainInfo app = getAppDomain();
-    final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(app, this.getRequest(), getResponse(), getDaoContext());
-
-    final List<ServerJoinGroup> serverlist = queryResutStrategy.queryProcess();
-    for (ServerJoinGroup server : serverlist) {
-
-      // 组装url
-      final String url = server.getIpAddress();
-
-      QueryCloudSolrClient solrClient = new QueryCloudSolrClient(url);
-      SolrQuery query = new SolrQuery();
-      query.set(CommonParams.FL, storedFields.stream().map((r) -> (String) r).collect(Collectors.joining(",")));
-      // query.setParam(QUERY_PARSIING_DEF_TYPE, "dismax");
-      // query.setParam(DisMaxParams.QF, queryFields);
-      query.setQuery(this.createQuery(andQueryCriteria));
-      query.setRows(limit);
-      if (rowsOffset != null) {
-        query.setStart(rowsOffset);
-      }
-      if (StringUtils.isNotEmpty(orderBy)) {
-        query.add(CommonParams.SORT, orderBy);
-      }
-      QueryResponse result = solrClient.query(indexName.getCollectionName(), query, SolrRequest.METHOD.POST);
-      solrClient.close();
-      Map<String, Object> biz = Maps.newHashMap();
-      long c = result.getResults().getNumFound();
-      biz.put(RESULT_KEY_ROWS_COUNT, c);
-
-      List<Map<String, Object>> resultList = Lists.newArrayList();
-      Map<String, Object> row = null;
-      for (SolrDocument doc : result.getResults()) {
-        row = Maps.newHashMap();
-        for (Map.Entry<String, Object> f : doc.entrySet()) {
-          row.put(f.getKey(), f.getValue());
-        }
-        resultList.add(row);
-      }
-      biz.put(RESULT_KEY_ROWS, resultList);
-      this.setBizResult(context, biz);
-      return;
-    }
-  }
+////    final String queryFields = post.getString(KEY_QUERY_QUERY_FIELDS);
+////    if (StringUtils.isEmpty(queryFields)) {
+////      throw new IllegalArgumentException("'queryFields' can not be null");
+////    }
+//    final String orderBy = post.getString(KEY_QUERY_ORDER_BY);
+//    Integer rowsOffset = post.getInteger(KEY_QUERY_ROWS_OFFSET);
+//
+//    AppDomainInfo app = getAppDomain();
+//    final QueryResutStrategy queryResutStrategy = QueryIndexServlet.createQueryResutStrategy(app, this.getRequest(), getResponse(), getDaoContext());
+//
+//    final List<ServerJoinGroup> serverlist = queryResutStrategy.queryProcess();
+//    for (ServerJoinGroup server : serverlist) {
+//
+//      // 组装url
+//      final String url = server.getIpAddress();
+//
+//      QueryCloudSolrClient solrClient = new QueryCloudSolrClient(url);
+//      SolrQuery query = new SolrQuery();
+//      query.set(CommonParams.FL, storedFields.stream().map((r) -> (String) r).collect(Collectors.joining(",")));
+//      // query.setParam(QUERY_PARSIING_DEF_TYPE, "dismax");
+//      // query.setParam(DisMaxParams.QF, queryFields);
+//      query.setQuery(this.createQuery(andQueryCriteria));
+//      query.setRows(limit);
+//      if (rowsOffset != null) {
+//        query.setStart(rowsOffset);
+//      }
+//      if (StringUtils.isNotEmpty(orderBy)) {
+//        query.add(CommonParams.SORT, orderBy);
+//      }
+//      QueryResponse result = solrClient.query(indexName.getCollectionName(), query, SolrRequest.METHOD.POST);
+//      solrClient.close();
+//      Map<String, Object> biz = Maps.newHashMap();
+//      long c = result.getResults().getNumFound();
+//      biz.put(RESULT_KEY_ROWS_COUNT, c);
+//
+//      List<Map<String, Object>> resultList = Lists.newArrayList();
+//      Map<String, Object> row = null;
+//      for (SolrDocument doc : result.getResults()) {
+//        row = Maps.newHashMap();
+//        for (Map.Entry<String, Object> f : doc.entrySet()) {
+//          row.put(f.getKey(), f.getValue());
+//        }
+//        resultList.add(row);
+//      }
+//      biz.put(RESULT_KEY_ROWS, resultList);
+//      this.setBizResult(context, biz);
+//      return;
+//    }
+//  }
 
   private String createQuery(List<SubCriteria> andQueryCriteria) {
     return andQueryCriteria.stream().map(sc -> {

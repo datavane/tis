@@ -117,8 +117,8 @@
     <constructor-arg index="13" ref="roleDAO"/>
     <constructor-arg index="14" ref="resourceParametersDAO"/>
     <constructor-arg index="15" ref="zooKeeperGetter"/>
-    <constructor-arg index="16" ref="clusterStateReader"/>
-    <constructor-arg index="17" ref="wfDaoFacade"/>
+<!--    <constructor-arg index="16" ref="clusterStateReader"/>-->
+    <constructor-arg index="16" ref="wfDaoFacade"/>
   </bean>
 
   <bean id="runContextGetter" class="com.qlangtech.tis.manage.common.RunContextGetter">

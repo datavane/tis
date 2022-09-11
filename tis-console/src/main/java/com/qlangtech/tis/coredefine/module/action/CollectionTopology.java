@@ -18,7 +18,7 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.google.common.collect.Lists;
-import org.apache.solr.common.cloud.Replica;
+//import org.apache.solr.common.cloud.Replica;
 import java.util.List;
 
 /**
@@ -49,14 +49,14 @@ public class CollectionTopology {
             return name;
         }
 
-        private List<Replica> replics = Lists.newArrayList();
-
-        public List<Replica> getReplics() {
-            return this.replics;
-        }
-
-        public void addReplic(Replica replic) {
-            this.replics.add(replic);
-        }
+//        private List<Replica> replics = Lists.newArrayList();
+//
+//        public List<Replica> getReplics() {
+//            return this.replics;
+//        }
+//
+//        public void addReplic(Replica replic) {
+//            this.replics.add(replic);
+//        }
     }
 }

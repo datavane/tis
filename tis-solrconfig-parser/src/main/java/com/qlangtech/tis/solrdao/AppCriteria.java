@@ -19,7 +19,7 @@ package com.qlangtech.tis.solrdao;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.solr.client.solrj.SolrQuery;
+//import org.apache.solr.client.solrj.SolrQuery;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -27,19 +27,19 @@ import org.apache.solr.client.solrj.SolrQuery;
  */
 public class AppCriteria {
 
-    private final SolrQuery solrQuery;
+//    private final SolrQuery solrQuery;
 
     private List<Criteria> oredCriteria;
 
-    public AppCriteria(SolrQuery solrQuery) {
-        super();
-        this.solrQuery = solrQuery;
-    // this.oredCriteria = new ArrayList<Criteria>();
-    }
-
-    public AppCriteria() {
-        this(new SolrQuery());
-    }
+//    public AppCriteria(SolrQuery solrQuery) {
+//        super();
+//        this.solrQuery = solrQuery;
+//    // this.oredCriteria = new ArrayList<Criteria>();
+//    }
+//
+//    public AppCriteria() {
+//       // this(new SolrQuery());
+//    }
 
     public Criteria createCriteria() {
         Criteria c = null;

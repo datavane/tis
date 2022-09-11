@@ -19,7 +19,7 @@ package com.qlangtech.tis.runtime.module.action;
 
 import java.util.List;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.runtime.pojo.ResSynManager;
+//import com.qlangtech.tis.runtime.pojo.ResSynManager;
 
 /**
  * 获取 daily中的appname suggest名称
@@ -33,6 +33,7 @@ public abstract class AppRelevantFromDailyAction extends ChangeDomainAction {
 
     // @Override
     protected List<Application> getMatchApps(String appNameFuzzy) {
-        return ResSynManager.appSuggest(appNameFuzzy);
+      //  return ResSynManager.appSuggest(appNameFuzzy);
+      throw new UnsupportedOperationException();
     }
 }

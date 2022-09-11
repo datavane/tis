@@ -56,9 +56,8 @@ import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.cloud.ClusterState;
-import org.apache.solr.common.cloud.DocCollection;
-import org.apache.solr.common.cloud.TISZkStateReader;
+//import org.apache.solr.common.cloud.ClusterState;
+//import org.apache.solr.common.cloud.DocCollection;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.dispatcher.mapper.ActionMapping;
 import org.apache.zookeeper.KeeperException;
@@ -225,17 +224,17 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return executeMethod;
   }
 
-  /**
-   * @return
-   */
-  public DocCollection getIndex() {
-    String index = this.getAppDomain().getAppName();
-    if (StringUtils.isEmpty(index)) {
-      throw new IllegalStateException("index name can not be null");
-    }
-    ClusterState.CollectionRef ref = this.getZkStateReader().getClusterState().getCollectionRef(index);
-    return ref.get();
-  }
+//  /**
+//   * @return
+//   */
+//  public DocCollection getIndex() {
+//    String index = this.getAppDomain().getAppName();
+//    if (StringUtils.isEmpty(index)) {
+//      throw new IllegalStateException("index name can not be null");
+//    }
+//    ClusterState.CollectionRef ref = this.getZkStateReader().getClusterState().getCollectionRef(index);
+//    return ref.get();
+//  }
 
   /**
    * @throws KeeperException
@@ -624,10 +623,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     getResponse().flushBuffer();
   }
 
-  @Override
-  public TISZkStateReader getZkStateReader() {
-    return this.getDaoContext().getZkStateReader();
-  }
+//  @Override
+//  public TISZkStateReader getZkStateReader() {
+//    return this.getDaoContext().getZkStateReader();
+//  }
 
   public static UsrDptRelation getUserDepartment(BasicModule basicModule) {
     UsrDptRelationCriteria query = new UsrDptRelationCriteria();

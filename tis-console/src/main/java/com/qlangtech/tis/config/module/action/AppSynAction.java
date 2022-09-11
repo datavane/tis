@@ -1,45 +1,29 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.config.module.action;
 
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.dao.IDepartmentDAO;
-import com.qlangtech.tis.manage.biz.dal.pojo.*;
-import com.qlangtech.tis.manage.common.ConfigFileReader;
-import com.qlangtech.tis.manage.common.HttpConfigFileReader;
-import com.qlangtech.tis.manage.common.PropteryGetter;
-import com.qlangtech.tis.manage.common.SnapshotDomain;
-import com.qlangtech.tis.manage.spring.aop.Func;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.manage.biz.dal.pojo.Department;
+import com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
-import com.qlangtech.tis.runtime.module.action.SchemaAction;
-import com.qlangtech.tis.runtime.module.action.jarcontent.SaveFileContentAction;
-import com.qlangtech.tis.runtime.pojo.ConfigPush;
-import com.qlangtech.tis.runtime.pojo.ResSynManager;
-import com.qlangtech.tis.solrdao.ISchemaPluginContext;
-import com.qlangtech.tis.utils.MD5Utils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.InputStream;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 负责接收日常向线上发送的应用同步请求
@@ -53,98 +37,98 @@ public class AppSynAction extends BasicModule {
 
   // private ITerminatorTriggerBizDalDAOFacade triggerContext;
 
-  /**
-   * 接收从日常环境中推送上来的配置文件，<br>
-   * 当第一次推送的时候线上还不存在索引实例的时候，会自动创建索引实例
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(PermissionConstant.APP_ADD)
-  public void doInitAppFromDaily(Context context) throws Exception {
-    String content = null;
-    try (InputStream reader = this.getRequest().getInputStream()) {
-      content = IOUtils.toString(reader, getEncode());
-      if (StringUtils.isEmpty(content)) {
-        throw new IllegalArgumentException("upload content can not be null");
-      }
-    }
-    final ConfigPush configPush = (ConfigPush) HttpConfigFileReader.xstream.fromXML(content);
-    final String collection = configPush.getCollection();
-    ISchemaPluginContext schemaPlugin = SchemaAction.createSchemaPlugin(collection);
-    // 校验当前的snapshot 版本是否就是传输上来的snapshot版本
-    ServerGroup serverGroup = null;
-    if (configPush.getRemoteSnapshotId() != null) {
-      serverGroup = this.getServerGroupDAO().load(collection, (short) 0, /* groupIndex */
-        RunEnvironment.ONLINE.getId());
-      if (serverGroup.getPublishSnapshotId() != (configPush.getRemoteSnapshotId() + 0)) {
-        this.addErrorMessage(context, "exist snapshotid:" + serverGroup.getPublishSnapshotId() + " is not equal push snapshotid:" + configPush.getRemoteSnapshotId());
-        return;
-      }
-    }
-    // List<UploadResource> resources = configPush.getUploadResources();
-    Snapshot snapshot = null;
-    SnapshotDomain snapshotDomain = null;
-    Application app = null;
-    ApplicationCriteria criteria = new ApplicationCriteria();
-    criteria.createCriteria().andProjectNameEqualTo(collection);
-    List<Application> apps = this.getApplicationDAO().selectByExample(criteria);
-    for (Application p : apps) {
-      app = p;
-      break;
-    }
-    if (app == null) {
-      // 在服务端创建新应用
-      app = new Application();
-      // Integer newAppid = this.createNewApp(context, configPush);
-      // app.setAppId(newAppid);
-    }
-    String snycDesc = "NEW CREATE";
-    serverGroup = this.getServerGroupDAO().load(collection, (short) 0, /* groupIndex */
-      RunEnvironment.ONLINE.getId());
-    boolean newSnapshot = false;
-    if (serverGroup == null || serverGroup.getPublishSnapshotId() == null) {
-      snapshot = new Snapshot();
-      snapshot.setSnId(-1);
-      snapshot.setPreSnId(-1);
-      snapshot.setAppId(app.getAppId());
-      newSnapshot = true;
-    } else {
-      snycDesc = "PUSH FROM DAILY";
-      snapshotDomain = this.getSnapshotViewDAO().getView(configPush.getRemoteSnapshotId());
-      snapshot = snapshotDomain.getSnapshot();
-    }
-    if (snapshot == null) {
-      throw new IllegalStateException("snapshot can not be null,collection:" + collection);
-    }
-    snapshot.setCreateUserId(0l);
-    snapshot.setCreateUserName(configPush.getReception());
-    // ///////////////////////////////////
-    // 组装新的snapshot
-    PropteryGetter pGetter = null;
-    for (UploadResource res : configPush.getUploadResources()) {
-      pGetter = ConfigFileReader.createPropertyGetter(res.getResourceType());
-      // 校验配置是否相等
-      if (!newSnapshot) {
-        final String md5 = MD5Utils.md5file(res.getContent());
-        if (StringUtils.equals(md5, pGetter.getMd5CodeValue(snapshotDomain))) {
-          this.addErrorMessage(context, "resource " + pGetter.getFileName() + " is newest,shall not be updated");
-          return;
-        }
-      }
-      Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, res.getContent()
-        , MD5Utils.md5file(res.getContent()), pGetter, this, this);
-      snapshot = pGetter.createNewSnapshot(newResId, snapshot);
-    }
-    serverGroup = new ServerGroup();
-    serverGroup.setPublishSnapshotId(SaveFileContentAction.createNewSnapshot(snapshot, snycDesc, this, 0l, configPush.getReception()));
-    serverGroup.setUpdateTime(new Date());
-    ServerGroupCriteria serverGroupCriteria = new ServerGroupCriteria();
-    serverGroupCriteria.createCriteria().andAppIdEqualTo(app.getAppId()).andRuntEnvironmentEqualTo(RunEnvironment.ONLINE.getId()).andGroupIndexEqualTo((short) 0);
-    this.getServerGroupDAO().updateByExampleSelective(serverGroup, serverGroupCriteria);
-    // /////////////////////////////////////
-    this.addActionMessage(context, "synsuccess");
-  }
+//  /**
+//   * 接收从日常环境中推送上来的配置文件，<br>
+//   * 当第一次推送的时候线上还不存在索引实例的时候，会自动创建索引实例
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  @Func(PermissionConstant.APP_ADD)
+//  public void doInitAppFromDaily(Context context) throws Exception {
+//    String content = null;
+//    try (InputStream reader = this.getRequest().getInputStream()) {
+//      content = IOUtils.toString(reader, getEncode());
+//      if (StringUtils.isEmpty(content)) {
+//        throw new IllegalArgumentException("upload content can not be null");
+//      }
+//    }
+//    final ConfigPush configPush = (ConfigPush) HttpConfigFileReader.xstream.fromXML(content);
+//    final String collection = configPush.getCollection();
+//    ISchemaPluginContext schemaPlugin = SchemaAction.createSchemaPlugin(collection);
+//    // 校验当前的snapshot 版本是否就是传输上来的snapshot版本
+//    ServerGroup serverGroup = null;
+//    if (configPush.getRemoteSnapshotId() != null) {
+//      serverGroup = this.getServerGroupDAO().load(collection, (short) 0, /* groupIndex */
+//        RunEnvironment.ONLINE.getId());
+//      if (serverGroup.getPublishSnapshotId() != (configPush.getRemoteSnapshotId() + 0)) {
+//        this.addErrorMessage(context, "exist snapshotid:" + serverGroup.getPublishSnapshotId() + " is not equal push snapshotid:" + configPush.getRemoteSnapshotId());
+//        return;
+//      }
+//    }
+//    // List<UploadResource> resources = configPush.getUploadResources();
+//    Snapshot snapshot = null;
+//    SnapshotDomain snapshotDomain = null;
+//    Application app = null;
+//    ApplicationCriteria criteria = new ApplicationCriteria();
+//    criteria.createCriteria().andProjectNameEqualTo(collection);
+//    List<Application> apps = this.getApplicationDAO().selectByExample(criteria);
+//    for (Application p : apps) {
+//      app = p;
+//      break;
+//    }
+//    if (app == null) {
+//      // 在服务端创建新应用
+//      app = new Application();
+//      // Integer newAppid = this.createNewApp(context, configPush);
+//      // app.setAppId(newAppid);
+//    }
+//    String snycDesc = "NEW CREATE";
+//    serverGroup = this.getServerGroupDAO().load(collection, (short) 0, /* groupIndex */
+//      RunEnvironment.ONLINE.getId());
+//    boolean newSnapshot = false;
+//    if (serverGroup == null || serverGroup.getPublishSnapshotId() == null) {
+//      snapshot = new Snapshot();
+//      snapshot.setSnId(-1);
+//      snapshot.setPreSnId(-1);
+//      snapshot.setAppId(app.getAppId());
+//      newSnapshot = true;
+//    } else {
+//      snycDesc = "PUSH FROM DAILY";
+//      snapshotDomain = this.getSnapshotViewDAO().getView(configPush.getRemoteSnapshotId());
+//      snapshot = snapshotDomain.getSnapshot();
+//    }
+//    if (snapshot == null) {
+//      throw new IllegalStateException("snapshot can not be null,collection:" + collection);
+//    }
+//    snapshot.setCreateUserId(0l);
+//    snapshot.setCreateUserName(configPush.getReception());
+//    // ///////////////////////////////////
+//    // 组装新的snapshot
+//    PropteryGetter pGetter = null;
+//    for (UploadResource res : configPush.getUploadResources()) {
+//      pGetter = ConfigFileReader.createPropertyGetter(res.getResourceType());
+//      // 校验配置是否相等
+//      if (!newSnapshot) {
+//        final String md5 = MD5Utils.md5file(res.getContent());
+//        if (StringUtils.equals(md5, pGetter.getMd5CodeValue(snapshotDomain))) {
+//          this.addErrorMessage(context, "resource " + pGetter.getFileName() + " is newest,shall not be updated");
+//          return;
+//        }
+//      }
+//      Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, res.getContent()
+//        , MD5Utils.md5file(res.getContent()), pGetter, this, this);
+//      snapshot = pGetter.createNewSnapshot(newResId, snapshot);
+//    }
+//    serverGroup = new ServerGroup();
+//    serverGroup.setPublishSnapshotId(SaveFileContentAction.createNewSnapshot(snapshot, snycDesc, this, 0l, configPush.getReception()));
+//    serverGroup.setUpdateTime(new Date());
+//    ServerGroupCriteria serverGroupCriteria = new ServerGroupCriteria();
+//    serverGroupCriteria.createCriteria().andAppIdEqualTo(app.getAppId()).andRuntEnvironmentEqualTo(RunEnvironment.ONLINE.getId()).andGroupIndexEqualTo((short) 0);
+//    this.getServerGroupDAO().updateByExampleSelective(serverGroup, serverGroupCriteria);
+//    // /////////////////////////////////////
+//    this.addActionMessage(context, "synsuccess");
+//  }
 
   // protected Integer createNewApp(Context context, final ConfigPush configPush) throws Exception {
   // Department department = configPush.getDepartment();

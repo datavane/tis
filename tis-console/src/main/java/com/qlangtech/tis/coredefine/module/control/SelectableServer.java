@@ -19,13 +19,8 @@
 package com.qlangtech.tis.coredefine.module.control;
 
 import com.qlangtech.tis.runtime.module.action.BasicModule;
-import org.apache.solr.common.cloud.TISZkStateReader;
-import org.apache.zookeeper.KeeperException;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -35,36 +30,37 @@ public class SelectableServer {
 
   static final String key = SelectableServer.class.getName() + ".candidateServer";
 
-  private static Collection<CoreNode> getSelectableNodes(TISZkStateReader stateReader) throws KeeperException, InterruptedException {
-    return stateReader.getSelectTableNodes();
-  }
+//  private static Collection<CoreNode> getSelectableNodes(TISZkStateReader stateReader) throws KeeperException, InterruptedException {
+//    return stateReader.getSelectTableNodes();
+//  }
 
 
   @SuppressWarnings("all")
   public static CoreNode[] getCoreNodeInfo(HttpServletRequest request, BasicModule module
     , boolean excludeHaveAppServers, boolean isAppNameAware) {
-    try {
-      CoreNode[] result = null;
-      if ((result = (CoreNode[]) request.getAttribute(key)) == null) {
-        Collection<CoreNode> nodes = getSelectableNodes(module.getZkStateReader());
-        result = nodes.toArray(new CoreNode[0]);
-        request.setAttribute(key, result);
-        if (excludeHaveAppServers) {
-          // 过滤掉那些已经部署了应用的服务器
-          List<CoreNode> excludeAppServers = new ArrayList<CoreNode>();
-          for (CoreNode node : result) {
-            if (node.getSolrCoreCount() < 1) {
-              excludeAppServers.add(node);
-            }
-          }
-          result = excludeAppServers.toArray(new CoreNode[excludeAppServers.size()]);
-          request.setAttribute(key, result);
-        }
-      }
-      return result;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+//    try {
+//      CoreNode[] result = null;
+//      if ((result = (CoreNode[]) request.getAttribute(key)) == null) {
+//        Collection<CoreNode> nodes = getSelectableNodes(module.getZkStateReader());
+//        result = nodes.toArray(new CoreNode[0]);
+//        request.setAttribute(key, result);
+//        if (excludeHaveAppServers) {
+//          // 过滤掉那些已经部署了应用的服务器
+//          List<CoreNode> excludeAppServers = new ArrayList<CoreNode>();
+//          for (CoreNode node : result) {
+//            if (node.getSolrCoreCount() < 1) {
+//              excludeAppServers.add(node);
+//            }
+//          }
+//          result = excludeAppServers.toArray(new CoreNode[excludeAppServers.size()]);
+//          request.setAttribute(key, result);
+//        }
+//      }
+//      return result;
+//    } catch (Exception e) {
+//      throw new RuntimeException(e);
+//    }
+    throw new UnsupportedOperationException();
   }
 
   //

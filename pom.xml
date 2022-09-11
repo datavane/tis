@@ -62,7 +62,7 @@
         <module>tis-manage-pojo</module>
         <module>tis-hadoop-rpc</module>
         <module>tis-solrconfig-parser</module>
-        <module>tis-solrj-client</module>
+<!--        <module>tis-solrj-client</module>-->
         <module>tis-common</module>
         <module>tis-base-test</module>
         <module>tis-web-start-api</module>
@@ -561,11 +561,11 @@
             </dependency>
 
 
-            <dependency>
-                <groupId>org.apache.solr</groupId>
-                <artifactId>solr-solrj</artifactId>
-                <version>${solr.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.apache.solr</groupId>-->
+<!--                <artifactId>solr-solrj</artifactId>-->
+<!--                <version>${solr.version}</version>-->
+<!--            </dependency>-->
 
             <!--
             refer: https://github.com/apache/lucene-solr/blob/releases/lucene-solr/8.6.1/

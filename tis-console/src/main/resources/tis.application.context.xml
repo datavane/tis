@@ -28,9 +28,9 @@
   <context:property-placeholder location="tis:tis-web-config/config.properties"/>
  -->
 
-  <bean id="clusterStateReader" class="com.qlangtech.tis.manage.spring.ClusterStateReader">
-    <property name="zooKeeperGetter" ref="zooKeeperGetter"/>
-  </bean>
+<!--  <bean id="clusterStateReader" class="com.qlangtech.tis.manage.spring.ClusterStateReader">-->
+<!--    <property name="zooKeeperGetter" ref="zooKeeperGetter"/>-->
+<!--  </bean>-->
 
   <!-- 百岁添加 fordao -->
   <import resource="classpath:/datasource-config-tis.xml"/>

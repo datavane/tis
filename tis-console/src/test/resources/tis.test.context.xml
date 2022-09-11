@@ -23,8 +23,8 @@
 
   <bean id="zooKeeperGetter" class="com.qlangtech.tis.manage.spring.MockZooKeeperGetter"/>
 
-  <bean id="clusterStateReader" class="com.qlangtech.tis.manage.spring.MockClusterStateReader">
-  </bean>
+<!--  <bean id="clusterStateReader" class="com.qlangtech.tis.manage.spring.MockClusterStateReader">-->
+<!--  </bean>-->
 
   <bean id="erRulesGetter" class="com.qlangtech.tis.sql.parser.er.impl.MockERRulesGetter">
   </bean>

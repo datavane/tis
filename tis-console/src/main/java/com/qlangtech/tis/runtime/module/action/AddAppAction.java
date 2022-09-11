@@ -32,29 +32,27 @@ import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria.Criteria;
-import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.common.BasicDAO;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher.CriteriaSetter;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
-import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.openapi.impl.AppKey;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
-import com.qlangtech.tis.runtime.pojo.ResSynManager;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
-import com.qlangtech.tis.utils.MD5Utils;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.cloud.DocCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.sql.DataSource;
@@ -64,6 +62,8 @@ import java.sql.ResultSet;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+//import com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet;
 
 /**
  * 添加应用
@@ -226,7 +226,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     appKey.setTargetSnapshotId((long) snapshotResult.getNewId());
     appKey.setFromCache(false);
     appKeyProcess.process(appKey);
-    LoadSolrCoreConfigByAppNameServlet.getSnapshotDomain(ConfigFileReader.getConfigList(), appKey, this);
+    // LoadSolrCoreConfigByAppNameServlet.getSnapshotDomain(ConfigFileReader.getConfigList(), appKey, this);
     CoreAction.createCollection(this, context, gourpCount, repliation, request, snapshotResult.getNewId());
     return Optional.of(app);
   }
@@ -257,26 +257,26 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     }
   }
 
-  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
-    , ISchemaPluginContext schemaPlugin, byte[] uploadContent, BasicModule module, String memo, Long userId, String userName) {
-    CreateSnapshotResult createResult = new CreateSnapshotResult();
-    final String md5 = MD5Utils.md5file(uploadContent);
-    // 创建一条资源记录
-    try {
-
-      Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, uploadContent, md5, fileGetter, module, module);
-      //  Integer newResId = createNewResource(context, schemaPluginContext, uploadContent, md5, fileGetter, module);
-      final Snapshot snapshot = fileGetter.createNewSnapshot(newResId, domain.getSnapshot());
-      snapshot.setMemo(memo);
-      createResult.setNewSnapshotId(createNewSnapshot(snapshot, memo, module, userId, userName));
-      snapshot.setSnId(createResult.getNewId());
-      context.put("snapshot", snapshot);
-    } catch (SchemaFileInvalidException e) {
-      return createResult;
-    }
-    createResult.setSuccess(true);
-    return createResult;
-  }
+//  public static CreateSnapshotResult createNewSnapshot(Context context, final SnapshotDomain domain, PropteryGetter fileGetter
+//    , ISchemaPluginContext schemaPlugin, byte[] uploadContent, BasicModule module, String memo, Long userId, String userName) {
+//    CreateSnapshotResult createResult = new CreateSnapshotResult();
+//    final String md5 = MD5Utils.md5file(uploadContent);
+//    // 创建一条资源记录
+//    try {
+//
+//      Integer newResId = ResSynManager.createNewResource(context, schemaPlugin, uploadContent, md5, fileGetter, module, module);
+//      //  Integer newResId = createNewResource(context, schemaPluginContext, uploadContent, md5, fileGetter, module);
+//      final Snapshot snapshot = fileGetter.createNewSnapshot(newResId, domain.getSnapshot());
+//      snapshot.setMemo(memo);
+//      createResult.setNewSnapshotId(createNewSnapshot(snapshot, memo, module, userId, userName));
+//      snapshot.setSnId(createResult.getNewId());
+//      context.put("snapshot", snapshot);
+//    } catch (SchemaFileInvalidException e) {
+//      return createResult;
+//    }
+//    createResult.setSuccess(true);
+//    return createResult;
+//  }
 
   /**
    * 仅仅创建 Application相关的數據表
@@ -327,11 +327,11 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     Integer appid = this.getInt("appid");
     Assert.assertNotNull("appid can not be null", appid);
     // 需要判断在solr cluster中是否存在
-    DocCollection collection = this.getZkStateReader().getClusterState().getCollectionOrNull(this.getAppDomain().getAppName());
-    if (collection != null) {
-      this.addErrorMessage(context, "集群中存在索引实例“" + collection.getName() + "”，请先联系管理员将该实例删除");
-      return;
-    }
+    // DocCollection collection = this.getZkStateReader().getClusterState().getCollectionOrNull(this.getAppDomain().getAppName());
+//    if (collection != null) {
+//      this.addErrorMessage(context, "集群中存在索引实例“" + collection.getName() + "”，请先联系管理员将该实例删除");
+//      return;
+//    }
     rescycleAppDB(appid);
     this.addActionMessage(context, "索引实例“" + this.getAppDomain().getAppName() + "”该应用被成功删除");
   }

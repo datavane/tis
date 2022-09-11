@@ -70,10 +70,10 @@
 <!--            <artifactId>tis-solrj-client</artifactId>-->
 <!--        </dependency>-->
 
-        <dependency>
-            <groupId>org.apache.solr</groupId>
-            <artifactId>solr-solrj</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.solr</groupId>-->
+<!--            <artifactId>solr-solrj</artifactId>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>com.qlangtech.tis</groupId>

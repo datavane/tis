@@ -26,7 +26,6 @@ import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
-import com.qlangtech.tis.cloud.ICoreAdminAction;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
 import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
@@ -35,8 +34,6 @@ import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
-import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.InstanceDirDesc;
-import com.qlangtech.tis.coredefine.module.screen.Corenodemanage.ReplicState;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
@@ -47,9 +44,9 @@ import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
-import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
-import com.qlangtech.tis.manage.servlet.*;
+import com.qlangtech.tis.manage.servlet.DownloadResource;
+import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -58,7 +55,6 @@ import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
-import com.qlangtech.tis.runtime.module.action.ClusterStateCollectAction;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
 import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
@@ -75,18 +71,16 @@ import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.XMLResponseParser;
-import org.apache.solr.common.cloud.*;
-import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.zookeeper.data.Stat;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -95,8 +89,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.apache.solr.common.cloud.ZkStateReader.BASE_URL_PROP;
-import static org.apache.solr.common.cloud.ZkStateReader.CORE_NAME_PROP;
+//import org.apache.solr.client.solrj.SolrQuery;
+//import org.apache.solr.client.solrj.SolrServerException;
+//import org.apache.solr.client.solrj.impl.XMLResponseParser;
+//import org.apache.solr.common.cloud.*;
+//import org.apache.solr.common.util.SimpleOrderedMap;
 
 //import com.qlangtech.tis.realtime.yarn.rpc.JobType;
 
@@ -118,7 +115,7 @@ public class CoreAction extends BasicModule {
   private static final Pattern PATTERN_IP = Pattern.compile("^((\\d+?).(\\d+?).(\\d+?).(\\d+?)):(\\d+)_solr$");
 
   // private final String CLIENT_ZK_PATH = "/terminator/dump-controller/";
-  public static final XMLResponseParser RESPONSE_PARSER = new XMLResponseParser();
+ // public static final XMLResponseParser RESPONSE_PARSER = new XMLResponseParser();
 
   private static final int MAX_SHARDS_PER_NODE = 16;
 
@@ -640,17 +637,17 @@ public class CoreAction extends BasicModule {
   }
 
 
-  /**
-   * 触发生成一个新的Task do_trigger_fullbuild_task
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.DATAFLOW_MANAGE)
-  public void doTriggerFullbuildTask(Context context) throws Exception {
-    Application app = this.getAppDomain().getApp();
-    triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
-  }
+//  /**
+//   * 触发生成一个新的Task do_trigger_fullbuild_task
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  @Func(value = PermissionConstant.DATAFLOW_MANAGE)
+//  public void doTriggerFullbuildTask(Context context) throws Exception {
+//    Application app = this.getAppDomain().getApp();
+//    triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
+//  }
 
 
   /**
@@ -956,49 +953,49 @@ public class CoreAction extends BasicModule {
     this.setBizResult(context, biz);
   }
 
-  /**
-   * Corenodemanage页面初始化的时候页面显示的信息
-   *
-   * @param context
-   * @throws Exception
-   */
-  public void doGetViewData(Context context) throws Exception {
-    Map<String, Object> result = getCollectionStatus(this);
-    this.setBizResult(context, result);
-  }
+//  /**
+//   * Corenodemanage页面初始化的时候页面显示的信息
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  public void doGetViewData(Context context) throws Exception {
+//    Map<String, Object> result = getCollectionStatus(this);
+//    this.setBizResult(context, result);
+//  }
 
-  public static Map<String, Object> getCollectionStatus(BasicModule module) throws Exception {
-    Map<String, Object> result = new HashMap<>();
-    result.put("instanceDirDesc", getInstanceDirDesc(module));
-    result.put("topology", getCollectionTopology(module));
-    result.put("config", module.getConfigGroup0());
-    result.put("app", module.getAppDomain());
-    ClusterStateCollectAction.StatusCollectStrategy collectStrategy = ClusterStateCollectAction.getCollectStrategy(
-      module.getClusterSnapshotDAO(), module.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
-    ClusterSnapshot.Summary metricSummary = collectStrategy.getMetricSummary();
-    result.put("metrics", metricSummary);
-    return result;
-  }
+//  public static Map<String, Object> getCollectionStatus(BasicModule module) throws Exception {
+//    Map<String, Object> result = new HashMap<>();
+//    result.put("instanceDirDesc", getInstanceDirDesc(module));
+//    result.put("topology", getCollectionTopology(module));
+//    result.put("config", module.getConfigGroup0());
+//    result.put("app", module.getAppDomain());
+//    ClusterStateCollectAction.StatusCollectStrategy collectStrategy = ClusterStateCollectAction.getCollectStrategy(
+//      module.getClusterSnapshotDAO(), module.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
+//    ClusterSnapshot.Summary metricSummary = collectStrategy.getMetricSummary();
+//    result.put("metrics", metricSummary);
+//    return result;
+//  }
 
-  public static CollectionTopology getCollectionTopology(BasicModule module) throws Exception {
-    final QueryResutStrategy queryResutStrategy
-      = QueryIndexServlet.createQueryResutStrategy(module.getAppDomain(), module.getRequest(), module.getResponse(), module.getDaoContext());
-    return queryResutStrategy.createCollectionTopology();
-    // //
-    // URL url = new URL("http://192.168.28.200:8080/solr/admin/zookeeper?_=1587217613386&detail=true&path=%2Fcollections%2Fsearch4totalpay%2Fstate.json&wt=json");
-    // return HttpUtils.get(url, new StreamProcess<CollectionTopology>() {
-    // @Override
-    // public CollectionTopology p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-    // JSONTokener tokener = new JSONTokener(stream);
-    // JSONObject result = new JSONObject(tokener);
-    //
-    // result.getString("data");
-    //
-    //
-    // return null;
-    // }
-    // });
-  }
+//  public static CollectionTopology getCollectionTopology(BasicModule module) throws Exception {
+//    final QueryResutStrategy queryResutStrategy
+//      = QueryIndexServlet.createQueryResutStrategy(module.getAppDomain(), module.getRequest(), module.getResponse(), module.getDaoContext());
+//    return queryResutStrategy.createCollectionTopology();
+//    // //
+//    // URL url = new URL("http://192.168.28.200:8080/solr/admin/zookeeper?_=1587217613386&detail=true&path=%2Fcollections%2Fsearch4totalpay%2Fstate.json&wt=json");
+//    // return HttpUtils.get(url, new StreamProcess<CollectionTopology>() {
+//    // @Override
+//    // public CollectionTopology p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+//    // JSONTokener tokener = new JSONTokener(stream);
+//    // JSONObject result = new JSONObject(tokener);
+//    //
+//    // result.getString("data");
+//    //
+//    //
+//    // return null;
+//    // }
+//    // });
+//  }
 
 
   public static ServerGroupAdapter getServerGroup0(AppDomainInfo domain, BasicModule module) {
@@ -1031,100 +1028,100 @@ public class CoreAction extends BasicModule {
     return null;
   }
 
-  /**
-   * 各个副本节点描述信息
-   *
-   * @return
-   * @throws Exception
-   */
-  private static InstanceDirDesc getInstanceDirDesc(BasicModule module) throws Exception {
-    InstanceDirDesc dirDesc = new InstanceDirDesc();
-    dirDesc.setValid(false);
-    DocCollection collection = module.getIndex();
-    final Set<String> instanceDir = new HashSet<String>();
-    if (collection.getSlices().isEmpty()) {
-      dirDesc.setDesc("实例尚未创建,未发现副本节点");
-      return dirDesc;
-    }
-    boolean hasGetAllCount = false;
-    URL url = null;
-    for (Slice slice : collection.getSlices()) {
-      for (final Replica replica : slice.getReplicas()) {
-        if (!hasGetAllCount) {
-          dirDesc.setAllcount(getAllRowsCount(collection.getName(), replica.getCoreUrl()));
-          hasGetAllCount = true;
-        }
-        //ZkCoreNodeProps.getCoreUrl
-        url = new URL(replica.getCoreUrl() + "admin/mbeans?stats=true&cat=CORE&key=core&wt=xml");
-        // http://192.168.28.200:8080/solr/search4supplyGoods2_shard1_replica_n1/admin/mbeans?stats=true&cat=CORE&key=core&wt=xml
-        ConfigFileContext.processContent(url, new StreamProcess<Object>() {
+//  /**
+//   * 各个副本节点描述信息
+//   *
+//   * @return
+//   * @throws Exception
+//   */
+//  private static InstanceDirDesc getInstanceDirDesc(BasicModule module) throws Exception {
+//    InstanceDirDesc dirDesc = new InstanceDirDesc();
+//    dirDesc.setValid(false);
+//    DocCollection collection = module.getIndex();
+//    final Set<String> instanceDir = new HashSet<String>();
+//    if (collection.getSlices().isEmpty()) {
+//      dirDesc.setDesc("实例尚未创建,未发现副本节点");
+//      return dirDesc;
+//    }
+//    boolean hasGetAllCount = false;
+//    URL url = null;
+//    for (Slice slice : collection.getSlices()) {
+//      for (final Replica replica : slice.getReplicas()) {
+//        if (!hasGetAllCount) {
+//          dirDesc.setAllcount(getAllRowsCount(collection.getName(), replica.getCoreUrl()));
+//          hasGetAllCount = true;
+//        }
+//        //ZkCoreNodeProps.getCoreUrl
+//        url = new URL(replica.getCoreUrl() + "admin/mbeans?stats=true&cat=CORE&key=core&wt=xml");
+//        // http://192.168.28.200:8080/solr/search4supplyGoods2_shard1_replica_n1/admin/mbeans?stats=true&cat=CORE&key=core&wt=xml
+//        ConfigFileContext.processContent(url, new StreamProcess<Object>() {
+//
+//          @Override
+//          @SuppressWarnings("all")
+//          public Object p(int s, InputStream stream, Map<String, List<String>> headerFields) {
+//            SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream, TisUTF8.getName());
+//            final SimpleOrderedMap mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
+//            SimpleOrderedMap core = (SimpleOrderedMap) ((SimpleOrderedMap) mbeans.get("CORE")).get("core");
+//            SimpleOrderedMap status = ((SimpleOrderedMap) core.get("stats"));
+//            // core 节点刚创建status为空
+//            if (status == null) {
+//              return null;
+//            }
+//            String indexDir = StringUtils.substringAfterLast((String) status.get("CORE.indexDir"), "/");
+//            instanceDir.add(indexDir);
+//            ReplicState replicState = new ReplicState();
+//            replicState.setIndexDir(indexDir);
+//            replicState.setValid(StringUtils.isNotBlank(indexDir));
+//            if (StringUtils.isBlank(indexDir)) {
+//              replicState.setInvalidDesc("未完成全量构建");
+//            }
+//            replicState.setNodeName(StringUtils.substringBefore(replica.getNodeName(), ":"));
+//            ;
+//            replicState.setCoreName(StringUtils.substringAfter((String) core.get("class"), "_"));
+//            replicState.setState(replica.getState().toString());
+//            replicState.setLeader(replica.getBool("leader", false));
+//            dirDesc.addReplicState(slice.getName(), replicState);
+//            return null;
+//          }
+//        });
+//      }
+//    }
+//    final StringBuffer replicDirDesc = new StringBuffer();
+//    if (instanceDir.size() > 1) {
+//      replicDirDesc.append("(");
+//      int count = 0;
+//      for (String d : instanceDir) {
+//        replicDirDesc.append(d);
+//        if (++count < instanceDir.size()) {
+//          replicDirDesc.append(",");
+//        }
+//      }
+//      replicDirDesc.append(")");
+//      dirDesc.setDesc("副本目录不一致，分别为:" + replicDirDesc);
+//    } else if (instanceDir.size() == 1) {
+//      if (dirDesc.isAllReplicValid()) {
+//        dirDesc.setValid(true);
+//        for (String d : instanceDir) {
+//          dirDesc.setDesc("所有副本目录为:" + d);
+//          break;
+//        }
+//      } else {
+//        dirDesc.setValid(false);
+//        dirDesc.setDesc(dirDesc.invalidDesc().toString());
+//      }
+//    } else {
+//      dirDesc.setDesc("副本目录数异常,size:" + instanceDir.size());
+//    }
+//    return dirDesc;
+//  }
 
-          @Override
-          @SuppressWarnings("all")
-          public Object p(int s, InputStream stream, Map<String, List<String>> headerFields) {
-            SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream, TisUTF8.getName());
-            final SimpleOrderedMap mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
-            SimpleOrderedMap core = (SimpleOrderedMap) ((SimpleOrderedMap) mbeans.get("CORE")).get("core");
-            SimpleOrderedMap status = ((SimpleOrderedMap) core.get("stats"));
-            // core 节点刚创建status为空
-            if (status == null) {
-              return null;
-            }
-            String indexDir = StringUtils.substringAfterLast((String) status.get("CORE.indexDir"), "/");
-            instanceDir.add(indexDir);
-            ReplicState replicState = new ReplicState();
-            replicState.setIndexDir(indexDir);
-            replicState.setValid(StringUtils.isNotBlank(indexDir));
-            if (StringUtils.isBlank(indexDir)) {
-              replicState.setInvalidDesc("未完成全量构建");
-            }
-            replicState.setNodeName(StringUtils.substringBefore(replica.getNodeName(), ":"));
-            ;
-            replicState.setCoreName(StringUtils.substringAfter((String) core.get("class"), "_"));
-            replicState.setState(replica.getState().toString());
-            replicState.setLeader(replica.getBool("leader", false));
-            dirDesc.addReplicState(slice.getName(), replicState);
-            return null;
-          }
-        });
-      }
-    }
-    final StringBuffer replicDirDesc = new StringBuffer();
-    if (instanceDir.size() > 1) {
-      replicDirDesc.append("(");
-      int count = 0;
-      for (String d : instanceDir) {
-        replicDirDesc.append(d);
-        if (++count < instanceDir.size()) {
-          replicDirDesc.append(",");
-        }
-      }
-      replicDirDesc.append(")");
-      dirDesc.setDesc("副本目录不一致，分别为:" + replicDirDesc);
-    } else if (instanceDir.size() == 1) {
-      if (dirDesc.isAllReplicValid()) {
-        dirDesc.setValid(true);
-        for (String d : instanceDir) {
-          dirDesc.setDesc("所有副本目录为:" + d);
-          break;
-        }
-      } else {
-        dirDesc.setValid(false);
-        dirDesc.setDesc(dirDesc.invalidDesc().toString());
-      }
-    } else {
-      dirDesc.setDesc("副本目录数异常,size:" + instanceDir.size());
-    }
-    return dirDesc;
-  }
-
-  public static long getAllRowsCount(String collectionName, String coreURL) throws SolrServerException, IOException {
-    QueryCloudSolrClient solrClient = new QueryCloudSolrClient(coreURL);
-    SolrQuery query = new SolrQuery();
-    query.setRows(0);
-    query.setQuery("*:*");
-    return solrClient.query(collectionName, query).getResults().getNumFound();
-  }
+//  public static long getAllRowsCount(String collectionName, String coreURL) throws SolrServerException, IOException {
+//    QueryCloudSolrClient solrClient = new QueryCloudSolrClient(coreURL);
+//    SolrQuery query = new SolrQuery();
+//    query.setRows(0);
+//    query.setQuery("*:*");
+//    return solrClient.query(collectionName, query).getResults().getNumFound();
+//  }
 
   /**
    * 删除增量通道
@@ -1407,95 +1404,95 @@ public class CoreAction extends BasicModule {
     return StringUtils.substringBefore(arr[1], "_");
   }
 
-  /**
-   * 更新全部schema
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(PermissionConstant.APP_SCHEMA_UPDATE)
-  public void doUpdateSchemaAllServer(final Context context) throws Exception {
-    final boolean needReload = this.getBoolean("needReload");
-    Integer snapshotId = this.getInt(ICoreAdminAction.TARGET_SNAPSHOT_ID);
-    DocCollection docCollection = TISZkStateReader.getCollectionLive(this.getZkStateReader(), this.getCollectionName());
-    pushConfig2Engine(this, context, docCollection, snapshotId, needReload);
-  }
+//  /**
+//   * 更新全部schema
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  @Func(PermissionConstant.APP_SCHEMA_UPDATE)
+//  public void doUpdateSchemaAllServer(final Context context) throws Exception {
+//    final boolean needReload = this.getBoolean("needReload");
+//    Integer snapshotId = this.getInt(ICoreAdminAction.TARGET_SNAPSHOT_ID);
+//    DocCollection docCollection = TISZkStateReader.getCollectionLive(this.getZkStateReader(), this.getCollectionName());
+//    pushConfig2Engine(this, context, docCollection, snapshotId, needReload);
+//  }
 
-  public static void pushConfig2Engine(BasicModule module, Context context, DocCollection collection, int snapshotId, boolean needReload) throws Exception {
-    // module.errorsPageShow(context);
-    if (traverseCollectionReplic(collection, false, /* collection */
-      new ReplicaCallback() {
+//  public static void pushConfig2Engine(BasicModule module, Context context, DocCollection collection, int snapshotId, boolean needReload) throws Exception {
+//    // module.errorsPageShow(context);
+//    if (traverseCollectionReplic(collection, false, /* collection */
+//      new ReplicaCallback() {
+//
+//        @Override
+//        public boolean process(boolean isLeader, final Replica replica) throws Exception {
+//          try {
+//            URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&" + ICoreAdminAction.EXEC_ACTION + "=" + ICoreAdminAction.ACTION_UPDATE_CONFIG + "&core=" + replica.getStr(CORE_NAME_PROP) + "&" + ZkStateReader.COLLECTION_PROP + "=" + collection.getName() + "&needReload=" + needReload + "&" + ICoreAdminAction.TARGET_SNAPSHOT_ID + "=" + snapshotId);
+//            return HttpUtils.processContent(url, new StreamProcess<Boolean>() {
+//
+//              @Override
+//              public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+//                ProcessResponse result = null;
+//                if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, replica.getName() + "," + err))).success) {
+//                  // addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliationCount + "个副本");
+//                  // return true;
+//                }
+//                return true;
+//              }
+//            });
+//          } catch (MalformedURLException e) {
+//            // e.printStackTrace();
+//            log.error(collection.getName(), e);
+//            module.addErrorMessage(context, e.getMessage());
+//          }
+//          return true;
+//        }
+//      })) {
+//      // module.addActionMessage(context, "已经更新全部服务器配置文件");
+//    }
+//  }
 
-        @Override
-        public boolean process(boolean isLeader, final Replica replica) throws Exception {
-          try {
-            URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&" + ICoreAdminAction.EXEC_ACTION + "=" + ICoreAdminAction.ACTION_UPDATE_CONFIG + "&core=" + replica.getStr(CORE_NAME_PROP) + "&" + ZkStateReader.COLLECTION_PROP + "=" + collection.getName() + "&needReload=" + needReload + "&" + ICoreAdminAction.TARGET_SNAPSHOT_ID + "=" + snapshotId);
-            return HttpUtils.processContent(url, new StreamProcess<Boolean>() {
+//  /**
+//   * 遍历所有的副本节点
+//   *
+//   * @param collection
+//   * @param firstProcessLeader
+//   * @param replicaCallback
+//   * @return
+//   * @throws Exception
+//   */
+//  public static boolean traverseCollectionReplic(final DocCollection collection, boolean firstProcessLeader, ReplicaCallback replicaCallback) throws Exception {
+//    if (collection == null) {
+//      throw new IllegalStateException("param collection can not be null");
+//    }
+//    Replica leader = null;
+//    // String requestId = null;
+//    for (Slice slice : collection.getSlices()) {
+//      leader = slice.getLeader();
+//      if (firstProcessLeader) {
+//        if (!replicaCallback.process(true, leader)) {
+//          return false;
+//        }
+//      }
+//      for (Replica replica : slice.getReplicas()) {
+//        if (leader == replica) {
+//          continue;
+//        }
+//        if (!replicaCallback.process(true, replica)) {
+//          return false;
+//        }
+//      }
+//      if (!firstProcessLeader) {
+//        if (!replicaCallback.process(true, leader)) {
+//          return false;
+//        }
+//      }
+//    }
+//    return true;
+//  }
 
-              @Override
-              public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                ProcessResponse result = null;
-                if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, replica.getName() + "," + err))).success) {
-                  // addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliationCount + "个副本");
-                  // return true;
-                }
-                return true;
-              }
-            });
-          } catch (MalformedURLException e) {
-            // e.printStackTrace();
-            log.error(collection.getName(), e);
-            module.addErrorMessage(context, e.getMessage());
-          }
-          return true;
-        }
-      })) {
-      // module.addActionMessage(context, "已经更新全部服务器配置文件");
-    }
-  }
-
-  /**
-   * 遍历所有的副本节点
-   *
-   * @param collection
-   * @param firstProcessLeader
-   * @param replicaCallback
-   * @return
-   * @throws Exception
-   */
-  public static boolean traverseCollectionReplic(final DocCollection collection, boolean firstProcessLeader, ReplicaCallback replicaCallback) throws Exception {
-    if (collection == null) {
-      throw new IllegalStateException("param collection can not be null");
-    }
-    Replica leader = null;
-    // String requestId = null;
-    for (Slice slice : collection.getSlices()) {
-      leader = slice.getLeader();
-      if (firstProcessLeader) {
-        if (!replicaCallback.process(true, leader)) {
-          return false;
-        }
-      }
-      for (Replica replica : slice.getReplicas()) {
-        if (leader == replica) {
-          continue;
-        }
-        if (!replicaCallback.process(true, replica)) {
-          return false;
-        }
-      }
-      if (!firstProcessLeader) {
-        if (!replicaCallback.process(true, leader)) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  public static interface ReplicaCallback {
-    public boolean process(boolean isLeader, Replica replica) throws Exception;
-  }
+//  public static interface ReplicaCallback {
+//    public boolean process(boolean isLeader, Replica replica) throws Exception;
+//  }
 
 
   private Map<String, CoreNode> getCoreNodeMap(boolean isAppNameAware) {

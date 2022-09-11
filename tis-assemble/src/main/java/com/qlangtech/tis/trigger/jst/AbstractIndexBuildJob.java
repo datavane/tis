@@ -27,8 +27,8 @@ import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.trigger.jst.AbstractIndexBuildJob.BuildResult;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.cloud.ZkStateReader;
+//import org.apache.solr.common.cloud.Replica;
+//import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,20 +133,20 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
             return buildResult;
         }
 
-        private Replica replica;
-
-        public Replica getReplica() {
-            return replica;
-        }
-
-        public final String getNodeName() {
-            return this.replica.getNodeName();
-        }
-
-        public BuildResult setReplica(Replica replica) {
-            this.replica = replica;
-            return this;
-        }
+//        private Replica replica;
+//
+//        public Replica getReplica() {
+//            return replica;
+//        }
+//
+//        public final String getNodeName() {
+//            return this.replica.getNodeName();
+//        }
+//
+//        public BuildResult setReplica(Replica replica) {
+//            this.replica = replica;
+//            return this;
+//        }
 
         // private final RunningJob rj;
         private boolean success;
@@ -185,16 +185,16 @@ public abstract class AbstractIndexBuildJob implements Callable<BuildResult> {
 
         public static final Pattern PATTERN_CORE = Pattern.compile("search4(.+?)_shard(\\d+?)_replica(\\d+?)");
 
-        public BuildResult(Replica replica, ImportDataProcessInfo processInfo) {
-            super();
-            String coreName = replica.getStr(ZkStateReader.CORE_NAME_PROP);
-            Matcher matcher = PATTERN_CORE.matcher(coreName);
-            if (!matcher.matches()) {
-                throw new IllegalStateException("coreName:" + coreName + " is not match the pattern:" + PATTERN_CORE);
-            }
-            this.groupIndex = Integer.parseInt(matcher.group(2)) - 1;
-            this.processInfo = processInfo;
-        }
+//        public BuildResult(Replica replica, ImportDataProcessInfo processInfo) {
+//            super();
+//            String coreName = replica.getStr(ZkStateReader.CORE_NAME_PROP);
+//            Matcher matcher = PATTERN_CORE.matcher(coreName);
+//            if (!matcher.matches()) {
+//                throw new IllegalStateException("coreName:" + coreName + " is not match the pattern:" + PATTERN_CORE);
+//            }
+//            this.groupIndex = Integer.parseInt(matcher.group(2)) - 1;
+//            this.processInfo = processInfo;
+//        }
 
         public BuildResult(int group, ImportDataProcessInfo processInfo) {
             super();
