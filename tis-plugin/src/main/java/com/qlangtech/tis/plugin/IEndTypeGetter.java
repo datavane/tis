@@ -23,6 +23,12 @@ package com.qlangtech.tis.plugin;
  * @create: 2022-09-08 11:22
  **/
 public interface IEndTypeGetter {
+    public static void main(String[] args) {
+        for (EndType value : EndType.values()) {
+            System.out.print(value.val + ",");
+        }
+    }
+
     /**
      * 取得数据端类型
      *
@@ -40,9 +46,7 @@ public interface IEndTypeGetter {
 
     enum PluginVender {
         FLINK_CDC("FlinkCDC", "https://ververica.github.io/flink-cdc-connectors/") //
-        , CHUNJUN("Chunjun", "https://dtstack.github.io/chunjun")
-        , TIS("TIS", "https://tis.pub/")
-        , DATAX("DataX", "https://github.com/alibaba/DataX");
+        , CHUNJUN("Chunjun", "https://dtstack.github.io/chunjun"), TIS("TIS", "https://tis.pub/"), DATAX("DataX", "https://github.com/alibaba/DataX");
         final String name;
         final String url;
 

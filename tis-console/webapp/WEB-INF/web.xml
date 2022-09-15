@@ -96,16 +96,16 @@
   </servlet-mapping>
 
   <!-- 通过 appname runtime groupindex 查找solr core的配置信息 -->
-  <servlet>
-    <servlet-name>getappconfig</servlet-name>
-    <servlet-class>com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet</servlet-class>
-  </servlet>
+<!--  <servlet>-->
+<!--    <servlet-name>getappconfig</servlet-name>-->
+<!--    <servlet-class>com.qlangtech.tis.manage.servlet.LoadSolrCoreConfigByAppNameServlet</servlet-class>-->
+<!--  </servlet>-->
 
   <!-- 通过 appname runtime groupindex 查找solr core的配置信息 -->
-  <servlet-mapping>
-    <servlet-name>getappconfig</servlet-name>
-    <url-pattern>/download/appconfig/*</url-pattern>
-  </servlet-mapping>
+<!--  <servlet-mapping>-->
+<!--    <servlet-name>getappconfig</servlet-name>-->
+<!--    <url-pattern>/download/appconfig/*</url-pattern>-->
+<!--  </servlet-mapping>-->
 
 
 

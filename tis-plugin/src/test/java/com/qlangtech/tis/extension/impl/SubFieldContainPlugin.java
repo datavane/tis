@@ -92,6 +92,16 @@ public class SubFieldContainPlugin extends DataxReader implements IdentityName {
         }
 
         @Override
+        protected boolean isSupportIncr() {
+            return true;
+        }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.MySQL;
+        }
+
+        @Override
         public boolean isRdbms() {
             return true;
         }
