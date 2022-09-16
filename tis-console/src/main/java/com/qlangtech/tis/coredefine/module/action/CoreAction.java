@@ -115,7 +115,7 @@ public class CoreAction extends BasicModule {
   private static final Pattern PATTERN_IP = Pattern.compile("^((\\d+?).(\\d+?).(\\d+?).(\\d+?)):(\\d+)_solr$");
 
   // private final String CLIENT_ZK_PATH = "/terminator/dump-controller/";
- // public static final XMLResponseParser RESPONSE_PARSER = new XMLResponseParser();
+  // public static final XMLResponseParser RESPONSE_PARSER = new XMLResponseParser();
 
   private static final int MAX_SHARDS_PER_NODE = 16;
 
@@ -146,8 +146,16 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doCreateNewSavepoint(Context context) throws Exception {
     IRCController incrSync = getRCController();
+    TargetResName resName = new TargetResName(this.getCollectionName());
 
-    incrSync.triggerSavePoint(new TargetResName(this.getCollectionName()));
+    IRCController.SupportTriggerSavePointResult supportResult = null;
+    if (!(supportResult = incrSync.supportTriggerSavePoint(resName)).support) {
+      this.addErrorMessage(context, supportResult.unSupportReason);
+      return;
+    }
+    incrSync.triggerSavePoint(resName);
+
+
     IndexIncrStatus incrStatus = getIndexIncrStatus(this, false);
     this.setBizResult(context, incrStatus);
   }
@@ -1155,7 +1163,10 @@ public class CoreAction extends BasicModule {
 
     TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
     // 删除增量实例
-    k8sDelegate.stopIncrProcess();
+    k8sDelegate.stopIncrProcess(this, context);
+    if (this.hasErrors(context)) {
+      return;
+    }
     waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.STOPED);
   }
 

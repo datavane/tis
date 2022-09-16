@@ -1,4 +1,5 @@
 **/target
+**/metastore_db
 **/log.dir*
 **/src/main/webapp/WEB-INF/lib
 **/src/main/webapp/WEB-INF/classes

@@ -514,11 +514,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                     }
 
                                     if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal), IMessageHandler.TSEARCH_PACKAGE)) {
-
-//                                        UploadPluginMeta meta = UploadPluginMeta.parse(dftVal);
-//                                        boolean unCache = meta.getBoolean(UploadPluginMeta.KEY_UNCACHE);
-//
-//                                        Callable<String> valGetter = () -> (String) GroovyShellEvaluate.scriptEval(dftVal);
                                         props.put(PluginExtraProps.KEY_DFTVAL_PROP, GroovyShellEvaluate.scriptEval(String.valueOf(dftVal)));
                                     }
 
@@ -559,19 +554,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 //                                }
         JSONArray enums = new JSONArray();
         if (anEnum != null && anEnum instanceof String) {
-            // 使用了如下这种配置方式，需要使用groovy进行解析
-            // "enum": "com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()"
-            // 需要转化成以下这种格式:
-            //                                "enum": [
-            //                                {
-            //                                    "label": "是",
-            //                                        "val": true
-            //                                },
-            //                                {
-            //                                    "label": "否",
-            //                                        "val": false
-            //                                }
-            // ]
             try {
                 GroovyShellEvaluate.descriptorThreadLocal.set(descriptor);
                 fieldExtraProps.getProps().put(KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, (opts) -> {

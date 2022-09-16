@@ -22,7 +22,6 @@ import com.qlangtech.tis.datax.IGroupChildTaskIterator;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
@@ -92,7 +91,7 @@ public class SubFieldContainPlugin extends DataxReader implements IdentityName {
         }
 
         @Override
-        protected boolean isSupportIncr() {
+        public boolean isSupportIncr() {
             return true;
         }
 

@@ -61,12 +61,30 @@ public interface IRCController {
      */
     void stopInstance(TargetResName indexName);
 
+    SupportTriggerSavePointResult supportTriggerSavePoint(TargetResName collection);
+
+    public class SupportTriggerSavePointResult {
+        public final boolean support;
+        String unSupportReason;
+
+        public SupportTriggerSavePointResult(boolean support) {
+            this.support = support;
+        }
+
+        public String getUnSupportReason() {
+            return unSupportReason;
+        }
+
+        public void setUnSupportReason(String unSupportReason) {
+            this.unSupportReason = unSupportReason;
+        }
+    }
+
     /**
      * 创建一个Savepoint
      *
      * @param collection
      */
-
     void triggerSavePoint(TargetResName collection);
 
     /**

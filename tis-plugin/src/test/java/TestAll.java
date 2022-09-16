@@ -35,6 +35,7 @@ import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
 import com.qlangtech.tis.util.TestAttrValMap;
 import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.TestUploadPluginMeta;
+import com.qlangtech.tis.util.plugin.TestContainEnumsFieldPlugin;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -47,6 +48,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestContainEnumsFieldPlugin.class);
         suite.addTestSuite(TestPluginManifest.class);
         suite.addTestSuite(TestSuFormProperties.class);
         suite.addTestSuite(TestTableAlias.class);

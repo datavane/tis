@@ -30,6 +30,15 @@ public interface IEndTypeGetter {
     }
 
     /**
+     * 是否支持增量执行
+     *
+     * @return
+     */
+    default boolean isSupportIncr() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * 取得数据端类型
      *
      * @return

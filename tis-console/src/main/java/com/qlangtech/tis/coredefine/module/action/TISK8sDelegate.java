@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.coredefine.module.action;
 
+import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
@@ -27,11 +28,11 @@ import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.PluginItems;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,7 +178,14 @@ public class TISK8sDelegate {
   /**
    * 停止增量实例
    */
-  public void stopIncrProcess() {
+  public void stopIncrProcess(IMessageHandler handler, Context context) {
+
+    IRCController.SupportTriggerSavePointResult vresult
+      = incrSync.supportTriggerSavePoint(this.indexName);
+    if (!vresult.support) {
+      handler.addErrorMessage(context, vresult.getUnSupportReason());
+      return;
+    }
 
     try {
       this.incrSync.stopInstance(this.indexName);

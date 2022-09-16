@@ -54,6 +54,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     public static final String KEY_ROUTER_LINK = "routerLink";
     public static final String KEY_LABEL = "label";
+    // 枚举过滤器,只对底层Describle类型的enum起效
+    public static final String KEY_ENUM_FILTER = "subDescEnumFilter";
     // private static final Parser mdParser = Parser.builder().build();
 
     private static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz) {

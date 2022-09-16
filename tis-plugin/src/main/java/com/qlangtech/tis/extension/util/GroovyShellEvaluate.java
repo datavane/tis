@@ -23,10 +23,15 @@ import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.Phases;
+import org.codehaus.groovy.control.SourceUnit;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -64,6 +69,57 @@ public class GroovyShellEvaluate {
             return TIS.get().getPluginManager().uberClassLoader.findClass(name);
         }
     });
+
+    private static final CustomerGroovyClassLoader loader = new CustomerGroovyClassLoader();
+
+    private static final class CustomerGroovyClassLoader extends GroovyClassLoader {
+        public CustomerGroovyClassLoader() {
+            super(new ClassLoader(SuFormProperties.class.getClassLoader()) {
+                      @Override
+                      protected Class<?> findClass(String name) throws ClassNotFoundException {
+                          // return super.findClass(name);
+                          return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+                      }
+                  }
+            );
+        }
+
+        @SuppressWarnings("all")
+        public void loadMyClass(String name, String script) throws Exception {
+            CompilationUnit unit = new CompilationUnit();
+            SourceUnit su = unit.addSource(name, script);
+            ClassCollector collector = createCollector(unit, su);
+            unit.setClassgenCallback(collector);
+            unit.compile(Phases.CLASS_GENERATION);
+            int classEntryCount = 0;
+            for (Object o : collector.getLoadedClasses()) {
+                setClassCacheEntry((Class<?>) o);
+                // System.out.println(o);
+                classEntryCount++;
+            }
+        }
+    }
+
+    public static <T> T createParamizerScript(Class parentClazz, String className, String script) {
+        try {
+//        String className = parentClazz.getSimpleName() + "_SubFormIdListGetter_" + subFormField.getName();
+            String pkg = parentClazz.getPackage().getName();
+//        String script = "	package " + pkg + " ;"
+//                + "import java.util.Map;"
+//                + "import com.qlangtech.tis.coredefine.module.action.DataxAction; "
+//                + "import com.qlangtech.tis.util.DescriptorsJSON.IPropGetter; "
+//                + "import com.qlangtech.tis.extension.IPropertyType; "
+//                + "class " + className + " implements IPropGetter {"
+//                + "	@Override"
+//                + "	public Object build(IPropertyType.SubFormFilter filter) {" + this.getIdListGetScript() + "	}" + "}";
+            //this.getIdListGetScript()
+            loader.loadMyClass(className, script);
+            Class<?> groovyClass = loader.loadClass(pkg + "." + className);
+            return (T) groovyClass.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static Object scriptEval(String script, Function<Object, Object>... process) {
         try {

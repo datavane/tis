@@ -18,10 +18,10 @@
 package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.SubForm;
@@ -30,12 +30,8 @@ import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import groovy.lang.GroovyClassLoader;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.Phases;
-import org.codehaus.groovy.control.SourceUnit;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -145,35 +141,35 @@ public class SuFormProperties extends BaseSubFormProperties {
         return this;
     }
 
-    private static final CustomerGroovyClassLoader loader = new CustomerGroovyClassLoader();
-
-    private static final class CustomerGroovyClassLoader extends GroovyClassLoader {
-        public CustomerGroovyClassLoader() {
-            super(new ClassLoader(SuFormProperties.class.getClassLoader()) {
-                      @Override
-                      protected Class<?> findClass(String name) throws ClassNotFoundException {
-                          // return super.findClass(name);
-                          return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-                      }
-                  }
-            );
-        }
-
-        @SuppressWarnings("all")
-        public void loadMyClass(String name, String script) throws Exception {
-            CompilationUnit unit = new CompilationUnit();
-            SourceUnit su = unit.addSource(name, script);
-            ClassCollector collector = createCollector(unit, su);
-            unit.setClassgenCallback(collector);
-            unit.compile(Phases.CLASS_GENERATION);
-            int classEntryCount = 0;
-            for (Object o : collector.getLoadedClasses()) {
-                setClassCacheEntry((Class<?>) o);
-                // System.out.println(o);
-                classEntryCount++;
-            }
-        }
-    }
+//    private static final CustomerGroovyClassLoader loader = new CustomerGroovyClassLoader();
+//
+//    private  static final class CustomerGroovyClassLoader extends GroovyClassLoader {
+//        public CustomerGroovyClassLoader() {
+//            super(new ClassLoader(SuFormProperties.class.getClassLoader()) {
+//                      @Override
+//                      protected Class<?> findClass(String name) throws ClassNotFoundException {
+//                          // return super.findClass(name);
+//                          return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+//                      }
+//                  }
+//            );
+//        }
+//
+//        @SuppressWarnings("all")
+//        public void loadMyClass(String name, String script) throws Exception {
+//            CompilationUnit unit = new CompilationUnit();
+//            SourceUnit su = unit.addSource(name, script);
+//            ClassCollector collector = createCollector(unit, su);
+//            unit.setClassgenCallback(collector);
+//            unit.compile(Phases.CLASS_GENERATION);
+//            int classEntryCount = 0;
+//            for (Object o : collector.getLoadedClasses()) {
+//                setClassCacheEntry((Class<?>) o);
+//                // System.out.println(o);
+//                classEntryCount++;
+//            }
+//        }
+//    }
 
 
     @Override
@@ -202,10 +198,11 @@ public class SuFormProperties extends BaseSubFormProperties {
                                 + "class " + className + " implements IPropGetter {"
                                 + "	@Override"
                                 + "	public Object build(IPropertyType.SubFormFilter filter) {" + this.getIdListGetScript() + "	}" + "}";
-                        //this.getIdListGetScript()
-                        loader.loadMyClass(className, script);
-                        Class<?> groovyClass = loader.loadClass(pkg + "." + className);
-                        subFormFieldsEnumGetter = (DescriptorsJSON.IPropGetter) groovyClass.newInstance();
+//                        //this.getIdListGetScript()
+//                        loader.loadMyClass(className, script);
+//                        Class<?> groovyClass = loader.loadClass(pkg + "." + className);
+                        subFormFieldsEnumGetter = GroovyShellEvaluate.createParamizerScript(this.parentClazz, className, script);
+                        //subFormFieldsEnumGetter = (DescriptorsJSON.IPropGetter) groovyClass.newInstance();
                     }
                 }
             }

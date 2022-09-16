@@ -90,29 +90,32 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
     @Override
     public List<ParamsConfig> getPlugins() {
-        List<ParamsConfig> plugins = Lists.newArrayList();
-        visitAllPluginStore((pluginStore) -> {
-            plugins.addAll(pluginStore.getPlugins());
-            return null;
+        // List<ParamsConfig> plugins = Lists.newArrayList();
+        return visitAllPluginStore((pluginStore) -> {
+            return pluginStore.getPlugins();
         });
-        return plugins;
+        // return plugins;
     }
 
 
     private <TT> TT visitAllPluginStore(Function<IPluginStore<ParamsConfig>, TT> func) {
         String[] childFiles = paramsCfgDir.list();
+        UploadPluginMeta.TargetDesc targetDesc = this.pluginMeta.getTargetDesc();
         TT result = null;
         for (String childFile : childFiles) {
-            if (!StringUtils.equals(this.pluginMeta.getTargetDesc().impl, childFile)) {
+            if (!StringUtils.equals(targetDesc.matchTargetPluginDescName, childFile)) {
                 continue;
             }
             IPluginStore<ParamsConfig> pluginStore = ParamsConfig.getChildPluginStore(childFile);
             result = func.apply(pluginStore);
-            if (result != null) {
-                return result;
-            }
+            return result;
+//            if (result != null) {
+//                return result;
+//            } else {
+//                return null;
+//            }
         }
-        return null;
+        throw new IllegalStateException("can not find any match param config store:" + targetDesc);
     }
 
 

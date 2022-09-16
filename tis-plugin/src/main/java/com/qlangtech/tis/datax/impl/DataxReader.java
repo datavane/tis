@@ -318,12 +318,12 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             return eprops;
         }
 
-        /**
-         * 如果返回null则说明不支持增量同步功能
-         *
-         * @return
-         */
-        protected abstract boolean isSupportIncr();
+//        /**
+//         * 如果返回null则说明不支持增量同步功能
+//         *
+//         * @return
+//         */
+//        protected abstract boolean isSupportIncr();
 
 
 //        protected IDataXPluginMeta.EndType getEndType() {

@@ -24,6 +24,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -39,6 +40,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -78,7 +80,7 @@ public class PropertyType implements IPropertyType {
 
     private Boolean inputRequired;
 
-    public PluginExtraProps.Props extraProp ;
+    public PluginExtraProps.Props extraProp;
 
     PropertyType(Field f, Class clazz, Type type, String displayName, FormField formField) {
         this.f = f;
@@ -253,11 +255,34 @@ public class PropertyType implements IPropertyType {
         return d;
     }
 
+    private Function<List<? extends Descriptor>, List<? extends Descriptor>> subDescFilter;
+
     /**
      * Returns all the descriptors that produce types assignable to the property type.
      */
     public List<? extends Descriptor> getApplicableDescriptors() {
-        return TIS.get().getDescriptorList(clazz);
+
+
+        if (subDescFilter == null) {
+            String subDescEnumFilter = this.getExtraProps().getString(PluginExtraProps.KEY_ENUM_FILTER);
+            if (StringUtils.isNotEmpty(subDescEnumFilter)) {
+                String className = this.clazz.getSimpleName() + "_SubFilter";
+                String pkg = this.clazz.getPackage().getName();
+                String script = "	package " + pkg + " ;\n"
+                        + "import java.util.function.Function;\n"
+                        + "import java.util.List;\n"
+                        + "import com.qlangtech.tis.extension.Descriptor;\n"
+                        + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends Descriptor>> { \n"
+                        + "	@Override \n"
+                        + "	public List<? extends Descriptor> apply(List<? extends Descriptor> desc) {" + subDescEnumFilter + "	}" + "}";
+
+                subDescFilter = GroovyShellEvaluate.createParamizerScript(this.clazz, className, script);
+            } else {
+                subDescFilter = (descs) -> descs;
+            }
+        }
+
+        return subDescFilter.apply(TIS.get().getDescriptorList(clazz));
     }
 
     /**
