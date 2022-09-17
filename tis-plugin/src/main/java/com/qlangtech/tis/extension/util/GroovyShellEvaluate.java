@@ -23,7 +23,6 @@ import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import groovy.lang.GroovyClassLoader;
@@ -74,7 +73,7 @@ public class GroovyShellEvaluate {
 
     private static final class CustomerGroovyClassLoader extends GroovyClassLoader {
         public CustomerGroovyClassLoader() {
-            super(new ClassLoader(SuFormProperties.class.getClassLoader()) {
+            super(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
                       @Override
                       protected Class<?> findClass(String name) throws ClassNotFoundException {
                           // return super.findClass(name);
@@ -86,7 +85,7 @@ public class GroovyShellEvaluate {
 
         @SuppressWarnings("all")
         public void loadMyClass(String name, String script) throws Exception {
-            CompilationUnit unit = new CompilationUnit();
+            CompilationUnit unit = new CompilationUnit(this);
             SourceUnit su = unit.addSource(name, script);
             ClassCollector collector = createCollector(unit, su);
             unit.setClassgenCallback(collector);

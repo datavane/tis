@@ -159,7 +159,8 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
             EndType targetType = this.getTargetType();
             vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
             vals.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
-                    , (this instanceof IIncrSelectedTabExtendFactory));
+                    , (this instanceof IIncrSelectedTabExtendFactory)
+                            && (((IIncrSelectedTabExtendFactory) this).getSelectedTableExtendDescriptor() != null));
             return vals;
         }
 

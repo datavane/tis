@@ -56,7 +56,8 @@ public abstract class MQListenerFactory
         // Field subFormField, Class instClazz, Descriptor subFormFieldsDescriptor
         Descriptor<IncrSelectedTabExtend> selectedTableExtendDesc
                 = ((IIncrSelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
-        return Optional.of(selectedTableExtendDesc);
+
+        return Optional.ofNullable(selectedTableExtendDesc);
 //        if (selectedTableExtendDesc == null) {
 //           // throw new IllegalStateException("selectedTableExtendDesc can not be null,relevant desc:" + descriptor.getClass().getName());
 //        }
@@ -88,7 +89,8 @@ public abstract class MQListenerFactory
             Map<String, Object> eprops = new HashMap<>();
             Optional<EndType> targetType = this.getTargetType();
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
-            eprops.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP, (this instanceof IIncrSelectedTabExtendFactory));
+            eprops.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
+                    , (this instanceof IIncrSelectedTabExtendFactory) && (((IIncrSelectedTabExtendFactory) this).getSelectedTableExtendDescriptor() != null));
             return eprops;
         }
 

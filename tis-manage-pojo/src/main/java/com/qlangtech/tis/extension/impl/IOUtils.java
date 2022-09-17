@@ -119,7 +119,8 @@ public class IOUtils {
         try {
             try (InputStream input = clazz.getResourceAsStream(resName)) {
                 if (throwErr) {
-                    Objects.requireNonNull(input, "resource:" + (resName) + " can not find relevant content");
+                    Objects.requireNonNull(input, "resource:" + (resName)
+                            + " can not find relevant content,relevant class:" + clazz.getName());
                 }
                 if (input == null) {
                     return null;

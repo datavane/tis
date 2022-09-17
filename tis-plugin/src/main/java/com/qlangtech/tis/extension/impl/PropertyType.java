@@ -266,12 +266,13 @@ public class PropertyType implements IPropertyType {
         if (subDescFilter == null) {
             String subDescEnumFilter = this.getExtraProps().getString(PluginExtraProps.KEY_ENUM_FILTER);
             if (StringUtils.isNotEmpty(subDescEnumFilter)) {
-                String className = this.clazz.getSimpleName() + "_SubFilter";
+                String className = this.clazz.getSimpleName() + "_" + this.f.getName() + "_SubFilter";
                 String pkg = this.clazz.getPackage().getName();
                 String script = "	package " + pkg + " ;\n"
                         + "import java.util.function.Function;\n"
                         + "import java.util.List;\n"
                         + "import com.qlangtech.tis.extension.Descriptor;\n"
+                       // + "import com.qlangtech.plugins.incr.flink.chunjun.sink.SinkTabPropsExtends;\n"
                         + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends Descriptor>> { \n"
                         + "	@Override \n"
                         + "	public List<? extends Descriptor> apply(List<? extends Descriptor> desc) {" + subDescEnumFilter + "	}" + "}";
