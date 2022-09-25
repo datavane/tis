@@ -23,7 +23,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
@@ -34,6 +36,7 @@ import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.PluginMeta;
+import com.qlangtech.tis.util.RobustReflectionConverter;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
@@ -202,6 +205,33 @@ public class PluginAndCfgsSnapshot {
     }
 
 
+    /**
+     * 通过运行时遍历的方式取得到Manifest
+     *
+     * @param collection
+     * @param timestamp
+     * @return
+     * @throws Exception
+     */
+    public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp) throws Exception {
+        Manifest manifest = null;
+        RobustReflectionConverter.PluginMetas pluginMetas = null;
+        try {
+            pluginMetas = RobustReflectionConverter.getUnCacheableThreadMetas();
+            MQListenerFactory sourceFactory =  HeteroEnum.getIncrSourceListenerFactory(collection.getName());
+            sourceFactory.create();
+
+            // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
+            DataxProcessor processor = DataxProcessor.load(null, collection.getName());
+            TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
+            incrSinKFactory.createSinkFunction(processor);
+            //  RobustReflectionConverter.usedPluginInfo.get();
+        } finally {
+            RobustReflectionConverter.usedPluginInfo.remove();
+        }
+        return createFlinkIncrJobManifestCfgAttrs(collection, timestamp, pluginMetas.getMetas());
+    }
+
     public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs2File
             (File manifestJar, TargetResName collection, long timestamp
                     , Optional<Predicate<PluginMeta>> pluginMetasFilter
@@ -218,8 +248,9 @@ public class PluginAndCfgsSnapshot {
 
     public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp, Set<PluginMeta> appendPluginMeta) throws Exception {
         return createManifestCfgAttrs(collection, timestamp, Optional.empty()
-                , Sets.union(appendPluginMeta, Collections.singleton(new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + collection.getName()
-                        , Config.getMetaProps().getVersion(), Optional.empty()))));
+                , Sets.union(appendPluginMeta
+                        , Collections.singleton(new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + collection.getName()
+                                , Config.getMetaProps().getVersion(), Optional.empty()))));
     }
 
     public static Manifest createManifestCfgAttrs(
@@ -498,8 +529,8 @@ public class PluginAndCfgsSnapshot {
         }
         JSONArray ms = null;
         String metsAttr = null;
-        try {
-            metsAttr = pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META);
+        try {//KeyedPluginStore.PluginMetas.KEY_PLUGIN_META
+            metsAttr = pluginMetas.getValue(Config.KEY_PLUGIN_METAS);
             ms = JSONArray.parseArray(metsAttr);
         } catch (Exception e) {
             throw new RuntimeException("illegal metaAttr:" + metsAttr, e);
@@ -694,7 +725,8 @@ public class PluginAndCfgsSnapshot {
             }
             jarray.add(meta.toString());
         });
-        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META), jarray.toJSONString());
+        // KeyedPluginStore.PluginMetas.KEY_PLUGIN_META
+        pmetas.put(new Attributes.Name(Config.KEY_PLUGIN_METAS), jarray.toJSONString());
 
         pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP)
                 , String.valueOf(this.appLastModifyTimestamp));

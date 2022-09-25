@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
@@ -45,6 +46,23 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
     protected void setUp() throws Exception {
         // super.setUp();
         CenterResource.setNotFetchFromCenterRepository();
+    }
+
+    public void testCreateFlinkIncrJobManifestCfgAttrs() throws Exception {
+        String appName = "mysql_clickhouse4";
+        DataxReader dataxReader = DataxReader.load(null, appName);
+        Assert.assertNotNull(dataxReader.getSelectedTabs());
+
+        Assert.assertNotNull(dataxReader);
+
+        Manifest manifest = PluginAndCfgsSnapshot.createFlinkIncrJobManifestCfgAttrs(
+                new TargetResName(appName), 20220919155519463l);
+        Assert.assertNotNull(manifest);
+        // manifest.toString()
+
+        Attributes pluginMetas = manifest.getEntries().get(Config.KEY_PLUGIN_METAS);
+        String metas = pluginMetas.getValue(Config.KEY_PLUGIN_METAS);
+        System.out.println(metas);
     }
 
 
@@ -77,8 +95,8 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
 
         snapshot.attachPluginCfgSnapshot2Manifest(manifest);
         Attributes metas = manifest.getAttributes(Config.KEY_PLUGIN_METAS);
-
-        String metaVal = metas.getValue(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META));
+        // KeyedPluginStore.PluginMetas.KEY_PLUGIN_META
+        String metaVal = metas.getValue(new Attributes.Name(Config.KEY_PLUGIN_METAS));
         System.out.println("------------------------");
         System.out.println(metaVal);
 

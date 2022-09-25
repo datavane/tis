@@ -68,6 +68,12 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         return (DS) super.getPlugin();
     }
 
+    @Override
+    public DataSourceFactory getPlugin() {
+        DataSourceFactory dsFactory = super.getPlugin();
+        return dsFactory;
+    }
+
     public void deleteDB() throws Exception {
         XmlFile targetFile = this.getTargetFile();
         if (getDSKey().isFacadeType()) {

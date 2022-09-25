@@ -55,8 +55,6 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
     private static final Logger logger = LoggerFactory.getLogger(TISSinkFactory.class);
 
     public static Optional<Descriptor<IncrSelectedTabExtend>> getIncrSinkSelectedTabExtendDescriptor(String dataXName) {
-        //MQListenerFactory incrSourceFactory = HeteroEnum.getIncrSourceListenerFactory(dataXName);
-        //  sinkFactory.getPlugin()
         IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
         List<TISSinkFactory> sinkFactories = sinkFactory.getPlugins(pluginContext, null);
         TISSinkFactory sinkFactory = null;
@@ -67,24 +65,16 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
         Objects.requireNonNull(sinkFactory, "sinkFactory can not be null, dataXName:" + dataXName + " sinkFactories size:" + sinkFactories.size());
         Descriptor<TISSinkFactory> descriptor = sinkFactory.getDescriptor();
         if (!(descriptor instanceof IIncrSelectedTabExtendFactory)) {
-//            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must be instance of "
-//                    + IIncrSourceSelectedTabExtendFactory.class.getName());
             return Optional.empty();
         }
-        // Field subFormField, Class instClazz, Descriptor subFormFieldsDescriptor
+
         Descriptor<IncrSelectedTabExtend> selectedTableExtendDesc
                 = ((IIncrSelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
         return Optional.ofNullable(selectedTableExtendDesc);
-//        if (selectedTableExtendDesc == null) {
-//           // throw new IllegalStateException("selectedTableExtendDesc can not be null,relevant desc:" + descriptor.getClass().getName());
-//        }
-//        return Optional.of(selectedTableExtendDesc);
     }
 
     public static void main(String[] args) throws Exception {
         URL url = new URL("jar:file:/opt/data/tis/libs/plugins/flink/hudi/WEB-INF/lib/../../WEB-INF/lib/hudi-incr.jar!/META-INF/annotations/com.qlangtech.tis.extension.TISExtension");
-        // InputStream inputStream = url.openStream();
-        //Objects.requireNonNull(inputStream);
         System.out.println(IOUtils.toString(url, TisUTF8.get()));
 
     }
@@ -103,7 +93,6 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
 
 
     public static TISSinkFactory getIncrSinKFactory(IPluginContext pluginContext) {
-        // IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
         List<TISSinkFactory> sinkFactories = sinkFactory.getPlugins(pluginContext, null);
         TISSinkFactory sinkFactory = null;
         logger.info("sinkFactories size:" + sinkFactories.size());
@@ -136,6 +125,8 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
      * @return
      */
     public abstract <SinkFunc> Map<IDataxProcessor.TableAlias, SinkFunc> createSinkFunction(IDataxProcessor dataxProcessor);
+
+
 
     @Override
     public final Descriptor<TISSinkFactory> getDescriptor() {

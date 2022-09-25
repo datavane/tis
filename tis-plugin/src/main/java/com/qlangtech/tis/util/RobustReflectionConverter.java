@@ -56,12 +56,59 @@ public class RobustReflectionConverter implements Converter {
 
     public static final String KEY_ATT_PLUGIN = "plugin";
 
-    public static ThreadLocal<Set<PluginMeta>> usedPluginInfo = new ThreadLocal<Set<PluginMeta>>() {
+    public static ThreadLocal<PluginMetas> usedPluginInfo = new ThreadLocal<PluginMetas>() {
         @Override
-        protected Set<PluginMeta> initialValue() {
-            return new HashSet<PluginMeta>();
+        protected PluginMetas initialValue() {
+            return new PluginMetas();
+        }
+
+        @Override
+        public void remove() {
+            super.remove();
         }
     };
+
+    public static PluginMetas getUnCacheableThreadMetas() {
+        usedPluginInfo.remove();
+        PluginMetas metas = usedPluginInfo.get();
+        return metas.unCacheableFromPluginStore();
+    }
+
+    public static class PluginMetas {
+        private final Set<PluginMeta> metas = new HashSet<>();
+        // 可以从pluginStore中取数据
+        private boolean cacheable = true;
+
+        public Set<PluginMeta> getMetas() {
+            return this.metas;
+        }
+
+//        public void add(PluginMeta meta) {
+//            this.metas.add(meta);
+//        }
+
+        public void addAll(Collection<PluginMeta> metas) {
+            this.metas.addAll(metas);
+        }
+
+        private PluginMetas unCacheableFromPluginStore() {
+            this.cacheable = false;
+            return this;
+        }
+
+        public boolean isCacheable() {
+            return this.cacheable;
+        }
+
+        /**
+         * 当前正在收集plugin metaData不需要对持久层起作用
+         *
+         * @return
+         */
+        public boolean isDryRun() {
+            return !isCacheable();
+        }
+    }
 
     protected final ReflectionProvider reflectionProvider;
 
@@ -305,10 +352,13 @@ public class RobustReflectionConverter implements Converter {
             // baisui add for get plugin name&ver 2020/4/2 start
             if (KEY_ATT_PLUGIN.equals(attrAlias) && !fieldExistsInClass) {
                 List<PluginMeta> metas = PluginMeta.parse(reader.getAttribute(attrAlias));
-                if( context instanceof XmlFile.DefaultDataHolder){
-                    ((Set<PluginMeta>) context.get(PluginMeta.class)).addAll(metas);
+                Set<PluginMeta> metasCollector = (Set<PluginMeta>) context.get(PluginMeta.class);
+                // if (context instanceof XmlFile.DefaultDataHolder) {
+                if (metasCollector != null) {
+                    metasCollector.addAll(metas);
                 }
-                usedPluginInfo.get().addAll(metas);
+                // }
+                // usedPluginInfo.get().addAll(metas);
             }
             // baisui add for get plugin name&ver 2020/4/2 end
             if (fieldExistsInClass) {

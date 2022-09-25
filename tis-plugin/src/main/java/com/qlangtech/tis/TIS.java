@@ -681,7 +681,7 @@ public class TIS {
                     XmlFile xmlFile = new XmlFile(new XStream2PluginInfoReader(XmlFile.DEFAULT_DRIVER), incrConfig);
                     xmlFile.read();
                 }
-                return RobustReflectionConverter.usedPluginInfo.get();
+                return RobustReflectionConverter.usedPluginInfo.get().getMetas();
             }
         } catch (IOException e) {
             throw new RuntimeException("collection:" + collection + " relevant configs:"

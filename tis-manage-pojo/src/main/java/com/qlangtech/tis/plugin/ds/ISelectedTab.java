@@ -103,5 +103,13 @@ public interface ISelectedTab {
         public void setType(DataType type) {
             this.type = type;
         }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "name='" + name + '\'' +
+                    ", type=" + type +
+                    '}';
+        }
     }
 }

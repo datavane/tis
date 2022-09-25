@@ -91,32 +91,12 @@ public class ComponentMeta {
             for (IRepositoryResource res : this.resources) {
                 File targetFile = res.getTargetFile().getFile();
                 if (!targetFile.exists()) {
-                    //  throw new IllegalStateException("file:" + targetFile.getAbsolutePath() + " is not exist");
                     continue;
                 }
                 cfgs.add(targetFile);
             }
             return cfgs;
         });
-
-//        synchronized (RobustReflectionConverter.usedPluginInfo) {
-//            RobustReflectionConverter.usedPluginInfo.remove();
-//            XStream2PluginInfoReader reader = new XStream2PluginInfoReader(XmlFile.DEFAULT_DRIVER);
-//            for (IRepositoryResource res : this.resources) {
-//                File targetFile = res.getTargetFile();
-//                if (!targetFile.exists()) {
-//                    //  throw new IllegalStateException("file:" + targetFile.getAbsolutePath() + " is not exist");
-//                    continue;
-//                }
-//                try {
-//                    XmlFile xmlFile = new XmlFile(reader, targetFile);
-//                    xmlFile.read();
-//                } catch (IOException e) {
-//                    throw new RuntimeException(targetFile.getAbsolutePath(), e);
-//                }
-//            }
-//            return RobustReflectionConverter.usedPluginInfo.get();
-//        }
     }
 
 
@@ -132,21 +112,7 @@ public class ComponentMeta {
                     XmlFile xmlFile = new XmlFile(reader, targetFile);
                     xmlFile.read();
                 }
-
-//                for (IRepositoryResource res : this.resources) {
-//                    File targetFile = res.getTargetFile();
-//                    if (!targetFile.exists()) {
-//                        //  throw new IllegalStateException("file:" + targetFile.getAbsolutePath() + " is not exist");
-//                        continue;
-//                    }
-//                    try {
-//                        XmlFile xmlFile = new XmlFile(reader, targetFile);
-//                        xmlFile.read();
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(targetFile.getAbsolutePath(), e);
-//                    }
-//                }
-                return  RobustReflectionConverter.usedPluginInfo.get();
+                return RobustReflectionConverter.usedPluginInfo.get().getMetas();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

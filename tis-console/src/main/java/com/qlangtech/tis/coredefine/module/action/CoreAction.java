@@ -316,14 +316,7 @@ public class CoreAction extends BasicModule {
           incrStatus.setState(details.getIncrJobStatus().getState());
         }
       });
-
-//      JobType.RemoteCallResult<IndexJobRunningStatus> callResult
-//        = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
-//        getAssembleNodeAddress(module.getSolrZkClient()),
-//        module.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
-//      if (callResult.success) {
       incrStatus.setIncrProcess(null);
-      //}
     }
     return incrStatus;
   }
@@ -332,46 +325,16 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
-    // IncrStreamFactory incrStream = null;
     if ((store.getPlugin()) == null) {
       incrStatus.setK8sPluginInitialized(false);
       return incrStatus;
     }
 
-//    incrStatus.setK8sPluginInitialized(true);
-//    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
-//    StreamCodeContext streamCodeContext
-//      = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
-//    incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
     TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
     k8s.checkUseable();
     IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
     return getIndexIncrStatus(module, rcConfig);
-//    incrStatus.setState(rcConfig != null ? IFlinkIncrJobStatus.State.RUNNING : IFlinkIncrJobStatus.State.NONE);
-//    if (rcConfig != null) {
-//      rcConfig.accept(new IDeploymentDetail.IDeploymentDetailVisitor() {
-//        @Override
-//        public void visit(RcDeployment rcDeployment) {
-//          incrStatus.setRcDeployment(rcDeployment);
-//        }
-//
-//        @Override
-//        public void visit(FlinkJobDeploymentDetails details) {
-//          incrStatus.setFlinkJobDetail(details);
-//          // 这里有三种状态
-//          incrStatus.setState(details.getIncrJobStatus().getState());
-//        }
-//      });
-//
-////      JobType.RemoteCallResult<IndexJobRunningStatus> callResult
-////        = JobType.QueryIndexJobRunningStatus.assembIncrControlWithResult(
-////        getAssembleNodeAddress(module.getSolrZkClient()),
-////        module.getCollectionName(), Collections.emptyList(), IndexJobRunningStatus.class);
-////      if (callResult.success) {
-//      incrStatus.setIncrProcess(null);
-//      //}
-//    }
-//    return incrStatus;
+
   }
 
   public static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module) {

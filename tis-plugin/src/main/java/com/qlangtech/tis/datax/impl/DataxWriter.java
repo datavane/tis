@@ -26,10 +26,12 @@ import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -39,6 +41,23 @@ import java.util.Objects;
  */
 @Public
 public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWriter {
+
+    /**
+     * 初始化表RDBMS的表，如果表不存在就创建表
+     *
+     * @param
+     * @throws Exception
+     */
+    public static void process(String dataXName, String tableName, List<String> jdbcUrls) throws Exception {
+        if (StringUtils.isEmpty(dataXName)) {
+            throw new IllegalArgumentException("param dataXName can not be null");
+        }
+        IInitWriterTableExecutor dataXWriter
+                = (IInitWriterTableExecutor) DataxWriter.load(null, dataXName);
+
+        Objects.requireNonNull(dataXWriter, "dataXWriter can not be null,dataXName:" + dataXName);
+        dataXWriter.initWriterTable(tableName, jdbcUrls);
+    }
 
     /**
      * save

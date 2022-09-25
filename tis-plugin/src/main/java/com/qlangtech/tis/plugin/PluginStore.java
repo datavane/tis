@@ -352,7 +352,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
     private synchronized void load() {
         logger.info("load:" + this.file.getFile().getAbsolutePath() + ",this.loaded:" + this.loaded);
-        if (this.loaded) {
+        RobustReflectionConverter.PluginMetas metasCollector = RobustReflectionConverter.usedPluginInfo.get();
+        if ( metasCollector.isCacheable() && this.loaded) {
             return;
         }
         // MapBackedDataHolder dataHolder = new MapBackedDataHolder();
@@ -392,6 +393,6 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 throw new RuntimeException(file.getFile().getAbsolutePath() + "\n" + TIS.get().getPluginManager().getFaildPluginsDesc(), t);
             }
         }
-        this.pluginMetas = pluginMetas;
+        this.pluginMetas = CollectionUtils.isEmpty(pluginMetas) ? null : pluginMetas;
     }
 }
