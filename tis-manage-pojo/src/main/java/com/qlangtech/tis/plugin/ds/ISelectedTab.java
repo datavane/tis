@@ -48,7 +48,7 @@ public interface ISelectedTab {
      * <p>
      * //@see com.qlangtech.tis.plugin.ds.ColumnMetaData
      */
-    public class ColMeta implements Serializable {
+    public class ColMeta implements Serializable, IColMetaGetter {
         private String name;
         private DataType type;
         private Boolean pk = false;
@@ -77,7 +77,8 @@ public interface ISelectedTab {
          *
          * @return
          */
-        public Boolean isPk() {
+        @Override
+        public boolean isPk() {
             return this.pk;
         }
 
