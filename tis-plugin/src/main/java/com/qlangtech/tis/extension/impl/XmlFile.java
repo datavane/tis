@@ -29,6 +29,7 @@ import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.XppDriver;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -40,7 +41,6 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -204,7 +204,12 @@ public final class XmlFile {
     }
 
     public void mkdirs() {
-        file.getParentFile().mkdirs();
+        try {
+            FileUtils.forceMkdirParent(file);
+        } catch (IOException e) {
+            throw new RuntimeException("file:" + file.getAbsolutePath(), e);
+        }
+//        file.getParentFile().mkdirs();
     }
 
     @Override

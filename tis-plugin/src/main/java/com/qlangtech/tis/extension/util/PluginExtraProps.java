@@ -77,7 +77,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                         throw new IllegalStateException("field:" + fieldKey + " relevant propHelp can not be add twice");
                     }
                 } else {
-                    Objects.requireNonNull(propHelp, "propHelp can not be null");
+                    Objects.requireNonNull(propHelp, "propHelp can not be null,file:" + mdRes);
                     propHelp.append(line).append("\n");
                 }
             }

@@ -35,7 +35,7 @@ public interface IMessageHandler {
      * 错误信息是否是显示在页面上，而不是消息提示框中
      */
     String ACTION_ERROR_PAGE_SHOW = "action_error_page_show";
-    String TSEARCH_PACKAGE = "com.qlangtech.tis";
+    String TSEARCH_PACKAGE = com.qlangtech.tis.Package.class.getPackage().getName();// "com.qlangtech.tis";
 
     void errorsPageShow(final Context context);
 
