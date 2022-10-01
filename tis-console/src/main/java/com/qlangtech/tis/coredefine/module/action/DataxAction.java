@@ -33,6 +33,7 @@ import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -569,6 +570,9 @@ public class DataxAction extends BasicModule {
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
 
     IDataxWriter writer = dataxProcessor.getWriter(this);
+    if (writer.isGenerateCreateDDLSwitchOff()) {
+      throw new TisException("自动生成Create Table DDL已经关闭，请先打开再使用");
+    }
     DataxWriter.BaseDataxWriterDescriptor writerDesc = writer.getWriterDescriptor();
     if (!writerDesc.isSupportTabCreate()) {
       throw new IllegalStateException("writerDesc:" + writerDesc.getDisplayName() + " is not support generate Table create DDL");

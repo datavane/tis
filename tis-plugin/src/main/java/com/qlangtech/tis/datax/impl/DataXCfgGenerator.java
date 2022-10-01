@@ -25,6 +25,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.*;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
@@ -238,7 +239,6 @@ public class DataXCfgGenerator {
                 throw new IllegalStateException("unexpect status");
             }
             scriptFileGenerator.generateScriptFile(reader, writer, readerContext, createDDLFiles, tableMapper);
-            // generateScriptFile(dataXCfgDir, reader, writer, readerContext, subTaskName, createDDLFiles, tableMapper);
         }
 
         // 将老的已经没有用的ddl sql文件删除调
@@ -247,6 +247,9 @@ public class DataXCfgGenerator {
             if (!createDDLFiles.contains(oldDDLFile)) {
                 FileUtils.deleteQuietly(new File(createDDLDir, oldDDLFile));
             }
+        }
+        if (CollectionUtils.isEmpty(createDDLFiles)) {
+            throw new IllegalStateException("createDDLFiles can not be empty ");
         }
         GenerateCfgs cfgs = new GenerateCfgs(this.dataxProcessor.getDataxCfgDir(this.pluginCtx));
         long current = System.currentTimeMillis();
@@ -280,6 +283,9 @@ public class DataXCfgGenerator {
 
     public static void generateTabCreateDDL(IPluginContext pluginCtx, IDataxProcessor dataxProcessor, IDataxWriter writer
             , IDataxReaderContext readerContext, Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper, boolean overWrite) throws IOException {
+//        if (writer.isGenerateCreateDDLDisabled()) {
+//          throw new TisException("应用："+ pluginCtx.getCollectionName()+"");
+//        }
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
         if (tableMapper.isPresent() && writerDescriptor.isSupportTabCreate()) {
             for (ISelectedTab.ColMeta colMeta : tableMapper.get().getSourceCols()) {
@@ -293,6 +299,7 @@ public class DataXCfgGenerator {
             IDataxProcessor.TableMap mapper = tableMapper.get();
             String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
             if (!createDDLFiles.contains(sqlFileName)) {
+
                 CreateTableSqlBuilder.CreateDDL createDDL = writer.generateCreateDDL(mapper);
                 if (createDDL != null) {
                     createDDLFiles.add(sqlFileName);

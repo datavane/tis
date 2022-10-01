@@ -976,7 +976,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             vals.put(AttrValMap.PLUGIN_EXTENSION_IMPL, formImpl);
 
             o.put(KEY_DESC_VAL, vals);
-            attrValMap.put(key, new JSONArray(Collections.singletonList(o)));
+            // attrValMap.put(key, new JSONArray(Collections.singletonList(o)));
+            attrValMap.put(key, o);
             return o;
         }
     }
@@ -1188,8 +1189,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             return new AttrVals(attrValMap);
         }
         // Object vals = jsonObject.get("vals");
-        if (vals instanceof com.alibaba.fastjson.JSONObject) {
-            ((JSONObject) vals).forEach((attrName, val) -> {
+        if (vals instanceof Map) {
+            ((Map<String, Object>) vals).forEach((attrName, val) -> {
                 attrValMap.put(attrName, (JSON) val);
             });
         }
