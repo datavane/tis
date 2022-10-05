@@ -1,19 +1,19 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 
 package com.qlangtech.tis.datax.impl;
@@ -111,7 +111,6 @@ public class DataXCfgGenerator {
     public GenerateCfgs getExistCfg(File parentDir) throws Exception {
         File dataxCfgDir = dataxProcessor.getDataxCfgDir(this.pluginCtx);
         GenerateCfgs generateCfgs = new GenerateCfgs(dataxCfgDir);
-        // IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
 
         File genFile = new File(parentDir, FILE_GEN);
         if (!genFile.exists()) {
@@ -124,10 +123,6 @@ public class DataXCfgGenerator {
         GenerateCfgs cfgs = GenerateCfgs.readFromGen(dataxCfgDir);
         generateCfgs.genTime = cfgs.getGenTime();
         generateCfgs.setGroupedChildTask(cfgs.getGroupedChildTask());
-//                .values().stream()
-//                .flatMap((tasks) -> tasks.stream())
-//                .map((task) -> task + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
-//                .collect(Collectors.toList());
         return generateCfgs;
     }
 
@@ -223,8 +218,8 @@ public class DataXCfgGenerator {
             } else if (dataxProcessor.isRDBMS2UnStructed(this.pluginCtx)) {
                 // example: mysql -> oss
                 Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
-                ISelectedTab tab = selectedTabs.get(readerContext.getSourceEntityName());
-                Objects.requireNonNull(tab, readerContext.getSourceEntityName() + " relevant tab can not be null");
+                ISelectedTab tab = selectedTabs.get(readerContext.getSourceTableName());
+                Objects.requireNonNull(tab, readerContext.getSourceTableName() + " relevant tab can not be null");
                 IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(tab);
                 //m.setSourceCols(tab.getCols());
                 m.setTo(tab.getName());
@@ -282,15 +277,13 @@ public class DataXCfgGenerator {
     }
 
     public static void generateTabCreateDDL(IPluginContext pluginCtx, IDataxProcessor dataxProcessor, IDataxWriter writer
-            , IDataxReaderContext readerContext, Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper, boolean overWrite) throws IOException {
-//        if (writer.isGenerateCreateDDLDisabled()) {
-//          throw new TisException("应用："+ pluginCtx.getCollectionName()+"");
-//        }
+            , IDataxReaderContext readerContext, Set<String> createDDLFiles
+            , Optional<IDataxProcessor.TableMap> tableMapper, boolean overWrite) throws IOException {
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
         if (tableMapper.isPresent() && writerDescriptor.isSupportTabCreate()) {
             for (ISelectedTab.ColMeta colMeta : tableMapper.get().getSourceCols()) {
                 if (colMeta.getType() == null) {
-                    throw new IllegalStateException("reader context:" + readerContext.getSourceEntityName()
+                    throw new IllegalStateException("reader context:" + readerContext.getSourceTableName()
                             + " relevant col type which's name " + colMeta.getName() + " can not be null");
                 }
             }
@@ -345,14 +338,6 @@ public class DataXCfgGenerator {
             return this._dataxFiles;
         }
 
-//        File dataXCfg = null;
-//        for (String child : genCfgs.getDataxFiles()) {
-//            dataXCfg = new File(dataxCfgDir, child);
-//            if (!dataXCfg.exists()) {
-//                throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
-//            }
-//            dataXConf.add(dataXCfg);
-//        }
 
         private Map<String, List<String>> getGroupedChildTask() {
             if (groupedChildTask == null) {
@@ -368,9 +353,6 @@ public class DataXCfgGenerator {
          * @return
          */
         public List<String> getDataXTaskDependencies(String taskGroupName) {
-//        File dataXWorkDir = IDataxProcessor.getDataXWorkDir(null, this.hudiWriter.dataXName);
-//        DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataXWorkDir);
-//        return generateCfgs.getGroupedChildTask().get(tableName);
             List<String> subChildTask = null;
             if (CollectionUtils.isEmpty(subChildTask = this.getGroupedChildTask().get(taskGroupName))) {
                 throw new IllegalStateException("taskGroupName:" + taskGroupName + " relevant childTask can not be empty");
@@ -435,12 +417,13 @@ public class DataXCfgGenerator {
     private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias
             , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
 
-        IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceEntityName());
+        IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceTableName());
         if (tableAlias == null) {
-            throw new IllegalStateException("sourceTable:" + readerContext.getSourceEntityName() + " can not find relevant 'tableAlias' keys:["
+            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName()
+                    + " can not find relevant 'tableAlias' keys:["
                     + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
         }
-        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceEntityName());
+        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceTableName());
         IDataxProcessor.TableMap
                 tableMap = new IDataxProcessor.TableMap(selectedTab);
         tableMap.setFrom(tableAlias.getFrom());
@@ -462,16 +445,7 @@ public class DataXCfgGenerator {
         if (StringUtils.isEmpty(tpl)) {
             throw new IllegalStateException("velocity template content can not be null");
         }
-        // IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
-        // IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
-
-//        DataxWriter.BaseDataxWriterDescriptor wdesc = writer.getWriterDescriptor();
-//        if(wdesc.isSupportTabCreate()){
-//
-//        }
-
         try {
-
             VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap));
             writerContent = new StringWriter();
             velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
@@ -503,7 +477,8 @@ public class DataXCfgGenerator {
 
     }
 
-    public static void validatePluginName(IDataXPluginMeta.DataXMeta writer, IDataXPluginMeta.DataXMeta reader, String writerName, String readerName) {
+    public static void validatePluginName(IDataXPluginMeta.DataXMeta writer
+            , IDataXPluginMeta.DataXMeta reader, String writerName, String readerName) {
         if (!StringUtils.equals(readerName, reader.getName())) {
             throw new IllegalStateException("reader plugin name:" + readerName + " must equal with '" + reader.getName() + "'");
         }

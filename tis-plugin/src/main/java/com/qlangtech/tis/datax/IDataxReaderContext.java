@@ -30,4 +30,11 @@ public interface IDataxReaderContext extends IDataxContext {
      * @return
      */
     String getSourceEntityName();
+
+    /**
+     * 原表名称'getSourceEntityName' 方法返回的多escape符号包裹
+     *
+     * @return
+     */
+    String getSourceTableName();
 }
