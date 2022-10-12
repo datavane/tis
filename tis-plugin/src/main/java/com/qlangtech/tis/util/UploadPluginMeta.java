@@ -100,10 +100,6 @@ public class UploadPluginMeta {
         return this.getBoolean(KEY_APPEND);
     }
 
-//    public String getTargetPluginDesc() {
-//
-//    }
-
     public boolean isDisableBizSet() {
         return this.getBoolean(KEY_DISABLE_BIZ_SET);
     }
@@ -116,11 +112,6 @@ public class UploadPluginMeta {
         System.out.println(matcher.group(1));
         System.out.println(matcher.group(2));
 
-//        Matcher matcher = PATTERN_PLUGIN_ATTRIBUTE.matcher("_3sfgG");
-////        if(matcher.matches()){
-////
-////        }
-//        System.out.println(matcher.matches());
     }
 
     public static List<UploadPluginMeta> parse(String[] plugins) {
@@ -202,15 +193,9 @@ public class UploadPluginMeta {
                 IncrSelectedTabExtend.IncrTabExtendSuit incrTabExtendSuit = IncrSelectedTabExtend.getIncrTabExtendSuit(this);
 
                 HeteroEnum<MQListenerFactory> mq = HeteroEnum.MQ;
-//                Optional<Descriptor<IncrSelectedTabExtend>> selectedTableExtendDesc
-//                        = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(this.getDataXName());
-//                Class<T> extensionPoint,
-//                String identity, String caption, Selectable selectable, boolean appNameAware
                 return new HeteroEnum(mq.extensionPoint, mq.identity, mq.caption, mq.selectable, mq.isAppNameAware()) {
                     @Override
                     public List getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-                        // return super.getPlugins(pluginContext, pluginMeta);
-
                         if (subFilter.subformDetailView) {
                             SelectedTab ext = null;
                             Map<String, SelectedTab> tabsExtend = IncrSelectedTabExtend.getTabExtend(pluginMeta);
@@ -220,18 +205,14 @@ public class UploadPluginMeta {
                                 return Collections.emptyList();
                             }
                             return ext.getIncrExtProp();
-                            //  return Lists.newArrayList(ext.getIncrSourceProps(), ext.getIncrSinkProps());
                         }
 
                         return DATAX_READER.getPlugins(pluginContext
                                 , UploadPluginMeta.parse(pluginContext, pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName()));
-
-                        //  return DATAX_READER.getPlugins(pluginContext, pluginMeta);
                     }
 
                     @Override
                     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-                        // return super.getPluginStore(pluginContext, pluginMeta);
                         return IncrSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
                     }
 
@@ -267,8 +248,6 @@ public class UploadPluginMeta {
     public Optional<IPropertyType.SubFormFilter> getSubFormFilter() {
 
         TargetDesc targetDesc = this.getTargetDesc();
-        // String targetDescImpl = this.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION);
-
         String subFormField = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD);
         if (StringUtils.isNotEmpty(targetDesc.descDisplayName) && StringUtils.isNotEmpty(subFormField)) {
             return Optional.of(new IPropertyType.SubFormFilter(this, targetDesc //, targetDescImpl
@@ -304,10 +283,6 @@ public class UploadPluginMeta {
                     || StringUtils.equals(displayName, this.matchTargetPluginDescName);
         }
 
-//        public String getName() {
-//            return name;
-//        }
-
         @Override
         public String toString() {
             return "TargetDesc{" +
@@ -316,20 +291,10 @@ public class UploadPluginMeta {
                     ", matchTargetPluginDescName='" + matchTargetPluginDescName + '\'' +
                     '}';
         }
-
-//        @Override
-//        public String toString() {
-//            return this.descDisplayName;
-//        }
     }
 
     public TargetDesc getTargetDesc() {
-//        String targetDesc = getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_NAME);
-//        if (StringUtils.isNotEmpty(targetDesc)) {
         return TargetDesc.create(this);
-        //  return new TargetDesc();
-        //}
-        //return null;
     }
 
     public String getExtraParam(String key) {

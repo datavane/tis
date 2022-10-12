@@ -109,7 +109,6 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 
     public <T> T newSubDetailed() {
         try {
-            // Class<?> aClass = desClazz this.subFormFieldsAnnotation.desClazz();
             return (T) this.instClazz.newInstance();
         } catch (Throwable e) {
             throw new RuntimeException(e);
@@ -121,41 +120,24 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         return visitor.visit(this);
     }
 
-   // public abstract JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance);
-
     protected abstract Map<String, SelectedTab> getSelectedTabs(Collection<IdentityName> subFormFieldInstance);
     protected abstract void addSubItems(SelectedTab ext, JSONArray pair) throws Exception ;
-//    @Override
+
     public final  JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
-        //  throw new UnsupportedOperationException(subFormFieldInstance.stream().map((i) -> i.identityValue()).collect(Collectors.joining(",")));
-        // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
-        // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
         Map<String, SelectedTab> tabExtends = getSelectedTabs(subFormFieldInstance);
         JSONObject vals = null;
         try {
-
             SelectedTab ext = null;
             vals = new JSONObject();
             JSONArray pair = null;
-            // DescribableJSON itemJson = null;
-            // RootFormProperties props = (new RootFormProperties(getPropertyType()));
             if (subFormFieldInstance != null) {
                 for (IdentityName subItem : subFormFieldInstance) {
                     ext = tabExtends.get(subItem.identityValue());
-//                    Objects.requireNonNull(tabExtends.get(subItem.identityValue())
-//                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
-//                    ext = Objects.requireNonNull(tabExtends.get(subItem.identityValue())
-//                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
                     if (ext == null) {
                         continue;
                     }
                     pair = new JSONArray();
                     addSubItems(ext, pair);
-
-//                    if (ext.getIncrSinkProps() != null) {
-//                        itemJson = new DescribableJSON(ext.getIncrSinkProps());
-//                        pair.add(itemJson.getItemJson());
-//                    }
                     vals.put(subItem.identityValue(), pair);
                 }
             }
@@ -166,9 +148,6 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         return vals;
     }
 
-//    public abstract <T> T visitAllSubDetailed(
-//            Map<String, /*** attr key */JSONObject> formData
-//            , SuFormProperties.ISubDetailedProcess<T> subDetailedProcess);
 
     public final <T> T visitAllSubDetailed(
             // Map<String, /*** attr key */JSONArray> formData
@@ -177,7 +156,6 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         String subFormId = null;
         //JSONObject subformData = null;
         AttrValMap attrVals = null;
-        //  Map<String, JSONObject> subform = null;
 
         for (Map.Entry<String, JSONArray> entry : formData.asSubFormDetails().entrySet()) {
             subFormId = entry.getKey();
@@ -188,9 +166,6 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 
                 attrVals = AttrValMap.parseDescribableMap(Optional.empty(), (JSONObject) o);
 
-//                for (String fieldName : subformData.keySet()) {
-//                    subform.put(fieldName, subformData.getJSONObject(fieldName));
-//                }
                 T result = subDetailedProcess.process(subFormId, attrVals);
                 if (result != null) {
                     return result;

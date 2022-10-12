@@ -121,10 +121,6 @@ public class PluginAction extends BasicModule {
     ActionContext ac = ActionContext.getContext();
     HttpParameters parameters = ac.getParameters();
 
-//    newParams.put(inputName, new Parameter.File(inputName, acceptedFiles.toArray(new UploadedFile[acceptedFiles.size()])));
-//    newParams.put(contentTypeName, new Parameter.File(contentTypeName, acceptedContentTypes.toArray(new String[acceptedContentTypes.size()])));
-//    newParams.put(fileNameName, new Parameter.File(fileNameName, acceptedFileNames.toArray(new String[acceptedFileNames.size()])));
-
     Parameter.File file = (Parameter.File) parameters.get(inputName);
     UploadedFile[] uploades = (UploadedFile[]) file.getObject();
     for (UploadedFile f : uploades) {
@@ -380,7 +376,6 @@ public class PluginAction extends BasicModule {
         classifier = Optional.of(PluginClassifier.create(c));
       }
       if (willInstall.getBooleanValue("multiClassifier") && !classifier.isPresent()) {
-        // throw new IllegalStateException("willInstall is illegal:" + willInstall.toJSONString());
         this.addFieldError(context, pluginName, "请选择安装的版本");
         continue;
       }
@@ -462,7 +457,6 @@ public class PluginAction extends BasicModule {
     if (CollectionUtils.isNotEmpty(extendpoint)) {
       availables = availables.stream().filter((plugin) -> {
         return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
-        // return plugin.extendPoints.containsKey(extendpoint.get());
       }).collect(Collectors.toList());
     }
 
@@ -477,7 +471,6 @@ public class PluginAction extends BasicModule {
 
   private List<String> getExtendpointParam() {
     return Arrays.asList(this.getStringArray("extendpoint"));
-//    return Optional.ofNullable(this.getString("extendpoint"));
   }
 
   /**
@@ -512,8 +505,6 @@ public class PluginAction extends BasicModule {
         return;
       }
     }
-
-    // throw new IllegalStateException("displayName:" + displayName + " relevant Descriptor can not be null");
     this.setBizResult(context, Collections.singletonMap("notFoundExtension", hetero.getExtensionPoint().getName()));
     this.addErrorMessage(context, "displayName:" + displayName + " relevant Descriptor can not be null");
 

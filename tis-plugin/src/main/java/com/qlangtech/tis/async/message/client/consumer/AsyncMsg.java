@@ -17,6 +17,8 @@
  */
 package com.qlangtech.tis.async.message.client.consumer;
 
+import com.qlangtech.tis.datax.TableAlias;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
@@ -37,7 +39,7 @@ public interface AsyncMsg<SOURCE> extends Serializable {
      * com.qlangtech.plugins.incr.flink.cdc.FlinkCol
      * @return
      */
-   default  <DTOStream> Map<String, DTOStream> getTab2OutputTag(){
+   default  <DTOStream> Tab2OutputTag<DTOStream> getTab2OutputTag(){
        throw new UnsupportedOperationException();
    }
 

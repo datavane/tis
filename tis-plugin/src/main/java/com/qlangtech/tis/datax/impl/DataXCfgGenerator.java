@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.datax.impl;
@@ -25,7 +25,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.*;
-import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
@@ -165,7 +164,7 @@ public class DataXCfgGenerator {
         IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
 
-        Map<String, IDataxProcessor.TableAlias> tabAlias = dataxProcessor.getTabAlias();
+        TableAliasMapper tabAlias = dataxProcessor.getTabAlias();
 
         AtomicReference<Map<String, ISelectedTab>> selectedTabsRef = new AtomicReference<>();
         java.util.concurrent.Callable<Map<String, ISelectedTab>> selectedTabsCall = () -> {
@@ -192,11 +191,11 @@ public class DataXCfgGenerator {
             readerContext = subTasks.next();
             if (!dataxProcessor.isWriterSupportMultiTableInReader(this.pluginCtx)) {
 
-                if (tabAlias.size() == 1) {
+                if (tabAlias.isSingle()) {
                     // 针对ES的情况
-                    Optional<IDataxProcessor.TableMap> first
-                            = tabAlias.values().stream().filter((t) -> t instanceof IDataxProcessor.TableMap)
-                            .map((t) -> (IDataxProcessor.TableMap) t).findFirst();
+                    Optional<IDataxProcessor.TableMap> first = tabAlias.getFirstTableMap();
+//                            = tabAlias.values().stream().filter((t) -> t instanceof IDataxProcessor.TableMap)
+//                            .map((t) -> (IDataxProcessor.TableMap) t).findFirst();
                     if (first.isPresent()) {
                         tableMapper = first;
                     }
@@ -207,23 +206,29 @@ public class DataXCfgGenerator {
                     }
                 }
                 Objects.requireNonNull(tableMapper, "tabMapper can not be null,tabAlias.size()=" + tabAlias.size()
-                        + ",tabs:[" + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
+                        + ",tabs:[" + tabAlias.getFromTabDesc() + "]");
             } else if (unStructedReader) {
                 // 是在DataxAction的doSaveWriterColsMeta() 方法中持久化保存的
-                for (IDataxProcessor.TableAlias tab : tabAlias.values()) {
-                    tableMapper = Optional.of((IDataxProcessor.TableMap) tab);
-                    break;
+                Optional<IDataxProcessor.TableMap> f = tabAlias.getFirstTableMap();
+                if (!f.isPresent()) {
+                    // Objects.requireNonNull(tableMapper, "tableMap can not be null");
+                    throw new IllegalStateException("tableMap can not be null");
                 }
-                Objects.requireNonNull(tableMapper, "tableMap can not be null");
+                tableMapper = f;
+//                for (TableAlias tab : tabAlias.values()) {
+//                    tableMapper = Optional.of((IDataxProcessor.TableMap) tab);
+//                    break;
+//                }
+
             } else if (dataxProcessor.isRDBMS2UnStructed(this.pluginCtx)) {
                 // example: mysql -> oss
                 Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
                 ISelectedTab tab = selectedTabs.get(readerContext.getSourceTableName());
                 Objects.requireNonNull(tab, readerContext.getSourceTableName() + " relevant tab can not be null");
-                IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(tab);
+                IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(tabAlias.get(tab.getName()), tab);
                 //m.setSourceCols(tab.getCols());
-                m.setTo(tab.getName());
-                m.setFrom(tab.getName());
+//                m.setTo(tab.getName());
+//                m.setFrom(tab.getName());
                 tableMapper = Optional.of(m);
             } else if (dataxProcessor.isRDBMS2RDBMS(this.pluginCtx)) {
                 // example: mysql -> mysql
@@ -414,20 +419,20 @@ public class DataXCfgGenerator {
         }
     }
 
-    private IDataxProcessor.TableMap createTableMap(Map<String, IDataxProcessor.TableAlias> tabAlias
+    private IDataxProcessor.TableMap createTableMap(TableAliasMapper tabAlias
             , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
 
-        IDataxProcessor.TableAlias tableAlias = tabAlias.get(readerContext.getSourceTableName());
+        TableAlias tableAlias = tabAlias.get(readerContext.getSourceTableName());
         if (tableAlias == null) {
             throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName()
                     + " can not find relevant 'tableAlias' keys:["
-                    + tabAlias.keySet().stream().collect(Collectors.joining(",")) + "]");
+                    + tabAlias.getFromTabDesc() + "]");
         }
         ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceTableName());
         IDataxProcessor.TableMap
-                tableMap = new IDataxProcessor.TableMap(selectedTab);
-        tableMap.setFrom(tableAlias.getFrom());
-        tableMap.setTo(tableAlias.getTo());
+                tableMap = new IDataxProcessor.TableMap(tableAlias, selectedTab);
+//        tableMap.setFrom(tableAlias.getFrom());
+//        tableMap.setTo(tableAlias.getTo());
         return tableMap;
     }
 

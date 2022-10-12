@@ -18,7 +18,7 @@
 
 package com.qlangtech.tis.datax.impl;
 
-import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.TableAlias;
 import junit.framework.TestCase;
 
 /**
@@ -31,11 +31,11 @@ public class TestTableAlias extends TestCase {
         String tableName = "instancedetail";
         String dbName = "order";
 
-        IDataxProcessor.TableAlias tableAlias = new IDataxProcessor.TableAlias(tableName);
+        TableAlias tableAlias = new TableAlias(tableName);
         assertEquals(tableName, tableAlias.getFrom());
         assertEquals(tableName, tableAlias.getTo());
 
-        tableAlias = new IDataxProcessor.TableAlias(dbName + "." + tableName);
+        tableAlias = new TableAlias(dbName + "." + tableName);
 
         assertEquals(dbName + "." + tableName, tableAlias.getFrom());
         assertEquals(tableName, tableAlias.getTo());

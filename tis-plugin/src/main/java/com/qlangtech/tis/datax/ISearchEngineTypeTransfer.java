@@ -59,7 +59,7 @@ public interface ISearchEngineTypeTransfer {
      */
     public SchemaMetaContent initSchemaMetaContent(ISelectedTab tab);
 
-    public ISchema projectionFromExpertModel(IDataxProcessor.TableAlias tableAlias, Consumer<byte[]> schemaContentConsumer);
+    public ISchema projectionFromExpertModel(TableAlias tableAlias, Consumer<byte[]> schemaContentConsumer);
 
     public ISchema projectionFromExpertModel(JSONObject body);
 

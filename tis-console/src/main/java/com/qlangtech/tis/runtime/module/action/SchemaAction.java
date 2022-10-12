@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.runtime.module.action;
 
@@ -25,8 +25,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
-import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
@@ -116,10 +116,15 @@ public class SchemaAction extends BasicModule {
     if (stepType.update) {
       DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
 
-      for (Map.Entry<String, IDataxProcessor.TableAlias> e : dataxProcessor.getTabAlias().entrySet()) {
-        writerStructFields(context, e.getValue(), typeTransfer);
-        return;
+      Optional<TableAlias> f = dataxProcessor.getTabAlias().findFirst();
+      if(f.isPresent()){
+        writerStructFields(context, f.get(), typeTransfer);
       }
+
+//      for (Map.Entry<String, TableAlias> e : dataxProcessor.getTabAlias().entrySet()) {
+//        writerStructFields(context, e.getValue(), typeTransfer);
+//        return;
+//      }
     } else {
       for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
         // ESSchema parseResult = new ESSchema();
@@ -447,7 +452,7 @@ public class SchemaAction extends BasicModule {
     writerStructFields(context, body, typeTransfer);
   }
 
-  private void writerStructFields(Context context, IDataxProcessor.TableAlias tableAlias, ISearchEngineTypeTransfer typeTransfer) {
+  private void writerStructFields(Context context, TableAlias tableAlias, ISearchEngineTypeTransfer typeTransfer) {
 
     SchemaMetaContent schemaContent = new SchemaMetaContent();
     //schemaContent.content = content.getBytes(TisUTF8.get());

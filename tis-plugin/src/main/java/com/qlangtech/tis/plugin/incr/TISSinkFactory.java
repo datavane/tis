@@ -24,6 +24,7 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.compiler.incr.ICompileAndPackage;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
@@ -124,7 +125,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
      * @param dataxProcessor
      * @return
      */
-    public abstract <SinkFunc> Map<IDataxProcessor.TableAlias, SinkFunc> createSinkFunction(IDataxProcessor dataxProcessor);
+    public abstract <SinkFunc> Map<TableAlias, SinkFunc> createSinkFunction(IDataxProcessor dataxProcessor);
 
 
 

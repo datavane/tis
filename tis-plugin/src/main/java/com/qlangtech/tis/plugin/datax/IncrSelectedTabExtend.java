@@ -70,12 +70,6 @@ public abstract class IncrSelectedTabExtend implements Describable<IncrSelectedT
             throw new IllegalStateException("appname:" + pluginContext.getCollectionName()
                     + " relevant dataXWriter can not be null");
         }
-//        Descriptor<SelectedTab> rewriterSelectTabDesc = TIS.get().getDescriptor(SelectedTab.class);
-//        Descriptor<DataxWriter> writerDesc = dataxWriter.getDescriptor();
-//        if (writerDesc instanceof DataxWriter.IRewriteSuFormProperties) {
-//            rewriterSelectTabDesc = ((DataxWriter.IRewriteSuFormProperties) writerDesc).getRewriterSelectTabDescriptor();
-//        }
-
         //===================================================
         Optional<Descriptor<IncrSelectedTabExtend>> sourceExtendDesc
                 = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(pluginMeta.getDataXName());
@@ -102,12 +96,10 @@ public abstract class IncrSelectedTabExtend implements Describable<IncrSelectedT
             }
             this.sourceExtendDesc = sourceExtendDesc;
             this.sinkExtendDesc = sinkExtendDesc;
-//            this.rewriterSelectTabDesc = rewriterSelectTabDesc;
         }
 
         public List<Descriptor> getDescriptors() {
             List<Descriptor> descs = Lists.newArrayList();
-            //  descs.add(this.rewriterSelectTabDesc);
             if (sourceExtendDesc.isPresent()) {
                 descs.add(sourceExtendDesc.get());
             }
@@ -153,9 +145,6 @@ public abstract class IncrSelectedTabExtend implements Describable<IncrSelectedT
                 tab.setIncrSinkProps(ext);
             }
         });
-//        sinkExtendStore.getPlugins().forEach((sinkExt) -> {
-//            result.get(sinkExt.tabName).setIncrSinkProps(sinkExt);
-//        });
 
         return result.snapshot();
     }
@@ -182,18 +171,6 @@ public abstract class IncrSelectedTabExtend implements Describable<IncrSelectedT
         }
     };
 
-//    @TISExtension
-//    public static final HeteroEnum<IncrSelectedTabExtend> INCR_SINK_SELECTED_TAB_EXTEND = new HeteroEnum<IncrSelectedTabExtend>(//
-//            IncrSelectedTabExtend.class, //
-//            HETERO_SINK_ENUM_IDENTITY, //
-//            "Incr Selected Extend", //
-//            Selectable.Multi, true) {
-//        @Override
-//        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-//            final String dataxName = pluginMeta.getDataXName();// (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
-//            return IncrSelectedTabExtend.getPluginStore(pluginContext, false, dataxName);
-//        }
-//    };
 
     public static KeyedPluginStore<IncrSelectedTabExtend> getPluginStore(IPluginContext pluginContext, String appname) {
         KeyedPluginStore.AppKey key = new KeyedPluginStore.AppKey(pluginContext, false
@@ -220,33 +197,9 @@ public abstract class IncrSelectedTabExtend implements Describable<IncrSelectedT
     }
 
     protected static abstract class BaseDescriptor extends Descriptor<IncrSelectedTabExtend> {
-
-
         @Override
         public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
-//            IPropertyType.SubFormFilter filter = null;
-//            if (!subFormFilter.isPresent()) {
-//                throw new IllegalStateException("subFormFilter must be present");
-//            }
-//            filter = subFormFilter.get();
-//
-//            if (filter.subformDetailView) {
-//                return new RootFormProperties(filterFieldProp(this)) {
-//                    @Override
-//                    public JSON getInstancePropsJson(Object instance) {
-//                        if (!(instance instanceof IncrSelectedTabExtend)) {
-//                            throw new IllegalStateException("instance must be type of "
-//                                    + IncrSelectedTabExtend.class.getName() + " but now is " + instance.getClass().getName());
-//                        }
-//                        return super.getInstancePropsJson(instance);
-//                    }
-//                };
-//            } else {
-//                Descriptor parentDesc = filter.getTargetDescriptor();
-//                SuFormProperties subProps = (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
-            return super.getPluginFormPropertyTypes(Optional.empty()); //new IncrSourceExtendSelected(filter.uploadPluginMeta, subProps.subFormField, this);
-            //}
-
+            return super.getPluginFormPropertyTypes(Optional.empty());
         }
     }
 }

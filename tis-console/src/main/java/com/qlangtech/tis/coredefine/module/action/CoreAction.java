@@ -350,6 +350,7 @@ public class CoreAction extends BasicModule {
   }
 
   /**
+   * create_incr_sync_channal
    * 创建增量通道 <br>
    * 1. 生成dao层代码，存在本地 <br>
    * 2. 对生成的代码进行打包 <br>

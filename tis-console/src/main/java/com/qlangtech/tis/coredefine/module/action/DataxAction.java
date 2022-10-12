@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.coredefine.module.action;
 
@@ -685,14 +685,14 @@ public class DataxAction extends BasicModule {
     Objects.requireNonNull(tabAliasList, "tabAliasList can not be null");
 
     JSONObject alias = null;
-    IDataxProcessor.TableAlias tabAlias = null;
-    List<IDataxProcessor.TableAlias> tableMaps = Lists.newArrayList();
+    TableAlias tabAlias = null;
+    List<TableAlias> tableMaps = Lists.newArrayList();
 
 
     String mapperToVal = null;
     for (int i = 0; i < tabAliasList.size(); i++) {
       alias = tabAliasList.getJSONObject(i);
-      tabAlias = new IDataxProcessor.TableAlias();
+      tabAlias = new TableAlias();
       tabAlias.setFrom(alias.getString("from"));
       mapperToVal = alias.getString("to");
       String mapper2FieldKey = "tabMapperTo[" + i + "]";
@@ -711,7 +711,7 @@ public class DataxAction extends BasicModule {
 
   }
 
-  private void saveTableMapper(IPluginContext pluginContext, String dataxName, List<IDataxProcessor.TableAlias> tableMaps) {
+  private void saveTableMapper(IPluginContext pluginContext, String dataxName, List<TableAlias> tableMaps) {
 
     if (StringUtils.isBlank(dataxName)) {
       throw new IllegalArgumentException("param dataxName can not be null");
@@ -734,22 +734,25 @@ public class DataxAction extends BasicModule {
     DataxReader dataxReader = readerStore.getPlugin();
     Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
 
-    IDataxProcessor.TableAlias tableAlias;
+    TableAlias tableAlias;
     Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, dataxName);
-    Map<String, IDataxProcessor.TableAlias> tabMaps = Collections.emptyMap();
+    TableAliasMapper tabMaps = null;//Collections.emptyMap();
     if (dataXAppSource.isPresent()) {
       DataxProcessor dataxSource = dataXAppSource.get();
       tabMaps = dataxSource.getTabAlias();
+    }
+    if (tabMaps == null) {
+      throw new IllegalStateException("tableMaps can not be null");
     }
 
     if (!dataxReader.hasMulitTable()) {
       throw new IllegalStateException("reader has not set table at least");
     }
-    List<IDataxProcessor.TableAlias> tmapList = Lists.newArrayList();
+    List<TableAlias> tmapList = Lists.newArrayList();
     for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
-      tableAlias = tabMaps.get(selectedTab.getName());
+      tableAlias = tabMaps.get(selectedTab);
       if (tableAlias == null) {
-        tmapList.add(new IDataxProcessor.TableAlias(selectedTab.getName()));
+        tmapList.add(new TableAlias(selectedTab.getName()));
       } else {
         tmapList.add(tableAlias);
       }
@@ -776,8 +779,8 @@ public class DataxAction extends BasicModule {
     if (selectedTabsSize != 1) {
       throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
     }
-    Map<String, IDataxProcessor.TableAlias> tabAlias = processor.getTabAlias();
-    Optional<IDataxProcessor.TableAlias> findMapper = tabAlias.values().stream().findFirst();
+    TableAliasMapper tabAlias = processor.getTabAlias();
+    Optional<TableAlias> findMapper = tabAlias.findFirst();
     IDataxProcessor.TableMap tabMapper = null;
     for (ISelectedTab selectedTab : processMeta.getReader().getSelectedTabs()) {
 
@@ -824,13 +827,18 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveWriterColsMeta(Context context) {
-    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
     if ((processMeta.isReaderRDBMS())) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
     }
     List<ISelectedTab.ColMeta> writerCols = Lists.newArrayList();
     IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new ISelectedTab() {
+      @Override
+      public String getName() {
+        return dataxName;
+      }
+
       @Override
       public List<ColMeta> getCols() {
         return writerCols;
@@ -931,16 +939,20 @@ public class DataxAction extends BasicModule {
       this.addErrorMessage(context, "请选择'Reader类型'和'Writer类型'");
       return;
     }
-    DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
-    DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
+    DataxReader.BaseDataxReaderDescriptor readerDesc
+      = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
+    DataxWriter.BaseDataxWriterDescriptor writerDesc
+      = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
     DataXBasicProcessMeta processMeta = getDataXBasicProcessMeta(readerDesc, writerDesc);
     //DataxProcessor processor = DataxProcessor.load(this, dataxPipeName);
     //File workDir = processor.getDataXWorkDir(this);
-    FileUtils.write(IDataxProcessor.getWriterDescFile(this, dataxPipeName), writerDesc.getId(), TisUTF8.get(), false);
+    FileUtils.write(IDataxProcessor.getWriterDescFile(
+      this, dataxPipeName), writerDesc.getId(), TisUTF8.get(), false);
     this.setBizResult(context, processMeta);
   }
 
-  private DataXBasicProcessMeta getDataXBasicProcessMeta(DataxReader.BaseDataxReaderDescriptor readerDesc, DataxWriter.BaseDataxWriterDescriptor writerDesc) {
+  private DataXBasicProcessMeta getDataXBasicProcessMeta(
+    DataxReader.BaseDataxReaderDescriptor readerDesc, DataxWriter.BaseDataxWriterDescriptor writerDesc) {
     Objects.requireNonNull(readerDesc, "readerDesc can not be null");
     Objects.requireNonNull(writerDesc, "writerDesc can not be null");
     DataXBasicProcessMeta processMeta = getDataXBasicProcessMetaByReader(readerDesc);
@@ -949,7 +961,8 @@ public class DataxAction extends BasicModule {
     return processMeta;
   }
 
-  public static DataXBasicProcessMeta getDataXBasicProcessMetaByReader(DataxReader.BaseDataxReaderDescriptor readerDesc) {
+  public static DataXBasicProcessMeta getDataXBasicProcessMetaByReader(
+    DataxReader.BaseDataxReaderDescriptor readerDesc) {
     Objects.requireNonNull(readerDesc, "readerDesc can not be null");
     DataXBasicProcessMeta processMeta = new DataXBasicProcessMeta();
     processMeta.setReaderHasExplicitTable(readerDesc.hasExplicitTable());
