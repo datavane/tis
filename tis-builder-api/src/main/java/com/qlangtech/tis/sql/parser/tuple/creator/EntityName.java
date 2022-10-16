@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser.tuple.creator;
 
@@ -21,6 +21,7 @@ import com.qlangtech.tis.dump.INameWithPathGetter;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,7 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
     public static final String ROW_MAP_CLASS_NAME = "RowMap";
 
     // public static final String DEFAULT_DB_NAME = "default";
-    private final String dbname;
+    private final Optional<String> dbname;
 
     private final String tabName;
 
@@ -66,7 +67,7 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         if (entitInfo.length == 1) {
             entity = new EntityName(entitInfo[0]);
         } else if (entitInfo.length == 2) {
-            entity = new EntityName(entitInfo[0], entitInfo[1]);
+            entity = new EntityName(Optional.of(entitInfo[0]), entitInfo[1]);
         } else {
             throw new IllegalStateException("line:" + entityName + " is not valid");
         }
@@ -75,7 +76,14 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
 
     @Override
     public String getDbName() {
-        return dbname;
+        return this.getDbname();
+    }
+
+    public String getDbname() {
+        if (dbname.isPresent()) {
+            return dbname.get();
+        }
+        return null;
     }
 
     @Override
@@ -111,7 +119,7 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
     }
 
     private EntityName(String tabName) {
-        this(DEFAULT_DATABASE_NAME, tabName);
+        this(Optional.empty(), tabName);
         this.dft = true;
     }
 
@@ -119,15 +127,12 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         return this.dft;
     }
 
-    private EntityName(String dbname, String tabName) {
+    private EntityName(Optional<String> dbname, String tabName) {
         super();
         this.dbname = dbname;
         this.tabName = tabName;
     }
 
-    public String getDbname() {
-        return dbname;
-    }
 
     public String facadeDAOInstanceName() {
         return facadeDAOInstanceName(this.getDbname());
@@ -216,7 +221,7 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
 
     @Override
     public String getNameWithPath() {
-        return this.dbname + "/" + this.tabName;
+        return (this.dbname.isPresent() ? this.dbname.get() : DEFAULT_DATABASE_NAME) + "/" + this.tabName;
     }
 
     @Override
@@ -234,7 +239,11 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
 
     @Override
     public String toString() {
-        return dbname + "." + tabName;
+        if (this.dbname.isPresent()) {
+            return dbname.get() + "." + tabName;
+        } else {
+            return tabName;
+        }
     }
 
     public interface SubTableQuery {

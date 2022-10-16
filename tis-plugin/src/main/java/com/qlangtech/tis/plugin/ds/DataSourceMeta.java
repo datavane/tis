@@ -18,6 +18,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
@@ -50,7 +51,7 @@ public interface DataSourceMeta {
      * @param table
      * @return
      */
-    default List<ColumnMetaData> getTableMetadata(String table) throws TableNotFoundException {
+    default List<ColumnMetaData> getTableMetadata(EntityName table) throws TableNotFoundException {
         throw new UnsupportedOperationException();
     }
 
@@ -60,7 +61,7 @@ public interface DataSourceMeta {
      * @param table
      * @return
      */
-    default List<ColumnMetaData> getTableMetadata(Connection conn, String table) throws TableNotFoundException {
+    default List<ColumnMetaData> getTableMetadata(Connection conn, EntityName table) throws TableNotFoundException {
         throw new UnsupportedOperationException();
     }
 }

@@ -27,6 +27,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,8 +99,8 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
     }
 
     @Override
-    public List<ColumnMetaData> getTableMetadata(final String table) {
-        if (StringUtils.isBlank(table)) {
+    public List<ColumnMetaData> getTableMetadata(final EntityName table) {
+        if (table == null) {
             throw new IllegalArgumentException("param table can not be null");
         }
         List<ColumnMetaData> columns = new ArrayList<>();
@@ -121,7 +122,7 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
     }
 
     @Override
-    public List<ColumnMetaData> getTableMetadata(Connection conn, String table) throws TableNotFoundException {
+    public List<ColumnMetaData> getTableMetadata(Connection conn, EntityName table) throws TableNotFoundException {
         try {
             return parseTableColMeta(conn, table);
         } catch (TableNotFoundException e) {
@@ -132,7 +133,7 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
         }
     }
 
-    private List<ColumnMetaData> parseTableColMeta(String table, DBConfig config, String ip, String dbname) throws Exception {
+    private List<ColumnMetaData> parseTableColMeta(EntityName table, DBConfig config, String ip, String dbname) throws Exception {
         // List<ColumnMetaData> columns = Lists.newArrayList();
         String jdbcUrl = buidJdbcUrl(config, ip, dbname);
 

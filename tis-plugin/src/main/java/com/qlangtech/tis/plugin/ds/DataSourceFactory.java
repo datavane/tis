@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -143,7 +144,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 //        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
 //    }
 
-    protected List<ColumnMetaData> parseTableColMeta(Connection conn, String table) throws SQLException, TableNotFoundException {
+    protected List<ColumnMetaData> parseTableColMeta(Connection conn, EntityName table) throws SQLException, TableNotFoundException {
         final List<ColumnMetaData> columns = Lists.newArrayList();
         // 防止有col重复，测试中有用户取出的cols会有重复的
         final Set<String> addedCols = Sets.newHashSet();
@@ -156,9 +157,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         String typeName = null;
         try {
             metaData1 = conn.getMetaData();
-            try (ResultSet tables = metaData1.getTables(null, null, table, null)) {
+            try (ResultSet tables = metaData1.getTables(null, table.getDbName(), table.getTableName(), null)) {
                 if (!tables.next()) {
-                    throw new TableNotFoundException(table);
+                    throw new TableNotFoundException(table.getFullName());
                 }
             }
 
@@ -228,7 +229,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return columns;
     }
 
-    protected List<ColumnMetaData> parseTableColMeta(String table, String jdbcUrl) throws TableNotFoundException {
+    protected List<ColumnMetaData> parseTableColMeta(EntityName table, String jdbcUrl) throws TableNotFoundException {
 
         AtomicReference<List<ColumnMetaData>> ref = new AtomicReference<>();
         validateConnection(jdbcUrl, (conn) -> {
@@ -314,12 +315,12 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 //        return columns;
     }
 
-    protected ResultSet getColumnsMeta(String table, DatabaseMetaData metaData1) throws SQLException {
-        return metaData1.getColumns(null, null, table, null);
+    protected ResultSet getColumnsMeta(EntityName table, DatabaseMetaData metaData1) throws SQLException {
+        return metaData1.getColumns(null, null, table.getTableName(), null);
     }
 
-    protected ResultSet getPrimaryKeys(String table, DatabaseMetaData metaData1) throws SQLException {
-        return metaData1.getPrimaryKeys(null, null, table);
+    protected ResultSet getPrimaryKeys(EntityName table, DatabaseMetaData metaData1) throws SQLException {
+        return metaData1.getPrimaryKeys(null, null, table.getTableName());
     }
 
 

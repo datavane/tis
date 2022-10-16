@@ -40,6 +40,17 @@ public class TableAliasMapper {
         public NULL() {
             super(Collections.emptyMap());
         }
+
+        @Override
+        public TableAlias get(String name) {
+            //return super.get(name);
+            return new TableAlias(name);
+        }
+
+        @Override
+        public TableAlias getWithCheckNotNull(String name) {
+            return this.get(name);
+        }
     }
 
     /**

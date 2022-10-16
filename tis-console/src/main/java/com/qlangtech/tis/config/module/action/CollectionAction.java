@@ -54,6 +54,7 @@ import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
 import com.qlangtech.tis.sql.parser.meta.Position;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
@@ -576,7 +577,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       }
       DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext).getInstance();
       List<ColumnMetaData> tableMetadata = null;
-      tableMetadata = dsFactory.getTableMetadata(targetTable);
+      tableMetadata = dsFactory.getTableMetadata(EntityName.parse(targetTable));
 
       colMetas = tableMetadata.stream().collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
       break;

@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.ds.*;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -76,8 +77,8 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     }
 
     @Override
-    public List<ColumnMetaData> getTableMetadata(String table) {
-        if (!StringUtils.equals(dumper.testTableName, table)) {
+    public List<ColumnMetaData> getTableMetadata(EntityName table) {
+        if (!StringUtils.equals(dumper.testTableName, table.getTableName())) {
             Assert.fail("dumper.testTableName:" + dumper.testTableName + " must equal with:" + table);
         }
         return dumper.getMetaData();

@@ -242,15 +242,18 @@ public class DataXCfgGenerator {
         }
 
         // 将老的已经没有用的ddl sql文件删除调
-        File createDDLDir = this.dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
-        for (String oldDDLFile : existDDLFiles) {
-            if (!createDDLFiles.contains(oldDDLFile)) {
-                FileUtils.deleteQuietly(new File(createDDLDir, oldDDLFile));
+        if (writerDescriptor.isSupportTabCreate()) {
+            File createDDLDir = this.dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
+            for (String oldDDLFile : existDDLFiles) {
+                if (!createDDLFiles.contains(oldDDLFile)) {
+                    FileUtils.deleteQuietly(new File(createDDLDir, oldDDLFile));
+                }
+            }
+            if (CollectionUtils.isEmpty(createDDLFiles)) {
+                throw new IllegalStateException("createDDLFiles can not be empty ");
             }
         }
-        if (CollectionUtils.isEmpty(createDDLFiles)) {
-            throw new IllegalStateException("createDDLFiles can not be empty ");
-        }
+
         GenerateCfgs cfgs = new GenerateCfgs(this.dataxProcessor.getDataxCfgDir(this.pluginCtx));
         long current = System.currentTimeMillis();
 //        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);

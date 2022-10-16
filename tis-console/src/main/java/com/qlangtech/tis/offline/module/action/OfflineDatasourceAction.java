@@ -69,6 +69,7 @@ import com.qlangtech.tis.sql.parser.er.TabCardinality;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
@@ -1085,7 +1086,7 @@ public class OfflineDatasourceAction extends BasicModule {
       DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
       mapCols = selectedTabs.stream().collect(Collectors.toMap((tab) -> tab, (tab) -> {
         try {
-          return reader.getTableMetadata(tab);
+          return reader.getTableMetadata(EntityName.parse(tab));
         } catch (TableNotFoundException e) {
           throw new RuntimeException(e);
         }
@@ -1447,7 +1448,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
     List<ColumnMetaData> cols = null;// offlineManager.getTableMetadata(db.getName(), table);
     try {
-      cols = dbPlugin.getPlugin().getTableMetadata(table);
+      cols = dbPlugin.getPlugin().getTableMetadata(EntityName.parse(table));
       if (cols.size() < 1) {
         this.addErrorMessage(context, "表:[" + table + "]没有定义列");
         return;

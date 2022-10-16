@@ -33,6 +33,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -197,7 +198,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         List<ColumnMetaData> cols
                 = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
             try {
-                return dsMeta.getTableMetadata(context.getSubFormIdentityField());
+                return dsMeta.getTableMetadata(EntityName.parse(context.getSubFormIdentityField()));
             } catch (TableNotFoundException e) {
                 throw new RuntimeException(e);
             }
