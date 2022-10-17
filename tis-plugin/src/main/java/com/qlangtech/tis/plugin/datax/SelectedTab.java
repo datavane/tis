@@ -68,7 +68,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
     public List<String> cols = Lists.newArrayList();
 
-    private transient List<ColMeta> shadowCols = null;
+    private transient List<CMeta> shadowCols = null;
 
     public SelectedTab(String name) {
         this.name = name;
@@ -155,10 +155,10 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return this.cols.isEmpty();
     }
 
-    public List<ColMeta> getCols() {
+    public List<CMeta> getCols() {
         if (shadowCols == null) {
             shadowCols = this.cols.stream().map((c) -> {
-                ColMeta colMeta = new ColMeta();
+                CMeta colMeta = new CMeta();
                 colMeta.setName(c);
                 return colMeta;
             }).collect(Collectors.toList());

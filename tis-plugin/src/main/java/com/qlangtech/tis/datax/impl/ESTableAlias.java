@@ -23,7 +23,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.manage.common.TisUTF8;
 
@@ -46,14 +46,14 @@ public class ESTableAlias extends IDataxProcessor.TableMap {
     }
 
     @Override
-    public List<ColMeta> getSourceCols() {
-        List<ColMeta> colsMeta = Lists.newArrayList();
-        ColMeta colMeta = null;
+    public List<CMeta> getSourceCols() {
+        List<CMeta> colsMeta = Lists.newArrayList();
+        CMeta colMeta = null;
         JSONArray cols = getSchemaCols();
         JSONObject col = null;
         for (int i = 0; i < cols.size(); i++) {
             col = cols.getJSONObject(i);
-            colMeta = new ColMeta() {
+            colMeta = new CMeta() {
 
                 @Override
                 public DataType getType() {

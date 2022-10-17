@@ -19,7 +19,7 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
 import org.apache.commons.lang.StringUtils;
@@ -47,7 +47,7 @@ public abstract class CreateTableSqlBuilder {
                 .collect(Collectors.toList());
 
         maxColNameLength = 0;
-        for (ColMeta col : this.getCols()) {
+        for (CMeta col : this.getCols()) {
             int m = StringUtils.length(col.getName());
             if (m > maxColNameLength) {
                 maxColNameLength = m;
@@ -157,18 +157,18 @@ public abstract class CreateTableSqlBuilder {
      * @param cols
      * @return
      */
-    protected List<ColWrapper> preProcessCols(List<ColWrapper> pks, List<ColMeta> cols) {
+    protected List<ColWrapper> preProcessCols(List<ColWrapper> pks, List<CMeta> cols) {
         return cols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList());
     }
 
-    protected abstract ColWrapper createColWrapper(ColMeta c);//{
+    protected abstract ColWrapper createColWrapper(CMeta c);//{
 //        return new ColWrapper(c);
     // }
 
     public static abstract class ColWrapper {
-        protected final ColMeta meta;
+        protected final CMeta meta;
 
-        public ColWrapper(ColMeta meta) {
+        public ColWrapper(CMeta meta) {
             this.meta = meta;
         }
 
@@ -196,7 +196,7 @@ public abstract class CreateTableSqlBuilder {
         return new CreateTableName(tableMapper.getTo(), this);
     }
 
-    protected List<ColMeta> getCols() {
+    protected List<CMeta> getCols() {
         return tableMapper.getSourceCols();
     }
 

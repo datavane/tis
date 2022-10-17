@@ -28,7 +28,7 @@ import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
-import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
@@ -292,7 +292,7 @@ public class DataXCfgGenerator {
             , Optional<IDataxProcessor.TableMap> tableMapper, boolean overWrite) throws IOException {
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
         if (tableMapper.isPresent() && writerDescriptor.isSupportTabCreate()) {
-            for (ColMeta colMeta : tableMapper.get().getSourceCols()) {
+            for (CMeta colMeta : tableMapper.get().getSourceCols()) {
                 if (colMeta.getType() == null) {
                     throw new IllegalStateException("reader context:" + readerContext.getSourceTableName()
                             + " relevant col type which's name " + colMeta.getName() + " can not be null");

@@ -21,7 +21,7 @@ package com.qlangtech.tis.datax.impl;
 import com.qlangtech.tis.BasicTestCase;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import org.easymock.EasyMock;
@@ -95,7 +95,7 @@ public class TestDataxReader extends BasicTestCase {
         assertTrue(selectedTabs.size() > 0);
         for (ISelectedTab tab : selectedTabs) {
             assertTrue(tab.getCols().size() > 0);
-            for (ColMeta col : tab.getCols()) {
+            for (CMeta col : tab.getCols()) {
                 assertNotNull("tab:" + tab.getName() + ",col:"
                         + col.getName() + " can not be null", col.getType());
             }

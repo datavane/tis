@@ -25,13 +25,16 @@ import java.io.Serializable;
  * <p>
  * //@see com.qlangtech.tis.plugin.ds.ColumnMetaData
  */
-public class ColMeta implements Serializable, IColMetaGetter {
+public class CMeta implements Serializable, IColMetaGetter {
     private String name;
     private DataType type;
     private Boolean pk = false;
 
     private String comment;
     private boolean nullable;
+
+    public CMeta() {
+    }
 
     public String getComment() {
         return comment;

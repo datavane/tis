@@ -831,7 +831,7 @@ public class DataxAction extends BasicModule {
     if ((processMeta.isReaderRDBMS())) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
     }
-    List<ColMeta> writerCols = Lists.newArrayList();
+    List<CMeta> writerCols = Lists.newArrayList();
     IDataxProcessor.TableMap tableMapper
       = new IDataxProcessor.TableMap(new DefaultTab(dataxName, writerCols));
     // tableMapper.setSourceCols(writerCols);
@@ -862,7 +862,7 @@ public class DataxAction extends BasicModule {
       , new Validator.IFieldValidator() {
         @Override
         public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-          ColMeta colMeta = null;
+          CMeta colMeta = null;
           JSONArray targetCols = JSON.parseArray(fieldData);
           JSONObject targetCol = null;
           int index;
@@ -889,7 +889,7 @@ public class DataxAction extends BasicModule {
             } else if (!Validator.db_col_name.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]", targetColName)) {
               validateFaild = true;
             }
-            colMeta = new ColMeta();
+            colMeta = new CMeta();
             colMeta.setName(targetColName);
 
             DataType dataType = targetCol.getObject("type", DataType.class);

@@ -26,7 +26,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -157,20 +157,20 @@ public interface IDataxProcessor {
             this.tab = tab;
         }
 
-        public TableMap(final List<ColMeta> cmetas) {
+        public TableMap(final List<CMeta> cmetas) {
             this.tab = new ISelectedTab() {
                 @Override
-                public List<ColMeta> getCols() {
+                public List<CMeta> getCols() {
                     return cmetas;
                 }
             };
         }
 
         public static TableMap create(String tableName, List<HdfsColMeta> colMetas) {
-            List<ColMeta> cmetas = Lists.newArrayList();
-            ColMeta cm = null;
+            List<CMeta> cmetas = Lists.newArrayList();
+            CMeta cm = null;
             for (HdfsColMeta c : colMetas) {
-                cm = new ColMeta();
+                cm = new CMeta();
                 cm.setName(c.colName);
                 cm.setNullable(c.nullable);
                 cm.setType(c.type);
@@ -184,14 +184,14 @@ public interface IDataxProcessor {
 //            return tableMapper;
         }
 
-        public static TableMap createByColMeta(String tableName, List<ColMeta> colMetas) {
+        public static TableMap createByColMeta(String tableName, List<CMeta> colMetas) {
             IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(colMetas);
             tableMapper.setFrom(tableName);
             tableMapper.setTo(tableName);
             return tableMapper;
         }
 
-        public List<ColMeta> getSourceCols() {
+        public List<CMeta> getSourceCols() {
             //Objects.requireNonNull(tab, "param tab can not be null");
             return this.getSourceTab().getCols();
         }

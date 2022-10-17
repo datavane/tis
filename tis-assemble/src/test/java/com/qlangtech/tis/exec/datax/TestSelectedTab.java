@@ -18,7 +18,7 @@
 
 package com.qlangtech.tis.exec.datax;
 
-import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class TestSelectedTab implements ISelectedTab {
     }
 
     @Override
-    public List<ColMeta> getCols() {
+    public List<CMeta> getCols() {
         return null;
     }
 }

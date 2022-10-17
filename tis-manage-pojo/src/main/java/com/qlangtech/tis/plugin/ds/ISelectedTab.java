@@ -40,6 +40,6 @@ public interface ISelectedTab {
         return true;
     }
 
-    List<ColMeta> getCols();
+    List<CMeta> getCols();
 
 }

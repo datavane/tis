@@ -26,9 +26,9 @@ import java.util.List;
  **/
 public final class DefaultTab implements ISelectedTab {
   private final String dataXName;
-  private final List<ColMeta> writerCols;
+  private final List<CMeta> writerCols;
 
-  public DefaultTab(String dataXName, List<ColMeta> writerCols) {
+  public DefaultTab(String dataXName, List<CMeta> writerCols) {
     this.dataXName = dataXName;
     this.writerCols = writerCols;
   }
@@ -39,7 +39,7 @@ public final class DefaultTab implements ISelectedTab {
   }
 
   @Override
-  public List<ColMeta> getCols() {
+  public List<CMeta> getCols() {
     return writerCols;
   }
 }

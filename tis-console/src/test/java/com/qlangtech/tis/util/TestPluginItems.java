@@ -25,7 +25,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.coredefine.module.action.DataxAction;
 import com.qlangtech.tis.extension.impl.*;
-import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -117,7 +117,7 @@ public class TestPluginItems extends TestCase {
         assertEquals("customer_order_relation", selectedTab.getName());
         assertEquals("1=999", selectedTab.getWhere());
 
-        List<ColMeta> cols = selectedTab.getCols();
+        List<CMeta> cols = selectedTab.getCols();
         assertEquals(5, cols.size());
         Set<String> selectedCols = Sets.newHashSet("customerregister_id", "waitingorder_id", "kind", "create_time", "last_ver");
         cols.forEach((c) -> assertTrue(selectedCols.contains(c.getName())));
