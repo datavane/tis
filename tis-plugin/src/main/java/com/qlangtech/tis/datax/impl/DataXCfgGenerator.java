@@ -28,6 +28,7 @@ import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
+import com.qlangtech.tis.plugin.ds.ColMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
@@ -277,10 +278,12 @@ public class DataXCfgGenerator {
             , IDataxReaderContext readerContext, Set<String> createDDLFiles
             , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
         generateTabCreateDDL(this.pluginCtx, dataxProcessor, writer, readerContext, createDDLFiles, tableMapper, false);
-
-
+        if (StringUtils.isEmpty(readerContext.getTaskName())) {
+            throw new IllegalStateException("readerContext.getTaskName() must be present");
+        }
         File configFile = new File(dataXCfgDir, readerContext.getTaskName() + ".json");
-        FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, (tableMapper)), TisUTF8.get(), false);
+        //File configFile = new File(dataXCfgDir, tableMapper.get().getTo() + ".json");
+        FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper), TisUTF8.get(), false);
         // subTaskName.add(configFile.getName());
     }
 
@@ -289,7 +292,7 @@ public class DataXCfgGenerator {
             , Optional<IDataxProcessor.TableMap> tableMapper, boolean overWrite) throws IOException {
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
         if (tableMapper.isPresent() && writerDescriptor.isSupportTabCreate()) {
-            for (ISelectedTab.ColMeta colMeta : tableMapper.get().getSourceCols()) {
+            for (ColMeta colMeta : tableMapper.get().getSourceCols()) {
                 if (colMeta.getType() == null) {
                     throw new IllegalStateException("reader context:" + readerContext.getSourceTableName()
                             + " relevant col type which's name " + colMeta.getName() + " can not be null");

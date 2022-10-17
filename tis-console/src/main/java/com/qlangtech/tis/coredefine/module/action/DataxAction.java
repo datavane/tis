@@ -48,9 +48,7 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.plugin.ds.DataType;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -822,6 +820,7 @@ public class DataxAction extends BasicModule {
     this.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
   }
 
+
   /**
    * @param context
    */
@@ -832,18 +831,9 @@ public class DataxAction extends BasicModule {
     if ((processMeta.isReaderRDBMS())) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
     }
-    List<ISelectedTab.ColMeta> writerCols = Lists.newArrayList();
-    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new ISelectedTab() {
-      @Override
-      public String getName() {
-        return dataxName;
-      }
-
-      @Override
-      public List<ColMeta> getCols() {
-        return writerCols;
-      }
-    });
+    List<ColMeta> writerCols = Lists.newArrayList();
+    IDataxProcessor.TableMap tableMapper
+      = new IDataxProcessor.TableMap(new DefaultTab(dataxName, writerCols));
     // tableMapper.setSourceCols(writerCols);
     ////////////////////
     final String keyColsMeta = "colsMeta";
@@ -872,7 +862,7 @@ public class DataxAction extends BasicModule {
       , new Validator.IFieldValidator() {
         @Override
         public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-          ISelectedTab.ColMeta colMeta = null;
+          ColMeta colMeta = null;
           JSONArray targetCols = JSON.parseArray(fieldData);
           JSONObject targetCol = null;
           int index;
@@ -899,7 +889,7 @@ public class DataxAction extends BasicModule {
             } else if (!Validator.db_col_name.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]", targetColName)) {
               validateFaild = true;
             }
-            colMeta = new ISelectedTab.ColMeta();
+            colMeta = new ColMeta();
             colMeta.setName(targetColName);
 
             DataType dataType = targetCol.getObject("type", DataType.class);

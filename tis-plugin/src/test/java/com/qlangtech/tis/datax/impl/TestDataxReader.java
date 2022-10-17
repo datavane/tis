@@ -18,18 +18,15 @@
 
 package com.qlangtech.tis.datax.impl;
 
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.BasicTestCase;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.ds.ColMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import org.easymock.EasyMock;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -98,7 +95,7 @@ public class TestDataxReader extends BasicTestCase {
         assertTrue(selectedTabs.size() > 0);
         for (ISelectedTab tab : selectedTabs) {
             assertTrue(tab.getCols().size() > 0);
-            for (ISelectedTab.ColMeta col : tab.getCols()) {
+            for (ColMeta col : tab.getCols()) {
                 assertNotNull("tab:" + tab.getName() + ",col:"
                         + col.getName() + " can not be null", col.getType());
             }

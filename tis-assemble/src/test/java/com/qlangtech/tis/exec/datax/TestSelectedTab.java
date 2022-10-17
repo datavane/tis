@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.exec.datax;
 
+import com.qlangtech.tis.plugin.ds.ColMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 import java.util.List;

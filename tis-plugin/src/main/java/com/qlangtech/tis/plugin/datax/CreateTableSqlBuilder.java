@@ -19,8 +19,8 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.plugin.ds.ColMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
 import org.apache.commons.lang.StringUtils;
 
@@ -47,7 +47,7 @@ public abstract class CreateTableSqlBuilder {
                 .collect(Collectors.toList());
 
         maxColNameLength = 0;
-        for (ISelectedTab.ColMeta col : this.getCols()) {
+        for (ColMeta col : this.getCols()) {
             int m = StringUtils.length(col.getName());
             if (m > maxColNameLength) {
                 maxColNameLength = m;
@@ -157,18 +157,18 @@ public abstract class CreateTableSqlBuilder {
      * @param cols
      * @return
      */
-    protected List<ColWrapper> preProcessCols(List<ColWrapper> pks, List<ISelectedTab.ColMeta> cols) {
+    protected List<ColWrapper> preProcessCols(List<ColWrapper> pks, List<ColMeta> cols) {
         return cols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList());
     }
 
-    protected abstract ColWrapper createColWrapper(ISelectedTab.ColMeta c);//{
+    protected abstract ColWrapper createColWrapper(ColMeta c);//{
 //        return new ColWrapper(c);
     // }
 
     public static abstract class ColWrapper {
-        protected final ISelectedTab.ColMeta meta;
+        protected final ColMeta meta;
 
-        public ColWrapper(ISelectedTab.ColMeta meta) {
+        public ColWrapper(ColMeta meta) {
             this.meta = meta;
         }
 
@@ -196,7 +196,7 @@ public abstract class CreateTableSqlBuilder {
         return new CreateTableName(tableMapper.getTo(), this);
     }
 
-    protected List<ISelectedTab.ColMeta> getCols() {
+    protected List<ColMeta> getCols() {
         return tableMapper.getSourceCols();
     }
 
