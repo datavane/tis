@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.extension.model;
 
@@ -145,7 +145,22 @@ public class UpdateSite {
             return UpdateCenter.updateService.submit(new Callable<FormValidation>() {
                 @Override
                 public FormValidation call() throws Exception {
-                    return updateDirectlyNow(signatureCheck);
+                    TextFile faildSignal = getDataLoadFaildFile();
+                    boolean faild = false;
+                    try {
+                        return updateDirectlyNow(signatureCheck);
+                    } catch (Exception e) {
+                        faild = true;
+                        faildSignal.write(e.getMessage());
+                        throw e;
+                    } finally {
+                        if (!faild) {
+                            try {
+                                faildSignal.delete();
+                            } catch (Throwable e) {
+                            }
+                        }
+                    }
                 }
             });
         } else {
@@ -163,7 +178,7 @@ public class UpdateSite {
         return this.url;
     }
 
-    public FormValidation updateDirectlyNow(boolean signatureCheck) throws IOException {
+    private FormValidation updateDirectlyNow(boolean signatureCheck) throws IOException {
         String siteCfgUrl = getUrl() + "?id=" + URLEncoder.encode(getId(), "UTF-8") + "&version=" + URLEncoder.encode(TIS.VERSION, "UTF-8");
         LOGGER.info("siteCfgUrl:{}", siteCfgUrl);
         return updateData(HttpUtils.get( //
@@ -796,7 +811,7 @@ public class UpdateSite {
 //                    "url":"http://mirror.qlangtech.com/3.6.0/tis-plugin/tis-datax-hdfs-plugin/tis-datax-hdfs-plugin_hadoop_2.7.3.tpi"
 //            },
             this.pluginName = pluginName;
-            this.classifier =  PluginClassifier.create(meta.getString("classifier"));
+            this.classifier = PluginClassifier.create(meta.getString("classifier"));
             this.sha1 = meta.getString("sha1");
             this.sha256 = meta.getString("sha256");
             this.size = meta.getLongValue("size");
@@ -804,7 +819,7 @@ public class UpdateSite {
             this.sizeLiteral = FileUtils.byteCountToDisplaySize(this.size);
 
             try {
-                this.downloadUrl = new URL(meta.getString("url"));
+                this.downloadUrl = new URL(meta.getString("downloadUrl"));
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
@@ -1352,7 +1367,15 @@ public class UpdateSite {
      * This is where we store the update center data.
      */
     private TextFile getDataFile() {
-        return new TextFile(new File(TIS.pluginCfgRoot, "updates/" + getId() + ".json"));
+        return new TextFile(getFile(getId() + ".json"));
+    }
+
+    private static File getFile(String name) {
+        return new File(TIS.pluginCfgRoot, "updates/" + name);
+    }
+
+    public TextFile getDataLoadFaildFile() {
+        return new TextFile(getFile(getId() + ".error"));
     }
 
     public boolean existLocal() {

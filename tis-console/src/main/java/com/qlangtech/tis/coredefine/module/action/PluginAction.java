@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.coredefine.module.action;
 
@@ -34,6 +34,7 @@ import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.install.InstallUtil;
 import com.qlangtech.tis.manage.common.Config;
@@ -443,17 +444,49 @@ public class PluginAction extends BasicModule {
     }
   }
 
+
+  /**
+   * 重新加载updateSite元数据信息
+   *
+   * @throws Exception
+   */
+  public void doReloadUpdateSiteMeta(Context context) throws Exception {
+    UpdateCenter center = TIS.get().getUpdateCenter();
+    for (UpdateSite usite : center.getSiteList()) {
+      TextFile textFile = usite.getDataLoadFaildFile();
+      if (textFile.exists()) {
+        usite.updateDirectly().get();
+      }
+    }
+    this.doGetAvailablePlugins(context);
+  }
+
   /**
    * 取得当前可以被安装的插件
    *
    * @param context
    */
-  public void doGetAvailablePlugins(Context context) {
+  public void doGetAvailablePlugins(Context context) throws Exception {
 
     List<String> extendpoint = getExtendpointParam();
     Pager pager = this.createPager();
     pager.setTotalCount(Integer.MAX_VALUE);
-    List<UpdateSite.Plugin> availables = TIS.get().getUpdateCenter().getAvailables();
+    UpdateCenter center = TIS.get().getUpdateCenter();
+    List<UpdateSite.Plugin> availables = center.getAvailables();
+    if (CollectionUtils.isEmpty(availables)) {
+      for (UpdateSite usite : center.getSiteList()) {
+        TextFile textFile = usite.getDataLoadFaildFile();
+        if (textFile.exists()) {
+
+          Map<String, Object> err = Maps.newHashMap();
+          err.put("updateSiteLoadErr", true);
+          err.put(IMessageHandler.ACTION_ERROR_MSG, textFile.read());
+          this.setBizResult(context, new PaginationResult(pager, availables, err));
+          return;
+        }
+      }
+    }
+
     if (CollectionUtils.isNotEmpty(extendpoint)) {
       availables = availables.stream().filter((plugin) -> {
         return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
@@ -680,7 +713,7 @@ public class PluginAction extends BasicModule {
     IPluginEnum hEnum = pluginMeta.getHeteroEnum();
     //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
     PluginItems pluginItems = new PluginItems(module, pluginMeta);
-    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList( itemsArray, subFormFilter);
+    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(itemsArray, subFormFilter);
     if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
       module.addErrorMessage(context, "请设置'" + hEnum.getCaption() + "'表单内容");
     }
