@@ -22,7 +22,7 @@
     <parent>
         <groupId>com.qlangtech.tis</groupId>
         <artifactId>tis</artifactId>
-        <version>3.6.0</version>
+        <version>3.6.0-alpha</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -60,7 +60,7 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.alibaba.datax</groupId>
+            <groupId>com.qlangtech.tis</groupId>
             <artifactId>datax-config</artifactId>
             <version>${project.version}</version>
         </dependency>

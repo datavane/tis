@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.qlangtech.tis</groupId>
         <artifactId>tis</artifactId>
-        <version>3.6.0</version>
+        <version>3.6.0-alpha</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -40,7 +40,6 @@
     </properties>
 
     <dependencies>
-
 
         <dependency>
             <groupId>com.google.protobuf</groupId>
@@ -63,17 +62,6 @@
             <artifactId>grpc-stub</artifactId>
             <version>${grpc.version}</version>
         </dependency>
-
-
-<!--        <dependency>-->
-<!--            <groupId>com.qlangtech.tis</groupId>-->
-<!--            <artifactId>tis-solrj-client</artifactId>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>org.apache.solr</groupId>-->
-<!--            <artifactId>solr-solrj</artifactId>-->
-<!--        </dependency>-->
 
         <dependency>
             <groupId>com.qlangtech.tis</groupId>

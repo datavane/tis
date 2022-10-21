@@ -31,7 +31,7 @@
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis</artifactId>
     <!--https://maven.apache.org/maven-ci-friendly.html-->
-    <version>3.6.0</version>
+    <version>3.6.0-alpha</version>
     <packaging>pom</packaging>
     <name>tis</name>
     <url>http://maven.apache.org</url>
@@ -58,11 +58,12 @@
 
     <modules>
         <module>xmodifier</module>
+        <module>datax-config</module>
         <module>tis-builder-api</module>
         <module>tis-manage-pojo</module>
         <module>tis-hadoop-rpc</module>
         <module>tis-solrconfig-parser</module>
-<!--        <module>tis-solrj-client</module>-->
+
         <module>tis-common</module>
         <module>tis-base-test</module>
         <module>tis-web-start-api</module>
@@ -722,12 +723,6 @@
                 <artifactId>jdom</artifactId>
                 <version>1.1</version>
             </dependency>
-
-<!--            <dependency>-->
-<!--                <groupId>com.qlangtech.tis</groupId>-->
-<!--                <artifactId>tis-solrj-client</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
 
             <dependency>
                 <groupId>org.scala-lang</groupId>
