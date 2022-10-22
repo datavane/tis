@@ -83,18 +83,20 @@ public class TpiMojo extends AbstractTISManifestMojo {
     // Implementation
     // ----------------------------------------------------------------------
     protected File getOutputFile(String extension) {
+        return getOutputFile(this.tpisDirectory, extension);
+    }
 
+    private File getOutputFile(File parent, String extension) {
         Optional<PluginClassifier> classifier = getPluginClassifier(this.project);
         String pkgName = tpiName + extension;
         if (classifier.isPresent()) {
             pkgName = classifier.get().getTPIPluginName(tpiName, extension);
         }
-
-        return new File((tpisDirectory), pkgName);
+        return new File((parent), pkgName);
     }
 
     private File getOutputJar() {
-        return new File(new File(outputDirectory), tpiName + ".jar");
+        return getOutputFile(new File(outputDirectory), tpiName + ".jar");
     }
 
     public static Optional<PluginClassifier> getPluginClassifier(MavenProject project) {
