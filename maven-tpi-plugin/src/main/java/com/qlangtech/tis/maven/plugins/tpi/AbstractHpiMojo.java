@@ -50,6 +50,12 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
     @Parameter(defaultValue = "${project.build.directory}")
     protected String outputDirectory;
 
+//    /**
+//     * Single directory for extra files to include in the WAR.
+//     */
+    @Parameter(defaultValue = "${basedir}/tpis")
+    protected File tpisDirectory;
+
     /**
      * The directory containing generated classes.
      */
