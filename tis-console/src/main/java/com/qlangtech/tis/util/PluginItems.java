@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.util;
 
@@ -28,7 +28,6 @@ import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
-import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -173,11 +172,11 @@ public class PluginItems {
           , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
           SetPluginsResult finalResult = new SetPluginsResult(true, false);
           for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
-
-            PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
-            if (DbScope.DETAILED == dbExtraProps.getDbType()) {
-              dbExtraProps.setDbname(((IdentityName) plugin.getInstance()).identityValue());
+            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
+              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
             }
+            PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
+
             SetPluginsResult result = TIS.getDataBasePluginStore(dbExtraProps)
               .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
             if (!result.success) {
