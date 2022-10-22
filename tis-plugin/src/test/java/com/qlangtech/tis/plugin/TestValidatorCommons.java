@@ -32,6 +32,17 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         Matcher matcher = PATTERN_ABSOLUTE_PATH.matcher("/home/hanfa.shf/ftpReaderTest/data");
         assertTrue("must match", matcher.matches());
 
+        matcher = PATTERN_ABSOLUTE_PATH.matcher("/home/hanfa.shf/ftpReaderTest/*");
+        assertTrue("must match", matcher.matches());
+
+        matcher = PATTERN_ABSOLUTE_PATH.matcher("/home/hanfa.shf/ftpReaderTest/prefix*");
+        assertTrue("must match", matcher.matches());
+
+        matcher = PATTERN_ABSOLUTE_PATH.matcher("/prefix*");
+        assertTrue("must match", matcher.matches());
+
+        matcher = PATTERN_ABSOLUTE_PATH.matcher("/prefix");
+        assertTrue("must match", matcher.matches());
 
     }
 

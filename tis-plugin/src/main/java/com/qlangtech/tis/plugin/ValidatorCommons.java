@@ -31,7 +31,7 @@ public interface ValidatorCommons {
     Pattern PATTERN_NONE_BLANK = Pattern.compile("([^\\s]+)");
     String MSG_NONE_BLANK_ERROR = "内容不能包含空格";
 
-    Pattern PATTERN_RELATIVE_PATH = Pattern.compile("([\\w\\d\\.]+/)*([\\w\\d\\.]+|(\\*)){1}");
+    Pattern PATTERN_RELATIVE_PATH = Pattern.compile("([\\w\\d\\.]+/)*([\\w\\d\\.]*(\\*)?){1}");
     String MSG_RELATIVE_PATH_ERROR = "不符合相对路径格式要求";
 
     Pattern PATTERN_ABSOLUTE_PATH = Pattern.compile("/" + PATTERN_RELATIVE_PATH.toString());
