@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.plugin.credentials;
@@ -45,8 +45,15 @@ public class TestParamsConfigPluginStore extends TestCase {
         HttpUtils.addMockGlobalParametersConfig();
     }
 
+    private static final String keyTest1 = "test1";
+
     public void testWriteAndGet() {
-        UploadPluginMeta pluginMeta = UploadPluginMeta.parse(UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_test1");
+
+        UploadPluginMeta pluginMeta = UploadPluginMeta.parse(
+                ParamsConfig.CONTEXT_PARAMS_CFG + ":" + UploadPluginMeta.KEY_TARGET_PLUGIN_DESC + "_" + keyTest1);
+        UploadPluginMeta.TargetDesc targetDesc = pluginMeta.getTargetDesc();
+
+        assertEquals(keyTest1, targetDesc.matchTargetPluginDescName);
         ParamsConfigPluginStore paramsCfgPluginStore = new ParamsConfigPluginStore(pluginMeta);
 
         List<Descriptor.ParseDescribable<ParamsConfig>> dlist = Lists.newArrayList();
@@ -65,7 +72,9 @@ public class TestParamsConfigPluginStore extends TestCase {
         paramsCfgPluginStore.setPlugins(null, Optional.empty(), dlist);
 
         List<ParamsConfig> plugins = paramsCfgPluginStore.getPlugins();
-        assertEquals(3, plugins.size());
+        assertNotNull("plugins can not be null", plugins);
+        assertEquals(1, plugins.size());
+        assertEquals(cfg1.name, plugins.get(0).identityValue());
 
 
         cfg2 = new Test2ParamsConfig();
@@ -97,7 +106,7 @@ public class TestParamsConfigPluginStore extends TestCase {
         public static class DefaultDescriptor extends Descriptor<ParamsConfig> {
             @Override
             public String getDisplayName() {
-                return "test1";
+                return keyTest1;
             }
         }
     }
