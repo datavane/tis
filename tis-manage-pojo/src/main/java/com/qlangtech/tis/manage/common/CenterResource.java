@@ -1,24 +1,23 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -44,7 +43,7 @@ import java.util.Optional;
 public class CenterResource {
     private static final Logger logger = LoggerFactory.getLogger(CenterResource.class);
 
-   //public static  PluginAndCfgsSnapshot
+    //public static  PluginAndCfgsSnapshot
 
     public static final String KEY_LAST_MODIFIED_EXTENDION = ".lastmodified";
 
@@ -175,9 +174,9 @@ public class CenterResource {
         if (notFetchFromCenterRepository()) {
             return false;
         }
-       // final File lastModifiedFile = new File(local.getParentFile(), local.getName() + KEY_LAST_MODIFIED_EXTENDION);
-       // ShallWriteLocalResult shallWriteLocal = null;
-       // if (!directDownload) {
+        // final File lastModifiedFile = new File(local.getParentFile(), local.getName() + KEY_LAST_MODIFIED_EXTENDION);
+        // ShallWriteLocalResult shallWriteLocal = null;
+        // if (!directDownload) {
 //            shallWriteLocal = HttpUtils.get(url, new ConfigFileContext.StreamProcess<ShallWriteLocalResult>() {
 //                @Override
 //                public List<ConfigFileContext.Header> getHeaders() {
@@ -193,22 +192,27 @@ public class CenterResource {
 //                return false;
 //            }
         //}
-       // ShallWriteLocalResult[] shallWriteLocalAry = new ShallWriteLocalResult[]{shallWriteLocal};
+        // ShallWriteLocalResult[] shallWriteLocalAry = new ShallWriteLocalResult[]{shallWriteLocal};
         return HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
 
             @Override
             public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
 
+                FileUtils.deleteQuietly(local);
+                if (isTargetResourceNotExist(headerFields)) {
+                    logger.warn("remote resource not exist:" + url);
+                    return false;
+                }
 //                if (shallWriteLocalAry[0] == null) {
 //                    if (!(shallWriteLocalAry[0] = shallWriteLocal(headerFields, url, local, lastModifiedFile)).shall) {
 //                        return false;
 //                    }
 //                }
-               // Assert.assertTrue("shallWriteLocalAry shall be true", shallWriteLocalAry[0].shall);
+                // Assert.assertTrue("shallWriteLocalAry shall be true", shallWriteLocalAry[0].shall);
 
-               // long lastUpdate = shallWriteLocalAry[0].lastUpdateTimestamp;// getLastUpdateTimeStamp(headerFields, url);
+                // long lastUpdate = shallWriteLocalAry[0].lastUpdateTimestamp;// getLastUpdateTimeStamp(headerFields, url);
                 try {
-                    FileUtils.deleteQuietly(local);
+
                     FileUtils.copyInputStreamToFile(stream, local);
                 } catch (IOException e) {
                     throw new RuntimeException("local file:" + local.getAbsolutePath(), e);
