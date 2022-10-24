@@ -76,6 +76,11 @@ public class TestParamsConfigPluginStore extends TestCase {
         assertEquals(1, plugins.size());
         assertEquals(cfg1.name, plugins.get(0).identityValue());
 
+        paramsCfgPluginStore = new ParamsConfigPluginStore(UploadPluginMeta.parse(ParamsConfig.CONTEXT_PARAMS_CFG));
+        plugins = paramsCfgPluginStore.getPlugins();
+        assertNotNull("plugins can not be null", plugins);
+        assertTrue(plugins.size() > 1);
+
 
         cfg2 = new Test2ParamsConfig();
         cfg2.name = "id1";

@@ -184,7 +184,6 @@ public class UploadPluginMeta {
 
         Optional<IPropertyType.SubFormFilter> subFormFilter = null;
 
-
         subFormFilter = this.getSubFormFilter();
         if (subFormFilter.isPresent()) {
             IPropertyType.SubFormFilter subFilter = subFormFilter.get();
@@ -259,9 +258,7 @@ public class UploadPluginMeta {
     public static class TargetDesc {
         public final String descDisplayName;
         public final String impl;
-
         public final String matchTargetPluginDescName;
-
 
         public static final TargetDesc create(UploadPluginMeta meta) {
             return new TargetDesc(
@@ -297,6 +294,7 @@ public class UploadPluginMeta {
                     '}';
         }
     }
+
 
     public TargetDesc getTargetDesc() {
         return TargetDesc.create(this);

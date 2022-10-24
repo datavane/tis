@@ -351,11 +351,12 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     private transient boolean loaded = false;
 
     private synchronized void load() {
-        logger.info("load:" + this.file.getFile().getAbsolutePath() + ",this.loaded:" + this.loaded);
+
         RobustReflectionConverter.PluginMetas metasCollector = RobustReflectionConverter.usedPluginInfo.get();
         if ( metasCollector.isCacheable() && this.loaded) {
             return;
         }
+        logger.info("load:" + this.file.getFile().getAbsolutePath() + ",this.loaded:" + this.loaded);
         // MapBackedDataHolder dataHolder = new MapBackedDataHolder();
         Set<PluginMeta> pluginMetas = Sets.newHashSet();
         XmlFile.DefaultDataHolder dataHolder = new XmlFile.DefaultDataHolder(pluginMetas, this.file);

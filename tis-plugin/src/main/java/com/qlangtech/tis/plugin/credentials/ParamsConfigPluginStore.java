@@ -32,7 +32,8 @@ import com.qlangtech.tis.plugin.SetPluginsResult;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,30 +91,40 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
     @Override
     public List<ParamsConfig> getPlugins() {
-        // List<ParamsConfig> plugins = Lists.newArrayList();
-        return visitAllPluginStore((pluginStore) -> {
-            return pluginStore.getPlugins();
+        List<ParamsConfig> plugins = Lists.newArrayList();
+        UploadPluginMeta.TargetDesc targetDesc = this.pluginMeta.getTargetDesc();
+        //
+        visitAllPluginStore((store) -> {
+            List<ParamsConfig> childs = store.getRight().getPlugins();
+
+            if (StringUtils.isEmpty(targetDesc.matchTargetPluginDescName)) {
+                plugins.addAll(childs);
+            } else if (StringUtils.equals(targetDesc.matchTargetPluginDescName, store.getKey())) {
+                plugins.addAll(childs);
+                return childs;
+            }
+
+            return null;
         });
-        // return plugins;
+        return plugins;
     }
 
 
-    private <TT> TT visitAllPluginStore(Function<IPluginStore<ParamsConfig>, TT> func) {
+    private <TT> TT visitAllPluginStore(Function<Pair<String, IPluginStore<ParamsConfig>>, TT> func) {
         final String[] childFiles = paramsCfgDir.list();
-        UploadPluginMeta.TargetDesc targetDesc = this.pluginMeta.getTargetDesc();
+
         TT result = null;
         for (String childFile : childFiles) {
-            if (!StringUtils.equals(targetDesc.matchTargetPluginDescName, childFile)) {
-                continue;
-            }
+//            if (!StringUtils.equals(targetDesc.matchTargetPluginDescName, childFile)) {
+//                continue;
+//            }
             IPluginStore<ParamsConfig> pluginStore = ParamsConfig.getChildPluginStore(childFile);
-            result = func.apply(pluginStore);
+            result = func.apply(Pair.of(childFile, pluginStore));
             if (result != null) {
                 return result;
             }
         }
         return null;
-        //throw new IllegalStateException("can not find any match param config store:" + targetDesc);
     }
 
 
@@ -125,7 +136,7 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     @Override
     public void cleanPlugins() {
         visitAllPluginStore((ps) -> {
-            ps.cleanPlugins();
+            ps.getRight().cleanPlugins();
             return null;
         });
     }
@@ -134,7 +145,7 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     public List<Descriptor<ParamsConfig>> allDescriptor() {
         List<Descriptor<ParamsConfig>> descs = Lists.newArrayList();
         visitAllPluginStore((ps) -> {
-            descs.addAll(ps.allDescriptor());
+            descs.addAll(ps.getRight().allDescriptor());
             return null;
         });
         return descs;
@@ -143,7 +154,7 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     @Override
     public ParamsConfig find(String name, boolean throwNotFoundErr) {
         ParamsConfig cfg = visitAllPluginStore((ps) -> {
-            return ps.find(name, throwNotFoundErr);
+            return ps.getRight().find(name, throwNotFoundErr);
         });
         return cfg;
     }
