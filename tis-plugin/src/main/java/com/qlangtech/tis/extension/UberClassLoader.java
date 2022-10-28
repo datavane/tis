@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.extension;
@@ -67,23 +67,27 @@ public final class UberClassLoader extends ClassLoader {
         WeakReference<Class> wc = generatedClasses.get(name);
         if (wc != null) {
             Class c = wc.get();
-            if (c != null)
+            if (c != null) {
                 return c;
-            else
+            } else {
                 generatedClasses.remove(name, wc);
+            }
+
         }
         if (name.startsWith("SimpleTemplateScript")) {
             // cf. groovy.text.SimpleTemplateEngine
             throw new ClassNotFoundException("ignoring " + name);
         }
         synchronized (loaded) {
-            if (loaded.containsKey(name)) {
-                Class<?> c = loaded.get(name);
-                if (c != null) {
-                    return c;
-                } else {
-                    throw new ClassNotFoundException("cached miss for " + name);
-                }
+            Class<?> c = null;
+            if ((c = loaded.get(name)) != null) {
+                // Class<?> c = loaded.get(name);
+                return c;
+//                if (c != null) {
+//                    return c;
+//                } else {
+//                    throw new ClassNotFoundException("cached miss for " + name);
+//                }
             }
         }
         if (PluginManager.FAST_LOOKUP) {

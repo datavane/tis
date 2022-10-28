@@ -219,17 +219,10 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         DataXJobSubmit.mockGetter = () -> new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(jobTrigger);
 
         DataXExecuteInterceptor executeInterceptor = new DataXExecuteInterceptor();
-//            @Override
-//            protected IRemoteJobTrigger createDataXJob(DataXJobSubmit.IDataXJobContext execChainContext
-//                    , DataXJobSubmit submit, DataXJobSubmit.InstanceType expectDataXJobSumit
-//                    , RpcServiceReference statusRpc, DataxProcessor appSource, String fileName) {
-//                assertEquals(dataCfgFileName, fileName);
-//                return jobTrigger;
-//            }
-        //  };
 
         IExecChainContext execChainContext = mock("execChainContext", IExecChainContext.class);
         execChainContext.rebindLoggingMDCParams();
+        EasyMock.expectLastCall().anyTimes();
         EasyMock.expect(execChainContext.getIndexName()).andReturn(AP_NAME);
         EasyMock.expect(execChainContext.getTaskId()).andReturn(testTaskId).anyTimes();
         //  getTaskId

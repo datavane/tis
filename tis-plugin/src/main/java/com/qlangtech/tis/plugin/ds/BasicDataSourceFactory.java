@@ -23,22 +23,28 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.db.parser.DBConfigParser;
 import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -315,6 +321,53 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
     public interface ISchemaSupported {
         public String getDBSchema();
     }
+
+    private static final Pattern COMMENT_PATTERN = Pattern.compile("^(.*)--.*$");
+
+    /**
+     * Executes a JDBC statement using the default jdbc config without autocommitting the
+     * connection. <br/>
+     * this method is for test
+     */
+    public void initializeDB(String... sqlFile) {
+        if (sqlFile.length < 1) {
+            throw new IllegalArgumentException("length of sqlFile length can not short than 1");
+        }
+        final List<URL> ddlTestFile = Lists.newArrayList();
+        for (String f : sqlFile) {
+            final String ddlFile = f;//String.format("ddl/%s.sql", f);
+            final URL ddFile = BasicDataSourceFactory.class.getClassLoader().getResource(ddlFile);
+            Objects.requireNonNull(ddFile, "Cannot locate " + ddlFile);
+            ddlTestFile.add(ddFile);
+        }
+
+        this.visitAllConnection((connection) -> {
+            for (URL ddl : ddlTestFile) {
+                try (InputStream reader = ddl.openStream()) {
+                    try (Statement statement = connection.createStatement()) {
+                        final List<String> statements
+                                = Arrays.stream(IOUtils.readLines(reader, TisUTF8.get()).stream().map(String::trim)
+                                .filter(x -> !x.startsWith("--") && !x.isEmpty())
+                                .map(
+                                        x -> {
+                                            final Matcher m =
+                                                    COMMENT_PATTERN.matcher(x);
+                                            return m.matches() ? m.group(1) : x;
+                                        })
+                                .collect(Collectors.joining("\n"))
+                                .split(";"))
+                                .collect(Collectors.toList());
+                        for (String stmt : statements) {
+                            statement.execute(stmt);
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
 
     public static void main(String[] args) {
         Matcher matcher = BasicRdbmsDataSourceFactoryDescriptor.urlParamsPattern.matcher("kkk=lll&bbb=lll");
