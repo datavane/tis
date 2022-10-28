@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 //import junit.framework.TestCase;
@@ -26,9 +26,12 @@ import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
+import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import junit.framework.TestCase;
@@ -91,11 +94,63 @@ import java.util.Map;
 // * @date 2019年8月22日
 // */
 public class TestIndexSwapTaskflowLauncher extends TestCase {
-//
+    //
     static final int TASK_ID = 253;
     static final int shardCount = 1;
     private static final String WF_ID = "45";
-//
+
+    public void testLoadPhaseStatusFromLocal() {
+
+        // 确保 static 块执行
+        //  Assert.assertNotNull(IndexSwapTaskflowLauncher.class);
+        IndexSwapTaskflowLauncher.initPhaseStatusStatusWriter();
+
+        PhaseStatusCollection status = TrackableExecuteInterceptor.initialTaskPhase(TASK_ID);
+        DumpPhaseStatus dump = new DumpPhaseStatus(TASK_ID);
+        DumpPhaseStatus.TableDumpStatus user = dump.getTable("user");
+        user.setAllRows(55);
+        user.setWaiting(false);
+        user.setComplete(true);
+        user.setFaild(true);
+
+        DumpPhaseStatus.TableDumpStatus group = dump.getTable("group");
+        group.setAllRows(66);
+        group.setWaiting(false);
+        group.setComplete(true);
+        group.setFaild(false);
+
+        status.setDumpPhase(dump);
+
+        status.flushStatus2Local();
+
+
+        PhaseStatusCollection loadStatus = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(TASK_ID);
+        Assert.assertNotNull(loadStatus);
+
+        DumpPhaseStatus actualDump = loadStatus.getDumpPhase();
+        Assert.assertNotNull(actualDump);
+
+        DumpPhaseStatus.TableDumpStatus actualUser = actualDump.getTable(user.getName());
+        assertDumpStatus(user, actualUser);
+
+        assertDumpStatus(group, actualDump.getTable(group.getName()));
+//        Assert.assertNotNull(actualUser);
+//        Assert.assertEquals(user.isFaild(), actualUser.isFaild());
+    }
+
+    private void assertDumpStatus(DumpPhaseStatus.TableDumpStatus expect, DumpPhaseStatus.TableDumpStatus actual) {
+        Assert.assertNotNull(expect);
+        Assert.assertNotNull(actual);
+        Assert.assertEquals(expect.getAll(), actual.getAll());
+        Assert.assertEquals(expect.getName(), actual.getName());
+        Assert.assertEquals(expect.getTaskid(),actual.getTaskid());
+        Assert.assertEquals(expect.isFaild(),actual.isFaild());
+        Assert.assertEquals(expect.isComplete(),actual.isComplete());
+        Assert.assertEquals(expect.isSuccess(),actual.isSuccess());
+        Assert.assertEquals(expect.isWaiting(),actual.isWaiting());
+    }
+
+    //
 //    private static final String TAB_TOTALPYINFO = "order.totalpayinfo";
 //
 //    public void testZkHostGetter() {
@@ -356,11 +411,13 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 //
 //
     static final String SEARCH_APP_NAME = "search4totalpay";
-//
+
+    //
     public static DefaultChainContext createRangeChainContext(FullbuildPhase start, FullbuildPhase end, String... pts) throws Exception {
         return createRangeChainContext(SEARCH_APP_NAME, start, end, pts);
     }
-//
+
+    //
     public static DefaultChainContext createRangeChainContext(String collectionName
             , FullbuildPhase start, FullbuildPhase end, String... pts) throws Exception {
         TestParamContext params = new TestParamContext();
@@ -391,7 +448,8 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         });
         return chainContext;
     }
-//
+
+    //
     public static DefaultChainContext createDumpAndJoinChainContext() throws Exception {
         return createRangeChainContext(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
     }
