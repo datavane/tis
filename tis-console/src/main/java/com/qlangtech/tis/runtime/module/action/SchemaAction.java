@@ -117,10 +117,10 @@ public class SchemaAction extends BasicModule {
       DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
 
       Optional<TableAlias> f = dataxProcessor.getTabAlias().findFirst();
-      if(f.isPresent()){
+      if (f.isPresent()) {
         writerStructFields(context, f.get(), typeTransfer);
+        return;
       }
-
 //      for (Map.Entry<String, TableAlias> e : dataxProcessor.getTabAlias().entrySet()) {
 //        writerStructFields(context, e.getValue(), typeTransfer);
 //        return;
