@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.solrdao.impl;
@@ -27,6 +27,7 @@ import com.qlangtech.tis.solrdao.SolrFieldsParser;
 import com.qlangtech.tis.solrdao.extend.IndexBuildHook;
 import com.qlangtech.tis.solrdao.extend.ProcessorSchemaField;
 import com.qlangtech.tis.solrdao.pojo.PSchemaField;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
 
@@ -157,22 +158,22 @@ public class ParseResult implements ISchema {
     }
 
     public boolean isValid() {
-        if (!this.errlist.isEmpty()) {
-            return false;
-        }
-        if (!shallValidate) {
-            return true;
-        }
-        for (com.qlangtech.tis.solrdao.pojo.PSchemaField field : dFields) {
-            if (!field.isIndexed() && !field.isStored() && !field.isDocValue()) {
-                errlist.add(SolrFieldsParser.getFieldPropRequiredErr(field.getName()));
-            }
-            String fieldName = StringUtils.lowerCase(field.getName());
-            if (reserved_words.contains(fieldName)) {
-                errlist.add("字段名称:" + field.getName() + "不能命名成系统保留字符" + reservedWordsBuffer);
-            }
-        }
-        return errlist.isEmpty();
+//        if (!this.errlist.isEmpty()) {
+//            return false;
+//        }
+//        if (!shallValidate) {
+//            return true;
+//        }
+//        for (com.qlangtech.tis.solrdao.pojo.PSchemaField field : dFields) {
+//            if (!field.isIndexed() && !field.isStored() && !field.isDocValue()) {
+//                errlist.add(ISchema.getFieldPropRequiredErr(field.getName()));
+//            }
+//            String fieldName = StringUtils.lowerCase(field.getName());
+//            if (reserved_words.contains(fieldName)) {
+//                errlist.add("字段名称:" + field.getName() + "不能命名成系统保留字符" + reservedWordsBuffer);
+//            }
+//        }
+        return CollectionUtils.isEmpty(errlist = ISchema.validateSchema(this.dFields));
     }
 
     public String getUniqueKey() {
@@ -294,4 +295,8 @@ public class ParseResult implements ISchema {
         return types;
     }
 
+    @Override
+    public List<String> getErrors() {
+        return null;
+    }
 }

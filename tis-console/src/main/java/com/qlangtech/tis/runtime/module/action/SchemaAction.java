@@ -91,10 +91,7 @@ public class SchemaAction extends BasicModule {
   protected static final String FIELD_Recept = "recept";
   protected static final String FIELD_DptId = "dptId";
   private static final long serialVersionUID = 1L;
-
   protected static final String INDEX_PREFIX = "search4";
-
-  //private static Logger log = LoggerFactory.getLogger(SchemaAction.class);
 
   /**
    * DataX 创建流程中取得es的默认字段
@@ -112,29 +109,43 @@ public class SchemaAction extends BasicModule {
 
     ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, dataxName);
     DataxReader dataxReader = DataxReader.load(this, dataxName);
+    ISelectedTab esTab = null;
+    for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
+      esTab = tab;
+      break;
+    }
+    Objects.requireNonNull(esTab, "esTab can not be null");
     // ESField field = null;
     if (stepType.update) {
       DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
 
       Optional<TableAlias> f = dataxProcessor.getTabAlias().findFirst();
       if (f.isPresent()) {
-        writerStructFields(context, f.get(), typeTransfer);
-        return;
+        TableAlias tabMapper = f.get();
+        if (StringUtils.equals(tabMapper.getFrom(), esTab.getName())) {
+          writerStructFields(context, tabMapper, typeTransfer);
+          return;
+        } else {
+          // 更新时，源表改变了重新初始化
+          writeStructFields(context, typeTransfer, esTab);
+          return;
+        }
       }
-//      for (Map.Entry<String, TableAlias> e : dataxProcessor.getTabAlias().entrySet()) {
-//        writerStructFields(context, e.getValue(), typeTransfer);
-//        return;
-//      }
+
     } else {
-      for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
-        // ESSchema parseResult = new ESSchema();
-        SchemaMetaContent tplSchema = typeTransfer.initSchemaMetaContent(tab);
-        this.setBizResult(context, tplSchema.toJSON());
-        return;
-      }
+//      for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
+      // ESSchema parseResult = new ESSchema();
+      writeStructFields(context, typeTransfer, esTab);
+      return;
+      //}
     }
 
     throw new IllegalStateException("have not find any tab in DataXReader");
+  }
+
+  private void writeStructFields(Context context, ISearchEngineTypeTransfer typeTransfer, ISelectedTab esTab) {
+    SchemaMetaContent tplSchema = typeTransfer.initSchemaMetaContent(esTab);
+    this.setBizResult(context, tplSchema.toJSON());
   }
 
   /**
@@ -369,51 +380,39 @@ public class SchemaAction extends BasicModule {
           this.addErrorMessage(context, "字段名称不能为空");
           hasBlankError = true;
         }
-        FieldErrorInfo err = fieldsErrors.getFieldErrorInfo(f.getId());// new FieldErrorInfo(f.getId());
+        FieldErrorInfo err = fieldsErrors.getFieldErrorInfo(f.getId());
         err.setFieldNameError(true);
       } else {
         if (!duplicate.add(f.getName())) {
-          // if (!hasDuplicateError) {
           this.addErrorMessage(context, "字段名‘" + f.getName() + "’不能重复");
-          // }
           // 有重复
           hasDuplicateError = true;
           FieldErrorInfo err = fieldsErrors.getFieldErrorInfo(f.getId());
           err.setFieldNameError(true);
-          // fieldsErrors.add(err);
         } else {
           if (!PATTERN_FIELD.matcher(f.getName()).matches() && !f.isDynamic()) {
-            // if (!hasNamePatternError) {
             this.addErrorMessage(context, "字段名‘" + f.getName() + "’开通必须以[a-z]作为开头且中间不能有除数字、下划线、大小写字母以外的字符出现");
-            // }
-            //    hasNamePatternError = true;
             FieldErrorInfo err = fieldsErrors.getFieldErrorInfo(f.getId());
             err.setFieldNameError(true);
-
           } else if (StringUtils.isBlank(f.getFieldtype())) {
             this.addErrorMessage(context, "请为字段‘" + f.getName() + "’选择类型");
             hasFieldTypeError = true;
             FieldErrorInfo err = fieldsErrors.getFieldErrorInfo(f.getId());
             err.setFieldTypeError(true);
-            //fieldsErrors.add(err);
           } else if ("string".equalsIgnoreCase(f.getFieldtype())  //
             && (StringUtils.isBlank(f.getTokenizerType())
             || "-1".equalsIgnoreCase(f.getTokenizerType()))) {
-            // if (!hasFieldTypeError) {
             this.addErrorMessage(context, "请为字段‘" + f.getName() + "’选择分词类型");
             hasFieldTypeError = true;
-            // }
             FieldErrorInfo err = fieldsErrors.getFieldErrorInfo(f.getId());
             err.setFieldTypeError(true);
-            // fieldsErrors.add(err);
           }
         }
 
         if (!f.getSortable() && !f.isIndexed() && !f.isStored()) {
-          this.addErrorMessage(context, SolrFieldsParser.getFieldPropRequiredErr(f.getName()));
+          this.addErrorMessage(context, ISchema.getFieldPropRequiredErr(f.getName()));
           FieldErrorInfo err = fieldsErrors.getFieldErrorInfo(f.getId());
           err.setFieldPropRequiredError(true);
-          // fieldsErrors.add(err);
         }
 
       }
@@ -444,23 +443,17 @@ public class SchemaAction extends BasicModule {
     // 整段xml文本
     com.alibaba.fastjson.JSONObject body = this.parseJsonPost();
 
-    ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, body.getString(DataxUtils.DATAX_NAME));
-
-    //  final String content = body.getString("content");
-    //byte[] schemaContent = body.getString("content").getBytes(TisUTF8.get());
-    //JSONArray fields = JSON.parseArray(content);
+    ISearchEngineTypeTransfer typeTransfer
+      = ISearchEngineTypeTransfer.load(this, body.getString(DataxUtils.DATAX_NAME));
     writerStructFields(context, body, typeTransfer);
   }
 
   private void writerStructFields(Context context, TableAlias tableAlias, ISearchEngineTypeTransfer typeTransfer) {
 
     SchemaMetaContent schemaContent = new SchemaMetaContent();
-    //schemaContent.content = content.getBytes(TisUTF8.get());
     schemaContent.parseResult = typeTransfer.projectionFromExpertModel(tableAlias, (content) -> {
       schemaContent.content = content;
     });
-    // this.getStructSchema(context, ISchemaPluginContext.NULL, schemaContent);
-
     this.setBizResult(context, schemaContent.toJSON());
   }
 
@@ -469,8 +462,6 @@ public class SchemaAction extends BasicModule {
     SchemaMetaContent schemaContent = new SchemaMetaContent();
     schemaContent.content = content.getBytes(TisUTF8.get());
     schemaContent.parseResult = typeTransfer.projectionFromExpertModel(body);
-    // this.getStructSchema(context, ISchemaPluginContext.NULL, schemaContent);
-
     this.setBizResult(context, schemaContent.toJSON());
   }
 

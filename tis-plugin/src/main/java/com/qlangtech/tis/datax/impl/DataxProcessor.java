@@ -134,7 +134,15 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         if (tableMaps == null) {
             return TableAliasMapper.Null;//Collections.emptyMap();
         }
-        return new TableAliasMapper(this.tableMaps.stream().collect(Collectors.toMap((m) -> m.getFrom(), (m) -> m)));
+        return new TableAliasMapper(this.tableMaps.stream()
+                .collect(Collectors.toMap((m) -> {
+                    if (StringUtils.isEmpty(m.getFrom())) {
+                        throw new IllegalArgumentException("table mapper from can not be empty");
+                    }
+                    return m.getFrom();
+                }, (m) -> {
+                    return m;
+                })));
     }
 
     public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName, boolean overWrite) throws IOException {

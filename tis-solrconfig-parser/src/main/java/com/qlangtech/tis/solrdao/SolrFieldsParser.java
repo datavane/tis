@@ -634,9 +634,7 @@ public class SolrFieldsParser {
         public void process(List<ColumnMetaData> cols, ParseResult result);
     }
 
-    public static String getFieldPropRequiredErr(String fieldName) {
-        return "字段:‘" + fieldName + "’的属性'stored'或'indexed'或'docvalue'至少有一项为true";
-    }
+
 
     public interface IFieldTypesVisit {
         public void visit(NodeList typeNodes);

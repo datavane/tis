@@ -48,8 +48,6 @@ public class SchemaField implements ISchemaField {
 
   private boolean multiValue = false;
 
-  //private boolean sortable;
-
   // 如果选择了string分词
   private String textAnalysis;
 
@@ -58,8 +56,6 @@ public class SchemaField implements ISchemaField {
 
   // 是否开通docvalue
   private boolean docval;
-
-
   public int getId() {
     return id;
   }
@@ -72,7 +68,6 @@ public class SchemaField implements ISchemaField {
   public boolean isMultiValue() {
     return this.multiValue;
   }
-
 
   @Override
   public boolean isDynamic() {

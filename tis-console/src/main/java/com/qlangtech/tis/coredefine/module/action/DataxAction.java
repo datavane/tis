@@ -55,6 +55,7 @@ import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
+import com.qlangtech.tis.solrdao.ISchema;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
@@ -805,16 +806,30 @@ public class DataxAction extends BasicModule {
     // 这里只做schema的校验
     CreateIndexConfirmModel confiemModel = parseJsonPost(CreateIndexConfirmModel.class);
     String schemaContent = null;
+    ISchema schema = null;
+    ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, confiemModel.getDataxName());
     if (confiemModel.isExpertModel()) {
-      schemaContent = confiemModel.getExpert().getXml();
+      CreateIndexConfirmModel.ExpertEditorModel expect = confiemModel.getExpert();
+      schemaContent = expect.getXml();
+      schema = typeTransfer.projectionFromExpertModel(expect.asJson());
     } else {
-
-      ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, confiemModel.getDataxName());
-      schemaContent = typeTransfer.mergeFromStupidModel(confiemModel.getStupid().getModel()
+      schema = confiemModel.getStupid().getModel();
+      schemaContent = typeTransfer.mergeFromStupidModel(schema
         , ISearchEngineTypeTransfer.getOriginExpertSchema(null)).toJSONString();
     }
 
+    if (!schema.isValid()) {
+      for (String err : schema.getErrors()) {
+        this.addErrorMessage(context, err);
+      }
+      return;
+    }
+
+    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, confiemModel.getDataxName());
+    List<ISelectedTab> selectedTabs = processMeta.getReader().getSelectedTabs();
     ESTableAlias esTableAlias = new ESTableAlias();
+    esTableAlias.setFrom(selectedTabs.stream().findFirst().get().getName());
+    esTableAlias.setTo(((ISearchEngineTypeTransfer) processMeta.getWriter()).getIndexName());
     esTableAlias.setSchemaContent(schemaContent);
 
     this.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
