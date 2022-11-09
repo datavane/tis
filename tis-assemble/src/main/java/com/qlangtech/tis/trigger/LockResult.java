@@ -36,7 +36,7 @@ public class LockResult {
 	private String zkAddress;
 	private String path;
 	private String content;
-	public Stat stat;
+
 	// 节点描述信息
 	private String desc;
 
@@ -74,21 +74,21 @@ public class LockResult {
 
 	};
 
-	public String getCreateTime() {
-		if (stat == null) {
-			return StringUtils.EMPTY;
-		}
-		return format.get().format(new Date(stat.getCtime()));
-		// return ManageUtils.formatDateYYYYMMdd();
-	}
+//	public String getCreateTime() {
+////		if (stat == null) {
+////			return StringUtils.EMPTY;
+////		}
+////		return format.get().format(new Date(stat.getCtime()));
+//		// return ManageUtils.formatDateYYYYMMdd();
+//	}
 
-	public String getUpdateTime() {
-		if (stat == null) {
-			return StringUtils.EMPTY;
-		}
-		return format.get().format(new Date(stat.getMtime()));
-		// return ManageUtils.formatDateYYYYMMdd(new Date(stat.getMtime()));
-	}
+//	public String getUpdateTime() {
+//		if (stat == null) {
+//			return StringUtils.EMPTY;
+//		}
+//		return format.get().format(new Date(stat.getMtime()));
+//		// return ManageUtils.formatDateYYYYMMdd(new Date(stat.getMtime()));
+//	}
 
 	public String getZkAddress() {
 		return zkAddress;

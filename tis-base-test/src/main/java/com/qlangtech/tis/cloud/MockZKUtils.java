@@ -23,7 +23,6 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.test.EasyMockUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
 
@@ -45,7 +44,7 @@ public class MockZKUtils {
         try (InputStream input = MockZKUtils.class.getResourceAsStream("overseer_elect_leader.json")) {
             Assert.assertNotNull(input);
             IExpectationSetters<byte[]> expect = EasyMock.expect(
-                    zkCoordinator.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true));
+                    zkCoordinator.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, true));
             expect.andReturn(IOUtils.toByteArray(input)).anyTimes();
         }
 
@@ -60,8 +59,8 @@ public class MockZKUtils {
         String childPath = "nodes0000000361";
         String childPathContent = "192.168.28.200:38293";
         List<String> incrStatecollectList = Lists.newArrayList(childPath);
-        EasyMock.expect(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, null, true)).andReturn(incrStatecollectList).anyTimes();
-        EasyMock.expect(zkCoordinator.getData(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + "/" + childPath, null, new Stat(), true))
+        EasyMock.expect(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, true)).andReturn(incrStatecollectList).anyTimes();
+        EasyMock.expect(zkCoordinator.getData(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + "/" + childPath, true))
                 .andReturn(childPathContent.getBytes(TisUTF8.get())).anyTimes();
     }
 

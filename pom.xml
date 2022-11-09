@@ -78,7 +78,7 @@
         <!--        <module>tis-realtime-base</module>-->
         <module>tis-sql-parser</module>
         <module>tis-common-dao</module>
-        <module>tis-collection-info-collect</module>
+<!--        <module>tis-collection-info-collect</module>-->
         <module>tis-console</module>
         <!--        <module>solr-webapp</module>-->
         <module>tis-scala-compiler</module>
@@ -687,29 +687,29 @@
                 <version>1.13</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.apache.zookeeper</groupId>
-                <artifactId>zookeeper</artifactId>
-                <version>3.4.14</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.jms</groupId>
-                        <artifactId>jms</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.sun.jdmk</groupId>
-                        <artifactId>jmxtools</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.sun.jmx</groupId>
-                        <artifactId>jmxri</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.jboss.netty</groupId>
-                        <artifactId>netty</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.apache.zookeeper</groupId>-->
+<!--                <artifactId>zookeeper</artifactId>-->
+<!--                <version>3.4.14</version>-->
+<!--                <exclusions>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>javax.jms</groupId>-->
+<!--                        <artifactId>jms</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>com.sun.jdmk</groupId>-->
+<!--                        <artifactId>jmxtools</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>com.sun.jmx</groupId>-->
+<!--                        <artifactId>jmxri</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>org.jboss.netty</groupId>-->
+<!--                        <artifactId>netty</artifactId>-->
+<!--                    </exclusion>-->
+<!--                </exclusions>-->
+<!--            </dependency>-->
 
 
             <dependency>

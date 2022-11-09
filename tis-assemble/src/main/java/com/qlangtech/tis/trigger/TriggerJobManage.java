@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.trigger;
@@ -36,7 +36,6 @@ import com.qlangtech.tis.trigger.biz.dal.pojo.TriggerJobCriteria;
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.SessionExpiredException;
-import org.apache.zookeeper.data.Stat;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -334,8 +333,8 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
             @Override
             public String process(String path, ITISCoordinator zk, LockResult lock)
                     throws KeeperException, InterruptedException {
-                lock.stat = new Stat();
-                String child = new String(zk.getData(path, null, lock.stat, true));
+
+                String child = new String(zk.getData(path, true));
                 lock.addChildValue(child);
                 return child;
             }
@@ -362,7 +361,7 @@ public class TriggerJobManage implements TriggerJobConsole, InitializingBean {
             if (!haChild) {
                 lock.setContent(process.process(path, zk, lock));// (path,
             } else {
-                List<String> child = zk.getChildren(path, null, true);
+                List<String> child = zk.getChildren(path, true);
                 StringBuffer buffer = new StringBuffer();
                 for (String n : child) {
                     buffer.append(new String(process.process(path + "/" + n, zk, lock)));

@@ -71,7 +71,6 @@ import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.data.Stat;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
@@ -792,7 +791,7 @@ public class CoreAction extends BasicModule {
       ZkUtils.getFirstChildValue(
         coordinator,
         ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
-        null, true);
+        true);
     return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
       + ":" + TisAppLaunch.getPort(TisSubModule.TIS_ASSEMBLE) + TisSubModule.TIS_ASSEMBLE.servletContext;
   }
@@ -1359,7 +1358,7 @@ public class CoreAction extends BasicModule {
   }
 
   public static String getCloudOverseerNode(ITISCoordinator zkClient) {
-    Map v = JSON.parseObject(zkClient.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, null, new Stat(), true), Map.class, Feature.AllowUnQuotedFieldNames);
+    Map v = JSON.parseObject(zkClient.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, true), Map.class, Feature.AllowUnQuotedFieldNames);
     String id = (String) v.get("id");
     if (id == null) {
       throw new IllegalStateException("collection cluster overseer node has not launch");

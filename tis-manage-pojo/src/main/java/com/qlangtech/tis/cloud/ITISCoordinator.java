@@ -21,8 +21,8 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.data.Stat;
+//import org.apache.zookeeper.Watcher;
+//import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,8 @@ public interface ITISCoordinator extends ICoordinator {
             }
 
             @Override
-            public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
+            public List<String> getChildren(String zkPath //, Watcher watcher
+                    , boolean b) {
                 if (ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH.equals(zkPath)) {
                     return Collections.singletonList(DEFAULT_CHILD1_PATH);
                 }
@@ -63,7 +64,8 @@ public interface ITISCoordinator extends ICoordinator {
             }
 
             @Override
-            public byte[] getData(String s, Watcher o, Stat stat, boolean b) {
+            public byte[] getData(String s //, Watcher o, Stat stat
+                    , boolean b) {
                 if (StringUtils.equals(s
                         , ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + ZkUtils.PATH_SPLIT + DEFAULT_CHILD1_PATH)) {
                     return (Config.getAssembleHost() + ":" + ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT).getBytes(TisUTF8.get());
@@ -100,11 +102,13 @@ public interface ITISCoordinator extends ICoordinator {
      */
     boolean shallConnect2RemoteIncrStatusServer();
 
-    List<String> getChildren(String zkPath, Watcher watcher, boolean b);
+    List<String> getChildren(String zkPath //, Watcher watcher
+            , boolean b);
 
     void addOnReconnect(IOnReconnect onReconnect);
 
-    byte[] getData(String s, Watcher o, Stat stat, boolean b);
+    byte[] getData(String s //, Watcher o, Stat stat
+            , boolean b);
 
     void create(String path, byte[] data, boolean persistent, boolean sequential);
 

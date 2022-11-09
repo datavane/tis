@@ -1,25 +1,24 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.assemble.ExecResult;
-import com.qlangtech.tis.cloud.AdapterTisCoordinator;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
@@ -33,16 +32,10 @@ import org.apache.curator.framework.recipes.queue.DistributedQueue;
 import org.apache.curator.framework.recipes.queue.QueueBuilder;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * DataX 执行器
@@ -112,60 +105,58 @@ public class DataXJobConsumer extends DataXJobSingleProcessorExecutor {
     }
 
     private static ITISCoordinator getCoordinator(String zkAddress, CuratorFramework curatorClient) throws Exception {
-        ITISCoordinator coordinator = null;
-
-        final ZooKeeper zooKeeper = curatorClient.getZookeeperClient().getZooKeeper();
-        coordinator = new AdapterTisCoordinator() {
-            @Override
-            public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
-                try {
-                    return zooKeeper.getChildren(zkPath, watcher);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            @Override
-            public boolean exists(String path, boolean watch) {
-                try {
-                    Stat exists = zooKeeper.exists(path, false);
-                    return exists != null;
-                } catch (Exception e) {
-                    throw new RuntimeException("path:" + path, e);
-                }
-            }
-
-            @Override
-            public void create(String path, byte[] data, boolean persistent, boolean sequential) {
-
-                CreateMode createMode = null;
-                if (persistent) {
-                    createMode = sequential ? CreateMode.PERSISTENT_SEQUENTIAL : CreateMode.PERSISTENT;
-                } else {
-                    createMode = sequential ? CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.EPHEMERAL;
-                }
-                try {
-                    zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode);
-                } catch (Exception e) {
-                    throw new RuntimeException("path:" + path, e);
-                }
-            }
-
-            @Override
-            public byte[] getData(String zkPath, Watcher o, Stat stat, boolean b) {
-                try {
-                    return zooKeeper.getData(zkPath, o, stat);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        logger.info("create TIS new zookeeper instance with ,system zkHost:{}", Config.getZKHost());
-//        } else {
-//            coordinator = new TisZkClient(Config.getZKHost(), 60000);
-//            logger.info("use the TIS system zookeeper instance,system zkHost:{},plugin zkHost:{}", Config.getZKHost(), zkAddress);
-//        }
-        return coordinator;
+        throw new UnsupportedOperationException("zookeeper is abandon");
+//        ITISCoordinator coordinator = null;
+//
+//        final ZooKeeper zooKeeper = curatorClient.getZookeeperClient().getZooKeeper();
+//        coordinator = new AdapterTisCoordinator() {
+//            @Override
+//            public List<String> getChildren(String zkPath, boolean b) {
+//                try {
+//                    return zooKeeper.getChildren(zkPath);
+//                } catch (Exception e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//
+//            @Override
+//            public boolean exists(String path, boolean watch) {
+//                try {
+//                    Stat exists = zooKeeper.exists(path, false);
+//                    return exists != null;
+//                } catch (Exception e) {
+//                    throw new RuntimeException("path:" + path, e);
+//                }
+//            }
+//
+//            @Override
+//            public void create(String path, byte[] data, boolean persistent, boolean sequential) {
+//
+//                CreateMode createMode = null;
+//                if (persistent) {
+//                    createMode = sequential ? CreateMode.PERSISTENT_SEQUENTIAL : CreateMode.PERSISTENT;
+//                } else {
+//                    createMode = sequential ? CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.EPHEMERAL;
+//                }
+//                try {
+//                    zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode);
+//                } catch (Exception e) {
+//                    throw new RuntimeException("path:" + path, e);
+//                }
+//            }
+//
+//            @Override
+//            public byte[] getData(String zkPath, Watcher o, Stat stat, boolean b) {
+//                try {
+//                    return zooKeeper.getData(zkPath, o, stat);
+//                } catch (Exception e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//        };
+//        logger.info("create TIS new zookeeper instance with ,system zkHost:{}", Config.getZKHost());
+//
+//        return coordinator;
     }
 
     public static DistributedQueue<CuratorDataXTaskMessage> createQueue(CuratorFramework curatorClient, String zkQueuePath

@@ -26,8 +26,8 @@ import com.qlangtech.tis.manage.common.Config;
  **/
 public class SysInitializeZookeeper {
   public static void main(String[] args) {
-    SysInitializeAction init = new SysInitializeAction();
-    String zkHost = Config.getZKHost();
-    init.initializeZkPath(zkHost);
+//    SysInitializeAction init = new SysInitializeAction();
+//    String zkHost = Config.getZKHost();
+//    init.initializeZkPath(zkHost);
   }
 }

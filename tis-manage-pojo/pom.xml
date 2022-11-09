@@ -83,10 +83,10 @@
             <version>${spring-version}</version>
         </dependency>
   -->
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.zookeeper</groupId>-->
+<!--            <artifactId>zookeeper</artifactId>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>commons-io</groupId>
