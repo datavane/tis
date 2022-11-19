@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.datax.impl;
 
+import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
@@ -35,12 +36,16 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.TableNotFoundException;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * datax Reader
@@ -56,6 +61,19 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     public static DataxReader getThreadBingDataXReader() {
         DataxReader reader = dataxReaderThreadLocal.get();
         return reader;
+    }
+
+    @Override
+    public IStreamTableMeta getStreamTableMeta(String tableName) {
+        try {
+            List<ColumnMetaData> cols = this.getTableMetadata(EntityName.parse(tableName));
+            return () -> {
+                // String colName, Boolean nullable, Boolean pk, DataType dataType
+                return cols.stream().map((c) -> new HdfsColMeta(c.getName(), c.isNullable(), c.isPk(), c.getType())).collect(Collectors.toList());
+            };
+        } catch (TableNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, String appname) {
@@ -221,6 +239,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             return super.getSerializeFileName() + "." + this.subfieldForm.getSubFormFieldName();
         }
     }
+
     private transient boolean dirty = false;
 
     @Override
@@ -233,6 +252,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         // 标记可以在PluginStore中被剔出了
         this.dirty = true;
     }
+
     @Override
     public final Descriptor<DataxReader> getDescriptor() {
         Descriptor<DataxReader> descriptor = TIS.get().getDescriptor(this.getClass());
@@ -277,7 +297,6 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             eprops.put("endType", this.getEndType().getVal());
             return eprops;
         }
-
 
 
         /**

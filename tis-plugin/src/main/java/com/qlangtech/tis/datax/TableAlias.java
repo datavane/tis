@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
  * 表别名
  */
 public class TableAlias {
+    public static final String KEY_FROM_TABLE_NAME = "fromTableName";
     private String from;
     private String to;
 

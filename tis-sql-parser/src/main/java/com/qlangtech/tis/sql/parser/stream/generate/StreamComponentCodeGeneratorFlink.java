@@ -50,9 +50,7 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -474,11 +472,11 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
         FileUtils.forceMkdir(parentDir);
 
         this.mergeGenerate(mergeData
-                , "/com/qlangtech/tis/classtpl/app-context.xml.vm"
+                , IStreamIncrGenerateStrategy.IStreamTemplateResource.createClasspathResource("app-context.xml.vm", true)
                 , new File(parentDir, "app-context.xml"));
 
         this.mergeGenerate(mergeData
-                , "/com/qlangtech/tis/classtpl/field-transfer.xml.vm"
+                , IStreamIncrGenerateStrategy.IStreamTemplateResource.createClasspathResource("field-transfer.xml.vm", true)
                 , new File(parentDir, "field-transfer.xml"));
     }
 
@@ -580,13 +578,17 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
         return velocityContext;
     }
 
-    private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData) {
-        String tplFileName = this.streamIncrGenerateStrategy.getFlinkStreamGenerateTemplateFileName();
-        if (StringUtils.isEmpty(tplFileName)) {
-            throw new IllegalStateException("tplFileName can not be empty");
-        }
-        this.mergeGenerate(mergeData, "/com/qlangtech/tis/classtpl/"
-                + tplFileName, getIncrScriptMainFile());
+    private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData) throws IOException {
+        IStreamIncrGenerateStrategy.IStreamTemplateResource tplResource = this.streamIncrGenerateStrategy.getFlinkStreamGenerateTplResource();
+        Objects.requireNonNull(tplResource, "tplResource can not be null");
+//        if (StringUtils.isEmpty(tplFileName)) {
+//            throw new IllegalStateException("tplFileName can not be empty");
+//        }
+
+        this.mergeGenerate(mergeData
+                , tplResource
+                , getIncrScriptMainFile());
+
 //        OutputStreamWriter writer = null;
 //        // Reader tplReader = null;
 //        try {
@@ -618,15 +620,28 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 //        }
     }
 
-    private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData, String vmClasspath, File createdFile) {
+    private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData
+            , IStreamIncrGenerateStrategy.IStreamTemplateResource tplResource, File createdFile) {
         OutputStreamWriter writer = null;
         try {
             VelocityContext context = this.createContext(mergeData);
 
             FileUtils.forceMkdir(this.incrScriptDir);
             writer = new OutputStreamWriter(FileUtils.openOutputStream(createdFile), TisUTF8.get());
-            Template tpl = velocityEngine.getTemplate(vmClasspath, TisUTF8.getName());
-            tpl.merge(context, writer);
+
+
+            if (tplResource instanceof IStreamIncrGenerateStrategy.StringTemplateResource) {
+
+                try (Reader reader = ((IStreamIncrGenerateStrategy.StringTemplateResource) tplResource).getContentReader()) {
+                    velocityEngine.evaluate(context, writer, "tis", reader);
+                }
+            } else if (tplResource instanceof IStreamIncrGenerateStrategy.ClasspathTemplateResource) {
+                Template tpl = velocityEngine.getTemplate(((IStreamIncrGenerateStrategy.ClasspathTemplateResource) tplResource).getTplPath(), TisUTF8.getName());
+                //tpl = new Template();
+                tpl.merge(context, writer);
+            }
+
+
             writer.flush();
 
         } catch (Exception e) {

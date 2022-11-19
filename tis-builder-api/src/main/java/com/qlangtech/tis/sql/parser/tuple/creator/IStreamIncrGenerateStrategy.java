@@ -1,25 +1,27 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser.tuple.creator;
 
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.List;
 
 /**
@@ -34,8 +36,42 @@ public interface IStreamIncrGenerateStrategy {
         return true;
     }
 
-    default String getFlinkStreamGenerateTemplateFileName() {
-        return "flink_source_handle_scala.vm";
+    default IStreamTemplateResource getFlinkStreamGenerateTplResource() {
+        return IStreamTemplateResource.createClasspathResource("flink_source_handle_scala.vm", true);
+    }
+
+    public interface IStreamTemplateResource {
+        public static IStreamTemplateResource createClasspathResource(String tplName, boolean relativePath) {
+            return new ClasspathTemplateResource(relativePath ? ("/com/qlangtech/tis/classtpl/" + tplName) : tplName);
+        }
+
+        public static IStreamTemplateResource createStringContentResource(String content) {
+            return new StringTemplateResource(content);
+        }
+    }
+
+    static class ClasspathTemplateResource implements IStreamTemplateResource {
+        private final String tplPath;
+
+        public ClasspathTemplateResource(String tplName) {
+            this.tplPath = tplName;
+        }
+
+        public String getTplPath() {
+            return this.tplPath;
+        }
+    }
+
+    static class StringTemplateResource implements IStreamTemplateResource {
+        private final String tmpContent;
+
+        public StringTemplateResource(String tmpContent) {
+            this.tmpContent = tmpContent;
+        }
+
+        public Reader getContentReader() {
+            return new StringReader(this.tmpContent);
+        }
     }
 
     default IStreamTemplateData decorateMergeData(IStreamTemplateData mergeData) {
