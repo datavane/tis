@@ -14,8 +14,8 @@ class ${config.javaName}SourceHandle extends RowDataFlinkSourceHandle {
 
 #foreach($i in $config.dumpTables  )
 ##    ${i.tabName}Stream.addSink(sinkFunction)
-    val ${i.tabName}Stream = streamMap.get("${i.tabName}")
-    sinkFunction.add2Sink("${i.tabName}" , ${i.tabName}Stream)
+    val ${i.from}Stream = streamMap.get("${i.from}")
+    sinkFunction.add2Sink("${i.to}" , ${i.from}Stream)
 #end
 
     }

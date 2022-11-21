@@ -110,7 +110,7 @@ public class HeteroList<T extends Describable<T>> {
         o.put("extensionPoint", this.extensionPoint.getName());
         //http://tis.pub/docs/guide/plugin/plugins/#%E6%89%A9%E5%B1%95%E7%82%B9comqlangtechtisasyncmessageclientconsumerimplabstractasyncmsgdeserialize
         o.put("extensionPointUrl", Config.TIS_PUB_PLUGINS_DOC_URL
-                + URLEncoder.encode("扩展点" + StringUtils.lowerCase(StringUtils.remove(this.extensionPoint.getName(), ".")), TisUTF8.getName()));
+                + URLEncoder.encode(  StringUtils.lowerCase(StringUtils.remove(this.extensionPoint.getName(), ".")), TisUTF8.getName()));
 
 
         Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();

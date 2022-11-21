@@ -18,14 +18,15 @@
 
 package com.qlangtech.tis.sql.parser.stream.generate;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 import com.qlangtech.tis.sql.parser.TisGroupBy;
 import com.qlangtech.tis.sql.parser.er.ERRules;
@@ -33,9 +34,7 @@ import com.qlangtech.tis.sql.parser.er.IERRules;
 import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
 import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.PropGetter;
 import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
@@ -50,7 +49,10 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -81,21 +83,30 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
     }
 
-    private Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
-        return streamIncrGenerateStrategy.accept(new IBasicAppSource.IAppSourceVisitor<Map<IEntityNameGetter, List<IValChain>>>() {
+    private List<TableAlias> getTabTriggerLinker() {
+        return streamIncrGenerateStrategy.accept(new IBasicAppSource.IAppSourceVisitor<List<TableAlias>>() {
             @Override
-            public Map<IEntityNameGetter, List<IValChain>> visit(DataxProcessor processor) {
-                Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
+            public List<TableAlias> visit(DataxProcessor processor) {
+                // Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
+                List<TableAlias> aliases = Lists.newArrayList();
                 IDataxReader reader = processor.getReader(null);
                 Objects.requireNonNull(reader, "dataXReader can not be null");
-                List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
                 TableAliasMapper tabAlias = processor.getTabAlias();
-                for (ISelectedTab tab : selectedTabs) {
-                    tabColsMapper.put(() ->
-                                    EntityName.parse((tabAlias.getWithCheckNotNull(tab.getName())).getTo())
-                            , Collections.emptyList());
-                }
-                return tabColsMapper;
+
+                tabAlias.forEach((key, alia) -> {
+                    aliases.add(alia);
+                });
+                return aliases;
+
+//                for (ISelectedTab tab : selectedTabs) {
+//
+//                    tabAlias.getWithCheckNotNull(tab.getName());
+//
+//                    tabColsMapper.put(() ->
+//                                    EntityName.parse((tabAlias.getWithCheckNotNull(tab.getName())).getTo())
+//                            , Collections.emptyList());
+//                }
+//                return tabColsMapper;
             }
         });
     }
@@ -119,8 +130,11 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
      * @throws Exception
      */
     public void build() throws Exception {
-        final PrintStream traversesAllNodeOut = new PrintStream(new File("./traversesAllNode.txt"));
+        // final PrintStream traversesAllNodeOut = new PrintStream(new File("./traversesAllNode.txt"));
+        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap,
+                getTabTriggerLinker(), getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
 
+        mergeGenerate(streamIncrGenerateStrategy.decorateMergeData(mergeData));
         try {
 //            Map<IEntityNameGetter, List<IValChain>> tabTriggers = this.streamIncrGenerateStrategy.getTabTriggerLinker();
 //            IERRules erR = streamIncrGenerateStrategy.getERRule();
@@ -130,7 +144,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 //            Optional<TableRelation> firstParent = null;
             // Map<IEntityNameGetter, List<IValChain>> tabTriggers = getTabTriggerLinker();
 
-            FuncFormat aliasListBuffer = new FuncFormat();
+            //  FuncFormat aliasListBuffer = new FuncFormat();
 
 
             // for (Map.Entry<IEntityNameGetter, List<IValChain>> e : tabTriggers.entrySet()) {
@@ -443,14 +457,10 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
             // }
 
 
-            MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, aliasListBuffer,
-                    getTabTriggerLinker(), getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
-
-            mergeGenerate(streamIncrGenerateStrategy.decorateMergeData(mergeData));
         } finally {
-            IOUtils.closeQuietly(traversesAllNodeOut, (ex) -> {
-                logger.error(ex.getMessage(), ex);
-            });
+//            IOUtils.closeQuietly(traversesAllNodeOut, (ex) -> {
+//                logger.error(ex.getMessage(), ex);
+//            });
         }
 
     }
@@ -461,9 +471,8 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     public void generateConfigFiles() throws Exception {
 
 
-        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, new FuncFormat(),
-                Collections.emptyMap(), getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
-
+        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, Collections.emptyList()
+                , getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
 
         File parentDir =
                 new File(getSpringConfigFilesDir()
@@ -579,7 +588,8 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     }
 
     private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData) throws IOException {
-        IStreamIncrGenerateStrategy.IStreamTemplateResource tplResource = this.streamIncrGenerateStrategy.getFlinkStreamGenerateTplResource();
+        IStreamIncrGenerateStrategy.IStreamTemplateResource tplResource
+                = this.streamIncrGenerateStrategy.getFlinkStreamGenerateTplResource();
         Objects.requireNonNull(tplResource, "tplResource can not be null");
 //        if (StringUtils.isEmpty(tplFileName)) {
 //            throw new IllegalStateException("tplFileName can not be empty");

@@ -23,8 +23,8 @@ override protected def createTabStreamerCfg(): java.util.Map[String , FlinkStrea
 
 #foreach($i in $config.dumpTables  )
   cfg = createHudiCfg("${config.hudiOperationType}")
-  ${config.getFlinkStreamerConfig($i.tabName)}
-  cfgs += ("${i.tabName}" -> cfg )
+  ${config.getFlinkStreamerConfig($i.from)}
+  cfgs += ("${i.from}" -> cfg )
 
 #end
 

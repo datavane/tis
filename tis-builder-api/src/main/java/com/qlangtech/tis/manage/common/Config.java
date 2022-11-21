@@ -94,7 +94,7 @@ public class Config {
 //    }
 
 
-    public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/guide/plugin/plugins/#";
+    public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/plugin/plugins/#";
 
     private static final String bundlePath = "tis-web-config/config";
     private static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";

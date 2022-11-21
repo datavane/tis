@@ -1,40 +1,36 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
+import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.sql.parser.er.IERRules;
 import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
 import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.sql.parser.tuple.creator.IEntityNameGetter;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
-import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
 import com.qlangtech.tis.sql.parser.visitor.IBlockToString;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -47,9 +43,9 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
 
     private final Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap;
 
-    private final FuncFormat aliasListBuilder;
+    //  private final FuncFormat aliasListBuilder;
 
-    private final Map<IEntityNameGetter, List<IValChain>> tabTriggers;
+    private final List<TableAlias> tabTriggers;
 
     private final List<FacadeContext> facadeContextList;
 
@@ -61,20 +57,19 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
      */
             globalScripts = Maps.newHashMap();
 
-   // private static final Pattern PATTERN_COLLECTION_NAME = Pattern.compile("(search4)([^\\s]+)");
-
+    // private static final Pattern PATTERN_COLLECTION_NAME = Pattern.compile("(search4)([^\\s]+)");
 
 
     /**
      * @param collection
      * @param mapDataMethodCreatorMap
-     * @param aliasListBuilder
      * @param tabTriggers
      * @param facadeContextList       索引主表集合，当索引为两个表union起来的时候Set中就存在多个实体
      */
     public MergeData(
             String collection, Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap
-            , FuncFormat aliasListBuilder, Map<IEntityNameGetter, List<IValChain>> tabTriggers
+            //, FuncFormat aliasListBuilder
+            , List<TableAlias> tabTriggers
             , IERRules erRules
             , List<FacadeContext> facadeContextList
             , IStreamIncrGenerateStrategy streamIncrGenerateStrategy) {
@@ -82,7 +77,7 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
         this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
         this.collection = collection;
         this.mapDataMethodCreatorMap = mapDataMethodCreatorMap;
-        this.aliasListBuilder = aliasListBuilder;
+        //  this.aliasListBuilder = aliasListBuilder;
         this.tabTriggers = tabTriggers;
         if (facadeContextList == null) {
             throw new IllegalArgumentException("param facadeContextList can not be null");
@@ -195,8 +190,12 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
         return this.facadeContextList;
     }
 
-    public List<EntityName> getDumpTables() {
-        return tabTriggers.keySet().stream().map((r) -> r.getEntityName()).collect(Collectors.toList());
+    @Override
+    public List<TableAlias> getDumpTables() {
+        if (CollectionUtils.isEmpty(this.tabTriggers)) {
+            throw new IllegalStateException("tabTriggers can not be empty");
+        }
+        return this.tabTriggers;//.keySet().stream().map((r) -> r.getEntityName()).collect(Collectors.toList());
     }
 
     public String getSharedId(EntityName e) {
@@ -232,14 +231,14 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
         return this.erRules.isTriggerIgnore(entityName);
     }
 
-    public String getTableFocuseJoinerLiteria() {
-        return getDumpTables().stream().filter((e) -> !isTriggerIgnore(e)).map((e) -> "\"" + e.getTabName() + "\"").collect(Collectors.joining(","));
-    }
+//    public String getTableFocuseJoinerLiteria() {
+//        return getDumpTables().stream().filter((e) -> !isTriggerIgnore(e)).map((e) -> "\"" + e.getTabName() + "\"").collect(Collectors.joining(","));
+//    }
 
-    public String getColsMetaBuilderList() {
-
-        return this.aliasListBuilder.toString();
-    }
+//    public String getColsMetaBuilderList() {
+//
+//        return this.aliasListBuilder.toString();
+//    }
 
     public Collection<MapDataMethodCreator> getMapDataMethodCreatorList() {
         return this.mapDataMethodCreatorMap.values();

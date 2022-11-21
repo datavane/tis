@@ -117,8 +117,13 @@ public interface IStreamIncrGenerateStrategy {
             return UnderlineUtils.getJavaName(this.getCollection());
         }
 
-
-        public List<EntityName> getDumpTables();
+        /**
+         * TableAlias
+         *
+         * @param <T>
+         * @return
+         */
+        public <T> List<T> getDumpTables();
     }
 
     public static abstract class AdapterStreamTemplateData implements IStreamTemplateData {
