@@ -3,7 +3,6 @@
 [![Stargazers over time](https://starchart.cc/qlangtech/tis-solr.svg)](https://starchart.cc/qlangtech/tis-solr)
 ![tis](docs/tis-logo.png)
 
-![](https://tokei.rs/b1/github/qlangtech/tis)
 ## TIS介绍
 
 TIS快速为您构建企业级实时数仓库服务，**基于批(DataX)流(Flink-CDC、Chunjun)一体数据中台，提供简单易用的操作界面，降低用户实施各端（MySQL、PostgreSQL、Oracle、ElasticSearch、ClickHouse、Doris等）
@@ -13,16 +12,9 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
  -->
 
-## v3.4.0涉及到的功能点(2022/1/14)：
+## v3.6.0-alpha发布（2022/11/01）：
 
-1. MySQL 增量同步Datetime类型binlog接收到的时间 比实际UTC时间快8小时，导致下游StarRocks中的时间和上游MySQL的DateTime时间不一致 https://github.com/qlangtech/tis/issues/89
-2. 数据库名支持中划线 https://github.com/qlangtech/tis/issues/86
-3. Oracle数据库可以选择系统授权给的其他用户名下的表 https://github.com/qlangtech/tis/issues/85
-4. 在配置DATAX oracle reader 时，避免大量重复字段出现 https://github.com/qlangtech/tis/issues/81
-5. 执行TIS 批量任务失败，但是最终任务状态显示失败 https://github.com/qlangtech/tis/issues/79
-6. Flink实时同步支持阿里云ES同步，填入的用户名、密码可以生效 https://github.com/qlangtech/tis/issues/76
-7. 重构TIS启动脚本，优化TIS启动时间 https://github.com/qlangtech/tis/issues/65
-8. TIS启动端口可配置 https://github.com/qlangtech/tis/issues/62
+https://github.com/qlangtech/tis/releases/tag/v3.6.0-alpha
  
 ## 安装说明
 
