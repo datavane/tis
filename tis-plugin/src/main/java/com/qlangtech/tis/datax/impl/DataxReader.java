@@ -37,6 +37,7 @@ import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.IPluginContext;
@@ -67,9 +68,12 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     public IStreamTableMeta getStreamTableMeta(String tableName) {
         try {
             List<ColumnMetaData> cols = this.getTableMetadata(EntityName.parse(tableName));
-            return () -> {
-                // String colName, Boolean nullable, Boolean pk, DataType dataType
-                return cols.stream().map((c) -> new HdfsColMeta(c.getName(), c.isNullable(), c.isPk(), c.getType())).collect(Collectors.toList());
+
+            return new IStreamTableMeta() {
+                @Override
+                public List<IColMetaGetter> getColsMeta() {
+                    return cols.stream().map((c) -> new HdfsColMeta(c.getName(), c.isNullable(), c.isPk(), c.getType())).collect(Collectors.toList());
+                }
             };
         } catch (TableNotFoundException e) {
             throw new RuntimeException(e);

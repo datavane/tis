@@ -27,6 +27,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -166,10 +167,13 @@ public interface IDataxProcessor {
             };
         }
 
-        public static TableMap create(String tableName, List<HdfsColMeta> colMetas) {
+        public static TableMap create(String tableName, List<IColMetaGetter> cols) {
             List<CMeta> cmetas = Lists.newArrayList();
             CMeta cm = null;
-            for (HdfsColMeta c : colMetas) {
+            HdfsColMeta c = null;
+
+            for (IColMetaGetter col : cols) {
+                c = (HdfsColMeta) col;
                 cm = new CMeta();
                 cm.setName(c.colName);
                 cm.setNullable(c.nullable);
@@ -178,10 +182,6 @@ public interface IDataxProcessor {
                 cmetas.add(cm);
             }
             return createByColMeta(tableName, cmetas);
-//            IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(cmetas);
-//            tableMapper.setFrom(tableName);
-//            tableMapper.setTo(tableName);
-//            return tableMapper;
         }
 
         public static TableMap createByColMeta(String tableName, List<CMeta> colMetas) {

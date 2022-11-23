@@ -27,9 +27,9 @@ public class HdfsColMeta implements Serializable, IColMetaGetter {
     public final CsvType csvType;
     public final boolean pk;
 
-    public static List<HdfsColMeta> getColsMeta(Configuration config) {
+    public static List<IColMetaGetter> getColsMeta(Configuration config) {
         Objects.requireNonNull(config, "param config can not be null");
-        List<HdfsColMeta> result = new ArrayList<>();
+        List<IColMetaGetter> result = new ArrayList<>();
         List<Configuration> columns = config.getListConfiguration(KEY_COLUMN);
         DataType hiveType = null;
         for (Configuration cfg : columns) {

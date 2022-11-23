@@ -18,7 +18,7 @@
 
 package com.qlangtech.tis.datax;
 
-import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 
 import java.util.List;
 
@@ -45,8 +45,7 @@ public interface IStreamTableMeataCreator //extends IStreamIncrGenerateStrategy
          *
          * @return
          */
-        List<HdfsColMeta> getColsMeta();
-
+        List<IColMetaGetter> getColsMeta();
     }
 
 
