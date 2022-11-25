@@ -4,7 +4,8 @@ import java.util
 import com.qlangtech.tis.realtime.transfer.DTO
 import org.apache.flink.streaming.api.datastream.DataStream
 import org.apache.flink.streaming.api.functions.sink.{PrintSinkFunction, SinkFunction}
-import com.qlangtech.tis.realtime.{DefaultFlinkSourceHandle, SinkFuncs, DTOStream}
+import com.qlangtech.tis.realtime.{DefaultFlinkSourceHandle, SinkFuncs}
+import com.qlangtech.tis.realtime.dto.DTOStream
 import com.qlangtech.tis.extension.TISExtension
 
 @TISExtension()
@@ -13,8 +14,8 @@ class ${config.javaName}SourceHandle extends DefaultFlinkSourceHandle {
 
 #foreach($i in $config.dumpTables  )
 ##    ${i.tabName}Stream.addSink(sinkFunction)
-    val ${i.tabName}Stream = streamMap.get("${i.tabName}")
-    sinkFunction.add2Sink("${i.tabName}" , ${i.tabName}Stream)
+    val ${i.from}Stream = streamMap.get("${i.to}")
+    sinkFunction.add2Sink("${i.to}" , ${i.to}Stream)
 #end
 
     }
