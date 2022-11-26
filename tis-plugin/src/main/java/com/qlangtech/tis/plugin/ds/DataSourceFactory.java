@@ -94,6 +94,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             p.vist(conn);
         } catch (TableNotFoundException e) {
             throw e;
+        } catch (TisException e) {
+            throw e;
         } catch (Exception e) {
             throw new TisException(e.getMessage() + ",jdbcUrl:" + jdbcUrl, e);
         } finally {
@@ -155,9 +157,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         ColumnMetaData colMeta = null;
         String comment = null;
         String typeName = null;
+
         try {
             metaData1 = conn.getMetaData();
-            try (ResultSet tables = metaData1.getTables(null, table.getDbName(), table.getTableName(), null)) {
+            try (ResultSet tables = metaData1.getTables(null, getDbSchema(), table.getTableName(), null)) {
                 if (!tables.next()) {
                     throw new TableNotFoundException(table.getFullName());
                 }
@@ -227,6 +230,14 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         }
         // });
         return columns;
+    }
+
+    private String getDbSchema() {
+        String dbSchema = null;
+        if (this instanceof BasicDataSourceFactory.ISchemaSupported) {
+            dbSchema = ((BasicDataSourceFactory.ISchemaSupported) this).getDBSchema();
+        }
+        return dbSchema;
     }
 
     protected List<ColumnMetaData> parseTableColMeta(EntityName table, String jdbcUrl) throws TableNotFoundException {
@@ -316,11 +327,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     }
 
     protected ResultSet getColumnsMeta(EntityName table, DatabaseMetaData metaData1) throws SQLException {
-        return metaData1.getColumns(null, null, table.getTableName(), null);
+        return metaData1.getColumns(null, getDbSchema(), table.getTableName(), null);
     }
 
     protected ResultSet getPrimaryKeys(EntityName table, DatabaseMetaData metaData1) throws SQLException {
-        return metaData1.getPrimaryKeys(null, null, table.getTableName());
+        return metaData1.getPrimaryKeys(null, getDbSchema(), table.getTableName());
     }
 
 
@@ -421,7 +432,6 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
-
                 msgHandler.addErrorMessage(context, TisException.getErrMsg(e).getMessage());
                 return false;
             }
