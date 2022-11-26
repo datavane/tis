@@ -29,6 +29,8 @@ https://github.com/qlangtech/tis/releases/tag/v3.6.0-alpha
 |--|--|
 |<img src="docs/logo/cassandra.svg" width="40" /><img src="docs/logo/ftp.svg" width="40" />  <img src="docs/logo/hdfs.svg" width="40" /> <img src="docs/logo/mongodb.svg" width="40" />  <img src="docs/logo/mysql.svg" width="40" /> <img src="docs/logo/oracle.svg" width="40" />  <img src="docs/logo/oss.svg" width="40" />  <img src="docs/logo/postgresql.svg" width="40" /> <img src="docs/logo/sqlserver.svg" width="40" /> <img src="docs/logo/tidb.svg" width="40" /> | <img src="docs/logo/mysql.svg" width="40" /> <img src="docs/logo/doris.svg" width="40" /> <img src="docs/logo/spark.svg" width="40" /><img src="docs/logo/starrocks.svg" width="40" /><img src="docs/logo/cassandra.svg" width="40" /> <img src="docs/logo/postgresql.svg" width="40" /><img src="docs/logo/hive.svg" width="40" /><img src="docs/logo/clickhouse.svg" width="40" /><img src="docs/logo/ftp.svg" width="40" /><img src="docs/logo/oracle.svg" width="40" /> <img src="docs/logo/hdfs.svg" width="40" /><img src="docs/logo/es.svg" width="40" /> |
 
+[详细](https://tis.pub/docs/plugin/source-sink/)
+
 ## 功能一瞥 
 - 示例
     * [基于TIS快速实现MySQL到StarRocks的实时数据同步方案](http://tis.pub/docs/example/mysql-syn-starrocks/)
@@ -39,7 +41,7 @@ https://github.com/qlangtech/tis/releases/tag/v3.6.0-alpha
     * [MySQL导入Hive](https://www.bilibili.com/video/BV1Vb4y1z7DN?share_source=copy_web)
     * [MySQL导入Clickhouse](https://www.bilibili.com/video/BV1x64y1B7V8/)
 
-
+### 批量导入流程设置 
 
 选择Reader/Writer插件类型
   ![tis](docs/datax-add-step2.png)
@@ -55,7 +57,21 @@ https://github.com/qlangtech/tis/releases/tag/v3.6.0-alpha
 
 执行MySql->ElasticSearch DataX实例，运行状态 
    ![tis](docs/datax-exec-status.png) 
- 
+
+### 开通Flink实时数据通道 
+
+添加Flink-Cluster、设置重启策略、CheckPoint机制等
+   ![tis](docs/incr_step_1.png) 
+   
+设置Source/Sink组件属性
+   ![tis](docs/incr_step_2.png)    
+   
+TIS基于数据库元数据信息自动生成Flink-SQL脚本
+   ![tis](docs/incr_step_3.png) 
+   
+实时数据通道创建完成！   
+   ![tis](docs/incr_step_3.png) 
+   
 ## 相关代码 
 
 - WEB UI [https://github.com/qlangtech/ng-tis](https://github.com/qlangtech/ng-tis)
