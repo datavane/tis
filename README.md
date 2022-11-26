@@ -66,11 +66,11 @@ https://github.com/qlangtech/tis/releases/tag/v3.6.0-alpha
 设置Source/Sink组件属性
    ![tis](docs/incr_step_2.png)    
    
-TIS基于数据库元数据信息自动生成Flink-SQL脚本
+TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部脚本自动生！
    ![tis](docs/incr_step_3.png) 
    
-实时数据通道创建完成！   
-   ![tis](docs/incr_step_3.png) 
+实时数据通道创建完成！构建一个实时数仓就这么简单！！！   
+   ![tis](docs/incr_step_4.png) 
    
 ## 相关代码 
 
