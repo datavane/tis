@@ -25,6 +25,7 @@ import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -81,7 +82,7 @@ public class TestFullbuildWorkflowAction extends BasicActionTestCase {
        ========================================================*/
       request.setParameter("emethod", "taskComplete");
       request.setParameter("action", "fullbuild_workflow_action");
-      request.setParameter(IParamContext.KEY_TASK_ID, String.valueOf(taskId));
+      request.setParameter(JobCommon.KEY_TASK_ID, String.valueOf(taskId));
       request.setParameter(IParamContext.KEY_EXEC_RESULT, String.valueOf(ExecResult.SUCCESS.getValue()));
 
       Set<String> jobs = Sets.newHashSet();
@@ -180,7 +181,7 @@ public class TestFullbuildWorkflowAction extends BasicActionTestCase {
     request.setParameter(IParamContext.KEY_REQUEST_DISABLE_TRANSACTION, String.valueOf(true));
     request.setParameter("emethod", "feedbackAsynTaskStatus");
     request.setParameter("action", "fullbuild_workflow_action");
-    request.setParameter(IParamContext.KEY_TASK_ID, String.valueOf(taskId));
+    request.setParameter(JobCommon.KEY_TASK_ID, String.valueOf(taskId));
     request.setParameter(IParamContext.KEY_ASYN_JOB_NAME, jobName);
     request.setParameter(IParamContext.KEY_ASYN_JOB_SUCCESS, String.valueOf(true));
     ActionProxy proxy = getActionProxy();

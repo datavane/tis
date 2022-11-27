@@ -33,6 +33,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import junit.framework.TestCase;
 import org.junit.Assert;
@@ -434,7 +435,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         Assert.assertEquals(end, range.getEnd());
         Map<IDumpTable, ITabPartition> dateParams = Maps.newHashMap();
         chainContext.setAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS, new TabPartitions(dateParams));
-        chainContext.setAttribute(IExecChainContext.KEY_TASK_ID, TASK_ID);
+        chainContext.setAttribute(JobCommon.KEY_TASK_ID, TASK_ID);
 //        final PluginStore<IndexBuilderTriggerFactory> buildTriggerFactory = TIS.getPluginStore(IndexBuilderTriggerFactory.class);
 //        assertNotNull(buildTriggerFactory.getPlugin());
 //        if (pts.length > 0) {

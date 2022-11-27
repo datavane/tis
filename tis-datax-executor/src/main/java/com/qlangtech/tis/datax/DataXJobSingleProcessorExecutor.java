@@ -18,10 +18,9 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.exec.*;
 import org.apache.curator.framework.CuratorFramework;
@@ -54,8 +53,8 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
         Integer jobId = msg.getJobId();
         String jobName = msg.getJobName();
         String dataxName = msg.getDataXName();
-        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
-        MDC.put(TISCollectionUtils.KEY_COLLECTION, dataxName);
+        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
+        MDC.put(JobCommon.KEY_COLLECTION, dataxName);
         Integer allRowsApproximately = msg.getAllRowsApproximately();
         logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},allrows:{}", dataxName, jobId, jobName, allRowsApproximately);
 

@@ -31,6 +31,7 @@ import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
@@ -91,7 +92,7 @@ public class DefaultChainContext implements IExecChainContext {
 
     @Override
     public int getTaskId() {
-        Integer taskid = this.getAttribute(IParamContext.KEY_TASK_ID);
+        Integer taskid = this.getAttribute(JobCommon.KEY_TASK_ID);
         Objects.requireNonNull(taskid, "taskid can not be null");
         return taskid;
     }

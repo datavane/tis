@@ -17,10 +17,10 @@
  */
 package com.qlangtech.tis.manage.servlet;
 
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.order.center.IParamContext;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
@@ -75,12 +75,12 @@ public class TaskFeedbackServlet extends WebSocketServlet {
     @Override
     public void onWebSocketConnect(Session sess) {
       super.onWebSocketConnect(sess);
-      taskid = Long.parseLong(getParameter(IParamContext.KEY_TASK_ID));
+      taskid = Long.parseLong(getParameter(JobCommon.KEY_TASK_ID));
       logger.info("start a new log fetch tasklog status taskid:" + taskid);
       // new  LogCollectorClient();
       falconSendScheduler.scheduleAtFixedRate(() -> {
           try {
-            URL url = new URL(Config.getAssembleHost() + "/task_status?" + IParamContext.KEY_TASK_ID + "=" + taskid);
+            URL url = new URL(Config.getAssembleHost() + "/task_status?" + JobCommon.KEY_TASK_ID + "=" + taskid);
             // server side:TaskStatusServlet
             JSONObject result = HttpUtils.processContent(url, new StreamProcess<JSONObject>() {
               @Override

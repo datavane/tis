@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.datax;
 
@@ -31,6 +31,7 @@ import com.alibaba.datax.core.statistics.container.communicator.job.StandAloneJo
 import com.alibaba.datax.core.util.ConfigParser;
 import com.alibaba.datax.core.util.ConfigurationValidate;
 import com.alibaba.datax.core.util.FrameworkErrorCode;
+import com.alibaba.datax.core.util.container.CoreConstant;
 import com.alibaba.datax.core.util.container.JarLoader;
 import com.alibaba.datax.core.util.container.LoadUtil;
 import com.gilt.logback.flume.tis.TisFlumeLogstashV1Appender;
@@ -43,14 +44,13 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
-import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -143,8 +143,8 @@ public class DataxExecutor {
         if (StringUtils.isEmpty(System.getProperty(DataxUtils.EXEC_TIMESTAMP))) {
             throw new IllegalArgumentException("system prop '" + DataxUtils.EXEC_TIMESTAMP + "' can not be empty");
         }
-        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
-        MDC.put(TISCollectionUtils.KEY_COLLECTION, dataXName);
+        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
+        MDC.put(JobCommon.KEY_COLLECTION, dataXName);
 
         if (StringUtils.isEmpty(jobName)) {
             throw new IllegalArgumentException("arg 'jobName' can not be null");
@@ -241,7 +241,7 @@ public class DataxExecutor {
             throw new IllegalArgumentException("param uberClassLoader can not be null");
         }
         boolean success = false;
-        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(jobId));
+        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
         try {
             logger.info("process DataX job, dataXName:{},jobid:{},jobName:{}", dataxName, jobId, jobName);
 
@@ -376,7 +376,7 @@ public class DataxExecutor {
     }
 
     public void entry(DataXJobArgs args, String jobName) throws Throwable {
-        Configuration configuration = parse(args.jobPath.getAbsolutePath());
+        Configuration configuration = parse(args);
         logger.info("exec params:{}", args.toString());
         Objects.requireNonNull(configuration, "configuration can not be null");
         int jobId = args.jobId;
@@ -441,7 +441,8 @@ public class DataxExecutor {
     /**
      * 指定Job配置路径，ConfigParser会解析Job、Plugin、Core全部信息，并以Configuration返回
      */
-    public Configuration parse(final String jobPath) {
+    public Configuration parse(DataXJobArgs args) {
+        final String jobPath = args.jobPath.getAbsolutePath();
         Configuration configuration = ConfigParser.parseJobConfig(jobPath);
 
         Configuration readerCfg = Configuration.newDefault();
@@ -464,7 +465,10 @@ public class DataxExecutor {
 
         DataXCfgGenerator.validatePluginName(writerMeta, readerMeta, writerPluginName, readerPluginName);
 
-        configuration.merge(Configuration.from(IOUtils.loadResourceFromClasspath(DataxExecutor.class, "core.json")),
+        Configuration coreCfg = Configuration.from(IOUtils.loadResourceFromClasspath(DataxExecutor.class, "core.json"));
+        coreCfg.set(CoreConstant.DATAX_CORE_CONTAINER_JOB_ID, args.jobId);
+
+        configuration.merge(coreCfg,
                 //ConfigParser.parseCoreConfig(CoreConstant.DATAX_CONF_PATH),
                 false);
 

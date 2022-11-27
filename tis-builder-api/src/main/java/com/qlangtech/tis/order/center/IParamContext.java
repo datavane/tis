@@ -54,8 +54,6 @@ public interface IParamContext {
 
     public String COMPONENT_END = "component.end";
 
-    public String KEY_TASK_ID = "taskid";
-
     public String KEY_ASYN_JOB_NAME = "asynJobName";
     public String KEY_ASYN_JOB_SUCCESS = "success";
     public String KEY_ASYN_JOB_COMPLETE = "complete";

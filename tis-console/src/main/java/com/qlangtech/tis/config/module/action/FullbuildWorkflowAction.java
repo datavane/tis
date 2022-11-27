@@ -26,6 +26,7 @@ import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.GitBranchInfo;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
@@ -135,7 +136,7 @@ public class FullbuildWorkflowAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
   public void doGetWf(Context context) {
-    Integer taskId = this.getInt(IParamContext.KEY_TASK_ID);
+    Integer taskId = this.getInt(JobCommon.KEY_TASK_ID);
     this.setBizResult(context, this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(taskId));
   }
 
@@ -146,7 +147,7 @@ public class FullbuildWorkflowAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
   public void doTaskComplete(Context context) {
-    Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
+    Integer taskid = this.getInt(JobCommon.KEY_TASK_ID);
     // 执行结果
     ExecResult execResult = ExecResult.parse(this.getInt(IParamContext.KEY_EXEC_RESULT));
     String[] asynJobsName = this.getStringArray(IParamContext.KEY_ASYN_JOB_NAME);
@@ -161,7 +162,7 @@ public class FullbuildWorkflowAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
   public void doFeedbackAsynTaskStatus(Context context) {
-    Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
+    Integer taskid = this.getInt(JobCommon.KEY_TASK_ID);
     String jobName = this.getString(IParamContext.KEY_ASYN_JOB_NAME);
     boolean execSuccess = this.getBoolean(IParamContext.KEY_ASYN_JOB_SUCCESS);
 

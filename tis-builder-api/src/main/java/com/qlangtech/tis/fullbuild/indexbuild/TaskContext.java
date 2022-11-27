@@ -20,8 +20,8 @@ package com.qlangtech.tis.fullbuild.indexbuild;
 import com.qlangtech.tis.build.metrics.Counters;
 import com.qlangtech.tis.build.metrics.Messages;
 import com.qlangtech.tis.cloud.ICoordinator;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.IndexBuildParam;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
@@ -140,7 +140,7 @@ public class TaskContext {
     }
 
     public Integer getTaskId() {
-        return Integer.parseInt(this.get(IParamContext.KEY_TASK_ID));
+        return Integer.parseInt(this.get(JobCommon.KEY_TASK_ID));
     }
 
     @Override

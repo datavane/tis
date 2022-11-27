@@ -19,8 +19,8 @@ package com.qlangtech.tis.fullbuild.indexbuild.impl;
 
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.TaskContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.IndexBuildParam;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -55,7 +55,7 @@ public class JobConfParams {
         jobConf.set(ITableDumpConstant.JOB_NAME, jobName);
         jobConf.set(ITableDumpConstant.DUMP_TABLE_NAME, table.getTableName());
         jobConf.set(ITableDumpConstant.DUMP_DBNAME, table.getDbName());
-        jobConf.set(IParamContext.KEY_TASK_ID, String.valueOf(taskContext.getTaskId()));
+        jobConf.set(JobCommon.KEY_TASK_ID, String.valueOf(taskContext.getTaskId()));
         // 有已经导入的数据存在是否有必要重新导入
         jobConf.set(ITableDumpConstant.DUMP_FORCE, "true");
         return jobConf;

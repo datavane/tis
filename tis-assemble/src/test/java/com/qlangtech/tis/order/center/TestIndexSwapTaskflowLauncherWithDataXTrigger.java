@@ -28,6 +28,7 @@ import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import junit.framework.Assert;
@@ -76,7 +77,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         Assert.assertEquals(start, range.getStart());
         Assert.assertEquals(end, range.getEnd());
 
-        chainContext.setAttribute(IExecChainContext.KEY_TASK_ID, TASK_ID);
+        chainContext.setAttribute(JobCommon.KEY_TASK_ID, TASK_ID);
 
         chainContext.setMdcParamContext(() -> {
         });

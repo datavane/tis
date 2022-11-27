@@ -1,3 +1,5 @@
+package com.qlangtech.tis.job.common;
+
 /**
  *   Licensed to the Apache Software Foundation (ASF) under one
  *   or more contributor license agreements.  See the NOTICE file
@@ -16,31 +18,11 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.datax;
-
-import com.qlangtech.tis.job.common.JobCommon;
-import com.qlangtech.tis.web.start.TisAppLaunch;
-import junit.framework.TestCase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-06-25 15:04
+ * @create: 2022-11-27 11:12
  **/
-public class TestTisFlumeLogstashV1Appender extends TestCase {
-    private static final Logger logger = LoggerFactory.getLogger(TestTisFlumeLogstashV1Appender.class);
-
-    public void testSendMsg() throws Exception {
-        TisAppLaunch.setTest(false);
-        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(999));
-        MDC.put(JobCommon.KEY_COLLECTION, "baisui");
-        int i = 0;
-        while (true) {
-            logger.info("i am so hot:" + (i++));
-            Thread.sleep(1000l);
-            System.out.println("send turn:" + i);
-        }
-    }
+public interface JobCommon {
+    String KEY_TASK_ID = "taskid";
+    String KEY_COLLECTION = "app";
 }

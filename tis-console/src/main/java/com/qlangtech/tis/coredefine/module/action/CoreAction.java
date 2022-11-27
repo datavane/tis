@@ -37,9 +37,9 @@ import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
@@ -201,7 +201,7 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.APP_UPDATE)
   public void doCancelTask(Context context) throws Exception {
-    Integer taskId = this.getInt(IExecChainContext.KEY_TASK_ID);
+    Integer taskId = this.getInt(JobCommon.KEY_TASK_ID);
 
     IWorkFlowBuildHistoryDAO workFlowBuildDAO = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
     WorkFlowBuildHistory buildHistory = workFlowBuildDAO.loadFromWriteDB(taskId);
@@ -212,7 +212,7 @@ public class CoreAction extends BasicModule {
     }
 
     List<ConfigFileContext.Header> headers = Lists.newArrayList();
-    headers.add(new ConfigFileContext.Header(IExecChainContext.KEY_TASK_ID, String.valueOf(taskId)));
+    headers.add(new ConfigFileContext.Header(JobCommon.KEY_TASK_ID, String.valueOf(taskId)));
     headers.add(new ConfigFileContext.Header(IParamContext.KEY_ASYN_JOB_NAME, String.valueOf(processState == ExecResult.ASYN_DOING)));
     headers.add(new ConfigFileContext.Header(IFullBuildContext.KEY_APP_NAME, IAppSourcePipelineController.DATAX_FULL_PIPELINE + buildHistory.getAppName()));
 
@@ -679,10 +679,10 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   public void doGetWorkflowBuildHistory(final Context context) throws Exception {
-    Integer taskid = this.getInt(IParamContext.KEY_TASK_ID, null, false);
+    Integer taskid = this.getInt(JobCommon.KEY_TASK_ID, null, false);
     WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
     if (buildHistory == null) {
-      throw new IllegalStateException(IParamContext.KEY_TASK_ID + ":" + taskid + "relevant buildHistory can not be null");
+      throw new IllegalStateException(JobCommon.KEY_TASK_ID + ":" + taskid + "relevant buildHistory can not be null");
     }
     this.setBizResult(context, new ExtendWorkFlowBuildHistory(buildHistory));
   }
@@ -767,8 +767,8 @@ public class CoreAction extends BasicModule {
             triggerResult = new TriggerBuildResult(true);
             if (!result.isNull(bizKey)) {
               JSONObject o = result.getJSONObject(bizKey);
-              if (!o.isNull(IParamContext.KEY_TASK_ID)) {
-                triggerResult.taskid = Integer.parseInt(o.getString(IParamContext.KEY_TASK_ID));
+              if (!o.isNull(JobCommon.KEY_TASK_ID)) {
+                triggerResult.taskid = Integer.parseInt(o.getString(JobCommon.KEY_TASK_ID));
               }
               module.setBizResult(context, o);
             }
@@ -814,7 +814,7 @@ public class CoreAction extends BasicModule {
   // #################################################################################
   public void doGetWorkflow(Context context) throws Exception {
     Integer wfid = this.getInt("wfid");
-    Integer taskid = this.getInt(IParamContext.KEY_TASK_ID);
+    Integer taskid = this.getInt(JobCommon.KEY_TASK_ID);
 
     WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
     Map<String, Object> result = Maps.newHashMap();

@@ -29,10 +29,10 @@ import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import org.apache.commons.lang.StringUtils;
@@ -138,7 +138,7 @@ public class TisServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpExecContext execContext = new HttpExecContext(req, Maps.newHashMap(), true);
-        int taskId = execContext.getInt(IExecChainContext.KEY_TASK_ID);
+        int taskId = execContext.getInt(JobCommon.KEY_TASK_ID);
         // 当前是否是异步任务
         final boolean asynJob = execContext.getBoolean(IExecChainContext.KEY_ASYN_JOB_NAME);
         String appName = execContext.getString(IFullBuildContext.KEY_APP_NAME);
@@ -171,7 +171,7 @@ public class TisServlet extends HttpServlet {
             phaseStatusCollection.flushStatus2Local();
         }
 
-        writeResult(true, null, resp, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(taskId)));
+        writeResult(true, null, resp, new KV(JobCommon.KEY_TASK_ID, String.valueOf(taskId)));
     }
 
     @Override
@@ -209,7 +209,7 @@ public class TisServlet extends HttpServlet {
                                     String msg = "trigger task" + mdcContext.getExecLockKey() + " successful";
                                     getLog().info(msg);
                                     mdcContext.resetParam(newTaskId);
-                                    writeResult(true, msg, res, new KV(IExecChainContext.KEY_TASK_ID, String.valueOf(newTaskId)));
+                                    writeResult(true, msg, res, new KV(JobCommon.KEY_TASK_ID, String.valueOf(newTaskId)));
 
                                     countDown.countDown();
                                     /************************************************************
@@ -333,7 +333,7 @@ public class TisServlet extends HttpServlet {
                 throw new IllegalArgumentException("param taskid can not be empty");
             }
             this.taskid = taskid;
-            MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(taskid));
+            MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(taskid));
         }
 
         /**
@@ -463,7 +463,7 @@ public class TisServlet extends HttpServlet {
         newTaskParam.setTriggerType(TriggerType.MANUAL);
         Integer taskid = DagTaskUtils.createNewTask(newTaskParam);
         logger.info("create new taskid:" + taskid);
-        chainContext.setAttribute(IParamContext.KEY_TASK_ID, taskid);
+        chainContext.setAttribute(JobCommon.KEY_TASK_ID, taskid);
         return taskid;
     }
 

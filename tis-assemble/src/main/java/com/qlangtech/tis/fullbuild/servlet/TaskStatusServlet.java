@@ -23,7 +23,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -71,7 +71,7 @@ public class TaskStatusServlet extends HttpServlet {
         }
 
 
-        int taskid = Integer.parseInt(req.getParameter(IParamContext.KEY_TASK_ID));
+        int taskid = Integer.parseInt(req.getParameter(JobCommon.KEY_TASK_ID));
         // 是否要获取全部的日志信息，比如dump已經完成了，那麼只需要獲取dump之後的日志信息
         // boolean all = Boolean.parseBoolean(req.getParameter("all"));
         PhaseStatusCollection statusSet = TrackableExecuteInterceptor.getTaskPhaseReference(taskid);

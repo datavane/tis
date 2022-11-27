@@ -18,7 +18,7 @@
 package com.qlangtech.tis.fullbuild.indexbuild;
 
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import com.qlangtech.tis.order.dump.task.ITestDumpCommon;
 
@@ -51,7 +51,7 @@ public class MockTaskContextUtils {
         params.put(ITableDumpConstant.JOB_NAME, ITestDumpCommon.DB_EMPLOYEES + "." + ITestDumpCommon.TABLE_EMPLOYEES);
         params.put(ITableDumpConstant.DUMP_TABLE_NAME, ITestDumpCommon.TABLE_EMPLOYEES);
         params.put(ITableDumpConstant.DUMP_DBNAME, ITestDumpCommon.DB_EMPLOYEES);
-        params.put(IParamContext.KEY_TASK_ID, String.valueOf(TEST_TASK_ID));
+        params.put(JobCommon.KEY_TASK_ID, String.valueOf(TEST_TASK_ID));
         // 有已经导入的数据存在是否有必要重新导入
         params.put(ITableDumpConstant.DUMP_FORCE, "true");
         return TaskContext.create(params);

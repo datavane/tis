@@ -60,7 +60,7 @@ public interface ValidatorCommons {
 
     String MSG_EMPTY_INPUT_ERROR = "必须填写";
 
-    Pattern pattern_user_name = Pattern.compile("[A-Z\\da-z_\\-\\.]+");
+    Pattern pattern_user_name = Pattern.compile("[A-Z\\da-z_\\-\\.\\$]+");
     String MSG_USER_NAME_ERROR = "必须由小写字母，大写字母，数字、下划线、点、减号组成";
 
     public static void main(String[] args) {

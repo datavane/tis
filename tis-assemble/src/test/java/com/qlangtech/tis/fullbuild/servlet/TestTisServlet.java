@@ -20,8 +20,8 @@ package com.qlangtech.tis.fullbuild.servlet;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.order.center.IParamContext;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 
@@ -45,7 +45,7 @@ public class TestTisServlet extends TestCase {
         IExecChainContext execChainContext = EasyMock.createMock("execChainContext", IExecChainContext.class);
 
         EasyMock.expect(execChainContext.getWorkflowId()).andReturn(null).anyTimes();
-        execChainContext.setAttribute(IParamContext.KEY_TASK_ID, taskid);
+        execChainContext.setAttribute(JobCommon.KEY_TASK_ID, taskid);
         EasyMock.expect(execChainContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange());
         EasyMock.expect(execChainContext.hasIndexName()).andReturn(true);
         EasyMock.expect(execChainContext.getIndexName()).andReturn(collectionName);

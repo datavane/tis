@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.dump.task.ITableDumpConstant;
 import org.apache.commons.lang.StringUtils;
 import java.lang.reflect.Field;
@@ -25,6 +24,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import com.qlangtech.tis.job.common.JobCommon;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -99,7 +99,7 @@ public class IndexBuildParam {
             }
             //names.add(ITableDumpConstant.DUMP_TABLE_DUMP_FACTORY_NAME);
             names.add(JOB_TYPE);
-            names.add(IParamContext.KEY_TASK_ID);
+            names.add(JobCommon.KEY_TASK_ID);
             // names.add(JOB_PLUGINS);
             allfields = Collections.unmodifiableList(names);
         } catch (Exception e) {

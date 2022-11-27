@@ -19,7 +19,7 @@ package com.qlangtech.tis.log;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import com.qlangtech.tis.BaseTestCase;
-import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.trigger.jst.MonotorTarget;
@@ -77,7 +77,7 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
      * 测试全量构建日志
      */
     public void testFullBuildLogger() {
-        MDC.put(IParamContext.KEY_TASK_ID, String.valueOf(taskid));
+        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(taskid));
         logger.info("start");
         String loggerName = "full-" + taskid;
         RealtimeLoggerCollectorAppender bufferAppender = RealtimeLoggerCollectorAppender.getBufferAppender(loggerName);

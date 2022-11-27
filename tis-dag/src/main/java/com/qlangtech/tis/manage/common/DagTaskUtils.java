@@ -26,6 +26,7 @@ import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
@@ -53,7 +54,7 @@ public class DagTaskUtils {
                         StringUtils.EMPTY});
         List<HttpUtils.PostParam> params = Lists.newArrayList();
         params.add(new HttpUtils.PostParam(IParamContext.KEY_REQUEST_DISABLE_TRANSACTION, true));
-        params.add(new HttpUtils.PostParam(IParamContext.KEY_TASK_ID, taskid));
+        params.add(new HttpUtils.PostParam(JobCommon.KEY_TASK_ID, taskid));
         params.add(new HttpUtils.PostParam(IParamContext.KEY_ASYN_JOB_NAME, subTaskName));
         params.add(new HttpUtils.PostParam(IParamContext.KEY_ASYN_JOB_SUCCESS, success));
 
@@ -70,7 +71,7 @@ public class DagTaskUtils {
         //
         List<HttpUtils.PostParam> params = Lists.newArrayList(//
                 new HttpUtils.PostParam("execresult", String.valueOf(execResult.getValue())), //
-                new HttpUtils.PostParam(IParamContext.KEY_TASK_ID, String.valueOf(taskid)));
+                new HttpUtils.PostParam(JobCommon.KEY_TASK_ID, String.valueOf(taskid)));
 
         if (chainContext.containAsynJob()) {
             for (IExecChainContext.AsynSubJob asynJob : chainContext.getAsynSubJobs()) {
@@ -129,7 +130,7 @@ public class DagTaskUtils {
         String url = WORKFLOW_CONFIG_URL_POST_FORMAT
                 .format(new Object[]{"fullbuild_workflow_action", "do_get_wf"});
         List<HttpUtils.PostParam> params = Lists.newArrayList();
-        params.add(new HttpUtils.PostParam(IParamContext.KEY_TASK_ID, taskId));
+        params.add(new HttpUtils.PostParam(JobCommon.KEY_TASK_ID, taskId));
 
         AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class, true);
         return result.getBizresult();
