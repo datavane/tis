@@ -38,6 +38,10 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         Matcher matcher = ValidatorCommons.pattern_user_name.matcher(userName);
         Assert.assertTrue("userName shall be valid:" + userName, matcher.matches());
 
+        userName = "BAS-IC_datav";
+         matcher = ValidatorCommons.pattern_user_name.matcher(userName);
+        Assert.assertTrue("userName shall be valid:" + userName, matcher.matches());
+
         userName = "BASIC$datav*";
         matcher = ValidatorCommons.pattern_user_name.matcher(userName);
         Assert.assertFalse("userName shall not be valid:" + userName, matcher.matches());
