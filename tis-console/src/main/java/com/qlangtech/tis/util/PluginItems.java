@@ -32,6 +32,7 @@ import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.lang3.StringUtils;
@@ -278,6 +279,15 @@ public class PluginItems {
 
   private <T extends Describable> List<Descriptor.ParseDescribable<T>> convert(List<Descriptor.ParseDescribable<?>> dlist) {
     return dlist.stream().map((r) -> (Descriptor.ParseDescribable<T>) r).collect(Collectors.toList());
+  }
+
+  public String cerateOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
+
+    for (AttrValMap vals : this.items) {
+      return vals.createOrGetNotebook(msgHandler, context);
+    }
+
+    throw new IllegalStateException("items size:" + this.items.size());
   }
 
   public static class PluginItemsSaveObservable extends Observable {

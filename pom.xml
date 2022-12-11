@@ -86,6 +86,7 @@
 
         <module>maven-tpi-plugin</module>
         <module>tis-datax-executor</module>
+        <module>tis-zeppelin</module>
 
 
     </modules>

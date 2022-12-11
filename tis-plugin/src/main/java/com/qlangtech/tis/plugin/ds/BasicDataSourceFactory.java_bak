@@ -20,13 +20,14 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.db.parser.DBConfigParser;
+import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.io.IOUtils;
@@ -295,13 +296,15 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
         return this.dbName;
     }
 
-    public interface IConnProcessor {
-        void vist(Connection conn) throws SQLException, TableNotFoundException;
-    }
-
-    public abstract static class BasicRdbmsDataSourceFactoryDescriptor extends BaseDataSourceFactoryDescriptor<BasicDataSourceFactory> {
+    public abstract static class BasicRdbmsDataSourceFactoryDescriptor
+            extends BaseDataSourceFactoryDescriptor<BasicDataSourceFactory> implements INotebookable {
         private static final Pattern urlParamsPattern = Pattern.compile("(\\w+?\\=\\w+?)(\\&\\w+?\\=\\w+?)*");
 
+        @Override
+        public void createOrGetNotebook(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+            BasicDataSourceFactory dsFactory = postFormVals.newInstance(this, msgHandler);
+            String idVal = dsFactory.identityValue();
+        }
 
         public boolean validateExtraParams(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
 
@@ -312,14 +315,6 @@ public abstract class BasicDataSourceFactory extends DataSourceFactory implement
             }
             return true;
         }
-    }
-
-    /**
-     * 某些数据库是支持schema概念，如支持则实现该接口
-     */
-    @Public
-    public interface ISchemaSupported {
-        public String getDBSchema();
     }
 
     private static final Pattern COMMENT_PATTERN = Pattern.compile("^(.*)--.*$");

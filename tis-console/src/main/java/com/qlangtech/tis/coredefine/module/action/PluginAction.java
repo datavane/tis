@@ -136,6 +136,13 @@ public class PluginAction extends BasicModule {
   }
 
   /**
+   * @param context
+   */
+  public void doCreateOrGetNotebook(Context context) {
+
+  }
+
+  /**
    * 刷新多选字段内容
    *
    * @param context
@@ -634,22 +641,20 @@ public class PluginAction extends BasicModule {
     JSONObject postData = this.parseJsonPost();
     String[] forwardParams = getActionForwardParam(postData);
 
-
     JSONArray pluginArray =
       Objects.requireNonNull(postData.getJSONArray("items"), "json prop items can not be null");
     UploadPluginMeta pluginMeta = null;
-    // JSONObject itemObj = null;
+
     boolean faild = false;
     List<PluginItems> categoryPlugins = Lists.newArrayList();
+    final boolean processNotebook = this.getBoolean("getNotebook");
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
-    final boolean verify = this.getBoolean("verify");
+    final boolean verify = processNotebook || this.getBoolean("verify");
     PluginItemsParser pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
-      // items = Lists.newArrayList();
+
       pluginMeta = plugins.get(pluginIndex);
-      // subFormFilter = pluginMeta.getSubFormFilter();
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
-      // hEnum = pluginMeta.getHeteroEnum();
       pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, verify);
       if (pluginItemsParser.faild) {
         faild = true;
@@ -663,6 +668,13 @@ public class PluginAction extends BasicModule {
       // 判断提交的plugin表单是否有错误？错误则退出
       this.addErrorMessage(context, "提交表单内容有错误");
       return;
+    }
+
+    if (processNotebook) {
+      for (PluginItems pi : categoryPlugins) {
+        this.setBizResult(context, pi.cerateOrGetNotebook(this, context));
+        return;
+      }
     }
 
     List<ItemsSaveResult> describables = Lists.newArrayList();
@@ -721,7 +733,6 @@ public class PluginAction extends BasicModule {
 
     pluginItems.items = describableAttrValMapList;
     parseResult.pluginItems = pluginItems;
-    //categoryPlugins.add(pluginItems);
     AttrValMap attrValMap = null;
 
 

@@ -43,11 +43,6 @@ public class StartAssembleWeb extends TestCase {
     public void testStart() throws Exception {
 
 
-//        for (Map.Entry<Object, Object> e : System.getProperties().entrySet()) {
-//            System.out.println(e.getKey() + "->" + e.getValue());
-//        }
-
-
        // System.setProperty(com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
         String[] args = new String[]{};

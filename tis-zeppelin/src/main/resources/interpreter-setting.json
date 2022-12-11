@@ -1,0 +1,14 @@
+[
+  {
+    "group": "jdbc",
+    "name": "tisSql",
+    "className": "org.apache.zeppelin.jdbc.JDBCInterpreter.TISJDBCInterpreter",
+    "properties": {
+    },
+    "editor": {
+      "language": "sql",
+      "editOnDblClick": false,
+      "completionSupport": true
+    }
+  }
+]

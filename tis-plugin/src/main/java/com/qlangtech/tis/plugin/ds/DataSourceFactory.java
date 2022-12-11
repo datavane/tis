@@ -28,13 +28,13 @@ import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.*;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -46,14 +46,14 @@ import java.util.concurrent.atomic.AtomicReference;
  **/
 @Public
 public abstract class DataSourceFactory implements Describable<DataSourceFactory>, Serializable, IdentityName, DataSourceMeta, Wrapper {
-
+    public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.of("Asia/Shanghai");
     public static final String DS_TYPE_MYSQL = "MySQL";
 
 //    public static List<DataSourceFactory> all() {
 //        return TIS.get().getExtensionList(DataSourceFactory.class);
 //    }
 
-
+    public abstract DBConfig getDbConfig();
     /**
      * DataSource like TiSpark has store format as RDD shall skip the phrase of data dump
      *
@@ -87,7 +87,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return (Class<C>) BaseDataSourceFactoryDescriptor.class;
     }
 
-    protected void validateConnection(String jdbcUrl, BasicDataSourceFactory.IConnProcessor p) throws TableNotFoundException {
+    protected void validateConnection(String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
         Connection conn = null;
         try {
             conn = getConnection(jdbcUrl);
@@ -234,8 +234,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     private String getDbSchema() {
         String dbSchema = null;
-        if (this instanceof BasicDataSourceFactory.ISchemaSupported) {
-            dbSchema = ((BasicDataSourceFactory.ISchemaSupported) this).getDBSchema();
+        if (this instanceof ISchemaSupported) {
+            dbSchema = ((ISchemaSupported) this).getDBSchema();
         }
         return dbSchema;
     }
@@ -364,6 +364,18 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         }
     }
 
+    /**
+     * 某些数据库是支持schema概念，如支持则实现该接口
+     */
+    @Public
+    public interface ISchemaSupported {
+        public String getDBSchema();
+    }
+
+    public interface IConnProcessor {
+        void vist(Connection conn) throws SQLException, TableNotFoundException;
+    }
+
     public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T> {
         private static final Logger logger = LoggerFactory.getLogger(BaseDataSourceFactoryDescriptor.class);
 
@@ -417,8 +429,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
         @Override
         protected final boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
-            ParseDescribable<Describable> dsFactory = this.newInstance((IPluginContext) msgHandler, postFormVals.rawFormData, Optional.empty());
-            T instance = (T) dsFactory.getInstance();
+            T instance = postFormVals.newInstance(this, msgHandler);
+            // this.newInstance((IPluginContext) msgHandler, postFormVals.rawFormData, Optional.empty());
+            // = (T) dsFactory.getInstance();
 //            if (!msgHandler.validateBizLogic(IFieldErrorHandler.BizLogic.DB_NAME_DUPLICATE, context
 //                    , this.getIdentityField().displayName, instance.identityValue())) {
 //                return false;

@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.web.start;
 
@@ -21,10 +21,8 @@ import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.NetworkTrafficServerConnector;
-import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.resource.Resource;
@@ -95,18 +93,39 @@ public class JettyTISRunner {
 
     private final IWebAppContextSetter contextSetter;
 
-    private HandlerList handlers = new HandlerList();
+    private HandlerList handlers = new HandlerList() {
+        @Override
+        public void addHandler(Handler handler) {
+            if (handler instanceof WebAppContext) {
+                contextSetter.process((WebAppContext) handler);
+            }
+            super.addHandler(handler);
+            contextAddCount.incrementAndGet();
+        }
+    };
 
     private final AtomicInteger contextAddCount = new AtomicInteger();
+    private IWebAppContextCollector webAppContextCollector;
 
     JettyTISRunner(String context, int port, IWebAppContextSetter contextSetter) throws Exception {
         this(port, contextSetter);
         this.addContext(context, new File("."), false);
     }
 
+    JettyTISRunner(int port, IWebAppContextCollector webAppContextCollector) throws Exception {
+        this(port, (c) -> {
+        });
+        webAppContextCollector.launchContext(this.getHandlers());
+        this.webAppContextCollector = webAppContextCollector;
+    }
+
     JettyTISRunner(int port, IWebAppContextSetter contextSetter) {
         this.port = port;
         this.contextSetter = contextSetter;
+    }
+
+    public final HandlerCollection getHandlers() {
+        return this.handlers;
     }
 
     /**
@@ -118,6 +137,13 @@ public class JettyTISRunner {
     public void addContext(File contextDir) throws Exception {
         this.addContext("/" + contextDir.getName(), contextDir, true);
     }
+
+    public void addContext(WebAppContext webAppContext) throws Exception {
+        // contextSetter.process(webAppContext);
+        handlers.addHandler(webAppContext);
+        //contextAddCount.incrementAndGet();
+    }
+
 
     public void addContext(final String context, File contextDir, boolean addDirJars) throws Exception {
         final File webappDir = getWebapp(contextDir);
@@ -155,9 +181,9 @@ public class JettyTISRunner {
         webAppContext.setParentLoaderPriority(true);
         webAppContext.setThrowUnavailableOnStartupException(true);
         webAppContext.addServlet(CheckHealth.class, "/check_health");
-        contextSetter.process(webAppContext);
-        handlers.addHandler(webAppContext);
-        contextAddCount.incrementAndGet();
+
+        this.addContext(webAppContext);
+
     }
 
     public File getWebapp(File contextDir) {
@@ -165,7 +191,7 @@ public class JettyTISRunner {
     }
 
     private void init() {
-       // this.setSolrHome();
+        // this.setSolrHome();
         if (validateContextHandler()) {
             throw new IllegalStateException("handlers can not small than 1");
         }
@@ -280,6 +306,9 @@ public class JettyTISRunner {
         this.init();
         if (!server.isRunning()) {
             server.start();
+            if (this.webAppContextCollector != null) {
+                this.webAppContextCollector.afterLaunchContext();
+            }
             server.join();
         }
         // if (waitForSolr)
