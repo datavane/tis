@@ -23,7 +23,7 @@ package com.qlangtech.tis.extension.util;
  * @create: 2021-05-10 09:08
  **/
 
-import javax.annotation.Nonnull;
+//import javax.annotation.Nonnull;
 
 public class JavaSpecificationVersion extends VersionNumber {
     private static final String JAVA_SPEC_VERSION_PROPERTY_NAME = "java.specification.version";
@@ -37,12 +37,12 @@ public class JavaSpecificationVersion extends VersionNumber {
     public static final JavaSpecificationVersion JAVA_12 = new JavaSpecificationVersion("12");
     public static final JavaSpecificationVersion JAVA_13 = new JavaSpecificationVersion("13");
 
-    public JavaSpecificationVersion(@Nonnull String version) throws NumberFormatException {
+    public JavaSpecificationVersion( String version) throws NumberFormatException {
         super(normalizeVersion(version));
     }
 
-    @Nonnull
-    private static String normalizeVersion(@Nonnull String input) throws NumberFormatException {
+
+    private static String normalizeVersion( String input) throws NumberFormatException {
         input = input.trim();
         if (input.startsWith("1.")) {
             String[] split = input.split("\\.");
@@ -57,7 +57,7 @@ public class JavaSpecificationVersion extends VersionNumber {
         return majorVersion > 8 ? input : "1." + input;
     }
 
-    @Nonnull
+
     public static JavaSpecificationVersion forCurrentJVM() throws NumberFormatException {
         String value = System.getProperty("java.specification.version");
         if (value == null) {

@@ -661,7 +661,7 @@ public class PluginAction extends BasicModule {
       }
       categoryPlugins.add(pluginItemsParser.pluginItems);
     }
-    if (this.hasErrors(context) || verify) {
+    if (this.hasErrors(context) || (verify && !processNotebook)) {
       return;
     }
     if (faild) {

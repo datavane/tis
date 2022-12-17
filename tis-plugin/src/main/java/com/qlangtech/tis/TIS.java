@@ -43,7 +43,6 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.util.*;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.hudson.reactor.*;
 import org.slf4j.Logger;
@@ -746,7 +745,7 @@ public class TIS {
      * Update the current install state. This will invoke state.initializeState()
      * when the state has been transitioned.
      */
-    public void setInstallState(@NonNull InstallState newState) {
+    public void setInstallState( InstallState newState) {
         String prior = installStateName;
         installStateName = newState.name();
         logger.info("Install state transitioning from: {} to : {}", prior, installStateName);

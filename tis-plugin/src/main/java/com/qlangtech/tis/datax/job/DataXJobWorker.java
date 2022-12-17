@@ -257,7 +257,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
         @Override
         public Map<String, Object> getExtractProps() {
-            Map<String, Object> extractProps = Maps.newHashMap();
+            Map<String, Object> extractProps = super.getExtractProps();
             extractProps.put(KEY_WORKER_TYPE, getWorkerType().getName());
             return extractProps;
         }

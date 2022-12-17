@@ -28,6 +28,27 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
  * @create: 2022-12-10 15:07
  **/
 public interface INotebookable {
+
+    public enum InterpreterGroup {
+        JDBC_GROUP("jdbc-tis", "org.apache.zeppelin.jdbc.TISJDBCInterpreter"),
+        ELASTIC_GROUP("elasticsearch-tis", "org.apache.zeppelin.elasticsearch.TISElasticsearchInterpreter");
+        private final String groupName;
+        private final String itprtGroupClass;
+
+        private InterpreterGroup(String groupName, String itprtGroupClass) {
+            this.groupName = groupName;
+            this.itprtGroupClass = itprtGroupClass;
+        }
+
+        public String getGroupName() {
+            return this.groupName;
+        }
+
+        public String getInterpreterGroupClass() {
+            return this.itprtGroupClass;
+        }
+    }
+
     /**
      * @param msgHandler
      * @param context

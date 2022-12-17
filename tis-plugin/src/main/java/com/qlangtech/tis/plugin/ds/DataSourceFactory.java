@@ -54,6 +54,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 //    }
 
     public abstract DBConfig getDbConfig();
+
     /**
      * DataSource like TiSpark has store format as RDD shall skip the phrase of data dump
      *
@@ -62,6 +63,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public boolean skipDumpPhrase() {
         return false;
     }
+
+    public abstract void visitFirstConnection(final IConnProcessor connProcessor);
+
+    public abstract void refectTableInDB(List<String> tabs, Connection conn) throws SQLException;
 
     /**
      * Get all the dump
@@ -142,6 +147,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public Connection getConnection(String jdbcUrl) throws SQLException {
         throw new UnsupportedOperationException("jdbcUrl:" + jdbcUrl);
     }
+
+    public Connection getConnection(String jdbcUrl, boolean usingPool) throws SQLException {
+        return this.getConnection(jdbcUrl);
+    }
+
 //        // 密码可以为空
 //        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
 //    }
@@ -395,7 +405,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
         @Override
         public final Map<String, Object> getExtractProps() {
-            Map<String, Object> eprops = new HashMap<>();
+            Map<String, Object> eprops = super.getExtractProps();
             eprops.put("supportFacade", this.supportFacade());
             eprops.put("facadeSourceTypes", this.facadeSourceTypes());
             Optional<String> dataXReaderDesc = this.getDefaultDataXReaderDescName();

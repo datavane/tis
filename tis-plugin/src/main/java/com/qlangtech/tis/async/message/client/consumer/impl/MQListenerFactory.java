@@ -89,7 +89,7 @@ public abstract class MQListenerFactory
 
         @Override
         public final Map<String, Object> getExtractProps() {
-            Map<String, Object> eprops = new HashMap<>();
+            Map<String, Object> eprops = super.getExtractProps();
             Optional<EndType> targetType = this.getTargetType();
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
             eprops.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP

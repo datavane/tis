@@ -47,6 +47,7 @@ import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.impl.AttrVals;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
@@ -176,7 +177,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @return
      */
     public Map<String, Object> getExtractProps() {
-        return Collections.emptyMap();
+        Map<String, Object> props = new HashMap<>();
+        Map<String, Boolean> notebook = new HashMap<>();
+        notebook.put("ability", (this instanceof INotebookable));
+        notebook.put("activate", TisAppLaunch.get().isZeppelinActive());
+        props.put("notebook", notebook);
+        return props;
     }
 
     private Map<String, Method> createValidateMap() {

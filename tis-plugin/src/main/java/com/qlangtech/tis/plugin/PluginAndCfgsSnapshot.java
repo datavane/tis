@@ -329,9 +329,11 @@ public class PluginAndCfgsSnapshot {
      */
     public void synchronizTpisAndConfs(PluginAndCfgsSnapshot localSnaphsot
             , Optional<PluginAndCfgsSnapshot> cacheSnaphsot) throws Exception {
-        this.synchronizTpisAndConfs(localSnaphsot);
-        if (cacheSnaphsot.isPresent()) {
-            this.updatePluginManager(cacheSnaphsot.get());
+        synchronized (TIS.class) {
+            this.synchronizTpisAndConfs(localSnaphsot);
+            if (cacheSnaphsot.isPresent() && TIS.initialized /** 必须要TIS 已经初始化 完成，启动时 cacheSnaphsot 内的依赖plugin为空致使启动报错*/) {
+                this.updatePluginManager(cacheSnaphsot.get());
+            }
         }
     }
 
@@ -443,20 +445,25 @@ public class PluginAndCfgsSnapshot {
 //        for (PluginMeta update : result) {
 //            update.copyFromRemote(Collections.emptyList(), true, true);
 //        }
-        TIS tis = TIS.get();
-        PluginManager pluginManager = tis.getPluginManager();
-        Set<PluginMeta> loaded = Sets.newHashSet();
-        PluginWrapperList batch = new PluginWrapperList();
-        for (PluginMeta update : result) {
-            dynamicLoad(pluginManager, update, batch, result, loaded);
-        }
+        try {
+            TIS tis = TIS.get();
+            PluginManager pluginManager = tis.getPluginManager();
+            Set<PluginMeta> loaded = Sets.newHashSet();
+            PluginWrapperList batch = new PluginWrapperList();
+            for (PluginMeta update : result) {
+                dynamicLoad(pluginManager, update, batch, result, loaded);
+            }
 
-        if (batch.size() > 0) {
-            pluginManager.start(batch);
-            updateTpisLogger.append("\ndynamic reload plugins:" + batch.getBatchNames());
-            Thread.sleep(3000l);
-            TIS.cleanPluginStore();
-            tis.cleanExtensionCache();
+            if (batch.size() > 0) {
+                pluginManager.start(batch);
+                updateTpisLogger.append("\ndynamic reload plugins:" + batch.getBatchNames());
+                Thread.sleep(3000l);
+                TIS.cleanPluginStore();
+                tis.cleanExtensionCache();
+            }
+        } catch (Exception e) {
+            logger.error(updateTpisLogger.append("\n------------------------------").toString());
+            throw e;
         }
 
 

@@ -31,6 +31,10 @@ public abstract class HiveTable {
      */
     public abstract String getStorageLocation();
 
+    public String getTableName() {
+        return this.name;
+    }
+
     public HiveTable(String name) {
         this.name = name;
     }

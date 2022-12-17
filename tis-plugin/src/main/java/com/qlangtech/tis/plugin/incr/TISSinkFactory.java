@@ -154,7 +154,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
     public static abstract class BaseSinkFunctionDescriptor extends Descriptor<TISSinkFactory> implements IEndTypeGetter {
         @Override
         public Map<String, Object> getExtractProps() {
-            Map<String, Object> vals = Maps.newHashMap();
+            Map<String, Object> vals = super.getExtractProps();
             EndType targetType = this.getTargetType();
             vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
             vals.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP

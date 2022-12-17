@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -105,7 +106,7 @@ public class JettyTISRunner {
     };
 
     private final AtomicInteger contextAddCount = new AtomicInteger();
-    private IWebAppContextCollector webAppContextCollector;
+    private List<IWebAppContextCollector> webAppContextCollector;
 
     JettyTISRunner(String context, int port, IWebAppContextSetter contextSetter) throws Exception {
         this(port, contextSetter);
@@ -115,8 +116,15 @@ public class JettyTISRunner {
     JettyTISRunner(int port, IWebAppContextCollector webAppContextCollector) throws Exception {
         this(port, (c) -> {
         });
+        this.addContext(webAppContextCollector);
+    }
+
+    public void addContext(IWebAppContextCollector webAppContextCollector) throws IOException {
         webAppContextCollector.launchContext(this.getHandlers());
-        this.webAppContextCollector = webAppContextCollector;
+        if (this.webAppContextCollector != null) {
+            throw new IllegalStateException("webAppContextCollector shall not be set twice");
+        }
+        this.webAppContextCollector = Collections.singletonList(webAppContextCollector);
     }
 
     JettyTISRunner(int port, IWebAppContextSetter contextSetter) {
@@ -307,7 +315,9 @@ public class JettyTISRunner {
         if (!server.isRunning()) {
             server.start();
             if (this.webAppContextCollector != null) {
-                this.webAppContextCollector.afterLaunchContext();
+                for (IWebAppContextCollector c : this.webAppContextCollector) {
+                    c.afterLaunchContext();
+                }
             }
             server.join();
         }

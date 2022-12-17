@@ -52,6 +52,16 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     }
 
     @Override
+    public void visitFirstConnection(IConnProcessor connProcessor) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void refectTableInDB(List<String> tabs, Connection conn) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public String identityValue() {
         return "mockDs";
     }

@@ -25,7 +25,7 @@ package com.qlangtech.tis.extension.util;
 
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.util.AtomicFileWriter;
-import edu.umd.cs.findbugs.annotations.NonNull;
+//import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -120,7 +120,7 @@ public class TextFile {
     /**
      * Reads the first N characters or until we hit EOF.
      */
-    public @NonNull
+    public //@NonNull
     String head(int numChars) throws IOException {
         char[] buf = new char[numChars];
         int read = 0;
@@ -166,7 +166,7 @@ public class TextFile {
      * <p>
      * So all in all, this algorithm should work decently, and it works quite efficiently on a large text.
      */
-    public @NonNull
+    public //@NonNull
     String fastTail(int numChars, Charset cs) throws IOException {
 
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
@@ -188,7 +188,7 @@ public class TextFile {
     /**
      * Uses the platform default encoding.
      */
-    public @NonNull
+    public //@NonNull
     String fastTail(int numChars) throws IOException {
         return fastTail(numChars, Charset.defaultCharset());
     }

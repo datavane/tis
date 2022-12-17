@@ -20,8 +20,8 @@ package com.qlangtech.tis.install;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtension;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
+//import edu.umd.cs.findbugs.annotations.CheckForNull;
+//import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.logging.Level;
@@ -288,7 +288,7 @@ public class InstallState {
      */
     private final String name;
 
-    public InstallState(@NonNull String name, boolean isSetupComplete) {
+    public InstallState( String name, boolean isSetupComplete) {
         this.name = name;
         this.isSetupComplete = isSetupComplete;
     }
@@ -360,8 +360,7 @@ public class InstallState {
      * @param name
      * @return
      */
-    @CheckForNull
-    public static InstallState valueOf(@NonNull String name) {
+    public static InstallState valueOf( String name) {
         for (InstallState state : all()) {
             if (name.equals(state.name)) {
                 return state;

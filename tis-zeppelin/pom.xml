@@ -41,13 +41,28 @@
             <groupId>org.apache.zeppelin</groupId>
             <version>${zeppelin.version}</version>
             <artifactId>zeppelin-server</artifactId>
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>org.apache.zeppelin</groupId>-->
+<!--                    <artifactId>zeppelin-zengine</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+            <scope>provided</scope>
         </dependency>
 
 <!--        <dependency>-->
 <!--            <groupId>org.apache.zeppelin</groupId>-->
+<!--            <artifactId>zeppelin-zengine</artifactId>-->
 <!--            <version>${zeppelin.version}</version>-->
-<!--            <artifactId>zeppelin-jdbc</artifactId>-->
+<!--            <scope>provided</scope>-->
 <!--        </dependency>-->
+
+
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.zeppelin</groupId>-->
+        <!--            <version>${zeppelin.version}</version>-->
+        <!--            <artifactId>zeppelin-jdbc</artifactId>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
@@ -60,6 +75,27 @@
 
 
     </dependencies>
+
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tisasm-maven-plugin</artifactId>
+                <configuration>
+                    <descriptor>./assembly.xml</descriptor>
+                    <outputDirectory>../</outputDirectory>
+                    <finalName>tis-zeppelin</finalName>
+                    <appendDeplpyFileName>tis-zeppelin.tar.gz</appendDeplpyFileName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <tarLongFileMode>posix</tarLongFileMode>
+                    <appnamePattern>tis-zeppelin</appnamePattern>
+                </configuration>
+            </plugin>
+        </plugins>
+
+    </build>
 
 
 </project>

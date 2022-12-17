@@ -19,13 +19,17 @@ package com.qlangtech.tis.web.start;
 
 import com.qlangtech.tis.web.start.JettyTISRunner.IWebAppContextSetter;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -80,6 +84,7 @@ public class TisApp {
 
     static final String APP_CONSOLE = "root";
 
+
     static final String PATH_WEB_XML = "WEB-INF/web.xml";
 
     private void initContext() throws Exception {
@@ -89,7 +94,7 @@ public class TisApp {
         for (String context : root.list()) {
             contextDir = new File(root, context);
             if (contextDir.isDirectory() && !TisSubModule.WEB_START.moduleName.equals(context)) {
-                if (APP_CONSOLE.equals(context)) {
+                if (APP_CONSOLE.equals(context) || TisSubModule.ZEPPELIN.moduleName.equals(context)) {
                     continue;
                 } else {
                     logger.info("load context:{}", context);
@@ -97,6 +102,16 @@ public class TisApp {
                 }
             }
         }
+
+        if (TisAppLaunch.get().isZeppelinActive()) {
+            contextDir = new File(root, TisSubModule.ZEPPELIN.moduleName);
+            if (!contextDir.exists()) {
+                throw new IllegalStateException(
+                        "zeppelin is active but context dir is not exist:" + contextDir.getAbsolutePath());
+            }
+            this.initZeppelinContext(contextDir);
+        }
+
         // '/' root 的handler必须要最后添加
         contextDir = new File(root, APP_CONSOLE);
         if (contextDir.exists() && contextDir.isDirectory()) {
@@ -114,6 +129,47 @@ public class TisApp {
 
         if (this.jetty.validateContextHandler()) {
             throw new IllegalStateException("handlers can not small than 1,web rootDir:" + root.getAbsolutePath());
+        }
+    }
+
+    private void initZeppelinContext(File contextDir) throws IOException {
+
+        File libDir = new File(contextDir, "lib");
+
+        List<URL> jars = new ArrayList<>();
+        addJars(libDir, jars, (cfile) -> {
+            return !cfile.getName().startsWith("zeppelin-server");
+        });
+
+        File zeppelinLibDir = new File(TisAppLaunch.get().getZeppelinHome(), "lib");
+        addJars(zeppelinLibDir, jars);
+        if (jars.isEmpty()) {
+            throw new IllegalStateException("there is any jars in libDir:" + libDir.getAbsolutePath());
+        }
+        URLClassLoader clazzLoader = new URLClassLoader(jars.toArray(new URL[jars.size()]), this.getClass().getClassLoader());
+        ServiceLoader<IWebAppContextCollector>
+                appContextCollectors = ServiceLoader.load(IWebAppContextCollector.class, clazzLoader);
+        for (IWebAppContextCollector appContext : appContextCollectors) {
+            this.jetty.addContext(appContext);
+        }
+    }
+
+    private void addJars(File libDir, List<URL> jars) throws MalformedURLException {
+        addJars(libDir, jars, (f) -> true);
+    }
+
+    private void addJars(File libDir, List<URL> jars, FileFilter fileFilter) throws MalformedURLException {
+        if (!libDir.exists()) {
+            throw new IllegalStateException("libDir:" + libDir.getAbsolutePath());
+        }
+        Iterator<File> jarIt = FileUtils.iterateFiles(libDir, new String[]{"jar"}, false);
+        File childFile = null;
+        while (jarIt.hasNext()) {
+            childFile = jarIt.next();
+            if (!fileFilter.accept(childFile)) {
+                continue;
+            }
+            jars.add(childFile.toURI().toURL());
         }
     }
 

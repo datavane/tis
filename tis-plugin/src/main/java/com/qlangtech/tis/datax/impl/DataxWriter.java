@@ -153,7 +153,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
 
         @Override
         public final Map<String, Object> getExtractProps() {
-            Map<String, Object> eprops = new HashMap<>();
+            Map<String, Object> eprops = super.getExtractProps();
             eprops.put("supportMultiTable", this.isSupportMultiTable());
             eprops.put("rdbms", this.isRdbms());
             eprops.put("createDDL", this.isSupportTabCreate());

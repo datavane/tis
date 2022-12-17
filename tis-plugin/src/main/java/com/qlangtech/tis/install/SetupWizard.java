@@ -23,8 +23,6 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.VersionNumber;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
 //import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 //import hudson.BulkChange;
 //import hudson.FilePath;

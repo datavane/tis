@@ -37,13 +37,14 @@ import java.util.stream.Collectors;
 @Public
 public abstract class ParamsConfig implements Describable<ParamsConfig>, IdentityName {
     public static final String CONTEXT_PARAMS_CFG = "params-cfg";
+    public static final String KEY_ELASTIC_SEARCH_DISPLAY_NAME = "elasticToken";
 
     public static <T extends ParamsConfig> List<T> getItems(String pluginDesc) {
         IPluginStore<ParamsConfig> paramsCfgStore = getTargetPluginStore(pluginDesc);
         return paramsCfgStore.getPlugins().stream().map((p) -> (T) p).collect(Collectors.toList());
     }
 
-    // 取得所有的配置项
+//    取得所有的配置项
 //    public static <T> List<T> getItems(String pluginDesc) {
 //        List<ParamsConfig> items = getItems(pluginDesc);
 //        return items.stream().filter((r) -> type.isAssignableFrom(r.getClass())).map((r) -> (T) r).collect(Collectors.toList());

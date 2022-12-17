@@ -37,9 +37,9 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.util.Util;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
+//import edu.umd.cs.findbugs.annotations.CheckForNull;
+//import edu.umd.cs.findbugs.annotations.NonNull;
+//import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -324,25 +324,25 @@ public class UpdateSite {
         /**
          * Human-readable English name for this version range, e.g. 'regular', 'LTS', '2.6 line'.
          */
-        @Nullable
+        //@Nullable
         public final String name;
 
         /**
          * First version in this version range to be subject to the warning.
          */
-        @Nullable
+       // @Nullable
         public final String firstVersion;
 
         /**
          * Last version in this version range to be subject to the warning.
          */
-        @Nullable
+       // @Nullable
         public final String lastVersion;
 
         /**
          * Regular expression pattern for this version range that matches all included version numbers.
          */
-        @NonNull
+       // @NonNull
         private final Pattern pattern;
 
         public WarningVersionRange(JSONObject o) {
@@ -1405,7 +1405,7 @@ public class UpdateSite {
      *
      * @return null if no data is available.
      */
-    @CheckForNull
+
     public Data getData() {
         if (data == null) {
             JSONObject o = getJSONObject();

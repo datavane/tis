@@ -295,7 +295,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
         @Override
         public final Map<String, Object> getExtractProps() {
-            Map<String, Object> eprops = new HashMap<>();
+            Map<String, Object> eprops = super.getExtractProps();
             eprops.put("rdbms", this.isRdbms());
             eprops.put("supportIncr", this.isSupportIncr());
             eprops.put("endType", this.getEndType().getVal());

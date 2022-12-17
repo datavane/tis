@@ -82,6 +82,7 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
 - tis-logback-flume-appender [https://github.com/baisui1981/tis-logback-flume-appender](https://github.com/baisui1981/tis-logback-flume-appender)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)
 - Chunjun [https://github.com/qlangtech/chunjun](https://github.com/qlangtech/chunjun)
+- Zeppelin [https://github.com/qlangtech/zeppelin](https://github.com/qlangtech/zeppelin)
 
 ## 如何开发
 

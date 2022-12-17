@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.web.start;
@@ -31,11 +31,17 @@ public class TisAppLaunch {
     private static boolean test = false;
     private final Integer launchPort;
     private static final String logDir;
+    /**
+     * Zeppelin 是否被激活
+     */
+    private final boolean zeppelinActive;
+    private final File zeppelinHome;
 
     static {
         logDir = System.getProperty(KEY_LOG_DIR, "/opt/logs/tis");
         System.setProperty(TisAppLaunch.KEY_ASSEMBLE_TASK_DIR, logDir + "/assemble/task");
     }
+
 
     public static File getLogDir() {
         return new File(logDir);
@@ -48,15 +54,36 @@ public class TisAppLaunch {
             throw new IllegalStateException("logDir can not be null");
         }
         this.launchPort = Integer.parseInt(System.getProperty(KEY_TIS_LAUNCH_PORT, "8080"));
+        String zeppelinHome = System.getenv("ZEPPELIN_HOME");
+        this.zeppelinActive = zeppelinHome != null;
+        this.zeppelinHome = (this.zeppelinActive) ? new File(zeppelinHome) : null;
+        if (this.zeppelinActive) {
+            if (!this.zeppelinHome.exists() || !this.zeppelinHome.isDirectory()) {
+                throw new IllegalStateException("zeppelinHome is not valid:" + this.zeppelinHome.getAbsolutePath());
+            }
+        }
     }
 
+    public File getZeppelinHome() {
+        return this.zeppelinHome;
+    }
+
+    public boolean isZeppelinActive() {
+        return this.zeppelinActive;
+    }
 
     public static int getPort(TisSubModule context) {
+        TisAppLaunch i = get();
+        return i.launchPort + context.portOffset;
+    }
+
+    public static TisAppLaunch get() {
         if (instance == null) {
             instance = new TisAppLaunch();
         }
-        return instance.launchPort + context.portOffset;
+        return instance;
     }
+
 
     public static final File getAssebleTaskDir() {
         return new File(System.getProperty(KEY_ASSEMBLE_TASK_DIR));
