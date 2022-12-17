@@ -1009,7 +1009,7 @@ public class DataxAction extends BasicModule {
     if (reader == null) {
       throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
     }
-    return reader.getTablesInDB();
+    return reader.getTablesInDB().getTabs();
   }
 
   public static List<ColumnMetaData> getReaderTableSelectableCols(String dataxName, String table) {

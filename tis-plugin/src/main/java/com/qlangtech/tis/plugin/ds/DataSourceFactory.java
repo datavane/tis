@@ -66,7 +66,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     public abstract void visitFirstConnection(final IConnProcessor connProcessor);
 
-    public abstract void refectTableInDB(List<String> tabs, Connection conn) throws SQLException;
+    public abstract void refectTableInDB(TableInDB tabs, Connection conn) throws SQLException;
 
     /**
      * Get all the dump
@@ -172,7 +172,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             metaData1 = conn.getMetaData();
             try (ResultSet tables = metaData1.getTables(null, getDbSchema(), table.getTableName(), null)) {
                 if (!tables.next()) {
-                    throw new TableNotFoundException(table.getFullName());
+                    throw new TableNotFoundException(this, table.getFullName());
                 }
             }
 
@@ -451,7 +451,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
         protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
             try {
-                List<String> tables = dsFactory.getTablesInDB();
+                TableInDB tables = dsFactory.getTablesInDB();
                 // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);

@@ -173,7 +173,7 @@ public class OfflineDatasourceAction extends BasicModule {
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
     IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
 
-    List<String> tabs = dbPlugin.getPlugin().getTablesInDB();
+    List<String> tabs = dbPlugin.getPlugin().getTablesInDB().getTabs();
     // 通过DB的连接信息找到找到db下所有表信息
     // 对应的tabs列表
     this.setBizResult(context, tabs.stream().map((t) -> {

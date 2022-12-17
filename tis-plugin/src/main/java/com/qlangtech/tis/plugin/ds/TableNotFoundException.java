@@ -18,21 +18,29 @@ package com.qlangtech.tis.plugin.ds;
  * limitations under the License.
  */
 
+import com.qlangtech.tis.plugin.IdentityName;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-10-12 13:52
  **/
 public class TableNotFoundException extends Exception {
     public final String tableName;
+    private final IdentityName dbId;
 
-    public TableNotFoundException(String tableName) {
+    public TableNotFoundException(IdentityName dbId, String tableName) {
         this.tableName = tableName;
+        this.dbId = dbId;
+    }
+
+    public IdentityName getDbId() {
+        return this.dbId;
     }
 
     @Override
     public String toString() {
-        return "TableNotFoundException{" +
-                "tableName='" + tableName + '\'' +
+        return "TableNotFound{ dbId=" + this.dbId.identityValue() +
+                ",tableName='" + tableName + '\'' +
                 '}';
     }
 }

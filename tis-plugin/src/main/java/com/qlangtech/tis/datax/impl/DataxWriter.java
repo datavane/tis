@@ -1,22 +1,25 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.datax.impl;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.IDataxWriter;
@@ -26,14 +29,19 @@ import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
+import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -41,6 +49,33 @@ import java.util.Objects;
  */
 @Public
 public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWriter {
+
+
+    private static transient LoadingCache<String, TableInDB> tabsInDBCache;
+
+
+    private static TableInDB getExistTabsInSink(String dataXName) throws ExecutionException {
+        if (tabsInDBCache == null) {
+            tabsInDBCache = CacheBuilder.newBuilder().expireAfterWrite(12, TimeUnit.SECONDS)
+                    .build(new CacheLoader<String, TableInDB>() {
+                        @Override
+                        public TableInDB load(String dataXName) throws Exception {
+                            IDataSourceFactoryGetter writer = (IDataSourceFactoryGetter) DataxWriter.load(null, dataXName);
+                            final DataSourceFactory ds = writer.getDataSourceFactory();
+                            return ds.getTablesInDB();
+                        }
+                    });
+        }
+
+        TableInDB result = tabsInDBCache.get(dataXName);
+        if (result == null) {
+            throw new IllegalStateException("dataXName:"
+                    + dataXName + " relevant Sink end dataSource refects tables can not be null");
+        }
+        return result;
+
+    }
+
 
     /**
      * 初始化表RDBMS的表，如果表不存在就创建表
@@ -52,6 +87,13 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
         if (StringUtils.isEmpty(dataXName)) {
             throw new IllegalArgumentException("param dataXName can not be null");
         }
+
+        TableInDB existTabs = getExistTabsInSink(dataXName);
+        if (existTabs.contains(tableName)) {
+            // 表已经存在不用初始化啦
+            return;
+        }
+
         IInitWriterTableExecutor dataXWriter
                 = (IInitWriterTableExecutor) DataxWriter.load(null, dataXName);
 

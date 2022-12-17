@@ -57,7 +57,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     }
 
     @Override
-    public void refectTableInDB(List<String> tabs, Connection conn) throws SQLException {
+    public void refectTableInDB(TableInDB tabs, Connection conn) throws SQLException {
         throw new UnsupportedOperationException();
     }
 
@@ -87,7 +87,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     }
 
     @Override
-    public List<String> getTablesInDB() {
+    public TableInDB getTablesInDB() {
         throw new UnsupportedOperationException();
     }
 
