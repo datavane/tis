@@ -18,30 +18,76 @@ package com.qlangtech.tis.plugin.ds;
  * limitations under the License.
  */
 
-import org.apache.commons.collections.CollectionUtils;
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.datax.DataXJobInfo;
+import com.qlangtech.tis.datax.DataXJobSubmit;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-12-17 18:45
  **/
-public class TableInDB {
-    List<String> tabs;
+public abstract class TableInDB {
 
-    public void add(String tab) {
-
+    public static TableInDB create() {
+        return new DftTableInDB();
     }
 
-    public List<String> getTabs() {
-        return this.tabs;
-    }
+    /**
+     * @param jdbcUrl 可以标示是哪个分库的
+     * @param tab
+     */
+    public abstract void add(String jdbcUrl, String tab);
 
-    public boolean contains(String tableName) {
-        return false;
-    }
+//    /**
+//     * 取得匹配的物理表
+//     *
+//     * @param jdbcUrl
+//     * @param tab
+//     * @return
+//     */
+//    public abstract List<String> getMatchedTabs(String jdbcUrl, String tab);
 
-    public boolean isEmpty() {
-        return CollectionUtils.isEmpty(this.tabs);
+    public abstract List<String> getTabs();
+
+    public abstract boolean contains(String tableName);
+
+    public abstract boolean isEmpty();
+
+    public abstract DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity);
+
+    private static class DftTableInDB extends TableInDB {
+        private List<String> tabs = Lists.newArrayList();
+
+        @Override
+        public void add(String jdbcUrl, String tab) {
+            this.tabs.add(tab);
+        }
+
+        @Override
+        public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity) {
+            return DataXJobInfo.create(tabEntity.getFileName(), Collections.emptyList());
+        }
+//        @Override
+//        public List<String> getMatchedTabs(String jdbcUrl, String tab) {
+//            return Collections.singletonList(tab);
+//        }
+
+        @Override
+        public List<String> getTabs() {
+            return this.tabs;
+        }
+
+        @Override
+        public boolean contains(String tableName) {
+            return this.tabs.contains(tableName);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return this.tabs.isEmpty();
+        }
     }
 }

@@ -43,6 +43,8 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
     // 是否设置了dbname
     private boolean dft = false;
 
+    private final boolean physics;
+
     public static EntityName createSubQueryTable() {
         return new SubTableQueryEntity();
     }
@@ -57,17 +59,22 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         return parse(dbname + "." + tabName);
     }
 
+    public static EntityName parse(String entityName) {
+        return parse(entityName, false);
+    }
+
     /**
      * @param entityName
+     * @param physics    是否是物理表名（真正在数据库中存在的表）
      * @return
      */
-    public static EntityName parse(String entityName) {
+    public static EntityName parse(String entityName, boolean physics) {
         final String[] entitInfo = StringUtils.split(entityName, ".");
         EntityName entity = null;
         if (entitInfo.length == 1) {
-            entity = new EntityName(entitInfo[0]);
+            entity = new EntityName(entitInfo[0], physics);
         } else if (entitInfo.length == 2) {
-            entity = new EntityName(Optional.of(entitInfo[0]), entitInfo[1]);
+            entity = new EntityName(Optional.of(entitInfo[0]), entitInfo[1], physics);
         } else {
             throw new IllegalStateException("line:" + entityName + " is not valid");
         }
@@ -119,7 +126,11 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
     }
 
     private EntityName(String tabName) {
-        this(Optional.empty(), tabName);
+        this(tabName, false);
+    }
+
+    private EntityName(String tabName, boolean physics) {
+        this(Optional.empty(), tabName, physics);
         this.dft = true;
     }
 
@@ -127,12 +138,16 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         return this.dft;
     }
 
-    private EntityName(Optional<String> dbname, String tabName) {
+    private EntityName(Optional<String> dbname, String tabName, boolean physics) {
         super();
         this.dbname = dbname;
         this.tabName = tabName;
+        this.physics = physics;
     }
 
+    public boolean isPhysics() {
+        return this.physics;
+    }
 
     public String facadeDAOInstanceName() {
         return facadeDAOInstanceName(this.getDbname());

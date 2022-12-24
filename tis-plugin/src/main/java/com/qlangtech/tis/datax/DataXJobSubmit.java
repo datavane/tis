@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.datax;
@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
@@ -31,6 +32,8 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.tis.hadoop.rpc.RpcServiceReference;
@@ -125,16 +128,17 @@ public abstract class DataXJobSubmit {
     public abstract InstanceType getType();
 
 
-    protected CuratorDataXTaskMessage getDataXJobDTO(IJoinTaskContext taskContext, String dataXfileName) {
+    protected CuratorDataXTaskMessage getDataXJobDTO(IJoinTaskContext taskContext, DataXJobInfo dataXJobInfo) {
+
         CuratorDataXTaskMessage msg = new CuratorDataXTaskMessage();
         msg.setDataXName(taskContext.getIndexName());
         msg.setJobId(taskContext.getTaskId());
-        msg.setJobName(dataXfileName);
+        msg.setJobName(dataXJobInfo.serialize());
         msg.setExecTimeStamp(taskContext.getPartitionTimestamp());
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest(taskContext.getIndexName());
         DumpPhaseStatus.TableDumpStatus dataXJob = null;
         if (preTaskStatus != null
-                && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXfileName)) != null
+                && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXJobInfo.jobFileName)) != null
                 && dataXJob.getAllRows() > 0
         ) {
             msg.setAllRowsApproximately(dataXJob.getReadRows());
@@ -148,13 +152,56 @@ public abstract class DataXJobSubmit {
      * 创建dataX任务
      *
      * @param taskContext
-     * @param dataXfileName
+     * @param tabDataXEntity
      * @param dependencyTasks 前置依赖需要执行的任务节点
      * @return
      */
     public abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
-            , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName, List<String> dependencyTasks);
+            , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, TableDataXEntity tabDataXEntity, List<String> dependencyTasks);
 
+    public static class TableDataXEntity {
+        public static final String TEST_JDBC_URL = "jdbc_url_test";
+        private final DataXCfgGenerator.DBDataXChildTask fileName;
+        private final ISelectedTab selectedTab;
+
+        public static DataXJobSubmit.TableDataXEntity createTableEntity4Test(String dataXCfgFileName, String tabName) {
+
+            ISelectedTab selTab = new ISelectedTab() {
+                @Override
+                public String getName() {
+                    return tabName;
+                }
+
+                @Override
+                public List<CMeta> getCols() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+            return new DataXJobSubmit.TableDataXEntity(
+                    new DataXCfgGenerator.DBDataXChildTask(TEST_JDBC_URL, dataXCfgFileName), selTab);
+        }
+
+        public TableDataXEntity(DataXCfgGenerator.DBDataXChildTask fileName, ISelectedTab selectedTab) {
+            this.fileName = fileName;
+            this.selectedTab = selectedTab;
+        }
+
+        public String getFileName() {
+            return this.fileName.getDataXCfgFileNameWithSuffix();
+        }
+
+        public String getDbIdenetity() {
+            return this.fileName.getDbIdenetity();
+        }
+
+        public ISelectedTab getSelectedTab() {
+            return this.selectedTab;
+        }
+
+        public String getSourceTableName() {
+            return this.selectedTab.getName();
+        }
+    }
 
     public abstract IDataXJobContext createJobContext(IJoinTaskContext parentContext);
 

@@ -57,10 +57,11 @@ public abstract class BasicDataXExecutorTestCase extends TISTestCase implements 
     protected DataxExecutor createExecutor() {
         return new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
             @Override
-            protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
+            protected void startEngine(Configuration configuration, Integer jobId, DataXJobInfo jobName) {
                 //  make skip the ex
                 assertNotNull(configuration);
             }
+
         };
     }
 

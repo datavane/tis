@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -317,7 +318,7 @@ public class DataXCfgGenerator {
     public static class GenerateCfgs {
         private List<File> _dataxFiles;
         private List<String> createDDLFiles = Collections.emptyList();
-        private Map<String, List<String>> groupedChildTask;
+        private Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTask;
         private long genTime;
 
         private final File dataxCfgDir;
@@ -338,7 +339,7 @@ public class DataXCfgGenerator {
                         .values().stream()
                         .flatMap((tasks) -> tasks.stream())
                         .map((task) -> {
-                            File dataXCfg = new File(this.dataxCfgDir, task + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
+                            File dataXCfg = new File(this.dataxCfgDir, task.getDataXCfgFileNameWithSuffix());
                             if (!dataXCfg.exists()) {
                                 throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
                             }
@@ -350,7 +351,12 @@ public class DataXCfgGenerator {
         }
 
 
-        private Map<String, List<String>> getGroupedChildTask() {
+        /**
+         * Map<String, List<String>> key: logicTableName
+         *
+         * @return
+         */
+        private Map<String, List<DataXCfgGenerator.DBDataXChildTask>> getGroupedChildTask() {
             if (groupedChildTask == null) {
                 throw new IllegalStateException("groupedChildTask can not be null");
             }
@@ -363,13 +369,15 @@ public class DataXCfgGenerator {
          * @param taskGroupName 通常是一个表的名称
          * @return
          */
-        public List<String> getDataXTaskDependencies(String taskGroupName) {
-            List<String> subChildTask = null;
+        public List<DataXCfgGenerator.DBDataXChildTask> getDataXTaskDependencies(String taskGroupName) {
+            List<DataXCfgGenerator.DBDataXChildTask> subChildTask = null;
             if (CollectionUtils.isEmpty(subChildTask = this.getGroupedChildTask().get(taskGroupName))) {
                 throw new IllegalStateException("taskGroupName:" + taskGroupName + " relevant childTask can not be empty");
             }
-            return subChildTask.stream().map((childTask) -> childTask + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
-                    .collect(Collectors.toList());
+            return subChildTask;
+//            return subChildTask.stream()
+//                    .map((childTask) -> childTask.getDataXCfgFileName() + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
+//                    .collect(Collectors.toList());
         }
 
 
@@ -396,7 +404,24 @@ public class DataXCfgGenerator {
                         FileUtils.readFileToString(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN), TisUTF8.get()));
 
                 cfgs.genTime = o.getLongValue(KEY_GEN_TIME);
-                cfgs.groupedChildTask = o.getObject(KEY_GROUP_CHILD_TASKS, Map.class);
+
+                Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTasks = Maps.newHashMap();
+
+                Map<String, JSONArray> childTasks = o.getObject(KEY_GROUP_CHILD_TASKS, Map.class);
+                // JSONArray ctasks = null;
+                List<DataXCfgGenerator.DBDataXChildTask> tasks = null;
+                JSONObject task = null;
+                for (Map.Entry<String, JSONArray> entry : childTasks.entrySet()) {
+                    tasks = entry.getValue().toJavaList(DataXCfgGenerator.DBDataXChildTask.class);
+//                    tasks = Lists.newArrayList();
+//                    for (Object t : entry.getValue()) {
+//                        task = (JSONObject) t;
+//                        task.
+//                    }
+                    groupedChildTasks.put(entry.getKey(), tasks);
+                }
+
+                cfgs.groupedChildTask = groupedChildTasks;
                 return cfgs;
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -416,7 +441,7 @@ public class DataXCfgGenerator {
             return genTime;
         }
 
-        public void setGroupedChildTask(Map<String, List<String>> groupedChildTask) {
+        public void setGroupedChildTask(Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTask) {
             this.groupedChildTask = groupedChildTask;
         }
 
@@ -505,5 +530,29 @@ public class DataXCfgGenerator {
         velocityContext.put("writer", writer);
         velocityContext.put("cfg", this.globalCfg);
         return velocityContext;
+    }
+
+    public static class DBDataXChildTask {
+        // 需要执行数据抽取的数据库编号，如果支持JDBC的DB 一般为DB的jdbcUrl
+        private final String dbIdenetity;
+        private final String dataXCfgFileName;
+
+        public DBDataXChildTask(String dbIdenetity, String dataXCfgFileName) {
+            this.dbIdenetity = dbIdenetity;
+            this.dataXCfgFileName = dataXCfgFileName;
+        }
+
+        public String getDbIdenetity() {
+            return this.dbIdenetity;
+        }
+
+        public String getDataXCfgFileName() {
+            return this.dataXCfgFileName;// + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX;
+        }
+
+        @JSONField(serialize = false)
+        public String getDataXCfgFileNameWithSuffix() {
+            return this.dataXCfgFileName + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX;
+        }
     }
 }

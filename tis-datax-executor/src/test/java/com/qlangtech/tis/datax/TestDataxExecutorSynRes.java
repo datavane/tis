@@ -57,7 +57,7 @@ public class TestDataxExecutorSynRes extends TestCase implements IExecutorContex
         DataxProcessor dataxProcessor = IAppSource.load(null, dataXName);
         File dataxCfgDir = dataxProcessor.getDataxCfgDir(null);
         assertTrue(dataxCfgDir.getAbsolutePath(), dataxCfgDir.exists());
-        File jobCfgFile = new File(dataxCfgDir, jobName);
+        File jobCfgFile = new File(dataxCfgDir, jobName.jobFileName);
         assertTrue("jobCfgFile must exist:" + jobCfgFile.getAbsolutePath(), jobCfgFile.exists());
     }
 

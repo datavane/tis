@@ -55,8 +55,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-//import com.qlangtech.tis.fullbuild.indexbuild.RunningStatus;
-
 /**
  * DataX 执行器
  *
@@ -136,7 +134,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
                     }
                 });
         try {
-            List<String> dataXCfgsOfTab = null;
+            List<DataXCfgGenerator.DBDataXChildTask> dataXCfgsOfTab = null;
             List<String> dptTasks = null;
             for (ISelectedTab entry : selectedTabs) {
 
@@ -147,11 +145,12 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
                     dptTasks = Collections.singletonList(IDataXBatchPost.getPreExecuteTaskName(entry));
                 }
 
-                for (String fileName : dataXCfgsOfTab) {
+                for (DataXCfgGenerator.DBDataXChildTask fileName : dataXCfgsOfTab) {
 
 
                     jobTrigger = createDataXJob(dataXJobContext, submit
-                            , expectDataXJobSumit, statusRpc, appSource, fileName, dptTasks);
+                            , expectDataXJobSumit, statusRpc, appSource
+                            , new DataXJobSubmit.TableDataXEntity(fileName, entry), dptTasks);
 
 
                     addDumpTask(execChainContext, taskMap, jobTrigger, triggers);
@@ -299,16 +298,19 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
     protected IRemoteTaskTrigger createDataXJob(
             DataXJobSubmit.IDataXJobContext execChainContext
-            , DataXJobSubmit submit, DataXJobSubmit.InstanceType expectDataXJobSumit, RpcServiceReference statusRpc
-            , DataxProcessor appSource, String fileName, List<String> dependencyTasks) {
+            , DataXJobSubmit submit, DataXJobSubmit.InstanceType expectDataXJobSumit
+            , RpcServiceReference statusRpc
+            , DataxProcessor appSource, DataXJobSubmit.TableDataXEntity fileName, List<String> dependencyTasks) {
 
         if (expectDataXJobSumit == DataXJobSubmit.InstanceType.DISTRIBUTE) {
             IncrStatusUmbilicalProtocolImpl statCollect = IncrStatusUmbilicalProtocolImpl.getInstance();
             // 将指标纬度统计向注册到内存中，下一步可提供给DataX终止功能使用
-            statCollect.getAppSubExecNodeMetrixStatus(execChainContext.getTaskContext().getIndexName(), fileName);
+            statCollect.getAppSubExecNodeMetrixStatus(execChainContext.getTaskContext().getIndexName(), fileName.getFileName());
         }
-        return submit.createDataXJob(execChainContext, statusRpc, appSource, fileName, dependencyTasks);
+        return submit.createDataXJob(
+                execChainContext, statusRpc, appSource, fileName, dependencyTasks);
     }
+
 
     protected DataXJobSubmit.InstanceType getDataXTriggerType() {
 //        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);

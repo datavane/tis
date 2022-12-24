@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -42,11 +43,12 @@ public interface IGroupChildTaskIterator extends Iterator<IDataxReaderContext> {
             }
 
             @Override
-            public Map<String, List<String>> getGroupedInfo() {
+            public Map<String, List<DataXCfgGenerator.DBDataXChildTask>> getGroupedInfo() {
                 if (StringUtils.isEmpty(readerContext.getTaskName())) {
                     throw new IllegalStateException("readerContext.getTaskName() can not be empty");
                 }
-                return Collections.singletonMap(readerContext.getTaskName(), Lists.newArrayList(readerContext.getTaskName()));
+                return Collections.singletonMap(readerContext.getTaskName()
+                        , Lists.newArrayList(new DataXCfgGenerator.DBDataXChildTask(null, readerContext.getTaskName())));
             }
 
             @Override
@@ -61,7 +63,7 @@ public interface IGroupChildTaskIterator extends Iterator<IDataxReaderContext> {
      *
      * @return
      */
-    default Map<String, List<String>> getGroupedInfo() {
+    default Map<String, List<DataXCfgGenerator.DBDataXChildTask>> getGroupedInfo() {
         return Collections.emptyMap();
     }
 }

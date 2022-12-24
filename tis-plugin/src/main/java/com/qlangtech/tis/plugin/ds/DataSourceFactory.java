@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.lang.TisException;
@@ -66,7 +67,12 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     public abstract void visitFirstConnection(final IConnProcessor connProcessor);
 
-    public abstract void refectTableInDB(TableInDB tabs, Connection conn) throws SQLException;
+    // public abstract void refectTableInDB(TableInDB tabs, Connection conn) throws SQLException;
+
+    /**
+     * 将datasource相关的缓存清空
+     */
+    public abstract void refresh();
 
     /**
      * Get all the dump
@@ -96,7 +102,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         Connection conn = null;
         try {
             conn = getConnection(jdbcUrl);
-            p.vist(conn);
+            p.vist(new JDBCConnection(conn, jdbcUrl));
         } catch (TableNotFoundException e) {
             throw e;
         } catch (TisException e) {
@@ -156,7 +162,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 //        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
 //    }
 
-    protected List<ColumnMetaData> parseTableColMeta(Connection conn, EntityName table) throws SQLException, TableNotFoundException {
+    protected List<ColumnMetaData> parseTableColMeta(String jdbcUrl, JDBCConnection conn, EntityName table)
+            throws SQLException, TableNotFoundException {
+        table = logicTable2PhysicsTable(jdbcUrl, table);
         final List<ColumnMetaData> columns = Lists.newArrayList();
         // 防止有col重复，测试中有用户取出的cols会有重复的
         final Set<String> addedCols = Sets.newHashSet();
@@ -169,7 +177,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         String typeName = null;
 
         try {
-            metaData1 = conn.getMetaData();
+            metaData1 = conn.getConnection().getMetaData();
             try (ResultSet tables = metaData1.getTables(null, getDbSchema(), table.getTableName(), null)) {
                 if (!tables.next()) {
                     throw new TableNotFoundException(this, table.getFullName());
@@ -242,6 +250,26 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return columns;
     }
 
+    /**
+     * 逻辑表名切换成物理表名
+     *
+     * @param table
+     * @return
+     */
+    protected EntityName logicTable2PhysicsTable(String jdbcUrl, EntityName table) {
+        return table;
+    }
+
+    /**
+     * 取得对应的物理表集合
+     *
+     * @param tabEntity 逻辑表
+     * @return
+     */
+    public List<String> getAllPhysicsTabs(DataXJobSubmit.TableDataXEntity tabEntity) {
+        return Collections.singletonList(tabEntity.getSourceTableName());
+    }
+
     private String getDbSchema() {
         String dbSchema = null;
         if (this instanceof ISchemaSupported) {
@@ -254,86 +282,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
         AtomicReference<List<ColumnMetaData>> ref = new AtomicReference<>();
         validateConnection(jdbcUrl, (conn) -> {
-            List<ColumnMetaData> columnMetaData = parseTableColMeta(conn, table);
+            List<ColumnMetaData> columnMetaData = parseTableColMeta(jdbcUrl, conn, table);
             ref.set(columnMetaData);
         });
         return ref.get();
-//        final List<ColumnMetaData> columns = Lists.newArrayList();
-//        // 防止有col重复，测试中有用户取出的cols会有重复的
-//        final Set<String> addedCols = Sets.newHashSet();
-//        validateConnection(jdbcUrl, (conn) -> {
-//            DatabaseMetaData metaData1 = null;
-//            ResultSet primaryKeys = null;
-//            ResultSet columns1 = null;
-//            ColumnMetaData colMeta = null;
-//            String comment = null;
-//            String typeName = null;
-//            try {
-//                metaData1 = conn.getMetaData();
-//                primaryKeys = getPrimaryKeys(table, metaData1);
-//                columns1 = getColumnsMeta(table, metaData1);
-//                Set<String> pkCols = Sets.newHashSet();
-//                while (primaryKeys.next()) {
-//                    // $NON-NLS-1$
-//                    String columnName = primaryKeys.getString("COLUMN_NAME");
-//                    pkCols.add(columnName);
-//                }
-//                int i = 0;
-//                String colName = null;
-//
-////                ResultSetMetaData metaData = columns1.getMetaData();
-////                System.out.println("getColumnCount:" + metaData.getColumnCount());
-////                for (int ii = 1; ii <= metaData.getColumnCount(); ii++) {
-////                    System.out.println(metaData.getColumnName(ii));
-////                }
-//
-//                /** for mysql:
-//                 * TABLE_CAT
-//                 * TABLE_SCHEM
-//                 * TABLE_NAME
-//                 * COLUMN_NAME
-//                 * DATA_TYPE
-//                 * TYPE_NAME
-//                 * COLUMN_SIZE
-//                 * BUFFER_LENGTH
-//                 * DECIMAL_DIGITS
-//                 * NUM_PREC_RADIX
-//                 * NULLABLE
-//                 * REMARKS
-//                 * COLUMN_DEF
-//                 * SQL_DATA_TYPE
-//                 * SQL_DATETIME_SUB
-//                 * CHAR_OCTET_LENGTH
-//                 * ORDINAL_POSITION
-//                 * IS_NULLABLE
-//                 * SCOPE_CATALOG
-//                 * SCOPE_SCHEMA
-//                 * SCOPE_TABLE
-//                 * SOURCE_DATA_TYPE
-//                 * IS_AUTOINCREMENT
-//                 * IS_GENERATEDCOLUMN
-//                 * */
-//                while (columns1.next()) {
-//                    colName = columns1.getString("COLUMN_NAME");
-//                    comment = columns1.getString("REMARKS");
-//                    // 如果有重复的col已经添加则直接跳过
-//                    if (addedCols.add(colName)) {
-//                        colMeta = new ColumnMetaData((i++), colName
-//                                , getDataType(colName, columns1), pkCols.contains(colName)
-//                                , columns1.getBoolean("NULLABLE"));
-//                        if (StringUtils.isNotEmpty(comment)) {
-//                            colMeta.setComment(comment);
-//                        }
-//                        columns.add(colMeta);
-//                    }
-//                }
-//
-//            } finally {
-//                closeResultSet(columns1);
-//                closeResultSet(primaryKeys);
-//            }
-//        });
-//        return columns;
     }
 
     protected ResultSet getColumnsMeta(EntityName table, DatabaseMetaData metaData1) throws SQLException {
@@ -383,7 +335,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     }
 
     public interface IConnProcessor {
-        void vist(Connection conn) throws SQLException, TableNotFoundException;
+        void vist(JDBCConnection conn) throws SQLException, TableNotFoundException;
     }
 
     public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T> {

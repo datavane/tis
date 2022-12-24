@@ -84,7 +84,7 @@ public class DataxExecutor {
     public static int DATAX_THREAD_PROCESSING_CANCAL_EXITCODE = 943;
     private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
 
-    public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, String jobName) {
+    public static void synchronizeDataXPluginsFromRemoteRepository(String dataxName, DataXJobInfo jobName) {
 
         if (CenterResource.notFetchFromCenterRepository()) {
             return;
@@ -95,9 +95,10 @@ public class DataxExecutor {
             if (StringUtils.isBlank(dataxName)) {
                 throw new IllegalArgumentException("param dataXName can not be null");
             }
-            if (StringUtils.isBlank(jobName)) {
-                throw new IllegalArgumentException("param jobName can not be null");
-            }
+            Objects.requireNonNull(jobName, "param jobName can not be null");
+//            if (StringUtils.isBlank(jobName)) {
+//                throw new IllegalArgumentException("param jobName can not be null");
+//            }
 
             KeyedPluginStore<DataxProcessor> processStore = IAppSource.getPluginStore(null, dataxName);
             List<IRepositoryResource> keyedPluginStores = Lists.newArrayList();
@@ -114,7 +115,8 @@ public class DataxExecutor {
                             + "/" + DataxProcessor.DATAX_CFG_DIR_NAME + "/" + jobName, true);
 
             CenterResource.synchronizeSubFiles(
-                    Config.KEY_TIS_PLUGIN_CONFIG + "/" + processStore.key.getSubDirPath() + "/" + DataxProcessor.DATAX_CREATE_DDL_DIR_NAME);
+                    Config.KEY_TIS_PLUGIN_CONFIG + "/"
+                            + processStore.key.getSubDirPath() + "/" + DataxProcessor.DATAX_CREATE_DDL_DIR_NAME);
 
         } finally {
             TIS.permitInitialize = true;
@@ -131,7 +133,7 @@ public class DataxExecutor {
             throw new IllegalArgumentException("args length must be 6,but now is " + args.length);
         }
         Integer jobId = Integer.parseInt(args[0]);
-        String jobName = args[1];
+        DataXJobInfo jobInfo = DataXJobInfo.parse(args[1]);
         String dataXName = args[2];
         String incrStateCollectAddress = args[3];
         DataXJobSubmit.InstanceType execMode = DataXJobSubmit.InstanceType.parse(args[4]);
@@ -145,10 +147,10 @@ public class DataxExecutor {
         }
         MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(JobCommon.KEY_COLLECTION, dataXName);
-
-        if (StringUtils.isEmpty(jobName)) {
-            throw new IllegalArgumentException("arg 'jobName' can not be null");
-        }
+        Objects.requireNonNull(jobInfo, "arg 'jobName' can not be null");
+//        if () {
+//            throw new IllegalArgumentException("arg 'jobName' can not be null");
+//        }
         if (StringUtils.isEmpty(dataXName)) {
             throw new IllegalArgumentException("arg 'dataXName' can not be null");
         }
@@ -172,17 +174,17 @@ public class DataxExecutor {
 
         if (execMode == DataXJobSubmit.InstanceType.DISTRIBUTE) {
             // 如果是分布式执行状态，需要通过RPC的方式来监听监工是否执行了客户端终止操作
-            Object thread = monitorDistributeCommand(jobId, jobName, dataXName, statusRpc, dataxExecutor);
+            Object thread = monitorDistributeCommand(jobId, jobInfo, dataXName, statusRpc, dataxExecutor);
             Objects.requireNonNull(thread);
-            DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataXName, jobName);
+            DataxExecutor.synchronizeDataXPluginsFromRemoteRepository(dataXName, jobInfo);
         }
 
         try {
-            dataxExecutor.reportDataXJobStatus(false, false, false, jobId, jobName);
-            dataxExecutor.exec(jobId, jobName, dataXName);
-            dataxExecutor.reportDataXJobStatus(false, jobId, jobName);
+            dataxExecutor.reportDataXJobStatus(false, false, false, jobId, jobInfo);
+            dataxExecutor.exec(jobId, jobInfo, dataXName);
+            dataxExecutor.reportDataXJobStatus(false, jobId, jobInfo);
         } catch (Throwable e) {
-            dataxExecutor.reportDataXJobStatus(true, jobId, jobName);
+            dataxExecutor.reportDataXJobStatus(true, jobId, jobInfo);
             logger.error(e.getMessage(), e);
             try {
                 //确保日志向远端写入了
@@ -196,24 +198,24 @@ public class DataxExecutor {
         System.exit(0);
     }
 
-    private static Thread monitorDistributeCommand(Integer jobId, String jobName, String dataXName
+    private static Thread monitorDistributeCommand(Integer jobId, DataXJobInfo jobInfo, String dataXName
             , StatusRpcClient.AssembleSvcCompsite statusRpc, DataxExecutor dataxExecutor) {
         Thread overseerListener = new Thread() {
             @Override
             public void run() {
                 UpdateCounterMap status = new UpdateCounterMap();
                 status.setFrom(NetUtils.getHost());
-                logger.info("start to listen the dataX job taskId:{},jobName:{},dataXName:{} overseer cancel", jobId, jobName, dataXName);
+                logger.info("start to listen the dataX job taskId:{},jobName:{},dataXName:{} overseer cancel", jobId, jobInfo, dataXName);
                 TableSingleDataIndexStatus dataXStatus = new TableSingleDataIndexStatus();
-                dataXStatus.setUUID(jobName);
+                dataXStatus.setUUID(jobInfo.jobFileName);
                 status.addTableCounter(IAppSourcePipelineController.DATAX_FULL_PIPELINE + dataXName, dataXStatus);
 
                 while (true) {
                     status.setUpdateTime(System.currentTimeMillis());
                     MasterJob masterJob = statusRpc.reportStatus(status);
                     if (masterJob != null && masterJob.isStop()) {
-                        logger.info("datax job:{},taskid:{} has received an CANCEL signal", jobName, jobId);
-                        dataxExecutor.reportDataXJobStatus(true, jobId, jobName);
+                        logger.info("datax job:{},taskid:{} has received an CANCEL signal", jobInfo, jobId);
+                        dataxExecutor.reportDataXJobStatus(true, jobId, jobInfo);
                         System.exit(DATAX_THREAD_PROCESSING_CANCAL_EXITCODE);
                     }
                     try {
@@ -224,19 +226,19 @@ public class DataxExecutor {
                 }
             }
         };
-        overseerListener.setUncaughtExceptionHandler((thread, e) -> logger.error("jobId:" + jobId + ",jobName:" + jobName, e));
+        overseerListener.setUncaughtExceptionHandler((thread, e) -> logger.error("jobId:" + jobId + ",jobName:" + jobInfo, e));
         overseerListener.start();
         return overseerListener;
     }
 
-    public void exec(Integer jobId, String jobName, String dataxName) throws Exception {
+    public void exec(Integer jobId, DataXJobInfo jobName, String dataxName) throws Exception {
         final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
         LoadUtil.cleanJarLoaderCenter();
         this.exec(uberClassLoader, jobId, jobName, dataxName);
     }
 
 
-    public void exec(final JarLoader uberClassLoader, Integer jobId, String jobName, String dataxName) throws Exception {
+    public void exec(final JarLoader uberClassLoader, Integer jobId, DataXJobInfo jobName, String dataxName) throws Exception {
         if (uberClassLoader == null) {
             throw new IllegalArgumentException("param uberClassLoader can not be null");
         }
@@ -253,7 +255,7 @@ public class DataxExecutor {
             TIS.clean();
             if (execMode == DataXJobSubmit.InstanceType.DISTRIBUTE) {
                 try {
-                    DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName, success);
+                    DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName.jobFileName, success);
                 } catch (Throwable e) {
                     logger.warn("notify exec result faild,jobId:" + jobId + ",jobName:" + jobName, e);
                 }
@@ -289,21 +291,20 @@ public class DataxExecutor {
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(String dataxName, Integer jobId, String jobName, IDataxProcessor dataxProcessor
+    public void startWork(String dataxName, Integer jobId, DataXJobInfo jobName, IDataxProcessor dataxProcessor
             , final JarLoader uberClassLoader) throws IOException, Exception {
         try {
 
             Objects.requireNonNull(dataxProcessor, "dataxProcessor can not be null");
             KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
             KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
-            File jobPath = new File(dataxProcessor.getDataxCfgDir(null), jobName);
+            File jobPath = jobName.getJobPath(dataxProcessor.getDataxCfgDir(null));
 //            String[] args = new String[]{
 //                    "-mode", "standalone"
 //                    , "-jobid", String.valueOf(jobId)
 //                    , "-job", jobPath.getAbsolutePath()
 //                    , "-execTimeStamp", execTimeStamp};
 
-            ;
 
             DataxReader reader = readerStore.getPlugin();
             Objects.requireNonNull(reader, "dataxName:" + dataxName + " relevant reader can not be null");
@@ -338,15 +339,16 @@ public class DataxExecutor {
         LoadUtil.initializeJarClassLoader(pluginKeys, classLoader);
     }
 
-    public void reportDataXJobStatus(boolean faild, Integer taskId, String jobName) {
+    public void reportDataXJobStatus(boolean faild, Integer taskId, DataXJobInfo jobName) {
         reportDataXJobStatus(faild, true, false, taskId, jobName);
     }
 
-    public void reportDataXJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, String jobName) {
+    public void reportDataXJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, DataXJobInfo jobName) {
         StatusRpcClient.AssembleSvcCompsite svc = statusRpc.get();
         int readed = (int) allReadApproximately[0];
         boolean success = (complete && !faild);
-        svc.reportDumpJobStatus(faild, complete, waiting, taskId, jobName, readed, (success ? readed : this.allRowsApproximately));
+        svc.reportDumpJobStatus(faild, complete, waiting, taskId, jobName.jobFileName
+                , readed, (success ? readed : this.allRowsApproximately));
     }
 
     private static class DataXJobArgs {
@@ -375,7 +377,7 @@ public class DataxExecutor {
         }
     }
 
-    public void entry(DataXJobArgs args, String jobName) throws Throwable {
+    public void entry(DataXJobArgs args, DataXJobInfo jobName) throws Throwable {
         Configuration configuration = parse(args);
         logger.info("exec params:{}", args.toString());
         Objects.requireNonNull(configuration, "configuration can not be null");
@@ -398,7 +400,7 @@ public class DataxExecutor {
 
     }
 
-    protected void startEngine(Configuration configuration, Integer jobId, String jobName) {
+    protected void startEngine(Configuration configuration, Integer jobId, DataXJobInfo jobName) {
 
         Engine engine = new Engine() {
             @Override
@@ -412,10 +414,10 @@ public class DataxExecutor {
 
     private class TISDataXJobContainer extends JobContainer {
         private final Integer jobId;
-        private final String jobName;
+        private final DataXJobInfo jobName;
         // private final Integer allRows;
 
-        public TISDataXJobContainer(Configuration configuration, Integer jobId, String jobName) {
+        public TISDataXJobContainer(Configuration configuration, Integer jobId, DataXJobInfo jobName) {
             super(configuration);
             this.jobId = jobId;
             this.jobName = jobName;

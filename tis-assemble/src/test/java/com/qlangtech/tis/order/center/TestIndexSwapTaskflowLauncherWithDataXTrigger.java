@@ -99,7 +99,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
         @Override
         public IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
-                , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, String dataXfileName, List<String> dependencyTasks) {
+                , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, TableDataXEntity dataXfileName, List<String> dependencyTasks) {
             return jobTrigger;
 //            return new IRemoteJobTrigger() {
 //                @Override

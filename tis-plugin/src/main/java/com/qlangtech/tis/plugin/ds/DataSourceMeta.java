@@ -61,7 +61,25 @@ public interface DataSourceMeta {
      * @param table
      * @return
      */
-    default List<ColumnMetaData> getTableMetadata(Connection conn, EntityName table) throws TableNotFoundException {
+    default List<ColumnMetaData> getTableMetadata(JDBCConnection conn, EntityName table) throws TableNotFoundException {
         throw new UnsupportedOperationException();
+    }
+
+    public class JDBCConnection {
+        private final Connection conn;
+        private final String url;
+
+        public JDBCConnection(Connection conn, String url) {
+            this.conn = conn;
+            this.url = url;
+        }
+
+        public Connection getConnection() {
+            return this.conn;
+        }
+
+        public String getUrl() {
+            return this.url;
+        }
     }
 }
