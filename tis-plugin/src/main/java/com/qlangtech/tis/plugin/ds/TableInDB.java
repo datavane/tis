@@ -22,8 +22,10 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -41,14 +43,12 @@ public abstract class TableInDB {
      */
     public abstract void add(String jdbcUrl, String tab);
 
-//    /**
-//     * 取得匹配的物理表
-//     *
-//     * @param jdbcUrl
-//     * @param tab
-//     * @return
-//     */
-//    public abstract List<String> getMatchedTabs(String jdbcUrl, String tab);
+    /**
+     * 增量脚本中执行过程中需要通过物理表名得到逻辑表名称
+     *
+     * @return
+     */
+    public abstract Function<String, String> getPhysicsTabName2LogicNameConvertor();
 
     public abstract List<String> getTabs();
 
@@ -57,6 +57,13 @@ public abstract class TableInDB {
     public abstract boolean isEmpty();
 
     public abstract DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity);
+
+    public static class DefaultTableNameConvert implements Function<String, String>, Serializable {
+        @Override
+        public String apply(String physicsTabName) {
+            return physicsTabName;
+        }
+    }
 
     private static class DftTableInDB extends TableInDB {
         private List<String> tabs = Lists.newArrayList();
@@ -70,10 +77,11 @@ public abstract class TableInDB {
         public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity) {
             return DataXJobInfo.create(tabEntity.getFileName(), Collections.emptyList());
         }
-//        @Override
-//        public List<String> getMatchedTabs(String jdbcUrl, String tab) {
-//            return Collections.singletonList(tab);
-//        }
+
+        @Override
+        public Function<String, String> getPhysicsTabName2LogicNameConvertor() {
+            return new DefaultTableNameConvert();
+        }
 
         @Override
         public List<String> getTabs() {
