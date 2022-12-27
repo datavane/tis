@@ -685,7 +685,7 @@ public class PluginAndCfgsSnapshot {
         KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(false, collection.getName());
         //  Set<PluginMeta> globalPluginMetas = null;
         Map<String, Long> gPluginStoreLastModify = Collections.emptyMap();
-        UploadPluginMeta upm = UploadPluginMeta.parse("x:require");
+        UploadPluginMeta upm = UploadPluginMeta.parse("x:require", true);
         ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
         List<IRepositoryResource> keyedPluginStores = hlist.stream()
                 .filter((e) -> !e.isAppNameAware())

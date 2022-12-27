@@ -1009,6 +1009,9 @@ public class DataxAction extends BasicModule {
     if (reader == null) {
       throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
     }
+//    if(!filter.useCache()){
+//      reader.
+//    }
     return reader.getTablesInDB().getTabs();
   }
 

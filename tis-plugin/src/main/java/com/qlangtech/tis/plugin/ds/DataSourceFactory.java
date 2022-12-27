@@ -69,10 +69,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     // public abstract void refectTableInDB(TableInDB tabs, Connection conn) throws SQLException;
 
-    /**
-     * 将datasource相关的缓存清空
-     */
-    public abstract void refresh();
+
 
     /**
      * Get all the dump

@@ -18,6 +18,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,7 +31,7 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 15:51
  */
-public interface DataSourceMeta {
+public interface DataSourceMeta extends Describable.IRefreshable {
 
     default String getEscapeChar() {
         return StringUtils.EMPTY;

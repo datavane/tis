@@ -75,6 +75,7 @@ public class UploadPluginMeta {
 
 
     private final String name;
+    private final boolean useCache;
 
     // plugin form must contain field where prop required is true
     private boolean required;
@@ -86,6 +87,9 @@ public class UploadPluginMeta {
         return this.getBoolean(PostedDSProp.KEY_UPDATE);
     }
 
+    public boolean isUseCache() {
+        return this.useCache;
+    }
 
     public void putExtraParams(String key, String val) {
         this.extraParams.put(key, val);
@@ -115,16 +119,20 @@ public class UploadPluginMeta {
     }
 
     public static List<UploadPluginMeta> parse(String[] plugins) {
-        return parse(null, plugins);
+        return parse(null, plugins, true);
     }
 
-    public static List<UploadPluginMeta> parse(IPluginContext context, String[] plugins) {
+    public static List<UploadPluginMeta> parse(String[] plugins, boolean useCache) {
+        return parse(null, plugins, useCache);
+    }
+
+    public static List<UploadPluginMeta> parse(IPluginContext context, String[] plugins, boolean useCache) {
         if (plugins == null || plugins.length < 1) {
             throw new IllegalArgumentException("plugin size:" + plugins.length + " length can not small than 1");
         }
         List<UploadPluginMeta> metas = Lists.newArrayList();
         for (String plugin : plugins) {
-            metas.add(parse(context, plugin));
+            metas.add(parse(context, plugin, useCache));
         }
         if (plugins.length != metas.size()) {
             throw new IllegalStateException("param plugins length:" + plugins.length + " must equal with metaSize:" + metas.size());
@@ -137,22 +145,26 @@ public class UploadPluginMeta {
     }
 
 
+    public static UploadPluginMeta parse(String plugin, boolean useCache) {
+        return parse(null, plugin, useCache);
+    }
+
     public static UploadPluginMeta parse(String plugin) {
-        return parse(null, plugin);
+        return parse(null, plugin, true);
     }
 
     /**
      * @param plugin
      * @return
      */
-    public static UploadPluginMeta parse(IPluginContext context, String plugin) {
+    public static UploadPluginMeta parse(IPluginContext context, String plugin, boolean useCache) {
         Matcher matcher, attrKVMatcher;
         UploadPluginMeta pmeta;
         Matcher attrMatcher;
         String attr;
         matcher = PATTERN_PLUGIN_META.matcher(plugin);
         if (matcher.matches()) {
-            pmeta = new UploadPluginMeta(context, matcher.group(1));
+            pmeta = new UploadPluginMeta(context, matcher.group(1), useCache);
             if (matcher.group(2) != null) {
                 attrMatcher = PATTERN_PLUGIN_ATTRIBUTE.matcher(matcher.group(2));
                 while (attrMatcher.find()) {
@@ -207,7 +219,7 @@ public class UploadPluginMeta {
                         }
 
                         return DATAX_READER.getPlugins(pluginContext
-                                , UploadPluginMeta.parse(pluginContext, pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName()));
+                                , UploadPluginMeta.parse(pluginContext, pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName(), useCache));
                     }
 
                     @Override
@@ -317,9 +329,15 @@ public class UploadPluginMeta {
         return Boolean.parseBoolean(this.getExtraParam(key));
     }
 
-    private UploadPluginMeta(IPluginContext context, String name) {
+    /**
+     * @param context
+     * @param name
+     * @param useCache 服务端会将某些资源进行缓存，客户端在取用之时，可以将最新的缓存失效，进而取用最新数据
+     */
+    private UploadPluginMeta(IPluginContext context, String name, boolean useCache) {
         this.name = name;
         this.context = context;
+        this.useCache = useCache;
     }
 
     @Override

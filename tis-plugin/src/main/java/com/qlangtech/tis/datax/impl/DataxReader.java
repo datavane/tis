@@ -80,6 +80,11 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         }
     }
 
+    @Override
+    public void refresh() {
+
+    }
+
     public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, String appname) {
         return getPluginStore(pluginContext, false, appname);
     }
@@ -133,7 +138,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
                                 KeyedPluginStore<? extends Describable> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
 
-                                UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext, "name:" + DataxUtils.DATAX_NAME + "_" + appname);
+                                UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext, "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
                                 Map<String, SelectedTab> tabsExtend = IncrSelectedTabExtend.getTabExtend(extMeta
                                         , new PluginStore.PluginsUpdateListener(DataxUtils.DATAX_NAME + "_" + appname, reader) {
                                             @Override

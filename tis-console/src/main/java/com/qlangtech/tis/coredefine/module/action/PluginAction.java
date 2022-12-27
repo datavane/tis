@@ -202,7 +202,7 @@ public class PluginAction extends BasicModule {
     Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
     if (StringUtils.isNotEmpty(plugin)) {
       UploadPluginMeta pluginMeta
-        = UploadPluginMeta.parse(this, plugin);
+        = UploadPluginMeta.parse(this, plugin, true);
       subFormFilter = pluginMeta.getSubFormFilter();
     }
 
@@ -607,6 +607,7 @@ public class PluginAction extends BasicModule {
 
     HeteroList<?> hetero = null;
 
+
     List<UploadPluginMeta> plugins = getPluginMeta();
 
     if (plugins == null || plugins.size() < 1) {
@@ -617,7 +618,14 @@ public class PluginAction extends BasicModule {
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta pmeta : plugins) {
 
-      hetero = this.createHeteroList(pmeta);// pmeta.getHeteroList(this);
+      hetero = this.createHeteroList(pmeta);
+      if (!pmeta.isUseCache()) {
+        hetero.getItems().forEach((p) -> {
+          if (p instanceof Describable.IRefreshable) {
+            ((Describable.IRefreshable) p).refresh();
+          }
+        });
+      }
       hlist.add(hetero.toJSON());
     }
     pluginDetail.put("plugins", hlist);
@@ -785,7 +793,8 @@ public class PluginAction extends BasicModule {
   }
 
   private List<UploadPluginMeta> getPluginMeta() {
-    return UploadPluginMeta.parse(this.getStringArray("plugin"));
+    final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
+    return UploadPluginMeta.parse(this.getStringArray("plugin"), useCache);
   }
 
   /**

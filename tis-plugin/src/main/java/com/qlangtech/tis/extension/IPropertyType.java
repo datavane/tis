@@ -110,6 +110,10 @@ public interface IPropertyType {
                     subformDetailId = uploadPluginMeta.getExtraParam(PLUGIN_META_SUBFORM_DETAIL_ID_VALUE));
         }
 
+        public boolean useCache(){
+            return this.uploadPluginMeta.isUseCache();
+        }
+
         @Override
         public String toString() {
             return "{" +

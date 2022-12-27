@@ -46,10 +46,6 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
         return DriverManager.getConnection(jdbcUrl, StringUtils.trimToNull(username), StringUtils.trimToNull(password));
     }
 
-    @Override
-    public void refresh() {
-
-    }
 
     @Override
     public DBConfig getDbConfig() {
@@ -61,6 +57,10 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void refresh() {
+
+    }
 //    @Override
 //    public void refectTableInDB(TableInDB tabs, Connection conn) throws SQLException {
 //        throw new UnsupportedOperationException();
@@ -90,7 +90,6 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     private MockDataSourceFactory(TestEmployeeDataSourceDumper dumper) {
         this.dumper = dumper;
     }
-
 
 
     @Override
