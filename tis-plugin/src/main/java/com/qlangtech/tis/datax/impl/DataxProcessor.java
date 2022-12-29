@@ -19,11 +19,15 @@ package com.qlangtech.tis.datax.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -33,15 +37,20 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -189,6 +198,49 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     @Override
     public IDataxWriter getWriter(IPluginContext pluginCtx) {
         return DataxWriter.load(pluginCtx, this.identityValue());
+    }
+
+    //
+    private transient static Cache<String, Map<String, INotebookable.NotebookEntry>> scanNotebookCache
+            = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
+
+
+    /**
+     * 从Reader和Writer实例中扫面可以作为notebook的实例
+     *
+     * @return
+     * @throws Exception
+     */
+    public Map<String, INotebookable.NotebookEntry> scanNotebook() throws Exception {
+
+        return scanNotebookCache.get(this.identityValue(), () -> {
+            Map<String, INotebookable.NotebookEntry> notebookable = Maps.newHashMap();
+
+            IDataxReader reader = this.getReader(null);
+            IDataxWriter writer = this.getWriter(null);
+
+            scanNotebook(notebookable, reader);
+            scanNotebook(notebookable, writer);
+            return notebookable;
+        });
+    }
+
+    private void scanNotebook(Map<String, INotebookable.NotebookEntry> notebookable, Object bean) throws IllegalAccessException, InvocationTargetException {
+        PropertyUtilsBean propertyUtils = BeanUtilsBean.getInstance().getPropertyUtils();
+        PropertyDescriptor[] readerProps = propertyUtils.getPropertyDescriptors(bean.getClass());
+        Class<?> propertyType = null;
+        Describable plugin = null;
+        for (PropertyDescriptor prop : readerProps) {
+            propertyType = prop.getPropertyType();
+            if (Describable.class.isAssignableFrom(propertyType)) {
+                plugin = (Describable) prop.getReadMethod().invoke(bean);
+                if (plugin instanceof IdentityName
+                        && plugin.getDescriptor() instanceof INotebookable) {
+                    notebookable.put(((IdentityName) plugin).identityValue(), new INotebookable.NotebookEntry((INotebookable) plugin.getDescriptor(), plugin));
+                    return;
+                }
+            }
+        }
     }
 
     public void setTableMaps(List<TableAlias> tableMaps) {

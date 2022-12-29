@@ -506,6 +506,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 ptype = new PropertyType(f, formField);
                                 if (extraProps.isPresent()
                                         && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
+                                    String placeholder = fieldExtraProps.getPlaceholder();
                                     Object dftVal = fieldExtraProps.getDftVal();
                                     String help = fieldExtraProps.getHelpContent();
 
@@ -521,6 +522,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                                     if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal), IMessageHandler.TSEARCH_PACKAGE)) {
                                         props.put(PluginExtraProps.KEY_DFTVAL_PROP, GroovyShellEvaluate.scriptEval(String.valueOf(dftVal)));
+                                    }
+
+                                    if (placeholder != null && StringUtils.startsWith(placeholder, IMessageHandler.TSEARCH_PACKAGE)) {
+                                        props.put(PluginExtraProps.KEY_PLACEHOLDER_PROP, GroovyShellEvaluate.scriptEval(placeholder));
                                     }
 
                                     if (descriptor.isPresent()

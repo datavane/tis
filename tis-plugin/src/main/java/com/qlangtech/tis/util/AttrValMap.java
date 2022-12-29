@@ -107,7 +107,7 @@ public class AttrValMap {
                     + this.descriptor.getClass().getName() + " must be instance of " + INotebookable.class.getSimpleName());
         }
         INotebookable notebook = (INotebookable) this.descriptor;
-        return notebook.createOrGetNotebook(msgHandler, context, new Descriptor.PostFormVals(this.attrValMap));
+        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.attrValMap)).newInstance(this.descriptor, msgHandler));
     }
 
     /**

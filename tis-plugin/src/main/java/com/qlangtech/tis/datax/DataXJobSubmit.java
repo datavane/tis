@@ -165,6 +165,23 @@ public abstract class DataXJobSubmit {
         private final ISelectedTab selectedTab;
 
         public static DataXJobSubmit.TableDataXEntity createTableEntity4Test(String dataXCfgFileName, String tabName) {
+            return createTableEntity(dataXCfgFileName, TEST_JDBC_URL, tabName);
+//            ISelectedTab selTab = new ISelectedTab() {
+//                @Override
+//                public String getName() {
+//                    return tabName;
+//                }
+//
+//                @Override
+//                public List<CMeta> getCols() {
+//                    throw new UnsupportedOperationException();
+//                }
+//            };
+//            return new DataXJobSubmit.TableDataXEntity(
+//                    new DataXCfgGenerator.DBDataXChildTask(TEST_JDBC_URL, dataXCfgFileName), selTab);
+        }
+
+        public static DataXJobSubmit.TableDataXEntity createTableEntity(String dataXCfgFileName, String dbIdenetity, String tabName) {
 
             ISelectedTab selTab = new ISelectedTab() {
                 @Override
@@ -178,7 +195,7 @@ public abstract class DataXJobSubmit {
                 }
             };
             return new DataXJobSubmit.TableDataXEntity(
-                    new DataXCfgGenerator.DBDataXChildTask(TEST_JDBC_URL, dataXCfgFileName), selTab);
+                    new DataXCfgGenerator.DBDataXChildTask(dbIdenetity, dataXCfgFileName), selTab);
         }
 
         public TableDataXEntity(DataXCfgGenerator.DBDataXChildTask fileName, ISelectedTab selectedTab) {

@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
  */
 public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_DFTVAL_PROP = "dftVal";
+    public static final String KEY_PLACEHOLDER_PROP = "placeholder";
     public static final String KEY_DISABLE = "disable";
     public static final String KEY_CREATOR = "creator";
 
@@ -286,7 +287,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         @JSONField(serialize = false)
         public String getPlaceholder() {
-            return (String) props.get("placeholder");
+            return (String) props.get(KEY_PLACEHOLDER_PROP);
         }
 
         @JSONField(serialize = false)

@@ -18,9 +18,6 @@ package com.qlangtech.tis.extension;
  * limitations under the License.
  */
 
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-
 /**
  * 支持Descriptor 创建基于Zeppelin的notebook
  *
@@ -49,13 +46,30 @@ public interface INotebookable {
         }
     }
 
+    public class NotebookEntry {
+        private final INotebookable notebookable;
+        private final Describable describable;
+
+        public NotebookEntry(INotebookable notebookable, Describable describable) {
+            this.notebookable = notebookable;
+            this.describable = describable;
+        }
+
+        public String createOrGetNotebook() throws Exception {
+            return notebookable.createOrGetNotebook(this.describable);
+        }
+
+        public Descriptor getDescriptor() {
+            return ((Descriptor) this.notebookable);
+        }
+    }
+
     /**
-     * @param msgHandler
-     * @param context
-     * @param postFormVals
+     * @param
      * @return notebookId
      * @throws Exception
      */
-    String createOrGetNotebook(IControlMsgHandler msgHandler
-            , Context context, Descriptor.PostFormVals postFormVals) throws Exception;
+    String createOrGetNotebook(Describable describable) throws Exception;
+
+
 }

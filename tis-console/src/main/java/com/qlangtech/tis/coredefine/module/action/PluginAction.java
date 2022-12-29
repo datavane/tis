@@ -26,6 +26,7 @@ import com.koubei.web.tag.pager.Pager;
 import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -37,6 +38,7 @@ import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.install.InstallUtil;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -109,6 +111,51 @@ public class PluginAction extends BasicModule {
       logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms, cache faild " + e.getMessage());
     }
   }
+
+  /**
+   * 通过之前缓存在服务端的NotebookEntry实例对象打开notebook
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetOrCreateNotebook(Context context) throws Exception {
+    DataxProcessor dataxProcessor = IAppSource.load(this, this.getAppDomain().getAppName());
+    String pluginIdVal = this.getString("pluginIdVal");
+    if (StringUtils.isEmpty(pluginIdVal)) {
+      throw new IllegalArgumentException("param pluginIdVal can not be null");
+    }
+    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
+    INotebookable.NotebookEntry notebookEntry = notebooks.get(pluginIdVal);
+    Objects.requireNonNull(notebookEntry, "pluginId:" + pluginIdVal + " relevant notebookEntry can not be null");
+    this.setBizResult(context, notebookEntry.createOrGetNotebook());
+  }
+
+  /**
+   * @param context
+   */
+  public void doScanNotebooks(Context context) throws Exception {
+    String dataxName = this.getAppDomain().getAppName();
+
+    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
+    String pluginIdVal = null;
+    DescriptorsJSON descJson = null;
+    List<Descriptor> descs = Lists.newArrayList();
+    INotebookable.NotebookEntry note = null;
+    List<Map<String, Object>> notebookProps = Lists.newArrayList();
+    Map<String, Object> props = null;
+    for (Map.Entry<String, INotebookable.NotebookEntry> entry : notebooks.entrySet()) {
+      pluginIdVal = entry.getKey();
+      note = entry.getValue();
+
+      props = new HashMap<>(note.getDescriptor().getExtractProps());
+      props.put("pluginId", pluginIdVal);
+      props.put("displayName", note.getDescriptor().getDisplayName());
+      notebookProps.add(props);
+    }
+    this.setBizResult(context, notebookProps);
+  }
+
 
   /**
    * 为表单中提交临时文件
