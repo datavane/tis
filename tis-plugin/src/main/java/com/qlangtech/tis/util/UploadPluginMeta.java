@@ -316,13 +316,18 @@ public class UploadPluginMeta {
         return this.extraParams.get(key);
     }
 
-    public String getDataXName() {
+
+    public String getDataXName(boolean validateNull) {
         final String dataxName = (this.getExtraParam(DataxUtils.DATAX_NAME));
-        if (StringUtils.isEmpty(dataxName)) {
+        if (validateNull && StringUtils.isEmpty(dataxName)) {
             throw new IllegalArgumentException(
                     "plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
         }
         return dataxName;
+    }
+
+    public String getDataXName() {
+       return getDataXName(true);
     }
 
     public boolean getBoolean(String key) {

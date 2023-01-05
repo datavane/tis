@@ -29,7 +29,7 @@ public class ComDfireTisWorkflowDAOFacadeImpl implements IWorkflowDAOFacade {
 
   private final IWorkFlowBuildHistoryDAO workFlowBuildHistoryDAO;
 
-  private final IDatasourceTableDAO datasourceTableDAO;
+  //private final IDatasourceTableDAO datasourceTableDAO;
 
   private final IDatasourceDbDAO datasourceDbDAO;
 
@@ -42,9 +42,9 @@ public class ComDfireTisWorkflowDAOFacadeImpl implements IWorkflowDAOFacade {
     return this.workFlowBuildHistoryDAO;
   }
 
-  public IDatasourceTableDAO getDatasourceTableDAO() {
-    return this.datasourceTableDAO;
-  }
+ // public IDatasourceTableDAO getDatasourceTableDAO() {
+   // return this.datasourceTableDAO;
+  //}
 
   public IDatasourceDbDAO getDatasourceDbDAO() {
     return this.datasourceDbDAO;
@@ -54,7 +54,7 @@ public class ComDfireTisWorkflowDAOFacadeImpl implements IWorkflowDAOFacade {
     , IDatasourceTableDAO datasourceTableDAO, IDatasourceDbDAO datasourceDbDAO) {
     this.workFlowDAO = workFlowDAO;
     this.workFlowBuildHistoryDAO = workFlowBuildHistoryDAO;
-    this.datasourceTableDAO = datasourceTableDAO;
+   // this.datasourceTableDAO = datasourceTableDAO;
     this.datasourceDbDAO = datasourceDbDAO;
   }
 }

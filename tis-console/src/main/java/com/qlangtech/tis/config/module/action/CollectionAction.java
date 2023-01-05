@@ -256,98 +256,98 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
    * @throws Exception
    */
   public void doCreate(Context context) throws Exception {
-
-    JSONObject post = getIndexWithPost();
-    Objects.requireNonNull(this.indexName, "indexName can not be null");
-
-    JSONObject datasource = post.getJSONObject("datasource");
-    JSONObject incrCfg = post.getJSONObject("incr");
-    if (datasource == null) {
-      throw new IllegalStateException("prop 'datasource' can not be null");
-    }
-    final String targetTable = post.getString("table");
-    if (StringUtils.isEmpty(targetTable)) {
-      throw new IllegalStateException("param 'table' can not be null");
-    }
-    // this.indexName = StringUtils.defaultIfEmpty(post.getString(KEY_INDEX_NAME), targetTable);
-    List<String> existCollection = CoreAction.listCollection(this, context);
-    if (existCollection.contains(this.getCollectionName())) {
-      //throw new IllegalStateException();
-      this.addErrorMessage(context, "index:" + this.getCollectionName() + " already exist in cloud");
-      return;
-    }
-    PluginItems dataSourceItems = getDataSourceItems(datasource);
-    if (dataSourceItems.items.size() < 1) {
-      throw new IllegalStateException("datasource item can not small than 1,now:" + dataSourceItems.items.size());
-    }
-
-    TargetColumnMeta targetColMetas = getTargetColumnMeta(this, context, post, targetTable, dataSourceItems);
-    if (!targetColMetas.valid) {
-      return;
-    }
-    dataSourceItems.save(context);
-    if (context.hasErrors()) {
-      return;
-    }
-    DBConfigSuit dsDb = (DBConfigSuit) context.get(IMessageHandler.ACTION_BIZ_RESULT);
-    Objects.requireNonNull(dsDb, "can not find dsDb which has insert into DB just now");
-
-    TISTable table = new TISTable();
-    table.setTableName(targetTable);
-    table.setDbId(dsDb.getDbId());
-
-    OfflineManager.ProcessedTable dsTable = offlineManager.addDatasourceTable(table, this
-      , this, context, false, true);
-    if (context.hasErrors()) {
-      return;
-    }
-    this.setBizResult(context, new Object());
-    Objects.requireNonNull(dsTable, "dsTable can not be null");
-
-    // 开始创建DF
-    final String topologyName = indexName.param;
-    File parent = new File(SqlTaskNode.parent, topologyName);
-    FileUtils.forceMkdir(parent);
-    final SqlTaskNodeMeta.SqlDataFlowTopology topology = this.createTopology(topologyName, dsTable, targetColMetas);
-
-    OfflineDatasourceAction.CreateTopologyUpdateCallback dbSaver
-      = new OfflineDatasourceAction.CreateTopologyUpdateCallback(this.getUser(), this.getWorkflowDAOFacade(), true);
-    WorkFlow df = dbSaver.execute(topologyName, topology);
-    // 保存一个时间戳
-    SqlTaskNodeMeta.persistence(topology, parent);
-    boolean hasCreateCollection = false;
-    Optional<Application> createdApp = Optional.empty();
-    try {
-      // 在在引擎节点上创建实例节点
-      createdApp = this.createCollection(context, df, indexName.param, targetColMetas);
-      hasCreateCollection = true;
-      if (incrCfg != null) {
-        logger.info("start incr channel create");
-        if (!createIncrSyncChannel(context, incrCfg)) {
-          return;
-        }
-      }
-    } catch (Throwable e) {
-      if (hasCreateCollection) {
-        // 需要将已经 创建的索引删除
-        this.deleteCollectionInCloud(context, indexName.getCollectionName());
-      }
-      throw e;
-    }
-    // 需要提交一下事务
-    TransactionStatus tranStatus
-      = (TransactionStatus) ActionContext.getContext().get(TransactionStatus.class.getSimpleName());
-    Objects.requireNonNull(tranStatus, "transtatus can not be null");
-    transactionManager.commit(tranStatus);
-
-    if (!createdApp.isPresent()) {
-      throw new IllegalStateException("createdApp can not be null");
-    }
-
-    // 现在需要开始触发全量索引了
-    CoreAction.TriggerBuildResult triggerBuildResult
-      = CoreAction.triggerFullIndexSwape(this, context, createdApp.get(), SHARED_COUNT);
-    this.setBizResult(context, triggerBuildResult);
+ throw new UnsupportedOperationException();
+//    JSONObject post = getIndexWithPost();
+//    Objects.requireNonNull(this.indexName, "indexName can not be null");
+//
+//    JSONObject datasource = post.getJSONObject("datasource");
+//    JSONObject incrCfg = post.getJSONObject("incr");
+//    if (datasource == null) {
+//      throw new IllegalStateException("prop 'datasource' can not be null");
+//    }
+//    final String targetTable = post.getString("table");
+//    if (StringUtils.isEmpty(targetTable)) {
+//      throw new IllegalStateException("param 'table' can not be null");
+//    }
+//    // this.indexName = StringUtils.defaultIfEmpty(post.getString(KEY_INDEX_NAME), targetTable);
+//    List<String> existCollection = CoreAction.listCollection(this, context);
+//    if (existCollection.contains(this.getCollectionName())) {
+//      //throw new IllegalStateException();
+//      this.addErrorMessage(context, "index:" + this.getCollectionName() + " already exist in cloud");
+//      return;
+//    }
+//    PluginItems dataSourceItems = getDataSourceItems(datasource);
+//    if (dataSourceItems.items.size() < 1) {
+//      throw new IllegalStateException("datasource item can not small than 1,now:" + dataSourceItems.items.size());
+//    }
+//
+//    TargetColumnMeta targetColMetas = getTargetColumnMeta(this, context, post, targetTable, dataSourceItems);
+//    if (!targetColMetas.valid) {
+//      return;
+//    }
+//    dataSourceItems.save(context);
+//    if (context.hasErrors()) {
+//      return;
+//    }
+//    DBConfigSuit dsDb = (DBConfigSuit) context.get(IMessageHandler.ACTION_BIZ_RESULT);
+//    Objects.requireNonNull(dsDb, "can not find dsDb which has insert into DB just now");
+//
+//    TISTable table = new TISTable();
+//    table.setTableName(targetTable);
+//    table.setDbId(dsDb.getDbId());
+//
+////    OfflineManager.ProcessedTable dsTable = offlineManager.addDatasourceTable(table, this
+////      , this, context, false, true);
+//    if (context.hasErrors()) {
+//      return;
+//    }
+//    this.setBizResult(context, new Object());
+//    Objects.requireNonNull(dsTable, "dsTable can not be null");
+//
+//    // 开始创建DF
+//    final String topologyName = indexName.param;
+//    File parent = new File(SqlTaskNode.parent, topologyName);
+//    FileUtils.forceMkdir(parent);
+//    final SqlTaskNodeMeta.SqlDataFlowTopology topology = this.createTopology(topologyName, dsTable, targetColMetas);
+//
+//    OfflineDatasourceAction.CreateTopologyUpdateCallback dbSaver
+//      = new OfflineDatasourceAction.CreateTopologyUpdateCallback(this.getUser(), this.getWorkflowDAOFacade(), true);
+//    WorkFlow df = dbSaver.execute(topologyName, topology);
+//    // 保存一个时间戳
+//    SqlTaskNodeMeta.persistence(topology, parent);
+//    boolean hasCreateCollection = false;
+//    Optional<Application> createdApp = Optional.empty();
+//    try {
+//      // 在在引擎节点上创建实例节点
+//      createdApp = this.createCollection(context, df, indexName.param, targetColMetas);
+//      hasCreateCollection = true;
+//      if (incrCfg != null) {
+//        logger.info("start incr channel create");
+//        if (!createIncrSyncChannel(context, incrCfg)) {
+//          return;
+//        }
+//      }
+//    } catch (Throwable e) {
+//      if (hasCreateCollection) {
+//        // 需要将已经 创建的索引删除
+//        this.deleteCollectionInCloud(context, indexName.getCollectionName());
+//      }
+//      throw e;
+//    }
+//    // 需要提交一下事务
+//    TransactionStatus tranStatus
+//      = (TransactionStatus) ActionContext.getContext().get(TransactionStatus.class.getSimpleName());
+//    Objects.requireNonNull(tranStatus, "transtatus can not be null");
+//    transactionManager.commit(tranStatus);
+//
+//    if (!createdApp.isPresent()) {
+//      throw new IllegalStateException("createdApp can not be null");
+//    }
+//
+//    // 现在需要开始触发全量索引了
+//    CoreAction.TriggerBuildResult triggerBuildResult
+//      = CoreAction.triggerFullIndexSwape(this, context, createdApp.get(), SHARED_COUNT);
+//    this.setBizResult(context, triggerBuildResult);
   }
 
   @Override

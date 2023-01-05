@@ -73,6 +73,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -296,7 +297,8 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     // 2. 添加表
-    offlineManager.addDatasourceTable(pojo, this, this, context, pojo.getTabId() != null, false);
+//    offlineManager.addDatasourceTable(pojo
+//      , this, this, context, pojo.getTabId() != null, false);
   }
 
   // /**
@@ -551,8 +553,8 @@ public class OfflineDatasourceAction extends BasicModule {
     // profile.setDataflowId(this.getWorkflowId(topologyName));
     topologyPojo.setProfile(profile);
     int x, y;
-    int tableid;
-    Tab tab;
+    String tabName = null;
+    Tab tab = null;
     for (int i = 0; i < nodes.length(); i++) {
       o = nodes.getJSONObject(i);
       x = o.getInt("x");
@@ -570,15 +572,16 @@ public class OfflineDatasourceAction extends BasicModule {
 
       if (nodetype == NodeType.DUMP) {
         dnode = new DependencyNode();
-        dnode.setExtraSql(SqlTaskNodeMeta.processBigContent(nodeMeta.getString("sqlcontent")));
+        dnode.setDbid(String.valueOf(nodeMeta.get("dbid")));
+       // dnode.setExtraSql(SqlTaskNodeMeta.processBigContent(nodeMeta.getString("sqlcontent")));
         dnode.setId(o.getString("id"));
-        tableid = nodeMeta.getInt("tabid");
+        tabName = nodeMeta.getString("tabname");
         Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap = Maps.newHashMap();
-        tab = getDatabase(this.offlineDAOFacade, dbMap, tableid);
+        tab = getDatabase(this, this.offlineManager, this.offlineDAOFacade, dbMap, Integer.parseInt(dnode.getDbid()), tabName);
         dnode.setDbName(tab.db.getName());
         dnode.setName(tab.tab.getName());
-        dnode.setTabid(String.valueOf(tableid));
-        dnode.setDbid(String.valueOf(nodeMeta.get("dbid")));
+        dnode.setTabid(String.valueOf(tabName));
+
         dnode.setPosition(pos);
         dnode.setType(NodeType.DUMP.getType());
         topologyPojo.addDumpTab(dnode);
@@ -666,21 +669,23 @@ public class OfflineDatasourceAction extends BasicModule {
     throw new IllegalStateException("topology:" + topologyName + " can not find workflow record in db");
   }
 
-  public static Tab getDatabase(IWorkflowDAOFacade wfDaoFacade, Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, int tableid) {
-    Tab dtab = null;
-    DatasourceTable tab = wfDaoFacade.getDatasourceTableDAO().selectByPrimaryKey(tableid);
-    if (tab == null) {
-      throw new IllegalStateException("tabid:" + tableid + " relevant 'TableDump' object can not be null");
-    }
-    dtab = new Tab(tab);
+  public static Tab getDatabase(IPluginContext pluginContext, OfflineManager offlineManager, IWorkflowDAOFacade wfDaoFacade, Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, Integer dbId, String tabName) {
+
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = null;
-    if ((db = dbMap.get(tab.getDbId())) == null) {
-      db = wfDaoFacade.getDatasourceDbDAO().selectByPrimaryKey(tab.getDbId());
+    // DatasourceTable tab = wfDaoFacade.getDatasourceTableDAO().selectByPrimaryKey(tableid);
+//    if (tab == null) {
+//      throw new IllegalStateException("tabid:" + tableid + " relevant 'TableDump' object can not be null");
+//    }
+
+    if ((db = dbMap.get(dbId)) == null) {
+      db = wfDaoFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
       if (db == null) {
-        throw new IllegalStateException("tabid:" + tableid + " relevant 'TableDump' object can not be null");
+        throw new IllegalStateException("dbId:" + dbId + " relevant 'DatasourceDb' object can not be null");
       }
-      dbMap.put(tab.getDbId(), db);
+      dbMap.put(dbId, db);
     }
+    DBConfigSuit dbSuit = offlineManager.getDbConfig(pluginContext, db);
+    Tab dtab = new Tab(dbSuit.getTab(tabName));
     dtab.setDb(db);
     return dtab;
   }
@@ -689,9 +694,9 @@ public class OfflineDatasourceAction extends BasicModule {
 
     private com.qlangtech.tis.workflow.pojo.DatasourceDb db;
 
-    private final DatasourceTable tab;
+    private final ISelectedTab tab;
 
-    public Tab(DatasourceTable tab) {
+    public Tab(ISelectedTab tab) {
       super();
       this.tab = tab;
     }
@@ -704,7 +709,7 @@ public class OfflineDatasourceAction extends BasicModule {
       this.db = db;
     }
 
-    public DatasourceTable getTab() {
+    public ISelectedTab getTab() {
       return tab;
     }
   }
@@ -962,15 +967,15 @@ public class OfflineDatasourceAction extends BasicModule {
     <T> T execute(String topologyName, SqlDataFlowTopology topology);
   }
 
-  /**
-   * Do get datasource tables. 获取数据库中所有数据源表
-   *
-   * @param context the context
-   * @throws Exception the exception
-   */
-  public void doGetDatasourceTables(Context context) throws Exception {
-    this.setBizResult(context, offlineManager.getDatasourceTables());
-  }
+//  /**
+//   * Do get datasource tables. 获取数据库中所有数据源表
+//   *
+//   * @param context the context
+//   * @throws Exception the exception
+//   */
+//  public void doGetDatasourceTables(Context context) throws Exception {
+//   // this.setBizResult(context, offlineManager.getDatasourceTables());
+//  }
 
   /**
    * Do edit workflow. 编辑工作流
@@ -1031,6 +1036,26 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context
       , new ConfigDsMeta(offlineManager.getDatasourceInfo(), TIS.get().getDescriptorList(DataSourceFactory.class)));
   }
+
+//  public void doGetTabsByDbId(Context context) {
+//    Integer dbId = this.getInt("dbId");
+//
+//    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.wfDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
+//
+////    getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta,
+////      Optional< IPropertyType.SubFormFilter> subFormFilter
+////    )
+//
+//    // UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" +
+//
+//    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(
+//      HeteroEnum.DATAX_READER.getIdentity() + ":require," + IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs,targetDescriptorName_MySQL," + DataxUtils.DATAX_DB_NAME + "_" + db.getName());
+//    Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+//    if (!subFormFilter.isPresent()) {
+//      throw new IllegalStateException("subformFilter must be present:" + pluginMeta.toString());
+//    }
+//    HeteroEnum.getDataXReaderAndWriterStore(this, true, pluginMeta, subFormFilter);
+//  }
 
 
   public static class ConfigDsMeta extends PluginDescMeta {
@@ -1257,17 +1282,15 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   public void doGetDatasourceTableById(Context context) throws IOException {
     Integer dbId = this.getInt("id");
-    String tableName = this.getString("labelName");
+    String tableName = this.getString("tabName");
     com.qlangtech.tis.workflow.pojo.DatasourceDb db
       = this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByPrimaryKey(dbId);
     Objects.requireNonNull(db, "db can not be null");
-    //TISTable tableConfig = this.offlineManager.getTableConfig(this, tableId);
+    //  TISTable tableConfig = this.offlineManager.getTableConfig(this, tableId);
     //this.setBizResult(context, tableConfig);
 
     DataxReader dbDataxReader = OfflineManager.getDBDataxReader(this, db.getName());
-    this.setBizResult(context, DescriptorsJSON.desc(dbDataxReader.getDescriptor())
-      // new DescriptorsJSON(dbDataxReader.getDescriptor()).getDescriptorsJSON()
-    );
+    this.setBizResult(context, DescriptorsJSON.desc(dbDataxReader.getDescriptor()));
   }
 
   /**
@@ -1518,34 +1541,34 @@ public class OfflineDatasourceAction extends BasicModule {
     this.offlineManager.syncDbRecord(datasourceDb, this, context);
   }
 
-  /**
-   * 线上控制台使用，用来添加table记录
-   *
-   * @param context
-   */
-  public void doSyncTableRecord(Context context) {
-    Integer id = this.getInt("id");
-    if (id == null) {
-      this.addErrorMessage(context, "id不能为空");
-      this.setBizResult(context, false);
-      return;
-    }
-    String name = this.getString("name");
-    String tableLogicName = this.getString("tableLogicName");
-    Integer dbId = this.getInt("db_id");
-    if (dbId == null) {
-      this.addErrorMessage(context, "db_id不能为空");
-      this.setBizResult(context, false);
-      return;
-    }
-    DatasourceTable datasourceTable = new DatasourceTable();
-    datasourceTable.setId(id);
-    datasourceTable.setName(name);
-    datasourceTable.setDbId(dbId);
-    Date now = new Date();
-    datasourceTable.setCreateTime(now);
-    this.offlineManager.syncTableRecord(datasourceTable, this, context);
-  }
+//  /**
+//   * 线上控制台使用，用来添加table记录
+//   *
+//   * @param context
+//   */
+//  public void doSyncTableRecord(Context context) {
+//    Integer id = this.getInt("id");
+//    if (id == null) {
+//      this.addErrorMessage(context, "id不能为空");
+//      this.setBizResult(context, false);
+//      return;
+//    }
+//    String name = this.getString("name");
+//    String tableLogicName = this.getString("tableLogicName");
+//    Integer dbId = this.getInt("db_id");
+//    if (dbId == null) {
+//      this.addErrorMessage(context, "db_id不能为空");
+//      this.setBizResult(context, false);
+//      return;
+//    }
+//    DatasourceTable datasourceTable = new DatasourceTable();
+//    datasourceTable.setId(id);
+//    datasourceTable.setName(name);
+//    datasourceTable.setDbId(dbId);
+//    Date now = new Date();
+//    datasourceTable.setCreateTime(now);
+//    this.offlineManager.syncTableRecord(datasourceTable, this, context);
+//  }
 
   /**
    * 删除db

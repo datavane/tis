@@ -27,7 +27,7 @@ public interface IWorkflowDAOFacade {
 
   IWorkFlowBuildHistoryDAO getWorkFlowBuildHistoryDAO();
 
-  IDatasourceTableDAO getDatasourceTableDAO();
+ // IDatasourceTableDAO getDatasourceTableDAO();
 
   IDatasourceDbDAO getDatasourceDbDAO();
 }

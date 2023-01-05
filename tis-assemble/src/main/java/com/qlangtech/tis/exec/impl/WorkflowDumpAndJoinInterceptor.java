@@ -1,29 +1,44 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.exec.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.exec.datax.DataXAssembleSvcCompsite;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
+import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
 import com.qlangtech.tis.manage.ISolrAppSource;
+import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
+import com.qlangtech.tis.workflow.pojo.WorkFlow;
+import com.tis.hadoop.rpc.RpcServiceReference;
+import org.jvnet.hudson.reactor.Task;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,45 +57,54 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
     protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
         // TisZkClient zkClient = execChainContext.getZkClient();
 
-        ISolrAppSource appRule = execChainContext.getAppSource();//  DataFlowAppSource.load(execChainContext.getIndexName());
+        WorkFlow wf = new WorkFlow();
+        wf.setId(null);
+        wf.setName("name");
+        ISolrAppSource appRule = new DataFlowAppSource(wf);
+
+
+        // ISolrAppSource appRule = execChainContext.getAppSource(); // DataFlowAppSource.load(execChainContext.getIndexName());
 
         //  execChainContext.getZkClient()
 //        IExecChainContext execChainContext, TisZkClient zkClient
 //                , DataFlowAppSource.ISingleTableDumpFactory singleTableDumpFactory, IAppSource.IDataProcessFeedback
 //        dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo
+        RpcServiceReference dataXExecReporter = getDataXExecReporter();
+        final DataXAssembleSvcCompsite svcCompsite = dataXExecReporter.get();
+        final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new ISolrAppSource.ISingleTableDumpFactory() {
+                    @Override
+                    public DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
+                            , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
+                        return new SingleTableDump(dump, hasValidTableDump, /* isHasValidTableDump */
+                                pt, zkClient, execChainContext, dumpPhaseStatus);
+                        // throw new UnsupportedOperationException();
+                    }
+                },
+                new ISolrAppSource.IDataProcessFeedback() {
+                    @Override
+                    public PhaseStatusCollection getPhaseStatusSet(IExecChainContext execContext) {
+                        return TrackableExecuteInterceptor.getTaskPhaseReference(execContext.getTaskId());
+                    }
 
-//        final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new ISolrAppSource.ISingleTableDumpFactory() {
-//                    @Override
-//                    public DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
-//                            , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
-//                        return new SingleTableDump(dump, hasValidTableDump, /* isHasValidTableDump */
-//                                pt, zkClient, execChainContext, dumpPhaseStatus);
+                    @Override
+                    public void reportDumpTableStatusError(IExecChainContext execContext, DumpPhaseStatus dumpPhase, Task task) {
+
+                        TISReactor.TaskImpl tsk = (TISReactor.TaskImpl) task;
+                        DumpPhaseStatus.TableDumpStatus dumpStatus = dumpPhase.getTable(tsk.getIdentityName());
+                        svcCompsite.reportDumpJobStatus(true, true
+                                , false, dumpPhase.getTaskId(), tsk.getDisplayName(), dumpStatus.getReadRows(), dumpStatus.getAllRows());//.reportDumpTableStatusError(execChainContext.getTaskId(), task.getDisplayName());
+                    }
+                }, this
+        );
 //
-//                    }
-//                },
-//                new ISolrAppSource.IDataProcessFeedback() {
-//                    @Override
-//                    public PhaseStatusCollection getPhaseStatusSet(IExecChainContext execContext) {
-//                        return TrackableExecuteInterceptor.taskPhaseReference.get(execContext.getTaskId());
-//                    }
-//
-//                    @Override
-//                    public void reportDumpTableStatusError(IExecChainContext execContext, Task task) {
-//                        IncrStatusUmbilicalProtocolImpl statReceiver = IncrStatusUmbilicalProtocolImpl.getInstance();
-//                        statReceiver.reportDumpTableStatusError(execChainContext.getTaskId(), task.getDisplayName());
-//                       // statReceiver.reportDumpTableStatus();
-//                    }
-//                }, this
-//        );
-//
-//        //   final ExecuteResult[] faildResult = getProcessDataResults(execChainContext, zkClient, this);
-//        final List<Map<String, String>> summary = new ArrayList<>();
-//        if (faildResult != null) {
-//            return faildResult;
-//        } else {
-//            return ExecuteResult.createSuccess().setMessage(JSON.toJSONString(summary, true));
-//        }
-        return null;
+        //   final ExecuteResult[] faildResult = getProcessDataResults(execChainContext, zkClient, this);
+
+        if (faildResult != null) {
+            return faildResult;
+        } else {
+            final List<Map<String, String>> summary = new ArrayList<>();
+            return ExecuteResult.createSuccess().setMessage(JSON.toJSONString(summary, true));
+        }
     }
 
 //    private ExecuteResult[] getProcessDataResults(IExecChainContext execChainContext, TisZkClient zkClient, ITaskPhaseInfo taskPhaseInfo) throws Exception {
@@ -134,8 +158,6 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
 //        }
 //        return faildResult;
 //    }
-
-
 
 
 //    private void processTaskResult(IExecChainContext execContext, TISReactor.TaskImpl t, ITaskResultProcessor resultProcessor) {

@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.sql.parser.shop;
 
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.sql.parser.SqlTaskBaseTestCase;
@@ -39,7 +40,7 @@ public class TestShopTopologyParse extends SqlTaskBaseTestCase {
         super.setUp();
         System.clearProperty(Config.KEY_DATA_DIR);
         Config.setDataDir(Config.DEFAULT_DATA_DIR);
-        SqlTaskNode.parent = new File(Config.getMetaCfgDir(), SqlTaskNode.NAME_DATAFLOW_DIR);
+        SqlTaskNode.parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_DATAFLOW_DIR);
     }
 
     public void testTopologyParse() throws Exception {

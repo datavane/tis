@@ -18,6 +18,7 @@
 package com.qlangtech.tis.sql.parser;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import org.apache.commons.io.FileUtils;
@@ -42,7 +43,7 @@ public class TopologyDir {
 
     public TopologyDir(File dir, String topologyName) {
         this.dir = dir;
-        this.relativePath = SqlTaskNode.NAME_DATAFLOW_DIR + "/" + topologyName;
+        this.relativePath = IFullBuildContext.NAME_DATAFLOW_DIR + "/" + topologyName;
     }
 
     public File synchronizeRemoteRes(String resName) {

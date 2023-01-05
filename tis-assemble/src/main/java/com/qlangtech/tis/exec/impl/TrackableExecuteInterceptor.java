@@ -20,15 +20,23 @@ package com.qlangtech.tis.exec.impl;
 import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.*;
+import com.qlangtech.tis.exec.datax.DataXAssembleSvcCompsite;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
+import com.qlangtech.tis.realtime.yarn.rpc.impl.AdapterStatusUmbilicalProtocol;
+import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
+import com.tis.hadoop.rpc.ITISRpcService;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 执行进度可跟踪的执行器
@@ -53,6 +61,23 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
         PhaseStatusCollection status = taskPhaseReference.get(taskId);
         // Objects.requireNonNull(status, "taskId:" + taskId + " relevant status can not be null");
         return status;
+    }
+
+    protected RpcServiceReference getDataXExecReporter() {
+        IncrStatusUmbilicalProtocolImpl statusServer = IncrStatusUmbilicalProtocolImpl.getInstance();
+        IncrStatusUmbilicalProtocol statReceiveSvc = new AdapterStatusUmbilicalProtocol() {
+            @Override
+            public void reportDumpTableStatus(DumpPhaseStatus.TableDumpStatus tableDumpStatus) {
+//                statusServer.reportDumpTableStatus(tableDumpStatus.getTaskid(), tableDumpStatus.isComplete()
+//                        , tableDumpStatus.isWaiting(), tableDumpStatus.isFaild(), tableDumpStatus.getName());
+
+                statusServer.reportDumpTableStatus(tableDumpStatus);
+            }
+        };
+        AtomicReference<ITISRpcService> ref = new AtomicReference<>();
+        ref.set(new DataXAssembleSvcCompsite(statReceiveSvc));
+        return new RpcServiceReference(ref, () -> {
+        });
     }
 
     /**

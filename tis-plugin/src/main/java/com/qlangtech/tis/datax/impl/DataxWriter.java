@@ -118,7 +118,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
         if (StringUtils.isEmpty(appname)) {
             throw new IllegalArgumentException("param appname can not be null");
         }
-        return new KeyedPluginStore.AppKey(context, false, appname, DataxWriter.class);
+        return new KeyedPluginStore.AppKey(context, KeyedPluginStore.StoreResourceType.parse(false), appname, DataxWriter.class);
     }
 
 

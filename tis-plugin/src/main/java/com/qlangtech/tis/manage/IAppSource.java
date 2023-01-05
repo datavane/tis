@@ -46,7 +46,7 @@ public interface IAppSource extends Describable<IAppSource> {
     }
 
     static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, String appName) {
-        return new KeyedPluginStore.AppKey(context, false, appName, IAppSource.class);
+        return new KeyedPluginStore.AppKey(context, KeyedPluginStore.StoreResourceType.parse(false), appName, IAppSource.class);
     }
 
     static void cleanPluginStoreCache(IPluginContext context, String appName) {

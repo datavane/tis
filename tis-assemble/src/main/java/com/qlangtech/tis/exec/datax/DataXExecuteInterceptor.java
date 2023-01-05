@@ -319,22 +319,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         return DataXJobSubmit.getDataXTriggerType();
     }
 
-    protected RpcServiceReference getDataXExecReporter() {
-        IncrStatusUmbilicalProtocolImpl statusServer = IncrStatusUmbilicalProtocolImpl.getInstance();
-        IncrStatusUmbilicalProtocol statReceiveSvc = new AdapterStatusUmbilicalProtocol() {
-            @Override
-            public void reportDumpTableStatus(DumpPhaseStatus.TableDumpStatus tableDumpStatus) {
-//                statusServer.reportDumpTableStatus(tableDumpStatus.getTaskid(), tableDumpStatus.isComplete()
-//                        , tableDumpStatus.isWaiting(), tableDumpStatus.isFaild(), tableDumpStatus.getName());
 
-                statusServer.reportDumpTableStatus(tableDumpStatus);
-            }
-        };
-        AtomicReference<ITISRpcService> ref = new AtomicReference<>();
-        ref.set(new DataXAssembleSvcCompsite(statReceiveSvc));
-        return new RpcServiceReference(ref, () -> {
-        });
-    }
 
     @Override
     public Set<FullbuildPhase> getPhase() {

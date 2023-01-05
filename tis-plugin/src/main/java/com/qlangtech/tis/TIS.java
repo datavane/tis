@@ -156,7 +156,7 @@ public class TIS {
 
         public DataXReaderAppKey(IPluginContext pluginContext, boolean isDB, String appname
                 , PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback) {
-            super(pluginContext, isDB, appname, DataxReader.class);
+            super(pluginContext, KeyedPluginStore.StoreResourceType.parse(isDB), appname, DataxReader.class);
             if (pluginCreateCallback == null) {
                 throw new IllegalStateException("param pluginCreateCallback can not be null");
             }
@@ -745,7 +745,7 @@ public class TIS {
      * Update the current install state. This will invoke state.initializeState()
      * when the state has been transitioned.
      */
-    public void setInstallState( InstallState newState) {
+    public void setInstallState(InstallState newState) {
         String prior = installStateName;
         installStateName = newState.name();
         logger.info("Install state transitioning from: {} to : {}", prior, installStateName);

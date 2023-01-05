@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.exec.impl;
 
@@ -65,6 +65,11 @@ public class DefaultChainContext implements IExecChainContext {
 
     // 执行阶段跨度
     private ExecutePhaseRange executePhaseRange;
+
+//    @Override
+//    public TableDumpFactory getTableDumpFactory() {
+//        throw new UnsupportedOperationException();
+//    }
 
     //private IIndexMetaData indexMetaData;
 
@@ -145,17 +150,19 @@ public class DefaultChainContext implements IExecChainContext {
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {
         if (this.executePhaseRange == null) {
-
-            DataxProcessor appSource = this.getAppSource();
-            IDataxWriter writer = appSource.getWriter(null);
-            if (writer instanceof IDataXBatchPost) {
-                this.executePhaseRange = ((IDataXBatchPost) writer).getPhaseRange();
-            }else{
-                this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.FullDump);
+            String start = this.getString(COMPONENT_START);//StringUtils.defaultIfEmpty(this.getString(COMPONENT_START), FullbuildPhase.FullDump.getName());
+            if (StringUtils.isNotEmpty(start)) {
+                String end = StringUtils.defaultIfEmpty(this.getString(COMPONENT_END), FullbuildPhase.IndexBackFlow.getName());
+                this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.parse(start), FullbuildPhase.parse(end));
+            } else {
+                DataxProcessor appSource = this.getAppSource();
+                IDataxWriter writer = appSource.getWriter(null);
+                if (writer instanceof IDataXBatchPost) {
+                    this.executePhaseRange = ((IDataXBatchPost) writer).getPhaseRange();
+                } else {
+                    this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.FullDump);
+                }
             }
-//            String start = StringUtils.defaultIfEmpty(this.getString(COMPONENT_START), FullbuildPhase.FullDump.getName());
-//            String end = StringUtils.defaultIfEmpty(this.getString(COMPONENT_END), FullbuildPhase.IndexBackFlow.getName());
-//            this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.parse(start), FullbuildPhase.parse(end));
         }
         return this.executePhaseRange;
     }

@@ -173,7 +173,7 @@ public abstract class IncrSelectedTabExtend implements Describable<IncrSelectedT
 
 
     public static KeyedPluginStore<IncrSelectedTabExtend> getPluginStore(IPluginContext pluginContext, String appname) {
-        KeyedPluginStore.AppKey key = new KeyedPluginStore.AppKey(pluginContext, false
+        KeyedPluginStore.AppKey key = new KeyedPluginStore.AppKey(pluginContext, KeyedPluginStore.StoreResourceType.parse( false)
                 , appname, IncrSelectedTabExtend.class);
         return pluginStore.get(key);
     }

@@ -573,8 +573,9 @@ public class CoreAction extends BasicModule {
 
       @Override
       public Date visit(ISingleTableAppSource single) {
-        DatasourceTable table = module.getWorkflowDAOFacade().getDatasourceTableDAO().loadFromWriteDB(single.getTabId());
-        return table.getOpTime();
+//        DatasourceTable table = module.getWorkflowDAOFacade().getDatasourceTableDAO().loadFromWriteDB(single.getTabId());
+//        return table.getOpTime();
+        throw new UnsupportedOperationException();
       }
 
       @Override
@@ -587,10 +588,11 @@ public class CoreAction extends BasicModule {
     return new IndexStreamCodeGenerator(module.getCollectionName(), appSource
       , ManageUtils.formatNowYyyyMMddHHmmss(scriptLastOpTime), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
-      DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-      tableCriteria.createCriteria().andDbIdEqualTo(dbId);
-      List<DatasourceTable> tableList = module.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(tableCriteria);
-      return tableList.stream().map((t) -> t.getName()).collect(Collectors.toList());
+//      DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
+//      tableCriteria.createCriteria().andDbIdEqualTo(dbId);
+//      List<DatasourceTable> tableList = module.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(tableCriteria);
+//      return tableList.stream().map((t) -> t.getName()).collect(Collectors.toList());
+      return Collections.emptyList();
     });
   }
 

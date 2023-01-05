@@ -292,22 +292,22 @@ public class FullbuildWorkflowAction extends BasicModule {
     return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
   }
 
-  private DatasourceTable getTable(String tabName) {
-    DatasourceTableCriteria query = new DatasourceTableCriteria();
-    query.createCriteria().andNameEqualTo(tabName);
-    List<DatasourceTable> tabList = this.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(query);
-    return tabList.stream().findFirst().get();
-  }
+//  private DatasourceTable getTable(String tabName) {
+//    DatasourceTableCriteria query = new DatasourceTableCriteria();
+//    query.createCriteria().andNameEqualTo(tabName);
+//    List<DatasourceTable> tabList = this.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(query);
+//    return tabList.stream().findFirst().get();
+//  }
 
-  public static GitUtils.GitBranchInfo getBranch(WorkFlow workFlow) {
-    RunEnvironment runtime = RunEnvironment.getSysRuntime();
-    if (runtime == RunEnvironment.ONLINE) {
-      return GitBranchInfo.$(GitUtils.GitBranch.MASTER);
-    } else {
-      // : GitBranchInfo.$(workFlow.getName());
-      return GitBranchInfo.$(GitUtils.GitBranch.DEVELOP);
-    }
-  }
+//  public static GitUtils.GitBranchInfo getBranch(WorkFlow workFlow) {
+//    RunEnvironment runtime = RunEnvironment.getSysRuntime();
+//    if (runtime == RunEnvironment.ONLINE) {
+//      return GitBranchInfo.$(GitUtils.GitBranch.MASTER);
+//    } else {
+//      // : GitBranchInfo.$(workFlow.getName());
+//      return GitBranchInfo.$(GitUtils.GitBranch.DEVELOP);
+//    }
+//  }
 
   public static class ValidTableDump {
 

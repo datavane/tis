@@ -680,7 +680,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
         String[] pair = StringUtils.split(tabCascadervalues[1], "%");
         Integer tabId = Integer.parseInt(pair[0]);
         String tabName = StringUtils.trimToEmpty(pair[1]);
-        DatasourceTable table = module.wfDAOFacade.getDatasourceTableDAO().loadFromWriteDB(tabId);
+        DatasourceTable table = null;// module.wfDAOFacade.getDatasourceTableDAO().loadFromWriteDB(tabId);
         DatasourceDb db = module.wfDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbId);
         return new SingleTableAppSource(db, table);
       } else if (AddAppAction.SOURCE_TYPE_DF.equals(this.getDsType())) {

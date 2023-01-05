@@ -296,8 +296,11 @@ public class DataxExecutor {
         try {
 
             Objects.requireNonNull(dataxProcessor, "dataxProcessor can not be null");
-            KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
-            KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
+
+            IDataxReader reader = dataxProcessor.getReader(null);
+            IDataxWriter writer = dataxProcessor.getWriter(null);
+            // KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataxName);
+            // KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(null, dataxName);
             File jobPath = jobName.getJobPath(dataxProcessor.getDataxCfgDir(null));
 //            String[] args = new String[]{
 //                    "-mode", "standalone"
@@ -306,9 +309,9 @@ public class DataxExecutor {
 //                    , "-execTimeStamp", execTimeStamp};
 
 
-            DataxReader reader = readerStore.getPlugin();
+            // DataxReader reader = readerStore.getPlugin();
             Objects.requireNonNull(reader, "dataxName:" + dataxName + " relevant reader can not be null");
-            DataxWriter writer = writerStore.getPlugin();
+            // DataxWriter writer = writerStore.getPlugin();
             Objects.requireNonNull(writer, "dataxName:" + dataxName + " relevant writer can not be null");
             this.readerMeta = reader.getDataxMeta();
             this.writerMeta = writer.getDataxMeta();

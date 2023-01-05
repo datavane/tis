@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin;
 
@@ -67,7 +67,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
      * @return
      */
     public static PluginMetas getAppAwarePluginMetas(boolean isDB, String name) {
-        AppKey appKey = new AppKey(null, isDB, name, null);
+        AppKey appKey = new AppKey(null, StoreResourceType.parse(isDB), name, null);
         File appDir = getSubPathDir(appKey);
         File lastModify = getLastModifyToken(appKey);// new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
         long lastModfiyTimeStamp = -1;
@@ -243,12 +243,33 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
     }
 
-    public static class AppKey<TT extends Describable> extends Key<TT> {
-        public final boolean isDB;
+    public enum StoreResourceType {
+        DataBase(TIS.DB_GROUP_NAME), DataApp(IFullBuildContext.NAME_APP_DIR), DataFlow(IFullBuildContext.NAME_DATAFLOW_DIR);
+        private final String type;
 
-        public AppKey(IPluginContext pluginContext, boolean isDB, String appname, Class<TT> clazz) {
-            super(isDB ? TIS.DB_GROUP_NAME : IFullBuildContext.NAME_APP_DIR, calAppName(pluginContext, appname), clazz);
-            this.isDB = isDB;
+        public static StoreResourceType parse(boolean isDB) {
+            return isDB ? DataBase : DataApp;
+        }
+
+        public String getType() {
+            return this.type;
+        }
+
+        StoreResourceType(String type) {
+            this.type = type;
+        }
+    }
+
+    public static class AppKey<TT extends Describable> extends Key<TT> {
+        public final StoreResourceType resourceType;
+
+        public AppKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, Class<TT> clazz) {
+            super(resourceType.getType(), calAppName(pluginContext, appname), clazz);
+            this.resourceType = resourceType;
+        }
+
+        public boolean isDB() {
+            return this.resourceType == StoreResourceType.DataBase;
         }
 
         private static KeyVal calAppName(IPluginContext pluginContext, String appname) {

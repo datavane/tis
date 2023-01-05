@@ -368,7 +368,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     //   DataxWriter dataxWriter = DataxWriter.load(filter.uploadPluginMeta.getPluginContext(), dataXName);
                     Descriptor writerDescriptor
                             = IDataxProcessor.getWriterDescriptor(filter.uploadPluginMeta);// dataxWriter.getClass();
-                    if (writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
+                    if (writerDescriptor != null && writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
                         subPluginFormPropertyTypes = Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor)
                                         .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes)
                                 , "result can not be null " + PluginFormProperties.class.getSimpleName());

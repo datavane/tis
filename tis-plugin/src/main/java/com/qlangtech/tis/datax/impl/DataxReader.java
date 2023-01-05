@@ -112,7 +112,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         List<SubFieldFormAppKey<? extends Describable>> willDelete = Lists.newArrayList();
         entries.forEach((e) -> {
             SubFieldFormAppKey key = e.getKey();
-            if (StringUtils.equals(key.keyVal.getVal(), appname) && key.isDB == db) {
+            if (StringUtils.equals(key.keyVal.getVal(), appname) && key.isDB() == db) {
                 willDelete.add(key);
             }
         });
@@ -239,7 +239,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         public final BaseSubFormProperties subfieldForm;
 
         public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname, BaseSubFormProperties subfieldForm, Class<TT> clazz) {
-            super(pluginContext, isDB, Objects.requireNonNull(appname, "appname can not be empty"), clazz);
+            super(pluginContext, KeyedPluginStore.StoreResourceType.parse(isDB), Objects.requireNonNull(appname, "appname can not be empty"), clazz);
             this.subfieldForm = subfieldForm;
         }
 

@@ -24,7 +24,6 @@ import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
@@ -63,18 +62,18 @@ public interface IDataxProcessor {
 
     static Descriptor getWriterDescriptor(UploadPluginMeta pluginMeta //IPluginContext pluginContext, String dataXName
     ) throws Exception {
-        //    DataxProcessor processor = DataxProcessor.load(pluginContext, dataXName);
-        //    File workDir = processor.getDataXWorkDir(pluginContext);
-        String dataXName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
-        if (StringUtils.isEmpty(dataXName)) {
-            throw new IllegalStateException("param dataXName can not be null");
+        String dataXName = pluginMeta.getDataXName(false);
+        if (StringUtils.isNotEmpty(dataXName)) {
+            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginMeta.getPluginContext(), dataXName), TisUTF8.get()));
+            return descriptor;
+        } else {
+            return null;
         }
-//        DataxWriter.BaseDataxWriterDescriptor writerDesc
-//                = (DataxWriter.BaseDataxWriterDescriptor)
-        Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginMeta.getPluginContext(), dataXName), TisUTF8.get()));
-//        Class<? extends DataxWriter> writerClass = writerDesc.clazz;
-//        return (Class<DataxWriter>)writerClass;
-        return descriptor;
+        //  pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
+//        if (StringUtils.isEmpty(dataXName)) {
+//            throw new IllegalStateException("param dataXName can not be null");
+//        }
+
     }
 
     IDataxReader getReader(IPluginContext pluginCtx);

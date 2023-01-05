@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.offline.module.manager.impl;
 
@@ -106,97 +106,98 @@ public class OfflineManager {
     public void vist(Connection conn) throws SQLException;
   }
 
-  /**
-   * @param table
-   * @param action
-   * @param context
-   * @param updateMode
-   * @param idempotent 可多次操作table添加幂等
-   * @return
-   * @throws Exception
-   */
-  public ProcessedTable addDatasourceTable(TISTable table, BasicModule action, IPluginContext pluginContext, Context context, boolean updateMode, boolean idempotent) throws Exception {
-    final String tableName = table.getTableName();
-    // 检查db是否存在
-    final DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
-    dbCriteria.createCriteria().andIdEqualTo(table.getDbId());
-    int sameDbCount = workflowDAOFacade.getDatasourceDbDAO().countByExample(dbCriteria);
-    if (sameDbCount < 1) {
-      action.addErrorMessage(context, "找不到这个数据库");
-      return null;
-    }
-    final int dbId = table.getDbId();
-    DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-    int sameTableCount = 0;
-    if (updateMode) {
-      // 检查表是否存在，如不存在则为异常状态
-      tableCriteria.createCriteria().andIdEqualTo(table.getTabId()).andNameEqualTo(table.getTableName());
-      int findTable = workflowDAOFacade.getDatasourceTableDAO().countByExample(tableCriteria);
-      if (findTable < 1) {
-        throw new IllegalStateException("tabid:" + table.getTabId() + ",tabName:" + table.getTableName() + " is not exist in db");
-      }
-    } else {
-      // 检查表是否存在，如存在则退出
-      tableCriteria.createCriteria().andDbIdEqualTo(dbId).andNameEqualTo(tableName);//.andTableLogicNameEqualTo();
-      sameTableCount = workflowDAOFacade.getDatasourceTableDAO().countByExample(tableCriteria);
-      if (!idempotent && sameTableCount > 0) {
-        action.addErrorMessage(context, "该数据库下已经有了相同逻辑名的表:" + tableName);
-        return null;
-      }
-    }
-    // 更新DB的最新操作时间
-    DatasourceDb db = new DatasourceDb();
-    // db.setId(dbId);
-    db.setOpTime(new Date());
-    int dbUpdateRows = workflowDAOFacade.getDatasourceDbDAO().updateByExampleSelective(db, dbCriteria);
-    if (dbUpdateRows < 1) {
-      throw new IllegalStateException("db update faild");
-    }
-    // 添加表db
-    DatasourceTable dsTable = null;
-    Integer tableId;
-    if (updateMode) {
-      if ((tableId = table.getTabId()) == null) {
-        throw new IllegalStateException("update process tabId can not be null");
-      }
-      tableCriteria = new DatasourceTableCriteria();
-      // .andNameEqualTo(table.getTableName());
-      tableCriteria.createCriteria().andIdEqualTo(table.getTabId());
-      dsTable = new DatasourceTable();
-      dsTable.setOpTime(new Date());
-      workflowDAOFacade.getDatasourceTableDAO().updateByExampleSelective(dsTable, tableCriteria);
-      dsTable.setId(tableId);
-    } else if (idempotent && sameTableCount > 0) {
-      tableCriteria = new DatasourceTableCriteria();
-      tableCriteria.createCriteria().andDbIdEqualTo(dbId).andNameEqualTo(tableName);
-      for (DatasourceTable tab : workflowDAOFacade.getDatasourceTableDAO().selectByExample(tableCriteria)) {
-        dsTable = tab;
-      }
-    } else {
-      // sameTableCount < 0
-      dsTable = new DatasourceTable();
-      dsTable.setName(tableName);
-//      dsTable.setTableLogicName(tableName);
-      dsTable.setDbId(dbId);
-      // dsTable.setGitTag(tableName);
-      // 标示是否有同步到线上去
-      // dsTable.setSyncOnline(new Byte("0"));
-      dsTable.setCreateTime(new Date());
-      dsTable.setOpTime(new Date());
-      tableId = workflowDAOFacade.getDatasourceTableDAO().insertSelective(dsTable);
-      dsTable.setId(tableId);
-    }
-    Objects.requireNonNull(dsTable, "dsTable can not be null");
-    db = workflowDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbId);
-    action.addActionMessage(context, "数据库表'" + tableName + "'" + (updateMode ? "更新" : "添加") + "成功");
-    table.setSelectSql(null);
-    table.setReflectCols(null);
-    table.setTabId(dsTable.getId());
-    action.setBizResult(context, table);
-    // return dsTable;
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
-    return new ProcessedTable(dbPlugin.saveTable(tableName), db, dsTable);
-  }
+//  /**
+//   * @param table
+//   * @param action
+//   * @param context
+//   * @param updateMode
+//   * @param idempotent 可多次操作table添加幂等
+//   * @return
+//   * @throws Exception
+//   */
+//  public ProcessedTable addDatasourceTable(TISTable table, BasicModule action
+//    , IPluginContext pluginContext, Context context, boolean updateMode, boolean idempotent) throws Exception {
+//    final String tableName = table.getTableName();
+//    // 检查db是否存在
+//    final DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
+//    dbCriteria.createCriteria().andIdEqualTo(table.getDbId());
+//    int sameDbCount = workflowDAOFacade.getDatasourceDbDAO().countByExample(dbCriteria);
+//    if (sameDbCount < 1) {
+//      action.addErrorMessage(context, "找不到这个数据库");
+//      return null;
+//    }
+//    final int dbId = table.getDbId();
+//   // DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
+//    int sameTableCount = 0;
+//    if (updateMode) {
+//      // 检查表是否存在，如不存在则为异常状态
+////      tableCriteria.createCriteria().andIdEqualTo(table.getTabId()).andNameEqualTo(table.getTableName());
+////      int findTable = workflowDAOFacade.getDatasourceTableDAO().countByExample(tableCriteria);
+////      if (findTable < 1) {
+////        throw new IllegalStateException("tabid:" + table.getTabId() + ",tabName:" + table.getTableName() + " is not exist in db");
+////      }
+//    } else {
+//      // 检查表是否存在，如存在则退出
+////      tableCriteria.createCriteria().andDbIdEqualTo(dbId).andNameEqualTo(tableName);//.andTableLogicNameEqualTo();
+////      sameTableCount = workflowDAOFacade.getDatasourceTableDAO().countByExample(tableCriteria);
+////      if (!idempotent && sameTableCount > 0) {
+////        action.addErrorMessage(context, "该数据库下已经有了相同逻辑名的表:" + tableName);
+////        return null;
+////      }
+//    }
+//    // 更新DB的最新操作时间
+//    DatasourceDb db = new DatasourceDb();
+//    // db.setId(dbId);
+//    db.setOpTime(new Date());
+//    int dbUpdateRows = workflowDAOFacade.getDatasourceDbDAO().updateByExampleSelective(db, dbCriteria);
+//    if (dbUpdateRows < 1) {
+//      throw new IllegalStateException("db update faild");
+//    }
+//    // 添加表db
+//    DatasourceTable dsTable = null;
+//    Integer tableId;
+//    if (updateMode) {
+//      if ((tableId = table.getTabId()) == null) {
+//        throw new IllegalStateException("update process tabId can not be null");
+//      }
+//      tableCriteria = new DatasourceTableCriteria();
+//      // .andNameEqualTo(table.getTableName());
+//      tableCriteria.createCriteria().andIdEqualTo(table.getTabId());
+//      dsTable = new DatasourceTable();
+//      dsTable.setOpTime(new Date());
+//      workflowDAOFacade.getDatasourceTableDAO().updateByExampleSelective(dsTable, tableCriteria);
+//      dsTable.setId(tableId);
+//    } else if (idempotent && sameTableCount > 0) {
+//      tableCriteria = new DatasourceTableCriteria();
+//      tableCriteria.createCriteria().andDbIdEqualTo(dbId).andNameEqualTo(tableName);
+//      for (DatasourceTable tab : workflowDAOFacade.getDatasourceTableDAO().selectByExample(tableCriteria)) {
+//        dsTable = tab;
+//      }
+//    } else {
+//      // sameTableCount < 0
+//      dsTable = new DatasourceTable();
+//      dsTable.setName(tableName);
+////      dsTable.setTableLogicName(tableName);
+//      dsTable.setDbId(dbId);
+//      // dsTable.setGitTag(tableName);
+//      // 标示是否有同步到线上去
+//      // dsTable.setSyncOnline(new Byte("0"));
+//      dsTable.setCreateTime(new Date());
+//      dsTable.setOpTime(new Date());
+//      tableId = workflowDAOFacade.getDatasourceTableDAO().insertSelective(dsTable);
+//      dsTable.setId(tableId);
+//    }
+//    Objects.requireNonNull(dsTable, "dsTable can not be null");
+//    db = workflowDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbId);
+//    action.addActionMessage(context, "数据库表'" + tableName + "'" + (updateMode ? "更新" : "添加") + "成功");
+//    table.setSelectSql(null);
+//    table.setReflectCols(null);
+//    table.setTabId(dsTable.getId());
+//    action.setBizResult(context, table);
+//    // return dsTable;
+//    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
+//    return new ProcessedTable(dbPlugin.saveTable(tableName), db, dsTable);
+//  }
 
   public static class ProcessedTable {
     private final TableReflect tabReflect;
@@ -295,39 +296,39 @@ public class OfflineManager {
     action.setBizResult(context, db.getDbId());
   }
 
-  public void editDatasourceTable(TISTable table, BasicModule action, IPluginContext pluginContext, Context context) throws Exception {
-    String dbName = table.getDbName();
-    String tableLogicName = table.getTableName();
-    // 检查db是否存在
-    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
-    dbCriteria.createCriteria().andNameEqualTo(dbName);
-    List<DatasourceDb> dbList = workflowDAOFacade.getDatasourceDbDAO().minSelectByExample(dbCriteria);
-    if (CollectionUtils.isEmpty(dbList)) {
-      action.addErrorMessage(context, "找不到这个数据库");
-      return;
-    }
-    int dbId = dbList.get(0).getId();
-    // 检查表是否存在
-    DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-    tableCriteria.createCriteria().andDbIdEqualTo(dbId).andNameEqualTo(tableLogicName);
-    List<DatasourceTable> tableList = workflowDAOFacade.getDatasourceTableDAO().minSelectByExample(tableCriteria);
-    if (CollectionUtils.isEmpty(tableList)) {
-      action.addErrorMessage(context, "该数据库下没有表" + tableLogicName);
-      return;
-    }
-    int tableId = tableList.get(0).getId();
-    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dbName));
-    dbPlugin.saveTable(tableLogicName);
-    // update git
-    // String path = dbName + "/" + tableLogicName;
-    // GitUtils.$().createTableDaily(table, "edit table " + table.getTableLogicName());
-    OperationLog operationLog = new OperationLog();
-    operationLog.setUsrName(action.getLoginUserName());
-    operationLog.setUsrId(action.getUserId());
-    operationLog.setOpType("editDatasourceTable");
-    action.addActionMessage(context, "数据库表修改成功");
-    action.setBizResult(context, tableId);
-  }
+ // public void editDatasourceTable(TISTable table, BasicModule action, IPluginContext pluginContext, Context context) throws Exception {
+//    String dbName = table.getDbName();
+//    String tableLogicName = table.getTableName();
+//    // 检查db是否存在
+//    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
+//    dbCriteria.createCriteria().andNameEqualTo(dbName);
+//    List<DatasourceDb> dbList = workflowDAOFacade.getDatasourceDbDAO().minSelectByExample(dbCriteria);
+//    if (CollectionUtils.isEmpty(dbList)) {
+//      action.addErrorMessage(context, "找不到这个数据库");
+//      return;
+//    }
+//    int dbId = dbList.get(0).getId();
+//    // 检查表是否存在
+//    DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
+//    tableCriteria.createCriteria().andDbIdEqualTo(dbId).andNameEqualTo(tableLogicName);
+//    List<DatasourceTable> tableList = workflowDAOFacade.getDatasourceTableDAO().minSelectByExample(tableCriteria);
+//    if (CollectionUtils.isEmpty(tableList)) {
+//      action.addErrorMessage(context, "该数据库下没有表" + tableLogicName);
+//      return;
+//    }
+//    int tableId = tableList.get(0).getId();
+//    DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dbName));
+//    dbPlugin.saveTable(tableLogicName);
+//    // update git
+//    // String path = dbName + "/" + tableLogicName;
+//    // GitUtils.$().createTableDaily(table, "edit table " + table.getTableLogicName());
+//    OperationLog operationLog = new OperationLog();
+//    operationLog.setUsrName(action.getLoginUserName());
+//    operationLog.setUsrId(action.getUserId());
+//    operationLog.setOpType("editDatasourceTable");
+//    action.addActionMessage(context, "数据库表修改成功");
+//    action.setBizResult(context, tableId);
+ // }
 
   /**
    * description: 获取所有的工作流数据库 date: 2:30 PM 4/28/2017
@@ -346,36 +347,36 @@ public class OfflineManager {
   /**
    * description: 获取数据源表 date: 6:21 PM 5/18/2017
    */
-  public List<DatasourceTable> getDatasourceTables() {
-    DatasourceTableCriteria criteria = new DatasourceTableCriteria();
-    criteria.createCriteria();
-    List<DatasourceTable> tables = workflowDAOFacade.getDatasourceTableDAO().selectByExample(criteria);
-    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
-    dbCriteria.createCriteria();
-    List<DatasourceDb> dbs = workflowDAOFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
-    Map<Integer, DatasourceDb> dbMap = new HashMap<>();
-    for (DatasourceDb datasourceDb : dbs) {
-      dbMap.put(datasourceDb.getId(), datasourceDb);
-    }
-    // 把所有表名统计一遍
-    Map<String, Integer> tableNameCntMap = new HashMap<>();
-    for (DatasourceTable datasourceTable : tables) {
-      String name = datasourceTable.getName();
-      if (tableNameCntMap.containsKey(name)) {
-        tableNameCntMap.put(name, tableNameCntMap.get(name) + 1);
-      } else {
-        tableNameCntMap.put(name, 1);
-      }
-    }
-    for (DatasourceTable datasourceTable : tables) {
-      String name = datasourceTable.getName();
-      if (tableNameCntMap.get(name) > 1) {
-        datasourceTable.setName(dbMap.get(datasourceTable.getDbId()).getName() + "/" + datasourceTable.getName());
-      }
-    }
-    Collections.sort(tables);
-    return tables;
-  }
+//  public List<DatasourceTable> getDatasourceTables() {
+//    DatasourceTableCriteria criteria = new DatasourceTableCriteria();
+//    criteria.createCriteria();
+//    List<DatasourceTable> tables = workflowDAOFacade.getDatasourceTableDAO().selectByExample(criteria);
+//    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
+//    dbCriteria.createCriteria();
+//    List<DatasourceDb> dbs = workflowDAOFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
+//    Map<Integer, DatasourceDb> dbMap = new HashMap<>();
+//    for (DatasourceDb datasourceDb : dbs) {
+//      dbMap.put(datasourceDb.getId(), datasourceDb);
+//    }
+//    // 把所有表名统计一遍
+//    Map<String, Integer> tableNameCntMap = new HashMap<>();
+//    for (DatasourceTable datasourceTable : tables) {
+//      String name = datasourceTable.getName();
+//      if (tableNameCntMap.containsKey(name)) {
+//        tableNameCntMap.put(name, tableNameCntMap.get(name) + 1);
+//      } else {
+//        tableNameCntMap.put(name, 1);
+//      }
+//    }
+//    for (DatasourceTable datasourceTable : tables) {
+//      String name = datasourceTable.getName();
+//      if (tableNameCntMap.get(name) > 1) {
+//        datasourceTable.setName(dbMap.get(datasourceTable.getDbId()).getName() + "/" + datasourceTable.getName());
+//      }
+//    }
+//    Collections.sort(tables);
+//    return tables;
+//  }
 
   public void editWorkflow(WorkflowPojo pojo, BasicModule action, Context context) throws Exception {
     String name = pojo.getName();
@@ -421,15 +422,16 @@ public class OfflineManager {
     DatasourceDbCriteria criteria = new DatasourceDbCriteria();
     criteria.createCriteria();
     List<DatasourceDb> dbList = workflowDAOFacade.getDatasourceDbDAO().selectByExample(criteria);
-    DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-    tableCriteria.createCriteria();
+    //DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
+    //tableCriteria.createCriteria();
     // List<DatasourceTable> tableList = workflowDAOFacade.getDatasourceTableDAO().selectByExample(tableCriteria);
     Map<Integer, OfflineDatasourceAction.DatasourceDb> dbsMap = new HashMap<>();
+    OfflineDatasourceAction.DatasourceDb dsDb = null;
     for (DatasourceDb db : dbList) {
-      OfflineDatasourceAction.DatasourceDb datasourceDb1 = new OfflineDatasourceAction.DatasourceDb();
-      datasourceDb1.setId(db.getId());
-      datasourceDb1.setName(db.getName());
-      dbsMap.put(db.getId(), datasourceDb1);
+      dsDb = new OfflineDatasourceAction.DatasourceDb();
+      dsDb.setId(db.getId());
+      dsDb.setName(db.getName());
+      dbsMap.put(db.getId(), dsDb);
     }
 //    for (DatasourceTable table : tableList) {
 //      int dbId = table.getDbId();
@@ -453,8 +455,9 @@ public class OfflineManager {
 
     if (dbDataxReader != null) {
       List<ISelectedTab> selectedTabs = dbDataxReader.getSelectedTabs();
-      dbSuit.addTabs(selectedTabs.stream()
-        .map((t) -> t.getName()).collect(Collectors.toList()));
+//      dbSuit.addTabs(selectedTabs.stream()
+//        .map((t) -> t.getName()).collect(Collectors.toList()));
+      dbSuit.addTabs(selectedTabs);
     }
 
     PostedDSProp dbProp = new PostedDSProp(db.getName(), DbScope.DETAILED);
@@ -553,13 +556,14 @@ public class OfflineManager {
    * @return
    */
   public boolean checkTableLogicNameRepeat(String tableLogicName, DatasourceDb db) {
-    if (db == null) {
-      throw new IllegalStateException(" database can not be null");
-    }
-    DatasourceTableCriteria criteria = new DatasourceTableCriteria();
-    criteria.createCriteria().andNameEqualTo(tableLogicName).andDbIdEqualTo(db.getId());
-    int tableCount = workflowDAOFacade.getDatasourceTableDAO().countByExample(criteria);
-    return tableCount > 0;
+//    if (db == null) {
+//      throw new IllegalStateException(" database can not be null");
+//    }
+//    DatasourceTableCriteria criteria = new DatasourceTableCriteria();
+//    criteria.createCriteria().andNameEqualTo(tableLogicName).andDbIdEqualTo(db.getId());
+//    int tableCount = workflowDAOFacade.getDatasourceTableDAO().countByExample(criteria);
+//    return tableCount > 0;
+    return false;
   }
 
   //
@@ -725,15 +729,15 @@ public class OfflineManager {
     }
   }
 
-  public void syncTableRecord(DatasourceTable datasourceTable, BasicModule action, Context context) {
-    try {
-      this.workflowDAOFacade.getDatasourceTableDAO().insertSelective(datasourceTable);
-      action.setBizResult(context, true);
-    } catch (Exception e) {
-      action.addErrorMessage(context, e.getMessage());
-      action.setBizResult(context, false);
-    }
-  }
+//  public void syncTableRecord(DatasourceTable datasourceTable, BasicModule action, Context context) {
+//    try {
+//      this.workflowDAOFacade.getDatasourceTableDAO().insertSelective(datasourceTable);
+//      action.setBizResult(context, true);
+//    } catch (Exception e) {
+//      action.addErrorMessage(context, e.getMessage());
+//      action.setBizResult(context, false);
+//    }
+//  }
 
   private static boolean isXmlValid(JoinRule xmlStr) {
     boolean result = true;
@@ -792,13 +796,13 @@ public class OfflineManager {
     }
 
     // 2 检查还有表没
-    DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-    tableCriteria.createCriteria().andDbIdEqualTo(dbId);
-    List<DatasourceTable> datasourceTables = this.workflowDAOFacade.getDatasourceTableDAO().minSelectByExample(tableCriteria);
-    if (dbModel == DbScope.DETAILED && !CollectionUtils.isEmpty(datasourceTables)) {
-      action.addErrorMessage(context, "该数据库下仍然有数据表，请先删除所有的表");
-      return;
-    }
+//    DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
+//    tableCriteria.createCriteria().andDbIdEqualTo(dbId);
+//    List<DatasourceTable> datasourceTables = this.workflowDAOFacade.getDatasourceTableDAO().minSelectByExample(tableCriteria);
+//    if (dbModel == DbScope.DETAILED && !CollectionUtils.isEmpty(datasourceTables)) {
+//      action.addErrorMessage(context, "该数据库下仍然有数据表，请先删除所有的表");
+//      return;
+//    }
 //    DataSourceFactoryPluginStore dsPluginStore = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
 //    dsPluginStore.deleteDB();
     TIS.deleteDB(db.getName(), dbModel);
@@ -813,53 +817,54 @@ public class OfflineManager {
   }
 
   public void deleteDatasourceTableById(int tableId, BasicModule action, Context context) {
+    throw new UnsupportedOperationException();
     // 1 检查表是否存在
-    DatasourceTable datasourceTable = this.workflowDAOFacade.getDatasourceTableDAO().selectByPrimaryKey(tableId);
-    if (datasourceTable == null) {
-      action.addErrorMessage(context, "找不到该表，table id = " + tableId);
-      return;
-    }
-    // 2 检查对应的db是否存在
-    Integer dbId = datasourceTable.getDbId();
-    DatasourceDb datasourceDb = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
-    if (datasourceDb == null) {
-      action.addErrorMessage(context, "找不到该表对应的数据库，db id = " + dbId);
-      return;
-    }
-    // 3 检查是否有工作流用到了该table
-    WorkFlowCriteria workFlowCriteria = new WorkFlowCriteria();
-    workFlowCriteria.createCriteria();
-    List<WorkFlow> workFlows = this.workflowDAOFacade.getWorkFlowDAO().selectByExample(workFlowCriteria);
-    for (WorkFlow workFlow : workFlows) {
-      // WorkflowPojo workflowPojo = getWorkflowConfig(workFlow.getName(), true);
-      // if (!CollectionUtils.isEmpty(workflowPojo.getDependTableIds())
-      // && workflowPojo.getDependTableIds().contains(datasourceTable.getId())) {
-      // action.addErrorMessage(context,
-      // "数据库下面的表" + datasourceTable.getTableLogicName() + "仍然被工作流" +
-      // workflowPojo.getName() + "占用");
-      // return;
-      // }
-    }
-    // 4 删除git
-    try {
-      GitUser user = GitUser.dft();
-      RunEnvironment runEnvironment = action.getAppDomain().getRunEnvironment();
-      if (RunEnvironment.DAILY.equals(runEnvironment)) {
-        GitUtils.$().deleteTableDaily(datasourceDb.getName(), datasourceTable.getName(), user);
-      } else if (RunEnvironment.ONLINE.equals(runEnvironment)) {
-        GitUtils.$().deleteTableOnline(datasourceDb.getName(), datasourceTable.getName(), user);
-      } else {
-        action.addErrorMessage(context, "当前运行环境" + runEnvironment + "既不是daily也不是online");
-        return;
-      }
-    } catch (Exception e) {
-      action.addErrorMessage(context, "删除数据库失败");
-      action.addErrorMessage(context, e.getMessage());
-      return;
-    }
-    // 5 删除db
-    this.workflowDAOFacade.getDatasourceTableDAO().deleteByPrimaryKey(tableId);
-    action.addActionMessage(context, "成功删除table");
+//    DatasourceTable datasourceTable = this.workflowDAOFacade.getDatasourceTableDAO().selectByPrimaryKey(tableId);
+//    if (datasourceTable == null) {
+//      action.addErrorMessage(context, "找不到该表，table id = " + tableId);
+//      return;
+//    }
+//    // 2 检查对应的db是否存在
+//    Integer dbId = datasourceTable.getDbId();
+//    DatasourceDb datasourceDb = this.workflowDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
+//    if (datasourceDb == null) {
+//      action.addErrorMessage(context, "找不到该表对应的数据库，db id = " + dbId);
+//      return;
+//    }
+//    // 3 检查是否有工作流用到了该table
+//    WorkFlowCriteria workFlowCriteria = new WorkFlowCriteria();
+//    workFlowCriteria.createCriteria();
+//    List<WorkFlow> workFlows = this.workflowDAOFacade.getWorkFlowDAO().selectByExample(workFlowCriteria);
+//    for (WorkFlow workFlow : workFlows) {
+//      // WorkflowPojo workflowPojo = getWorkflowConfig(workFlow.getName(), true);
+//      // if (!CollectionUtils.isEmpty(workflowPojo.getDependTableIds())
+//      // && workflowPojo.getDependTableIds().contains(datasourceTable.getId())) {
+//      // action.addErrorMessage(context,
+//      // "数据库下面的表" + datasourceTable.getTableLogicName() + "仍然被工作流" +
+//      // workflowPojo.getName() + "占用");
+//      // return;
+//      // }
+//    }
+//    // 4 删除git
+//    try {
+//      GitUser user = GitUser.dft();
+//      RunEnvironment runEnvironment = action.getAppDomain().getRunEnvironment();
+//      if (RunEnvironment.DAILY.equals(runEnvironment)) {
+//        GitUtils.$().deleteTableDaily(datasourceDb.getName(), datasourceTable.getName(), user);
+//      } else if (RunEnvironment.ONLINE.equals(runEnvironment)) {
+//        GitUtils.$().deleteTableOnline(datasourceDb.getName(), datasourceTable.getName(), user);
+//      } else {
+//        action.addErrorMessage(context, "当前运行环境" + runEnvironment + "既不是daily也不是online");
+//        return;
+//      }
+//    } catch (Exception e) {
+//      action.addErrorMessage(context, "删除数据库失败");
+//      action.addErrorMessage(context, e.getMessage());
+//      return;
+//    }
+//    // 5 删除db
+//    this.workflowDAOFacade.getDatasourceTableDAO().deleteByPrimaryKey(tableId);
+//    action.addActionMessage(context, "成功删除table");
   }
 
   public void deleteWorkflowChange(int workflowId, BasicModule action, Context context) {

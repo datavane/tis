@@ -324,21 +324,16 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
     public static <T> T createDataXReaderAndWriterRelevant(
             IPluginContext pluginContext, UploadPluginMeta pluginMeta, DataXReaderAndWriterRelevantCreator<T> creator) {
-        final String dataxName = pluginMeta.getDataXName();//.getExtraParam(DataxUtils.DATAX_NAME);
+        final String dataxName = pluginMeta.getDataXName(false);
 
         if (StringUtils.isEmpty(dataxName)) {
             String saveDbName = pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
             if (StringUtils.isNotBlank(saveDbName)) {
-
-                // return DataxReader.getPluginStore(pluginContext, true, saveDbName);
                 return creator.dbRelevant(pluginContext, saveDbName);
             } else {
                 throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
             }
         } else {
-//            KeyedPluginStore<?> keyStore = (getReader)
-//                    ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
-//            return keyStore;
             return creator.appRelevant(pluginContext, dataxName);
         }
     }

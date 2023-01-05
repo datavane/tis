@@ -23,6 +23,7 @@ import com.facebook.presto.sql.tree.Query;
 import com.facebook.presto.sql.tree.TISStackableAstVisitor.StackableAstVisitorContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataType;
@@ -51,11 +52,7 @@ import java.util.stream.Collectors;
  */
 public class SqlTaskNode {
 
-    // public static final File parent = new File(
-    // "D:\\j2ee_solution\\eclipse-standard-kepler-SR2-win32-x86_64\\workspace\\tis-saturn\\tis-sql-parser\\src\\main\\resources\\totalpaytest");
-    public static final String NAME_DATAFLOW_DIR = "df";
-
-    public static File parent = new File(Config.getMetaCfgDir(), NAME_DATAFLOW_DIR);
+    public static File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_DATAFLOW_DIR);
 
     // private Map<String, SqlTaskNode> all;
     private Optional<TisGroupBy> groupBy = Optional.empty();

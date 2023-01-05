@@ -379,7 +379,8 @@ public class PluginAndCfgsSnapshot {
                 .append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
         if (this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp) {
             // 更新app相关配置,下载并更新本地配置
-            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, false, this.collection.getName(), null);
+            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null
+                    , KeyedPluginStore.StoreResourceType.parse(false), this.collection.getName(), null);
             URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, Config.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
 
             KeyedPluginStore.PluginMetas appMetas = localSnaphsot.appMetas.get();
